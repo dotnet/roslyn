@@ -2920,6 +2920,218 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7502")]
+        public void PointerReturnType_ClassReceiver()
+        {
+            var source = """
+                using System;
+
+                public class A
+                {
+                    public unsafe byte* Ptr = null;
+                
+                    unsafe byte* M1(bool b)
+                    {
+                        return b ? this?.Ptr : ((A)null)?.Ptr;
+                    }
+
+                    static unsafe void Main()
+                    {
+                        byte x = 42;
+                        A a = new () { Ptr = &x };
+                        var v = a.M1(true);
+                        Console.Write(v == null ? " null " : *v);
+                        v = a.M1(false);
+                        Console.Write(v == null ? " null " : *v);
+                    }
+                }
+                """;
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeDebugExe, expectedOutput: "42 null ", verify: Verification.Fails).VerifyDiagnostics();
+            comp.VerifyIL("A.M1", """
+                {
+                  // Code size       26 (0x1a)
+                  .maxstack  1
+                  .locals init (byte* V_0)
+                  IL_0000:  nop
+                  IL_0001:  ldarg.1
+                  IL_0002:  brtrue.s   IL_0008
+                  IL_0004:  ldc.i4.0
+                  IL_0005:  conv.u
+                  IL_0006:  br.s       IL_0015
+                  IL_0008:  ldarg.0
+                  IL_0009:  brtrue.s   IL_000f
+                  IL_000b:  ldc.i4.0
+                  IL_000c:  conv.u
+                  IL_000d:  br.s       IL_0015
+                  IL_000f:  ldarg.0
+                  IL_0010:  ldfld      "byte* A.Ptr"
+                  IL_0015:  stloc.0
+                  IL_0016:  br.s       IL_0018
+                  IL_0018:  ldloc.0
+                  IL_0019:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7502")]
+        public void PointerReturnType_Parameter_ClassReceiver()
+        {
+            var source = """
+                using System;
+
+                public class A
+                {
+                    public unsafe byte* Ptr = null;
+                }
+
+                class Test
+                {
+                    unsafe static byte* M1(A a)
+                    {
+                        return a?.Ptr;
+                    }
+                
+                    static unsafe void Main()
+                    {
+                        byte x = 42;
+                        A a = new () { Ptr = &x };
+                        var v = Test.M1(a);
+                        Console.Write(v == null ? " null " : *v);
+                        v = Test.M1(null);
+                        Console.Write(v == null ? " null " : *v);
+                    }
+                }
+                """;
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeDebugExe, expectedOutput: "42 null ", verify: Verification.Fails).VerifyDiagnostics();
+            comp.VerifyIL("Test.M1", """
+                {
+                  // Code size       19 (0x13)
+                  .maxstack  1
+                  .locals init (byte* V_0)
+                  IL_0000:  nop
+                  IL_0001:  ldarg.0
+                  IL_0002:  brtrue.s   IL_0008
+                  IL_0004:  ldc.i4.0
+                  IL_0005:  conv.u
+                  IL_0006:  br.s       IL_000e
+                  IL_0008:  ldarg.0
+                  IL_0009:  ldfld      "byte* A.Ptr"
+                  IL_000e:  stloc.0
+                  IL_000f:  br.s       IL_0011
+                  IL_0011:  ldloc.0
+                  IL_0012:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7502")]
+        public void PointerReturnType_NullableValueTypeReceiver()
+        {
+            var source = """
+                using System;
+
+                public struct A
+                {
+                    public unsafe byte* Ptr;
+                }
+
+                class Test
+                {
+                    unsafe static byte* M1(A? a)
+                    {
+                        return a?.Ptr;
+                    }
+
+                    static unsafe void Main()
+                    {
+                        byte x = 42;
+                        A a = new () { Ptr = &x };
+                        var v = Test.M1(a);
+                        Console.Write(v == null ? " null " : *v);
+                        v = Test.M1(null);
+                        Console.Write(v == null ? " null " : *v);
+                    }
+                }
+                """;
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeDebugExe, expectedOutput: "42 null ", verify: Verification.Fails).VerifyDiagnostics();
+            comp.VerifyIL("Test.M1", """
+                {
+                  // Code size       31 (0x1f)
+                  .maxstack  1
+                  .locals init (byte* V_0)
+                  IL_0000:  nop
+                  IL_0001:  ldarga.s   V_0
+                  IL_0003:  call       "bool A?.HasValue.get"
+                  IL_0008:  brtrue.s   IL_000e
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  conv.u
+                  IL_000c:  br.s       IL_001a
+                  IL_000e:  ldarga.s   V_0
+                  IL_0010:  call       "A A?.GetValueOrDefault()"
+                  IL_0015:  ldfld      "byte* A.Ptr"
+                  IL_001a:  stloc.0
+                  IL_001b:  br.s       IL_001d
+                  IL_001d:  ldloc.0
+                  IL_001e:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7502")]
+        public void PointerReturnType_MethodCallReceiver()
+        {
+            var source = """
+                using System;
+
+                public class A
+                {
+                    public unsafe byte* Ptr;
+                }
+
+                class Test
+                {
+                    static A GetA(A a) => a;
+
+                    static unsafe byte* M1(A a)
+                    {
+                        return GetA(a)?.Ptr;
+                    }
+
+                    static unsafe void Main()
+                    {
+                        byte x = 42;
+                        A a = new () { Ptr = &x };
+                        var v = M1(a);
+                        Console.Write(v == null ? " null " : *v);
+                        v = M1(null);
+                        Console.Write(v == null ? " null " : *v);
+                    }
+                }
+                """;
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeDebugExe, expectedOutput: "42 null ", verify: Verification.Fails).VerifyDiagnostics();
+            comp.VerifyIL("Test.M1", """
+                {
+                  // Code size       25 (0x19)
+                  .maxstack  2
+                  .locals init (byte* V_0)
+                  IL_0000:  nop
+                  IL_0001:  ldarg.0
+                  IL_0002:  call       "A Test.GetA(A)"
+                  IL_0007:  dup
+                  IL_0008:  brtrue.s   IL_000f
+                  IL_000a:  pop
+                  IL_000b:  ldc.i4.0
+                  IL_000c:  conv.u
+                  IL_000d:  br.s       IL_0014
+                  IL_000f:  ldfld      "byte* A.Ptr"
+                  IL_0014:  stloc.0
+                  IL_0015:  br.s       IL_0017
+                  IL_0017:  ldloc.0
+                  IL_0018:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7502")]
         public void PointerReturnType_WithUsage()
         {
             var source = """
