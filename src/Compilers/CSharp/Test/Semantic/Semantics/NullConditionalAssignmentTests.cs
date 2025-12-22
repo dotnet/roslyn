@@ -3132,6 +3132,66 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7502")]
+        public void PointerReturnType_NullableValueTypeMethodCallReceiver()
+        {
+            var source = """
+                using System;
+
+                public struct A
+                {
+                    public unsafe byte* Ptr;
+                }
+
+                class Test
+                {
+                    static A? GetA(A? a) => a;
+
+                    static unsafe byte* M1(A? a)
+                    {
+                        return GetA(a)?.Ptr;
+                    }
+
+                    static unsafe void Main()
+                    {
+                        byte x = 42;
+                        A a = new () { Ptr = &x };
+                        var v = M1(a);
+                        Console.Write(v == null ? " null " : *v);
+                        v = M1(null);
+                        Console.Write(v == null ? " null " : *v);
+                    }
+                }
+                """;
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeDebugExe, expectedOutput: "42 null ", verify: Verification.Fails).VerifyDiagnostics();
+            comp.VerifyIL("Test.M1", """
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  2
+                  .locals init (A? V_0,
+                                byte* V_1)
+                  IL_0000:  nop
+                  IL_0001:  ldarg.0
+                  IL_0002:  call       "A? Test.GetA(A?)"
+                  IL_0007:  stloc.0
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  dup
+                  IL_000b:  call       "bool A?.HasValue.get"
+                  IL_0010:  brtrue.s   IL_0017
+                  IL_0012:  pop
+                  IL_0013:  ldc.i4.0
+                  IL_0014:  conv.u
+                  IL_0015:  br.s       IL_0021
+                  IL_0017:  call       "A A?.GetValueOrDefault()"
+                  IL_001c:  ldfld      "byte* A.Ptr"
+                  IL_0021:  stloc.1
+                  IL_0022:  br.s       IL_0024
+                  IL_0024:  ldloc.1
+                  IL_0025:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7502")]
         public void PointerReturnType_WithUsage()
         {
             var source = """
