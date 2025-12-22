@@ -834,7 +834,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (ContainingModule.UseUpdatedMemorySafetyRules)
                 {
-                    return IsDeclaredUnsafe ? CallerUnsafeMode.Explicit : CallerUnsafeMode.None;
+                    return IsDeclaredUnsafe
+                        ? CallerUnsafeMode.Explicit
+                        : IsExtern
+                        ? CallerUnsafeMode.Extern
+                        : CallerUnsafeMode.None;
                 }
 
                 return this.HasParameterContainingPointerType() || Type.ContainsPointerOrFunctionPointer()
