@@ -3029,15 +3029,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var source = """
                 public class A
                 {
-                    public unsafe byte* Ptr = null;
-                    public void DoSomething() { }
+                    public unsafe byte* DoSomething() => null;
                 }
 
                 class Test
                 {
                     static unsafe void M(A a)
                     {
-                        a?.DoSomething();  // Statement context - method call works
+                        a?.DoSomething();
                     }
                 }
                 """;
@@ -3064,7 +3063,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7502")]
-        public void FunctionPointerReturnType_WithReturn()
+        public void FunctionPointerReturnType_LocalAssignment()
         {
             var source = """
                 class Test
