@@ -110,7 +110,8 @@ internal class SdkAnalyzerAssemblyRedirectorCore : IAnalyzerAssemblyRedirector
             {
                 if (!analyzerPath.StartsWith(topLevelDirectory, StringComparison.OrdinalIgnoreCase))
                 {
-                    Debug.Assert(false);
+                    // We can't continue, because computations in code below assume this.
+                    Debug.Fail($"Analyzer path '{analyzerPath}' must start with '{topLevelDirectory}'.");
                     continue;
                 }
 

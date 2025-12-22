@@ -26,7 +26,7 @@ public sealed class SdkAnalyzerAssemblyRedirectorTests : TestBase
         var vsDir = Path.Combine(testDir.Path, "vs");
         Metadata(vsDir, new() { { "AspNetCoreAnalyzers", a } });
         var vsAnalyzerPath = FakeDll(vsDir, @$"AspNetCoreAnalyzers\analyzers\dotnet\cs", "Microsoft.AspNetCore.App.Analyzers");
-        var sdkAnalyzerPath = FakeDll(testDir.Path, @$"sdk\packs\Microsoft.AspNetCore.App.Ref\{b}\analyzers\dotnet\cs", "Microsoft.AspNetCore.App.Analyzers");
+        var sdkAnalyzerPath = @$"Z:\Program Files\dotnet\sdk\packs\Microsoft.AspNetCore.App.Ref\{b}\analyzers\dotnet\cs\Microsoft.AspNetCore.App.Analyzers.dll";
 
         var resolver = new SdkAnalyzerAssemblyRedirectorCore(vsDir);
         var redirected = resolver.RedirectPath(sdkAnalyzerPath);
@@ -41,11 +41,47 @@ public sealed class SdkAnalyzerAssemblyRedirectorTests : TestBase
         var vsDir = Path.Combine(testDir.Path, "vs");
         Metadata(vsDir, new() { { "AspNetCoreAnalyzers", "9.0.0-preview.5.24306.11" } });
         FakeDll(vsDir, @"AspNetCoreAnalyzers\analyzers\dotnet\cs", "Microsoft.AspNetCore.App.Analyzers");
-        var sdkAnalyzerPath = FakeDll(testDir.Path, @"sdk\packs\Microsoft.AspNetCore.App.Ref\9.0.0-preview.7.24406.2\analyzers\dotnet\vb", "Microsoft.AspNetCore.App.Analyzers");
+        var sdkAnalyzerPath = @"Z:\Program Files\dotnet\sdk\packs\Microsoft.AspNetCore.App.Ref\9.0.0-preview.7.24406.2\analyzers\dotnet\vb\Microsoft.AspNetCore.App.Analyzers.dll";
 
         var resolver = new SdkAnalyzerAssemblyRedirectorCore(vsDir);
         var redirected = resolver.RedirectPath(sdkAnalyzerPath);
         Assert.Null(redirected);
+    }
+
+    [Fact]
+    public void DifferentPathSuffix_NoParentDirectory()
+    {
+        var testDir = Temp.CreateDirectory();
+
+        var vsDir = Path.Combine(testDir.Path, "vs");
+        Metadata(vsDir, new() { { "AspNetCoreAnalyzers", "9.0.0-preview.5.24306.11" } });
+        var vsAnalyzerPath = FakeDll(vsDir, @"AspNetCoreAnalyzers\analyzers\dotnet\cs", "Microsoft.AspNetCore.App.Analyzers");
+
+        // The suffix matches but there is no parent directory.
+        var sdkAnalyzerPath = @"\sdk\packs\Microsoft.AspNetCore.App.Ref\9.0.0-preview.7.24406.2\analyzers\dotnet\cs\Microsoft.AspNetCore.App.Analyzers.dll";
+
+        var resolver = new SdkAnalyzerAssemblyRedirectorCore(vsDir);
+        var redirected = resolver.RedirectPath(sdkAnalyzerPath);
+        AssertEx.Equal(vsAnalyzerPath, redirected);
+    }
+
+    [Fact]
+    public void TwoMajorVersions()
+    {
+        var testDir = Temp.CreateDirectory();
+
+        var vsDir = Path.Combine(testDir.Path, "vs");
+        Metadata(vsDir, new()
+        {
+            { "AspNetCoreAnalyzers9", "9.0.0-preview.5.24306.11" },
+            { "AspNetCoreAnalyzers10", "10.0.0-preview.5.24306.11" },
+        });
+        var vsAnalyzerPath9 = FakeDll(vsDir, @"AspNetCoreAnalyzers9\analyzers\dotnet\cs", "Microsoft.AspNetCore.App.Analyzers");
+        var vsAnalyzerPath10 = FakeDll(vsDir, @"AspNetCoreAnalyzers10\analyzers\dotnet\cs", "Microsoft.AspNetCore.App.Analyzers");
+
+        var resolver = new SdkAnalyzerAssemblyRedirectorCore(vsDir);
+        AssertEx.Equal(vsAnalyzerPath9, resolver.RedirectPath(@"Z:\sdk\packs\Microsoft.AspNetCore.App.Ref\9.0.0-preview.7.24406.2\analyzers\dotnet\cs\Microsoft.AspNetCore.App.Analyzers.dll"));
+        AssertEx.Equal(vsAnalyzerPath10, resolver.RedirectPath(@"Z:\sdk\packs\Microsoft.AspNetCore.App.Ref\10.0.0-preview.7.24406.2\analyzers\dotnet\cs\Microsoft.AspNetCore.App.Analyzers.dll"));
     }
 
     [Theory]
@@ -64,7 +100,7 @@ public sealed class SdkAnalyzerAssemblyRedirectorTests : TestBase
         var vsDir = Path.Combine(testDir.Path, "vs");
         Metadata(vsDir, new() { { "AspNetCoreAnalyzers", a } });
         FakeDll(vsDir, @$"AspNetCoreAnalyzers\analyzers\dotnet\cs", "Microsoft.AspNetCore.App.Analyzers");
-        var sdkAnalyzerPath = FakeDll(testDir.Path, @$"sdk\packs\Microsoft.AspNetCore.App.Ref\{b}\analyzers\dotnet\cs", "Microsoft.AspNetCore.App.Analyzers");
+        var sdkAnalyzerPath = @$"Z:\Program Files\dotnet\sdk\packs\Microsoft.AspNetCore.App.Ref\{b}\analyzers\dotnet\cs\Microsoft.AspNetCore.App.Analyzers.dll";
 
         var resolver = new SdkAnalyzerAssemblyRedirectorCore(vsDir);
         var redirected = resolver.RedirectPath(sdkAnalyzerPath);
