@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             fillin.Alignment != null ||
                             fillin.Format != null)
                         {
-                            return (false, false);
+                            return (canUseConcat: false, canUseAlloclessConcat: false);
                         }
                     }
                     else
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (parts.Length <= 4)
                 {
                     // Case 2
-                    return (true, true);
+                    return (canUseConcat: true, canUseAlloclessConcat: true);
                 }
 
                 if (!@this.InExpressionTree // Can't use spans in an expression tree
@@ -331,11 +331,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     && @this.Compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes))
                 {
                     // Case 3
-                    return (true, true);
+                    return (canUseConcat: true, canUseAlloclessConcat: true);
                 }
 
                 // Potentially case 4 or 5
-                return (true, false);
+                return (canUseConcat: true, canUseAlloclessConcat: false);
             }
         }
 
