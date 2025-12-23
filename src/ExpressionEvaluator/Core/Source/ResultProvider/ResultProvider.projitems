@@ -15,6 +15,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatter.TypeNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatter.Values.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\DkmCustomUIVisualizerInfoComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\FavoritesDataItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\InlineArrayHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\TypeAndCustomInfo.cs" />
