@@ -343,7 +343,7 @@ internal sealed class EditSession
             return false;
         }
 
-        if (HasProjectLevelDifferences(oldProject, newProject, differences) && differences == null)
+        if (AbstractEditAndContinueAnalyzer.EnableProjectLevelAnalysis && HasProjectLevelDifferences(oldProject, newProject, differences) && differences == null)
         {
             return true;
         }
@@ -1213,7 +1213,7 @@ internal sealed class EditSession
 
                     var projectSummary = GetProjectAnalysisSummary(changedDocumentAnalyses);
 
-                    if (HasProjectSettingsBlockingRudeEdits(oldProject, newProject, projectDiagnostics))
+                    if (AbstractEditAndContinueAnalyzer.EnableProjectLevelAnalysis && HasProjectSettingsBlockingRudeEdits(oldProject, newProject, projectDiagnostics))
                     {
                         // If the project settings have changed and the change is a rude edit,
                         // block applying the changes even if there no other changes to the project documents.
