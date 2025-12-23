@@ -46,7 +46,7 @@ internal abstract class AbstractFormattingCodeFixProvider : SyntaxEditorBasedCod
     protected override CodeActionRequestPriority ComputeRequestPriority()
         => CodeActionRequestPriority.High;
 
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         foreach (var diagnostic in context.Diagnostics)
         {
@@ -63,8 +63,6 @@ internal abstract class AbstractFormattingCodeFixProvider : SyntaxEditorBasedCod
 
             context.RegisterCodeFix(codeAction, diagnostic);
         }
-
-        return Task.CompletedTask;
     }
 
     private async Task<Document> FixOneAsync(CodeFixContext context, Diagnostic diagnostic, CancellationToken cancellationToken)

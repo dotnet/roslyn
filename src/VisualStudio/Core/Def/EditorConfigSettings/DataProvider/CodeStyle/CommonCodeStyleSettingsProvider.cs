@@ -29,7 +29,7 @@ internal sealed class CommonCodeStyleSettingsProvider : SettingsProviderBase<Cod
         Update();
     }
 
-    protected override Task UpdateOptionsAsync(
+    protected override async Task UpdateOptionsAsync(
         TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken)
     {
         var qualifySettings = GetQualifyCodeStyleOptions(options, SettingsUpdater);
@@ -60,8 +60,6 @@ internal sealed class CommonCodeStyleSettingsProvider : SettingsProviderBase<Cod
 
         var experimentalSettings = GetExperimentalCodeStyleOptions(options, SettingsUpdater);
         AddRange(experimentalSettings);
-
-        return Task.CompletedTask;
     }
 
     private static IEnumerable<CodeStyleSetting> GetQualifyCodeStyleOptions(TieredAnalyzerConfigOptions options, OptionUpdater updater)

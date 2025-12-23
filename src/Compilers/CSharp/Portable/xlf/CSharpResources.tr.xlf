@@ -567,6 +567,11 @@
         <target state="translated">Koleksiyon başlatıcısı, '{0}' koleksiyonunun sonsuz sayıda örneklem zinciriyle sonuçlanır.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CompilationUnitUnexpected">
+        <source>A compilation unit cannot directly contain members such as fields, methods or properties</source>
+        <target state="new">A compilation unit cannot directly contain members such as fields, methods or properties</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
         <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
         <target state="translated">'{1}' tür parametresinde 'unmanaged' kısıtlaması olduğundan '{1}', '{0}' için kısıtlama olarak kullanılamaz</target>

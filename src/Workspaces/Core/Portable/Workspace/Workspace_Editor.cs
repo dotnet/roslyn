@@ -325,7 +325,7 @@ public abstract partial class Workspace
             }
 
             // fire and forget
-            this.RaiseDocumentActiveContextChangedEventAsync(container, oldActiveContextDocumentId: oldActiveContextDocumentId, newActiveContextDocumentId: documentId);
+            _ = this.RaiseDocumentActiveContextChangedEventAsync(container, oldActiveContextDocumentId: oldActiveContextDocumentId, newActiveContextDocumentId: documentId);
         }
     }
 
@@ -352,10 +352,9 @@ public abstract partial class Workspace
     protected internal void OnDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
         => OnDocumentOpened(documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed: true);
 
-    internal virtual ValueTask TryOnDocumentOpenedAsync(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext, CancellationToken cancellationToken)
+    internal virtual async ValueTask TryOnDocumentOpenedAsync(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext, CancellationToken cancellationToken)
     {
         OnDocumentOpened(documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed: false);
-        return ValueTask.CompletedTask;
     }
 
     internal void OnDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext, bool requireDocumentPresentAndClosed)
@@ -421,7 +420,7 @@ public abstract partial class Workspace
                 @this.OnDocumentTextChanged(newDoc);
 
                 // Fire and forget that the workspace is changing.
-                @this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId);
+                _ = @this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId);
 
                 // We fire 2 events on source document opened.
                 @this.RaiseDocumentOpenedEventAsync(newDoc);
@@ -610,7 +609,7 @@ public abstract partial class Workspace
                 data.@this.SignupForTextChanges(documentId, data.textContainer, data.isCurrentContext, data.onDocumentTextChanged);
 
                 // Fire and forget.
-                data.@this.RaiseWorkspaceChangedEventAsync(data.workspaceChangeKind, oldSolution, newSolution, documentId: documentId);
+                _ = data.@this.RaiseWorkspaceChangedEventAsync(data.workspaceChangeKind, oldSolution, newSolution, documentId: documentId);
 
                 // Fire and forget.
                 var newDoc = newSolution.GetRequiredTextDocument(documentId);
@@ -697,7 +696,8 @@ public abstract partial class Workspace
                     var newDoc = newSolution.GetRequiredDocument(documentId);
                     @this.OnDocumentTextChanged(newDoc);
 
-                    @this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId); // don't wait for this
+                    // Fire and forget
+                    _ = @this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId); // don't wait for this
 
                     // We fire and forget 2 events on source document closed.
                     @this.RaiseDocumentClosedEventAsync(newDoc);
@@ -786,7 +786,8 @@ public abstract partial class Workspace
             },
             onAfterUpdate: static (oldSolution, newSolution, data) =>
             {
-                data.@this.RaiseWorkspaceChangedEventAsync(
+                // Fire and forget
+                _ = data.@this.RaiseWorkspaceChangedEventAsync(
                     data.workspaceChangeKind, oldSolution, newSolution, documentId: data.documentId); // don't wait for this
 
                 var newDoc = newSolution.GetRequiredTextDocument(data.documentId);

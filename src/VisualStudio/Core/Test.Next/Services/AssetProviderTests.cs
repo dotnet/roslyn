@@ -187,7 +187,7 @@ public sealed class AssetProviderTests
         ISerializerService serializerService,
         IReadOnlyDictionary<Checksum, object> map) : IAssetSource
     {
-        public ValueTask GetAssetsAsync<T, TArg>(
+        public async ValueTask GetAssetsAsync<T, TArg>(
             Checksum solutionChecksum,
             AssetPath assetPath,
             ReadOnlyMemory<Checksum> checksums,
@@ -213,8 +213,6 @@ public sealed class AssetProviderTests
                     callback(checksum, (T)deserialized, arg);
                 }
             }
-
-            return ValueTask.CompletedTask;
         }
     }
 }

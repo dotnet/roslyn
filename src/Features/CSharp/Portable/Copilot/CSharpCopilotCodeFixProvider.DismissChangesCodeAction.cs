@@ -22,12 +22,11 @@ internal sealed partial class CSharpCopilotCodeFixProvider
     {
         public override string Title => FeaturesResources.Dismiss;
 
-        protected override Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
-            => Task.FromResult<IEnumerable<CodeActionOperation>>(null!);
+        protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
+            => null!;
 
-        protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
-            => Task.FromResult<IEnumerable<CodeActionOperation>>(
-                [new TriggerDismissalCodeActionOperation(originalMethodNode, diagnostic)]);
+        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+            => [new TriggerDismissalCodeActionOperation(originalMethodNode, diagnostic)];
 
         private sealed class TriggerDismissalCodeActionOperation(SyntaxNode originalMethodNode, Diagnostic diagnostic) : CodeActionOperation
         {

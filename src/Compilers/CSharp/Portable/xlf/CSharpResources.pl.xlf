@@ -567,6 +567,11 @@
         <target state="translated">Inicjator kolekcji powoduje utworzenie nieskończonego łańcucha wystąpień kolekcji „{0}”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CompilationUnitUnexpected">
+        <source>A compilation unit cannot directly contain members such as fields, methods or properties</source>
+        <target state="new">A compilation unit cannot directly contain members such as fields, methods or properties</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
         <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
         <target state="translated">Parametr typu „{1}” ma ograniczenie „unmanaged”, dlatego elementu „{1}” nie można użyć jako ograniczenia dla elementu „{0}”</target>

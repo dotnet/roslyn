@@ -46,7 +46,7 @@ internal abstract class DebugInformationReaderProvider : IDisposable
         public override EditAndContinueMethodDebugInfoReader CreateEditAndContinueMethodDebugInfoReader()
             => EditAndContinueMethodDebugInfoReader.Create(_pdbReaderProvider.GetMetadataReader());
 
-        public override ValueTask CopyContentToAsync(Stream stream, CancellationToken cancellationToken)
+        public override async ValueTask CopyContentToAsync(Stream stream, CancellationToken cancellationToken)
         {
             var reader = _pdbReaderProvider.GetMetadataReader();
             unsafe
@@ -54,8 +54,6 @@ internal abstract class DebugInformationReaderProvider : IDisposable
                 using var metadataStream = new UnmanagedMemoryStream(reader.MetadataPointer, reader.MetadataLength);
                 metadataStream.CopyTo(stream);
             }
-
-            return ValueTask.CompletedTask;
         }
 
         public override void Dispose()

@@ -81,7 +81,7 @@ public abstract partial class CompletionService
             return _lazyImportedProviders;
         }
 
-        private ValueTask ProcessBatchAsync(ImmutableSegmentedList<IReadOnlyList<AnalyzerReference>> referencesList, CancellationToken cancellationToken)
+        private async ValueTask ProcessBatchAsync(ImmutableSegmentedList<IReadOnlyList<AnalyzerReference>> referencesList, CancellationToken cancellationToken)
         {
             foreach (var references in referencesList)
             {
@@ -90,8 +90,6 @@ public abstract partial class CompletionService
                 // We only do this in background here to avoid UI delays.
                 _ = ProjectCompletionProvider.GetExtensions(_service.Language, references);
             }
-
-            return ValueTask.CompletedTask;
         }
 
         public ImmutableArray<CompletionProvider> GetCachedProjectCompletionProvidersOrQueueLoadInBackground(Project? project, CompletionOptions options)

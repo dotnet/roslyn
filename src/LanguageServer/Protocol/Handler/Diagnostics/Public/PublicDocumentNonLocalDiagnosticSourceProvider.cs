@@ -28,15 +28,15 @@ internal sealed class PublicDocumentNonLocalDiagnosticSourceProvider(
 
     public bool IsEnabled(ClientCapabilities clientCapabilities) => true;
 
-    public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
+    public async ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
         // Non-local document diagnostics are reported only when full solution analysis is enabled for analyzer execution.
         if (globalOptions.GetBackgroundAnalysisScope(context.GetRequiredDocument().Project.Language) == BackgroundAnalysisScope.FullSolution)
         {
             // NOTE: Compiler does not report any non-local diagnostics, so we only ask to run non-compiler-analyzers.
-            return new([new NonLocalDocumentDiagnosticSource(context.GetRequiredDocument(), AnalyzerFilter.NonCompilerAnalyzer)]);
+            return [new NonLocalDocumentDiagnosticSource(context.GetRequiredDocument(), AnalyzerFilter.NonCompilerAnalyzer)];
         }
 
-        return new([]);
+        return [];
     }
 }
