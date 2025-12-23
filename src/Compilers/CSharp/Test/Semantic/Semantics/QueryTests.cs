@@ -4786,5 +4786,22 @@ Console.WriteLine(string.Join(string.Empty, test));
             var comp = CreateCompilation(code);
             CompileAndVerify(code, expectedOutput: "ran").VerifyDiagnostics();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80008")]
+        public void PropertyAccess_AnonymousType_GroupBy()
+        {
+            var code = """
+                using System.Linq;
+
+                var x = new { A = new[] { new { B = 1 } } };
+
+                var y = from a in x.A
+                        group a by a.B into g
+                        select 1;
+                """;
+
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics();
+        }
     }
 }
