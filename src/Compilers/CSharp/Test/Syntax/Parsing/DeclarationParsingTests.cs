@@ -8326,10 +8326,20 @@ Del d = delegate(int k!!) { /* ... */ };", options: TestOptions.RegularPreview,
                 Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(2, 24),
                 // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // Del d = delegate(int k!!) { /* ... */ };
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "Del d = delegate(int k!!) { /* ... */ };").WithLocation(3, 1),
-                // (3,23): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "Del d = delegate(int k!!) ").WithLocation(3, 1),
+                // (3,23): error CS1026: ) expected
                 // Del d = delegate(int k!!) { /* ... */ };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(3, 23));
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "!").WithLocation(3, 23),
+                // (3,23): error CS1514: { expected
+                // Del d = delegate(int k!!) { /* ... */ };
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "!").WithLocation(3, 23),
+                // (3,25): error CS1003: Syntax error, ',' expected
+                // Del d = delegate(int k!!) { /* ... */ };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(3, 25),
+                // (3,27): error CS1002: ; expected
+                // Del d = delegate(int k!!) { /* ... */ };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(3, 27));
+
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.DelegateDeclaration);
@@ -8371,36 +8381,60 @@ Del d = delegate(int k!!) { /* ... */ };", options: TestOptions.RegularPreview,
                                 N(SyntaxKind.EqualsValueClause);
                                 {
                                     N(SyntaxKind.EqualsToken);
-                                    N(SyntaxKind.AnonymousMethodExpression);
+                                    N(SyntaxKind.SuppressNullableWarningExpression);
                                     {
-                                        N(SyntaxKind.DelegateKeyword);
-                                        N(SyntaxKind.ParameterList);
+                                        N(SyntaxKind.SuppressNullableWarningExpression);
                                         {
-                                            N(SyntaxKind.OpenParenToken);
-                                            N(SyntaxKind.Parameter);
+                                            N(SyntaxKind.AnonymousMethodExpression);
                                             {
-                                                N(SyntaxKind.PredefinedType);
+                                                N(SyntaxKind.DelegateKeyword);
+                                                N(SyntaxKind.ParameterList);
                                                 {
-                                                    N(SyntaxKind.IntKeyword);
+                                                    N(SyntaxKind.OpenParenToken);
+                                                    N(SyntaxKind.Parameter);
+                                                    {
+                                                        N(SyntaxKind.PredefinedType);
+                                                        {
+                                                            N(SyntaxKind.IntKeyword);
+                                                        }
+                                                        N(SyntaxKind.IdentifierToken, "k");
+                                                    }
+                                                    M(SyntaxKind.CloseParenToken);
                                                 }
-                                                N(SyntaxKind.IdentifierToken, "k");
+                                                M(SyntaxKind.Block);
+                                                {
+                                                    M(SyntaxKind.OpenBraceToken);
+                                                    M(SyntaxKind.CloseBraceToken);
+                                                }
                                             }
-                                            N(SyntaxKind.CloseParenToken);
+                                            N(SyntaxKind.ExclamationToken);
                                         }
-                                        N(SyntaxKind.Block);
-                                        {
-                                            N(SyntaxKind.OpenBraceToken);
-                                            N(SyntaxKind.CloseBraceToken);
-                                        }
+                                        N(SyntaxKind.ExclamationToken);
                                     }
                                 }
                             }
                         }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.EmptyStatement);
+                    {
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact, WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
@@ -8596,12 +8630,10 @@ class A : B : C
                 // (2,15): error CS8803: Top-level statements must precede namespace and type declarations.
                 // class A : B : C
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"C
-{
 ").WithLocation(2, 15),
                 // (2,15): error CS8370: Feature 'top-level statements' is not available in C# 7.3. Please use language version 9.0 or greater.
                 // class A : B : C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, @"C
-{
 ").WithArguments("top-level statements", "9.0").WithLocation(2, 15),
                 // (2,15): error CS0246: The type or namespace name 'C' could not be found (are you missing a using directive or an assembly reference?)
                 // class A : B : C
@@ -8609,15 +8641,9 @@ class A : B : C
                 // (2,16): error CS1001: Identifier expected
                 // class A : B : C
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(2, 16),
-                // (2,16): error CS1003: Syntax error, ',' expected
+                // (2,16): error CS1002: ; expected
                 // class A : B : C
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(2, 16),
-                // (3,2): error CS1002: ; expected
-                // {
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 2),
-                // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 16));
 
             var tree = UsingNode(text, TestOptions.Regular7_3,
                 // (2,13): error CS1514: { expected
@@ -8632,20 +8658,13 @@ class A : B : C
                 // (2,15): error CS8803: Top-level statements must precede namespace and type declarations.
                 // class A : B : C
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"C
-{
 ").WithLocation(2, 15),
                 // (2,16): error CS1001: Identifier expected
                 // class A : B : C
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(2, 16),
-                // (2,16): error CS1003: Syntax error, ',' expected
+                // (2,16): error CS1002: ; expected
                 // class A : B : C
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(2, 16),
-                // (3,2): error CS1002: ; expected
-                // {
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 2),
-                // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 16));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -16773,9 +16792,9 @@ I1(x);";
             UsingTree("""
                 C x int y;
                 """,
-                // (1,5): error CS1003: Syntax error, ',' expected
+                // (1,5): error CS1002: ; expected
                 // C x int y;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",").WithLocation(1, 5));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "int").WithLocation(1, 5));
 
             N(SyntaxKind.CompilationUnit);
             {

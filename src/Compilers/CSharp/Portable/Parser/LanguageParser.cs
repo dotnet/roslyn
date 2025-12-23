@@ -2845,7 +2845,22 @@ parse_member_name:;
                 int lastTokenPosition = -1;
                 IsMakingProgress(ref lastTokenPosition);
 
+                // We're trying to parse out a statement in a global context.  Have to put ourselves in the "possible
+                // statement" termination state so that if we see successive statements (during error recovery for this
+                // local declaration), we try to properly parse them out as subsequent statements, not as skipped tokens
+                // on this local decl.  This is needed for simple top-level cases like:
+                //
+                //      X
+                //      void M() { }
+                //
+                // The 'X' will be a local declaration statement (a variable decl with just a type with no identifier).
+                // We want to properly terminate that so that the 'void M() { }' is handled as a complete subsequent
+                // statement, not just errors tokens.
+                var state = _termState;
+                _termState |= TerminatorState.IsPossibleStatementStartOrStop;
                 var topLevelStatement = ParseLocalDeclarationStatement(attributes);
+                _termState = state;
+
                 if (topLevelStatement is DeclarationSyntax declaration && IsMakingProgress(ref lastTokenPosition, assertIfFalse: false))
                 {
                     result = _syntaxFactory.GlobalStatement(declaration);

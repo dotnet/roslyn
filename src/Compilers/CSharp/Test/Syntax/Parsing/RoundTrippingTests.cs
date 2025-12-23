@@ -89,10 +89,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [WorkItem(530410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530410")]
         public void NullChar()
         {
-            ParseAndRoundTripping("\0", 1);
-            ParseAndRoundTripping("abc\0def", 3);
-            ParseAndRoundTripping("\0abc", 3);
-            ParseAndRoundTripping("class C { string s = \"\0\"; }", 0);
+            ParseAndRoundTripping("\0", errorCount: 1);
+            ParseAndRoundTripping("abc\0def", errorCount: 5);
+            ParseAndRoundTripping("\0abc", errorCount: 3);
+            ParseAndRoundTripping("class C { string s = \"\0\"; }", errorCount: 0);
         }
 
         [Fact()]
