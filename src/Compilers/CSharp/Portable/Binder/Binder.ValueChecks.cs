@@ -776,10 +776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 #if DEBUG
-                    if (!expr.WasPropertyBackingFieldAccessChecked)
-                    {
-                        expr.WasPropertyBackingFieldAccessChecked = true;
-                    }
+                    expr.WasPropertyBackingFieldAccessChecked = true;
 #endif
                     break;
 

@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // The optimized form.  We store the unoptimized form for analysis
                             unoptimizedForm = result;
-                            result = MakeQueryInvocation(state.selectOrGroup, e, receiverIsCheckedForRValue: false, "GroupBy", lambdaLeft, diagnostics
+                            result = MakeQueryInvocation(state.selectOrGroup, e, receiverIsCheckedForRValue: true, "GroupBy", lambdaLeft, diagnostics
 #if DEBUG
                                 , state.nextInvokedMethodName
 #endif
