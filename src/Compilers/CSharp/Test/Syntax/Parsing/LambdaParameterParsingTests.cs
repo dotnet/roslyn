@@ -7095,7 +7095,7 @@ class C {
         [Fact]
         public void TestTripleScoped_Lambda_CSharp13()
         {
-            // In c# 14 this is one scoped modifier on the 'scoped' type on the 'scoped' identifier.
+            // In c# 13 this is one scoped modifier on the 'scoped' type on the 'scoped' identifier.
             UsingTree("""
                 var v = (scoped scoped scoped) => { };
                 """, TestOptions.Regular13);
