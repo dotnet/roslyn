@@ -2772,7 +2772,7 @@ class Test
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
             // Make this member missing to simulate lack of InlineArray support.
             comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor);
-            var verifier = CompileAndVerify(comp, expectedOutput: "aaaaa");
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "aaaaa" : null, verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("<top-level-statements-entry-point>", """
                 {
@@ -2823,7 +2823,7 @@ class Test
                 """;
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
-            var verifier = CompileAndVerify(comp, expectedOutput: "aaaaa");
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "aaaaa" : null, verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("<top-level-statements-entry-point>", """
                 {

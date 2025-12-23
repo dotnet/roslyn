@@ -19807,7 +19807,7 @@ literal:literal
             // Simulate a runtime with `string.Concat(ReadOnlySpan<string>)` but that does not support inline arrays.
             comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor);
 
-            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "aaaaa" : null);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "aaaaa" : null, verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("<top-level-statements-entry-point>", """
                 {
