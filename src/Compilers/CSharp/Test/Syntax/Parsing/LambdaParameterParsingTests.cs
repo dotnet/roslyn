@@ -7045,5 +7045,170 @@ class C {
             }
             EOF();
         }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp13)]
+        [InlineData(LanguageVersion.CSharp14)]
+        public void TestTripleScoped_LocalFunction(LanguageVersion version)
+        {
+            UsingTree("""
+                void Goo(scoped scoped scoped) { }
+                """, TestOptions.Regular.WithLanguageVersion(version));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalFunctionStatement);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "Goo");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                }
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestTripleScoped_Lambda_CSharp13()
+        {
+            // In c# 14 this is one scoped modifier on the 'scoped' type on the 'scoped' identifier.
+            UsingTree("""
+                var v = (scoped scoped scoped) => { };
+                """, TestOptions.Regular13);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "v");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                                    {
+                                        N(SyntaxKind.ParameterList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.Parameter);
+                                            {
+                                                N(SyntaxKind.ScopedKeyword);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                                }
+                                                N(SyntaxKind.IdentifierToken, "scoped");
+                                            }
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                        N(SyntaxKind.EqualsGreaterThanToken);
+                                        N(SyntaxKind.Block);
+                                        {
+                                            N(SyntaxKind.OpenBraceToken);
+                                            N(SyntaxKind.CloseBraceToken);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestTripleScoped_Lambda_CSharp14()
+        {
+            // In c# 14 this is two scoped modifiers on the 'scoped' identifier.
+            UsingTree("""
+                var v = (scoped scoped scoped) => { };
+                """, TestOptions.Regular14);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "v");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                                    {
+                                        N(SyntaxKind.ParameterList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.Parameter);
+                                            {
+                                                N(SyntaxKind.ScopedKeyword);
+                                                N(SyntaxKind.ScopedKeyword);
+                                                N(SyntaxKind.IdentifierToken, "scoped");
+                                            }
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                        N(SyntaxKind.EqualsGreaterThanToken);
+                                        N(SyntaxKind.Block);
+                                        {
+                                            N(SyntaxKind.OpenBraceToken);
+                                            N(SyntaxKind.CloseBraceToken);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+
+        }
     }
 }
