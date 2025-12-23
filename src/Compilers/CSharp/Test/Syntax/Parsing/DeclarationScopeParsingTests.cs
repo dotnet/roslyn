@@ -135,14 +135,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        private static DiagnosticDescription[] FilterLanguageVersionChecks(LanguageVersion langVersion, params DiagnosticDescription[] diagnostics)
+        private static DiagnosticDescription[] FilterLanguageVersionChecks(LanguageVersion langVersion, params DiagnosticDescription[] expectedDiagnostics)
         {
             if (langVersion > LanguageVersion.CSharp10)
-                diagnostics = [.. diagnostics.Where(d => d.Code is not (int)ErrorCode.ERR_FeatureNotAvailableInVersion10)];
+                expectedDiagnostics = [.. expectedDiagnostics.Where(d => d.Code is not (int)ErrorCode.ERR_FeatureNotAvailableInVersion10)];
 
             // Can add further filtering here if needed in future.
 
-            return diagnostics;
+            return expectedDiagnostics;
         }
 
         [Theory]
