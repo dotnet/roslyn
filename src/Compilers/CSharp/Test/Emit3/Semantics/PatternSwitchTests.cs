@@ -3525,5 +3525,42 @@ ref int GetRef() => throw null;";
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "GetRef()").WithArguments("Program.<<Main>$>g__GetRef|0_0()").WithLocation(2, 1)
             );
         }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81784")]
+        [CombinatorialData]
+        public void GotoCase(
+            [CombinatorialValues("byte", "sbyte", "short", "ushort", "int", "uint", "long", "ulong", "nint", "nuint")] string type1,
+            [CombinatorialValues("byte", "sbyte", "short", "ushort", "int", "uint", "long", "ulong", "nint", "nuint")] string type2)
+        {
+            if (type1 == type2)
+            {
+                return;
+            }
+
+            var source = $$$"""
+class Program
+{
+    static void Main()
+    {
+        int count = 0;
+
+        switch ((object)({{{type1}}})2)
+        {
+            case ({{{type2}}})2:
+                break;
+            case ({{{type1}}})2:
+                System.Console.Write("Case 2");
+                count++;
+
+                if (count == 3) break;
+                goto case ({{{type1}}})2;
+        }
+    }
+}    
+""";
+
+            CompileAndVerify(source, expectedOutput: "Case 2Case 2Case 2").VerifyDiagnostics();
+        }
     }
 }
