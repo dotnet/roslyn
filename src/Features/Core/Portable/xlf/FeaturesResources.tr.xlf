@@ -2735,6 +2735,11 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
         <target state="needs-review-translation">'{0}' çözümleyici bütünleştirilmiş kodu, derleyicinin şu anda çalışan '{2}' sürümünden daha yeni olan '{1}' sürümüne başvurur.</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_name_0_conflicts_with_an_existing_member_name">
+        <source>The name '{0}' conflicts with an existing member name.</source>
+        <target state="new">The name '{0}' conflicts with an existing member name.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
         <source>The selection contains a local function call without its declaration.</source>
         <target state="translated">Seçim, bildirimi olmadan bir yerel işlev çağrısı içeriyor.</target>

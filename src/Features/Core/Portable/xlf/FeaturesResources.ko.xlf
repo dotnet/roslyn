@@ -2735,6 +2735,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="needs-review-translation">분석기 어셈블리 '{0}'은(는) 컴파일러의 '{1}' 버전을 참조하며, 이 버전은 현재 실행 중인 버전 '{2}'보다 최신 버전입니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_name_0_conflicts_with_an_existing_member_name">
+        <source>The name '{0}' conflicts with an existing member name.</source>
+        <target state="new">The name '{0}' conflicts with an existing member name.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
         <source>The selection contains a local function call without its declaration.</source>
         <target state="translated">선언이 없는 로컬 함수 호출이 선택 영역에 있습니다.</target>

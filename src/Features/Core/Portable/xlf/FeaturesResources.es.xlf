@@ -2735,6 +2735,11 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="needs-review-translation">El ensamblado del analizador ”{0}” hace referencia a la versión ”{1}” del compilador, que es más reciente que la versión "{2}" que se está ejecutando actualmente.</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_name_0_conflicts_with_an_existing_member_name">
+        <source>The name '{0}' conflicts with an existing member name.</source>
+        <target state="new">The name '{0}' conflicts with an existing member name.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
         <source>The selection contains a local function call without its declaration.</source>
         <target state="translated">La selección contiene una llamada a una función local sin la declaración correspondiente.</target>

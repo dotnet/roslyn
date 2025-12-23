@@ -2735,6 +2735,11 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="needs-review-translation">L'assembly d'analyseur '{0}' fait référence à la version '{1}' du compilateur, qui est plus récente que la version en cours d'exécution '{2}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_name_0_conflicts_with_an_existing_member_name">
+        <source>The name '{0}' conflicts with an existing member name.</source>
+        <target state="new">The name '{0}' conflicts with an existing member name.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
         <source>The selection contains a local function call without its declaration.</source>
         <target state="translated">La sélection contient un appel de fonction locale sans sa déclaration.</target>

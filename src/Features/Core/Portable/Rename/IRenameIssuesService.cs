@@ -11,4 +11,7 @@ internal interface IRenameIssuesService : ILanguageService
 {
     bool CheckLanguageSpecificIssues(
         SemanticModel semantic, ISymbol symbol, SyntaxToken triggerToken, [NotNullWhen(true)] out string? langError);
+
+    bool CheckDeclarationConflict(
+        ISymbol symbol, string newName, [NotNullWhen(true)] out string? message);
 }

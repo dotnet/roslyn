@@ -50,5 +50,11 @@ internal abstract partial class AbstractEditorInlineRenameService
         public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText) => false;
 
         public InlineRenameFileRenameInfo GetFileRenameInfo() => InlineRenameFileRenameInfo.NotAllowed;
+
+        public bool CheckDeclarationConflict(string replacementText, out string message)
+        {
+            message = null;
+            return false;
+        }
     }
 }

@@ -142,6 +142,12 @@ internal sealed class XamlEditorInlineRenameService : IEditorInlineRenameService
         public InlineRenameFileRenameInfo GetFileRenameInfo()
             => InlineRenameFileRenameInfo.NotAllowed;
 
+        public bool CheckDeclarationConflict(string replacementText, out string message)
+        {
+            message = null;
+            return false;
+        }
+
         private sealed class InlineRenameLocationSet : IInlineRenameLocationSet
         {
             private readonly IXamlRenameInfo _renameInfo;
