@@ -7207,8 +7207,6 @@ class C {
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
-
-
         }
     }
 }
