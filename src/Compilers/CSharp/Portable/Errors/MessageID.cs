@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // C# preview features.
                 //return LanguageVersion.Preview;
 
-                // C# 13.0 features.
+                // C# 14.0 features.
                 case MessageID.IDS_FeatureFieldKeyword:
                 case MessageID.IDS_FeatureFirstClassSpan:
                 case MessageID.IDS_FeatureUnboundGenericTypesInNameof:

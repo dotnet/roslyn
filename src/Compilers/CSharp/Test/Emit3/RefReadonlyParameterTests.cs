@@ -2146,15 +2146,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var expectedDiagnostics = new[]
         {
-            // (3,30): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+            // (3,30): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
             //     public static void M(ref scoped readonly int p) => throw null;
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 30),
-            // (3,37): error CS1001: Identifier expected
-            //     public static void M(ref scoped readonly int p) => throw null;
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "readonly").WithLocation(3, 37),
-            // (3,37): error CS1003: Syntax error, ',' expected
-            //     public static void M(ref scoped readonly int p) => throw null;
-            Diagnostic(ErrorCode.ERR_SyntaxError, "readonly").WithArguments(",").WithLocation(3, 37),
+            Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(3, 30),
             // (3,37): error CS9190: 'readonly' modifier must be specified after 'ref'.
             //     public static void M(ref scoped readonly int p) => throw null;
             Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 37)
@@ -2178,16 +2172,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         {
             // (3,26): error CS9190: 'readonly' modifier must be specified after 'ref'.
             //     public static void M(readonly scoped ref int p) => throw null;
-            Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 26),
-            // (3,35): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
-            //     public static void M(readonly scoped ref int p) => throw null;
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 35),
-            // (3,42): error CS1001: Identifier expected
-            //     public static void M(readonly scoped ref int p) => throw null;
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "ref").WithLocation(3, 42),
-            // (3,42): error CS1003: Syntax error, ',' expected
-            //     public static void M(readonly scoped ref int p) => throw null;
-            Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(3, 42)
+            Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 26)
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
@@ -2206,15 +2191,12 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
         var expectedDiagnostics = new[]
         {
-            // (3,26): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+            // (3,26): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
             //     public static void M(scoped readonly int p) => throw null;
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 26),
-            // (3,33): error CS1001: Identifier expected
+            Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped readonly int p").WithLocation(3, 26),
+            // (3,33): error CS9348: The 'readonly' modifier cannot immediately follow the 'scoped' modifier.
             //     public static void M(scoped readonly int p) => throw null;
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "readonly").WithLocation(3, 33),
-            // (3,33): error CS1003: Syntax error, ',' expected
-            //     public static void M(scoped readonly int p) => throw null;
-            Diagnostic(ErrorCode.ERR_SyntaxError, "readonly").WithArguments(",").WithLocation(3, 33),
+            Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "readonly").WithArguments("readonly").WithLocation(3, 33),
             // (3,33): error CS9190: 'readonly' modifier must be specified after 'ref'.
             //     public static void M(scoped readonly int p) => throw null;
             Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 33)
