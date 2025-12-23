@@ -1123,7 +1123,7 @@ class X
 }
 ";
         var compilation = CreateCompilationWithIndexAndRange(source);
-        compilation.MakeMemberMissing(SpecialMember.System_String__Substring);
+        compilation.MakeMemberMissing(SpecialMember.System_String__SubstringIntInt);
         compilation.VerifyEmitDiagnostics(
             // (6,19): error CS0656: Missing compiler required member 'System.String.Substring'
             //         _ = s is [.. var slice];

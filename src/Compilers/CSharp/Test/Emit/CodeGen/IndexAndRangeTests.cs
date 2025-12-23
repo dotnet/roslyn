@@ -832,49 +832,39 @@ abcd
 abcd");
             verifier.VerifyIL("C.Main", @"
 {
-  // Code size       84 (0x54)
-      .maxstack  4
-      .locals init (System.ReadOnlySpan<char> V_0, //span
-                    string V_1,
-                    System.ReadOnlySpan<char> V_2,
-                    int V_3,
-                    System.ReadOnlySpan<char>& V_4)
-      IL_0000:  ldstr      ""abcd""
-      IL_0005:  dup
-      IL_0006:  stloc.1
-      IL_0007:  ldloc.1
-      IL_0008:  ldc.i4.0
-      IL_0009:  ldloc.1
-      IL_000a:  callvirt   ""int string.Length.get""
-      IL_000f:  callvirt   ""string string.Substring(int, int)""
-      IL_0014:  call       ""void System.Console.WriteLine(string)""
-      IL_0019:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-      IL_001e:  stloc.0
-      IL_001f:  ldloca.s   V_0
-      IL_0021:  stloc.s    V_4
-      IL_0023:  ldloc.s    V_4
-      IL_0025:  ldc.i4.0
-      IL_0026:  ldloc.s    V_4
-      IL_0028:  call       ""int System.ReadOnlySpan<char>.Length.get""
-      IL_002d:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Slice(int, int)""
-      IL_0032:  stloc.2
-      IL_0033:  ldc.i4.0
-      IL_0034:  stloc.3
-      IL_0035:  br.s       IL_0049
-      IL_0037:  ldloca.s   V_2
-      IL_0039:  ldloc.3
-      IL_003a:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
-      IL_003f:  ldind.u2
-      IL_0040:  call       ""void System.Console.Write(char)""
-      IL_0045:  ldloc.3
-      IL_0046:  ldc.i4.1
-      IL_0047:  add
-      IL_0048:  stloc.3
-      IL_0049:  ldloc.3
-      IL_004a:  ldloca.s   V_2
-      IL_004c:  call       ""int System.ReadOnlySpan<char>.Length.get""
-      IL_0051:  blt.s      IL_0037
-      IL_0053:  ret
+  // Code size       65 (0x41)
+  .maxstack  3
+  .locals init (System.ReadOnlySpan<char> V_0, //span
+                System.ReadOnlySpan<char> V_1,
+                int V_2)
+  IL_0000:  ldstr      ""abcd""
+  IL_0005:  dup
+  IL_0006:  ldc.i4.0
+  IL_0007:  callvirt   ""string string.Substring(int)""
+  IL_000c:  call       ""void System.Console.WriteLine(string)""
+  IL_0011:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  ldc.i4.0
+  IL_001a:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Slice(int)""
+  IL_001f:  stloc.1
+  IL_0020:  ldc.i4.0
+  IL_0021:  stloc.2
+  IL_0022:  br.s       IL_0036
+  IL_0024:  ldloca.s   V_1
+  IL_0026:  ldloc.2
+  IL_0027:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_002c:  ldind.u2
+  IL_002d:  call       ""void System.Console.Write(char)""
+  IL_0032:  ldloc.2
+  IL_0033:  ldc.i4.1
+  IL_0034:  add
+  IL_0035:  stloc.2
+  IL_0036:  ldloc.2
+  IL_0037:  ldloca.s   V_1
+  IL_0039:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_003e:  blt.s      IL_0024
+  IL_0040:  ret
 }");
 
             var (model, elementAccesses) = GetModelAndAccesses(comp);
@@ -1102,13 +1092,12 @@ f
 g");
             verifier.VerifyIL(@"C.Main", @"
 {
-  // Code size      124 (0x7c)
-  .maxstack  4
+  // Code size      116 (0x74)
+  .maxstack  3
   .locals init (System.ReadOnlySpan<char> V_0, //s
                 System.Index V_1, //index
                 System.ReadOnlySpan<char>& V_2,
-                int V_3,
-                int V_4)
+                int V_3)
   IL_0000:  ldstr      ""abcdefg""
   IL_0005:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_000a:  stloc.0
@@ -1137,28 +1126,23 @@ g");
   IL_0045:  ldloca.s   V_0
   IL_0047:  dup
   IL_0048:  call       ""int System.ReadOnlySpan<char>.Length.get""
-  IL_004d:  stloc.3
-  IL_004e:  ldloc.3
-  IL_004f:  ldc.i4.2
-  IL_0050:  sub
-  IL_0051:  stloc.s    V_4
-  IL_0053:  ldloc.s    V_4
-  IL_0055:  ldloc.3
-  IL_0056:  ldloc.s    V_4
-  IL_0058:  sub
-  IL_0059:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Slice(int, int)""
-  IL_005e:  stloc.0
-  IL_005f:  ldloca.s   V_0
-  IL_0061:  ldc.i4.0
-  IL_0062:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
-  IL_0067:  ldind.u2
-  IL_0068:  call       ""void System.Console.WriteLine(char)""
-  IL_006d:  ldloca.s   V_0
-  IL_006f:  ldc.i4.1
-  IL_0070:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
-  IL_0075:  ldind.u2
-  IL_0076:  call       ""void System.Console.WriteLine(char)""
-  IL_007b:  ret
+  IL_004d:  ldc.i4.2
+  IL_004e:  sub
+  IL_004f:  stloc.3
+  IL_0050:  ldloc.3
+  IL_0051:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Slice(int)""
+  IL_0056:  stloc.0
+  IL_0057:  ldloca.s   V_0
+  IL_0059:  ldc.i4.0
+  IL_005a:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_005f:  ldind.u2
+  IL_0060:  call       ""void System.Console.WriteLine(char)""
+  IL_0065:  ldloca.s   V_0
+  IL_0067:  ldc.i4.1
+  IL_0068:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_006d:  ldind.u2
+  IL_006e:  call       ""void System.Console.WriteLine(char)""
+  IL_0073:  ret
 }
 ");
         }
@@ -1187,67 +1171,61 @@ class C
 6");
             verifier.VerifyIL("C.Main", @"
 {
-  // Code size      136 (0x88)
-      .maxstack  4
-      .locals init (System.Span<int> V_0, //s
-                    System.Index V_1, //index
-                    System.Span<int>& V_2,
-                    int V_3,
-                    int V_4)
-      IL_0000:  ldc.i4.4
-      IL_0001:  newarr     ""int""
-      IL_0006:  dup
-      IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.B35A10C764778866E34111165FC69660C6171DF0CB0141E39FA0217EF7A97646""
-      IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-      IL_0011:  call       ""System.Span<int> System.Span<int>.op_Implicit(int[])""
-      IL_0016:  stloc.0
-      IL_0017:  ldloca.s   V_0
-      IL_0019:  dup
-      IL_001a:  call       ""int System.Span<int>.Length.get""
-      IL_001f:  ldc.i4.2
-      IL_0020:  sub
-      IL_0021:  call       ""ref int System.Span<int>.this[int].get""
-      IL_0026:  ldind.i4
-      IL_0027:  call       ""void System.Console.WriteLine(int)""
-      IL_002c:  ldloca.s   V_1
-      IL_002e:  ldc.i4.1
-      IL_002f:  ldc.i4.1
-      IL_0030:  call       ""System.Index..ctor(int, bool)""
-      IL_0035:  ldloca.s   V_0
-      IL_0037:  stloc.2
-      IL_0038:  ldloc.2
-      IL_0039:  ldloca.s   V_1
-      IL_003b:  ldloc.2
-      IL_003c:  call       ""int System.Span<int>.Length.get""
-      IL_0041:  call       ""int System.Index.GetOffset(int)""
-      IL_0046:  call       ""ref int System.Span<int>.this[int].get""
-      IL_004b:  ldind.i4
-      IL_004c:  call       ""void System.Console.WriteLine(int)""
-      IL_0051:  ldloca.s   V_0
-      IL_0053:  dup
-      IL_0054:  call       ""int System.Span<int>.Length.get""
-      IL_0059:  stloc.3
-      IL_005a:  ldloc.3
-      IL_005b:  ldc.i4.2
-      IL_005c:  sub
-      IL_005d:  stloc.s    V_4
-      IL_005f:  ldloc.s    V_4
-      IL_0061:  ldloc.3
-      IL_0062:  ldloc.s    V_4
-      IL_0064:  sub
-      IL_0065:  call       ""System.Span<int> System.Span<int>.Slice(int, int)""
-      IL_006a:  stloc.0
-      IL_006b:  ldloca.s   V_0
-      IL_006d:  ldc.i4.0
-      IL_006e:  call       ""ref int System.Span<int>.this[int].get""
-      IL_0073:  ldind.i4
-      IL_0074:  call       ""void System.Console.WriteLine(int)""
-      IL_0079:  ldloca.s   V_0
-      IL_007b:  ldc.i4.1
-      IL_007c:  call       ""ref int System.Span<int>.this[int].get""
-      IL_0081:  ldind.i4
-      IL_0082:  call       ""void System.Console.WriteLine(int)""
-      IL_0087:  ret
+  // Code size      128 (0x80)
+  .maxstack  3
+  .locals init (System.Span<int> V_0, //s
+                System.Index V_1, //index
+                System.Span<int>& V_2,
+                int V_3)
+  IL_0000:  ldc.i4.4
+  IL_0001:  newarr     ""int""
+  IL_0006:  dup
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.B35A10C764778866E34111165FC69660C6171DF0CB0141E39FA0217EF7A97646""
+  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0011:  call       ""System.Span<int> System.Span<int>.op_Implicit(int[])""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  dup
+  IL_001a:  call       ""int System.Span<int>.Length.get""
+  IL_001f:  ldc.i4.2
+  IL_0020:  sub
+  IL_0021:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0026:  ldind.i4
+  IL_0027:  call       ""void System.Console.WriteLine(int)""
+  IL_002c:  ldloca.s   V_1
+  IL_002e:  ldc.i4.1
+  IL_002f:  ldc.i4.1
+  IL_0030:  call       ""System.Index..ctor(int, bool)""
+  IL_0035:  ldloca.s   V_0
+  IL_0037:  stloc.2
+  IL_0038:  ldloc.2
+  IL_0039:  ldloca.s   V_1
+  IL_003b:  ldloc.2
+  IL_003c:  call       ""int System.Span<int>.Length.get""
+  IL_0041:  call       ""int System.Index.GetOffset(int)""
+  IL_0046:  call       ""ref int System.Span<int>.this[int].get""
+  IL_004b:  ldind.i4
+  IL_004c:  call       ""void System.Console.WriteLine(int)""
+  IL_0051:  ldloca.s   V_0
+  IL_0053:  dup
+  IL_0054:  call       ""int System.Span<int>.Length.get""
+  IL_0059:  ldc.i4.2
+  IL_005a:  sub
+  IL_005b:  stloc.3
+  IL_005c:  ldloc.3
+  IL_005d:  call       ""System.Span<int> System.Span<int>.Slice(int)""
+  IL_0062:  stloc.0
+  IL_0063:  ldloca.s   V_0
+  IL_0065:  ldc.i4.0
+  IL_0066:  call       ""ref int System.Span<int>.this[int].get""
+  IL_006b:  ldind.i4
+  IL_006c:  call       ""void System.Console.WriteLine(int)""
+  IL_0071:  ldloca.s   V_0
+  IL_0073:  ldc.i4.1
+  IL_0074:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0079:  ldind.i4
+  IL_007a:  call       ""void System.Console.WriteLine(int)""
+  IL_007f:  ret
 }
 ");
         }
@@ -4234,6 +4212,278 @@ class S
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void SingleOverloadReadOnlySpan(bool isMissing, bool useCorLib)
+        {
+
+            string source = """
+                using System;
+                
+                Console.Write(Util.SecondToLast("0123").ToString());
+
+                static class Util
+                {
+                    public static ReadOnlySpan<char> SecondToLast(ReadOnlySpan<char> s) => s[1..];
+                }
+                """;
+            var comp = CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray, TestSources.Span, TestSources.MemoryExtensions, TestSources.ITuple },
+                                                   TestOptions.UnsafeReleaseExe);
+            if (isMissing)
+                comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__Slice_Int);
+
+            var executable = !useCorLib || ExecutionConditionUtil.IsCoreClr;
+            var verify = CompileAndVerify(comp,
+                    expectedOutput: executable ? "0123" : null,
+                    verify: ExecutionConditionUtil.IsCoreClr
+                        ? Verification.FailsILVerify.WithILVerifyMessage(
+                            "[SecondToLast]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x"
+                            + (isMissing ? "12" : "8")
+                            + """
+                             }
+                            [.ctor]: Unmanaged pointers are not a verifiable type. { Offset = 0x1 }
+                            [get_Empty]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }
+                            [GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
+                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x6 }
+                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
+                            [Slice]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xd }
+                            [Slice]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xf }
+                            [get_Item]: Unexpected type on the stack. { Offset = 0x15, Found = readonly address of 'T', Expected = address of 'T' }
+                            [.ctor]: Unmanaged pointers are not a verifiable type. { Offset = 0x1 }
+                            [get_Empty]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }
+                            [GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
+                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }
+                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x13 }
+                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x18 }
+                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x22 }
+                            [Slice]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xd }
+                            [Slice]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xf }
+                            [CastUp]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1a }
+                            [ToArray]: Unmanaged pointers are not a verifiable type. { Offset = 0x0 }
+                            [AsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x13 }
+                            [AsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1d }
+                            [AsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x6 }
+                            """)
+                        : Verification.FailsPEVerify);
+            verify.VerifyDiagnostics();
+            verify.VerifyIL("Util.SecondToLast",
+                isMissing
+                ? """
+            {
+              // Code size       19 (0x13)
+              .maxstack  4
+              .locals init (System.ReadOnlySpan<char>& V_0)
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  stloc.0
+              IL_0003:  ldloc.0
+              IL_0004:  ldc.i4.1
+              IL_0005:  ldloc.0
+              IL_0006:  call       "int System.ReadOnlySpan<char>.Length.get"
+              IL_000b:  ldc.i4.1
+              IL_000c:  sub
+              IL_000d:  call       "System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Slice(int, int)"
+              IL_0012:  ret
+            }
+            """
+                : """
+            {
+              // Code size        9 (0x9)
+              .maxstack  2
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  ldc.i4.1
+              IL_0003:  call       "System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Slice(int)"
+              IL_0008:  ret
+            }
+            """);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void SingleOverloadSpan(bool isMissing, bool useCorLib)
+        {
+
+            string source = """
+                using System;
+                
+                Console.Write(Util.SecondToLast("0123".ToCharArray()).ToString());
+
+                static class Util
+                {
+                    public static Span<char> SecondToLast(Span<char> s) => s[1..];
+                }
+                """;
+            var comp = CreateCompilationWithIndexAndRange(
+                new[] { source, TestSources.GetSubArray, TestSources.Span, TestSources.MemoryExtensions },
+                TestOptions.UnsafeReleaseExe);
+            if (isMissing)
+                comp.MakeMemberMissing(WellKnownMember.System_Span_T__Slice_Int);
+
+            var executable = !useCorLib || ExecutionConditionUtil.IsCoreClr;
+            var verify = CompileAndVerify(comp,
+                    expectedOutput: executable ? "0123" : null,
+                    verify: ExecutionConditionUtil.IsCoreClr
+                        ? Verification.FailsILVerify.WithILVerifyMessage(
+                            "[SecondToLast]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x"
+                            + (isMissing ? "12" : "8")
+                            + """
+                             }
+                            [.ctor]: Unmanaged pointers are not a verifiable type. { Offset = 0x1 }
+                            [get_Empty]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }
+                            [GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
+                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x6 }
+                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
+                            [Slice]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xd }
+                            [Slice]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xf }
+                            [get_Item]: Unexpected type on the stack. { Offset = 0x15, Found = readonly address of 'T', Expected = address of 'T' }
+                            [.ctor]: Unmanaged pointers are not a verifiable type. { Offset = 0x1 }
+                            [get_Empty]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }
+                            [GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
+                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }
+                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x13 }
+                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x18 }
+                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x22 }
+                            [Slice]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xd }
+                            [Slice]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xf }
+                            [CastUp]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1a }
+                            [ToArray]: Unmanaged pointers are not a verifiable type. { Offset = 0x0 }
+                            [AsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x13 }
+                            [AsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1d }
+                            [AsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x6 }
+                            """)
+                        : Verification.FailsPEVerify);
+            verify.VerifyDiagnostics();
+            verify.VerifyIL("Util.SecondToLast",
+                isMissing
+                ? """
+            {
+              // Code size       19 (0x13)
+              .maxstack  4
+              .locals init (System.Span<char>& V_0)
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  stloc.0
+              IL_0003:  ldloc.0
+              IL_0004:  ldc.i4.1
+              IL_0005:  ldloc.0
+              IL_0006:  call       "int System.Span<char>.Length.get"
+              IL_000b:  ldc.i4.1
+              IL_000c:  sub
+              IL_000d:  call       "System.Span<char> System.Span<char>.Slice(int, int)"
+              IL_0012:  ret
+            }
+            """
+                : """
+            {
+              // Code size        9 (0x9)
+              .maxstack  2
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  ldc.i4.1
+              IL_0003:  call       "System.Span<char> System.Span<char>.Slice(int)"
+              IL_0008:  ret
+            }
+            """);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void SingleOverloadString(bool isMissing, bool useCorLib)
+        {
+            string source = """
+                using System;
+                
+                Console.Write("0123"[1..]);
+                """;
+            var comp = useCorLib
+                ? CreateCompilation(
+                    source, targetFramework: TargetFramework.Net70)
+                : CreateCompilationWithIndexAndRange(
+                new[] { source, TestSources.GetSubArray, },
+                TestOptions.ReleaseExe);
+            if (isMissing)
+                comp.MakeMemberMissing(SpecialMember.System_String__SubstringInt);
+            var executable = !useCorLib || ExecutionConditionUtil.IsCoreClr;
+            var verify = CompileAndVerify(comp,
+                    expectedOutput: executable ? "123" : null,
+                    verify: executable
+                        ? default
+                        : Verification.FailsPEVerify);
+            verify.VerifyDiagnostics();
+            verify.VerifyIL("<top-level-statements-entry-point>",
+                isMissing
+                ? """
+            {
+              // Code size       27 (0x1b)
+              .maxstack  4
+              .locals init (string V_0)
+              IL_0000:  ldstr      "0123"
+              IL_0005:  stloc.0
+              IL_0006:  ldloc.0
+              IL_0007:  ldc.i4.1
+              IL_0008:  ldloc.0
+              IL_0009:  callvirt   "int string.Length.get"
+              IL_000e:  ldc.i4.1
+              IL_000f:  sub
+              IL_0010:  callvirt   "string string.Substring(int, int)"
+              IL_0015:  call       "void System.Console.Write(string)"
+              IL_001a:  ret
+            }
+            """
+                : """
+            {
+              // Code size       17 (0x11)
+              .maxstack  2
+
+              IL_0000:  ldstr      "0123"
+              IL_0005:  ldc.i4.1
+              IL_0006:  callvirt   "string string.Substring(int)"
+              IL_000b:  call       "void System.Console.Write(string)"
+              IL_0010:  ret
+            }
+            """);
+        }
+
+        [Fact]
+        public void SingleOverloadMemory()
+        {
+            string source = """
+            using System;
+
+            Console.Write(Util.ReadOnly("0123".AsMemory()).ToString());
+            Console.Write(Util.Writable("ABCD".ToCharArray().AsMemory()).ToString());
+
+            static class Util
+            {
+                public static ReadOnlyMemory<char> ReadOnly(ReadOnlyMemory<char> s) => s[1..];
+                public static Memory<char> Writable(Memory<char> s) => s[1..];
+            }
+            """;
+
+            var comp = CompileAndVerify(source,
+                expectedOutput: ExecutionConditionUtil.IsCoreClr ? "123BCD" : null,
+                targetFramework: TargetFramework.Net70,
+                verify: ExecutionConditionUtil.IsCoreClr ? default : Verification.FailsPEVerify);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Util.ReadOnly", """
+            {
+              // Code size        9 (0x9)
+              .maxstack  2
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  ldc.i4.1
+              IL_0003:  call       "System.ReadOnlyMemory<char> System.ReadOnlyMemory<char>.Slice(int)"
+              IL_0008:  ret
+            }
+            """);
+            comp.VerifyIL("Util.Writable", """
+            {
+              // Code size        9 (0x9)
+              .maxstack  2
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  ldc.i4.1
+              IL_0003:  call       "System.Memory<char> System.Memory<char>.Slice(int)"
+              IL_0008:  ret
+            }
+            """);
         }
     }
 }
