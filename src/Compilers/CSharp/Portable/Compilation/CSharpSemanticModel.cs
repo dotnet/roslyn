@@ -4768,12 +4768,49 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var methodBuilder = ArrayBuilder<Symbol>.GetInstance();
             var filteredMethodBuilder = ArrayBuilder<Symbol>.GetInstance();
+
+            // In the event of errors, IDE will often pick the first method in the group to display or navigate to.
+            // Attempt to provide a good candidate result by preferring methods that match the arguments passed into the
+            // call.  This way if there's still an overload resolution failure (say because of duplicate applicable
+            // methods), at least the first method in the group is more likely to be relevant, versus some random method
+            // in the group that wouldn't even apply.
+
+            var matchingArgumentsBuilder = ArrayBuilder<Symbol>.GetInstance();
+            var nonMatchingArgumentsBuilder = ArrayBuilder<Symbol>.GetInstance();
+
             foreach (var method in FilterOverriddenOrHiddenMethods(methods))
             {
-                AddReducedAndFilteredSymbol(methodBuilder, filteredMethodBuilder, method, typeArguments: default, receiverType, compilation);
+                var builder = argumentTypesMatchParameterTypes(method, call.Arguments)
+                    ? matchingArgumentsBuilder
+                    : nonMatchingArgumentsBuilder;
+
+                builder.Add(method);
             }
+
+            foreach (var method in matchingArgumentsBuilder)
+                AddReducedAndFilteredSymbol(methodBuilder, filteredMethodBuilder, method, typeArguments: default, receiverType, compilation);
+
+            foreach (var method in nonMatchingArgumentsBuilder)
+                AddReducedAndFilteredSymbol(methodBuilder, filteredMethodBuilder, method, typeArguments: default, receiverType, compilation);
+
+            nonMatchingArgumentsBuilder.Free();
+            matchingArgumentsBuilder.Free();
             methodBuilder.Free();
             return filteredMethodBuilder.ToOneOrManyAndFree();
+
+            static bool argumentTypesMatchParameterTypes(MethodSymbol method, ImmutableArray<BoundExpression> arguments)
+            {
+                if (method.ParameterCount != arguments.Length)
+                    return false;
+
+                for (int i = 0, n = method.ParameterCount; i < n; i++)
+                {
+                    if (!method.Parameters[i].Type.Equals(arguments[i].Type))
+                        return false;
+                }
+
+                return true;
+            }
         }
 
         /// <summary>
