@@ -5673,7 +5673,8 @@ public ref struct S<T>
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35146")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81796")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -5719,7 +5720,8 @@ public readonly ref struct S<T>
 ");
         }
 
-        [WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35146")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81796")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -5765,7 +5767,8 @@ public ref struct S<T>
 ");
         }
 
-        [WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35146")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81796")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -13371,6 +13374,94 @@ public struct Vec4
                 // (33,17): error CS8987: The 'scoped' modifier of parameter 'span' doesn't match overridden or implemented member.
                 //     public void UseSpan(Span<char> span) => Span = span;
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "UseSpan").WithArguments("span").WithLocation(33, 17));
+        }
+
+        [Fact]
+        public void IncrementOperator_01()
+        {
+            var src = """
+public ref struct S
+{
+    static void M(S s)
+    {
+        _ = s++;
+    }
+
+    public static S operator ++(S s) => throw null;
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void IncrementOperator_02()
+        {
+            var code = """
+public ref struct S
+{
+    public static S operator ++(S s) => throw null;
+}
+
+ref struct S1<T> where T : new(), allows ref struct
+{
+    S this[T t] { get => throw null; set {} }
+
+    static void Test()
+    {
+        scoped T x = default;
+        T y = default;
+        S1<T> local = default;
+        local[x]++; // 1
+        local[y]++;
+    }
+}
+
+ref struct S2
+{
+    public S this[int i] { get => throw null; set { } }
+
+    static void Test()
+    {
+        S2 local = default;
+        local[0]++;
+        local[0]++;
+    }
+}
+""";
+
+            var comp = CreateCompilation(code, targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // (15,9): error CS8350: This combination of arguments to 'S1<T>.this[T]' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         local[x]++; // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[x]").WithArguments("S1<T>.this[T]", "t").WithLocation(15, 9),
+                // (15,9): error CS8350: This combination of arguments to 'S1<T>.this[T]' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         local[x]++; // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[x]").WithArguments("S1<T>.this[T]", "t").WithLocation(15, 9),
+                // (15,15): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[x]++; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(15, 15),
+                // (15,15): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[x]++; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(15, 15));
+        }
+
+        [Fact]
+        public void IncrementOperator_03()
+        {
+            var src = """
+public ref struct S
+{
+    static void M(S s)
+    {
+        _ = s++;
+    }
+
+    public static S operator ++(scoped S s) => throw null;
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
         }
     }
 }

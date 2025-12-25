@@ -754,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return symbol.IsExtensionBlockMember() && (symbol.IsStatic || symbol.MethodKind != MethodKind.Ordinary);
         }
 
-        internal static void ReportDiagnosticsIfDisallowedExtension(BindingDiagnosticBag diagnostics, MethodSymbol method, SyntaxNode syntax)
+        internal static void ReportDisallowedExtensionBlockMethod(MethodSymbol method, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
             if (IsDisallowedExtensionInOlderLangVer(method))
             {
@@ -762,7 +762,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal void ReportIfDisallowedExtensionIndexer(BindingDiagnosticBag diagnostics, PropertySymbol property, SyntaxNode syntax)
+        internal void ReportDisallowedExtensionBlockIndexer(PropertySymbol property, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
             if (property.IsIndexer && property.IsExtensionBlockMember() && property.ContainingModule != Compilation.SourceModule)
             {

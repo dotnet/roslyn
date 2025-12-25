@@ -64,6 +64,10 @@ _ = o[2];
             // (5,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //         public int this[int i]
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(5, 20));
+
+        CreateCompilation([src, libSrc], parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+
+        CreateCompilation([src, libSrc], parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics();
     }
 
     [Fact]

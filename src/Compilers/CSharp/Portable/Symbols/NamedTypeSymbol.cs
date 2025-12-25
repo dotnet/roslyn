@@ -467,9 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 Debug.Assert(member.Kind != SymbolKind.NamedType);
-                if (member.Kind == SymbolKind.Method
-                    && (options & LookupOptions.AllMethodsOnArityZero) == 0
-                    && arity != member.GetMemberArityIncludingExtension())
+                if (Binder.WrongArity(member, arity, diagnose: false, options, out _))
                 {
                     return false;
                 }

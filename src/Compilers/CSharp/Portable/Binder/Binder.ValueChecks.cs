@@ -66,11 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new MethodInfo(property, property.GetOwnOrInheritedSetMethod());
             }
 
-            internal static MethodInfo CreateFromIndexerRead(BoundIndexerAccess expr)
-            {
-                return CreateFromPropertyRead(expr.Indexer);
-            }
-
             internal MethodInfo ReplaceWithExtensionImplementation(out bool wasError)
             {
                 var method = replace(Method);
@@ -161,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(indexerAccess.AccessorKind != AccessorKind.Set);
                 return new MethodInvocationInfo
                 {
-                    MethodInfo = MethodInfo.CreateFromIndexerRead(indexerAccess),
+                    MethodInfo = MethodInfo.CreateFromPropertyRead(indexerAccess.Indexer),
                     Receiver = substitutedReceiver ?? indexerAccess.ReceiverOpt,
                     ReceiverIsSubjectToCloning = indexerAccess.InitialBindingReceiverIsSubjectToCloning,
                     Parameters = indexerAccess.Indexer.Parameters,

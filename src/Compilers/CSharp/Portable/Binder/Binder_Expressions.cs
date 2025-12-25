@@ -10472,7 +10472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             PropertySymbol property = resolutionResult.Member;
 
             ReportDiagnosticsIfObsolete(diagnostics, property, syntax, hasBaseReceiver: receiver != null && receiver.Kind == BoundKind.BaseReference);
-            ReportIfDisallowedExtensionIndexer(diagnostics, property, syntax);
+            ReportDisallowedExtensionBlockIndexer(property, syntax, diagnostics);
 
             // Make sure that the result of overload resolution is valid.
             var gotError = MemberGroupFinalValidationAccessibilityChecks(receiver, property, syntax, diagnostics, invokedAsExtensionMethod: false);
