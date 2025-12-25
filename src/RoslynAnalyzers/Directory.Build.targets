@@ -11,14 +11,6 @@
     <NoWarn>$(NoWarn);RS2008</NoWarn>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <!--
-      RS2007:  Analyzer release file 'AnalyzerReleases.Shipped.md' has a missing or invalid release header.
-      Release tables use borders and need https://github.com/dotnet/roslyn-analyzers/pull/7466 to be valid.
-    -->
-    <NoWarn>$(NoWarn);RS2007</NoWarn>
-  </PropertyGroup>
-
   <!-- Add License and Third Party Notices files into each VSIX. -->
   <ItemGroup>
     <Content Include="$(MSBuildThisFileDirectory)\assets\EULA.txt">
