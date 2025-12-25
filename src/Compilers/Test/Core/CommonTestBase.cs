@@ -538,6 +538,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(expectedAccessibility, peModule.LookupTopLevelMetadataType(ref name)!.DeclaredAccessibility);
         }
 
+        internal static void AssertEqualAndNoDuplicates(string[] expected, string[] actual)
+        {
+            Assert.True(expected.All(new HashSet<string>().Add), $"Duplicates were found in '{nameof(expected)}'");
+            Assert.True(actual.All(new HashSet<string>().Add), $"Duplicates were found in '{nameof(actual)}'");
+            AssertEx.SetEqual(expected, actual);
+        }
+
         #endregion
 
         #region Metadata Validation

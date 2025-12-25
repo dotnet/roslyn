@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if (!TryBindLengthOrCount(node, receiverPlaceholder, out lengthAccess, diagnostics))
+                if (!TryBindLengthOrCount(node, receiverPlaceholder, out lengthAccess, diagnostics)) // PROTOTYPE should extension Length/Count count?
                 {
                     hasErrors = true;
                     Error(diagnostics, ErrorCode.ERR_ListPatternRequiresLength, node, inputType);

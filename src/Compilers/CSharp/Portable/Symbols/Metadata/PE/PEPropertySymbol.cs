@@ -657,7 +657,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // them indexers.
                 if (this.ParameterCount > 0)
                 {
-                    string defaultMemberName = _containingType.DefaultMemberName;
+                    string defaultMemberName = _containingType.IsExtension ? _containingType.ExtensionGroupingType.DefaultMemberName : _containingType.DefaultMemberName;
                     return _name == defaultMemberName || //NB: not Name property (break mutual recursion)
                         ((object)this.GetMethod != null && this.GetMethod.Name == defaultMemberName) ||
                         ((object)this.SetMethod != null && this.SetMethod.Name == defaultMemberName);
