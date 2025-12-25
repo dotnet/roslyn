@@ -49,7 +49,11 @@ internal sealed class BuildHost : IBuildHost
                 return true;
             }
 
-            var instance = FindMSBuild(projectOrSolutionFilePath, includeUnloadableInstances: false);
+            // When running in SDK test environment the runtime version might be lower than the SDK version.
+            // We need to force the load of "incompatible" version of the SDK in this case.
+            var includeUnloadableInstances = Environment.GetEnvironmentVariable("Microsoft_CodeAnalysis_BuildHost_SkipRuntimeVersionCheck") == "1";
+
+            var instance = FindMSBuild(projectOrSolutionFilePath, includeUnloadableInstances);
             if (instance is null)
             {
                 return false;
