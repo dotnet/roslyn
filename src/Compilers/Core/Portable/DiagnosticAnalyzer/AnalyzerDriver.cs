@@ -1704,7 +1704,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     PerSymbolAnalyzerActionsCache.TryRemove((namespaceOrType, analyzer), out _);
                 }
 
-                await processContainerOnMemberCompletedAsync(symbol.ContainingNamespace, symbol, analyzer).ConfigureAwait(false);
+                await processContainerOnMemberCompletedAsync(symbol.ContainingNamespace!, symbol, analyzer).ConfigureAwait(false);
 
                 for (var type = symbol.ContainingType; type != null; type = type.ContainingType)
                     await processContainerOnMemberCompletedAsync(type, symbol, analyzer).ConfigureAwait(false);
