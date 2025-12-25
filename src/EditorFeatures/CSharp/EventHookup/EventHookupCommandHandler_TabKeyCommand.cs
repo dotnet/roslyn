@@ -205,11 +205,10 @@ internal sealed partial class EventHookupCommandHandler : IChainedCommandHandler
         if (updatedRoot == null)
             return null;
 
-        var cleanupOptions = await documentWithNameAndAnnotationsAdded.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
         var simplifiedDocument = await Simplifier.ReduceAsync(
-            documentWithNameAndAnnotationsAdded.WithSyntaxRoot(updatedRoot), Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
+            documentWithNameAndAnnotationsAdded.WithSyntaxRoot(updatedRoot), Simplifier.Annotation, cancellationToken).ConfigureAwait(false);
         var formattedDocument = await Formatter.FormatAsync(
-            simplifiedDocument, Formatter.Annotation, cleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
+            simplifiedDocument, Formatter.Annotation, cancellationToken).ConfigureAwait(false);
 
         var newRoot = await formattedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var plusEqualTokenEndPosition = newRoot

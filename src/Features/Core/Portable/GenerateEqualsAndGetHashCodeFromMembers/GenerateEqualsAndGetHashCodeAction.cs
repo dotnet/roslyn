@@ -116,9 +116,8 @@ internal sealed partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefacto
         {
             var oldRoot = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newDocument = _document.WithSyntaxRoot(oldRoot.ReplaceNode(oldType, newType));
-            var addImportOptions = await _document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            newDocument = await ImportAdder.AddImportsFromSymbolAnnotationAsync(newDocument, addImportOptions, cancellationToken).ConfigureAwait(false);
+            newDocument = await ImportAdder.AddImportsFromSymbolAnnotationAsync(newDocument, cancellationToken).ConfigureAwait(false);
             return newDocument;
         }
 

@@ -699,7 +699,7 @@ internal abstract partial class AbstractChangeNamespaceService<
 
         // Need to invoke formatter explicitly since we are doing the diff merge ourselves.
         var formattedDocument = await Formatter.FormatAsync(
-            documentWithAdditionalImports, Formatter.Annotation, documentOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
+            documentWithAdditionalImports, Formatter.Annotation, cancellationToken).ConfigureAwait(false);
 
         return await SimplifyTypeNamesAsync(formattedDocument, documentOptions, cancellationToken).ConfigureAwait(false);
     }
