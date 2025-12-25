@@ -1254,7 +1254,6 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             if (projectItemForDocument == null)
             {
                 // TODO(https://github.com/dotnet/roslyn/issues/34276):
-                Debug.Fail("Attempting to change the name of a file in a Shared Project");
                 return;
             }
 
@@ -1280,12 +1279,29 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             // By setting this property, Visual Studio will perform the file rename, which 
             // will cause the workspace's current solution to update and will fire the 
             // necessary workspace changed events.
-            projectItemForDocument.Name = uniqueName;
-
-            if (projectItemForDocument.TryGetFullPath(out var newPath))
+            try
             {
-                undoManager?.Add(new RenameDocumentUndoUnit(this, uniqueName, document.Name, newPath));
+                projectItemForDocument.Name = uniqueName;
             }
+            catch (InvalidOperationException ex)
+            {
+                FatalError.ReportAndCatch(ex);
+                return;
+            }
+
+            string? newPath;
+            try
+            {
+                projectItemForDocument.TryGetFullPath(out newPath);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                FatalError.ReportAndCatch(ex);
+                return;
+            }
+
+            if (newPath != null)
+                undoManager?.Add(new RenameDocumentUndoUnit(this, uniqueName, document.Name, newPath));
         }
     }
 
