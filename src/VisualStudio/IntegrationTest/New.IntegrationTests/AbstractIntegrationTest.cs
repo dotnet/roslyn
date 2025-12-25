@@ -22,7 +22,15 @@ using Xunit.Harness;
 
 namespace Roslyn.VisualStudio.IntegrationTests;
 
-[IdeSettings(MinVersion = VisualStudioVersion.VS18, RootSuffix = "RoslynDev", MaxAttempts = 2)]
+[IdeSettings(
+    MinVersion = VisualStudioVersion.VS18,
+    RootSuffix =
+#if ROSLYN_INTEGRATION_TESTS_EMPTY_ROOT_SUFFIX
+        "",
+#else
+        "RoslynDev",
+#endif
+    MaxAttempts = 2)]
 public abstract class AbstractIntegrationTest : AbstractIdeIntegrationTest
 {
     private static string? s_catalogCacheFolder;

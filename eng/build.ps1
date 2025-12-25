@@ -59,7 +59,9 @@ param (
 
   # Test actions
   [string]$testArch = "x64",
+  [string]$testFilter = "",
   [switch]$testVsi,
+  [switch]$skipCustomRoslynDeploy = $false,
   [switch][Alias('test')]$testDesktop,
   [switch]$testCoreClr,
   [switch]$testCompilerOnly = $false,
@@ -96,6 +98,7 @@ function Print-Usage() {
   Write-Host ""
   Write-Host "Test actions"
   Write-Host "  -testArch                 Maps to --arch parameter of dotnet test"
+  Write-Host "  -testFilter               Filter tests to run (maps to --filter parameter of xunit)"
   Write-Host "  -testDesktop              Run Desktop unit tests (short: -test)"
   Write-Host "  -testCoreClr              Run CoreClr unit tests"
   Write-Host "  -testCompilerOnly         Run only the compiler unit tests"
@@ -103,6 +106,7 @@ function Print-Usage() {
   Write-Host "  -testIOperation           Run extra checks to validate IOperations"
   Write-Host "  -testUsedAssemblies       Run extra checks to validate used assemblies feature (see ROSLYN_TEST_USEDASSEMBLIES in codebase)"
   Write-Host "  -testRuntimeAsync         Run tests with runtime async validation enabled (see DOTNET_RuntimeAsync in codebase)"
+  Write-Host "  -skipCustomRoslynDeploy   Skip custom Roslyn deployment when running integration tests (uses Roslyn from the VS)"
   Write-Host ""
   Write-Host "Advanced settings:"
   Write-Host "  -ci                       Set when running on CI server"
@@ -216,6 +220,10 @@ function Process-Arguments() {
 
   if ($productBuild) {
     $script:msbuildEngine = "dotnet"
+  }
+
+  if ($skipCustomRoslynDeploy) {
+    $properties += "/p:RoslynIntegrationTestsEmptyRootSuffix=true"
   }
 
   foreach ($property in $properties) {
@@ -453,6 +461,10 @@ function TestUsingRunTests() {
     }
   }
 
+  if ($testFilter -ne "") {
+    $args += " --testfilter $testFilter"
+  }
+
   if (-not $ci -and -not $testVsi) {
     $args += " --html"
   }
@@ -586,42 +598,44 @@ function Deploy-VsixViaTool() {
 
     Write-Host "Using VS Instance $vsId ($displayVersion) at `"$vsDir`""
 
-    # InstanceIds is required here to ensure it installs the vsixes only into the specified VS instance.
-    # The default installer behavior without it is to install into every installed VS instance.
-    $baseArgs = "/rootSuffix:$hive /quiet /shutdownprocesses /instanceIds:$vsId /logFile:$logFileName"
+    if (-not $skipCustomRoslynDeploy) {
+      # InstanceIds is required here to ensure it installs the vsixes only into the specified VS instance.
+      # The default installer behavior without it is to install into every installed VS instance.
+      $baseArgs = "/rootSuffix:$hive /quiet /shutdownprocesses /instanceIds:$vsId /logFile:$logFileName"
 
-    $vsixInstallerExe = Join-Path $vsDir "Common7\IDE\VSIXInstaller.exe"
+      $vsixInstallerExe = Join-Path $vsDir "Common7\IDE\VSIXInstaller.exe"
 
-    Write-Host "Uninstalling old Roslyn VSIX"
+      Write-Host "Uninstalling old Roslyn VSIX"
 
-    # Actual uninstall is failing at the moment using the uninstall options. Temporarily using
-    # wildfire to uninstall our VSIX extensions
-    $extDir = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\$vsMajorVersion.0_$vsid$hive"
-    if (Test-Path $extDir) {
-      foreach ($dir in Get-ChildItem -Directory $extDir) {
-        $name = Split-Path -leaf $dir
-        Write-Host "`tUninstalling $name"
+      # Actual uninstall is failing at the moment using the uninstall options. Temporarily using
+      # wildfire to uninstall our VSIX extensions
+      $extDir = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\$vsMajorVersion.0_$vsid$hive"
+      if (Test-Path $extDir) {
+        foreach ($dir in Get-ChildItem -Directory $extDir) {
+          $name = Split-Path -leaf $dir
+          Write-Host "`tUninstalling $name"
+        }
+        Remove-Item -re -fo $extDir
       }
-      Remove-Item -re -fo $extDir
-    }
 
-    Write-Host "Installing all Roslyn VSIX"
+      Write-Host "Installing all Roslyn VSIX"
 
-    # VSIX files need to be installed in this specific order:
-    $orderedVsixFileNames = @(
-      "Roslyn.Compilers.Extension.vsix",
-      "Roslyn.VisualStudio.Setup.vsix",
-      "Roslyn.VisualStudio.ServiceHub.Setup.x64.vsix",
-      "Roslyn.VisualStudio.Setup.Dependencies.vsix",
-      "ExpressionEvaluatorPackage.vsix",
-      "Roslyn.VisualStudio.DiagnosticsWindow.vsix",
-      "Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
+      # VSIX files need to be installed in this specific order:
+      $orderedVsixFileNames = @(
+        "Roslyn.Compilers.Extension.vsix",
+        "Roslyn.VisualStudio.Setup.vsix",
+        "Roslyn.VisualStudio.ServiceHub.Setup.x64.vsix",
+        "Roslyn.VisualStudio.Setup.Dependencies.vsix",
+        "ExpressionEvaluatorPackage.vsix",
+        "Roslyn.VisualStudio.DiagnosticsWindow.vsix",
+        "Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
 
-    foreach ($vsixFileName in $orderedVsixFileNames) {
-      $vsixFile = Join-Path $VSSetupDir $vsixFileName
-      $fullArg = "$baseArgs $vsixFile"
-      Write-Host "`tInstalling $vsixFileName"
-      Exec-Command $vsixInstallerExe $fullArg
+      foreach ($vsixFileName in $orderedVsixFileNames) {
+        $vsixFile = Join-Path $VSSetupDir $vsixFileName
+        $fullArg = "$baseArgs $vsixFile"
+        Write-Host "`tInstalling $vsixFileName"
+        Exec-Command $vsixInstallerExe $fullArg
+      }
     }
 
     # Set up registry
