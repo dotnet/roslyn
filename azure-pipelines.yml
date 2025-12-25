@@ -56,19 +56,19 @@ variables:
     ${{ else }}:
       value: NetCore1ESPool-Internal
 
-  - name: Vs2022PreviewQueueName
+  - name: Vs2026PreviewQueueName
     # As of 2025-06-12, the non-scouting queue does not have a new enough of an MSBuild to build Roslyn; use the scouting
     # queue which is on 17.14. This likely can be removed by 2025-06-18 when the upgrade to 17.14 Preview 4 is scheduled to complete.
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: windows.vs2022preview.scout.amd64.open
+      value: windows.vs2026preview.scout.amd64.open
     ${{ else }}:
-      value: windows.vs2022preview.scout.amd64
+      value: windows.vs2026preview.scout.amd64
 
-  - name: Vs2022RegularQueueName
+  - name: Vs2026RegularQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: windows.vs2022.amd64.open
+      value: windows.vs2026.amd64.open
     ${{ else }}:
-      value: windows.vs2022.amd64
+      value: windows.vs2026.amd64
 
   - name: Vs2026PreviewQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
@@ -96,9 +96,9 @@ variables:
 
   - name: HelixWindowsVsQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: windows.amd64.vs2022.pre.open
+      value: windows.amd64.vs2026.pre.scout.open
     ${{ else }}:
-      value: windows.amd64.vs2022.pre
+      value: windows.amd64.vs2026.pre.scout
 
   - name: HelixWindowsSpanishQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
