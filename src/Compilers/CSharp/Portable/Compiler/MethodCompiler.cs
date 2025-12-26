@@ -2430,16 +2430,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            public override BoundNode? VisitQueryClause(BoundQueryClause node)
-            {
-                // Suppress checking for property accesses inside query clauses because they may be
-                // cloned/rewritten during query translation, which resets the WasPropertyBackingFieldAccessChecked flag.
-                using (new ChangeSuppression(this, suppressChecking: true))
-                {
-                    return base.VisitQueryClause(node);
-                }
-            }
-
             public override BoundNode? VisitAssignmentOperator(BoundAssignmentOperator node)
             {
                 using (new ChangeSuppression(this, suppressChecking: false))
