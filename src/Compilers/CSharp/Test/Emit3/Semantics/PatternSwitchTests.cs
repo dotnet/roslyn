@@ -3529,7 +3529,7 @@ ref int GetRef() => throw null;";
         [Theory]
         [WorkItem("https://github.com/dotnet/roslyn/issues/81784")]
         [CombinatorialData]
-        public void GotoCase(
+        public void GotoCase_01(
             [CombinatorialValues("byte", "sbyte", "short", "ushort", "int", "uint", "long", "ulong", "nint", "nuint")] string type1,
             [CombinatorialValues("byte", "sbyte", "short", "ushort", "int", "uint", "long", "ulong", "nint", "nuint")] string type2)
         {
@@ -3561,6 +3561,166 @@ class Program
 """;
 
             CompileAndVerify(source, expectedOutput: "Case 2Case 2Case 2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81784")]
+        public void GotoCase_02()
+        {
+            var source = $$$"""
+class Program
+{
+    static void Main()
+    {
+        int count = 0;
+
+        switch ((object)(System.IntPtr)2)
+        {
+            case (nint)2:
+                break;
+            case (System.IntPtr)2:
+                System.Console.Write("Case 2");
+                count++;
+
+                if (count == 3) break;
+                goto case (System.IntPtr)2;
+        }
+    }
+}    
+""";
+
+            var expected = new[] {
+                // (11,18): error CS0150: A constant value is expected
+                //             case (System.IntPtr)2:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(System.IntPtr)2").WithLocation(11, 18),
+                // (16,17): error CS0150: A constant value is expected
+                //                 goto case (System.IntPtr)2;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "goto case (System.IntPtr)2;").WithLocation(16, 17),
+                // (11,13): error CS8070: Control cannot fall out of switch from final case label ('case (System.IntPtr)2:')
+                //             case (System.IntPtr)2:
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case (System.IntPtr)2:").WithArguments("case (System.IntPtr)2:").WithLocation(11, 13)
+            };
+
+            CreateCompilation(source).VerifyDiagnostics(expected);
+            CreateCompilation(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(expected);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81784")]
+        public void GotoCase_03()
+        {
+            var source = $$$"""
+class Program
+{
+    static void Main()
+    {
+        int count = 0;
+
+        switch ((object)(nint)2)
+        {
+            case (System.IntPtr)2:
+                break;
+            case (nint)2:
+                System.Console.Write("Case 2");
+                count++;
+
+                if (count == 3) break;
+                goto case (nint)2;
+        }
+    }
+}    
+""";
+
+            var expected = new[] {
+                // (9,18): error CS0150: A constant value is expected
+                //             case (System.IntPtr)2:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(System.IntPtr)2").WithLocation(9, 18)
+            };
+
+            CreateCompilation(source).VerifyDiagnostics(expected);
+            CreateCompilation(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(expected);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81784")]
+        public void GotoCase_04()
+        {
+            var source = $$$"""
+class Program
+{
+    static void Main()
+    {
+        int count = 0;
+
+        switch ((object)(System.UIntPtr)2)
+        {
+            case (nuint)2:
+                break;
+            case (System.UIntPtr)2:
+                System.Console.Write("Case 2");
+                count++;
+
+                if (count == 3) break;
+                goto case (System.UIntPtr)2;
+        }
+    }
+}    
+""";
+
+            var expected = new[] {
+                // (11,18): error CS0150: A constant value is expected
+                //             case (System.UIntPtr)2:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(System.UIntPtr)2").WithLocation(11, 18),
+                // (16,17): error CS0150: A constant value is expected
+                //                 goto case (System.UIntPtr)2;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "goto case (System.UIntPtr)2;").WithLocation(16, 17),
+                // (11,13): error CS8070: Control cannot fall out of switch from final case label ('case (System.UIntPtr)2:')
+                //             case (System.UIntPtr)2:
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case (System.UIntPtr)2:").WithArguments("case (System.UIntPtr)2:").WithLocation(11, 13)
+            };
+
+            CreateCompilation(source).VerifyDiagnostics(expected);
+            CreateCompilation(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(expected);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81784")]
+        public void GotoCase_05()
+        {
+            var source = $$$"""
+class Program
+{
+    static void Main()
+    {
+        int count = 0;
+
+        switch ((object)(nuint)2)
+        {
+            case (System.UIntPtr)2:
+                break;
+            case (nuint)2:
+                System.Console.Write("Case 2");
+                count++;
+
+                if (count == 3) break;
+                goto case (nuint)2;
+        }
+    }
+}    
+""";
+
+            var expected = new[] {
+                // (9,18): error CS0150: A constant value is expected
+                //             case (System.UIntPtr)2:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(System.UIntPtr)2").WithLocation(9, 18)
+            };
+
+            CreateCompilation(source).VerifyDiagnostics(expected);
+            CreateCompilation(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(expected);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected);
         }
     }
 }
