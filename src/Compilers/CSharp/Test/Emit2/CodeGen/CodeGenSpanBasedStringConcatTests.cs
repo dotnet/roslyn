@@ -6095,7 +6095,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
     }
 
     [Fact]
-    public void ConcatFive_InlineArrayLocalReuse()
+    public void ConcatFive_InlineArrayLocalReuse1()
     {
         var source = """
             string s = "a";
@@ -6183,6 +6183,96 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0094:  call       "string string.Concat(params System.ReadOnlySpan<string>)"
               IL_0099:  call       "void System.Console.WriteLine(string)"
               IL_009e:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void ConcatFive_InlineArrayLocalReuse2()
+    {
+        var source = """
+            string s = "a";
+            System.Console.WriteLine(s + s + s + s + M(s + s + s + s + s));
+
+            string M(string s) => s;
+            """;
+
+        var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.Fails, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "aaaaaaaaa" : null);
+
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size      158 (0x9e)
+              .maxstack  3
+              .locals init (string V_0, //s
+                            System.Runtime.CompilerServices.InlineArray5<string> V_1,
+                            System.Runtime.CompilerServices.InlineArray5<string> V_2)
+              IL_0000:  ldstr      "a"
+              IL_0005:  stloc.0
+              IL_0006:  ldloca.s   V_2
+              IL_0008:  initobj    "System.Runtime.CompilerServices.InlineArray5<string>"
+              IL_000e:  ldloca.s   V_2
+              IL_0010:  ldc.i4.0
+              IL_0011:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray5<string>, string>(ref System.Runtime.CompilerServices.InlineArray5<string>, int)"
+              IL_0016:  ldloc.0
+              IL_0017:  stind.ref
+              IL_0018:  ldloca.s   V_2
+              IL_001a:  ldc.i4.1
+              IL_001b:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray5<string>, string>(ref System.Runtime.CompilerServices.InlineArray5<string>, int)"
+              IL_0020:  ldloc.0
+              IL_0021:  stind.ref
+              IL_0022:  ldloca.s   V_2
+              IL_0024:  ldc.i4.2
+              IL_0025:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray5<string>, string>(ref System.Runtime.CompilerServices.InlineArray5<string>, int)"
+              IL_002a:  ldloc.0
+              IL_002b:  stind.ref
+              IL_002c:  ldloca.s   V_2
+              IL_002e:  ldc.i4.3
+              IL_002f:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray5<string>, string>(ref System.Runtime.CompilerServices.InlineArray5<string>, int)"
+              IL_0034:  ldloc.0
+              IL_0035:  stind.ref
+              IL_0036:  ldloca.s   V_2
+              IL_0038:  ldc.i4.4
+              IL_0039:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray5<string>, string>(ref System.Runtime.CompilerServices.InlineArray5<string>, int)"
+              IL_003e:  ldloca.s   V_1
+              IL_0040:  initobj    "System.Runtime.CompilerServices.InlineArray5<string>"
+              IL_0046:  ldloca.s   V_1
+              IL_0048:  ldc.i4.0
+              IL_0049:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray5<string>, string>(ref System.Runtime.CompilerServices.InlineArray5<string>, int)"
+              IL_004e:  ldloc.0
+              IL_004f:  stind.ref
+              IL_0050:  ldloca.s   V_1
+              IL_0052:  ldc.i4.1
+              IL_0053:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray5<string>, string>(ref System.Runtime.CompilerServices.InlineArray5<string>, int)"
+              IL_0058:  ldloc.0
+              IL_0059:  stind.ref
+              IL_005a:  ldloca.s   V_1
+              IL_005c:  ldc.i4.2
+              IL_005d:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray5<string>, string>(ref System.Runtime.CompilerServices.InlineArray5<string>, int)"
+              IL_0062:  ldloc.0
+              IL_0063:  stind.ref
+              IL_0064:  ldloca.s   V_1
+              IL_0066:  ldc.i4.3
+              IL_0067:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray5<string>, string>(ref System.Runtime.CompilerServices.InlineArray5<string>, int)"
+              IL_006c:  ldloc.0
+              IL_006d:  stind.ref
+              IL_006e:  ldloca.s   V_1
+              IL_0070:  ldc.i4.4
+              IL_0071:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray5<string>, string>(ref System.Runtime.CompilerServices.InlineArray5<string>, int)"
+              IL_0076:  ldloc.0
+              IL_0077:  stind.ref
+              IL_0078:  ldloca.s   V_1
+              IL_007a:  ldc.i4.5
+              IL_007b:  call       "System.ReadOnlySpan<string> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<System.Runtime.CompilerServices.InlineArray5<string>, string>(in System.Runtime.CompilerServices.InlineArray5<string>, int)"
+              IL_0080:  call       "string string.Concat(params System.ReadOnlySpan<string>)"
+              IL_0085:  call       "string Program.<<Main>$>g__M|0_0(string)"
+              IL_008a:  stind.ref
+              IL_008b:  ldloca.s   V_2
+              IL_008d:  ldc.i4.5
+              IL_008e:  call       "System.ReadOnlySpan<string> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<System.Runtime.CompilerServices.InlineArray5<string>, string>(in System.Runtime.CompilerServices.InlineArray5<string>, int)"
+              IL_0093:  call       "string string.Concat(params System.ReadOnlySpan<string>)"
+              IL_0098:  call       "void System.Console.WriteLine(string)"
+              IL_009d:  ret
             }
             """);
     }
