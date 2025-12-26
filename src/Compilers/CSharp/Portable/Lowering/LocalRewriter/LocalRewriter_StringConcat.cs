@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </list>
         /// It is not valid to call this method inside an expression tree; that should be handled by a standard recursive rewrite.
         /// </summary>
+        /// <param name="visitedArguments">The visited arguments to be concatenated. This method will take ownership of this builder and free it before returning.</param>
         private BoundExpression CreateStringConcat(SyntaxNode originalSyntax, ArrayBuilder<BoundExpression> visitedArguments)
         {
             Debug.Assert(!_inExpressionLambda);
@@ -81,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // 3. If all the added expressions are strings or chars, we can use the `string.Concat(ReadOnlySpan<char>)`-based overloads, if present.
             // 4. If all the arguments are strings or chars, and there are more than 4, and the `string.Concat(ReadOnlySpan<string>)` overload is present,
             //    and the runtime supports inline array types, we'll use that.
-            // 4. If there are objects among the added expression, we'll use the `string.Concat(string)`-based overloads, and call ToString on the
+            // 5. If there are objects among the added expression, we'll use the `string.Concat(string)`-based overloads, and call ToString on the
             //    arguments to avoid boxing structs by converting them into objects. If there are more than 4, we'll use `string.Concat(string[])`.
 
             switch (visitedArguments)
@@ -175,7 +176,7 @@ fallbackStrings:
                     MethodSymbol concatMethod;
                     if (finalArguments.Length > 4)
                     {
-                        if (_compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes)
+                        if (_compilation.Assembly.RuntimeSupportsInlineArrayTypes
                             && TryGetSpecialTypeMethod(originalSyntax, SpecialMember.System_String__ConcatReadOnlySpanString, out concatMethod, isOptional: true))
                         {
                             finalArguments = [CreateAndPopulateSpanFromInlineArray(

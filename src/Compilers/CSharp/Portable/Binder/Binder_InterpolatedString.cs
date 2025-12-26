@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!@this.InExpressionTree // Can't use spans in an expression tree
                     && TryGetSpecialTypeMember<MethodSymbol>(@this.Compilation, SpecialMember.System_String__ConcatReadOnlySpanString, parts[0].Syntax, diagnostics, out _, isOptional: true)
-                    && @this.Compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes))
+                    && @this.Compilation.Assembly.RuntimeSupportsInlineArrayTypes)
                 {
                     // Case 3
                     return (canUseConcat: true, canUseAlloclessConcat: true);
@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var canUseReadOnlySpanStringConcat =
                 TryGetSpecialTypeMember<MethodSymbol>(Compilation, SpecialMember.System_String__ConcatReadOnlySpanString, binaryOperator.Syntax, diagnostics, out _, isOptional: true)
-                && Compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes);
+                && Compilation.Assembly.RuntimeSupportsInlineArrayTypes;
 
             int count = 0;
 
