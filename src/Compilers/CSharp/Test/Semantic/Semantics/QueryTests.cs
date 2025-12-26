@@ -4787,7 +4787,7 @@ Console.WriteLine(string.Join(string.Empty, test));
             CompileAndVerify(code, expectedOutput: "ran").VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80008")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81709")]
         public void PropertyAccess_AnonymousType_GroupBy()
         {
             var code = """
