@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -131,30 +132,37 @@ internal partial class RenameFlyout : InlineRenameAdornment
 
     private void PositionAdornment()
     {
-        var span = _viewModel.InitialTrackingSpan.GetSpan(_textView.TextSnapshot);
-        var line = _textView.GetTextViewLineContainingBufferPosition(span.Start);
-        var charBounds = line.GetCharacterBounds(span.Start);
+        try
+        {
+            var span = _viewModel.InitialTrackingSpan.GetSpan(_textView.TextSnapshot);
+            var line = _textView.GetTextViewLineContainingBufferPosition(span.Start);
+            var charBounds = line.GetCharacterBounds(span.Start);
 
-        var height = DesiredSize.Height;
-        var width = DesiredSize.Width;
+            var height = DesiredSize.Height;
+            var width = DesiredSize.Width;
 
-        var desiredTop = charBounds.TextBottom + 5;
-        var desiredLeft = charBounds.Left;
+            var desiredTop = charBounds.TextBottom + 5;
+            var desiredLeft = charBounds.Left;
 
-        var top = (desiredTop + height) > _textView.ViewportBottom
-            ? _textView.ViewportBottom - height
-            : desiredTop;
+            var top = (desiredTop + height) > _textView.ViewportBottom
+                ? _textView.ViewportBottom - height
+                : desiredTop;
 
-        var left = (desiredLeft + width) > _textView.ViewportRight
-            ? _textView.ViewportRight - width
-            : desiredLeft;
+            var left = (desiredLeft + width) > _textView.ViewportRight
+                ? _textView.ViewportRight - width
+                : desiredLeft;
 
-        MaxWidth = _textView.ViewportRight;
-        MinWidth = Math.Min(DefaultMinWidth, _textView.ViewportWidth);
+            MaxWidth = _textView.ViewportRight;
+            MinWidth = Math.Min(DefaultMinWidth, _textView.ViewportWidth);
 
-        // Top can be negative if the viewport is scrolled up, but not left
-        Canvas.SetTop(this, top);
-        Canvas.SetLeft(this, Math.Max(0, left));
+            // Top can be negative if the viewport is scrolled up, but not left
+            Canvas.SetTop(this, top);
+            Canvas.SetLeft(this, Math.Max(0, left));
+        }
+        catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+        {
+            _viewModel.Cancel();
+        }
     }
 
     public override void Dispose()
