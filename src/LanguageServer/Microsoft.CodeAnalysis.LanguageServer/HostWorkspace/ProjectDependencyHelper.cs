@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
-using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.Extensions.Logging;
 using NuGet.ProjectModel;
