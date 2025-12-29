@@ -15,9 +15,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.ErrorC
 
 internal sealed class ExceptionInCodeAction : CodeRefactoringProvider
 {
-    public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+    public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
         context.RegisterRefactoring(new ExceptionCodeAction(), context.Span);
+        return Task.CompletedTask;
     }
 
     internal sealed class ExceptionCodeAction : CodeAction

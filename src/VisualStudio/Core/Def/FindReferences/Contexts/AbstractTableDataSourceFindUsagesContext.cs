@@ -170,9 +170,10 @@ internal partial class StreamingFindUsagesPresenter
             // results).  To limit the amount of work we do, we'll only update the window every 250ms.
             _notifyQueue = new AsyncBatchingWorkQueue(
                 DelayTimeSpan.Short,
-                async cancellationToken =>
+                cancellationToken =>
                 {
                     _tableDataSink.FactorySnapshotChanged(this);
+                    return ValueTask.CompletedTask;
                 },
                 presenter._asyncListener,
                 CancellationTokenSource.Token);
@@ -345,10 +346,11 @@ internal partial class StreamingFindUsagesPresenter
 
         #region FindUsagesContext overrides.
 
-        public sealed override async ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
+        public sealed override ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
         {
             // Note: IFindAllReferenceWindow.Title is safe to set from any thread.
             _findReferencesWindow.Title = title;
+            return default;
         }
 
         public sealed override async ValueTask OnCompletedAsync(CancellationToken cancellationToken)
@@ -526,12 +528,14 @@ internal partial class StreamingFindUsagesPresenter
             }
         }
 
-        public sealed override async ValueTask ReportNoResultsAsync(string message, CancellationToken cancellationToken)
+        public sealed override ValueTask ReportNoResultsAsync(string message, CancellationToken cancellationToken)
         {
             lock (Gate)
             {
                 NoDefinitionsFoundMessage = message;
             }
+
+            return ValueTask.CompletedTask;
         }
 
         public sealed override async ValueTask ReportMessageAsync(string message, NotificationSeverity severity, CancellationToken cancellationToken)
@@ -539,12 +543,13 @@ internal partial class StreamingFindUsagesPresenter
             await this.Presenter.ReportMessageAsync(message, severity, cancellationToken).ConfigureAwait(false);
         }
 
-        protected sealed override async ValueTask ReportProgressAsync(int current, int maximum, CancellationToken cancellationToken)
+        protected sealed override ValueTask ReportProgressAsync(int current, int maximum, CancellationToken cancellationToken)
         {
             _progressQueue.AddWork((current, maximum));
+            return default;
         }
 
-        private async ValueTask UpdateTableProgressAsync(ImmutableSegmentedList<(int current, int maximum)> nextBatch, CancellationToken _)
+        private ValueTask UpdateTableProgressAsync(ImmutableSegmentedList<(int current, int maximum)> nextBatch, CancellationToken _)
         {
             if (!nextBatch.IsEmpty)
             {
@@ -563,6 +568,8 @@ internal partial class StreamingFindUsagesPresenter
                 if (current > 0)
                     _findReferencesWindow.SetProgress(current, maximum);
             }
+
+            return ValueTask.CompletedTask;
         }
 
         protected static DefinitionItem CreateNoResultsDefinitionItem(string message)

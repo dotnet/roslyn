@@ -157,9 +157,10 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         }
     }
 
-    public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
+    public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
         OnInitialized();
+        return Task.CompletedTask;
     }
 
     public override bool TryGetLanguageForRequest(string methodName, object? serializedParameters, [NotNullWhen(true)] out string? language)

@@ -43,10 +43,10 @@ internal partial class RemoteProcessTelemetryService
             _diagnosticAnalyzerPerformanceTracker.SnapshotAdded += (_, _) => _workQueue.AddWork();
         }
 
-        private async ValueTask ProcessWorkAsync(CancellationToken cancellationToken)
+        private ValueTask ProcessWorkAsync(CancellationToken cancellationToken)
         {
             if (!_telemetrySession.IsOptedIn)
-                return;
+                return ValueTask.CompletedTask;
 
             using (RoslynLogger.LogBlock(FunctionId.Diagnostics_GeneratePerformaceReport, cancellationToken))
             {
@@ -70,6 +70,8 @@ internal partial class RemoteProcessTelemetryService
                     }
                 }
             }
+
+            return ValueTask.CompletedTask;
         }
     }
 }

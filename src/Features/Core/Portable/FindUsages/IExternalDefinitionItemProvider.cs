@@ -10,6 +10,6 @@ namespace Microsoft.CodeAnalysis.FindUsages;
 
 internal interface IExternalDefinitionItemProvider : IWorkspaceService
 {
-    ValueTask<DefinitionItem?> GetThirdPartyDefinitionItemAsync(
+    Task<DefinitionItem?> GetThirdPartyDefinitionItemAsync(
         Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken);
 }

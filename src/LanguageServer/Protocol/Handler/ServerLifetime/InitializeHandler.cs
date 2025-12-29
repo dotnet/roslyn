@@ -21,7 +21,7 @@ internal sealed class InitializeHandler : ILspServiceRequestHandler<InitializePa
     public bool MutatesSolutionState => true;
     public bool RequiresLSPSolution => false;
 
-    public async Task<InitializeResult> HandleRequestAsync(InitializeParams request, RequestContext context, CancellationToken cancellationToken)
+    public Task<InitializeResult> HandleRequestAsync(InitializeParams request, RequestContext context, CancellationToken cancellationToken)
     {
         var clientCapabilitiesManager = context.GetRequiredLspService<IInitializeManager>();
         var clientCapabilities = clientCapabilitiesManager.TryGetClientCapabilities();
@@ -44,9 +44,9 @@ internal sealed class InitializeHandler : ILspServiceRequestHandler<InitializePa
             m["capabilities"] = JsonSerializer.Serialize(serverCapabilities, ProtocolConversions.LspJsonSerializerOptions);
         }));
 
-        return new InitializeResult
+        return Task.FromResult(new InitializeResult
         {
             Capabilities = serverCapabilities,
-        };
+        });
     }
 }

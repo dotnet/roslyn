@@ -48,9 +48,10 @@ public sealed class VisualStudioSettingsOptionPersisterTests
             return result;
         }
 
-        public async Task SetValueAsync(string name, object? value, bool isMachineLocal)
+        public Task SetValueAsync(string name, object? value, bool isMachineLocal)
         {
             SetValueImpl?.Invoke(name, value);
+            return Task.CompletedTask;
         }
 
         public ISettingsList GetOrCreateList(string name, bool isMachineLocal)

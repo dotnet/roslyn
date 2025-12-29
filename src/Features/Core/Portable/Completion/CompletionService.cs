@@ -375,9 +375,9 @@ public abstract partial class CompletionService : ILanguageService
         return true;
     }
 
-    internal virtual async ValueTask<bool> IsSpeculativeTypeParameterContextAsync(Document document, int position, CancellationToken cancellationToken)
+    internal virtual Task<bool> IsSpeculativeTypeParameterContextAsync(Document document, int position, CancellationToken cancellationToken)
     {
-        return false;
+        return SpecializedTasks.False;
     }
 
     /// <summary>

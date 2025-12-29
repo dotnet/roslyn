@@ -39,7 +39,7 @@ internal sealed partial class RemoteProcessTelemetryService(
     /// </summary>
     public ValueTask InitializeTelemetrySessionAsync(int hostProcessId, string serializedSession, bool logDelta, CancellationToken cancellationToken)
     {
-        return RunServiceAsync(async cancellationToken =>
+        return RunServiceAsync(cancellationToken =>
         {
             var services = GetWorkspace().Services;
 
@@ -65,6 +65,8 @@ internal sealed partial class RemoteProcessTelemetryService(
                 // We know in the remote layer that this type must exist.
                 _performanceReporter = new PerformanceReporter(telemetrySession, diagnosticAnalyzerPerformanceTracker, _shutdownCancellationSource.Token);
             }
+
+            return ValueTask.CompletedTask;
         }, cancellationToken);
     }
 
@@ -73,7 +75,7 @@ internal sealed partial class RemoteProcessTelemetryService(
     /// </summary>
     public ValueTask EnableLoggingAsync(ImmutableArray<string> loggerTypeNames, ImmutableArray<FunctionId> functionIds, CancellationToken cancellationToken)
     {
-        return RunServiceAsync(async cancellationToken =>
+        return RunServiceAsync(cancellationToken =>
         {
             var functionIdsSet = new HashSet<FunctionId>(functionIds);
             bool logChecker(FunctionId id) => functionIdsSet.Contains(id);
@@ -81,6 +83,8 @@ internal sealed partial class RemoteProcessTelemetryService(
             // we only support 2 types of loggers
             SetRoslynLogger(loggerTypeNames, () => new EtwLogger(logChecker));
             SetRoslynLogger(loggerTypeNames, () => new TraceLogger(logChecker));
+
+            return ValueTask.CompletedTask;
         }, cancellationToken);
     }
 

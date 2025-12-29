@@ -213,22 +213,22 @@ internal sealed partial class SolutionCompilationState
             }
         }
 
-        public async Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
+        public Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
         {
             if (this.TryGetCompilation(out var compilation))
             {
-                return compilation;
+                return Task.FromResult(compilation);
             }
             else if (cancellationToken.IsCancellationRequested)
             {
                 // Handle early cancellation here to avoid throwing/catching cancellation exceptions in the async
                 // state machines. This helps reduce the total number of First Chance Exceptions occurring in IDE
                 // typing scenarios.
-                return await Task.FromCanceled<Compilation>(cancellationToken).ConfigureAwait(false);
+                return Task.FromCanceled<Compilation>(cancellationToken);
             }
             else
             {
-                return await GetCompilationSlowAsync(compilationState, cancellationToken).ConfigureAwait(false);
+                return GetCompilationSlowAsync(compilationState, cancellationToken);
             }
         }
 

@@ -31,12 +31,13 @@ internal sealed partial class CSharpRemoveUnnecessaryLambdaExpressionCodeFixProv
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.RemoveUnnecessaryLambdaExpressionDiagnosticId];
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Remove_unnecessary_lambda_expression, nameof(CSharpAnalyzersResources.Remove_unnecessary_lambda_expression));
+        return Task.CompletedTask;
     }
 
-    protected override async Task FixAllAsync(
+    protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
@@ -71,6 +72,8 @@ internal sealed partial class CSharpRemoveUnnecessaryLambdaExpressionCodeFixProv
                 }
             }
         }
+
+        return Task.CompletedTask;
     }
 
     private static IEnumerable<SyntaxTrivia> TakeComments(SyntaxTriviaList triviaList)

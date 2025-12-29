@@ -379,8 +379,8 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
     protected virtual bool IsExclusive()
         => false;
 
-    protected virtual async Task<bool> IsSemanticTriggerCharacterAsync(Document document, int characterPosition, CancellationToken cancellationToken)
-        => true;
+    protected virtual Task<bool> IsSemanticTriggerCharacterAsync(Document document, int characterPosition, CancellationToken cancellationToken)
+        => SpecializedTasks.True;
 
     private static Dictionary<SymbolAndSelectionInfo, TSyntaxContext> UnionSymbols(
         ImmutableArray<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<SymbolAndSelectionInfo> symbols)> linkedContextSymbolLists)
@@ -466,8 +466,8 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         return missingSymbols;
     }
 
-    public sealed override async Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
-        => new TextChange(selectedItem.Span, GetInsertionText(selectedItem, ch));
+    public sealed override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        => Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, GetInsertionText(selectedItem, ch)));
 
     private string GetInsertionText(CompletionItem item, char? ch)
     {

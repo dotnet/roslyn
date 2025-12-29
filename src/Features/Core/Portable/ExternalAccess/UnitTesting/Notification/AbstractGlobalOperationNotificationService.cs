@@ -45,13 +45,15 @@ internal abstract partial class AbstractGlobalOperationNotificationService : IGl
         }
     }
 
-    private async ValueTask ProcessEventsAsync(ImmutableSegmentedList<bool> list, CancellationToken cancellationToken)
+    private ValueTask ProcessEventsAsync(ImmutableSegmentedList<bool> list, CancellationToken cancellationToken)
     {
         foreach (var value in list)
         {
             var eventHandler = value ? Started : Stopped;
             eventHandler?.Invoke(this, EventArgs.Empty);
         }
+
+        return ValueTask.CompletedTask;
     }
 
     public IDisposable Start(string operation)

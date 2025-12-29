@@ -24,7 +24,7 @@ internal sealed class CrefTypeParameterSymbolReferenceFinder : AbstractReference
     protected override bool CanFind(ITypeParameterSymbol symbol)
         => symbol.TypeParameterKind == TypeParameterKind.Cref;
 
-    protected override async Task DetermineDocumentsToSearchAsync<TData>(
+    protected override Task DetermineDocumentsToSearchAsync<TData>(
         ITypeParameterSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
@@ -40,6 +40,8 @@ internal sealed class CrefTypeParameterSymbolReferenceFinder : AbstractReference
             if (document != null)
                 processResult(document, processResultData);
         }
+
+        return Task.CompletedTask;
     }
 
     protected override void FindReferencesInDocument<TData>(

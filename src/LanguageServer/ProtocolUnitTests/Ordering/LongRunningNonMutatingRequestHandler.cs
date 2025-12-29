@@ -28,13 +28,13 @@ internal sealed class LongRunningNonMutatingRequestHandler : ILspServiceRequestH
 
     public bool RequiresLSPSolution => true;
 
-    public async Task<TestResponse> HandleRequestAsync(TestRequest request, RequestContext context, CancellationToken cancellationToken)
+    public Task<TestResponse> HandleRequestAsync(TestRequest request, RequestContext context, CancellationToken cancellationToken)
     {
         do
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                return new TestResponse();
+                return Task.FromResult(new TestResponse());
             }
 
             Thread.Sleep(100);

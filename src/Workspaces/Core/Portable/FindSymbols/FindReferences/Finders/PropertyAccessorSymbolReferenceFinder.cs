@@ -17,7 +17,7 @@ internal sealed class PropertyAccessorSymbolReferenceFinder : AbstractMethodOrPr
     protected override bool CanFind(IMethodSymbol symbol)
         => symbol.MethodKind.IsPropertyAccessor();
 
-    protected override async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+    protected override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
         IMethodSymbol symbol,
         Solution solution,
         FindReferencesSearchOptions options,
@@ -33,7 +33,7 @@ internal sealed class PropertyAccessorSymbolReferenceFinder : AbstractMethodOrPr
         // If the given symbol is an extension accessor, cascade to its implementation method
         result.AddIfNotNull(symbol.AssociatedExtensionImplementation);
 
-        return result.ToImmutableAndClear();
+        return new(result.ToImmutableAndClear());
     }
 
     protected override async Task DetermineDocumentsToSearchAsync<TData>(

@@ -14,10 +14,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Progression;
 public static class GraphNodeCreation
 {
     [Obsolete("This method is not implemented and always returns an empty GraphNodeId.", error: true)]
-    public static async Task<GraphNodeId> CreateNodeIdAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
-        => GraphNodeId.Empty;
+    public static Task<GraphNodeId> CreateNodeIdAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+        => Task.FromResult(GraphNodeId.Empty);
 
     [Obsolete("This method is not implemented and always returns an empty GraphNode.", error: true)]
-    public static async Task<GraphNode> CreateNodeAsync(this Graph graph, ISymbol symbol, Solution solution, CancellationToken cancellationToken)
-       => graph.Nodes.GetOrCreate(GraphNodeId.Empty);
+    public static Task<GraphNode> CreateNodeAsync(this Graph graph, ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+       => Task.FromResult(graph.Nodes.GetOrCreate(GraphNodeId.Empty));
 }
