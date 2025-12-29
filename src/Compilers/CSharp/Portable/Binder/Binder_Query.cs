@@ -259,18 +259,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // this is the unoptimized form (when v is not the identifier x)
                         var d = BindingDiagnosticBag.GetInstance(diagnostics);
-                        var checkValueDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
                         BoundExpression lambdaRight = MakeQueryUnboundLambda(state.RangeVariableMap(), x, v, diagnostics.AccumulatesDependencies);
-                        result = MakeQueryInvocation(
-                            state.selectOrGroup,
-                            e,
-                            receiverIsCheckedForRValue: false,
-                            methodName: "GroupBy",
-                            typeArgsSyntax: default,
-                            typeArgs: default,
-                            args: ImmutableArray.Create(lambdaLeft, lambdaRight),
-                            diagnostics: d,
-                            checkValueDiagnostics: checkValueDiagnostics
+                        result = MakeQueryInvocation(state.selectOrGroup, e, receiverIsCheckedForRValue: false, "GroupBy", ImmutableArray.Create(lambdaLeft, lambdaRight), d
 #if DEBUG
                             , state.nextInvokedMethodName
 #endif
@@ -286,13 +276,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // The optimized form.  We store the unoptimized form for analysis
                             unoptimizedForm = result;
-                            result = MakeQueryInvocation(state.selectOrGroup, e, receiverIsCheckedForRValue: true, "GroupBy", lambdaLeft, diagnostics
+                            result = MakeQueryInvocation(state.selectOrGroup, e, receiverIsCheckedForRValue: false, "GroupBy", lambdaLeft, diagnostics
 #if DEBUG
                                 , state.nextInvokedMethodName
 #endif
                                 );
-
-                            diagnostics.AddRange(checkValueDiagnostics);
 #if DEBUG
                             state.nextInvokedMethodName = null;
 #endif
@@ -301,11 +289,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             diagnostics.AddRange(d);
-                            diagnostics.AddRange(checkValueDiagnostics);
                         }
 
                         d.Free();
-                        checkValueDiagnostics.Free();
                         return MakeQueryClause(groupClause, result, queryInvocation: result, unoptimizedForm: unoptimizedForm);
                     }
                 default:
@@ -902,7 +888,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             )
         {
-            return MakeQueryInvocation(node, receiver, receiverIsCheckedForRValue, methodName, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeWithAnnotations>), ImmutableArray.Create(arg), diagnostics, checkValueDiagnostics: diagnostics
+            return MakeQueryInvocation(node, receiver, receiverIsCheckedForRValue, methodName, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeWithAnnotations>), ImmutableArray.Create(arg), diagnostics
 #if DEBUG
                 , expectedMethodName
 #endif
@@ -915,7 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             )
         {
-            return MakeQueryInvocation(node, receiver, receiverIsCheckedForRValue, methodName, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeWithAnnotations>), args, diagnostics, checkValueDiagnostics: diagnostics
+            return MakeQueryInvocation(node, receiver, receiverIsCheckedForRValue, methodName, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeWithAnnotations>), args, diagnostics
 #if DEBUG
                 , expectedMethodName
 #endif
@@ -928,14 +914,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             )
         {
-            return MakeQueryInvocation(node, receiver, receiverIsCheckedForRValue, methodName, new SeparatedSyntaxList<TypeSyntax>(new SyntaxNodeOrTokenList(typeArgSyntax, 0)), ImmutableArray.Create(typeArg), ImmutableArray<BoundExpression>.Empty, diagnostics, checkValueDiagnostics: diagnostics
+            return MakeQueryInvocation(node, receiver, receiverIsCheckedForRValue, methodName, new SeparatedSyntaxList<TypeSyntax>(new SyntaxNodeOrTokenList(typeArgSyntax, 0)), ImmutableArray.Create(typeArg), ImmutableArray<BoundExpression>.Empty, diagnostics
 #if DEBUG
                 , expectedMethodName
 #endif
                 );
         }
 
-        protected BoundCall MakeQueryInvocation(CSharpSyntaxNode node, BoundExpression receiver, bool receiverIsCheckedForRValue, string methodName, SeparatedSyntaxList<TypeSyntax> typeArgsSyntax, ImmutableArray<TypeWithAnnotations> typeArgs, ImmutableArray<BoundExpression> args, BindingDiagnosticBag diagnostics, BindingDiagnosticBag checkValueDiagnostics
+        protected BoundCall MakeQueryInvocation(CSharpSyntaxNode node, BoundExpression receiver, bool receiverIsCheckedForRValue, string methodName, SeparatedSyntaxList<TypeSyntax> typeArgsSyntax, ImmutableArray<TypeWithAnnotations> typeArgs, ImmutableArray<BoundExpression> args, BindingDiagnosticBag diagnostics
 #if DEBUG
             , string? expectedMethodName
 #endif
@@ -1009,7 +995,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!receiverIsCheckedForRValue)
                 {
-                    var checkedUltimateReceiver = CheckValue(ultimateReceiver, BindValueKind.RValue, checkValueDiagnostics);
+                    var checkedUltimateReceiver = CheckValue(ultimateReceiver, BindValueKind.RValue, diagnostics);
                     if (checkedUltimateReceiver != ultimateReceiver)
                     {
                         receiver = updateUltimateReceiver(receiver, ultimateReceiver, checkedUltimateReceiver);
