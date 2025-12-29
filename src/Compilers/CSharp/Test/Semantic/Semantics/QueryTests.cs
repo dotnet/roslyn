@@ -4496,6 +4496,33 @@ public class C {
         }
 
         [Fact, WorkItem(50316, "https://github.com/dotnet/roslyn/issues/50316")]
+        public void SetOnlyProperty_GroupByContinuation()
+        {
+            var comp = CreateCompilation(@"
+using System.Collections.Generic;
+using System.Linq;
+
+var c = new C();
+var test = from i in c.Prop
+           group i by i into g
+           select g;
+
+public class C {
+    public IEnumerable<int> Prop
+    {
+        set {}
+    }
+}
+", options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (6,22): error CS0154: The property or indexer 'C.Prop' cannot be used in this context because it lacks the get accessor
+                // var test = from i in c.Prop
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "c.Prop").WithArguments("C.Prop").WithLocation(6, 22)
+            );
+        }
+
+        [Fact, WorkItem(50316, "https://github.com/dotnet/roslyn/issues/50316")]
         public void DefaultIndexedPropertyParameters_IndexerCall()
         {
             CompileAndVerify(@"
