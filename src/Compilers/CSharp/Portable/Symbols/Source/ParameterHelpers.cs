@@ -788,7 +788,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         else if (i < n - 1)
                         {
-                            // Only allow 'scoped' to be followed by ref/out/in to actually be considered a valid modifier.
+                            // Only allow `scoped` followed by `ref/out/in` to actually be considered a valid modifier.
+                            // Anything else is an error.
                             //
                             // Note we don't add an error in the case of 'scoped scoped' as that is already handled by
                             // seenScoped above.
