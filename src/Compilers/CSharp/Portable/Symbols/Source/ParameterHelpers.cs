@@ -783,13 +783,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         else if (seenIn || seenOut || seenRef || seenReadonly)
                         {
-                            // Matches original parsing logic that disallowed parsing out 'scoped' once in/out/ref/readonly had been seen.
+                            // Disallow parsing out 'scoped' once in/out/ref/readonly had been seen.
                             diagnostics.Add(ErrorCode.ERR_ScopedAfterInOutRefReadonly, modifier.GetLocation());
                         }
                         else if (i < n - 1)
                         {
-                            // Matches original parsing logic that only allowed 'scoped' to be followed by ref/out/in to
-                            // actually be considered the modifier.
+                            // Only allow 'scoped' to be followed by ref/out/in to actually be considered the modifier.
                             //
                             // Note we don't add an error in the case of 'scoped scoped' as that is already handled by
                             // seenScoped above.
