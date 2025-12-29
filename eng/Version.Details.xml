@@ -3,9 +3,9 @@
   <Source Uri="https://github.com/dotnet/dotnet" Mapping="roslyn" Sha="e9a2ab63ad60de1afff34ddc3f09257093ea034a" BarId="291616" />
   <ProductDependencies>
     <!-- RoslynAnalyzers reference older builds of Roslyn and this is necessary for SourceBuild. -->
-    <Dependency Name="Microsoft.CodeAnalysis" Version="5.3.0-2.25619.2">
+    <Dependency Name="Microsoft.CodeAnalysis" Version="5.3.0-2.25625.1">
       <Uri>https://github.com/dotnet/roslyn</Uri>
-      <Sha>6a135ea0ca8b7332d11fa78d68f0a14a65f2644f</Sha>
+      <Sha>5dd606bb21208dfc6fd3d9b07ae963a93248483b</Sha>
     </Dependency>
     <Dependency Name="System.CommandLine" Version="3.0.0-alpha.1.25570.101">
       <Uri>https://github.com/dotnet/dotnet</Uri>
@@ -127,9 +127,9 @@
       <Uri>https://github.com/dotnet/symreader</Uri>
       <Sha>27e584661980ee6d82c419a2a471ae505b7d122e</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="5.3.0-2.25619.2">
+    <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="5.3.0-2.25625.1">
       <Uri>https://github.com/dotnet/roslyn</Uri>
-      <Sha>6a135ea0ca8b7332d11fa78d68f0a14a65f2644f</Sha>
+      <Sha>5dd606bb21208dfc6fd3d9b07ae963a93248483b</Sha>
     </Dependency>
     <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="11.0.0-beta.25609.1">
       <Uri>https://github.com/dotnet/arcade</Uri>
@@ -153,17 +153,17 @@
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.CodeAnalysis.Analyzers" Version="5.3.0-2.25619.2">
+    <Dependency Name="Microsoft.CodeAnalysis.Analyzers" Version="5.3.0-2.25625.1">
       <Uri>https://github.com/dotnet/roslyn</Uri>
-      <Sha>6a135ea0ca8b7332d11fa78d68f0a14a65f2644f</Sha>
+      <Sha>5dd606bb21208dfc6fd3d9b07ae963a93248483b</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="5.3.0-2.25619.2">
+    <Dependency Name="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="5.3.0-2.25625.1">
       <Uri>https://github.com/dotnet/roslyn</Uri>
-      <Sha>6a135ea0ca8b7332d11fa78d68f0a14a65f2644f</Sha>
+      <Sha>5dd606bb21208dfc6fd3d9b07ae963a93248483b</Sha>
     </Dependency>
-    <Dependency Name="Roslyn.Diagnostics.Analyzers" Version="5.3.0-2.25619.2">
+    <Dependency Name="Roslyn.Diagnostics.Analyzers" Version="5.3.0-2.25625.1">
       <Uri>https://github.com/dotnet/roslyn</Uri>
-      <Sha>6a135ea0ca8b7332d11fa78d68f0a14a65f2644f</Sha>
+      <Sha>5dd606bb21208dfc6fd3d9b07ae963a93248483b</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>
