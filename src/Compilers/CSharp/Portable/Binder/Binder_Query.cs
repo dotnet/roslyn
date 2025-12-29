@@ -993,17 +993,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if (!receiverIsCheckedForRValue)
+                var checkedUltimateReceiver = CheckValue(ultimateReceiver, BindValueKind.RValue, diagnostics);
+                if (checkedUltimateReceiver != ultimateReceiver)
                 {
-                    var checkedUltimateReceiver = CheckValue(ultimateReceiver, BindValueKind.RValue, diagnostics);
-                    if (checkedUltimateReceiver != ultimateReceiver)
-                    {
-                        receiver = updateUltimateReceiver(receiver, ultimateReceiver, checkedUltimateReceiver);
-                    }
-                }
-                else
-                {
-                    Debug.Assert(ultimateReceiver is not BoundQueryClause);
+                    receiver = updateUltimateReceiver(receiver, ultimateReceiver, checkedUltimateReceiver);
                 }
             }
 

@@ -759,25 +759,74 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return expr;
 
                 case BoundKind.PropertyAccess:
-                    if (!InAttributeArgument)
                     {
-                        // If the property has a synthesized backing field, record the accessor kind of the property
-                        // access for determining whether the property access can use the backing field directly.
                         var propertyAccess = (BoundPropertyAccess)expr;
-                        if (HasSynthesizedBackingField(propertyAccess.PropertySymbol, out _))
+                        if (!InAttributeArgument)
                         {
-                            expr = propertyAccess.Update(
+                            // If the property has a synthesized backing field, record the accessor kind of the property
+                            // access for determining whether the property access can use the backing field directly.
+                            if (HasSynthesizedBackingField(propertyAccess.PropertySymbol, out _))
+                            {
+                                expr = propertyAccess.Update(
+                                    propertyAccess.ReceiverOpt,
+                                    propertyAccess.InitialBindingReceiverIsSubjectToCloning,
+                                    propertyAccess.PropertySymbol,
+                                    autoPropertyAccessorKind: GetAccessorKind(valueKind),
+                                    propertyAccess.ResultKind,
+                                    propertyAccess.Type);
+                            }
+#if DEBUG
+                            else
+                            {
+                                // Under DEBUG, create a new node to mark as checked, rather than mutating the original.
+                                // This allows the original node to be passed to CheckValue multiple times safely.
+                                // To ensure a new node is created, we temporarily toggle InitialBindingReceiverIsSubjectToCloning
+                                // and then toggle it back.
+                                var toggled = propertyAccess.InitialBindingReceiverIsSubjectToCloning == ThreeState.True 
+                                    ? ThreeState.False 
+                                    : ThreeState.True;
+                                var temp = propertyAccess.Update(
+                                    propertyAccess.ReceiverOpt,
+                                    toggled,
+                                    propertyAccess.PropertySymbol,
+                                    propertyAccess.AutoPropertyAccessorKind,
+                                    propertyAccess.ResultKind,
+                                    propertyAccess.Type);
+                                expr = temp.Update(
+                                    temp.ReceiverOpt,
+                                    propertyAccess.InitialBindingReceiverIsSubjectToCloning,
+                                    temp.PropertySymbol,
+                                    temp.AutoPropertyAccessorKind,
+                                    temp.ResultKind,
+                                    temp.Type);
+                            }
+#endif
+                        }
+#if DEBUG
+                        else
+                        {
+                            // In attribute arguments, still create a new node to mark as checked.
+                            var toggled = propertyAccess.InitialBindingReceiverIsSubjectToCloning == ThreeState.True 
+                                ? ThreeState.False 
+                                : ThreeState.True;
+                            var temp = propertyAccess.Update(
                                 propertyAccess.ReceiverOpt,
-                                propertyAccess.InitialBindingReceiverIsSubjectToCloning,
+                                toggled,
                                 propertyAccess.PropertySymbol,
-                                autoPropertyAccessorKind: GetAccessorKind(valueKind),
+                                propertyAccess.AutoPropertyAccessorKind,
                                 propertyAccess.ResultKind,
                                 propertyAccess.Type);
+                            expr = temp.Update(
+                                temp.ReceiverOpt,
+                                propertyAccess.InitialBindingReceiverIsSubjectToCloning,
+                                temp.PropertySymbol,
+                                temp.AutoPropertyAccessorKind,
+                                temp.ResultKind,
+                                temp.Type);
                         }
-                    }
-#if DEBUG
-                    expr.WasPropertyBackingFieldAccessChecked = true;
+                        expr.WasPropertyBackingFieldAccessChecked = true;
 #endif
+                    }
                     break;
 
                 case BoundKind.IndexerAccess:
