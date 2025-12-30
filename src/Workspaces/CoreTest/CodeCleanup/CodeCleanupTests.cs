@@ -396,10 +396,10 @@ public sealed class CodeCleanupTests
     {
         var spanCodeCleanup = new MockCodeCleanupProvider()
         {
-            CleanupDocumentAsyncImpl = async (provider, document, spans, options, cancellationToken) =>
+            CleanupDocumentAsyncImpl = (provider, document, spans, options, cancellationToken) =>
             {
                 provider.ExpectedResult = spans;
-                return document;
+                return Task.FromResult(document);
             }
         };
 

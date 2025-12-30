@@ -42,18 +42,18 @@ internal sealed class OnAutoInsertHandler(
 
     public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.VSInternalDocumentOnAutoInsertParams request) => request.TextDocument;
 
-    public async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(
+    public Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(
         LSP.VSInternalDocumentOnAutoInsertParams request,
         RequestContext context,
         CancellationToken cancellationToken)
     {
         var document = context.Document;
         if (document == null)
-            return null;
+            return SpecializedTasks.Null<LSP.VSInternalDocumentOnAutoInsertResponseItem>();
 
         var onAutoInsertEnabled = _globalOptions.GetOption(LspOptionsStorage.LspEnableAutoInsert, document.Project.Language);
         if (!onAutoInsertEnabled)
-            return null;
+            return SpecializedTasks.Null<LSP.VSInternalDocumentOnAutoInsertResponseItem>();
 
         var servicesForDocument = _braceCompletionServices.SelectAsArray(s => s.Metadata.Language == document.Project.Language, s => s.Value);
         var isRazorRequest = context.ServerKind == WellKnownLspServerKinds.RazorLspServer;
@@ -63,7 +63,7 @@ internal sealed class OnAutoInsertHandler(
         // We want adjust the braces after enter for razor and non-VS clients.
         // We don't do this via on type formatting as it does not support snippets.
         var includeNewLineBraceFormatting = isRazorRequest || !supportsVSExtensions;
-        return await GetOnAutoInsertResponseAsync(_globalOptions, servicesForDocument, document, position, request.Character, request.Options, includeNewLineBraceFormatting, cancellationToken).ConfigureAwait(false);
+        return GetOnAutoInsertResponseAsync(_globalOptions, servicesForDocument, document, position, request.Character, request.Options, includeNewLineBraceFormatting, cancellationToken);
     }
 
     internal static async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> GetOnAutoInsertResponseAsync(

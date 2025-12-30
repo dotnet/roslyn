@@ -224,9 +224,10 @@ public sealed partial class ServiceHubServicesTests
 
         public Task<ImmutableArray<DesignerAttributeData>> Infos => _infosSource.Task;
 
-        public async ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> infos, CancellationToken cancellationToken)
+        public ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> infos, CancellationToken cancellationToken)
         {
             _infosSource.SetResult(infos);
+            return ValueTask.CompletedTask;
         }
     }
 

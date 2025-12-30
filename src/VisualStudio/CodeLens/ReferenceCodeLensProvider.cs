@@ -62,20 +62,20 @@ internal sealed class ReferenceCodeLensProvider : IAsyncCodeLensDataPointProvide
         _cancellationTokenSource.Cancel();
     }
 
-    public async Task<bool> CanCreateDataPointAsync(
+    public Task<bool> CanCreateDataPointAsync(
         CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
     {
         if (descriptorContext != null && descriptorContext.ApplicableSpan.HasValue)
         {
             // we allow all reference points. 
             // engine will call this for all points our roslyn code lens (reference) tagger tagged.
-            return true;
+            return SpecializedTasks.True;
         }
 
-        return false;
+        return SpecializedTasks.False;
     }
 
-    public async Task<IAsyncCodeLensDataPoint> CreateDataPointAsync(
+    public Task<IAsyncCodeLensDataPoint> CreateDataPointAsync(
         CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
     {
         var dataPoint = new DataPoint(
@@ -84,7 +84,7 @@ internal sealed class ReferenceCodeLensProvider : IAsyncCodeLensDataPointProvide
             descriptor);
 
         AddDataPoint(dataPoint);
-        return dataPoint;
+        return Task.FromResult<IAsyncCodeLensDataPoint>(dataPoint);
     }
 
     // The current CodeLens OOP design does not allow us to register an event handler for WorkspaceChanged events

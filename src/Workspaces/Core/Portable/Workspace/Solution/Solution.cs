@@ -251,31 +251,31 @@ public partial class Solution
     /// <summary>
     /// Gets a document or a source generated document in this solution with the specified document ID.
     /// </summary>
-    internal async ValueTask<Document?> GetDocumentAsync(DocumentId? documentId, bool includeSourceGenerated = false, CancellationToken cancellationToken = default)
+    internal ValueTask<Document?> GetDocumentAsync(DocumentId? documentId, bool includeSourceGenerated = false, CancellationToken cancellationToken = default)
     {
         var project = GetProject(documentId?.ProjectId);
         if (project == null)
         {
-            return null;
+            return default;
         }
 
         Contract.ThrowIfNull(documentId);
-        return await project.GetDocumentAsync(documentId, includeSourceGenerated, cancellationToken).ConfigureAwait(false);
+        return project.GetDocumentAsync(documentId, includeSourceGenerated, cancellationToken);
     }
 
     /// <summary>
     /// Gets a document, additional document, analyzer config document or a source generated document in this solution with the specified document ID.
     /// </summary>
-    internal async ValueTask<TextDocument?> GetTextDocumentAsync(DocumentId? documentId, CancellationToken cancellationToken = default)
+    internal ValueTask<TextDocument?> GetTextDocumentAsync(DocumentId? documentId, CancellationToken cancellationToken = default)
     {
         var project = GetProject(documentId?.ProjectId);
         if (project == null)
         {
-            return null;
+            return default;
         }
 
         Contract.ThrowIfNull(documentId);
-        return await project.GetTextDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
+        return project.GetTextDocumentAsync(documentId, cancellationToken);
     }
 
     /// <summary>
@@ -304,17 +304,17 @@ public partial class Solution
         return null;
     }
 
-    public async ValueTask<SourceGeneratedDocument?> GetSourceGeneratedDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
+    public ValueTask<SourceGeneratedDocument?> GetSourceGeneratedDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
     {
         var project = GetProject(documentId.ProjectId);
 
         if (project == null)
         {
-            return null;
+            return new(result: null);
         }
         else
         {
-            return await project.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
+            return project.GetSourceGeneratedDocumentAsync(documentId, cancellationToken);
         }
     }
 

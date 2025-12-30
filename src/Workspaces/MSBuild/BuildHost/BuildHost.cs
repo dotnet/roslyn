@@ -238,10 +238,12 @@ internal sealed class BuildHost : IBuildHost
         return _buildManager.TryGetOutputFilePathAsync(projectFilePath, cancellationToken);
     }
 
-    public async Task ShutdownAsync()
+    public Task ShutdownAsync()
     {
         _buildManager?.EndBatchBuild();
 
         _server.Shutdown();
+
+        return Task.CompletedTask;
     }
 }

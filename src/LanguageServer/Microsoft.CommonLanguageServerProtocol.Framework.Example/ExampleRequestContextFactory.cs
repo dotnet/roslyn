@@ -16,12 +16,12 @@ internal sealed class ExampleRequestContextFactory : AbstractRequestContextFacto
         _lspServices = lspServices;
     }
 
-    public override async Task<ExampleRequestContext> CreateRequestContextAsync<TRequestParam>(IQueueItem<ExampleRequestContext> queueItem, IMethodHandler methodHandler, TRequestParam requestParam, CancellationToken cancellationToken)
+    public override Task<ExampleRequestContext> CreateRequestContextAsync<TRequestParam>(IQueueItem<ExampleRequestContext> queueItem, IMethodHandler methodHandler, TRequestParam requestParam, CancellationToken cancellationToken)
     {
         var logger = _lspServices.GetRequiredService<ILspLogger>();
 
         var requestContext = new ExampleRequestContext(_lspServices, logger);
 
-        return requestContext;
+        return Task.FromResult(requestContext);
     }
 }

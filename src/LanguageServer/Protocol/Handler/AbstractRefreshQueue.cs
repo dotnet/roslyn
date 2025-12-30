@@ -50,9 +50,10 @@ internal abstract class AbstractRefreshQueue :
         _notificationManager = notificationManager;
     }
 
-    public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
+    public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
         Initialize(clientCapabilities);
+        return Task.CompletedTask;
     }
 
     public void Initialize(ClientCapabilities clientCapabilities)
@@ -103,7 +104,7 @@ internal abstract class AbstractRefreshQueue :
         }
     }
 
-    private async ValueTask FilterLspTrackedDocumentsAsync(
+    private ValueTask FilterLspTrackedDocumentsAsync(
         LspWorkspaceManager lspWorkspaceManager,
         IClientLanguageServerManager notificationManager,
         ImmutableSegmentedList<DocumentUri?> documentUris,
@@ -116,7 +117,7 @@ internal abstract class AbstractRefreshQueue :
             {
                 try
                 {
-                    await notificationManager.SendRequestAsync(GetWorkspaceRefreshName(), cancellationToken).ConfigureAwait(false);
+                    return notificationManager.SendRequestAsync(GetWorkspaceRefreshName(), cancellationToken);
                 }
                 catch (Exception ex) when (ex is ObjectDisposedException or ConnectionLostException)
                 {
@@ -127,6 +128,7 @@ internal abstract class AbstractRefreshQueue :
         }
 
         // LSP is already tracking all changed documents so we don't need to send a refresh request.
+        return ValueTask.CompletedTask;
     }
 
     public virtual void Dispose()

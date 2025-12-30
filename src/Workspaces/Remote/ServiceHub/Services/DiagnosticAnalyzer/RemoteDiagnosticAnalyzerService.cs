@@ -121,7 +121,7 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
 
     public ValueTask ReportAnalyzerPerformanceAsync(ImmutableArray<AnalyzerPerformanceInfo> snapshot, int unitCount, bool forSpanAnalysis, CancellationToken cancellationToken)
     {
-        return RunServiceAsync(async cancellationToken =>
+        return RunServiceAsync(cancellationToken =>
         {
             using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_ReportAnalyzerPerformance, cancellationToken))
             {
@@ -130,11 +130,13 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
                 var service = GetWorkspace().Services.GetService<IPerformanceTrackerService>();
                 if (service == null)
                 {
-                    return;
+                    return default;
                 }
 
                 service.AddSnapshot(snapshot, unitCount, forSpanAnalysis);
             }
+
+            return default;
         }, cancellationToken);
     }
 
