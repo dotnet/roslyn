@@ -47,8 +47,8 @@ internal partial class PreviewUpdater
             internal PreviewTextLoader(SourceText documentText)
                 => _text = documentText;
 
-            public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
-                => LoadTextAndVersionSynchronously(options, cancellationToken);
+            public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+                => Task.FromResult(LoadTextAndVersionSynchronously(options, cancellationToken));
 
             internal override TextAndVersion LoadTextAndVersionSynchronously(LoadTextOptions options, CancellationToken cancellationToken)
                 => TextAndVersion.Create(_text, VersionStamp.Create());

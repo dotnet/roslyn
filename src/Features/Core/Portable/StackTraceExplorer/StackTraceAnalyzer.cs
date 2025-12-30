@@ -23,10 +23,10 @@ internal static class StackTraceAnalyzer
     /// </summary>
     private static readonly ImmutableArray<IStackFrameParser> s_parsers = [new DotnetStackFrameParser(), new VSDebugCallstackParser(), new DefaultStackParser()];
 
-    public static async Task<StackTraceAnalysisResult> AnalyzeAsync(string callstack, CancellationToken cancellationToken)
+    public static Task<StackTraceAnalysisResult> AnalyzeAsync(string callstack, CancellationToken cancellationToken)
     {
         var result = new StackTraceAnalysisResult(callstack, Parse(callstack, cancellationToken));
-        return result;
+        return Task.FromResult(result);
     }
 
     private static ImmutableArray<ParsedFrame> Parse(string callstack, CancellationToken cancellationToken)

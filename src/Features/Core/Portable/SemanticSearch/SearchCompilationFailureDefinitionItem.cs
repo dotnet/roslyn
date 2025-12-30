@@ -33,7 +33,7 @@ internal sealed class SearchCompilationFailureDefinitionItem(QueryCompilationErr
 {
     internal override bool IsExternal => false;
 
-    public override async Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, CancellationToken cancellationToken)
-        => null;
+    public override Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, CancellationToken cancellationToken)
+        => Task.FromResult<INavigableLocation?>(null);
 }
 

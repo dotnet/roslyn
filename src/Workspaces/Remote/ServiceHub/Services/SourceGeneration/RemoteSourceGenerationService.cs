@@ -153,13 +153,13 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
         string analyzerReferenceFullPath,
         CancellationToken cancellationToken)
     {
-        return RunServiceAsync(solutionChecksum, async solution =>
+        return RunServiceAsync(solutionChecksum, solution =>
         {
             var project = solution.GetRequiredProject(projectId);
             var analyzerReference = project.AnalyzerReferences
                 .First(r => r.FullPath == analyzerReferenceFullPath);
 
-            return SourceGeneratorIdentity.GetIdentities(analyzerReference, project.Language);
+            return ValueTask.FromResult(SourceGeneratorIdentity.GetIdentities(analyzerReference, project.Language));
         }, cancellationToken);
     }
 
@@ -169,19 +169,19 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
         string analyzerReferenceFullPath,
         CancellationToken cancellationToken)
     {
-        return RunServiceAsync(solutionChecksum, async solution =>
+        return RunServiceAsync(solutionChecksum, solution =>
         {
             var project = solution.GetRequiredProject(projectId);
             var analyzerReference = project.AnalyzerReferences
                 .First(r => r.FullPath == analyzerReferenceFullPath);
 
-            return analyzerReference.HasAnalyzersOrSourceGenerators(project.Language);
+            return ValueTask.FromResult(analyzerReference.HasAnalyzersOrSourceGenerators(project.Language));
         }, cancellationToken);
     }
 
-    public async ValueTask<ImmutableArray<ImmutableDictionary<string, object?>>> FetchAndClearTelemetryKeyValuePairsAsync(CancellationToken _)
+    public ValueTask<ImmutableArray<ImmutableDictionary<string, object?>>> FetchAndClearTelemetryKeyValuePairsAsync(CancellationToken _)
     {
         var workspaceService = GetWorkspaceServices().GetRequiredService<ISourceGeneratorTelemetryCollectorWorkspaceService>();
-        return workspaceService.FetchKeysAndAndClear();
+        return ValueTask.FromResult(workspaceService.FetchKeysAndAndClear());
     }
 }

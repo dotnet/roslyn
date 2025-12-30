@@ -40,8 +40,8 @@ public sealed class ApplyChangesOperation(Solution changedSolution) : CodeAction
     public override void Apply(Workspace workspace, CancellationToken cancellationToken)
         => workspace.TryApplyChanges(ChangedSolution, CodeAnalysisProgress.None);
 
-    internal sealed override async Task<bool> TryApplyAsync(Workspace workspace, Solution originalSolution, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
-        => ApplyOrMergeChanges(workspace, originalSolution, ChangedSolution, progressTracker, cancellationToken);
+    internal sealed override Task<bool> TryApplyAsync(Workspace workspace, Solution originalSolution, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
+        => Task.FromResult(ApplyOrMergeChanges(workspace, originalSolution, ChangedSolution, progressTracker, cancellationToken));
 
     internal static bool ApplyOrMergeChanges(
         Workspace workspace,

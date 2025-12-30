@@ -163,19 +163,22 @@ internal sealed class WorkspaceProject : IWorkspaceProject
             _project.SetProperty(property.Key, property.Value);
     }
 
-    public async Task SetCommandLineArgumentsAsync(IReadOnlyList<string> arguments, CancellationToken cancellationToken)
+    public Task SetCommandLineArgumentsAsync(IReadOnlyList<string> arguments, CancellationToken cancellationToken)
     {
         _project.SetOptions([.. arguments]);
+        return Task.CompletedTask;
     }
 
-    public async Task SetDisplayNameAsync(string displayName, CancellationToken cancellationToken)
+    public Task SetDisplayNameAsync(string displayName, CancellationToken cancellationToken)
     {
         _project.DisplayName = displayName;
+        return Task.CompletedTask;
     }
 
-    public async Task SetProjectHasAllInformationAsync(bool hasAllInformation, CancellationToken cancellationToken)
+    public Task SetProjectHasAllInformationAsync(bool hasAllInformation, CancellationToken cancellationToken)
     {
         _project.LastDesignTimeBuildSucceeded = hasAllInformation;
+        return Task.CompletedTask;
     }
 
     public async Task<IWorkspaceProjectBatch> StartBatchAsync(CancellationToken cancellationToken)

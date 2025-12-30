@@ -25,7 +25,7 @@ internal sealed class WorkspaceTaskDiagnosticSourceProvider([Import] IGlobalOpti
 
     public bool IsEnabled(ClientCapabilities capabilities) => capabilities.HasVisualStudioLspCapability();
 
-    public async ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Solution);
 
@@ -42,9 +42,9 @@ internal sealed class WorkspaceTaskDiagnosticSourceProvider([Import] IGlobalOpti
                 }
             }
 
-            return result.ToImmutableAndClear();
+            return new(result.ToImmutableAndClear());
         }
 
-        return [];
+        return new([]);
     }
 }

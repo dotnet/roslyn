@@ -50,7 +50,7 @@ internal sealed class VisualStudioUnifiedSettingsOptionPersister : AbstractVisua
                optionKey.Option.Definition.Serializer.TryParse(stringValue, out var value) ? new(value) : default;
     }
 
-    public override async Task PersistAsync(OptionKey2 optionKey, string storageKey, object? value)
+    public override Task PersistAsync(OptionKey2 optionKey, string storageKey, object? value)
     {
         var storageType = value?.GetType();
         CheckStorageKeyAndType(storageKey, storageType);
@@ -65,5 +65,7 @@ internal sealed class VisualStudioUnifiedSettingsOptionPersister : AbstractVisua
         // ignoreCase: true, out result)`
         writer.EnqueueChange(storageKey, optionKey.Option.Definition.Serializer.Serialize(value).ToLowerInvariant());
         writer.RequestCommit(nameof(VisualStudioUnifiedSettingsOptionPersister));
+
+        return Task.CompletedTask;
     }
 }

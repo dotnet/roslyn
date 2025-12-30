@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger;
 internal sealed class GlassTestsHotReloadService
 {
     private static readonly ActiveStatementSpanProvider s_noActiveStatementSpanProvider =
-       async (_, _, _) => ImmutableArray<ActiveStatementSpan>.Empty;
+       (_, _, _) => ValueTask.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
     private readonly IManagedHotReloadService _debuggerService;
 
@@ -29,7 +29,7 @@ internal sealed class GlassTestsHotReloadService
     }
 
 #pragma warning disable IDE0060 // Remove unused parameter
-    public async Task StartSessionAsync(Solution solution, CancellationToken cancellationToken)
+    public Task StartSessionAsync(Solution solution, CancellationToken cancellationToken)
 #pragma warning restore IDE0060
     {
         var newSessionId = _encService.StartDebuggingSession(
@@ -40,6 +40,8 @@ internal sealed class GlassTestsHotReloadService
 
         Contract.ThrowIfFalse(_sessionId == default, "Session already started");
         _sessionId = newSessionId;
+
+        return Task.CompletedTask;
     }
 
     private DebuggingSessionId GetSessionId()
