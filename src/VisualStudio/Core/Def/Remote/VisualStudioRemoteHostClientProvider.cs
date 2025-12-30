@@ -139,7 +139,7 @@ internal sealed class VisualStudioRemoteHostClientProvider : IRemoteHostClientPr
             var client = await ServiceHubRemoteHostClient.CreateAsync(Services, configuration, localSettingsDirectory, _listenerProvider, serviceBroker, _callbackDispatchers, _threadingContext.DisposalToken).ConfigureAwait(false);
 
             // proffer in-proc brokered services:
-            _ = brokeredServiceContainer.Proffer(SolutionAssetProvider.ServiceDescriptor, (_, _, _, _) => ValueTask.FromResult<object?>(new SolutionAssetProvider(Services)));
+            _ = brokeredServiceContainer.Proffer(SolutionAssetProvider.ServiceDescriptor, async (_, _, _, _) => new SolutionAssetProvider(Services));
 
             return client;
         }

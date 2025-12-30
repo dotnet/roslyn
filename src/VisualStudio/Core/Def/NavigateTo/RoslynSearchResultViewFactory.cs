@@ -42,8 +42,8 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                 primaryIcon: searchResult.NavigableItem.Glyph.GetImageId());
         }
 
-        public Task<IReadOnlyList<SearchResultPreviewPanelBase>> GetPreviewPanelsAsync(SearchResult result, SearchResultViewBase searchResultView)
-            => Task.FromResult(GetPreviewPanels(result, searchResultView) ?? []);
+        public async Task<IReadOnlyList<SearchResultPreviewPanelBase>> GetPreviewPanelsAsync(SearchResult result, SearchResultViewBase searchResultView)
+            => GetPreviewPanels(result, searchResultView) ?? [];
 
         private IReadOnlyList<SearchResultPreviewPanelBase>? GetPreviewPanels(SearchResult result, SearchResultViewBase searchResultView)
         {
