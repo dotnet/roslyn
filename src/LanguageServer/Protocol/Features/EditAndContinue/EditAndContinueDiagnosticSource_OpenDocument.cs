@@ -49,7 +49,7 @@ internal static partial class EditAndContinueDiagnosticSource
 
             var activeStatementSpanProvider = spanLocator != null
                 ? new ActiveStatementSpanProvider((documentId, filePath, cancellationToken) => spanLocator.GetSpansAsync(compileTimeSolution, documentId, filePath, cancellationToken))
-                : static (_, _, _) => ValueTask.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
+                : static async (_, _, _) => ImmutableArray<ActiveStatementSpan>.Empty;
 
             var rudeEditDiagnostics = await proxy.GetDocumentDiagnosticsAsync(compileTimeDocument, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 

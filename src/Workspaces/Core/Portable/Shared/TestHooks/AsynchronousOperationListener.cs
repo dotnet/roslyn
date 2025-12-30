@@ -40,16 +40,16 @@ internal sealed partial class AsynchronousOperationListener : IAsynchronousOpera
     [PerformanceSensitive(
         "https://github.com/dotnet/roslyn/pull/58646",
         Constraint = "Cannot use async/await because it produces large numbers of first-chance cancellation exceptions.")]
-    public Task<bool> Delay(TimeSpan delay, CancellationToken cancellationToken)
+    public async Task<bool> Delay(TimeSpan delay, CancellationToken cancellationToken)
     {
         if (cancellationToken.IsCancellationRequested)
-            return Task.FromCanceled<bool>(cancellationToken);
+            return await Task.FromCanceled<bool>(cancellationToken).ConfigureAwait(false);
 
         var expeditedDelayCancellationToken = _expeditedDelayCancellationTokenSource.Token;
         if (expeditedDelayCancellationToken.IsCancellationRequested)
         {
             // The operation is already being expedited
-            return SpecializedTasks.False;
+            return false;
         }
 
         var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, expeditedDelayCancellationToken);
@@ -59,28 +59,28 @@ internal sealed partial class AsynchronousOperationListener : IAsynchronousOpera
         {
             cancellationTokenSource.Dispose();
             if (delayTask.Status == TaskStatus.RanToCompletion)
-                return SpecializedTasks.True;
+                return true;
             else if (cancellationToken.IsCancellationRequested)
-                return Task.FromCanceled<bool>(cancellationToken);
+                return await Task.FromCanceled<bool>(cancellationToken).ConfigureAwait(false);
             else
-                return SpecializedTasks.False;
+                return false;
         }
 
         // Handle continuation in a local function to avoid capturing arguments when this path is avoided
-        return DelaySlowAsync(delayTask, cancellationTokenSource, cancellationToken);
+        return await DelaySlowAsync(delayTask, cancellationTokenSource, cancellationToken).ConfigureAwait(false);
 
         static Task<bool> DelaySlowAsync(Task delayTask, CancellationTokenSource cancellationTokenSourceToDispose, CancellationToken cancellationToken)
         {
             return delayTask.ContinueWith(
-                task =>
+                async task =>
                 {
                     cancellationTokenSourceToDispose.Dispose();
                     if (task.Status == TaskStatus.RanToCompletion)
-                        return SpecializedTasks.True;
+                        return true;
                     else if (cancellationToken.IsCancellationRequested)
-                        return Task.FromCanceled<bool>(cancellationToken);
+                        return await Task.FromCanceled<bool>(cancellationToken).ConfigureAwait(false);
                     else
-                        return SpecializedTasks.False;
+                        return false;
                 },
                 CancellationToken.None,
                 TaskContinuationOptions.ExecuteSynchronously,

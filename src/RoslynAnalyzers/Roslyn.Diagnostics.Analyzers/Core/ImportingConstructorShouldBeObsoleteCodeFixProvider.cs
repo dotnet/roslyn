@@ -29,7 +29,7 @@ public abstract class AbstractImportingConstructorShouldBeObsoleteCodeFixProvide
     public override FixAllProvider GetFixAllProvider()
         => WellKnownFixAllProviders.BatchFixer;
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         foreach (var diagnostic in context.Diagnostics)
         {
@@ -78,8 +78,6 @@ public abstract class AbstractImportingConstructorShouldBeObsoleteCodeFixProvide
                     equivalenceKey: scenario),
                 diagnostic);
         }
-
-        return Task.CompletedTask;
     }
 
     private async Task<Document> AddObsoleteAttributeAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)

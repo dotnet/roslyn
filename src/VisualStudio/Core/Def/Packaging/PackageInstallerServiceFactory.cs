@@ -453,7 +453,7 @@ internal sealed partial class PackageInstallerService : AbstractDelayStartedServ
         _workQueue.AddWork((solutionChanged, changedProject));
     }
 
-    private ValueTask ProcessWorkQueueAsync(
+    private async ValueTask ProcessWorkQueueAsync(
         ImmutableSegmentedList<(bool solutionChanged, ProjectId? changedProject)> workQueue, CancellationToken cancellationToken)
     {
         // ThisCanBeCalledOnAnyThread();
@@ -462,9 +462,9 @@ internal sealed partial class PackageInstallerService : AbstractDelayStartedServ
 
         // If we've been disconnected, then there's no point proceeding.
         if (Workspace == null || !IsEnabled)
-            return ValueTask.CompletedTask;
+            return;
 
-        return ProcessWorkQueueWorkerAsync(workQueue, cancellationToken);
+        await ProcessWorkQueueWorkerAsync(workQueue, cancellationToken).ConfigureAwait(false);
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
