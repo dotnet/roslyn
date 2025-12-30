@@ -30,6 +30,6 @@ internal sealed class InstallPackageDirectlyCodeAction(
                 ? string.Format(FeaturesResources.Use_local_version_0, versionOpt)
                 : string.Format(FeaturesResources.Install_version_0, versionOpt);
 
-    protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
-        => ImmutableArray.Create(_installPackageOperation);
+    protected override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+        => Task.FromResult(ImmutableArray.Create(_installPackageOperation));
 }

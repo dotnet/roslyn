@@ -22,6 +22,6 @@ internal sealed class NoOpPersistentStorageService : IChecksummedPersistentStora
             ? throw new InvalidOperationException("Database was not supported")
             : Instance;
 
-    public async ValueTask<IChecksummedPersistentStorage> GetStorageAsync(SolutionKey solutionKey, CancellationToken cancellationToken)
-        => NoOpPersistentStorage.GetOrThrow(solutionKey, throwOnFailure: false);
+    public ValueTask<IChecksummedPersistentStorage> GetStorageAsync(SolutionKey solutionKey, CancellationToken cancellationToken)
+        => new(NoOpPersistentStorage.GetOrThrow(solutionKey, throwOnFailure: false));
 }

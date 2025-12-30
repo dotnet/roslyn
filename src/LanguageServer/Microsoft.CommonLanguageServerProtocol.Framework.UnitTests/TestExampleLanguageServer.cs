@@ -60,14 +60,16 @@ internal sealed class TestExampleLanguageServer : ExampleLanguageServer
             _exitingSource = exitingSource;
         }
 
-        public async Task ExitAsync()
+        public Task ExitAsync()
         {
             _exitingSource.SetResult(0);
+            return Task.CompletedTask;
         }
 
-        public async Task ShutdownAsync(string message = "Shutting down")
+        public Task ShutdownAsync(string message = "Shutting down")
         {
             _shuttingDownSource.SetResult(0);
+            return Task.CompletedTask;
         }
     }
 

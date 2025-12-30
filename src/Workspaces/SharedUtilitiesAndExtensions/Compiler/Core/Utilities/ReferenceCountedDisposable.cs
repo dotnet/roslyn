@@ -182,16 +182,17 @@ internal sealed class ReferenceCountedDisposable<T> : IReferenceCountedDisposabl
         instanceToDispose?.Dispose();
     }
 
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
         var instanceToDispose = DisposeImpl();
         if (instanceToDispose == null)
-            return;
+            return ValueTask.CompletedTask;
 
         if (instanceToDispose is IAsyncDisposable asyncDisposable)
-            await asyncDisposable.DisposeAsync().ConfigureAwait(false);
+            return asyncDisposable.DisposeAsync();
 
         instanceToDispose.Dispose();
+        return ValueTask.CompletedTask;
     }
 
     private T? DisposeImpl()

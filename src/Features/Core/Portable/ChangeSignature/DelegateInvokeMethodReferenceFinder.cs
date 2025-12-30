@@ -64,7 +64,7 @@ internal sealed class DelegateInvokeMethodReferenceFinder : AbstractReferenceFin
         return result.ToImmutableAndClear();
     }
 
-    protected override async Task DetermineDocumentsToSearchAsync<TData>(
+    protected override Task DetermineDocumentsToSearchAsync<TData>(
         IMethodSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
@@ -76,6 +76,8 @@ internal sealed class DelegateInvokeMethodReferenceFinder : AbstractReferenceFin
     {
         foreach (var document in project.Documents)
             processResult(document, processResultData);
+
+        return Task.CompletedTask;
     }
 
     protected override void FindReferencesInDocument<TData>(

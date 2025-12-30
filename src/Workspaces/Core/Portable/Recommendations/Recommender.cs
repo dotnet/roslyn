@@ -32,14 +32,14 @@ public static class Recommender
     }
 
     [Obsolete("Use GetRecommendedSymbolsAtPositionAsync(Document, ...)")]
-    public static async Task<IEnumerable<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
+    public static Task<IEnumerable<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
          SemanticModel semanticModel,
          int position,
          Workspace workspace,
          OptionSet? options = null,
          CancellationToken cancellationToken = default)
     {
-        return GetRecommendedSymbolsAtPosition(semanticModel, position, workspace, options, cancellationToken);
+        return Task.FromResult(GetRecommendedSymbolsAtPosition(semanticModel, position, workspace, options, cancellationToken));
     }
 
     public static async Task<ImmutableArray<ISymbol>> GetRecommendedSymbolsAtPositionAsync(

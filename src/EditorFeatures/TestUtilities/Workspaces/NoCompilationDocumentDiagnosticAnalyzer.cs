@@ -20,9 +20,9 @@ internal sealed class NoCompilationDocumentDiagnosticAnalyzer : DocumentDiagnost
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Descriptor];
 
-    public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument document, SyntaxTree tree, CancellationToken cancellationToken)
+    public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument document, SyntaxTree tree, CancellationToken cancellationToken)
     {
-        return ImmutableArray.Create(
-            Diagnostic.Create(Descriptor, Location.Create(document.FilePath, default, default)));
+        return Task.FromResult(ImmutableArray.Create(
+            Diagnostic.Create(Descriptor, Location.Create(document.FilePath, default, default))));
     }
 }

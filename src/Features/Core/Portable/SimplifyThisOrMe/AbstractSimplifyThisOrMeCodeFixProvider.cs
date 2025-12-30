@@ -27,9 +27,10 @@ internal abstract partial class AbstractSimplifyThisOrMeCodeFixProvider<TMemberA
     public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
         [IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId];
 
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, GetTitle(), IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId);
+        return Task.CompletedTask;
     }
 
     protected sealed override async Task FixAllAsync(

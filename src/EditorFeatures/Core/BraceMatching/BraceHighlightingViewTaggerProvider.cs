@@ -43,19 +43,19 @@ internal sealed class BraceHighlightingViewTaggerProvider(TaggerHost taggerHost,
             TaggerEventSources.OnParseOptionChanged(subjectBuffer));
     }
 
-    protected override async Task ProduceTagsAsync(
+    protected override Task ProduceTagsAsync(
         TaggerContext<BraceHighlightTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition, CancellationToken cancellationToken)
     {
         var document = documentSnapshotSpan.Document;
         if (!caretPosition.HasValue || document == null)
         {
-            return;
+            return Task.CompletedTask;
         }
 
         var options = GlobalOptions.GetBraceMatchingOptions(document.Project.Language);
 
-        await ProduceTagsAsync(
-            context, document, documentSnapshotSpan.SnapshotSpan.Snapshot, caretPosition.Value, options, cancellationToken).ConfigureAwait(false);
+        return ProduceTagsAsync(
+            context, document, documentSnapshotSpan.SnapshotSpan.Snapshot, caretPosition.Value, options, cancellationToken);
     }
 
     internal async Task ProduceTagsAsync(

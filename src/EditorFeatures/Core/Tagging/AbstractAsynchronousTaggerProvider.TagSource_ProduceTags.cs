@@ -102,7 +102,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             // Everything we're passing in here is synchronous.  So we can assert that this must complete synchronously
             // as well.
             var (oldTagTrees, newTagTrees, _) = CompareAndSwapTagTreesAsync(
-                static async (oldTagTrees, args, _) =>
+                static (oldTagTrees, args, _) =>
                 {
                     var (@this, e, tagsToRemove, allTagsList, allTagsSet) = args;
 
@@ -135,12 +135,12 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                                 snapshot,
                                 @this._dataSource.SpanTrackingMode,
                                 allTagsList);
-                            return (oldTagTrees.SetItem(buffer, newTagTree), default(VoidResult));
+                            return ValueTask.FromResult((oldTagTrees.SetItem(buffer, newTagTree), default(VoidResult)));
                         }
                     }
 
                     // return oldTagTrees to indicate nothing changed.
-                    return (oldTagTrees, default(VoidResult));
+                    return ValueTask.FromResult((oldTagTrees, default(VoidResult)));
                 },
                 args: (this, e, tagsToRemove, allTagsList, allTagsSet),
                 _disposalTokenSource.Token).VerifyCompleted();

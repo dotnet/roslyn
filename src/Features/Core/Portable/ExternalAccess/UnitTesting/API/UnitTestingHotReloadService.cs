@@ -19,14 +19,14 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
     {
         private readonly ImmutableArray<string> _capabilities = capabilities;
 
-        public async ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
-            => ImmutableArray<ManagedActiveStatementDebugInfo>.Empty;
+        public ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
+            => ValueTask.FromResult(ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);
 
-        public async ValueTask<ManagedHotReloadAvailability> GetAvailabilityAsync(Guid module, CancellationToken cancellationToken)
-            => new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.Available);
+        public ValueTask<ManagedHotReloadAvailability> GetAvailabilityAsync(Guid module, CancellationToken cancellationToken)
+            => ValueTask.FromResult(new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.Available));
 
-        public async ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
-            => _capabilities;
+        public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
+            => ValueTask.FromResult(_capabilities);
 
         public ValueTask PrepareModuleForUpdateAsync(Guid module, CancellationToken cancellationToken)
             => ValueTask.CompletedTask;
@@ -49,7 +49,7 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
     }
 
     private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
-        async (_, _, _) => ImmutableArray<ActiveStatementSpan>.Empty;
+        (_, _, _) => ValueTask.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
     private readonly IEditAndContinueService _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
     private DebuggingSessionId _sessionId;

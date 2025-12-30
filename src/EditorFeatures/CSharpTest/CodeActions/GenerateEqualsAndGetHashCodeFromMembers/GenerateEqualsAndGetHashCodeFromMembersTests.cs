@@ -38,7 +38,7 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
         public ImmutableArray<string> MemberNames;
         public Action<ImmutableArray<PickMembersOption>> OptionsCallback;
 
-        protected override async Task<Workspace> CreateWorkspaceImplAsync()
+        protected override Task<Workspace> CreateWorkspaceImplAsync()
         {
             // If we're a dialog test, then mixin our mock and initialize its values to the ones the test asked for.
             var workspace = new AdhocWorkspace(s_composition.GetHostServices());
@@ -47,7 +47,7 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             service.MemberNames = MemberNames;
             service.OptionsCallback = OptionsCallback;
 
-            return workspace;
+            return Task.FromResult<Workspace>(workspace);
         }
     }
 

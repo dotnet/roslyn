@@ -42,7 +42,7 @@ internal sealed class BrokeredServiceContainer : GlobalBrokeredServiceContainer
         container.ProfferIntrinsicService(
             FrameworkServices.Authorization,
             new ServiceRegistration(VisualStudio.Shell.ServiceBroker.ServiceAudience.Local, null, allowGuestClients: true),
-            async (moniker, options, serviceBroker, cancellationToken) => new NoOpAuthorizationService());
+            (moniker, options, serviceBroker, cancellationToken) => new(new NoOpAuthorizationService()));
 
         var mefServiceBroker = exportProvider.GetExportedValue<MefServiceBrokerOfExportedServices>();
         mefServiceBroker.SetContainer(container);
@@ -62,14 +62,14 @@ internal sealed class BrokeredServiceContainer : GlobalBrokeredServiceContainer
 
         public event EventHandler? AuthorizationChanged;
 
-        public async ValueTask<bool> CheckAuthorizationAsync(ProtectedOperation operation, CancellationToken cancellationToken = default)
+        public ValueTask<bool> CheckAuthorizationAsync(ProtectedOperation operation, CancellationToken cancellationToken = default)
         {
-            return true;
+            return new(true);
         }
 
-        public async ValueTask<IReadOnlyDictionary<string, string>> GetCredentialsAsync(CancellationToken cancellationToken = default)
+        public ValueTask<IReadOnlyDictionary<string, string>> GetCredentialsAsync(CancellationToken cancellationToken = default)
         {
-            return ImmutableDictionary<string, string>.Empty;
+            return new(ImmutableDictionary<string, string>.Empty);
         }
 
         protected virtual void OnCredentialsChanged(EventArgs args) => this.CredentialsChanged?.Invoke(this, args);

@@ -91,11 +91,11 @@ internal sealed class CodeLensReferencesService : ICodeLensReferencesService
     {
         var projectVersion = await GetProjectCodeLensVersionAsync(solution, documentId.ProjectId, cancellationToken).ConfigureAwait(false);
         return await FindAsync(solution, documentId, syntaxNode,
-            async progress => new ReferenceCount(
+            progress => Task.FromResult(new ReferenceCount(
                 progress.SearchCap > 0
                     ? Math.Min(progress.ReferencesCount, progress.SearchCap)
-                    : progress.ReferencesCount, progress.SearchCapReached, projectVersion.ToString()),
-            async progress => new ReferenceCount(progress.SearchCap, IsCapped: true, projectVersion.ToString()),
+                    : progress.ReferencesCount, progress.SearchCapReached, projectVersion.ToString())),
+            progress => Task.FromResult(new ReferenceCount(progress.SearchCap, IsCapped: true, projectVersion.ToString())),
             maxSearchResults, cancellationToken).ConfigureAwait(false);
     }
 
