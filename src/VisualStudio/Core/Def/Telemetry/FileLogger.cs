@@ -93,7 +93,7 @@ internal sealed class FileLogger : ILogger
     private void LogBlockEvent(FunctionId functionId, LogMessage logMessage, int uniquePairId, string blockEvent)
         => Log(functionId, $"[{blockEvent} - {uniquePairId}] {logMessage.GetMessage()}");
 
-    private ValueTask ProcessWorkQueueAsync(
+    private async ValueTask ProcessWorkQueueAsync(
         ImmutableSegmentedList<(FunctionId functionId, string message)> list, CancellationToken cancellationToken)
     {
         using var _ = PooledStringBuilder.GetInstance(out var buffer);
@@ -109,7 +109,5 @@ internal sealed class FileLogger : ILogger
 
             File.AppendAllText(_logFilePath, buffer.ToString());
         });
-
-        return ValueTask.CompletedTask;
     }
 }

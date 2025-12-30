@@ -70,7 +70,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             _cachedHandlers_useOnlyUnderLock.document.Clear();
         }
 
-        private ValueTask RegisterExtensionInCurrentProcessAsync(string assemblyFilePath)
+        private async ValueTask RegisterExtensionInCurrentProcessAsync(string assemblyFilePath)
         {
             // Note: This method executes no extension code.  And, as such, does not try to catch exceptions to
             // translate them accordingly to a failure that we send back to the client as part of the response.
@@ -89,11 +89,11 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
                     assemblyFolderPath => new ExtensionFolder(this, assemblyFolderPath));
 
                 extensionFolder.RegisterAssembly(assemblyFilePath);
-                return default;
+                return;
             }
         }
 
-        private ValueTask UnregisterExtensionInCurrentProcessAsync(string assemblyFilePath)
+        private async ValueTask UnregisterExtensionInCurrentProcessAsync(string assemblyFilePath)
         {
             // Note: This method executes no extension code.  And, as such, does not try to catch exceptions to
             // translate them accordingly to a failure that we send back to the client as part of the response.
@@ -104,7 +104,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             // to unload all ALCs needed to load it and the extensions within.  Unloading will happen once the
             // runtime/gc determine the ALC is finally collectible.
             folderToUnload?.Unload();
-            return default;
+            return;
 
             ExtensionFolder? Unregister()
             {
@@ -144,7 +144,7 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
             }
         }
 
-        private ValueTask ResetInCurrentProcessAsync()
+        private async ValueTask ResetInCurrentProcessAsync()
         {
             // Note: This method executes no extension code.  And, as such, does not try to catch exceptions to
             // translate them accordingly to a failure that we send back to the client as part of the response.
@@ -161,8 +161,6 @@ internal sealed partial class ExtensionMessageHandlerServiceFactory
 
             foreach (var (_, folderToUnload) in oldFolderPathToExtensionFolder)
                 folderToUnload.Unload();
-
-            return default;
         }
 
         private async ValueTask<ExtensionMessageNames> GetExtensionMessageNamesInCurrentProcessAsync(

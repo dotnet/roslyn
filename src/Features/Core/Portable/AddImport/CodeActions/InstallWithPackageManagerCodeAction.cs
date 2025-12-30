@@ -22,11 +22,11 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
 
         public override string Title => FeaturesResources.Install_with_package_manager;
 
-        protected override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+        protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
             IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
-            return Task.FromResult(ImmutableArray.Create<CodeActionOperation>(
-                new InstallWithPackageManagerCodeActionOperation(_installerService, _packageName)));
+            return ImmutableArray.Create<CodeActionOperation>(
+                new InstallWithPackageManagerCodeActionOperation(_installerService, _packageName));
         }
 
         private sealed class InstallWithPackageManagerCodeActionOperation(

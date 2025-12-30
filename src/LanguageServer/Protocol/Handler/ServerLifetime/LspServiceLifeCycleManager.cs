@@ -68,9 +68,7 @@ internal sealed class LspServiceLifeCycleManager : ILifeCycleManager, ILspServic
         }
     }
 
-    public Task ExitAsync()
+    public async Task ExitAsync()
     {
-        // We don't need any custom logic to run on exit.
-        return Task.CompletedTask;
     }
 }

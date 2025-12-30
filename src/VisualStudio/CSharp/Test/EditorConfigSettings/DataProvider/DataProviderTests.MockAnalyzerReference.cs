@@ -60,11 +60,10 @@ public sealed partial class DataProviderTests
 
             public sealed override ImmutableArray<string> FixableDiagnosticIds => [Id];
 
-            public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+            public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
             {
                 Called = true;
                 ContextDiagnosticsCount = context.Diagnostics.Length;
-                return Task.CompletedTask;
             }
         }
 

@@ -29,13 +29,11 @@ internal sealed class CommonWhitespaceSettingsProvider : SettingsProviderBase<Se
         Update();
     }
 
-    protected override Task UpdateOptionsAsync(
+    protected override async Task UpdateOptionsAsync(
         TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken)
     {
         var defaultOptions = GetDefaultOptions(options, SettingsUpdater);
         AddRange(defaultOptions);
-
-        return Task.CompletedTask;
     }
 
     private static IEnumerable<Setting> GetDefaultOptions(TieredAnalyzerConfigOptions options, OptionUpdater updater)

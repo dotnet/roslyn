@@ -28,10 +28,9 @@ internal abstract class AbstractMakeFieldReadonlyCodeFixProvider<TSymbolSyntax, 
     protected abstract SyntaxNode? GetInitializerNode(TSymbolSyntax declaration);
     protected abstract ImmutableList<TSymbolSyntax> GetVariableDeclarators(TFieldDeclarationSyntax declaration);
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, AnalyzersResources.Add_readonly_modifier, nameof(AnalyzersResources.Add_readonly_modifier));
-        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(

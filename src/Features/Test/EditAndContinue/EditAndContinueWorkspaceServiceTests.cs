@@ -2654,7 +2654,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var trackedActiveSpans = ImmutableArray.Create(
             new ActiveStatementSpan(new ActiveStatementId(0), activeLineSpanB1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame));
 
-        var currentSpans = await debuggingSession.GetAdjustedActiveStatementSpansAsync(documentB2, (_, _, _) => new(trackedActiveSpans), CancellationToken.None);
+        var currentSpans = await debuggingSession.GetAdjustedActiveStatementSpansAsync(documentB2, async (_, _, _) => trackedActiveSpans, CancellationToken.None);
         // TODO: https://github.com/dotnet/roslyn/issues/79423
         // AssertEx.Equal(trackedActiveSpans, currentSpans);
         Assert.Empty(currentSpans);
@@ -4590,7 +4590,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         var trackedActiveSpans1 = ImmutableArray.Create(activeStatementSpan11, activeStatementSpan12);
 
-        var currentSpans = await debuggingSession.GetAdjustedActiveStatementSpansAsync(document1, (_, _, _) => new(trackedActiveSpans1), CancellationToken.None);
+        var currentSpans = await debuggingSession.GetAdjustedActiveStatementSpansAsync(document1, async (_, _, _) => trackedActiveSpans1, CancellationToken.None);
         AssertEx.Equal(trackedActiveSpans1, currentSpans);
 
         // change the source (valid edit):
@@ -4602,7 +4602,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var activeStatementSpan22 = new ActiveStatementSpan(new ActiveStatementId(1), activeLineSpan22, ActiveStatementFlags.LeafFrame);
         var trackedActiveSpans2 = ImmutableArray.Create(activeStatementSpan21, activeStatementSpan22);
 
-        currentSpans = await debuggingSession.GetAdjustedActiveStatementSpansAsync(document2, (_, _, _) => new(trackedActiveSpans2), CancellationToken.None);
+        currentSpans = await debuggingSession.GetAdjustedActiveStatementSpansAsync(document2, async (_, _, _) => trackedActiveSpans2, CancellationToken.None);
         AssertEx.Equal([adjustedActiveLineSpan1, adjustedActiveLineSpan2], currentSpans.Select(s => s.LineSpan));
     }
 
@@ -4666,7 +4666,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var document2 = solution.GetDocument(documentId);
 
         // no adjustments made due to syntax error or out-of-sync document:
-        var currentSpans = await debuggingSession.GetAdjustedActiveStatementSpansAsync(document2, (_, _, _) => ValueTask.FromResult(baseSpans), CancellationToken.None);
+        var currentSpans = await debuggingSession.GetAdjustedActiveStatementSpansAsync(document2, async (_, _, _) => baseSpans, CancellationToken.None);
         AssertEx.Equal([activeLineSpan11, activeLineSpan12], currentSpans.Select(s => s.LineSpan));
     }
 

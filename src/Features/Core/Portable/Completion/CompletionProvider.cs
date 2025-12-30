@@ -60,8 +60,8 @@ public abstract class CompletionProvider
     /// <summary>
     /// Gets the description of the specified item.
     /// </summary>
-    public virtual Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-        => Task.FromResult<CompletionDescription?>(CompletionDescription.Empty);
+    public virtual async Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        => CompletionDescription.Empty;
 
     internal virtual Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
 #pragma warning disable RS0030 // Do not used banned APIs
@@ -74,8 +74,8 @@ public abstract class CompletionProvider
     /// <param name="document">The current document.</param>
     /// <param name="item">The item to be committed.</param>
     /// <param name="commitKey">The optional key character that caused the commit.</param>
-    public virtual Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
-        => Task.FromResult(CompletionChange.Create(new TextChange(item.Span, item.DisplayText)));
+    public virtual async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
+        => CompletionChange.Create(new TextChange(item.Span, item.DisplayText));
 
     /// <summary>
     /// True if the provider produces snippet items.

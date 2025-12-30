@@ -46,7 +46,7 @@ internal abstract class AbstractConvertLinqQueryToForEachProvider<TQueryExpressi
             context.RegisterRefactoring(
                 CodeAction.Create(
                     Title,
-                    c => Task.FromResult(document.WithSyntaxRoot(documentUpdateInfo.UpdateRoot(root))),
+                    async c => document.WithSyntaxRoot(documentUpdateInfo.UpdateRoot(root)),
                     Title),
                 queryExpression.Span);
         }

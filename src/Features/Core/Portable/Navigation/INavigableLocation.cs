@@ -33,11 +33,10 @@ internal sealed class NavigableLocation(Func<NavigationOptions, CancellationToke
     public static class TestAccessor
     {
 #pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        public static Task<INavigableLocation?> Create(bool value)
+        public static async Task<INavigableLocation?> Create(bool value)
 #pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
-            return Task.FromResult<INavigableLocation?>(
-                new NavigableLocation((_, _) => value ? SpecializedTasks.True : SpecializedTasks.False));
+            return new NavigableLocation(async (_, _) => value);
         }
     }
 }

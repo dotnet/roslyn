@@ -31,7 +31,7 @@ internal sealed class CSharpDocumentHighlightsService(
         CSharpSyntaxKinds.Instance,
         services)
 {
-    protected override async Task<ImmutableArray<Location>> GetAdditionalReferencesAsync(
+    protected override async ValueTask<ImmutableArray<Location>> GetAdditionalReferencesAsync(
         Document document, ISymbol symbol, CancellationToken cancellationToken)
     {
         // The FindRefs engine won't find references through 'var' for performance reasons.

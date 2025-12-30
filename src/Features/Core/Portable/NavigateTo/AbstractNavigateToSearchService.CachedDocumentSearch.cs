@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
@@ -157,18 +156,18 @@ internal abstract partial class AbstractNavigateToSearchService
         }
     }
 
-    private static Task<TopLevelSyntaxTreeIndex?> GetIndexAsync(
+    private static async ValueTask<TopLevelSyntaxTreeIndex?> GetIndexAsync(
         IChecksummedPersistentStorageService storageService,
         DocumentKey documentKey,
         CancellationToken cancellationToken)
     {
         if (cancellationToken.IsCancellationRequested)
-            return SpecializedTasks.Null<TopLevelSyntaxTreeIndex>();
+            return null;
 
         // Retrieve the string table we use to dedupe strings.  If we can't get it, that means the solution has 
         // fully loaded and we've switched over to normal navto lookup.
         if (!ShouldSearchCachedDocuments(out var cachedIndexMap, out var stringTable))
-            return SpecializedTasks.Null<TopLevelSyntaxTreeIndex>();
+            return null;
 
         // Add the async lazy to compute the index for this document.  Or, return the existing cached one if already
         // present.  This ensures that subsequent searches that are run while the solution is still loading are fast
@@ -181,6 +180,6 @@ internal abstract partial class AbstractNavigateToSearchService
             static t => AsyncLazy.Create(static (t, c) =>
                 TopLevelSyntaxTreeIndex.LoadAsync(t.service, t.documentKey, checksum: null, t.stringTable, c),
                 arg: t));
-        return asyncLazy.GetValueAsync(cancellationToken);
+        return await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
     }
 }
