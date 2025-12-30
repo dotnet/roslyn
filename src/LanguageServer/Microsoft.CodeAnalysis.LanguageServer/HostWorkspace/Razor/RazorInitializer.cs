@@ -17,13 +17,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class RazorInitializer(Lazy<LanguageServerWorkspaceFactory> workspaceFactory, [Import(AllowDefault = true)] ITelemetryReporter? telemetryReporter) : ILspService, IOnInitialized
 {
-    public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
+    public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
         var razorInitializerService = context.GetService<AbstractRazorInitializer>();
         if (razorInitializerService is null)
         {
             // No initializer service registered, nothing to do.
-            return;
+            return Task.CompletedTask;
         }
 
         razorInitializerService.Initialize(workspaceFactory.Value.HostWorkspace);
@@ -33,5 +33,7 @@ internal sealed class RazorInitializer(Lazy<LanguageServerWorkspaceFactory> work
         {
             razorTelemetryReporter.Initialize(new TelemetryReporterWrapper(telemetryReporter));
         }
+
+        return Task.CompletedTask;
     }
 }

@@ -118,17 +118,21 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
         public readonly ConcurrentDictionary<string, Registration> Registrations = new();
 
         [JsonRpcMethod("client/registerCapability", UseSingleObjectParameterDeserialization = true)]
-        public async Task RegisterCapabilityAsync(RegistrationParams registrationParams, CancellationToken _)
+        public Task RegisterCapabilityAsync(RegistrationParams registrationParams, CancellationToken _)
         {
             foreach (var registration in registrationParams.Registrations)
                 Assert.True(Registrations.TryAdd(registration.Id, registration));
+
+            return Task.CompletedTask;
         }
 
         [JsonRpcMethod("client/unregisterCapability", UseSingleObjectParameterDeserialization = true)]
-        public async Task UnregisterCapabilityAsync(UnregistrationParams unregistrationParams, CancellationToken _)
+        public Task UnregisterCapabilityAsync(UnregistrationParams unregistrationParams, CancellationToken _)
         {
             foreach (var unregistration in unregistrationParams.Unregistrations)
                 Assert.True(Registrations.TryRemove(unregistration.Id, out var _));
+
+            return Task.CompletedTask;
         }
     }
 }
