@@ -7055,5 +7055,69 @@ class Outer
                 //     if (a is (I or null) and var x)
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "a is (I or null) and var x").WithArguments("A").WithLocation(26, 9));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81173")]
+        public void DeconstructExtension_01()
+        {
+            var source = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test2(new C()));
+    }
+
+    static bool Test2(C u)
+    {
+        return u is var (_ , (i, _)) && (int)i == 10;
+    }   
+
+    static void Test3(C c, int i)
+    {
+        var (a, b) = c;
+        var (u, v) = i;
+    }   
+}
+
+public struct C
+{
+}
+
+static class Extensions
+{
+    public static void Deconstruct(this object o, out int x, out int y)
+    {
+        x = 10;
+        y = 2;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, expectedOutput: "True").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       36 (0x24)
+  .maxstack  3
+  .locals init (int V_0, //i
+            int V_1,
+            int V_2,
+            int V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""C""
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  ldloca.s   V_2
+  IL_000a:  call       ""void Extensions.Deconstruct(object, out int, out int)""
+  IL_000f:  ldloc.2
+  IL_0010:  box        ""int""
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  ldloca.s   V_3
+  IL_0019:  call       ""void Extensions.Deconstruct(object, out int, out int)""
+  IL_001e:  ldloc.0
+  IL_001f:  ldc.i4.s   10
+  IL_0021:  ceq
+  IL_0023:  ret
+}
+");
+        }
     }
 }
