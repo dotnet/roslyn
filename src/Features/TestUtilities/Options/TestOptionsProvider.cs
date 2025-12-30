@@ -13,8 +13,8 @@ internal static class TestOptionsProvider
 {
     internal sealed class Provider<TOptions>(TOptions options) : OptionsProvider<TOptions>
     {
-        public ValueTask<TOptions> GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-            => ValueTask.FromResult(options);
+        public async ValueTask<TOptions> GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
+            => options;
     }
 
     public static OptionsProvider<TOptions> Create<TOptions>(TOptions options)

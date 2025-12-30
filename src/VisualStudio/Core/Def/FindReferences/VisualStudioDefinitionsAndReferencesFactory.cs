@@ -28,7 +28,7 @@ internal sealed class VisualStudioDefinitionsAndReferencesFactory(
     SVsServiceProvider serviceProvider,
     IThreadingContext threadingContext) : IExternalDefinitionItemProvider
 {
-    public async Task<DefinitionItem?> GetThirdPartyDefinitionItemAsync(
+    public async ValueTask<DefinitionItem?> GetThirdPartyDefinitionItemAsync(
         Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken)
     {
         var symbolNavigationService = solution.Services.GetRequiredService<ISymbolNavigationService>();
@@ -89,13 +89,13 @@ internal sealed class VisualStudioDefinitionsAndReferencesFactory(
     {
         internal override bool IsExternal => true;
 
-        public override Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, CancellationToken cancellationToken)
+        public override async Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, CancellationToken cancellationToken)
         {
-            return Task.FromResult<INavigableLocation?>(new NavigableLocation(async (options, cancellationToken) =>
+            return new NavigableLocation(async (options, cancellationToken) =>
             {
                 await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 return TryOpenFile() && TryNavigateToPosition();
-            }));
+            });
         }
 
         private bool TryOpenFile()

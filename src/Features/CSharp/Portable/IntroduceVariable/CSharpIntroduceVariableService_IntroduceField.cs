@@ -22,7 +22,7 @@ using static SyntaxFactory;
 
 internal sealed partial class CSharpIntroduceVariableService
 {
-    protected override Task<Document> IntroduceFieldAsync(
+    protected override async Task<Document> IntroduceFieldAsync(
         SemanticDocument document,
         ExpressionSyntax expression,
         bool allOccurrences,
@@ -68,7 +68,7 @@ internal sealed partial class CSharpIntroduceVariableService
             var finalTypeDeclaration = InsertMember(newTypeDeclaration, newFieldDeclaration, insertionIndex);
 
             var newRoot = document.Root.ReplaceNode(oldTypeDeclaration, finalTypeDeclaration);
-            return Task.FromResult(document.Document.WithSyntaxRoot(newRoot));
+            return document.Document.WithSyntaxRoot(newRoot);
         }
         else
         {
@@ -81,7 +81,7 @@ internal sealed partial class CSharpIntroduceVariableService
                 : DetermineFieldInsertPosition(oldCompilationUnit.Members, newCompilationUnit.Members);
 
             var newRoot = newCompilationUnit.WithMembers(newCompilationUnit.Members.Insert(insertionIndex, newFieldDeclaration));
-            return Task.FromResult(document.Document.WithSyntaxRoot(newRoot));
+            return document.Document.WithSyntaxRoot(newRoot);
         }
     }
 

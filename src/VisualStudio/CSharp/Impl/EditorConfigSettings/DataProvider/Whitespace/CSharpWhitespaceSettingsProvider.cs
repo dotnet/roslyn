@@ -28,7 +28,7 @@ internal sealed class CSharpWhitespaceSettingsProvider : SettingsProviderBase<Se
         Update();
     }
 
-    protected override Task UpdateOptionsAsync(
+    protected override async Task UpdateOptionsAsync(
         TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken)
     {
         var spacingOptions = GetSpacingOptions(options, SettingsUpdater);
@@ -39,8 +39,6 @@ internal sealed class CSharpWhitespaceSettingsProvider : SettingsProviderBase<Se
         AddRange(indentationOptions.ToImmutableArray());
         var wrappingOptions = GetWrappingOptions(options, SettingsUpdater);
         AddRange(wrappingOptions.ToImmutableArray());
-
-        return Task.CompletedTask;
     }
 
     private static IEnumerable<Setting> GetSpacingOptions(TieredAnalyzerConfigOptions options, OptionUpdater updaterService)

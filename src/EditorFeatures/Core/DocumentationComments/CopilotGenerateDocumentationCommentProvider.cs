@@ -343,15 +343,13 @@ internal sealed class CopilotGenerateDocumentationCommentProvider(IThreadingCont
         }
     }
 
-    public override Task EnabledAsync(CancellationToken cancel)
+    public override async Task EnabledAsync(CancellationToken cancel)
     {
         _enabled = true;
-        return Task.CompletedTask;
     }
 
-    public override Task DisabledAsync(CancellationToken cancel)
+    public override async Task DisabledAsync(CancellationToken cancel)
     {
         _enabled = false;
-        return Task.CompletedTask;
     }
 }

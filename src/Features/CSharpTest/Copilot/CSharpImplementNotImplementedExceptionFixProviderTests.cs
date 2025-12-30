@@ -568,7 +568,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         private TestWorkspace? _testWorkspace;
         private Action<TestCopilotCodeAnalysisService>? _copilotServiceSetupAction;
 
-        protected override Task<Workspace> CreateWorkspaceImplAsync()
+        protected override async Task<Workspace> CreateWorkspaceImplAsync()
         {
             _testComposition = FeaturesTestCompositions.Features
                 .AddParts([typeof(TestCopilotOptionsService), typeof(TestCopilotCodeAnalysisService)]);
@@ -576,7 +576,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
 
             // Trigger the action if it's set
             _copilotServiceSetupAction?.Invoke(GetCopilotService(_testWorkspace));
-            return Task.FromResult<Workspace>(_testWorkspace);
+            return _testWorkspace;
         }
 
         public CustomCompositionCSharpTest WithMockCopilotService(Action<TestCopilotCodeAnalysisService> setup)
@@ -608,20 +608,20 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestCopilotOptionsService() { }
 
-        public Task<bool> IsRefineOptionEnabledAsync()
-            => Task.FromResult(true);
+        public async Task<bool> IsRefineOptionEnabledAsync()
+            => true;
 
-        public Task<bool> IsCodeAnalysisOptionEnabledAsync()
-            => Task.FromResult(true);
+        public async Task<bool> IsCodeAnalysisOptionEnabledAsync()
+            => true;
 
-        public Task<bool> IsOnTheFlyDocsOptionEnabledAsync()
-            => Task.FromResult(true);
+        public async Task<bool> IsOnTheFlyDocsOptionEnabledAsync()
+            => true;
 
-        public Task<bool> IsGenerateDocumentationCommentOptionEnabledAsync()
-            => Task.FromResult(true);
+        public async Task<bool> IsGenerateDocumentationCommentOptionEnabledAsync()
+            => true;
 
-        public Task<bool> IsImplementNotImplementedExceptionEnabledAsync()
-            => Task.FromResult(true);
+        public async Task<bool> IsImplementNotImplementedExceptionEnabledAsync()
+            => true;
     }
 
     [ExportLanguageService(typeof(ICopilotCodeAnalysisService), LanguageNames.CSharp), Shared, PartNotDiscoverable]
@@ -649,8 +649,8 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         public Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
-        public Task<bool> IsAvailableAsync(CancellationToken cancellationToken)
-            => Task.FromResult(true);
+        public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken)
+            => true;
 
         public Task<bool> IsFileExcludedAsync(string filePath, CancellationToken cancellationToken)
             => throw new NotImplementedException();
@@ -661,22 +661,22 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> ICopilotCodeAnalysisService.GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
-        public Task<ImmutableDictionary<SyntaxNode, ImplementationDetails>> ImplementNotImplementedExceptionsAsync(
+        public async Task<ImmutableDictionary<SyntaxNode, ImplementationDetails>> ImplementNotImplementedExceptionsAsync(
             Document document,
             ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> methodOrProperties,
             CancellationToken cancellationToken)
         {
             if (SetupFixAll != null)
             {
-                return Task.FromResult(SetupFixAll.Invoke(document, methodOrProperties, cancellationToken));
+                return SetupFixAll.Invoke(document, methodOrProperties, cancellationToken);
             }
 
             if (PrepareUsingSingleFakeResult != null)
             {
-                return Task.FromResult(CreateSingleNodeResult(methodOrProperties, PrepareUsingSingleFakeResult));
+                return CreateSingleNodeResult(methodOrProperties, PrepareUsingSingleFakeResult);
             }
 
-            return Task.FromResult(ImmutableDictionary<SyntaxNode, ImplementationDetails>.Empty);
+            return ImmutableDictionary<SyntaxNode, ImplementationDetails>.Empty;
         }
 
         private static ImmutableDictionary<SyntaxNode, ImplementationDetails> CreateSingleNodeResult(
@@ -692,9 +692,9 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             return resultsBuilder.ToImmutable();
         }
 
-        public Task<bool> IsImplementNotImplementedExceptionsAvailableAsync(CancellationToken cancellationToken)
+        public async Task<bool> IsImplementNotImplementedExceptionsAvailableAsync(CancellationToken cancellationToken)
         {
-            return Task.FromResult(true);
+            return true;
         }
 
         public Task<string> GetOnTheFlyDocsPromptAsync(OnTheFlyDocsInfo onTheFlyDocsInfo, CancellationToken cancellationToken)

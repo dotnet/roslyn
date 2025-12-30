@@ -62,8 +62,8 @@ internal abstract class AbstractObjectList<TLibraryManager> : IVsCoTaskMemFreeMy
         return false;
     }
 
-    protected virtual Task<(bool success, object pvar)> TryGetPropertyAsync(uint index, _VSOBJLISTELEMPROPID propertyId, CancellationToken cancellationToken)
-        => SpecializedTasks.Default<(bool success, object pvar)>();
+    protected virtual async Task<(bool success, object pvar)> TryGetPropertyAsync(uint index, _VSOBJLISTELEMPROPID propertyId, CancellationToken cancellationToken)
+        => default((bool success, object pvar));
 
     protected virtual bool TryCountSourceItems(uint index, out IVsHierarchy hierarchy, out uint itemid, out uint items)
     {
@@ -73,16 +73,16 @@ internal abstract class AbstractObjectList<TLibraryManager> : IVsCoTaskMemFreeMy
         return false;
     }
 
-    protected virtual Task<object> GetBrowseObjectAsync(uint index, CancellationToken cancellationToken)
-        => SpecializedTasks.Null<object>();
+    protected virtual async Task<object> GetBrowseObjectAsync(uint index, CancellationToken cancellationToken)
+        => null;
 
     protected virtual bool SupportsNavInfo
     {
         get { return false; }
     }
 
-    protected virtual Task<IVsNavInfo> GetNavInfoAsync(uint index, CancellationToken cancellationToken)
-        => SpecializedTasks.Null<IVsNavInfo>();
+    protected virtual async Task<IVsNavInfo> GetNavInfoAsync(uint index, CancellationToken cancellationToken)
+        => null;
 
     protected virtual IVsNavInfoNode GetNavInfoNode(uint index)
         => null;
@@ -98,8 +98,8 @@ internal abstract class AbstractObjectList<TLibraryManager> : IVsCoTaskMemFreeMy
         get { return false; }
     }
 
-    protected virtual Task<bool> TryFillDescriptionAsync(uint index, _VSOBJDESCOPTIONS options, IVsObjectBrowserDescription3 description, CancellationToken cancellationToken)
-        => SpecializedTasks.False;
+    protected virtual async Task<bool> TryFillDescriptionAsync(uint index, _VSOBJDESCOPTIONS options, IVsObjectBrowserDescription3 description, CancellationToken cancellationToken)
+        => false;
 
     int IVsSimpleObjectList2.CanDelete(uint index, out int pfOK)
     {

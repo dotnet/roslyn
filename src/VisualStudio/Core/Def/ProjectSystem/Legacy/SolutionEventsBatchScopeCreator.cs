@@ -205,24 +205,20 @@ internal sealed class SolutionEventsBatchScopeCreator
         {
         }
 
-        public ValueTask OnBeforeOpenSolutionAsync(BeforeOpenSolutionArgs args, CancellationToken cancellationToken)
+        public async ValueTask OnBeforeOpenSolutionAsync(BeforeOpenSolutionArgs args, CancellationToken cancellationToken)
         {
-            return ValueTask.CompletedTask;
         }
 
-        public ValueTask OnBeforeCloseSolutionAsync(BeforeCloseSolutionArgs args, CancellationToken cancellationToken)
+        public async ValueTask OnBeforeCloseSolutionAsync(BeforeCloseSolutionArgs args, CancellationToken cancellationToken)
         {
-            return ValueTask.CompletedTask;
         }
 
-        public ValueTask OnAfterCloseSolutionAsync(AfterCloseSolutionArgs args, CancellationToken cancellationToken)
+        public async ValueTask OnAfterCloseSolutionAsync(AfterCloseSolutionArgs args, CancellationToken cancellationToken)
         {
-            return ValueTask.CompletedTask;
         }
 
-        public ValueTask OnAfterRenameSolutionAsync(AfterRenameSolutionArgs args, CancellationToken cancellationToken)
+        public async ValueTask OnAfterRenameSolutionAsync(AfterRenameSolutionArgs args, CancellationToken cancellationToken)
         {
-            return ValueTask.CompletedTask;
         }
 
         #endregion

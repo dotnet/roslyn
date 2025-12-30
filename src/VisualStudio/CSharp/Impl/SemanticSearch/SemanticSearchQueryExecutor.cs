@@ -32,8 +32,8 @@ internal sealed class SemanticSearchQueryExecutor(
         private readonly Lazy<ConcurrentStack<(DocumentId documentId, ImmutableArray<TextChange> changes)>> _lazyDocumentUpdates = new();
         private readonly Lazy<ConcurrentDictionary<string, string?>> _lazyTextFileUpdates = new();
 
-        public ValueTask<ClassificationOptions> GetClassificationOptionsAsync(Microsoft.CodeAnalysis.Host.LanguageServices language, CancellationToken cancellationToken)
-            => new(options.GetClassificationOptions(language.Language));
+        public async ValueTask<ClassificationOptions> GetClassificationOptionsAsync(Microsoft.CodeAnalysis.Host.LanguageServices language, CancellationToken cancellationToken)
+            => options.GetClassificationOptions(language.Language);
 
         public ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
             => presenterContext.OnDefinitionFoundAsync(definition, cancellationToken);
@@ -48,16 +48,14 @@ internal sealed class SemanticSearchQueryExecutor(
             => presenterContext.OnDefinitionFoundAsync(
                 new SearchExceptionDefinitionItem(exception.Message, exception.TypeName, exception.StackTrace, (queryDocument != null) ? new DocumentSpan(queryDocument, exception.Span) : default), cancellationToken);
 
-        public ValueTask OnLogMessageAsync(string message, CancellationToken cancellationToken)
+        public async ValueTask OnLogMessageAsync(string message, CancellationToken cancellationToken)
         {
             logMessage(message);
-            return ValueTask.CompletedTask;
         }
 
-        public ValueTask OnDocumentUpdatedAsync(DocumentId documentId, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
+        public async ValueTask OnDocumentUpdatedAsync(DocumentId documentId, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
         {
             _lazyDocumentUpdates.Value.Push((documentId, changes));
-            return ValueTask.CompletedTask;
         }
 
         private ImmutableArray<(DocumentId documentId, ImmutableArray<TextChange> changes)> GetDocumentUpdates()
@@ -94,10 +92,9 @@ internal sealed class SemanticSearchQueryExecutor(
         public ImmutableArray<(string filePath, string? newContent)> GetFileUpdates()
             => _lazyTextFileUpdates.IsValueCreated ? _lazyTextFileUpdates.Value.SelectAsArray(static entry => (entry.Key, entry.Value)) : [];
 
-        public ValueTask OnTextFileUpdatedAsync(string filePath, string? newContent, CancellationToken cancellationToken)
+        public async ValueTask OnTextFileUpdatedAsync(string filePath, string? newContent, CancellationToken cancellationToken)
         {
             _lazyTextFileUpdates.Value.TryAdd(filePath, newContent);
-            return ValueTask.CompletedTask;
         }
     }
 
