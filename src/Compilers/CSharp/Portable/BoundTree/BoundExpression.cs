@@ -325,6 +325,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get { return this.PropertySymbol; }
         }
+
+        public BoundPropertyAccess Clone()
+            => (BoundPropertyAccess)this.MemberwiseClone();
     }
 
     internal enum AccessorKind : byte

@@ -780,49 +780,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 // Under DEBUG, create a new node to mark as checked, rather than mutating the original.
                                 // This allows the original node to be passed to CheckValue multiple times safely.
-                                // To ensure a new node is created, we temporarily toggle InitialBindingReceiverIsSubjectToCloning
-                                // and then toggle it back.
-                                var toggled = propertyAccess.InitialBindingReceiverIsSubjectToCloning == ThreeState.True 
-                                    ? ThreeState.False 
-                                    : ThreeState.True;
-                                var temp = propertyAccess.Update(
-                                    propertyAccess.ReceiverOpt,
-                                    toggled,
-                                    propertyAccess.PropertySymbol,
-                                    propertyAccess.AutoPropertyAccessorKind,
-                                    propertyAccess.ResultKind,
-                                    propertyAccess.Type);
-                                expr = temp.Update(
-                                    temp.ReceiverOpt,
-                                    propertyAccess.InitialBindingReceiverIsSubjectToCloning,
-                                    temp.PropertySymbol,
-                                    temp.AutoPropertyAccessorKind,
-                                    temp.ResultKind,
-                                    temp.Type);
+                                expr = propertyAccess.Clone();
                             }
 #endif
                         }
 #if DEBUG
                         else
                         {
-                            // In attribute arguments, still create a new node to mark as checked.
-                            var toggled = propertyAccess.InitialBindingReceiverIsSubjectToCloning == ThreeState.True 
-                                ? ThreeState.False 
-                                : ThreeState.True;
-                            var temp = propertyAccess.Update(
-                                propertyAccess.ReceiverOpt,
-                                toggled,
-                                propertyAccess.PropertySymbol,
-                                propertyAccess.AutoPropertyAccessorKind,
-                                propertyAccess.ResultKind,
-                                propertyAccess.Type);
-                            expr = temp.Update(
-                                temp.ReceiverOpt,
-                                propertyAccess.InitialBindingReceiverIsSubjectToCloning,
-                                temp.PropertySymbol,
-                                temp.AutoPropertyAccessorKind,
-                                temp.ResultKind,
-                                temp.Type);
+                            // Under DEBUG, create a new node to mark as checked, rather than mutating the original.
+                            // This allows the original node to be passed to CheckValue multiple times safely.
+                            expr = propertyAccess.Clone();
                         }
                         expr.WasPropertyBackingFieldAccessChecked = true;
 #endif
