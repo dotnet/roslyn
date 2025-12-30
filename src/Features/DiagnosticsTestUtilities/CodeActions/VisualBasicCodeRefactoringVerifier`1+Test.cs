@@ -106,14 +106,14 @@ public static partial class VisualBasicCodeRefactoringVerifier<TCodeRefactoring>
 
         private static readonly TestComposition s_editorFeaturesOOPComposition = FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess);
 
-        protected override async Task<Workspace> CreateWorkspaceImplAsync()
+        protected override Task<Workspace> CreateWorkspaceImplAsync()
         {
             if (TestHost == TestHost.InProcess)
-                return await base.CreateWorkspaceImplAsync().ConfigureAwait(false);
+                return base.CreateWorkspaceImplAsync();
 
             var hostServices = s_editorFeaturesOOPComposition.GetHostServices();
             var workspace = new AdhocWorkspace(hostServices);
-            return workspace;
+            return Task.FromResult<Workspace>(workspace);
         }
 
 #endif

@@ -277,12 +277,12 @@ internal sealed partial class NamedParameterCompletionProvider : LSPCompletionPr
     int IEqualityComparer<IParameterSymbol>.GetHashCode(IParameterSymbol obj)
         => obj.Name.GetHashCode();
 
-    protected override async Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+    protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
     {
-        return new TextChange(
+        return Task.FromResult<TextChange?>(new TextChange(
             selectedItem.Span,
             // Insert extra colon if committing with '(' only: "method(parameter:(" is preferred to "method(parameter(".
             // In all other cases, do not add extra colon. Note that colon is already added if committing with ':'.
-            ch == '(' ? selectedItem.GetEntireDisplayText() : selectedItem.DisplayText);
+            ch == '(' ? selectedItem.GetEntireDisplayText() : selectedItem.DisplayText));
     }
 }

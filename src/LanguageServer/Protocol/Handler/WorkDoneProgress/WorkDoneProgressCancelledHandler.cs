@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -21,10 +21,11 @@ internal sealed class WorkDoneProgressCancelledHandler() : ILspServiceNotificati
 
     public bool RequiresLSPSolution => false;
 
-    public async Task HandleNotificationAsync(WorkDoneProgressCancelParams request, RequestContext requestContext, CancellationToken cancellationToken)
+    public Task HandleNotificationAsync(WorkDoneProgressCancelParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
         var manager = requestContext.GetRequiredLspService<WorkDoneProgressManager>();
         // We always create guid tokens, so use the string sumtype directly.
         manager.CancelWorkDoneProgress(request.Token.Second);
+        return Task.CompletedTask;
     }
 }

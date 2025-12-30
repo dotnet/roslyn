@@ -21,10 +21,10 @@ internal sealed class MockSuggestionService() : SuggestionServiceBase
 {
     public bool WasDismissAndBlockCalled { get; private set; }
 
-    public override async Task<IAsyncDisposable> DismissAndBlockProposalsAsync(ITextView textView, ReasonForDismiss reason, CancellationToken cancellationToken)
+    public override Task<IAsyncDisposable> DismissAndBlockProposalsAsync(ITextView textView, ReasonForDismiss reason, CancellationToken cancellationToken)
     {
         WasDismissAndBlockCalled = true;
-        return new AsyncDisposableStub();
+        return Task.FromResult<IAsyncDisposable>(new AsyncDisposableStub());
     }
 
     public override Task<SuggestionManagerBase?> TryRegisterProviderAsync(SuggestionProviderBase provider, ITextView view, string name, CancellationToken cancel)

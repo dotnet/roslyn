@@ -19,13 +19,13 @@ internal sealed partial class CodeFixService
         public FixAllPredefinedDiagnosticProvider(ImmutableArray<Diagnostic> diagnostics)
             => _diagnostics = diagnostics;
 
-        public override async Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken)
-            => _diagnostics;
+        public override Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken)
+            => Task.FromResult<IEnumerable<Diagnostic>>(_diagnostics);
 
-        public override async Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
-            => _diagnostics;
+        public override Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+            => Task.FromResult<IEnumerable<Diagnostic>>(_diagnostics);
 
-        public override async Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, CancellationToken cancellationToken)
-            => [];
+        public override Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, CancellationToken cancellationToken)
+            => SpecializedTasks.EmptyEnumerable<Diagnostic>();
     }
 }

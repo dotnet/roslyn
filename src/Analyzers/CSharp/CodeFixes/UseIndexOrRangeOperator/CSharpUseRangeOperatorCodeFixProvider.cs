@@ -36,9 +36,10 @@ internal sealed class CSharpUseRangeOperatorCodeFixProvider() : SyntaxEditorBase
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
         [IDEDiagnosticIds.UseRangeOperatorDiagnosticId];
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Use_range_operator, nameof(CSharpAnalyzersResources.Use_range_operator));
+        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(

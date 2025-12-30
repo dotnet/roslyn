@@ -23,9 +23,10 @@ internal abstract class AbstractRemoveUnnecessaryParenthesesCodeFixProvider<TPar
     protected abstract bool CanRemoveParentheses(
         TParenthesizedExpressionSyntax current, SemanticModel semanticModel, CancellationToken cancellationToken);
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, AnalyzersResources.Remove_unnecessary_parentheses, nameof(AnalyzersResources.Remove_unnecessary_parentheses));
+        return Task.CompletedTask;
     }
 
     protected override Task FixAllAsync(

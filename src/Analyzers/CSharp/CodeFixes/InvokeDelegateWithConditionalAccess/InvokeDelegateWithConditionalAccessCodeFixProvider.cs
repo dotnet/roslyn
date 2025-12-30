@@ -35,12 +35,13 @@ internal sealed partial class InvokeDelegateWithConditionalAccessCodeFixProvider
     protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
         => !diagnostic.Properties.ContainsKey(WellKnownDiagnosticTags.Unnecessary);
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Simplify_delegate_invocation, nameof(CSharpAnalyzersResources.Simplify_delegate_invocation));
+        return Task.CompletedTask;
     }
 
-    protected override async Task FixAllAsync(
+    protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
@@ -49,6 +50,8 @@ internal sealed partial class InvokeDelegateWithConditionalAccessCodeFixProvider
             cancellationToken.ThrowIfCancellationRequested();
             AddEdits(editor, diagnostic, cancellationToken);
         }
+
+        return Task.CompletedTask;
     }
 
     private static void AddEdits(

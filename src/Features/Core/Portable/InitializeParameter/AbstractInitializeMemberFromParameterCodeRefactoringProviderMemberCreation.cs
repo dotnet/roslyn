@@ -46,12 +46,12 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
     protected abstract Accessibility DetermineDefaultPropertyAccessibility();
     protected abstract SyntaxNode RemoveThrowNotImplemented(SyntaxNode propertySyntax);
 
-    protected sealed override async Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
+    protected sealed override Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
         Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation? blockStatementOpt,
         ImmutableArray<SyntaxNode> listOfParameterNodes, TextSpan parameterSpan,
         CancellationToken cancellationToken)
     {
-        return [];
+        return SpecializedTasks.EmptyImmutableArray<CodeAction>();
     }
 
     protected sealed override async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
