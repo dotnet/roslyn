@@ -31,9 +31,10 @@ internal sealed class CSharpUseCompoundCoalesceAssignmentCodeFixProvider() : Syn
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
         [IDEDiagnosticIds.UseCoalesceCompoundAssignmentDiagnosticId];
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, AnalyzersResources.Use_compound_assignment, nameof(AnalyzersResources.Use_compound_assignment));
+        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(

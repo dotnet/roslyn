@@ -18,13 +18,13 @@ internal abstract partial class AbstractSymbolDisplayService(LanguageServices se
 
     protected abstract AbstractSymbolDescriptionBuilder CreateDescriptionBuilder(SemanticModel semanticModel, int position, SymbolDescriptionOptions options, CancellationToken cancellationToken);
 
-    public async Task<ImmutableArray<SymbolDisplayPart>> ToDescriptionPartsAsync(SemanticModel semanticModel, int position, ImmutableArray<ISymbol> symbols, SymbolDescriptionOptions options, SymbolDescriptionGroups groups, CancellationToken cancellationToken)
+    public Task<ImmutableArray<SymbolDisplayPart>> ToDescriptionPartsAsync(SemanticModel semanticModel, int position, ImmutableArray<ISymbol> symbols, SymbolDescriptionOptions options, SymbolDescriptionGroups groups, CancellationToken cancellationToken)
     {
         if (symbols.Length == 0)
-            return [];
+            return SpecializedTasks.EmptyImmutableArray<SymbolDisplayPart>();
 
         var builder = CreateDescriptionBuilder(semanticModel, position, options, cancellationToken);
-        return await builder.BuildDescriptionAsync(symbols, groups).ConfigureAwait(false);
+        return builder.BuildDescriptionAsync(symbols, groups);
     }
 
     public async Task<IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>>> ToDescriptionGroupsAsync(

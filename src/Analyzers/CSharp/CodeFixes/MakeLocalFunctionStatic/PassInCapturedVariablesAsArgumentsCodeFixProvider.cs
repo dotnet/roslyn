@@ -35,7 +35,7 @@ internal sealed class PassInCapturedVariablesAsArgumentsCodeFixProvider() : Synt
         return WrapFixAsync(
             context.Document,
             [diagnostic],
-            async (document, localFunction, captures) =>
+            (document, localFunction, captures) =>
             {
                 context.RegisterCodeFix(
                     CodeAction.Create(
@@ -43,6 +43,8 @@ internal sealed class PassInCapturedVariablesAsArgumentsCodeFixProvider() : Synt
                         cancellationToken => MakeLocalFunctionStaticCodeFixHelper.MakeLocalFunctionStaticAsync(document, localFunction, captures, cancellationToken),
                         nameof(CSharpCodeFixesResources.Pass_in_captured_variables_as_arguments)),
                     diagnostic);
+
+                return Task.CompletedTask;
             },
             context.CancellationToken);
     }

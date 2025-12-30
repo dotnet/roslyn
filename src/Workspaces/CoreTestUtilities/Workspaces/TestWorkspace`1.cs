@@ -468,13 +468,14 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
     /// Overriding base impl so that when we close a document it goes back to the initial state when the test
     /// workspace was loaded, throwing away any changes made to the open version.
     /// </summary>
-    internal override async ValueTask TryOnDocumentClosedAsync(DocumentId documentId, CancellationToken cancellationToken)
+    internal override ValueTask TryOnDocumentClosedAsync(DocumentId documentId, CancellationToken cancellationToken)
     {
         var testDocument = this.GetTestDocument(documentId);
         Contract.ThrowIfNull(testDocument);
         Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
 
         this.OnDocumentClosedEx(documentId, testDocument.Loader, requireDocumentPresentAndOpen: false);
+        return ValueTask.CompletedTask;
     }
 
     public override void CloseDocument(DocumentId documentId)

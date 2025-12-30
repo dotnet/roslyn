@@ -22,14 +22,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp;
 internal sealed class SemanticSearchDocumentNavigationService(SemanticSearchToolWindowImpl window)
     : AbstractDocumentNavigationService
 {
-    public override async Task<bool> CanNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken)
-        => true;
+    public override Task<bool> CanNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken)
+        => SpecializedTasks.True;
 
-    public override async Task<INavigableLocation?> GetLocationForSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken)
+    public override Task<INavigableLocation?> GetLocationForSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken)
     {
         Debug.Assert(workspace is SemanticSearchWorkspace);
         Debug.Assert(documentId == window.SemanticSearchService.GetQueryDocumentId(workspace.CurrentSolution));
 
-        return window.GetNavigableLocation(textSpan);
+        return Task.FromResult<INavigableLocation?>(window.GetNavigableLocation(textSpan));
     }
 }

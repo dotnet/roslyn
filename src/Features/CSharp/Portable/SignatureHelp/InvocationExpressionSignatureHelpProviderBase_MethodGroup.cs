@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
 internal abstract partial class InvocationExpressionSignatureHelpProviderBase
 {
-    internal virtual async Task<(ImmutableArray<SignatureHelpItem> items, int? selectedItemIndex)> GetMethodGroupItemsAndSelectionAsync(
+    internal virtual Task<(ImmutableArray<SignatureHelpItem> items, int? selectedItemIndex)> GetMethodGroupItemsAndSelectionAsync(
         ImmutableArray<IMethodSymbol> accessibleMethods,
         Document document,
         InvocationExpressionSyntax invocationExpression,
@@ -29,7 +29,7 @@ internal abstract partial class InvocationExpressionSignatureHelpProviderBase
         var items = accessibleMethods.SelectAsArray(method => ConvertMethodGroupMethod(
             document, method, invocationExpression.SpanStart, semanticModel));
         var selectedItemIndex = TryGetSelectedIndex(accessibleMethods, currentSymbol);
-        return (items, selectedItemIndex);
+        return Task.FromResult((items, selectedItemIndex));
     }
 
     private static ImmutableArray<IMethodSymbol> GetAccessibleMethods(

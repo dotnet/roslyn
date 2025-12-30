@@ -58,6 +58,6 @@ internal sealed class TreeTextSource(AsyncLazy<SourceText> textSource, VersionSt
         return version != default;
     }
 
-    public async ValueTask<VersionStamp> GetVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
-        => _version;
+    public ValueTask<VersionStamp> GetVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+        => new(_version);
 }

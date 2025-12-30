@@ -25,13 +25,13 @@ internal sealed class WorkspaceFileTextLoaderNoException : WorkspaceFileTextLoad
     {
     }
 
-    public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+    public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
     {
         if (!File.Exists(Path))
         {
-            return TextAndVersion.Create(SourceText.From("", encoding: null, options.ChecksumAlgorithm), VersionStamp.Create());
+            return Task.FromResult(TextAndVersion.Create(SourceText.From("", encoding: null, options.ChecksumAlgorithm), VersionStamp.Create()));
         }
 
-        return await base.LoadTextAndVersionAsync(options, cancellationToken).ConfigureAwait(false);
+        return base.LoadTextAndVersionAsync(options, cancellationToken);
     }
 }

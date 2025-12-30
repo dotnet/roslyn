@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.Navigation;
 
 internal sealed class DefaultSymbolNavigationService : ISymbolNavigationService
 {
-    public async Task<INavigableLocation?> GetNavigableLocationAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
-        => null;
+    public Task<INavigableLocation?> GetNavigableLocationAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
+        => SpecializedTasks.Null<INavigableLocation>();
 
-    public async Task<bool> TrySymbolNavigationNotifyAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
-        => false;
+    public Task<bool> TrySymbolNavigationNotifyAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
+        => SpecializedTasks.False;
 
-    public async Task<(string filePath, LinePosition linePosition)?> GetExternalNavigationSymbolLocationAsync(DefinitionItem definitionItem, CancellationToken cancellationToken)
-        => null;
+    public Task<(string filePath, LinePosition linePosition)?> GetExternalNavigationSymbolLocationAsync(DefinitionItem definitionItem, CancellationToken cancellationToken)
+        => Task.FromResult<(string filePath, LinePosition linePosition)?>(null);
 }

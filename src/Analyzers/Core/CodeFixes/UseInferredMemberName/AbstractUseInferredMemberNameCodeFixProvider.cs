@@ -18,12 +18,13 @@ internal abstract class AbstractUseInferredMemberNameCodeFixProvider : SyntaxEdi
     public override ImmutableArray<string> FixableDiagnosticIds { get; }
         = [IDEDiagnosticIds.UseInferredMemberNameDiagnosticId];
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, AnalyzersResources.Use_inferred_member_name, nameof(AnalyzersResources.Use_inferred_member_name));
+        return Task.CompletedTask;
     }
 
-    protected override async Task FixAllAsync(
+    protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
@@ -34,5 +35,7 @@ internal abstract class AbstractUseInferredMemberNameCodeFixProvider : SyntaxEdi
             var node = root.FindNode(diagnostic.Location.SourceSpan);
             LanguageSpecificRemoveSuggestedNode(editor, node);
         }
+
+        return Task.CompletedTask;
     }
 }

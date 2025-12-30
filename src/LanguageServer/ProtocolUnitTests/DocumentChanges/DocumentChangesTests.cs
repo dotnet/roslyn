@@ -494,11 +494,11 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
             return request;
         }
 
-        public async Task<TestVersionResponse> HandleRequestAsync(TextDocumentIdentifier request, RequestContext context, CancellationToken cancellationToken)
+        public Task<TestVersionResponse> HandleRequestAsync(TextDocumentIdentifier request, RequestContext context, CancellationToken cancellationToken)
         {
             var trackedDocumentInfo = context.GetTrackedDocumentInfo(request.DocumentUri);
 
-            return new TestVersionResponse(trackedDocumentInfo.LspVersion);
+            return Task.FromResult(new TestVersionResponse(trackedDocumentInfo.LspVersion));
         }
     }
 }

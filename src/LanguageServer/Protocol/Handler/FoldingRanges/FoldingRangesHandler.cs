@@ -36,14 +36,14 @@ internal sealed class FoldingRangesHandler : ILspServiceDocumentRequestHandler<F
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(FoldingRangeParams request) => request.TextDocument;
 
-    public async Task<FoldingRange[]?> HandleRequestAsync(FoldingRangeParams request, RequestContext context, CancellationToken cancellationToken)
+    public Task<FoldingRange[]?> HandleRequestAsync(FoldingRangeParams request, RequestContext context, CancellationToken cancellationToken)
     {
         var document = context.Document;
         if (document is null)
-            return null;
+            return SpecializedTasks.Null<FoldingRange[]>();
 
         var lineFoldingOnly = context.GetRequiredClientCapabilities().TextDocument?.FoldingRange?.LineFoldingOnly == true;
-        return await SpecializedTasks.AsNullable(GetFoldingRangesAsync(_globalOptions, document, lineFoldingOnly, cancellationToken)).ConfigureAwait(false);
+        return SpecializedTasks.AsNullable(GetFoldingRangesAsync(_globalOptions, document, lineFoldingOnly, cancellationToken));
     }
 
     internal static Task<FoldingRange[]> GetFoldingRangesAsync(

@@ -119,13 +119,13 @@ internal abstract class AbstractConvertNumericLiteralCodeRefactoringProvider<TNu
             return result[0] == '_' ? result[1..] : result;
         }
 
-        static async Task<Document> ReplaceTokenAsync(Document document, SyntaxNode root, SyntaxToken numericToken, long value, string text, string suffix)
+        static Task<Document> ReplaceTokenAsync(Document document, SyntaxNode root, SyntaxToken numericToken, long value, string text, string suffix)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             var updatedToken = generator.NumericLiteralToken(text + suffix, (ulong)value)
                 .WithTriviaFrom(numericToken);
             var updatedRoot = root.ReplaceToken(numericToken, updatedToken);
-            return document.WithSyntaxRoot(updatedRoot);
+            return Task.FromResult(document.WithSyntaxRoot(updatedRoot));
         }
 
         (string prefix, string number, string suffix) GetNumericLiteralParts(string numericText)

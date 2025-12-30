@@ -22,7 +22,7 @@ internal abstract class AbstractSplitIfStatementCodeRefactoringProvider : CodeRe
 
     protected abstract CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText);
 
-    protected abstract ValueTask<SyntaxNode> GetChangedRootAsync(
+    protected abstract Task<SyntaxNode> GetChangedRootAsync(
         Document document,
         SyntaxNode root,
         SyntaxNode ifOrElseIf,

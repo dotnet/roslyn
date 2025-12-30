@@ -58,7 +58,7 @@ internal sealed partial class RemoteWorkspace : Workspace
             assetProvider,
             solutionChecksum,
             updatePrimaryBranch: true,
-            implementation: static async _ => false,
+            implementation: static _ => ValueTask.FromResult(false),
             cancellationToken).ConfigureAwait(false);
     }
 
@@ -340,7 +340,7 @@ internal sealed partial class RemoteWorkspace : Workspace
             CancellationToken cancellationToken)
         {
             var (solution, _) = await _remoteWorkspace.RunWithSolutionAsync(
-                assetProvider, solutionChecksum, updatePrimaryBranch, async _ => false, cancellationToken).ConfigureAwait(false);
+                assetProvider, solutionChecksum, updatePrimaryBranch, _ => ValueTask.FromResult(false), cancellationToken).ConfigureAwait(false);
             return solution;
         }
     }

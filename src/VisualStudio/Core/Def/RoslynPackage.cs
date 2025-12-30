@@ -86,10 +86,12 @@ internal sealed class RoslynPackage : AbstractPackage
 
         return;
 
-        async Task OnAfterPackageLoadedMainThreadAsync(PackageLoadTasks afterPackageLoadedTasks, CancellationToken cancellationToken)
+        Task OnAfterPackageLoadedMainThreadAsync(PackageLoadTasks afterPackageLoadedTasks, CancellationToken cancellationToken)
         {
             // load some services that have to be loaded in UI thread
             LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
+
+            return Task.CompletedTask;
         }
     }
 
@@ -100,12 +102,12 @@ internal sealed class RoslynPackage : AbstractPackage
 
         serviceBrokerContainer.Proffer(
             WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor,
-            async (_, _, _, _) => new WorkspaceProjectFactoryService(this.ComponentModel.GetService<IWorkspaceProjectContextFactory>()));
+            (_, _, _, _) => ValueTask.FromResult<object?>(new WorkspaceProjectFactoryService(this.ComponentModel.GetService<IWorkspaceProjectContextFactory>())));
 
         // Must be profferred before any C#/VB projects are loaded and the corresponding UI context activated.
         serviceBrokerContainer.Proffer(
             ManagedHotReloadLanguageServiceDescriptor.Descriptor,
-            async (_, _, _, _) => new ManagedEditAndContinueLanguageServiceBridge(this.ComponentModel.GetService<EditAndContinueLanguageService>()));
+            (_, _, _, _) => ValueTask.FromResult<object?>(new ManagedEditAndContinueLanguageServiceBridge(this.ComponentModel.GetService<EditAndContinueLanguageService>())));
     }
 
     protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
@@ -146,8 +148,8 @@ internal sealed class RoslynPackage : AbstractPackage
     protected override string GetToolWindowTitle(Type toolWindowType, int id)
             => base.GetToolWindowTitle(toolWindowType, id);
 
-    protected override async Task<object?> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)
-        => (object?)null;
+    protected override Task<object?> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)
+        => Task.FromResult((object?)null);
 
     private async Task LoadComponentsBackgroundAsync(CancellationToken cancellationToken)
     {

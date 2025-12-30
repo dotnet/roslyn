@@ -23,20 +23,20 @@ internal static class DocumentExcerptHelper
         return document.DocumentServiceProvider.GetService<IDocumentExcerptService>() is not null;
     }
 
-    public static async Task<ExcerptResult?> TryExcerptAsync(Document document, TextSpan span, ExcerptMode mode, ClassificationOptions classificationOptions, CancellationToken cancellationToken)
+    public static Task<ExcerptResult?> TryExcerptAsync(Document document, TextSpan span, ExcerptMode mode, ClassificationOptions classificationOptions, CancellationToken cancellationToken)
     {
         if (document is SourceGeneratedDocument sourceGeneratedDocument &&
             document.Project.Solution.Services.GetService<ISourceGeneratedDocumentExcerptService>() is { } sourceGeneratedExcerptService)
         {
-            return await sourceGeneratedExcerptService.TryExcerptAsync(sourceGeneratedDocument, span, mode, classificationOptions, cancellationToken).ConfigureAwait(false);
+            return sourceGeneratedExcerptService.TryExcerptAsync(sourceGeneratedDocument, span, mode, classificationOptions, cancellationToken);
         }
 
         var excerptService = document.DocumentServiceProvider.GetService<IDocumentExcerptService>();
         if (excerptService == null)
         {
-            return null;
+            return SpecializedTasks.Default<ExcerptResult?>();
         }
 
-        return await excerptService.TryExcerptAsync(document, span, mode, classificationOptions, cancellationToken).ConfigureAwait(false);
+        return excerptService.TryExcerptAsync(document, span, mode, classificationOptions, cancellationToken);
     }
 }

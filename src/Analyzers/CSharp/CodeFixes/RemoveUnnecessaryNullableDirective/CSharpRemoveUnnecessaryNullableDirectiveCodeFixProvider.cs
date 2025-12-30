@@ -31,7 +31,7 @@ internal sealed class CSharpRemoveUnnecessaryNullableDirectiveCodeFixProvider()
             IDEDiagnosticIds.RemoveUnnecessaryNullableDirectiveDiagnosticId,
         ];
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         foreach (var diagnostic in context.Diagnostics)
         {
@@ -40,9 +40,11 @@ internal sealed class CSharpRemoveUnnecessaryNullableDirectiveCodeFixProvider()
             else
                 RegisterCodeFix(context, CSharpAnalyzersResources.Remove_unnecessary_nullable_directive, nameof(CSharpAnalyzersResources.Remove_unnecessary_nullable_directive), diagnostic);
         }
+
+        return Task.CompletedTask;
     }
 
-    protected override async Task FixAllAsync(
+    protected override Task FixAllAsync(
         Document document,
         ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor,
@@ -87,6 +89,8 @@ internal sealed class CSharpRemoveUnnecessaryNullableDirectiveCodeFixProvider()
                 node,
                 node.ReplaceToken(token, token.WithLeadingTrivia(leadingTrivia)));
         }
+
+        return Task.CompletedTask;
     }
 
     private static bool HasPrecedingBlankLine(SyntaxTriviaList leadingTrivia, int index)
