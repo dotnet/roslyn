@@ -93,57 +93,81 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Determine validation type
+      - name: Determine validation type and pipeline ID
         id: validation-type
         run: |
           COMMENT_BODY="${{ github.event.comment.body }}"
           if echo "$COMMENT_BODY" | grep -q "/dart"; then
             echo "type=dart" >> $GITHUB_OUTPUT
+            echo "pipeline-id=15324" >> $GITHUB_OUTPUT
           elif echo "$COMMENT_BODY" | grep -q "/pr-val"; then
             echo "type=pr-val" >> $GITHUB_OUTPUT
+            echo "pipeline-id=8972" >> $GITHUB_OUTPUT
           fi
 
-      - name: Trigger Azure DevOps Pipeline
+      - name: Trigger Pipeline
         id: trigger-pipeline
         run: |
           # Get Azure DevOps access token
           AZDO_TOKEN=$(az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv)
           
+          VALIDATION_TYPE="${{ steps.validation-type.outputs.type }}"
+          PIPELINE_ID="${{ steps.validation-type.outputs.pipeline-id }}"
+          DEVDIV_ORG="devdiv"
+          DEVDIV_PROJECT="DevDiv"
+          
+          echo "Triggering DevDiv $VALIDATION_TYPE pipeline (ID: $PIPELINE_ID)..."
+          
+          # Build request body based on validation type
+          if [ "$VALIDATION_TYPE" = "dart" ]; then
+            # DART pipeline uses prNumber and sha parameters
+            REQUEST_BODY=$(cat <<EOF
+          {
+            "templateParameters": {
+              "prNumber": "${{ github.event.issue.number }}",
+              "sha": "${{ steps.pr-details.outputs.sha }}"
+            }
+          }
+          EOF
+          )
+          else
+            # PR-Val pipeline uses PRNumber, CommitSHA, and SourceBranch parameters
+            REQUEST_BODY=$(cat <<EOF
+          {
+            "templateParameters": {
+              "PRNumber": ${{ github.event.issue.number }},
+              "CommitSHA": "${{ steps.pr-details.outputs.sha }}",
+              "SourceBranch": "${{ steps.pr-details.outputs.ref }}"
+            }
+          }
+          EOF
+          )
+          fi
+          
+          echo "Request body: $REQUEST_BODY"
+          
           # Trigger the pipeline
           RESPONSE=$(curl -X POST \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $AZDO_TOKEN" \
-            -d '{
-            "resources": {
-                "repositories": {
-                  "self": {
-                    "refName": "refs/heads/dev/ankitakhera/pipeline_to_redirect_to_validation"
-                  }
-                }
-              },
-              "templateParameters": {
-                "PRNumber": "${{ github.event.issue.number }}",
-                "CommitSHA": "${{ steps.pr-details.outputs.sha }}",
-                "SourceBranch": "${{ steps.pr-details.outputs.ref }}",
-                "ValidationType": "${{ steps.validation-type.outputs.type }}"
-              }
-            }' \
-            "${{ secrets.AZDO_ORGANIZATION_URL }}/${{ secrets.AZDO_PROJECT }}/_apis/pipelines/${{ secrets.AZDO_PIPELINE_ID }}/runs?api-version=7.0")
+            -d "$REQUEST_BODY" \
+            "https://dev.azure.com/$DEVDIV_ORG/$DEVDIV_PROJECT/_apis/pipelines/$PIPELINE_ID/runs?api-version=7.0")
           
           echo "Response: $RESPONSE"
           
-          # Extract pipeline run URL
-          PIPELINE_URL=$(echo $RESPONSE | jq -r '.url // empty')
+          # Extract pipeline run information
           BUILD_ID=$(echo $RESPONSE | jq -r '.id // empty')
           
           if [ -z "$BUILD_ID" ]; then
             echo "Failed to trigger pipeline"
+            echo "Error details: $(echo $RESPONSE | jq -r '.message // "Unknown error"')"
             exit 1
           fi
           
-          WEB_URL="${{ secrets.AZDO_ORGANIZATION_URL }}/${{ secrets.AZDO_PROJECT }}/_build/results?buildId=$BUILD_ID"
+          WEB_URL="https://dev.azure.com/$DEVDIV_ORG/$DEVDIV_PROJECT/_build/results?buildId=$BUILD_ID"
           echo "pipeline-url=$WEB_URL" >> $GITHUB_OUTPUT
           echo "build-id=$BUILD_ID" >> $GITHUB_OUTPUT
+          echo "Successfully triggered pipeline: $WEB_URL"
 
       - name: Comment pipeline link
         if: success()
@@ -154,7 +178,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `Azure DevOps pipeline triggered by @${context.actor}\n\n [View Pipeline Run](${{ steps.trigger-pipeline.outputs.pipeline-url }})\n\n**Parameters:**\n- Validation Type: \`${{ steps.validation-type.outputs.type }}\`\n- PR Number: \`${{ github.event.issue.number }}\`\n- Commit SHA: \`${{ steps.pr-details.outputs.sha }}\`\n- Source Branch: \`${{ steps.pr-details.outputs.ref }}\`\n- Build ID: \`${{ steps.trigger-pipeline.outputs.build-id }}\``
+              body: `Pipeline triggered by @${context.actor}\n\n[View Pipeline Run](${{ steps.trigger-pipeline.outputs.pipeline-url }})\n\n**Parameters:**\n- Validation Type: \`${{ steps.validation-type.outputs.type }}\`\n- Pipeline ID: \`${{ steps.validation-type.outputs.pipeline-id }}\`\n- PR Number: \`${{ github.event.issue.number }}\`\n- Commit SHA: \`${{ steps.pr-details.outputs.sha }}\`\n- Source Branch: \`${{ steps.pr-details.outputs.ref }}\`\n- Build ID: \`${{ steps.trigger-pipeline.outputs.build-id }}\``
             });
 
       - name: Comment on failure
@@ -166,5 +190,5 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: 'Failed to trigger the Azure DevOps pipeline. Please check the workflow logs for details.'
+              body: 'Failed to trigger the pipeline. Please check the workflow logs for details.'
             });
