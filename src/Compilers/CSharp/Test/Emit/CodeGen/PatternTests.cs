@@ -7119,5 +7119,37 @@ static class Extensions
 }
 ");
         }
+
+        [Fact]
+        public void DeconstructExtension_02()
+        {
+            // We check conversion during initial binding
+            var src = """
+#pragma warning disable CS0436 // The type 'Span<T>' in '' conflicts with the imported type 'Span<T>'
+
+var (x, y) = new int[] { 42 };
+System.Console.Write((x, y));
+
+class C { }
+
+static class E
+{
+    public static void Deconstruct(this System.Span<int> s, out int i, out int j) => throw null;
+}
+
+namespace System
+{
+    public ref struct Span<T>
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // (3,1): error CS0656: Missing compiler required member 'Span<T>.op_Implicit'
+                // var (x, y) = new int[] { 42 };
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "var (x, y) = new int[] { 42 }").WithArguments("System.Span<T>", "op_Implicit").WithLocation(3, 1)
+                );
+        }
     }
 }

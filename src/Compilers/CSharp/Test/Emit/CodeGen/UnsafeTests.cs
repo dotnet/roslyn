@@ -5354,7 +5354,7 @@ public static class FixableExt
         }
 
         [Fact]
-        public void CustomFixedStructObjectExtension()
+        public void CustomFixedStructObjectExtension_01()
         {
             var text = @"
 unsafe class C
@@ -5430,6 +5430,44 @@ public static class FixableExt
   IL_003f:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void CustomFixedStructObjectExtension_02()
+        {
+            // We check conversion during initial binding
+            var text = """
+#pragma warning disable CS0436 // The type 'ReadOnlySpan<T>' in '' conflicts with the imported type 'ReadOnlySpan<T>'
+
+unsafe class C
+{
+    public static void M()
+    {
+        System.ReadOnlySpan<string> x = default;
+        fixed (long* p = x)
+        {
+        }
+    }
+}
+
+static class E
+{
+    public static ref long GetPinnableReference(this System.ReadOnlySpan<object> s) => throw null;
+}
+
+namespace System
+{
+    public ref struct ReadOnlySpan<T>
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (8,26): error CS0656: Missing compiler required member 'ReadOnlySpan<T>.CastUp'
+                //         fixed (long* p = x)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.ReadOnlySpan<T>", "CastUp").WithLocation(8, 26)
+                );
         }
 
         [Fact]
