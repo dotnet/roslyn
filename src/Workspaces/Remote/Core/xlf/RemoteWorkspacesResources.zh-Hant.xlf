@@ -67,14 +67,14 @@
         <target state="translated">封裝欄位重構</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_ExtensionMemberImportCompletion">
+        <source>Extension member import completion</source>
+        <target state="new">Extension member import completion</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ExtensionMessageHandler">
         <source>Extension message handler</source>
         <target state="new">Extension message handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="FeatureName_ExtensionMethodImportCompletion">
-        <source>Extension method import completion</source>
-        <target state="translated">擴充方法匯入完成</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_FindUsages">

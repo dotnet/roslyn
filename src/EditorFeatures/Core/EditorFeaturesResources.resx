@@ -929,8 +929,8 @@
   <data name="Generate_summary_with_Copilot" xml:space="preserve">
     <value>Generate summary with Copilot (might be inaccurate)</value>
   </data>
-  <data name="Describe_with_Copilot" xml:space="preserve">
-    <value>Describe with Copilot</value>
+  <data name="Describe" xml:space="preserve">
+    <value>Describe</value>
   </data>
   <data name="On_the_fly_documentation" xml:space="preserve">
     <value>On-the-fly documentation</value>
@@ -938,8 +938,8 @@
   <data name="An_error_occurred_while_generating_documentation_for_this_code" xml:space="preserve">
     <value>An error occurred while generating documentation for this code.</value>
   </data>
-  <data name="Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization" xml:space="preserve">
-    <value>'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</value>
+  <data name="Describe_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization" xml:space="preserve">
+    <value>'Describe' is unavailable since the referenced document is excluded by your organization.</value>
   </data>
   <data name="Chat_limit_reached_upgrade_now_or_wait_for_the_limit_to_reset" xml:space="preserve">
     <value>Chat limit reached, [upgrade now] or wait for the limit to reset.</value>

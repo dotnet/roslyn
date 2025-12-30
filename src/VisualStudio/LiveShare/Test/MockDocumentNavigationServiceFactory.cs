@@ -20,8 +20,8 @@ using Workspace = CodeAnalysis.Workspace;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class MockDocumentNavigationService() : AbstractDocumentNavigationService
 {
-    public override Task<bool> CanNavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, bool allowInvalidPosition, CancellationToken cancellationToken)
-        => SpecializedTasks.True;
+    public override async Task<bool> CanNavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, bool allowInvalidPosition, CancellationToken cancellationToken)
+        => true;
 
     public override Task<INavigableLocation?> GetLocationForPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, bool allowInvalidPosition, CancellationToken cancellationToken)
         => NavigableLocation.TestAccessor.Create(true);

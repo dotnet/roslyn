@@ -97,18 +97,13 @@ internal abstract partial class TextDocumentState
     public bool TryGetTextAndVersion([NotNullWhen(true)] out TextAndVersion? textAndVersion)
         => TextAndVersionSource.TryGetValue(LoadTextOptions, out textAndVersion);
 
-    public ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
+    public async ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
     {
         if (TryGetText(out var text))
-        {
-            return new ValueTask<SourceText>(text);
-        }
+            return text;
 
-        return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
-            static (self, cancellationToken) => self.GetTextAndVersionAsync(cancellationToken),
-            static (textAndVersion, _) => textAndVersion.Text,
-            this,
-            cancellationToken);
+        var textAndVersion = await GetTextAndVersionAsync(cancellationToken).ConfigureAwait(false);
+        return textAndVersion.Text;
     }
 
     public SourceText GetTextSynchronously(CancellationToken cancellationToken)

@@ -4834,7 +4834,9 @@ parse_member_name:;
                     return this.IsTrueIdentifier();
 
                 default:
-                    return IsParameterModifierExcludingScoped(this.CurrentToken) || IsPossibleScopedKeyword(isFunctionPointerParameter: false) || IsPredefinedType(this.CurrentToken.Kind);
+                    return IsParameterModifierExcludingScoped(this.CurrentToken) ||
+                           IsDefiniteScopedModifier(isFunctionPointerParameter: false, isLambdaParameter: false) ||
+                           IsPredefinedType(this.CurrentToken.Kind);
             }
         }
 
@@ -4961,32 +4963,50 @@ parse_member_name:;
 
         private void ParseParameterModifiers(SyntaxListBuilder modifiers, bool isFunctionPointerParameter, bool isLambdaParameter)
         {
-            bool tryScoped = true;
+            Debug.Assert(!(isFunctionPointerParameter && isLambdaParameter), "Can't be parsing parameters for both a function pointer and a lambda at the same time");
 
-            while (IsParameterModifierExcludingScoped(this.CurrentToken))
+            var seenScoped = false;
+            while (true)
             {
-                if (this.CurrentToken.Kind is SyntaxKind.RefKeyword or SyntaxKind.OutKeyword or SyntaxKind.InKeyword or SyntaxKind.ReadOnlyKeyword)
+                // Normal keyword-modifier (in/out/ref/readonly/params/this).  Always safe to consume.
+                if (IsParameterModifierExcludingScoped(this.CurrentToken))
                 {
-                    tryScoped = false;
+                    modifiers.Add(this.EatToken());
+                    continue;
                 }
 
-                modifiers.Add(this.EatToken());
-            }
-
-            if (tryScoped)
-            {
-                SyntaxToken scopedKeyword = ParsePossibleScopedKeyword(isFunctionPointerParameter, isLambdaParameter);
-
-                if (scopedKeyword != null)
+                // 'scoped' modifier.  May be ambiguous with a type/identifier.  And has changed parsing rules between
+                // C#13/14 inside a lambda parameter list.
+                if (this.IsDefiniteScopedModifier(isFunctionPointerParameter, isLambdaParameter))
                 {
-                    modifiers.Add(scopedKeyword);
-
-                    // Look if ref/out/in/readonly are next
-                    while (this.CurrentToken.Kind is SyntaxKind.RefKeyword or SyntaxKind.OutKeyword or SyntaxKind.InKeyword or SyntaxKind.ReadOnlyKeyword)
+                    // First scoped-modifier is always considered the modifier.
+                    if (!seenScoped)
                     {
-                        modifiers.Add(this.EatToken());
+                        seenScoped = true;
+                        modifiers.Add(this.EatContextualToken(SyntaxKind.ScopedKeyword));
+                        continue;
+                    }
+                    else
+                    {
+                        // If we've already seen `scoped` then we may have a situation like `scoped scoped`. This could
+                        // be duplicated modifier, or it could be that the second `scoped` is actually the identifier of
+                        // a parameter.
+                        //
+                        // Places where it is an identifier are:
+                        //
+                        //      `(scoped scoped) =>`
+                        //      `(scoped scoped, ...) =>`
+                        //      `(scoped scoped = ...) =>`
+                        if (this.PeekToken(1).Kind is not (SyntaxKind.CloseParenToken or SyntaxKind.CommaToken or SyntaxKind.EqualsToken))
+                        {
+                            modifiers.Add(this.EatContextualToken(SyntaxKind.ScopedKeyword));
+                            continue;
+                        }
                     }
                 }
+
+                // Not a modifier.  We're done.
+                return;
             }
         }
 
@@ -5621,6 +5641,26 @@ parse_member_name:;
                     break;
 
                 default:
+                    Debug.Assert(argumentList is null);
+                    Debug.Assert(initializer is null);
+
+                    // Note: it is ok that we do this work prior to the isConst/isFixed checks below.  If it looks like
+                    // a variable initializer, that means we're missing at least an equals and we'll report that error
+                    // here.  So it's fine to not report the other errors related to const/fixed as they can be fixed up
+                    // once the user adds the '='.
+                    if (looksLikeVariableInitializer())
+                    {
+                        Debug.Assert(this.CurrentToken.Kind != SyntaxKind.EqualsToken);
+
+                        localFunction = null;
+                        return _syntaxFactory.VariableDeclarator(
+                            name,
+                            argumentList: null,
+                            _syntaxFactory.EqualsValueClause(
+                                this.EatToken(SyntaxKind.EqualsToken),
+                                this.ParseVariableInitializer()));
+                    }
+
                     if (isConst)
                     {
                         name = this.AddError(name, ErrorCode.ERR_ConstValueRequired);  // Error here for missing constant initializers
@@ -5643,6 +5683,47 @@ parse_member_name:;
 
             localFunction = null;
             return _syntaxFactory.VariableDeclarator(name, argumentList, initializer);
+
+            bool looksLikeVariableInitializer()
+            {
+                // Note: this check is redundant, as CanStartExpression will return false for an equals-token. However,
+                // we want to guarantee that this always holds true, and thus the caller will *always* report an error
+                // when trying to consume the equals token.  That ensures that we it's then ok to skip other syntax
+                // errors that are reported with variable declarators.
+                if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
+                    return false;
+
+                // If we see a token that can start an expression after the identifier (e.g., "int value 5;"), 
+                // treat it as a missing '=' and parse the initializer.
+                //
+                // Do this except for cases that are better served by saying we have a missing comma.  Specifically:
+                //
+                //      Type t1 t2 t3
+                //      Type t1 t2,
+                //      Type t1 t2 = ...
+                //      Type t1 t2;
+                //      Type t1 t2)    // likely an incorrect tuple.
+                var shouldParseAsNextDeclarator =
+                    this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
+                    this.PeekToken(1).Kind is SyntaxKind.IdentifierToken or SyntaxKind.CommaToken or SyntaxKind.EqualsToken or SyntaxKind.SemicolonToken or SyntaxKind.CloseParenToken or SyntaxKind.EndOfFileToken;
+                if (shouldParseAsNextDeclarator)
+                    return false;
+
+                if (ContainsErrorDiagnostic(name))
+                    return false;
+
+                if (!CanStartExpression())
+                    return false;
+
+                using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+                var initializer = this.ParseExpressionCore();
+
+                // If we see a type following, then prefer to view this as a declarator for the next variable.
+                if (initializer is TypeSyntax)
+                    return false;
+
+                return !ContainsErrorDiagnostic(initializer);
+            }
         }
 
         // Is there a local function after an eaten identifier?
@@ -6028,12 +6109,9 @@ parse_member_name:;
             if (this.IsCurrentTokenWhereOfConstraintClause())
                 return false;
 
-            // possible attributes
-            if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind != SyntaxKind.CloseBracketToken)
-                return true;
-
+            // possible attributes.
             // Variance.
-            if (this.CurrentToken.Kind is SyntaxKind.InKeyword or SyntaxKind.OutKeyword)
+            if (this.CurrentToken.Kind is SyntaxKind.OpenBracketToken or SyntaxKind.InKeyword or SyntaxKind.OutKeyword)
                 return true;
 
             return IsTrueIdentifier();
@@ -6041,21 +6119,22 @@ parse_member_name:;
 
         private TypeParameterSyntax ParseTypeParameter()
         {
-            if (this.IsCurrentTokenWhereOfConstraintClause())
-            {
-                return _syntaxFactory.TypeParameter(
-                    default(SyntaxList<AttributeListSyntax>),
-                    varianceKeyword: null,
-                    this.AddError(CreateMissingIdentifierToken(), ErrorCode.ERR_IdentifierExpected));
-            }
-
             var attrs = default(SyntaxList<AttributeListSyntax>);
-            if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind != SyntaxKind.CloseBracketToken)
+            if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
             {
                 var saveTerm = _termState;
                 _termState = TerminatorState.IsEndOfTypeArgumentList;
                 attrs = this.ParseAttributeDeclarations(inExpressionContext: false);
                 _termState = saveTerm;
+            }
+
+            if (this.IsCurrentTokenWhereOfConstraintClause() ||
+                this.IsCurrentTokenPartialKeywordOfPartialMemberOrType())
+            {
+                return _syntaxFactory.TypeParameter(
+                    attrs,
+                    varianceKeyword: null,
+                    this.AddError(CreateMissingIdentifierToken(), ErrorCode.ERR_IdentifierExpected));
             }
 
             return _syntaxFactory.TypeParameter(
@@ -8405,7 +8484,7 @@ done:
                 return true;
             }
 
-            if (IsPossibleScopedKeyword(isFunctionPointerParameter: false))
+            if (IsDefiniteScopedModifier(isFunctionPointerParameter: false, isLambdaParameter: false))
             {
                 return true;
             }
@@ -8421,12 +8500,6 @@ done:
             }
 
             return IsPossibleFirstTypedIdentifierInLocalDeclarationStatement(isGlobalScriptLevel);
-        }
-
-        private bool IsPossibleScopedKeyword(bool isFunctionPointerParameter)
-        {
-            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
-            return ParsePossibleScopedKeyword(isFunctionPointerParameter, isLambdaParameter: false) != null;
         }
 
         private bool IsPossibleFirstTypedIdentifierInLocalDeclarationStatement(bool isGlobalScriptLevel)
@@ -8564,7 +8637,7 @@ done:
             // Skip 'using' keyword
             EatToken();
 
-            if (IsPossibleScopedKeyword(isFunctionPointerParameter: false))
+            if (IsDefiniteScopedModifier(isFunctionPointerParameter: false, isLambdaParameter: false))
             {
                 return true;
             }
@@ -9345,7 +9418,7 @@ done:
 
                 _termState |= TerminatorState.IsEndOfFilterClause;
                 var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-                var filterExpression = this.ParseExpressionCore();
+                var filterExpression = this.ParseExpressionForParenthesizedConstruct();
 
                 _termState = saveTerm;
                 var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
@@ -9410,7 +9483,7 @@ done:
 
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfDoWhileExpression;
-            var expression = this.ParseExpressionCore();
+            var expression = this.ParseExpressionForParenthesizedConstruct();
             _termState = saveTerm;
 
             return _syntaxFactory.DoStatement(
@@ -9856,6 +9929,39 @@ done:
                 kind, attributes, @goto, caseOrDefault, arg, this.EatToken(SyntaxKind.SemicolonToken));
         }
 
+        private ExpressionSyntax ParseExpressionForParenthesizedConstruct()
+            => ParseErrantExpressionWhenNoCloseParenToken(this.ParseExpressionCore());
+
+        private ExpressionSyntax ParseErrantExpressionWhenNoCloseParenToken(ExpressionSyntax expression)
+        {
+            if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken)
+            {
+                // Look for common case of `(a b)` where the user is in the middle of updating the expression to
+                // something like `(a && b)`.  We want to recover well here as otherwise the subsequent close paren will
+                // cause problems for higher level constructs.
+                //
+                // Note if we see `(a b) =>` we don't do this as it's much more likely this is some incomplete lambda
+                // expression.
+                using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
+                var nextExpression = this.ParseExpressionCore();
+
+                if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken &&
+                    this.PeekToken(1).Kind != SyntaxKind.EqualsGreaterThanToken &&
+                    !nextExpression.GetLastToken().IsMissing)
+                {
+                    expression = AddTrailingSkippedSyntax(
+                        expression,
+                        AddErrorToFirstToken(nextExpression, ErrorCode.ERR_UnexpectedToken, nextExpression.GetFirstToken().Text));
+                }
+                else
+                {
+                    resetPoint.Reset();
+                }
+            }
+
+            return expression;
+        }
+
         private IfStatementSyntax ParseIfStatement(SyntaxList<AttributeListSyntax> attributes)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IfKeyword);
@@ -9867,7 +9973,7 @@ done:
             {
                 var ifKeyword = this.EatToken(SyntaxKind.IfKeyword);
                 var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-                var condition = this.ParseExpressionCore();
+                var condition = this.ParseExpressionForParenthesizedConstruct();
                 var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
                 var consequence = this.ParseEmbeddedStatement();
 
@@ -9951,7 +10057,7 @@ done:
                 attributes,
                 this.EatToken(SyntaxKind.LockKeyword),
                 this.EatToken(SyntaxKind.OpenParenToken),
-                this.ParseExpressionCore(),
+                this.ParseExpressionForParenthesizedConstruct(),
                 this.EatToken(SyntaxKind.CloseParenToken),
                 this.ParseEmbeddedStatement());
         }
@@ -10304,7 +10410,7 @@ done:
                 attributes,
                 this.EatToken(SyntaxKind.WhileKeyword),
                 this.EatToken(SyntaxKind.OpenParenToken),
-                this.ParseExpressionCore(),
+                this.ParseExpressionForParenthesizedConstruct(),
                 this.EatToken(SyntaxKind.CloseParenToken),
                 this.ParseEmbeddedStatement());
         }
@@ -10426,41 +10532,34 @@ done:
             }
         }
 
-        private SyntaxToken ParsePossibleScopedKeyword(
+        private bool IsDefiniteScopedModifier(
             bool isFunctionPointerParameter,
             bool isLambdaParameter)
         {
             if (this.CurrentToken.ContextualKind != SyntaxKind.ScopedKeyword)
-                return null;
+                return false;
 
-            // In C# 14 we decided that within a lambda 'scoped' would *always* be a keyword.
+            // In C# 14 we decided that within a lambda 'scoped' would *always* be a modifier, not a type.
+            // so `scoped scoped` is `modifier-scoped identifier-scoped` not `type-scoped identifier-scoped`.
+            // Note: this only applies the modifier/type portion.  We still allow the identifier of a lambda
+            // to be named 'scoped'.
             if (isLambdaParameter && IsFeatureEnabled(MessageID.IDS_FeatureSimpleLambdaParameterModifiers))
-                return this.EatContextualToken(SyntaxKind.ScopedKeyword);
+                return true;
 
-            using var beforeScopedResetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
+            using var beforeScopedResetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
 
             var scopedKeyword = this.EatContextualToken(SyntaxKind.ScopedKeyword);
 
-            // trivial case.  scoped ref/out/in  is definitely the scoped keyword.
-            if (this.CurrentToken.Kind is (SyntaxKind.RefKeyword or SyntaxKind.OutKeyword or SyntaxKind.InKeyword))
-                return scopedKeyword;
+            // trivial case.  scoped ref/out/in/this  is definitely the scoped keyword. Note: the only actual legal
+            // cases are `scoped ref`, `scoped out`, and `scoped in`.  But we detect and allow `scoped this`, `scoped
+            // params` and `scoped readonly` as well.  These will be reported as errors later in binding.
+            if (IsParameterModifierExcludingScoped(this.CurrentToken))
+                return true;
 
             // More complex cases.  We have to check for `scoped Type ...` now.
-            using var afterScopedResetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
-
-            if (ScanType() is ScanTypeFlags.NotType ||
-                !isValidScopedTypeCase())
-            {
-                // We didn't see a type, or it wasn't a legal usage of a type.  This is not a scoped-keyword.  Rollback to
-                // before the keyword so the caller has to handle it.
-                beforeScopedResetPoint.Reset();
-                return null;
-            }
-
-            // We had a Type syntax in a supported production.  Roll back to just after the scoped-keyword and
-            // return it successfully.
-            afterScopedResetPoint.Reset();
-            return scopedKeyword;
+            //
+            // Note that `scoped scoped` can be valid here as a type called scoped and a variable called scoped.
+            return ScanType() is not ScanTypeFlags.NotType && isValidScopedTypeCase();
 
             bool isValidScopedTypeCase()
             {
@@ -10480,6 +10579,15 @@ done:
 
                 return false;
             }
+        }
+
+        private SyntaxToken ParsePossibleScopedKeyword(
+            bool isFunctionPointerParameter,
+            bool isLambdaParameter)
+        {
+            return IsDefiniteScopedModifier(isFunctionPointerParameter, isLambdaParameter)
+                ? this.EatContextualToken(SyntaxKind.ScopedKeyword)
+                : null;
         }
 
         private VariableDesignationSyntax ParseDesignation(bool forPattern)
@@ -11936,6 +12044,21 @@ done:
                             {
                                 expr = this.AddError(expr, ErrorCode.ERR_ExpressionExpected);
                             }
+                            else if (
+                                SyntaxFacts.IsBinaryExpression(tk) ||
+                                SyntaxFacts.IsAssignmentExpressionOperatorToken(tk))
+                            {
+                                // We got into the expression parsing path because we saw an error operator (see the
+                                // default case in IsPossibleExpression), knowing we'd create a missing expr which would
+                                // then allow the binary/assignment expr parsing to proceed.  In this case, we want to
+                                // report the invalid expr, but place it next to the operator, not whatever might have
+                                // come arbitrarily far before us.
+                                return WithAdditionalDiagnostics(expr, MakeError(
+                                    offset: this.CurrentToken.GetLeadingTriviaWidth(),
+                                    width: this.CurrentToken.Width,
+                                    ErrorCode.ERR_InvalidExprTerm,
+                                    SyntaxFacts.GetText(tk)));
+                            }
                             else
                             {
                                 expr = this.AddError(expr, ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
@@ -12482,7 +12605,7 @@ done:
             return _syntaxFactory.MakeRefExpression(
                 this.EatToken(),
                 this.EatToken(SyntaxKind.OpenParenToken),
-                this.ParseSubExpression(Precedence.Expression),
+                this.ParseExpressionForParenthesizedConstruct(),
                 this.EatToken(SyntaxKind.CloseParenToken));
         }
 
@@ -12491,7 +12614,7 @@ done:
             return _syntaxFactory.RefTypeExpression(
                 this.EatToken(),
                 this.EatToken(SyntaxKind.OpenParenToken),
-                this.ParseSubExpression(Precedence.Expression),
+                this.ParseExpressionForParenthesizedConstruct(),
                 this.EatToken(SyntaxKind.CloseParenToken));
         }
 
@@ -12505,7 +12628,7 @@ done:
                 kind,
                 checkedOrUnchecked,
                 this.EatToken(SyntaxKind.OpenParenToken),
-                this.ParseSubExpression(Precedence.Expression),
+                this.ParseExpressionForParenthesizedConstruct(),
                 this.EatToken(SyntaxKind.CloseParenToken));
         }
 
@@ -12687,7 +12810,7 @@ done:
 
             return _syntaxFactory.ParenthesizedExpression(
                 openParen,
-                expression,
+                this.ParseErrantExpressionWhenNoCloseParenToken(expression),
                 this.EatToken(SyntaxKind.CloseParenToken));
         }
 
