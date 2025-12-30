@@ -30,17 +30,20 @@ internal sealed partial class CSharpUseUnboundGenericTypeInNameOfCodeFixProvider
     public override ImmutableArray<string> FixableDiagnosticIds { get; }
         = [IDEDiagnosticIds.UseUnboundGenericTypeInNameOfDiagnosticId];
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Use_unbound_generic_type, nameof(CSharpAnalyzersResources.Use_unbound_generic_type));
+        return Task.CompletedTask;
     }
 
-    protected override async Task FixAllAsync(
+    protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
         foreach (var diagnostic in diagnostics)
             FixOne(editor, diagnostic, cancellationToken);
+
+        return Task.CompletedTask;
     }
 
     private static void FixOne(

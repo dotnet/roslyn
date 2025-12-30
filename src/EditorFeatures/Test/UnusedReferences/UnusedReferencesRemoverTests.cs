@@ -213,10 +213,10 @@ public sealed class UnusedReferencesRemoverTests
             throw new System.NotImplementedException();
         }
 
-        public async Task<bool> TryUpdateReferenceAsync(string projectPath, ReferenceUpdate referenceUpdate, CancellationToken cancellationToken)
+        public Task<bool> TryUpdateReferenceAsync(string projectPath, ReferenceUpdate referenceUpdate, CancellationToken cancellationToken)
         {
             _appliedUpdates.Add(referenceUpdate);
-            return true;
+            return Task.FromResult(true);
         }
     }
 }

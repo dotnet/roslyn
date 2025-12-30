@@ -29,15 +29,15 @@ internal sealed class SignatureHelpHandler(SignatureHelpService signatureHelpSer
 
     public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
 
-    public async Task<LSP.SignatureHelp?> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+    public Task<LSP.SignatureHelp?> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
     {
         var document = context.Document;
         if (document == null)
-            return null;
+            return SpecializedTasks.Null<LSP.SignatureHelp>();
 
         var supportsVisualStudioExtensions = context.GetRequiredClientCapabilities().HasVisualStudioLspCapability();
         var linePosition = ProtocolConversions.PositionToLinePosition(request.Position);
-        return await GetSignatureHelpAsync(signatureHelpService, document, linePosition, supportsVisualStudioExtensions, cancellationToken).ConfigureAwait(false);
+        return GetSignatureHelpAsync(signatureHelpService, document, linePosition, supportsVisualStudioExtensions, cancellationToken);
     }
 
     internal static async Task<LSP.SignatureHelp?> GetSignatureHelpAsync(SignatureHelpService signatureHelpService, Document document, LinePosition linePosition, bool supportsVisualStudioExtensions, CancellationToken cancellationToken)

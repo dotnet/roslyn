@@ -19,7 +19,7 @@ internal abstract class AbstractMainMethodSnippetProvider<TMethodDeclarationSynt
 
     protected abstract IEnumerable<TStatementSyntax> GenerateInnerStatements(SyntaxGenerator generator);
 
-    protected sealed override async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
+    protected sealed override Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
     {
         var generator = SyntaxGenerator.GetGenerator(document);
         var method = generator.MethodDeclaration(
@@ -31,6 +31,6 @@ internal abstract class AbstractMainMethodSnippetProvider<TMethodDeclarationSynt
             modifiers: DeclarationModifiers.Static,
             statements: GenerateInnerStatements(generator));
 
-        return new TextChange(TextSpan.FromBounds(position, position), method.NormalizeWhitespace().ToFullString());
+        return Task.FromResult(new TextChange(TextSpan.FromBounds(position, position), method.NormalizeWhitespace().ToFullString()));
     }
 }

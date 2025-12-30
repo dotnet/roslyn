@@ -48,9 +48,9 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
     /// <summary>
     /// Method to find the locations that must be renamed and where tab stops must be inserted into the snippet.
     /// </summary>
-    protected virtual async ValueTask<ImmutableArray<SnippetPlaceholder>> GetPlaceHolderLocationsListAsync(
+    protected virtual ValueTask<ImmutableArray<SnippetPlaceholder>> GetPlaceHolderLocationsListAsync(
         Document document, TSnippetSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
-        => [];
+        => new([]);
 
     public bool IsValidSnippetLocation(SnippetContext context, CancellationToken cancellationToken)
     {
@@ -222,8 +222,8 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
             reformatSnippetNode.WithAdditionalAnnotations(FindSnippetAnnotation, Simplifier.Annotation, Formatter.Annotation));
     }
 
-    protected virtual async ValueTask<TSnippetSyntax> AdjustSnippetExpressionAsync(Document document, TSnippetSyntax snippetExpressionNode, CancellationToken cancellationToken)
-        => snippetExpressionNode;
+    protected virtual ValueTask<TSnippetSyntax> AdjustSnippetExpressionAsync(Document document, TSnippetSyntax snippetExpressionNode, CancellationToken cancellationToken)
+        => new(snippetExpressionNode);
 
     protected virtual TSnippetSyntax? FindAddedSnippetSyntaxNode(SyntaxNode root, int position)
         => root.FindNode(TextSpan.FromBounds(position, position), getInnermostNodeForTie: true) as TSnippetSyntax;
@@ -244,6 +244,6 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
         return await AddIndentationToDocumentAsync(document, snippet, cancellationToken).ConfigureAwait(false);
     }
 
-    protected virtual async Task<Document> AddIndentationToDocumentAsync(Document document, TSnippetSyntax snippet, CancellationToken cancellationToken)
-        => document;
+    protected virtual Task<Document> AddIndentationToDocumentAsync(Document document, TSnippetSyntax snippet, CancellationToken cancellationToken)
+        => Task.FromResult(document);
 }

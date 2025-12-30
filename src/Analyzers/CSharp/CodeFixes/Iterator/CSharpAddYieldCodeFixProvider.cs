@@ -81,7 +81,7 @@ internal sealed class CSharpAddYieldCodeFixProvider() : AbstractIteratorCodeFixP
 
         return CodeAction.Create(
             CSharpCodeFixesResources.Replace_return_with_yield_return,
-            async _ => document.WithSyntaxRoot(root),
+            _ => Task.FromResult(document.WithSyntaxRoot(root)),
             nameof(CSharpCodeFixesResources.Replace_return_with_yield_return));
     }
 

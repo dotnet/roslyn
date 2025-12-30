@@ -42,7 +42,7 @@ internal sealed class RemoveUnnecessaryInlineSuppressionsCodeFixProvider() : Syn
         }
     }
 
-    protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+    protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
         // We need to track unique set of processed nodes when removing the nodes.
         // This is because we generate an unnecessary pragma suppression diagnostic at both the pragma disable and matching pragma restore location
@@ -61,7 +61,7 @@ internal sealed class RemoveUnnecessaryInlineSuppressionsCodeFixProvider() : Syn
             }
         }
 
-        return;
+        return Task.CompletedTask;
 
         static void RemoveNode(
             Location location,

@@ -20,7 +20,7 @@ public sealed partial class CodeCleanupTests
     {
         public override ImmutableArray<string> FixableDiagnosticIds { get; } = ["HasDefaultCase"];
 
-        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             foreach (var diagnostic in context.Diagnostics)
             {
@@ -42,6 +42,8 @@ public sealed partial class CodeCleanupTests
                         nameof(TestThirdPartyCodeFix)),
                     diagnostic);
             }
+
+            return Task.CompletedTask;
         }
     }
 
@@ -80,10 +82,10 @@ public sealed partial class CodeCleanupTests
 
         private sealed class ModifySolutionFixAll : FixAllProvider
         {
-            public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+            public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
             {
                 var solution = fixAllContext.Solution;
-                return CodeAction.Create(
+                return Task.FromResult<CodeAction?>(CodeAction.Create(
                         "Remove default case",
                         async cancellationToken =>
                         {
@@ -113,7 +115,7 @@ public sealed partial class CodeCleanupTests
                             Assumes.NotNull(project);
                             return solution.AddDocument(DocumentId.CreateNewId(project.Id), "new.cs", SourceText.From(""));
                         },
-                        nameof(TestThirdPartyCodeFix));
+                        nameof(TestThirdPartyCodeFix)));
             }
         }
     }
@@ -130,10 +132,10 @@ public sealed partial class CodeCleanupTests
             public override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
                 => [FixAllScope.Project, FixAllScope.Solution, FixAllScope.Custom];
 
-            public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+            public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
             {
                 var solution = fixAllContext.Solution;
-                return CodeAction.Create(
+                return Task.FromResult<CodeAction?>(CodeAction.Create(
                         "Remove default case",
                         async cancellationToken =>
                         {
@@ -163,7 +165,7 @@ public sealed partial class CodeCleanupTests
                             Assumes.NotNull(project);
                             return solution.AddDocument(DocumentId.CreateNewId(project.Id), "new.cs", SourceText.From(""));
                         },
-                        nameof(TestThirdPartyCodeFix));
+                        nameof(TestThirdPartyCodeFix)));
             }
         }
     }

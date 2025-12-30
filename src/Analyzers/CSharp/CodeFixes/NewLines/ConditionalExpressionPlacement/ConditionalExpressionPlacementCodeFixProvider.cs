@@ -27,7 +27,7 @@ internal sealed class ConditionalExpressionPlacementCodeFixProvider() : CodeFixP
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.ConditionalExpressionPlacementDiagnosticId];
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var document = context.Document;
         var diagnostic = context.Diagnostics.First();
@@ -37,6 +37,7 @@ internal sealed class ConditionalExpressionPlacementCodeFixProvider() : CodeFixP
                 c => UpdateDocumentAsync(document, [diagnostic], c),
                 nameof(CSharpCodeFixesResources.Place_token_on_following_line)),
             context.Diagnostics);
+        return Task.CompletedTask;
     }
 
     private static async Task<Document> UpdateDocumentAsync(

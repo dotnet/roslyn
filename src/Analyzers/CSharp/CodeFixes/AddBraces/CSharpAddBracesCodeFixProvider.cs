@@ -22,12 +22,13 @@ internal sealed class CSharpAddBracesCodeFixProvider() : SyntaxEditorBasedCodeFi
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.AddBracesDiagnosticId];
 
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Add_braces, nameof(CSharpAnalyzersResources.Add_braces));
+        return Task.CompletedTask;
     }
 
-    protected override async Task FixAllAsync(
+    protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
@@ -46,5 +47,7 @@ internal sealed class CSharpAddBracesCodeFixProvider() : SyntaxEditorBasedCodeFi
                 return embeddedStatement is null ? currentStatement : currentStatement.ReplaceNode(embeddedStatement, SyntaxFactory.Block(embeddedStatement));
             });
         }
+
+        return Task.CompletedTask;
     }
 }

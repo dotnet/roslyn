@@ -41,12 +41,12 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             }
         }
 
-        private async ValueTask ProcessTagsChangedAsync(
+        private ValueTask ProcessTagsChangedAsync(
             ImmutableSegmentedList<NormalizedSnapshotSpanCollection> snapshotSpans, CancellationToken cancellationToken)
         {
             var tagsChanged = this.TagsChanged;
             if (tagsChanged == null)
-                return;
+                return ValueTask.CompletedTask;
 
             foreach (var collection in snapshotSpans)
             {
@@ -65,6 +65,8 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 foreach (var span in coalesced)
                     tagsChanged(this, new SnapshotSpanEventArgs(span));
             }
+
+            return ValueTask.CompletedTask;
         }
     }
 }

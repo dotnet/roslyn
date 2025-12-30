@@ -20,23 +20,23 @@ internal sealed class TestSourceLinkService : ISourceLinkService
         _sourceFilePath = sourceFilePath;
     }
 
-    public async Task<PdbFilePathResult?> GetPdbFilePathAsync(string dllPath, PEReader peReader, bool useDefaultSymbolServers, CancellationToken cancellationToken)
+    public Task<PdbFilePathResult?> GetPdbFilePathAsync(string dllPath, PEReader peReader, bool useDefaultSymbolServers, CancellationToken cancellationToken)
     {
         if (_pdbFilePath is null)
         {
-            return null;
+            return Task.FromResult<PdbFilePathResult?>(null);
         }
 
-        return new PdbFilePathResult(_pdbFilePath);
+        return Task.FromResult<PdbFilePathResult?>(new PdbFilePathResult(_pdbFilePath));
     }
 
-    public async Task<SourceFilePathResult?> GetSourceFilePathAsync(string url, string relativePath, CancellationToken cancellationToken)
+    public Task<SourceFilePathResult?> GetSourceFilePathAsync(string url, string relativePath, CancellationToken cancellationToken)
     {
         if (_sourceFilePath is null)
         {
-            return null;
+            return Task.FromResult<SourceFilePathResult?>(null);
         }
 
-        return new SourceFilePathResult(_sourceFilePath);
+        return Task.FromResult<SourceFilePathResult?>(new SourceFilePathResult(_sourceFilePath));
     }
 }

@@ -93,13 +93,13 @@ internal sealed class RemoteSemanticSearchService(
         string referenceAssembliesDir,
         CancellationToken cancellationToken)
     {
-        return RunServiceAsync(async cancellationToken =>
+        return RunServiceAsync(cancellationToken =>
         {
             var services = GetWorkspaceServices();
             var service = GetRequiredService<ISemanticSearchQueryService>();
             var result = service.CompileQuery(services, query, targetLanguage, referenceAssembliesDir, TraceLogger, cancellationToken);
 
-            return result;
+            return ValueTask.FromResult(result);
         }, cancellationToken);
     }
 
@@ -108,10 +108,12 @@ internal sealed class RemoteSemanticSearchService(
     /// </summary>
     public ValueTask DiscardQueryAsync(CompiledQueryId queryId, CancellationToken cancellationToken)
     {
-        return RunServiceAsync(async cancellationToken =>
+        return RunServiceAsync(cancellationToken =>
         {
             var service = GetRequiredService<ISemanticSearchQueryService>();
             service.DiscardQuery(queryId);
+
+            return default;
         }, cancellationToken);
     }
 

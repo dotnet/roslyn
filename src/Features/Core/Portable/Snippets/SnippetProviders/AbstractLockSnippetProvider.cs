@@ -12,10 +12,10 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 internal abstract class AbstractLockSnippetProvider<TLockStatementSyntax> : AbstractStatementSnippetProvider<TLockStatementSyntax>
     where TLockStatementSyntax : SyntaxNode
 {
-    protected sealed override async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
+    protected sealed override Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
     {
         var generator = SyntaxGenerator.GetGenerator(document);
         var statement = generator.LockStatement(generator.ThisExpression(), statements: []);
-        return new TextChange(TextSpan.FromBounds(position, position), statement.NormalizeWhitespace().ToFullString());
+        return Task.FromResult(new TextChange(TextSpan.FromBounds(position, position), statement.NormalizeWhitespace().ToFullString()));
     }
 }

@@ -23,13 +23,14 @@ internal abstract class AbstractQualifyMemberAccessCodeFixprovider<TSimpleNameSy
     public sealed override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.AddThisOrMeQualificationDiagnosticId];
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var title = GetTitle();
         RegisterCodeFix(context, title, title);
+        return Task.CompletedTask;
     }
 
-    protected override async Task FixAllAsync(
+    protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
@@ -49,5 +50,7 @@ internal abstract class AbstractQualifyMemberAccessCodeFixprovider<TSimpleNameSy
                 editor.ReplaceNode(node, qualifiedAccess);
             }
         }
+
+        return Task.CompletedTask;
     }
 }
