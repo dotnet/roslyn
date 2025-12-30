@@ -107,9 +107,10 @@ internal abstract class VisualStudioOptionStorage
             FlagName = flagName;
         }
 
-        public async Task PersistAsync(FeatureFlagPersister persister, object? value)
+        public Task PersistAsync(FeatureFlagPersister persister, object? value)
         {
             persister.Persist(FlagName, value);
+            return Task.CompletedTask;
         }
 
         public bool TryFetch(FeatureFlagPersister persister, OptionKey2 optionKey, out object? value)
@@ -121,9 +122,10 @@ internal abstract class VisualStudioOptionStorage
         public string Path => path;
         public string Key => key;
 
-        public async Task PersistAsync(LocalUserRegistryOptionPersister persister, OptionKey2 optionKey, object? value)
+        public Task PersistAsync(LocalUserRegistryOptionPersister persister, OptionKey2 optionKey, object? value)
         {
             persister.Persist(optionKey, path, key, value);
+            return Task.CompletedTask;
         }
 
         public bool TryFetch(LocalUserRegistryOptionPersister persister, OptionKey2 optionKey, out object? value)

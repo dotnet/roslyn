@@ -111,8 +111,8 @@ public sealed class VisualStudioDiagnosticsWindowPackage : AsyncPackage
         return null;
     }
 
-    protected override async Task<object> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)
+    protected override Task<object> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)
     {
-        return new object();
+        return Task.FromResult(new object());
     }
 }

@@ -26,7 +26,7 @@ internal sealed class SolutionPreviewItem(ProjectId? projectId, DocumentId? docu
     public readonly string? Text;
 
     public SolutionPreviewItem(ProjectId? projectId, DocumentId? documentId, string text)
-        : this(projectId, documentId, async c => text)
+        : this(projectId, documentId, c => Task.FromResult<object?>(text))
     {
         Text = text;
     }

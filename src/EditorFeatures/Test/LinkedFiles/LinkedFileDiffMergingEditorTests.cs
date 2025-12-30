@@ -108,7 +108,7 @@ public sealed class LinkedFileDiffMergingEditorTests : AbstractCodeActionTest
                 .WithDocumentText(document.Id, (await document.GetTextAsync()).Replace(textString.IndexOf("public"), "public".Length, "internal"))
                 .WithDocumentText(linkedDocument.Id, sourceText.Replace(textString.LastIndexOf("public"), "public".Length, "private"));
 
-            context.RegisterRefactoring(CodeAction.Create("Description", async _ => newSolution), context.Span);
+            context.RegisterRefactoring(CodeAction.Create("Description", _ => Task.FromResult(newSolution)), context.Span);
         }
     }
 }

@@ -31,10 +31,11 @@ public sealed class ApplyChangesOperationTests : AbstractCSharpCodeActionTest
             _changeSolution = changeSolution;
         }
 
-        public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        public sealed override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var codeAction = new TestCodeAction(_changeSolution(context.Document.Project.Solution));
             context.RegisterRefactoring(codeAction);
+            return Task.CompletedTask;
         }
 
         private sealed class TestCodeAction : CodeAction
@@ -48,8 +49,8 @@ public sealed class ApplyChangesOperationTests : AbstractCSharpCodeActionTest
 
             public override string Title => "Title";
 
-            protected override async Task<Solution?> GetChangedSolutionAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
-                => _changedSolution;
+            protected override Task<Solution?> GetChangedSolutionAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+                => Task.FromResult<Solution?>(_changedSolution);
         }
     }
 

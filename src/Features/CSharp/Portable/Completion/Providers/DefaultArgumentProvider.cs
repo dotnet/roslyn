@@ -22,7 +22,7 @@ internal sealed class DefaultArgumentProvider : AbstractDefaultArgumentProvider
     {
     }
 
-    public override async Task ProvideArgumentAsync(ArgumentContext context)
+    public override Task ProvideArgumentAsync(ArgumentContext context)
     {
         if (context.PreviousValue is { })
         {
@@ -52,5 +52,7 @@ internal sealed class DefaultArgumentProvider : AbstractDefaultArgumentProvider
                 _ => "default",
             };
         }
+
+        return Task.CompletedTask;
     }
 }

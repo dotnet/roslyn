@@ -116,14 +116,14 @@ public sealed class CompletionServiceTests
             context.CompletionListSpan = await GetTextChangeSpanAsync(context.Document, context.CompletionListSpan, context.CancellationToken).ConfigureAwait(false);
         }
 
-        public override async Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            return CompletionDescription.FromText(nameof(DebugAssertTestCompletionProvider));
+            return Task.FromResult(CompletionDescription.FromText(nameof(DebugAssertTestCompletionProvider)));
         }
 
-        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
+        public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
         {
-            return CompletionChange.Create(new TextChange(item.Span, nameof(DebugAssertTestCompletionProvider)));
+            return Task.FromResult(CompletionChange.Create(new TextChange(item.Span, nameof(DebugAssertTestCompletionProvider))));
         }
 
         private static async Task<TextSpan> GetTextChangeSpanAsync(Document document, TextSpan startSpan, CancellationToken cancellationToken)

@@ -207,7 +207,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
             cancellationToken);
     }
 
-    public async ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(
+    public ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(
         DebuggingSessionId sessionId,
         Solution solution,
         ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects,
@@ -217,10 +217,10 @@ internal sealed class EditAndContinueService : IEditAndContinueService
         var debuggingSession = TryGetDebuggingSession(sessionId);
         if (debuggingSession == null)
         {
-            return EmitSolutionUpdateResults.Empty;
+            return ValueTask.FromResult(EmitSolutionUpdateResults.Empty);
         }
 
-        return await debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+        return debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects, activeStatementSpanProvider, cancellationToken);
     }
 
     public void CommitSolutionUpdate(DebuggingSessionId sessionId)
@@ -239,7 +239,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
         debuggingSession.DiscardSolutionUpdate();
     }
 
-    public async ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(DebuggingSessionId sessionId, Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(DebuggingSessionId sessionId, Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
     {
         var debuggingSession = TryGetDebuggingSession(sessionId);
         if (debuggingSession == null)
@@ -247,18 +247,18 @@ internal sealed class EditAndContinueService : IEditAndContinueService
             return default;
         }
 
-        return await debuggingSession.GetBaseActiveStatementSpansAsync(solution, documentIds, cancellationToken).ConfigureAwait(false);
+        return debuggingSession.GetBaseActiveStatementSpansAsync(solution, documentIds, cancellationToken);
     }
 
-    public async ValueTask<ImmutableArray<ActiveStatementSpan>> GetAdjustedActiveStatementSpansAsync(DebuggingSessionId sessionId, TextDocument mappedDocument, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<ActiveStatementSpan>> GetAdjustedActiveStatementSpansAsync(DebuggingSessionId sessionId, TextDocument mappedDocument, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
     {
         var debuggingSession = TryGetDebuggingSession(sessionId);
         if (debuggingSession == null)
         {
-            return ImmutableArray<ActiveStatementSpan>.Empty;
+            return ValueTask.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
         }
 
-        return await debuggingSession.GetAdjustedActiveStatementSpansAsync(mappedDocument, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+        return debuggingSession.GetAdjustedActiveStatementSpansAsync(mappedDocument, activeStatementSpanProvider, cancellationToken);
     }
 
     internal TestAccessor GetTestAccessor()

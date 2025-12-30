@@ -55,10 +55,12 @@ internal static class CopilotSemanticSearchUtilities
         public ValueTask OnCompletedAsync(CancellationToken cancellationToken) => ValueTask.CompletedTask;
         public ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken) => ValueTask.CompletedTask;
 
-        public async ValueTask OnReferencesFoundAsync(ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken)
+        public ValueTask OnReferencesFoundAsync(ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken)
         {
             foreach (var (_, _, location) in references)
                 callback(location);
+
+            return ValueTask.CompletedTask;
         }
 
         public IStreamingProgressTracker ProgressTracker

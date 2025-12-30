@@ -25,9 +25,10 @@ internal sealed class UseSystemHashCodeCodeFixProvider() : SyntaxEditorBasedCode
     public override ImmutableArray<string> FixableDiagnosticIds { get; }
         = [IDEDiagnosticIds.UseSystemHashCode];
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, AnalyzersResources.Use_System_HashCode, nameof(AnalyzersResources.Use_System_HashCode));
+        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(
