@@ -37,19 +37,19 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         private static bool ShouldAddProjectReference(Document originalDocument, AddImportFixData fixData)
             => fixData.ProjectReferenceToAdd != null && fixData.ProjectReferenceToAdd != originalDocument.Project.Id;
 
-        protected override Task<CodeActionOperation?> UpdateProjectAsync(Project project, bool isPreview, CancellationToken cancellationToken)
+        protected override async Task<CodeActionOperation?> UpdateProjectAsync(Project project, bool isPreview, CancellationToken cancellationToken)
         {
             if (!ShouldAddProjectReference(this.OriginalDocument, this.FixData))
-                return SpecializedTasks.Null<CodeActionOperation>();
+                return null;
 
             var projectWithAddedReference = project.AddProjectReference(new ProjectReference(FixData.ProjectReferenceToAdd));
             var applyOperation = new ApplyChangesOperation(projectWithAddedReference.Solution);
             if (isPreview)
             {
-                return Task.FromResult<CodeActionOperation?>(applyOperation);
+                return applyOperation;
             }
 
-            return Task.FromResult<CodeActionOperation?>(new AddProjectReferenceCodeActionOperation(OriginalDocument.Project.Id, FixData.ProjectReferenceToAdd, applyOperation));
+            return new AddProjectReferenceCodeActionOperation(OriginalDocument.Project.Id, FixData.ProjectReferenceToAdd, applyOperation);
         }
 
         private sealed class AddProjectReferenceCodeActionOperation(ProjectId referencingProject, ProjectId referencedProject, ApplyChangesOperation applyOperation) : CodeActionOperation
