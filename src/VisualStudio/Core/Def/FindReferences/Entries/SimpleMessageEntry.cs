@@ -27,13 +27,13 @@ internal partial class StreamingFindUsagesPresenter
             _message = message;
         }
 
-        public static async Task<Entry> CreateAsync(
+        public static Task<Entry> CreateAsync(
             RoslynDefinitionBucket definitionBucket,
             RoslynDefinitionBucket? navigationBucket,
             string message)
         {
             var referenceEntry = new SimpleMessageEntry(definitionBucket, navigationBucket, message);
-            return referenceEntry;
+            return Task.FromResult<Entry>(referenceEntry);
         }
 
         protected override object? GetValueWorker(string keyName)

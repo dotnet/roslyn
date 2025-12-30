@@ -104,7 +104,7 @@ internal sealed class VisualStudioDocumentNavigationService(
 
         return await GetNavigableLocationAsync(workspace,
             documentId,
-            async _ => textSpan,
+            _ => Task.FromResult(textSpan),
             text => GetVsTextSpan(text, textSpan, allowInvalidSpan),
             (text, span) => GetVsTextSpan(text, span, allowInvalidSpan),
             cancellationToken).ConfigureAwait(false);
