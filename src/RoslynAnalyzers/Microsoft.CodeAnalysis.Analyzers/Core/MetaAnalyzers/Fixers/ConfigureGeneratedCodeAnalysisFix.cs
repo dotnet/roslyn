@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
         public override FixAllProvider GetFixAllProvider()
             => WellKnownFixAllProviders.BatchFixer;
 
-        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             foreach (var diagnostic in context.Diagnostics)
             {
@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                         equivalenceKey: nameof(ConfigureGeneratedCodeAnalysisFix)),
                     diagnostic);
             }
+
+            return Task.CompletedTask;
         }
 
         private async Task<Document> ConfigureGeneratedCodeAnalysisAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)

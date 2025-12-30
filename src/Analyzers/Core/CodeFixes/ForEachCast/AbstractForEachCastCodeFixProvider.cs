@@ -24,12 +24,14 @@ internal abstract class AbstractForEachCastCodeFixProvider<TForEachStatementSynt
     public sealed override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.ForEachCastDiagnosticId];
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         if (context.Diagnostics.First().Properties.ContainsKey(ForEachCastHelpers.IsFixable))
         {
             RegisterCodeFix(context, AnalyzersResources.Add_explicit_cast, nameof(AbstractForEachCastCodeFixProvider<>));
         }
+
+        return Task.CompletedTask;
     }
 
     protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)

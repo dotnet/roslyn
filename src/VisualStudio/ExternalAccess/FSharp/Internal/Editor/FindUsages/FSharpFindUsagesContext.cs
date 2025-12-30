@@ -37,8 +37,9 @@ internal class FSharpFindUsagesContext : IFSharpFindUsagesContext
         return _context.ReportNoResultsAsync(message, CancellationToken).AsTask();
     }
 
-    public async Task ReportProgressAsync(int current, int maximum)
+    public Task ReportProgressAsync(int current, int maximum)
     {
+        return Task.CompletedTask;
     }
 
     public Task SetSearchTitleAsync(string title)

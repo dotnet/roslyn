@@ -35,9 +35,9 @@ internal abstract partial class AbstractSnippetFunction : IVsExpansionFunction
         return exitCode;
     }
 
-    protected virtual async Task<(int ExitCode, string Value, int HasDefaultValue)> GetDefaultValueAsync(CancellationToken cancellationToken)
+    protected virtual Task<(int ExitCode, string Value, int HasDefaultValue)> GetDefaultValueAsync(CancellationToken cancellationToken)
     {
-        return (ExitCode: VSConstants.S_OK, Value: string.Empty, HasDefaultValue: 0);
+        return Task.FromResult((ExitCode: VSConstants.S_OK, Value: string.Empty, HasDefaultValue: 0));
     }
 
     private int GetCurrentValue(CancellationToken cancellationToken, out string value, out int hasCurrentValue)
@@ -46,9 +46,9 @@ internal abstract partial class AbstractSnippetFunction : IVsExpansionFunction
         return exitCode;
     }
 
-    protected virtual async Task<(int ExitCode, string Value, int HasCurrentValue)> GetCurrentValueAsync(CancellationToken cancellationToken)
+    protected virtual Task<(int ExitCode, string Value, int HasCurrentValue)> GetCurrentValueAsync(CancellationToken cancellationToken)
     {
-        return (ExitCode: VSConstants.S_OK, Value: string.Empty, HasCurrentValue: 0);
+        return Task.FromResult((ExitCode: VSConstants.S_OK, Value: string.Empty, HasDefaultValue: 0));
     }
 
     protected virtual int FieldChanged(string field, out int requeryFunction)

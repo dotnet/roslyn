@@ -113,11 +113,11 @@ public sealed class RemoteEditAndContinueServiceTests
         var activeSpans1 = ImmutableArray.Create(
             new ActiveStatementSpan(new ActiveStatementId(0), new LinePositionSpan(new LinePosition(1, 2), new LinePosition(3, 4)), ActiveStatementFlags.NonLeafFrame, documentId));
 
-        var activeStatementSpanProvider = new ActiveStatementSpanProvider(async (documentId, path, cancellationToken) =>
+        var activeStatementSpanProvider = new ActiveStatementSpanProvider((documentId, path, cancellationToken) =>
         {
             Assert.Equal(documentId, documentId);
             Assert.Equal("test.cs", path);
-            return activeSpans1;
+            return new(activeSpans1);
         });
 
         var diagnosticDescriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.AddingTypeRuntimeCapabilityRequired);

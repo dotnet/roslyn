@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return new PublicSurfaceAreaFixAllProvider();
         }
 
-        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var project = context.Document.Project;
 
@@ -63,6 +63,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                             diagnostic);
                 }
             }
+
+            return Task.CompletedTask;
         }
 
         private static IEnumerable<TextDocument?> GetUnshippedPublicApiFiles(Project project, bool isPublic)

@@ -301,7 +301,7 @@ internal sealed partial class FindReferencesSearchEngine(
         await Parallel.ForEachAsync(
             symbolsToSearchFor,
             GetParallelOptions(cancellationToken),
-            async (kvp, cancellationToken) =>
+            (kvp, cancellationToken) =>
             {
                 var (symbolToSearchFor, symbolGroup) = kvp;
 
@@ -311,6 +311,7 @@ internal sealed partial class FindReferencesSearchEngine(
                     cache, TryGet(symbolToGlobalAliases, symbolToSearchFor));
 
                 ProcessDocument(symbolToSearchFor, symbolGroup, state, onReferenceFound);
+                return ValueTask.CompletedTask;
             }).ConfigureAwait(false);
 
         return;

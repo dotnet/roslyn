@@ -18,7 +18,7 @@ public abstract class NativeIntegerKeywordRecommenderTests : RecommenderTests
 
     protected NativeIntegerKeywordRecommenderTests()
     {
-        RecommendKeywordsAsync = async (position, context) => Recommender.RecommendKeywords(position, context, CancellationToken.None);
+        RecommendKeywordsAsync = (position, context) => Task.FromResult(Recommender.RecommendKeywords(position, context, CancellationToken.None));
     }
 
     [Fact]

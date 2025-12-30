@@ -56,11 +56,11 @@ internal abstract class AbstractAliasAmbiguousTypeCodeFixProvider : CodeFixProvi
 
             actions.Add(CodeAction.Create(
                 title,
-                async cancellationToken =>
+                cancellationToken =>
                 {
                     var aliasDirective = syntaxGenerator.AliasImportDeclaration(typeName, symbol);
                     var newRoot = addImportService.AddImport(semanticModel, root, diagnosticNode, aliasDirective, syntaxGenerator, placementOption, cancellationToken);
-                    return document.WithSyntaxRoot(newRoot);
+                    return Task.FromResult(document.WithSyntaxRoot(newRoot));
                 },
                 title));
         }

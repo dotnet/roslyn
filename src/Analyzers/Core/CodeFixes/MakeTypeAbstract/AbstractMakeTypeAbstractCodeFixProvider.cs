@@ -17,15 +17,17 @@ internal abstract class AbstractMakeTypeAbstractCodeFixProvider<TTypeDeclaration
 {
     protected abstract bool IsValidRefactoringContext(SyntaxNode? node, [NotNullWhen(true)] out TTypeDeclarationSyntax? typeDeclaration);
 
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         if (IsValidRefactoringContext(context.Diagnostics[0].Location?.FindNode(context.CancellationToken), out _))
         {
             RegisterCodeFix(context, CodeFixesResources.Make_class_abstract, CodeFixesResources.Make_class_abstract);
         }
+
+        return Task.CompletedTask;
     }
 
-    protected sealed override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor,
+    protected sealed override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor,
         CancellationToken cancellationToken)
     {
         for (var i = 0; i < diagnostics.Length; i++)
@@ -36,5 +38,7 @@ internal abstract class AbstractMakeTypeAbstractCodeFixProvider<TTypeDeclaration
                     (currentTypeDeclaration, generator) => generator.WithModifiers(currentTypeDeclaration, generator.GetModifiers(currentTypeDeclaration).WithIsAbstract(true)));
             }
         }
+
+        return Task.CompletedTask;
     }
 }

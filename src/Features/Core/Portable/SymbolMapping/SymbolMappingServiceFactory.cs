@@ -33,6 +33,6 @@ internal sealed class DefaultSymbolMappingService : ISymbolMappingService
         return null;
     }
 
-    public async Task<SymbolMappingResult> MapSymbolAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
-        => new SymbolMappingResult(document.Project, symbol);
+    public Task<SymbolMappingResult> MapSymbolAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
+        => Task.FromResult(new SymbolMappingResult(document.Project, symbol));
 }

@@ -31,13 +31,14 @@ internal abstract class AbstractUseConditionalExpressionForReturnCodeFixProvider
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UseConditionalExpressionForReturnDiagnosticId];
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var (title, key) = context.Diagnostics.First().Properties.ContainsKey(UseConditionalExpressionHelpers.CanSimplifyName)
             ? (AnalyzersResources.Simplify_check, nameof(AnalyzersResources.Simplify_check))
             : (AnalyzersResources.Convert_to_conditional_expression, nameof(AnalyzersResources.Convert_to_conditional_expression));
 
         RegisterCodeFix(context, title, key);
+        return Task.CompletedTask;
     }
 
     protected override async Task FixOneAsync(

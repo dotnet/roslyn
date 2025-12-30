@@ -26,7 +26,7 @@ internal abstract class AbstractLspClientServiceFactory : ICollaborationServiceF
 
     public LS.ILanguageServerClient ActiveLanguageServerClient { get; private set; }
 
-    public async Task<ICollaborationService> CreateServiceAsync(CollaborationSession collaborationSession, CancellationToken cancellationToken)
+    public Task<ICollaborationService> CreateServiceAsync(CollaborationSession collaborationSession, CancellationToken cancellationToken)
     {
         var languageServerGuestService = (LS.ILanguageServerGuestService)collaborationSession.GetService(typeof(LS.ILanguageServerGuestService));
 
@@ -90,7 +90,7 @@ internal abstract class AbstractLspClientServiceFactory : ICollaborationServiceF
             ActiveLanguageServerClient = null;
         };
 
-        return lifeTimeService;
+        return Task.FromResult<ICollaborationService>(lifeTimeService);
     }
 
     protected abstract class RoslynLSPClientLifeTimeService : ICollaborationService, IDisposable
