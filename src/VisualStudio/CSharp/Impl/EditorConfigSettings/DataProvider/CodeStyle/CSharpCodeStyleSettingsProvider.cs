@@ -33,7 +33,7 @@ internal sealed class CSharpCodeStyleSettingsProvider : SettingsProviderBase<Cod
         Update();
     }
 
-    protected override async Task UpdateOptionsAsync(
+    protected override Task UpdateOptionsAsync(
         TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken)
     {
         var varSettings = GetVarCodeStyleOptions(options, SettingsUpdater);
@@ -65,6 +65,8 @@ internal sealed class CSharpCodeStyleSettingsProvider : SettingsProviderBase<Cod
 
         var unusedValueSettings = GetUnusedValueCodeStyleOptions(options, SettingsUpdater);
         AddRange(unusedValueSettings);
+
+        return Task.CompletedTask;
     }
 
     private static IEnumerable<CodeStyleSetting> GetVarCodeStyleOptions(TieredAnalyzerConfigOptions options, OptionUpdater updater)

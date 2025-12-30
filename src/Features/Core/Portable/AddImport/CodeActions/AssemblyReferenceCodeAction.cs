@@ -78,14 +78,14 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 operation.Apply(workspace, cancellationToken);
             }
 
-            internal override async Task<bool> TryApplyAsync(
+            internal override Task<bool> TryApplyAsync(
                 Workspace workspace, Solution originalSolution, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
             {
                 var operation = GetApplyChangesOperation(workspace);
                 if (operation is null)
-                    return false;
+                    return SpecializedTasks.False;
 
-                return await operation.TryApplyAsync(workspace, originalSolution, progressTracker, cancellationToken).ConfigureAwait(false);
+                return operation.TryApplyAsync(workspace, originalSolution, progressTracker, cancellationToken);
             }
 
             private ApplyChangesOperation? GetApplyChangesOperation(Workspace workspace)

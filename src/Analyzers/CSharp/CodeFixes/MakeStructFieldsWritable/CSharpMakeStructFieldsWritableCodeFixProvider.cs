@@ -25,12 +25,13 @@ internal sealed class CSharpMakeStructFieldsWritableCodeFixProvider() : SyntaxEd
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.MakeStructFieldsWritable];
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Make_readonly_fields_writable, nameof(CSharpAnalyzersResources.Make_readonly_fields_writable));
+        return Task.CompletedTask;
     }
 
-    protected override async Task FixAllAsync(
+    protected override Task FixAllAsync(
         Document document,
         ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor,
@@ -60,5 +61,7 @@ internal sealed class CSharpMakeStructFieldsWritableCodeFixProvider() : SyntaxEd
                 }
             }
         }
+
+        return Task.CompletedTask;
     }
 }

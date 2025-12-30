@@ -108,7 +108,7 @@ internal static partial class ValueTracker
             await TrackArgumentsAsync(invocationOperation.Arguments, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task VisitReferenceAsync(IOperation operation, CancellationToken cancellationToken)
+        private Task VisitReferenceAsync(IOperation operation, CancellationToken cancellationToken)
         {
             Debug.Assert(operation is
                 ILocalReferenceOperation or
@@ -122,21 +122,22 @@ internal static partial class ValueTracker
                 {
                     // Always add ref or out parameters to track as assignments since the values count as 
                     // assignments across method calls for the purposes of value tracking.
-                    await AddOperationAsync(operation, argumentOperation.Parameter, cancellationToken).ConfigureAwait(false);
+                    return AddOperationAsync(operation, argumentOperation.Parameter, cancellationToken);
                 }
-                else
-                {
-                    // If the parameter is not a ref or out param, track the reference assignments that count
-                    // as input to the argument being passed to the method.
-                    await AddReferenceAsync(operation, cancellationToken).ConfigureAwait(false);
-                }
+
+                // If the parameter is not a ref or out param, track the reference assignments that count
+                // as input to the argument being passed to the method.
+                return AddReferenceAsync(operation, cancellationToken);
             }
-            else if (IsContainedIn<IReturnOperation>(operation) || IsContainedIn<IAssignmentOperation>(operation))
+
+            if (IsContainedIn<IReturnOperation>(operation) || IsContainedIn<IAssignmentOperation>(operation))
             {
                 // If the reference is part of a return operation or assignment operation we want to track where the values come from
                 // since they contribute to the "output" of the method/assignment and are relavent for value tracking.
-                await AddReferenceAsync(operation, cancellationToken).ConfigureAwait(false);
+                return AddReferenceAsync(operation, cancellationToken);
             }
+
+            return Task.CompletedTask;
 
             Task AddReferenceAsync(IOperation operation, CancellationToken cancellationToken)
                 => operation switch
@@ -149,24 +150,24 @@ internal static partial class ValueTracker
                 };
         }
 
-        private async Task VisitLiteralAsync(ILiteralOperation literalOperation, CancellationToken cancellationToken)
+        private Task VisitLiteralAsync(ILiteralOperation literalOperation, CancellationToken cancellationToken)
         {
             if (literalOperation.Type is null)
             {
-                return;
+                return Task.CompletedTask;
             }
 
-            await AddOperationAsync(literalOperation, literalOperation.Type, cancellationToken).ConfigureAwait(false);
+            return AddOperationAsync(literalOperation, literalOperation.Type, cancellationToken);
         }
 
-        private async Task VisitReturnAsync(IReturnOperation returnOperation, CancellationToken cancellationToken)
+        private Task VisitReturnAsync(IReturnOperation returnOperation, CancellationToken cancellationToken)
         {
             if (returnOperation.ReturnedValue is null)
             {
-                return;
+                return Task.CompletedTask;
             }
 
-            await VisitAsync(returnOperation.ReturnedValue, cancellationToken).ConfigureAwait(false);
+            return VisitAsync(returnOperation.ReturnedValue, cancellationToken);
         }
 
         private async Task AddOperationAsync(IOperation operation, ISymbol symbol, CancellationToken cancellationToken)

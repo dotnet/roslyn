@@ -210,7 +210,7 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
             useAsync,
             analyzerChecksums,
             solutionServices,
-            async () => references,
+            () => Task.FromResult(references),
             cancellationToken).ConfigureAwait(false);
     }
 

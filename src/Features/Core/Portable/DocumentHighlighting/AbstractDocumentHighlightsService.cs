@@ -197,10 +197,10 @@ internal abstract partial class AbstractDocumentHighlightsService :
             documentsToSearch, cancellationToken).ConfigureAwait(false);
     }
 
-    protected virtual async ValueTask<ImmutableArray<Location>> GetAdditionalReferencesAsync(
+    protected virtual Task<ImmutableArray<Location>> GetAdditionalReferencesAsync(
         Document document, ISymbol symbol, CancellationToken cancellationToken)
     {
-        return [];
+        return SpecializedTasks.EmptyImmutableArray<Location>();
     }
 
     private static async Task<ImmutableArray<DocumentHighlights>> CreateSpansAsync(

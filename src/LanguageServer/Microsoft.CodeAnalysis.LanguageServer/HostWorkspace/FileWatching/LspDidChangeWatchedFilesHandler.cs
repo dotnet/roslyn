@@ -23,9 +23,10 @@ internal sealed class LspDidChangeWatchedFilesHandler : ILspServiceNotificationH
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => false;
 
-    async Task INotificationHandler<DidChangeWatchedFilesParams, RequestContext>.HandleNotificationAsync(DidChangeWatchedFilesParams request, RequestContext requestContext, CancellationToken cancellationToken)
+    Task INotificationHandler<DidChangeWatchedFilesParams, RequestContext>.HandleNotificationAsync(DidChangeWatchedFilesParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
         NotificationRaised?.Invoke(this, request);
+        return Task.CompletedTask;
     }
 
     public event EventHandler<DidChangeWatchedFilesParams>? NotificationRaised;

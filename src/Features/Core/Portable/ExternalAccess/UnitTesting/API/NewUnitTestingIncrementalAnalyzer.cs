@@ -36,9 +36,10 @@ internal sealed partial class NewUnitTestingIncrementalAnalyzerProvider
                 cancellationToken);
         }
 
-        public async Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
+        public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
             _implementation.RemoveDocument(documentId);
+            return Task.CompletedTask;
         }
     }
 }

@@ -36,10 +36,11 @@ public sealed partial class LspTestWorkspace : TestWorkspace, ILspWorkspace
 
     bool ILspWorkspace.SupportsMutation => _supportsLspMutation;
 
-    async ValueTask ILspWorkspace.UpdateTextIfPresentAsync(DocumentId documentId, SourceText sourceText, CancellationToken cancellationToken)
+    ValueTask ILspWorkspace.UpdateTextIfPresentAsync(DocumentId documentId, SourceText sourceText, CancellationToken cancellationToken)
     {
         Contract.ThrowIfFalse(_supportsLspMutation);
         OnDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity, requireDocumentPresent: false);
+        return ValueTask.CompletedTask;
     }
 
     internal override ValueTask TryOnDocumentClosedAsync(DocumentId documentId, CancellationToken cancellationToken)

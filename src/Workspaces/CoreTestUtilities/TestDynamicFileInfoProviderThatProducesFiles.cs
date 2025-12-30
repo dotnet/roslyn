@@ -27,14 +27,14 @@ internal sealed class TestDynamicFileInfoProviderThatProducesFiles : IDynamicFil
 
     event EventHandler<string> IDynamicFileInfoProvider.Updated { add { } remove { } }
 
-    public async Task<DynamicFileInfo> GetDynamicFileInfoAsync(ProjectId projectId, string projectFilePath, string filePath, CancellationToken cancellationToken)
+    public Task<DynamicFileInfo> GetDynamicFileInfoAsync(ProjectId projectId, string projectFilePath, string filePath, CancellationToken cancellationToken)
     {
-        return new DynamicFileInfo(
+        return Task.FromResult(new DynamicFileInfo(
             filePath + ".fromdynamicfile",
             SourceCodeKind.Regular,
             new TestTextLoader(GetDynamicFileText(filePath)),
             designTimeOnly: false,
-            new TestDocumentServiceProvider());
+            new TestDocumentServiceProvider()));
     }
 
     public static string GetDynamicFileText(string filePath)

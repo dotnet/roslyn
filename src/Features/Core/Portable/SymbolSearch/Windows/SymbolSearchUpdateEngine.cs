@@ -111,7 +111,7 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
             cancellationToken);
     }
 
-    public async ValueTask<ImmutableArray<TResult>> FindPackageOrReferenceAssembliesAsync<TResult>(
+    public ValueTask<ImmutableArray<TResult>> FindPackageOrReferenceAssembliesAsync<TResult>(
         string source,
         TypeQuery typeQuery,
         NamespaceQuery namespaceQuery,
@@ -121,7 +121,7 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
     {
         // Check if we don't have a database to search.  
         if (!_sourceToDatabase.TryGetValue(source, out var databaseWrapper))
-            return ImmutableArray<TResult>.Empty;
+            return ValueTask.FromResult(ImmutableArray<TResult>.Empty);
 
         var database = databaseWrapper.Database;
 
@@ -129,7 +129,7 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
 
         // never find anything named 'var'.
         if (searchName == "var")
-            return ImmutableArray<TResult>.Empty;
+            return ValueTask.FromResult(ImmutableArray<TResult>.Empty);
 
         var query = new MemberQuery(searchName, isFullSuffix: true, isFullNamespace: false);
         var symbols = new PartialArray<Symbol>(100);
@@ -146,7 +146,7 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
             }
         }
 
-        return results.ToImmutableAndClear();
+        return ValueTask.FromResult(results.ToImmutableAndClear());
 
         static IEnumerable<Symbol> FilterToViableSymbols(
             PartialArray<Symbol> symbols, NamespaceQuery namespaceQuery)
@@ -173,13 +173,13 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
         }
     }
 
-    public async ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
+    public ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
         string source, string assemblyName, CancellationToken cancellationToken)
     {
         if (!_sourceToDatabase.TryGetValue(source, out var databaseWrapper))
         {
             // Don't have a database to search.  
-            return ImmutableArray<PackageWithAssemblyResult>.Empty;
+            return ValueTask.FromResult(ImmutableArray<PackageWithAssemblyResult>.Empty);
         }
 
         using var _ = ArrayBuilder<PackageWithAssemblyResult>.GetInstance(out var result);
@@ -211,7 +211,7 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
             }
         }
 
-        return result.ToImmutableAndClear();
+        return ValueTask.FromResult(result.ToImmutableAndClear());
     }
 
     private static int GetRank(Symbol symbol)

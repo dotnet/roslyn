@@ -78,7 +78,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         /// </summary>
         public bool SupportsMappingImportDirectives => true;
 
-        public async Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
+        public Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
         {
             ImmutableArray<MappedSpanResult> mappedResult = default;
             if (document.Name == GeneratedFileName)
@@ -86,7 +86,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
                 mappedResult = [.. spans.Select(span => new MappedSpanResult(s_mappedFilePath, s_mappedLinePosition, new TextSpan(0, 5)))];
             }
 
-            return mappedResult;
+            return Task.FromResult(mappedResult);
         }
 
         public Task<ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)>> GetMappedTextChangesAsync(
@@ -103,7 +103,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         public override int Compare(LSP.Location? x, LSP.Location? y) => CompareLocations(x, y);
     }
 
-    protected virtual async ValueTask<ExportProvider> CreateExportProviderAsync() => Composition.ExportProviderFactory.CreateExportProvider();
+    protected virtual ValueTask<ExportProvider> CreateExportProviderAsync() => ValueTask.FromResult(Composition.ExportProviderFactory.CreateExportProvider());
     protected virtual TestComposition Composition => FeaturesLspComposition;
 
     private protected virtual TestAnalyzerReferenceByLanguage CreateTestAnalyzersReference()

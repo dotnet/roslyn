@@ -39,20 +39,20 @@ internal sealed class MockEditAndContinueService() : IEditAndContinueService
     public void DiscardSolutionUpdate(DebuggingSessionId sessionId)
         => DiscardSolutionUpdateImpl?.Invoke();
 
-    public async ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(DebuggingSessionId sessionId, Solution solution, ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
-        => (EmitSolutionUpdateImpl ?? throw new NotImplementedException()).Invoke(solution, runningProjects, activeStatementSpanProvider);
+    public ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(DebuggingSessionId sessionId, Solution solution, ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
+        => new((EmitSolutionUpdateImpl ?? throw new NotImplementedException()).Invoke(solution, runningProjects, activeStatementSpanProvider));
 
     public void EndDebuggingSession(DebuggingSessionId sessionId)
         => EndDebuggingSessionImpl?.Invoke();
 
-    public async ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(DebuggingSessionId sessionId, Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
-        => (GetBaseActiveStatementSpansImpl ?? throw new NotImplementedException()).Invoke(solution, documentIds);
+    public ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(DebuggingSessionId sessionId, Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
+        => new((GetBaseActiveStatementSpansImpl ?? throw new NotImplementedException()).Invoke(solution, documentIds));
 
-    public async ValueTask<ImmutableArray<ActiveStatementSpan>> GetAdjustedActiveStatementSpansAsync(DebuggingSessionId sessionId, TextDocument document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
-        => (GetAdjustedActiveStatementSpansImpl ?? throw new NotImplementedException()).Invoke(document, activeStatementSpanProvider);
+    public ValueTask<ImmutableArray<ActiveStatementSpan>> GetAdjustedActiveStatementSpansAsync(DebuggingSessionId sessionId, TextDocument document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
+        => new((GetAdjustedActiveStatementSpansImpl ?? throw new NotImplementedException()).Invoke(document, activeStatementSpanProvider));
 
-    public async ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
-        => (GetDocumentDiagnosticsImpl ?? throw new NotImplementedException()).Invoke(document, activeStatementSpanProvider);
+    public ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
+        => new((GetDocumentDiagnosticsImpl ?? throw new NotImplementedException()).Invoke(document, activeStatementSpanProvider));
 
     public void OnSourceFileUpdated(Document document)
         => OnSourceFileUpdatedImpl?.Invoke(document);

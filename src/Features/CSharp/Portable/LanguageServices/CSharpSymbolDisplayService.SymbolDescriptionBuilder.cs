@@ -92,24 +92,24 @@ internal sealed partial class CSharpSymbolDisplayService
                 Space());
         }
 
-        protected override async Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
+        protected override Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
             ISymbol symbol)
         {
             // Actually check for C# symbol types here.  
             if (symbol is IParameterSymbol parameter)
             {
-                return await GetInitializerSourcePartsAsync(parameter).ConfigureAwait(false);
+                return GetInitializerSourcePartsAsync(parameter);
             }
             else if (symbol is ILocalSymbol local)
             {
-                return await GetInitializerSourcePartsAsync(local).ConfigureAwait(false);
+                return GetInitializerSourcePartsAsync(local);
             }
             else if (symbol is IFieldSymbol field)
             {
-                return await GetInitializerSourcePartsAsync(field).ConfigureAwait(false);
+                return GetInitializerSourcePartsAsync(field);
             }
 
-            return [];
+            return SpecializedTasks.EmptyImmutableArray<SymbolDisplayPart>();
         }
 
         protected override ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SemanticModel semanticModel, int position, SymbolDisplayFormat format)

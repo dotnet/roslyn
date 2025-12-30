@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer;
 
 internal sealed class StackFrameMethodSymbolResolver : AbstractStackTraceSymbolResolver
 {
-    public override async Task<IMethodSymbol?> TryGetBestMatchAsync(
+    public override Task<IMethodSymbol?> TryGetBestMatchAsync(
         Project project,
         INamedTypeSymbol type,
         StackFrameSimpleNameNode methodNode,
@@ -27,6 +27,6 @@ internal sealed class StackFrameMethodSymbolResolver : AbstractStackTraceSymbolR
             .Where(m => m.Name == methodName);
 
         var match = TryGetBestMatch(candidateMethods, methodTypeArguments, methodArguments);
-        return match;
+        return Task.FromResult(match);
     }
 }

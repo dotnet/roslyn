@@ -43,9 +43,10 @@ internal sealed class CSharpUseLocalFunctionCodeFixProvider() : SyntaxEditorBase
     protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
         => !diagnostic.IsSuppressed;
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Use_local_function, nameof(CSharpAnalyzersResources.Use_local_function));
+        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(
