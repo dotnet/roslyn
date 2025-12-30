@@ -80,7 +80,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
         bool isTrivialSetAccessor,
         CancellationToken cancellationToken);
 
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var solution = context.Document.Project.Solution;
 
@@ -97,6 +97,8 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
                     priority),
                 diagnostic);
         }
+
+        return Task.CompletedTask;
     }
 
     private async Task<Solution> ProcessResultAsync(

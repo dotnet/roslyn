@@ -36,7 +36,7 @@ internal sealed partial class UseExpressionBodyCodeFixProvider() : SyntaxEditorB
         => !diagnostic.IsSuppressed ||
            diagnostic.Properties.ContainsKey(UseExpressionBodyDiagnosticAnalyzer.FixesError);
 
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var diagnostic = context.Diagnostics.First();
 
@@ -47,6 +47,7 @@ internal sealed partial class UseExpressionBodyCodeFixProvider() : SyntaxEditorB
         var title = diagnostic.GetMessage();
 
         RegisterCodeFix(context, title, title, priority);
+        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(
