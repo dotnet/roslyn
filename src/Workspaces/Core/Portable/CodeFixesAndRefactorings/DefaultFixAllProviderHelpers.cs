@@ -44,7 +44,7 @@ internal static class DefaultFixAllProviderHelpers
             return null;
 
         return CodeAction.Create(
-            title, async (_, _) => solution, equivalenceKey: null, CodeActionPriority.Default, fixAllContext.State.FixAllProvider.Cleanup);
+            title, (_, _) => Task.FromResult(solution), equivalenceKey: null, CodeActionPriority.Default, fixAllContext.State.FixAllProvider.Cleanup);
     }
 
     private static Task<Solution?> GetDocumentFixesAsync<TFixAllContext>(

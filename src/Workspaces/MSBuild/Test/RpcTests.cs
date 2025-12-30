@@ -235,12 +235,12 @@ public sealed class RpcTests
     private sealed class ObjectWithVoidMethod { public string? Message; public void SetMessage(string message) { Message = message; } }
     private sealed class ObjectWithAsyncHelloMethods
     {
-        public async Task<string> HelloAsync(string name) { return "Hello " + name; }
-        public async Task<string> HelloWithCancellationAsync(string name, CancellationToken cancellationToken)
+        public Task<string> HelloAsync(string name) { return Task.FromResult("Hello " + name); }
+        public Task<string> HelloWithCancellationAsync(string name, CancellationToken cancellationToken)
         {
             // We never expect to be given a cancellable cancellation token over RPC
             Assert.False(cancellationToken.CanBeCanceled);
-            return "Hello " + name;
+            return Task.FromResult("Hello " + name);
         }
     }
 

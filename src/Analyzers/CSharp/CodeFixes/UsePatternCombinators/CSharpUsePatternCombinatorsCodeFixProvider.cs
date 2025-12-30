@@ -55,7 +55,7 @@ internal sealed class CSharpUsePatternCombinatorsCodeFixProvider() : SyntaxEdito
         return isSafe == (equivalenceKey == SafeEquivalenceKey);
     }
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var diagnostic = context.Diagnostics.First();
         var isSafe = CSharpUsePatternCombinatorsDiagnosticAnalyzer.IsSafe(diagnostic);
@@ -65,6 +65,8 @@ internal sealed class CSharpUsePatternCombinatorsCodeFixProvider() : SyntaxEdito
             isSafe ? CSharpAnalyzersResources.Use_pattern_matching : CSharpAnalyzersResources.Use_pattern_matching_may_change_code_meaning,
             isSafe ? SafeEquivalenceKey : UnsafeEquivalenceKey,
             CodeActionPriority.Low);
+
+        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(

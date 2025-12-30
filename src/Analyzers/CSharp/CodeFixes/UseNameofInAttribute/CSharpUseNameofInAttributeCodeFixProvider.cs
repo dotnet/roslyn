@@ -23,15 +23,16 @@ internal sealed class CSharpUseNameofInAttributeCodeFixProvider() : SyntaxEditor
 {
     public override ImmutableArray<string> FixableDiagnosticIds { get; } = [IDEDiagnosticIds.UseNameofInAttributeDiagnosticId];
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(
             context,
             CSharpAnalyzersResources.Use_nameof,
             nameof(CSharpAnalyzersResources.Use_nameof));
+        return Task.CompletedTask;
     }
 
-    protected override async Task FixAllAsync(
+    protected override Task FixAllAsync(
         Document document,
         ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor,
@@ -47,5 +48,7 @@ internal sealed class CSharpUseNameofInAttributeCodeFixProvider() : SyntaxEditor
                 expression,
                 editor.Generator.NameOfExpression(editor.Generator.IdentifierName(name)).WithTriviaFrom(expression));
         }
+
+        return Task.CompletedTask;
     }
 }

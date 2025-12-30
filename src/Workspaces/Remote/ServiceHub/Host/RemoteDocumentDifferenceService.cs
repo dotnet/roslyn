@@ -33,8 +33,8 @@ internal class RemoteDocumentDifferenceService : IDocumentDifferenceService
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class VisualBasicDocumentDifferenceService() : RemoteDocumentDifferenceService;
 
-    public async Task<SyntaxNode?> GetChangedMemberAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+    public Task<SyntaxNode?> GetChangedMemberAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
     {
-        return null;
+        return SpecializedTasks.Null<SyntaxNode>();
     }
 }

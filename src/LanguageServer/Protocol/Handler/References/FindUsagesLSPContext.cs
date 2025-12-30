@@ -372,9 +372,10 @@ internal sealed class FindUsagesLSPContext : FindUsagesContext
         return classifiedTextRuns.ToArray();
     }
 
-    private async ValueTask ReportReferencesAsync(ImmutableSegmentedList<SumType<VSInternalReferenceItem, LSP.Location>> referencesToReport, CancellationToken cancellationToken)
+    private ValueTask ReportReferencesAsync(ImmutableSegmentedList<SumType<VSInternalReferenceItem, LSP.Location>> referencesToReport, CancellationToken cancellationToken)
     {
         // We can report outside of the lock here since _progress is thread-safe.
         _progress.Report([.. referencesToReport]);
+        return ValueTask.CompletedTask;
     }
 }

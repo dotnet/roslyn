@@ -291,9 +291,7 @@ public abstract partial class Workspace : IDisposable
                 // Doing so under the serialization lock guarantees the same ordering of the events
                 // as the order of the changes made to the solution.
                 var (changeKind, projectId, documentId) = data.changeKind(oldSolution, newSolution);
-
-                // Fire and forget
-                _ = data.@this.RaiseWorkspaceChangedEventAsync(changeKind, oldSolution, newSolution, projectId, documentId);
+                data.@this.RaiseWorkspaceChangedEventAsync(changeKind, oldSolution, newSolution, projectId, documentId);
             },
             cancellationToken).ConfigureAwait(false);
 
@@ -643,13 +641,10 @@ public abstract partial class Workspace : IDisposable
             (oldSolution, _) => this.CreateSolution(oldSolution.Id),
             mayRaiseEvents: reportChangeEvent,
             onBeforeUpdate: (_, _, _) => this.ClearSolutionData(),
-            onAfterUpdate: (oldSolution, newSolution, _1) =>
+            onAfterUpdate: (oldSolution, newSolution, _) =>
             {
                 if (reportChangeEvent)
-                {
-                    // Fire and forget
-                    _ = this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionCleared, oldSolution, newSolution);
-                }
+                    this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionCleared, oldSolution, newSolution);
             });
     }
 
@@ -1070,10 +1065,7 @@ public abstract partial class Workspace : IDisposable
                 // Raise ProjectChanged as the event type here. DocumentAdded is presumed by many callers to have a
                 // DocumentId associated with it, and we don't want to be raising multiple events.
                 foreach (var projectId in data.documentInfos.Select(i => i.Id.ProjectId).Distinct())
-                {
-                    // Fire and forget
-                    _ = data.@this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
-                }
+                    data.@this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
             });
     }
 
@@ -1349,8 +1341,7 @@ public abstract partial class Workspace : IDisposable
 
                 foreach (var updatedDocumentInfo in data.updatedDocumentIds)
                 {
-                    // Fire and forget
-                    _ = data.@this.RaiseWorkspaceChangedEventAsync(
+                    data.@this.RaiseWorkspaceChangedEventAsync(
                         data.changeKind,
                         oldSolution,
                         newSolution,

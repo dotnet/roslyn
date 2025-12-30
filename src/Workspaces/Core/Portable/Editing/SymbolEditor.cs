@@ -260,9 +260,10 @@ public sealed class SymbolEditor
     {
         return this.EditOneDeclarationAsync(
             symbol,
-            async (e, d, c) =>
+            (e, d, c) =>
         {
             editAction(e, d);
+            return Task.CompletedTask;
         },
         cancellationToken);
     }
@@ -350,9 +351,10 @@ public sealed class SymbolEditor
         return this.EditOneDeclarationAsync(
             symbol,
             location,
-            async (e, d, c) =>
+            (e, d, c) =>
             {
                 editAction(e, d);
+                return Task.CompletedTask;
             },
             cancellationToken);
     }
@@ -432,9 +434,10 @@ public sealed class SymbolEditor
         return this.EditOneDeclarationAsync(
             symbol,
             member,
-            async (e, d, c) =>
+            (e, d, c) =>
             {
                 editAction(e, d);
+                return Task.CompletedTask;
             },
             cancellationToken);
     }
@@ -512,9 +515,10 @@ public sealed class SymbolEditor
     {
         return this.EditAllDeclarationsAsync(
             symbol,
-            async (e, d, c) =>
+            (e, d, c) =>
             {
                 editAction(e, d);
+                return Task.CompletedTask;
             },
             cancellationToken);
     }

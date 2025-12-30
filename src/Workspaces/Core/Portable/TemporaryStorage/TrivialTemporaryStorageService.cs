@@ -32,9 +32,9 @@ internal sealed class TrivialTemporaryStorageService : ITemporaryStorageServiceI
         return new TextStorage(text);
     }
 
-    public async Task<ITemporaryStorageTextHandle> WriteToTemporaryStorageAsync(SourceText text, CancellationToken cancellationToken)
+    public Task<ITemporaryStorageTextHandle> WriteToTemporaryStorageAsync(SourceText text, CancellationToken cancellationToken)
     {
-        return new TextStorage(text);
+        return Task.FromResult<ITemporaryStorageTextHandle>(new TextStorage(text));
     }
 
     private sealed class StreamStorage : ITemporaryStorageStreamHandle
@@ -74,9 +74,9 @@ internal sealed class TrivialTemporaryStorageService : ITemporaryStorageServiceI
             return _sourceText;
         }
 
-        public async Task<SourceText> ReadFromTemporaryStorageAsync(CancellationToken cancellationToken)
+        public Task<SourceText> ReadFromTemporaryStorageAsync(CancellationToken cancellationToken)
         {
-            return _sourceText;
+            return Task.FromResult(_sourceText);
         }
     }
 }
