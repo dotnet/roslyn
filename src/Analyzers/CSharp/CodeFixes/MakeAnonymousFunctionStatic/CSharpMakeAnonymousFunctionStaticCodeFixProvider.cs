@@ -24,18 +24,16 @@ internal sealed class CSharpMakeAnonymousFunctionStaticCodeFixProvider() : Synta
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
         [IDEDiagnosticIds.MakeAnonymousFunctionStaticDiagnosticId];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(
             context,
             CSharpAnalyzersResources.Make_anonymous_function_static,
             nameof(CSharpAnalyzersResources.Make_anonymous_function_static),
             context.Diagnostics[0].Severity > DiagnosticSeverity.Hidden ? CodeActionPriority.Default : CodeActionPriority.Low);
-
-        return Task.CompletedTask;
     }
 
-    protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+    protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var generator = editor.Generator;
 
@@ -44,7 +42,5 @@ internal sealed class CSharpMakeAnonymousFunctionStaticCodeFixProvider() : Synta
             var anonymousFunction = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
             editor.ReplaceNode(anonymousFunction, static (node, generator) => generator.WithModifiers(node, generator.GetModifiers(node).WithIsStatic(true)));
         }
-
-        return Task.CompletedTask;
     }
 }

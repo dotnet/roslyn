@@ -26,7 +26,7 @@ internal class GetTextDocumentWithContextHandler() : ILspServiceDocumentRequestH
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(VSGetProjectContextsParams request) => new() { DocumentUri = request.TextDocument.DocumentUri };
 
-    public Task<VSProjectContextList?> HandleRequestAsync(VSGetProjectContextsParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<VSProjectContextList?> HandleRequestAsync(VSGetProjectContextsParams request, RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Workspace);
         Contract.ThrowIfNull(context.Solution);
@@ -37,7 +37,7 @@ internal class GetTextDocumentWithContextHandler() : ILspServiceDocumentRequestH
 
         if (!documentIds.Any())
         {
-            return SpecializedTasks.Null<VSProjectContextList>();
+            return null;
         }
 
         var contexts = new List<VSProjectContext>();
@@ -57,10 +57,10 @@ internal class GetTextDocumentWithContextHandler() : ILspServiceDocumentRequestH
         var openDocumentId = documentIds.First();
         var currentContextDocumentId = context.Workspace.GetDocumentIdInCurrentContext(openDocumentId);
 
-        return Task.FromResult<VSProjectContextList?>(new VSProjectContextList
+        return new VSProjectContextList
         {
             ProjectContexts = [.. contexts],
             DefaultIndex = documentIds.IndexOf(d => d == currentContextDocumentId)
-        });
+        };
     }
 }

@@ -383,9 +383,9 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
         public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(CustomResolveParams request) => request.TextDocument;
-        public Task<ResolvedDocumentInfo> HandleRequestAsync(CustomResolveParams request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<ResolvedDocumentInfo> HandleRequestAsync(CustomResolveParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            return Task.FromResult(new ResolvedDocumentInfo(context.Workspace!.Kind!, context.GetRequiredDocument().Project.Language));
+            return new ResolvedDocumentInfo(context.Workspace!.Kind!, context.GetRequiredDocument().Project.Language);
         }
     }
 }
