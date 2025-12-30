@@ -30,7 +30,7 @@ internal abstract partial class AbstractGenerateConversionService<TService, TSim
             return state;
         }
 
-        private async ValueTask<bool> TryInitializeConversionAsync(
+        private Task<bool> TryInitializeConversionAsync(
             TService service,
             SemanticDocument document,
             SyntaxNode node,
@@ -40,18 +40,18 @@ internal abstract partial class AbstractGenerateConversionService<TService, TSim
             {
                 if (!TryInitializeImplicitConversion(service, document, node, cancellationToken))
                 {
-                    return false;
+                    return SpecializedTasks.False;
                 }
             }
             else if (service.IsExplicitConversionGeneration(node))
             {
                 if (!TryInitializeExplicitConversion(service, document, node, cancellationToken))
                 {
-                    return false;
+                    return SpecializedTasks.False;
                 }
             }
 
-            return await TryFinishInitializingStateAsync(service, document, cancellationToken).ConfigureAwait(false);
+            return TryFinishInitializingStateAsync(service, document, cancellationToken);
         }
 
         private bool TryInitializeExplicitConversion(TService service, SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)

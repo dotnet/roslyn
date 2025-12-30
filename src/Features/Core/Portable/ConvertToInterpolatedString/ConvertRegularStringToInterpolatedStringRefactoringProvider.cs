@@ -103,13 +103,13 @@ internal sealed class ConvertRegularStringToInterpolatedStringRefactoringProvide
             generator.CreateInterpolatedStringEndToken()).WithTriviaFrom(literalExpression);
     }
 
-    private static async Task<Document> UpdateDocumentAsync(Document document, SyntaxNode root, SyntaxToken token)
+    private static Task<Document> UpdateDocumentAsync(Document document, SyntaxNode root, SyntaxToken token)
     {
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         var literalExpression = token.GetRequiredParent();
-        return document.WithSyntaxRoot(
+        return Task.FromResult(document.WithSyntaxRoot(
             root.ReplaceNode(
                 literalExpression,
-                CreateInterpolatedString(document, literalExpression, syntaxFacts.IsVerbatimStringLiteral(token))));
+                CreateInterpolatedString(document, literalExpression, syntaxFacts.IsVerbatimStringLiteral(token)))));
     }
 }

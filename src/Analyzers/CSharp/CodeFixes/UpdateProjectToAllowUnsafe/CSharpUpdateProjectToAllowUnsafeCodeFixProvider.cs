@@ -28,10 +28,11 @@ internal sealed class CSharpUpdateProjectToAllowUnsafeCodeFixProvider() : CodeFi
         return null;
     }
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         context.RegisterCodeFix(ProjectOptionsChangeAction.Create(CSharpCodeFixesResources.Allow_unsafe_code_in_this_project,
-            async _ => AllowUnsafeOnProject(context.Document.Project)), context.Diagnostics);
+            _ => Task.FromResult(AllowUnsafeOnProject(context.Document.Project))), context.Diagnostics);
+        return Task.CompletedTask;
     }
 
     private static Solution AllowUnsafeOnProject(Project project)

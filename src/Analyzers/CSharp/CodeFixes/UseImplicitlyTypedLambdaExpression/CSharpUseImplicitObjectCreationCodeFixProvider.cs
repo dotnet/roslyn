@@ -30,9 +30,10 @@ internal sealed class CSharpUseImplicitlyTypedLambdaExpressionCodeFixProvider() 
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UseImplicitlyTypedLambdaExpressionDiagnosticId];
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Use_implicitly_typed_lambda, nameof(CSharpAnalyzersResources.Use_implicitly_typed_lambda));
+        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(

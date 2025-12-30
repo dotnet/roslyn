@@ -220,13 +220,13 @@ internal abstract partial class EditorSuggestedAction(
 
     public virtual bool HasPreview => false;
 
-    public virtual async Task<object> GetPreviewAsync(CancellationToken cancellationToken)
-        => null;
+    public virtual Task<object> GetPreviewAsync(CancellationToken cancellationToken)
+        => SpecializedTasks.Null<object>();
 
     public virtual bool HasActionSets => false;
 
-    public virtual async Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
-        => [];
+    public virtual Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
+        => SpecializedTasks.EmptyEnumerable<SuggestedActionSet>();
 
     #region not supported
 

@@ -67,7 +67,7 @@ internal abstract class AbstractEditorNavigationBarItemService : INavigationBarI
         }
     }
 
-    internal virtual async Task<(DocumentId documentId, int position, int virtualSpace)> GetNavigationLocationAsync(
+    internal virtual Task<(DocumentId documentId, int position, int virtualSpace)> GetNavigationLocationAsync(
         Document document,
         NavigationBarItem item,
         SymbolItem symbolItem,
@@ -79,7 +79,7 @@ internal abstract class AbstractEditorNavigationBarItemService : INavigationBarI
             // If the item points to a location in this document, then just determine the where that span currently
             // is (in case recent edits have moved it) and navigate there.
             var navigationSpan = item.GetCurrentItemSpan(textVersion, symbolItem.Location.InDocumentInfo.Value.navigationSpan);
-            return (document.Id, navigationSpan.Start, 0);
+            return Task.FromResult((document.Id, navigationSpan.Start, 0));
         }
         else
         {
@@ -87,7 +87,7 @@ internal abstract class AbstractEditorNavigationBarItemService : INavigationBarI
             // computed and stored for it.
             Contract.ThrowIfNull(symbolItem.Location.OtherDocumentInfo);
             var (documentId, span) = symbolItem.Location.OtherDocumentInfo.Value;
-            return (documentId, span.Start, 0);
+            return Task.FromResult((documentId, span.Start, 0));
         }
     }
 

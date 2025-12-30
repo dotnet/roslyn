@@ -27,11 +27,11 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
     {
 #if CODE_STYLE
 
-        public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+        public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
         {
-            return CodeAction.Create(
+            return Task.FromResult<CodeAction?>(CodeAction.Create(
                 fixAllContext.GetDefaultFixAllTitle(),
-                cancellationToken => FixAllAsync(fixAllContext, cancellationToken));
+                cancellationToken => FixAllAsync(fixAllContext, cancellationToken)));
         }
 
         private async Task<Solution> FixAllAsync(FixAllContext fixAllContext, CancellationToken cancellationToken)

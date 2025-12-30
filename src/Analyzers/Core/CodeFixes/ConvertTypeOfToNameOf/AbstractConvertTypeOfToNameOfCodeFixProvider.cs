@@ -24,10 +24,11 @@ internal abstract class AbstractConvertTypeOfToNameOfCodeFixProvider<
     public sealed override ImmutableArray<string> FixableDiagnosticIds
        => [IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId];
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var title = GetCodeFixTitle();
         RegisterCodeFix(context, title, title);
+        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(

@@ -26,7 +26,7 @@ internal sealed class ConsecutiveStatementPlacementCodeFixProvider() : CodeFixPr
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.ConsecutiveStatementPlacementDiagnosticId];
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var document = context.Document;
         var diagnostic = context.Diagnostics.First();
@@ -35,6 +35,7 @@ internal sealed class ConsecutiveStatementPlacementCodeFixProvider() : CodeFixPr
             c => UpdateDocumentAsync(document, diagnostic, c),
             nameof(CodeFixesResources.Add_blank_line_after_block)),
             context.Diagnostics);
+        return Task.CompletedTask;
     }
 
     private static Task<Document> UpdateDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)

@@ -38,8 +38,8 @@ public sealed class FormatterTests
         {
         }
 
-        public async Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, LineFormattingOptions lineFormattingOptions, SyntaxFormattingOptions? syntaxFormattingOptions, CancellationToken cancellationToken)
-            => document.WithText(SourceText.From($"Formatted with options: {lineFormattingOptions.ToString().Replace("\r", "\\r").Replace("\n", "\\n")}"));
+        public Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, LineFormattingOptions lineFormattingOptions, SyntaxFormattingOptions? syntaxFormattingOptions, CancellationToken cancellationToken)
+            => Task.FromResult(document.WithText(SourceText.From($"Formatted with options: {lineFormattingOptions.ToString().Replace("\r", "\\r").Replace("\n", "\\n")}")));
     }
 
     [Fact]

@@ -29,10 +29,10 @@ internal partial class EditorSuggestedActionWithNestedFlavors
     {
         public override string Title => EditorFeaturesResources.Refine_using_Copilot;
 
-        protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
+        protected override Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
         {
             // Make sure we don't trigger the refinement session for preview operation
-            return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
+            return Task.FromResult(SpecializedCollections.EmptyEnumerable<CodeActionOperation>());
         }
 
         protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)

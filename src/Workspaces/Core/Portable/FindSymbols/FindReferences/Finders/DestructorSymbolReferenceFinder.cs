@@ -15,7 +15,7 @@ internal sealed class DestructorSymbolReferenceFinder : AbstractReferenceFinder<
     protected override bool CanFind(IMethodSymbol symbol)
         => symbol.MethodKind == MethodKind.Destructor;
 
-    protected override async Task DetermineDocumentsToSearchAsync<TData>(
+    protected override Task DetermineDocumentsToSearchAsync<TData>(
         IMethodSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
@@ -25,6 +25,7 @@ internal sealed class DestructorSymbolReferenceFinder : AbstractReferenceFinder<
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
+        return Task.CompletedTask;
     }
 
     protected override void FindReferencesInDocument<TData>(

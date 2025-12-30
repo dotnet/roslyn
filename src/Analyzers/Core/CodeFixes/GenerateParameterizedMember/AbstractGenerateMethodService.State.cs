@@ -37,7 +37,7 @@ internal abstract partial class AbstractGenerateMethodService<TService, TSimpleN
             return state;
         }
 
-        private async Task<bool> TryInitializeMethodAsync(
+        private Task<bool> TryInitializeMethodAsync(
             TService service,
             SemanticDocument document,
             SyntaxNode node,
@@ -62,18 +62,18 @@ internal abstract partial class AbstractGenerateMethodService<TService, TSimpleN
             {
                 if (!TryInitializeExplicitInterface(service, document, node, cancellationToken))
                 {
-                    return false;
+                    return SpecializedTasks.False;
                 }
             }
             else if (service.IsSimpleNameGeneration(node))
             {
                 if (!TryInitializeSimpleName(service, document, (TSimpleNameSyntax)node, cancellationToken))
                 {
-                    return false;
+                    return SpecializedTasks.False;
                 }
             }
 
-            return await TryFinishInitializingStateAsync(service, document, cancellationToken).ConfigureAwait(false);
+            return TryFinishInitializingStateAsync(service, document, cancellationToken);
         }
 
         private bool TryInitializeExplicitInterface(
