@@ -165,18 +165,18 @@ public class Document : TextDocument
     /// to <see cref="SyntaxTree.GetRoot"/> or <see cref="SyntaxTree.GetRootAsync"/> may end up causing computation
     /// to occur at that point.
     /// </returns>
-    public async Task<SyntaxTree?> GetSyntaxTreeAsync(CancellationToken cancellationToken = default)
+    public Task<SyntaxTree?> GetSyntaxTreeAsync(CancellationToken cancellationToken = default)
     {
         // If the language doesn't support getting syntax trees for a document, then bail out immediately.
         if (!this.SupportsSyntaxTree)
         {
-            return null;
+            return SpecializedTasks.Null<SyntaxTree>();
         }
 
         // if we have a cached result task use it
         if (_syntaxTreeResultTask != null)
         {
-            return await _syntaxTreeResultTask.ConfigureAwait(false);
+            return _syntaxTreeResultTask.AsNullable();
         }
 
         // check to see if we already have the tree before actually going async
@@ -185,13 +185,13 @@ public class Document : TextDocument
             // stash a completed result task for this value for the next request (to reduce extraneous allocations of tasks)
             // don't use the actual async task because it depends on a specific cancellation token
             // its okay to cache the task and hold onto the SyntaxTree, because the DocumentState already keeps the SyntaxTree alive.
-            _ = Interlocked.CompareExchange(ref _syntaxTreeResultTask, Task.FromResult(tree), null);
+            Interlocked.CompareExchange(ref _syntaxTreeResultTask, Task.FromResult(tree), null);
 
-            return await _syntaxTreeResultTask.ConfigureAwait(false);
+            return _syntaxTreeResultTask.AsNullable();
         }
 
         // do it async for real.
-        return await DocumentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        return DocumentState.GetSyntaxTreeAsync(cancellationToken).AsTask().AsNullable();
     }
 
     internal SyntaxTree? GetSyntaxTreeSynchronously(CancellationToken cancellationToken)
