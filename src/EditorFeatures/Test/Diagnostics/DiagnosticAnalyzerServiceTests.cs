@@ -1012,9 +1012,10 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [s_syntaxRule];
 
-        public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument document, SyntaxTree tree, CancellationToken cancellationToken)
+        public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument document, SyntaxTree tree, CancellationToken cancellationToken)
         {
-            return [Diagnostic.Create(s_syntaxRule, tree.GetRoot(cancellationToken).GetLocation())];
+            return Task.FromResult<ImmutableArray<Diagnostic>>(
+                [Diagnostic.Create(s_syntaxRule, tree.GetRoot(cancellationToken).GetLocation())]);
         }
     }
 

@@ -20,7 +20,7 @@ public sealed class DynamicKeywordRecommenderTests : RecommenderTests
 
     public DynamicKeywordRecommenderTests()
     {
-        this.RecommendKeywordsAsync = async (position, context) => _recommender.RecommendKeywords(position, context, CancellationToken.None);
+        this.RecommendKeywordsAsync = (position, context) => Task.FromResult(_recommender.RecommendKeywords(position, context, CancellationToken.None));
     }
 
     [Fact]

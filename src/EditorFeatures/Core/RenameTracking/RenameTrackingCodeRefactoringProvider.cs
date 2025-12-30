@@ -33,7 +33,7 @@ internal sealed class RenameTrackingCodeRefactoringProvider : CodeRefactoringPro
         this.CustomTags = this.CustomTags.Add(CodeAction.CanBeHighPriorityTag);
     }
 
-    public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+    public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
         var (document, span, _) = context;
 
@@ -42,6 +42,8 @@ internal sealed class RenameTrackingCodeRefactoringProvider : CodeRefactoringPro
 
         if (action != null)
             context.RegisterRefactoring(action, renameSpan);
+
+        return Task.CompletedTask;
     }
 
     /// <summary>
