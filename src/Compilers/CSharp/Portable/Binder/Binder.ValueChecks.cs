@@ -759,30 +759,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return expr;
 
                 case BoundKind.PropertyAccess:
+                    var propertyAccess = (BoundPropertyAccess)expr;
+                    if (!InAttributeArgument)
                     {
-                        var propertyAccess = (BoundPropertyAccess)expr;
-                        if (!InAttributeArgument)
+                        // If the property has a synthesized backing field, record the accessor kind of the property
+                        // access for determining whether the property access can use the backing field directly.
+                        if (HasSynthesizedBackingField(propertyAccess.PropertySymbol, out _))
                         {
-                            // If the property has a synthesized backing field, record the accessor kind of the property
-                            // access for determining whether the property access can use the backing field directly.
-                            if (HasSynthesizedBackingField(propertyAccess.PropertySymbol, out _))
-                            {
-                                expr = propertyAccess.Update(
-                                    propertyAccess.ReceiverOpt,
-                                    propertyAccess.InitialBindingReceiverIsSubjectToCloning,
-                                    propertyAccess.PropertySymbol,
-                                    autoPropertyAccessorKind: GetAccessorKind(valueKind),
-                                    propertyAccess.ResultKind,
-                                    propertyAccess.Type);
-                            }
-#if DEBUG
-                            else
-                            {
-                                // Under DEBUG, create a new node to mark as checked, rather than mutating the original.
-                                // This allows the original node to be passed to CheckValue multiple times safely.
-                                expr = propertyAccess.Clone();
-                            }
-#endif
+                            expr = propertyAccess.Update(
+                                propertyAccess.ReceiverOpt,
+                                propertyAccess.InitialBindingReceiverIsSubjectToCloning,
+                                propertyAccess.PropertySymbol,
+                                autoPropertyAccessorKind: GetAccessorKind(valueKind),
+                                propertyAccess.ResultKind,
+                                propertyAccess.Type);
                         }
 #if DEBUG
                         else
@@ -791,9 +781,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // This allows the original node to be passed to CheckValue multiple times safely.
                             expr = propertyAccess.Clone();
                         }
-                        expr.WasPropertyBackingFieldAccessChecked = true;
 #endif
                     }
+#if DEBUG
+                    else
+                    {
+                        // Under DEBUG, create a new node to mark as checked, rather than mutating the original.
+                        // This allows the original node to be passed to CheckValue multiple times safely.
+                        expr = propertyAccess.Clone();
+                    }
+                    expr.WasPropertyBackingFieldAccessChecked = true;
+#endif
                     break;
 
                 case BoundKind.IndexerAccess:
