@@ -778,7 +778,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             // Under DEBUG, create a new node to mark as checked, rather than mutating the original.
-                            // This allows the original node to be passed to CheckValue multiple times safely.
+                            // This allows the original node to be passed to CheckValue multiple times safely, without
+                            // asserting in WasPropertyBackingFieldAccessChecked.
                             expr = propertyAccess.Clone();
                         }
 #endif
@@ -787,7 +788,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         // Under DEBUG, create a new node to mark as checked, rather than mutating the original.
-                        // This allows the original node to be passed to CheckValue multiple times safely.
+                        // This allows the original node to be passed to CheckValue multiple times safely, without
+                        // asserting in WasPropertyBackingFieldAccessChecked.
                         expr = propertyAccess.Clone();
                     }
                     expr.WasPropertyBackingFieldAccessChecked = true;
