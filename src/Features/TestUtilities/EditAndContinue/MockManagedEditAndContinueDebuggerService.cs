@@ -19,26 +19,26 @@ internal sealed class MockManagedEditAndContinueDebuggerService : IManagedHotRel
     public Func<ImmutableArray<ManagedActiveStatementDebugInfo>>? GetActiveStatementsImpl;
     public Func<ImmutableArray<string>>? GetCapabilitiesImpl;
 
-    public ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
-        => ValueTask.FromResult(GetActiveStatementsImpl?.Invoke() ?? []);
+    public async ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
+        => GetActiveStatementsImpl?.Invoke() ?? [];
 
-    public ValueTask<ManagedHotReloadAvailability> GetAvailabilityAsync(Guid mvid, CancellationToken cancellationToken)
+    public async ValueTask<ManagedHotReloadAvailability> GetAvailabilityAsync(Guid mvid, CancellationToken cancellationToken)
     {
         if (IsEditAndContinueAvailable != null)
         {
-            return ValueTask.FromResult(IsEditAndContinueAvailable(mvid));
+            return IsEditAndContinueAvailable(mvid);
         }
 
         if (LoadedModules != null)
         {
-            return ValueTask.FromResult(LoadedModules.TryGetValue(mvid, out var result) ? result : new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.ModuleNotLoaded));
+            return LoadedModules.TryGetValue(mvid, out var result) ? result : new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.ModuleNotLoaded);
         }
 
         throw new NotImplementedException();
     }
 
-    public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
-        => ValueTask.FromResult(GetCapabilitiesImpl?.Invoke() ?? ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"]);
+    public async ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
+        => GetCapabilitiesImpl?.Invoke() ?? ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"];
 
     public ValueTask PrepareModuleForUpdateAsync(Guid mvid, CancellationToken cancellationToken)
         => ValueTask.CompletedTask;

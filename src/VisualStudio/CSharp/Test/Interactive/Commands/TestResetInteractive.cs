@@ -58,10 +58,10 @@ internal sealed class TestResetInteractive : ResetInteractive
         CancelBuildProjectCount++;
     }
 
-    protected override Task<bool> BuildProjectAsync()
+    protected override async Task<bool> BuildProjectAsync()
     {
         BuildProjectCount++;
-        return Task.FromResult(_buildSucceeds);
+        return _buildSucceeds;
     }
 
     protected override bool GetProjectProperties(
@@ -86,8 +86,8 @@ internal sealed class TestResetInteractive : ResetInteractive
         return _uiThreadOperationExecutor;
     }
 
-    protected override Task<IEnumerable<string>> GetNamespacesToImportAsync(IEnumerable<string> namespacesToImport, IInteractiveWindow interactiveWindow)
+    protected override async Task<IEnumerable<string>> GetNamespacesToImportAsync(IEnumerable<string> namespacesToImport, IInteractiveWindow interactiveWindow)
     {
-        return Task.FromResult((IEnumerable<string>)NamespacesToImport);
+        return (IEnumerable<string>)NamespacesToImport;
     }
 }

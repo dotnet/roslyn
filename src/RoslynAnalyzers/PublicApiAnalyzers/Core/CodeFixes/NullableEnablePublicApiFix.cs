@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         public sealed override FixAllProvider GetFixAllProvider()
             => new PublicSurfaceAreaFixAllProvider();
 
-        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             Project project = context.Document.Project;
 
@@ -49,8 +49,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                             diagnostic);
                 }
             }
-
-            return Task.CompletedTask;
         }
 
         private static async Task<Solution?> GetFixAsync(TextDocument surfaceAreaDocument, CancellationToken cancellationToken)

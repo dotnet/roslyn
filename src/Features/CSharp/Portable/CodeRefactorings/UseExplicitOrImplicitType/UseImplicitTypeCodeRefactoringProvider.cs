@@ -32,9 +32,8 @@ internal sealed partial class UseImplicitTypeCodeRefactoringProvider() : Abstrac
     protected override TypeStyleResult AnalyzeTypeName(TypeSyntax typeName, SemanticModel semanticModel, CSharpSimplifierOptions options, CancellationToken cancellationToken)
         => CSharpUseImplicitTypeHelper.Instance.AnalyzeTypeName(typeName, semanticModel, options, cancellationToken);
 
-    protected override Task HandleDeclarationAsync(Document document, SyntaxEditor editor, TypeSyntax type, CancellationToken cancellationToken)
+    protected override async Task HandleDeclarationAsync(Document document, SyntaxEditor editor, TypeSyntax type, CancellationToken cancellationToken)
     {
         UseImplicitTypeCodeFixProvider.ReplaceTypeWithVar(editor, type);
-        return Task.CompletedTask;
     }
 }
