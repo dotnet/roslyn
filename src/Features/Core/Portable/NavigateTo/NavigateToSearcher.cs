@@ -252,10 +252,10 @@ internal sealed class NavigateToSearcher
                 cancellationToken).ConfigureAwait(false);
 
             if (searchRegularDocuments)
-                await SearchFullyLoadedProjectsAsync(orderedProjects, seenItems, cancellationToken).ConfigureAwait(false);
+                await SearchFullyLoadedProjectsAsync(orderedProjects, seenItems, searchGeneratedDocuments, cancellationToken).ConfigureAwait(false);
 
             if (searchGeneratedDocuments)
-                await SearchGeneratedDocumentsAsync(orderedProjects, seenItems, cancellationToken).ConfigureAwait(false);
+                await SearchSourceGeneratedDocumentsAsync(orderedProjects, seenItems, cancellationToken).ConfigureAwait(false);
         }
         else
         {
@@ -413,6 +413,7 @@ internal sealed class NavigateToSearcher
     private Task SearchFullyLoadedProjectsAsync(
         ImmutableArray<ImmutableArray<Project>> orderedProjects,
         HashSet<INavigateToSearchResult> seenItems,
+        bool searchGeneratedCode,
         CancellationToken cancellationToken)
     {
         // Search the fully loaded project in parallel.  We know this will be called after we've already hydrated the 
@@ -424,7 +425,7 @@ internal sealed class NavigateToSearcher
             orderedProjects,
             seenItems,
             (s, ps, cb1, cb2) => s.SearchProjectsAsync(
-                _solution, ps, GetPriorityDocuments(ps), _searchPattern, _kinds, _activeDocument, cb1, cb2, cancellationToken),
+                _solution, ps, GetPriorityDocuments(ps), _searchPattern, _kinds, searchGeneratedCode, _activeDocument, cb1, cb2, cancellationToken),
             cancellationToken);
     }
 
@@ -460,7 +461,7 @@ internal sealed class NavigateToSearcher
             cancellationToken);
     }
 
-    private Task SearchGeneratedDocumentsAsync(
+    private Task SearchSourceGeneratedDocumentsAsync(
         ImmutableArray<ImmutableArray<Project>> orderedProjects,
         HashSet<INavigateToSearchResult> seenItems,
         CancellationToken cancellationToken)
@@ -509,7 +510,7 @@ internal sealed class NavigateToSearcher
                 }
                 else
                 {
-                    await advancedService.SearchGeneratedDocumentsAsync(
+                    await advancedService.SearchSourceGeneratedDocumentsAsync(
                         _solution, projects, _searchPattern, _kinds, _activeDocument, onResultsFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
                 }
             },
@@ -533,7 +534,7 @@ internal sealed class NavigateToSearcher
         public Task SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
-        public async Task SearchProjectsAsync(Solution solution, ImmutableArray<Project> projects, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
+        public async Task SearchProjectsAsync(Solution solution, ImmutableArray<Project> projects, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, bool searchGeneratedCode, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
         {
             foreach (var _ in projects)
                 await onProjectCompleted().ConfigureAwait(false);

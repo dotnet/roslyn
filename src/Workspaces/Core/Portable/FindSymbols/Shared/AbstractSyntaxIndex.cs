@@ -16,7 +16,7 @@ internal abstract partial class AbstractSyntaxIndex<TIndex>
     where TIndex : AbstractSyntaxIndex<TIndex>
 {
     protected delegate TIndex? IndexReader(StringTable stringTable, ObjectReader reader, Checksum? checksum);
-    protected delegate TIndex IndexCreator(ProjectState project, SyntaxNode root, Checksum checksum, CancellationToken cancellationToken);
+    protected delegate TIndex IndexCreator(ProjectState project, SyntaxTree tree, Checksum checksum, CancellationToken cancellationToken);
 
     private static readonly ConditionalWeakTable<DocumentState, TIndex?> s_documentToIndex = new();
     private static readonly ConditionalWeakTable<DocumentId, TIndex?> s_documentIdToIndex = new();
@@ -139,7 +139,7 @@ internal abstract partial class AbstractSyntaxIndex<TIndex>
 
         var checksum = root.ContainsDirectives && ContainsIfDirective(root, ifDirectiveKind) ? textAndDirectivesChecksum : textChecksum;
 
-        return create(project, root, checksum, cancellationToken);
+        return create(project, syntaxTree, checksum, cancellationToken);
     }
 
     private static bool ContainsIfDirective(SyntaxNode node, int ifDirectiveKind)
