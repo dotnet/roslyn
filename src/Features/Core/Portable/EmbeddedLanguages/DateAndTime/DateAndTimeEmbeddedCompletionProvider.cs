@@ -212,7 +212,7 @@ internal sealed partial class DateAndTimeEmbeddedCompletionProvider(DateAndTimeE
         context.AddCustom("/", FeaturesResources.date_separator, FeaturesResources.date_separator_description);
     }
 
-    public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
+    public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
     {
         // These values have always been added by us.
         var startString = item.GetProperty(StartKey);
@@ -223,16 +223,16 @@ internal sealed partial class DateAndTimeEmbeddedCompletionProvider(DateAndTimeE
         Contract.ThrowIfNull(lengthString);
         Contract.ThrowIfNull(newText);
 
-        return CompletionChange.Create(
-            new TextChange(new TextSpan(int.Parse(startString), int.Parse(lengthString)), newText));
+        return Task.FromResult(CompletionChange.Create(
+            new TextChange(new TextSpan(int.Parse(startString), int.Parse(lengthString)), newText)));
     }
 
-    public override async Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+    public override Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
     {
         if (!item.TryGetProperty(DescriptionKey, out var description))
-            return null;
+            return SpecializedTasks.Null<CompletionDescription>();
 
-        return (CompletionDescription?)CompletionDescription.Create(
-            [new TaggedText(TextTags.Text, description)]);
+        return Task.FromResult((CompletionDescription?)CompletionDescription.Create(
+            [new TaggedText(TextTags.Text, description)]));
     }
 }

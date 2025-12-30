@@ -65,7 +65,7 @@ internal sealed class UseRecursivePatternsCodeRefactoringProvider : SyntaxEditor
         context.RegisterRefactoring(
             CodeAction.Create(
                 CSharpFeaturesResources.Use_recursive_patterns,
-                async _ => document.WithSyntaxRoot(replacementFunc(root)),
+                _ => Task.FromResult(document.WithSyntaxRoot(replacementFunc(root))),
                 nameof(CSharpFeaturesResources.Use_recursive_patterns)));
     }
 

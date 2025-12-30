@@ -169,7 +169,7 @@ internal sealed class OrganizeDocumentCommandHandler(
         => ExecuteCommand(
             args, context,
             // Only need syntax for this operation.
-            async (snapshot, context) => snapshot.GetOpenDocumentInCurrentContextWithChanges(),
+            (snapshot, context) => Task.FromResult(snapshot.GetOpenDocumentInCurrentContextWithChanges()),
             async (document, cancellationToken) =>
             {
                 var organizeImportsService = document.GetRequiredLanguageService<IOrganizeImportsService>();

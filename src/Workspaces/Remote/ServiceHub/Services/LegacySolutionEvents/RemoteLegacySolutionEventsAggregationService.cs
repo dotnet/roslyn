@@ -24,11 +24,11 @@ internal sealed class RemoteLegacySolutionEventsAggregationService : BrokeredSer
     public ValueTask<bool> ShouldReportChangesAsync(CancellationToken cancellationToken)
     {
         return RunServiceImplAsync(
-            async cancellationToken =>
+            cancellationToken =>
             {
                 var services = this.GetWorkspaceServices();
                 var aggregationService = services.GetRequiredService<ILegacySolutionEventsAggregationService>();
-                return aggregationService.ShouldReportChanges(services);
+                return new ValueTask<bool>(aggregationService.ShouldReportChanges(services));
             },
             cancellationToken);
     }

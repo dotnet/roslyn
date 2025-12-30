@@ -35,12 +35,12 @@ internal sealed partial class ManagedHotReloadLanguageService(
         public static readonly PdbMatchingSourceTextProvider Instance = new();
 
         // Returning null will check the file on disk:
-        public async ValueTask<string?> TryGetMatchingSourceTextAsync(string filePath, ImmutableArray<byte> requiredChecksum, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
-            => null;
+        public ValueTask<string?> TryGetMatchingSourceTextAsync(string filePath, ImmutableArray<byte> requiredChecksum, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
+            => ValueTask.FromResult<string?>(null);
     }
 
     private static readonly ActiveStatementSpanProvider s_emptyActiveStatementProvider =
-        async (_, _, _) => ImmutableArray<ActiveStatementSpan>.Empty;
+        (_, _, _) => ValueTask.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
     private readonly ManagedHotReloadServiceProxy _debuggerService = new(serviceBrokerProvider.ServiceBroker);
     private readonly SolutionSnapshotProviderProxy _solutionSnapshotProvider = new(serviceBrokerProvider.ServiceBroker);
@@ -99,11 +99,11 @@ internal sealed partial class ManagedHotReloadLanguageService(
         }
     }
 
-    private async ValueTask BreakStateOrCapabilitiesChangedAsync(bool? inBreakState, CancellationToken cancellationToken)
+    private ValueTask BreakStateOrCapabilitiesChangedAsync(bool? inBreakState, CancellationToken cancellationToken)
     {
         if (_disabled)
         {
-            return;
+            return ValueTask.CompletedTask;
         }
 
         try
@@ -115,6 +115,8 @@ internal sealed partial class ManagedHotReloadLanguageService(
         {
             Disable();
         }
+
+        return ValueTask.CompletedTask;
     }
 
     public ValueTask EnterBreakStateAsync(CancellationToken cancellationToken)
@@ -126,11 +128,11 @@ internal sealed partial class ManagedHotReloadLanguageService(
     public ValueTask OnCapabilitiesChangedAsync(CancellationToken cancellationToken)
         => BreakStateOrCapabilitiesChangedAsync(inBreakState: null, cancellationToken);
 
-    public async ValueTask CommitUpdatesAsync(CancellationToken cancellationToken)
+    public ValueTask CommitUpdatesAsync(CancellationToken cancellationToken)
     {
         if (_disabled)
         {
-            return;
+            return ValueTask.CompletedTask;
         }
 
         try
@@ -147,17 +149,19 @@ internal sealed partial class ManagedHotReloadLanguageService(
         {
             Disable();
         }
+
+        return ValueTask.CompletedTask;
     }
 
     [Obsolete]
     public ValueTask UpdateBaselinesAsync(ImmutableArray<string> projectPaths, CancellationToken cancellationToken)
         => throw new NotImplementedException();
 
-    public async ValueTask DiscardUpdatesAsync(CancellationToken cancellationToken)
+    public ValueTask DiscardUpdatesAsync(CancellationToken cancellationToken)
     {
         if (_disabled)
         {
-            return;
+            return ValueTask.CompletedTask;
         }
 
         try
@@ -171,13 +175,15 @@ internal sealed partial class ManagedHotReloadLanguageService(
         {
             Disable();
         }
+
+        return ValueTask.CompletedTask;
     }
 
-    public async ValueTask EndSessionAsync(CancellationToken cancellationToken)
+    public ValueTask EndSessionAsync(CancellationToken cancellationToken)
     {
         if (_disabled)
         {
-            return;
+            return ValueTask.CompletedTask;
         }
 
         try
@@ -194,6 +200,8 @@ internal sealed partial class ManagedHotReloadLanguageService(
         {
             Disable();
         }
+
+        return ValueTask.CompletedTask;
     }
 
     /// <summary>

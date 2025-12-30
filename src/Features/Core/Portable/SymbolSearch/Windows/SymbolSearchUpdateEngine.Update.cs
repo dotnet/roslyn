@@ -62,7 +62,7 @@ internal sealed partial class SymbolSearchUpdateEngine
     /// Currently used only in tests so we can shutdown gracefully.  In normal VS+OOP scenarios
     /// we don't care about this and we just get torn down when the OOP process goes down.
     /// </param>
-    public async ValueTask UpdateContinuouslyAsync(string source, string localSettingsDirectory, CancellationToken cancellationToken)
+    public ValueTask UpdateContinuouslyAsync(string source, string localSettingsDirectory, CancellationToken cancellationToken)
     {
         // Only the first thread to try to update this source should succeed
         // and cause us to actually begin the update loop. 
@@ -72,12 +72,12 @@ internal sealed partial class SymbolSearchUpdateEngine
         if (ourSentinel != currentSentinel)
         {
             // We already have an update loop for this source.  Nothing for us to do.
-            return;
+            return default;
         }
 
         // We were the first ones to try to update this source.  Spawn off a task to do
         // the updating.
-        await new Updater(this, source, localSettingsDirectory).UpdateInBackgroundAsync(cancellationToken).ConfigureAwait(false);
+        return new Updater(this, source, localSettingsDirectory).UpdateInBackgroundAsync(cancellationToken);
     }
 
     private static void LogInfo(string text)

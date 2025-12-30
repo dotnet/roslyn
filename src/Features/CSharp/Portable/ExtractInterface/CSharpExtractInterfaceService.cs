@@ -63,7 +63,7 @@ internal sealed class CSharpExtractInterfaceService : AbstractExtractInterfaceSe
         return typeDeclaration.Modifiers.Any(m => SyntaxFacts.IsAccessibilityModifier(m.Kind()));
     }
 
-    protected override async Task<Solution> UpdateMembersWithExplicitImplementationsAsync(
+    protected override Task<Solution> UpdateMembersWithExplicitImplementationsAsync(
         Solution unformattedSolution, IReadOnlyList<DocumentId> documentIds,
         INamedTypeSymbol extractedInterface, INamedTypeSymbol typeToExtractFrom,
         IEnumerable<ISymbol> includedMembers, ImmutableDictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationMap,
@@ -72,6 +72,6 @@ internal sealed class CSharpExtractInterfaceService : AbstractExtractInterfaceSe
         // In C#, member implementations do not always need
         // to be explicitly added. It's safe enough to return
         // the passed in solution
-        return unformattedSolution;
+        return Task.FromResult(unformattedSolution);
     }
 }

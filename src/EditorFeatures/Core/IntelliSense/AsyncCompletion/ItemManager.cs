@@ -50,7 +50,7 @@ internal sealed partial class ItemManager : IAsyncCompletionItemManager2
         throw new NotImplementedException();
     }
 
-    public async Task<CompletionList<VSCompletionItem>> SortCompletionItemListAsync(
+    public Task<CompletionList<VSCompletionItem>> SortCompletionItemListAsync(
         IAsyncCompletionSession session,
         AsyncCompletionSessionInitialDataSnapshot data,
         CancellationToken cancellationToken)
@@ -73,7 +73,7 @@ internal sealed partial class ItemManager : IAsyncCompletionItemManager2
         }
 
         AsyncCompletionLogger.LogItemManagerSortTicksDataPoint(stopwatch.Elapsed);
-        return itemList;
+        return Task.FromResult(itemList);
     }
 
     private static void SortCompletionItems(List<VSCompletionItem> list, AsyncCompletionSessionInitialDataSnapshot data, CancellationToken cancellationToken)

@@ -23,15 +23,15 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo;
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
 internal sealed class CSharpSyntacticQuickInfoProvider() : CommonQuickInfoProvider
 {
-    protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
+    protected override Task<QuickInfoItem?> BuildQuickInfoAsync(
         QuickInfoContext context,
         SyntaxToken token)
-        => BuildQuickInfo(token, context.CancellationToken);
+        => Task.FromResult(BuildQuickInfo(token, context.CancellationToken));
 
-    protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
+    protected override Task<QuickInfoItem?> BuildQuickInfoAsync(
         CommonQuickInfoContext context,
         SyntaxToken token)
-        => BuildQuickInfo(token, context.CancellationToken);
+        => Task.FromResult(BuildQuickInfo(token, context.CancellationToken));
 
     private static QuickInfoItem? BuildQuickInfo(SyntaxToken token, CancellationToken cancellationToken)
     {

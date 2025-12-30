@@ -18,7 +18,7 @@ internal sealed partial class Controller
             this.Computation.ThreadingContext.ThrowIfNotOnUIThread();
 
             Computation.ChainTaskAndNotifyControllerWhenFinished(
-                async (model, cancellationToken) => SetModelExplicitlySelectedItemInBackground(model, selector),
+                (model, cancellationToken) => Task.FromResult(SetModelExplicitlySelectedItemInBackground(model, selector)),
                 updateController: false);
         }
 
