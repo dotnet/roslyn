@@ -5654,5 +5654,28 @@ public class Y { }
                 //     public void M(Y y)
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Y").WithArguments("Y").WithLocation(4, 19).WithWarningAsError(true));
         }
+
+        [Fact]
+        public void Nullability_PropertyAccess_07()
+        {
+            
+            var src = """
+#nullable enable
+
+object? oNotNull = new object();
+oNotNull.P = null; // 1
+E.set_P(oNotNull, null);
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public T P { set => throw null!; }
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+        }
     }
 }
