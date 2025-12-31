@@ -146,7 +146,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
 
                     var batchAttributeRemoveFix = CodeAction.Create(
                         attributeRemoveFixes.First().Title,
-                        createChangedSolution: async ct => currentSolution,
+                        createChangedSolution: ct => Task.FromResult(currentSolution),
                         equivalenceKey: fixAllState.CodeActionEquivalenceKey);
 
                     newBatchOfFixes.Insert(0, (diagnostic: null, batchAttributeRemoveFix));

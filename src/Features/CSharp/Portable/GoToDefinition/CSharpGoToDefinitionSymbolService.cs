@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GoToDefinition;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpGoToDefinitionSymbolService() : AbstractGoToDefinitionSymbolService
 {
-    protected override async Task<ISymbol> FindRelatedExplicitlyDeclaredSymbolAsync(Project project, ISymbol symbol, CancellationToken cancellationToken)
-        => symbol;
+    protected override Task<ISymbol> FindRelatedExplicitlyDeclaredSymbolAsync(Project project, ISymbol symbol, CancellationToken cancellationToken)
+        => Task.FromResult(symbol);
 
     protected override int? GetTargetPositionIfControlFlow(SemanticModel semanticModel, SyntaxToken token)
     {

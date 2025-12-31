@@ -200,9 +200,10 @@ internal abstract partial class AbstractInProcLanguageClient(
     /// Signals the extension that the language server has been successfully initialized.
     /// </summary>
     /// <returns>A <see cref="Task"/> which completes when actions that need to be performed when the server is ready are done.</returns>
-    public async Task OnServerInitializedAsync()
+    public Task OnServerInitializedAsync()
     {
         // We don't have any tasks that need to be triggered after the server has successfully initialized.
+        return Task.CompletedTask;
     }
 
     internal async Task<AbstractLanguageServer<RequestContext>> CreateAsync<TRequestContext>(
@@ -264,12 +265,12 @@ internal abstract partial class AbstractInProcLanguageClient(
 
     public abstract ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities);
 
-    public async Task<InitializationFailureContext?> OnServerInitializeFailedAsync(ILanguageClientInitializationInfo initializationState)
+    public Task<InitializationFailureContext?> OnServerInitializeFailedAsync(ILanguageClientInitializationInfo initializationState)
     {
         var initializationFailureContext = new InitializationFailureContext();
         initializationFailureContext.FailureMessage = string.Format(EditorFeaturesResources.Language_client_initialization_failed,
             Name, initializationState.StatusMessage, initializationState.InitializationException?.ToString());
-        return initializationFailureContext;
+        return Task.FromResult<InitializationFailureContext?>(initializationFailureContext);
     }
 
     /// <summary>

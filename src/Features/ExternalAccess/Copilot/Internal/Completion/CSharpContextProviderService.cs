@@ -27,10 +27,12 @@ internal sealed class CSharpContextProviderService([ImportMany] IEnumerable<ICon
             static async (provider, callback, args, cancellationToken) =>
                 await provider.ProvideContextItemsAsync(
                     args.document, args.position, args.activeExperiments,
-                    async (items, cancellationToken) =>
+                    (items, cancellationToken) =>
                     {
                         foreach (var item in items)
                             callback(item);
+
+                        return default;
                     }, cancellationToken).ConfigureAwait(false),
             args: (document, position, activeExperiments),
             cancellationToken);

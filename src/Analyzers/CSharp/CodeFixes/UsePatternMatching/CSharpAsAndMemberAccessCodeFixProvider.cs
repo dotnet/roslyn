@@ -30,17 +30,20 @@ internal sealed partial class CSharpAsAndMemberAccessCodeFixProvider() : SyntaxE
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UsePatternMatchingAsAndMemberAccessDiagnosticId];
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Use_pattern_matching, nameof(CSharpAnalyzersResources.Use_pattern_matching));
+        return Task.CompletedTask;
     }
 
-    protected override async Task FixAllAsync(
+    protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
         foreach (var diagnostic in diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start))
             FixOne(editor, diagnostic, cancellationToken);
+
+        return Task.CompletedTask;
     }
 
     private static void FixOne(SyntaxEditor editor, Diagnostic diagnostic, CancellationToken cancellationToken)

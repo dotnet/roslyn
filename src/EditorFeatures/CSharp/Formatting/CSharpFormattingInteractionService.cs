@@ -73,7 +73,7 @@ internal sealed class CSharpFormattingInteractionService(EditorOptionsService ed
         return s_supportedChars.IndexOf(ch) >= 0;
     }
 
-    public async Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(
+    public Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(
         Document document,
         ITextBuffer textBuffer,
         TextSpan? textSpan,
@@ -85,21 +85,21 @@ internal sealed class CSharpFormattingInteractionService(EditorOptionsService ed
         var span = textSpan ?? new TextSpan(0, parsedDocument.Root.FullSpan.Length);
         var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(parsedDocument.Root, span);
 
-        return Formatter.GetFormattedTextChanges(parsedDocument.Root, [formattingSpan], document.Project.Solution.Services, options, cancellationToken).ToImmutableArray();
+        return Task.FromResult(Formatter.GetFormattedTextChanges(parsedDocument.Root, [formattingSpan], document.Project.Solution.Services, options, cancellationToken).ToImmutableArray());
     }
 
-    public async Task<ImmutableArray<TextChange>> GetFormattingChangesOnPasteAsync(Document document, ITextBuffer textBuffer, TextSpan textSpan, CancellationToken cancellationToken)
+    public Task<ImmutableArray<TextChange>> GetFormattingChangesOnPasteAsync(Document document, ITextBuffer textBuffer, TextSpan textSpan, CancellationToken cancellationToken)
     {
         var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
         var options = textBuffer.GetSyntaxFormattingOptions(_editorOptionsService, document.Project.GetFallbackAnalyzerOptions(), parsedDocument.LanguageServices, explicitFormat: true);
         var service = parsedDocument.LanguageServices.GetRequiredService<ISyntaxFormattingService>();
-        return service.GetFormattingChangesOnPaste(parsedDocument, textSpan, options, cancellationToken);
+        return Task.FromResult(service.GetFormattingChangesOnPaste(parsedDocument, textSpan, options, cancellationToken));
     }
 
-    public async Task<ImmutableArray<TextChange>> GetFormattingChangesOnReturnAsync(Document document, int caretPosition, CancellationToken cancellationToken)
-        => [];
+    public Task<ImmutableArray<TextChange>> GetFormattingChangesOnReturnAsync(Document document, int caretPosition, CancellationToken cancellationToken)
+        => SpecializedTasks.EmptyImmutableArray<TextChange>();
 
-    public async Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(Document document, ITextBuffer textBuffer, char typedChar, int position, CancellationToken cancellationToken)
+    public Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(Document document, ITextBuffer textBuffer, char typedChar, int position, CancellationToken cancellationToken)
     {
         var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
         var service = parsedDocument.LanguageServices.GetRequiredService<ISyntaxFormattingService>();
@@ -107,9 +107,9 @@ internal sealed class CSharpFormattingInteractionService(EditorOptionsService ed
         if (service.ShouldFormatOnTypedCharacter(parsedDocument, typedChar, position, cancellationToken))
         {
             var indentationOptions = textBuffer.GetIndentationOptions(_editorOptionsService, document.Project.GetFallbackAnalyzerOptions(), parsedDocument.LanguageServices, explicitFormat: false);
-            return service.GetFormattingChangesOnTypedCharacter(parsedDocument, position, indentationOptions, cancellationToken);
+            return Task.FromResult(service.GetFormattingChangesOnTypedCharacter(parsedDocument, position, indentationOptions, cancellationToken));
         }
 
-        return [];
+        return SpecializedTasks.EmptyImmutableArray<TextChange>();
     }
 }

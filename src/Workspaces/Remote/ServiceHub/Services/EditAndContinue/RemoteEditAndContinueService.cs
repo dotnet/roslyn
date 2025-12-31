@@ -82,13 +82,13 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
     /// </summary>
     public ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, bool reportDiagnostics, CancellationToken cancellationToken)
     {
-        return RunServiceAsync(solutionChecksum, async solution =>
+        return RunServiceAsync(solutionChecksum, solution =>
         {
             var debuggerService = new ManagedEditAndContinueDebuggerService(_callback, callbackId);
             var sourceTextProvider = new SourceTextProvider(_callback, callbackId);
 
             var sessionId = GetService().StartDebuggingSession(solution, debuggerService, sourceTextProvider, reportDiagnostics);
-            return sessionId;
+            return ValueTask.FromResult(sessionId);
         }, cancellationToken);
     }
 
@@ -97,9 +97,10 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
     /// </summary>
     public ValueTask BreakStateOrCapabilitiesChangedAsync(DebuggingSessionId sessionId, bool? inBreakState, CancellationToken cancellationToken)
     {
-        return RunServiceAsync(async cancellationToken =>
+        return RunServiceAsync(cancellationToken =>
         {
             GetService().BreakStateOrCapabilitiesChanged(sessionId, inBreakState);
+            return ValueTask.CompletedTask;
         }, cancellationToken);
     }
 
@@ -108,9 +109,10 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
     /// </summary>
     public ValueTask EndDebuggingSessionAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken)
     {
-        return RunServiceAsync(async cancellationToken =>
+        return RunServiceAsync(cancellationToken =>
         {
             GetService().EndDebuggingSession(sessionId);
+            return ValueTask.CompletedTask;
         }, cancellationToken);
     }
 
@@ -161,9 +163,10 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
     /// </summary>
     public ValueTask CommitSolutionUpdateAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken)
     {
-        return RunServiceAsync(async cancellationToken =>
+        return RunServiceAsync(cancellationToken =>
         {
             GetService().CommitSolutionUpdate(sessionId);
+            return ValueTask.CompletedTask;
         }, cancellationToken);
     }
 
@@ -172,9 +175,10 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
     /// </summary>
     public ValueTask DiscardSolutionUpdateAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken)
     {
-        return RunServiceAsync(async cancellationToken =>
+        return RunServiceAsync(cancellationToken =>
         {
             GetService().DiscardSolutionUpdate(sessionId);
+            return default;
         }, cancellationToken);
     }
 
@@ -206,9 +210,10 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
     /// </summary>
     public ValueTask SetFileLoggingDirectoryAsync(string? logDirectory, CancellationToken cancellationToken)
     {
-        return RunServiceAsync(async cancellationToken =>
+        return RunServiceAsync(cancellationToken =>
         {
             GetService().SetFileLoggingDirectory(logDirectory);
+            return default;
         }, cancellationToken);
     }
 }

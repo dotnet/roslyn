@@ -46,11 +46,11 @@ public sealed class ExtractClassTests
             return [new CSharpExtractClassCodeRefactoringProvider(service)];
         }
 
-        protected override async Task<Workspace> CreateWorkspaceImplAsync()
+        protected override Task<Workspace> CreateWorkspaceImplAsync()
         {
             var unusedCompilationOptions = new CSharpCompilationOptions(OutputKind.NetModule);
             var unusedParseOptions = new CSharpParseOptions(LanguageVersion.CSharp1);
-            return TestWorkspace.Create(WorkspaceKind, LanguageNames.CSharp, unusedCompilationOptions, unusedParseOptions);
+            return Task.FromResult<Workspace>(TestWorkspace.Create(WorkspaceKind, LanguageNames.CSharp, unusedCompilationOptions, unusedParseOptions));
         }
     }
 
