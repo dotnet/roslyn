@@ -113,11 +113,11 @@ internal sealed class TupleNameCompletionProvider : LSPCompletionProvider
         }
     }
 
-    protected override async Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+    protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
     {
-        return new TextChange(
+        return Task.FromResult<TextChange?>(new TextChange(
             selectedItem.Span,
-            selectedItem.DisplayText);
+            selectedItem.DisplayText));
     }
 
     public override ImmutableHashSet<char> TriggerCharacters => [];

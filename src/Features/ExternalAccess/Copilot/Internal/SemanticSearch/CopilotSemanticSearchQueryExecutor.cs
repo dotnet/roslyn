@@ -34,8 +34,8 @@ internal sealed class CopilotSemanticSearchQueryExecutor(IHostWorkspaceProvider 
         /// <summary>
         /// We only use symbol display names, classification is not relevant.
         /// </summary>
-        public async ValueTask<ClassificationOptions> GetClassificationOptionsAsync(LanguageServices language, CancellationToken cancellationToken)
-            => ClassificationOptions.Default;
+        public ValueTask<ClassificationOptions> GetClassificationOptionsAsync(LanguageServices language, CancellationToken cancellationToken)
+            => new(ClassificationOptions.Default);
 
         public ValueTask AddItemsAsync(int itemCount, CancellationToken cancellationToken)
             => ValueTask.CompletedTask;
@@ -43,13 +43,14 @@ internal sealed class CopilotSemanticSearchQueryExecutor(IHostWorkspaceProvider 
         public ValueTask ItemsCompletedAsync(int itemCount, CancellationToken cancellationToken)
             => ValueTask.CompletedTask;
 
-        public async ValueTask OnUserCodeExceptionAsync(UserCodeExceptionInfo exception, CancellationToken cancellationToken)
+        public ValueTask OnUserCodeExceptionAsync(UserCodeExceptionInfo exception, CancellationToken cancellationToken)
         {
             RuntimeException ??= $"{exception.TypeName.ToVisibleDisplayString(includeLeftToRightMarker: false)}: {exception.Message}{Environment.NewLine}{exception.StackTrace.ToVisibleDisplayString(includeLeftToRightMarker: false)}";
             cancellationSource.Cancel();
+            return ValueTask.CompletedTask;
         }
 
-        public async ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
+        public ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
         {
             if (!ImmutableInterlocked.Update(ref _results,
                 list => list.Count == resultCountLimit ? list : list.Add(definition.NameDisplayParts.ToVisibleDisplayString(includeLeftToRightMarker: false))))
@@ -57,6 +58,8 @@ internal sealed class CopilotSemanticSearchQueryExecutor(IHostWorkspaceProvider 
                 LimitReached = true;
                 cancellationSource.Cancel();
             }
+
+            return ValueTask.CompletedTask;
         }
 
         public ValueTask OnDocumentUpdatedAsync(DocumentId documentId, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)

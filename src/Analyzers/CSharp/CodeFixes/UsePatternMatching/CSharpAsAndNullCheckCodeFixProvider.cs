@@ -30,9 +30,10 @@ internal sealed partial class CSharpAsAndNullCheckCodeFixProvider() : SyntaxEdit
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.InlineAsTypeCheckId];
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Use_pattern_matching, nameof(CSharpAnalyzersResources.Use_pattern_matching));
+        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(

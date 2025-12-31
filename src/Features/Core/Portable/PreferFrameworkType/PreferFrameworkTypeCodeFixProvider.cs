@@ -23,13 +23,15 @@ internal sealed class PreferFrameworkTypeCodeFixProvider() : SyntaxEditorBasedCo
     public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
         = [IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId];
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var diagnostic = context.Diagnostics[0];
         if (diagnostic.Properties.ContainsKey(PreferFrameworkTypeConstants.PreferFrameworkType))
         {
             RegisterCodeFix(context, FeaturesResources.Use_framework_type, nameof(FeaturesResources.Use_framework_type));
         }
+
+        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(

@@ -186,8 +186,8 @@ public class TestHostDocument
         internal override string? FilePath
             => _hostDocument.FilePath;
 
-        public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
-            => TextAndVersion.Create(SourceText.From(_text, encoding: Encoding.UTF8, options.ChecksumAlgorithm), VersionStamp.Create(), _hostDocument.FilePath);
+        public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+            => Task.FromResult(TextAndVersion.Create(SourceText.From(_text, encoding: Encoding.UTF8, options.ChecksumAlgorithm), VersionStamp.Create(), _hostDocument.FilePath));
     }
 
     public TextLoader Loader => _loader;

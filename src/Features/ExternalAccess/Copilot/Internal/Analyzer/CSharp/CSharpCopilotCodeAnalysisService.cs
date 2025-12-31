@@ -59,58 +59,60 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
         GenerateImplementationService = externalCSharpCopilotGenerateImplementationService;
     }
 
-    protected override async Task<ImmutableArray<Diagnostic>> AnalyzeDocumentCoreAsync(Document document, TextSpan? span, string promptTitle, CancellationToken cancellationToken)
+    protected override Task<ImmutableArray<Diagnostic>> AnalyzeDocumentCoreAsync(Document document, TextSpan? span, string promptTitle, CancellationToken cancellationToken)
     {
         if (AnalysisService is not null)
-            return await AnalysisService.AnalyzeDocumentAsync(document, span, promptTitle, cancellationToken).ConfigureAwait(false);
+            return AnalysisService.AnalyzeDocumentAsync(document, span, promptTitle, cancellationToken);
 
-        return ImmutableArray<Diagnostic>.Empty;
+        return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
     }
 
-    protected override async Task<ImmutableArray<string>> GetAvailablePromptTitlesCoreAsync(Document document, CancellationToken cancellationToken)
+    protected override Task<ImmutableArray<string>> GetAvailablePromptTitlesCoreAsync(Document document, CancellationToken cancellationToken)
     {
         if (AnalysisService is not null)
-            return await AnalysisService.GetAvailablePromptTitlesAsync(document, cancellationToken).ConfigureAwait(false);
+            return AnalysisService.GetAvailablePromptTitlesAsync(document, cancellationToken);
 
-        return ImmutableArray<string>.Empty;
+        return Task.FromResult(ImmutableArray<string>.Empty);
     }
 
-    protected override async Task<ImmutableArray<Diagnostic>> GetCachedDiagnosticsCoreAsync(Document document, string promptTitle, CancellationToken cancellationToken)
+    protected override Task<ImmutableArray<Diagnostic>> GetCachedDiagnosticsCoreAsync(Document document, string promptTitle, CancellationToken cancellationToken)
     {
         if (AnalysisService is not null)
-            return await AnalysisService.GetCachedDiagnosticsAsync(document, promptTitle, cancellationToken).ConfigureAwait(false);
+            return AnalysisService.GetCachedDiagnosticsAsync(document, promptTitle, cancellationToken);
 
-        return ImmutableArray<Diagnostic>.Empty;
+        return Task.FromResult(ImmutableArray<Diagnostic>.Empty);
     }
 
-    protected override async Task<bool> IsAvailableCoreAsync(CancellationToken cancellationToken)
+    protected override Task<bool> IsAvailableCoreAsync(CancellationToken cancellationToken)
     {
         if (AnalysisService is not null)
-            return await AnalysisService.IsAvailableAsync(cancellationToken).ConfigureAwait(false);
+            return AnalysisService.IsAvailableAsync(cancellationToken);
 
-        return false;
+        return Task.FromResult(false);
     }
 
-    protected override async Task StartRefinementSessionCoreAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken)
+    protected override Task StartRefinementSessionCoreAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken)
     {
         if (AnalysisService is not null)
-            await AnalysisService.StartRefinementSessionAsync(oldDocument, newDocument, primaryDiagnostic, cancellationToken).ConfigureAwait(false);
+            return AnalysisService.StartRefinementSessionAsync(oldDocument, newDocument, primaryDiagnostic, cancellationToken);
+
+        return Task.CompletedTask;
     }
 
-    protected override async Task<string> GetOnTheFlyDocsPromptCoreAsync(OnTheFlyDocsInfo onTheFlyDocsInfo, CancellationToken cancellationToken)
+    protected override Task<string> GetOnTheFlyDocsPromptCoreAsync(OnTheFlyDocsInfo onTheFlyDocsInfo, CancellationToken cancellationToken)
     {
         if (OnTheFlyDocsService is not null)
-            return await OnTheFlyDocsService.GetOnTheFlyDocsPromptAsync(new CopilotOnTheFlyDocsInfoWrapper(onTheFlyDocsInfo), cancellationToken).ConfigureAwait(false);
+            return OnTheFlyDocsService.GetOnTheFlyDocsPromptAsync(new CopilotOnTheFlyDocsInfoWrapper(onTheFlyDocsInfo), cancellationToken);
 
-        return string.Empty;
+        return Task.FromResult(string.Empty);
     }
 
-    protected override async Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsResponseCoreAsync(string prompt, CancellationToken cancellationToken)
+    protected override Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsResponseCoreAsync(string prompt, CancellationToken cancellationToken)
     {
         if (OnTheFlyDocsService is not null)
-            return await OnTheFlyDocsService.GetOnTheFlyDocsResponseAsync(prompt, cancellationToken).ConfigureAwait(false);
+            return OnTheFlyDocsService.GetOnTheFlyDocsResponseAsync(prompt, cancellationToken);
 
-        return (string.Empty, false);
+        return Task.FromResult((string.Empty, false));
     }
 
     protected override async Task<ImmutableArray<Diagnostic>> GetDiagnosticsIntersectWithSpanAsync(
@@ -133,20 +135,20 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
         return filteredDiagnostics.ToImmutable();
     }
 
-    protected override async Task<bool> IsFileExcludedCoreAsync(string filePath, CancellationToken cancellationToken)
+    protected override Task<bool> IsFileExcludedCoreAsync(string filePath, CancellationToken cancellationToken)
     {
         if (AnalysisService is not null)
-            return await AnalysisService.IsFileExcludedAsync(filePath, cancellationToken).ConfigureAwait(false);
+            return AnalysisService.IsFileExcludedAsync(filePath, cancellationToken);
 
-        return false;
+        return Task.FromResult(false);
     }
 
-    protected override async Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentCoreAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken)
+    protected override Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentCoreAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken)
     {
         if (GenerateDocumentationService is not null)
-            return await GenerateDocumentationService.GetDocumentationCommentAsync(new CopilotDocumentationCommentProposalWrapper(proposal), cancellationToken).ConfigureAwait(false);
+            return GenerateDocumentationService.GetDocumentationCommentAsync(new CopilotDocumentationCommentProposalWrapper(proposal), cancellationToken);
 
-        return (null, false);
+        return Task.FromResult<(Dictionary<string, string>?, bool)>((null, false));
     }
 
     protected override bool IsImplementNotImplementedExceptionsAvailableCore()

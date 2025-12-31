@@ -196,11 +196,12 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
         };
     }
 
-    protected virtual async Task AddProjectFixesAsync(
+    protected virtual Task AddProjectFixesAsync(
         Project project, ImmutableArray<Diagnostic> diagnostics,
         ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
         FixAllState fixAllState, CancellationToken cancellationToken)
     {
+        return Task.CompletedTask;
     }
 
     public virtual async Task<CodeAction?> TryGetMergedFixAsync(
@@ -215,7 +216,7 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
         if (newSolution != null && newSolution != solution)
         {
             var title = FixAllHelper.GetDefaultFixAllTitle(fixAllState.Scope, title: fixAllState.DiagnosticIds.First(), fixAllState.Document!, fixAllState.Project);
-            return CodeAction.SolutionChangeAction.Create(title, async _ => newSolution, title);
+            return CodeAction.SolutionChangeAction.Create(title, _ => Task.FromResult(newSolution), title);
         }
 
         return null;

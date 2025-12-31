@@ -24,18 +24,18 @@ internal sealed class OutVariableArgumentProvider : ArgumentProvider
     {
     }
 
-    public override async Task ProvideArgumentAsync(ArgumentContext context)
+    public override Task ProvideArgumentAsync(ArgumentContext context)
     {
         if (context.PreviousValue is not null)
         {
             // This argument provider does not attempt to replace arguments already in code.
-            return;
+            return Task.CompletedTask;
         }
 
         if (context.Parameter.RefKind != RefKind.Out)
         {
             // This argument provider only considers 'out' parameters.
-            return;
+            return Task.CompletedTask;
         }
 
         // Since tihs provider runs after ContextVariableArgumentProvider, we know there is no suitable target in
@@ -60,5 +60,6 @@ internal sealed class OutVariableArgumentProvider : ArgumentProvider
                     []))));
 
         context.DefaultValue = syntax.NormalizeWhitespace().ToFullString();
+        return Task.CompletedTask;
     }
 }

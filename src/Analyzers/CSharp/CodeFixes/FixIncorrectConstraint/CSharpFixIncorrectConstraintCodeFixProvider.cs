@@ -60,7 +60,7 @@ internal sealed class CSharpFixIncorrectConstraintCodeFixProvider() : SyntaxEdit
         return enumOrDelegateKeyword.Kind() is SyntaxKind.EnumKeyword or SyntaxKind.DelegateKeyword;
     }
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var cancellationToken = context.CancellationToken;
 
@@ -69,6 +69,8 @@ internal sealed class CSharpFixIncorrectConstraintCodeFixProvider() : SyntaxEdit
         {
             RegisterCodeFix(context, CSharpCodeFixesResources.Fix_constraint, nameof(CSharpFixIncorrectConstraintCodeFixProvider));
         }
+
+        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(

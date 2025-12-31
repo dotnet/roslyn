@@ -27,17 +27,20 @@ internal sealed partial class CSharpUseTupleSwapCodeFixProvider() : SyntaxEditor
     public override ImmutableArray<string> FixableDiagnosticIds { get; }
         = [IDEDiagnosticIds.UseTupleSwapDiagnosticId];
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Use_tuple_to_swap_values, nameof(CSharpAnalyzersResources.Use_tuple_to_swap_values));
+        return Task.CompletedTask;
     }
 
-    protected override async Task FixAllAsync(
+    protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
         foreach (var diagnostic in diagnostics)
             FixOne(editor, diagnostic, cancellationToken);
+
+        return Task.CompletedTask;
     }
 
     private static void FixOne(

@@ -3436,7 +3436,7 @@ public sealed class CSharpMoveStaticMembersTests
 
         private readonly bool _testPreselection;
 
-        protected override async Task<Workspace> CreateWorkspaceImplAsync()
+        protected override Task<Workspace> CreateWorkspaceImplAsync()
         {
             var hostServices = s_testServices.GetHostServices();
 
@@ -3448,7 +3448,7 @@ public sealed class CSharpMoveStaticMembersTests
             testOptionsService.CreateNew = _createNew;
             testOptionsService.ExpectedPrecheckedMembers = _testPreselection ? _selection : [];
 
-            return workspace;
+            return Task.FromResult<Workspace>(workspace);
         }
     }
 

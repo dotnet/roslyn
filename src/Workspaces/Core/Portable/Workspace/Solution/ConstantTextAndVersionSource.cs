@@ -27,8 +27,8 @@ internal sealed class ConstantTextAndVersionSource(TextAndVersion value) : IText
     public TextAndVersion GetValue(LoadTextOptions options, CancellationToken cancellationToken)
         => _value;
 
-    public async Task<TextAndVersion> GetValueAsync(LoadTextOptions options, CancellationToken cancellationToken)
-        => _value;
+    public Task<TextAndVersion> GetValueAsync(LoadTextOptions options, CancellationToken cancellationToken)
+        => Task.FromResult(_value);
 
     public bool TryGetValue(LoadTextOptions options, [MaybeNullWhen(false)] out TextAndVersion value)
     {
@@ -42,6 +42,6 @@ internal sealed class ConstantTextAndVersionSource(TextAndVersion value) : IText
         return true;
     }
 
-    public async ValueTask<VersionStamp> GetVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
-        => _value.Version;
+    public ValueTask<VersionStamp> GetVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+        => new(_value.Version);
 }

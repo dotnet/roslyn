@@ -40,12 +40,12 @@ public abstract class QuickInfoService : ILanguageService
         return GetQuickInfoAsync(document, position, SymbolDescriptionOptions.Default, cancellationToken);
     }
 
-    internal virtual async Task<QuickInfoItem?> GetQuickInfoAsync(
+    internal virtual Task<QuickInfoItem?> GetQuickInfoAsync(
         Document document,
         int position,
         SymbolDescriptionOptions options,
         CancellationToken cancellationToken)
     {
-        return null;
+        return SpecializedTasks.Null<QuickInfoItem>();
     }
 }

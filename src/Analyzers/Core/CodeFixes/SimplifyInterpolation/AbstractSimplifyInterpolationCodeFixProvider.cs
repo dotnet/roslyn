@@ -37,9 +37,10 @@ internal abstract class AbstractSimplifyInterpolationCodeFixProvider<
     protected abstract TInterpolationSyntax WithFormatClause(TInterpolationSyntax interpolation, TInterpolationFormatClause? formatClause);
     protected abstract string Escape(TInterpolatedStringExpressionSyntax interpolatedString, string formatString);
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, AnalyzersResources.Simplify_interpolation, nameof(AnalyzersResources.Simplify_interpolation));
+        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(

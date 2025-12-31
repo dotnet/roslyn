@@ -133,7 +133,7 @@ internal sealed class CSharpImportAdder() : ImportAdderService
 
             await ProducerConsumer<INamespaceSymbol>.RunParallelAsync(
                 source: nodes,
-                produceItems: static async (node, onItemsFound, args, cancellationToken) =>
+                produceItems: static (node, onItemsFound, args, cancellationToken) =>
                 {
                     var (self, containsAnonymousMethods, _) = args;
                     if (node is SimpleNameSyntax nameSyntaxNode)
@@ -142,6 +142,8 @@ internal sealed class CSharpImportAdder() : ImportAdderService
                         self.ProduceConflicts(memberAccessExpressionNode, containsAnonymousMethods, onItemsFound, cancellationToken);
                     else
                         throw ExceptionUtilities.Unreachable();
+
+                    return Task.CompletedTask;
                 },
                 consumeItems: static async (items, args, cancellationToken) =>
                 {

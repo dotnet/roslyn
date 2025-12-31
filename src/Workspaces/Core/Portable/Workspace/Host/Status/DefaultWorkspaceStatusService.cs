@@ -22,14 +22,15 @@ internal sealed class DefaultWorkspaceStatusService() : IWorkspaceStatusService
         remove { }
     }
 
-    public async Task WaitUntilFullyLoadedAsync(CancellationToken cancellationToken)
+    public Task WaitUntilFullyLoadedAsync(CancellationToken cancellationToken)
     {
         // by the default, we are always fully loaded
+        return Task.CompletedTask;
     }
 
-    public async Task<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
+    public Task<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
     {
         // by the default, we are always fully loaded
-        return true;
+        return SpecializedTasks.True;
     }
 }

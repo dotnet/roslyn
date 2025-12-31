@@ -33,9 +33,10 @@ internal sealed class UseUtf8StringLiteralCodeFixProvider() : SyntaxEditorBasedC
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
         [IDEDiagnosticIds.UseUtf8StringLiteralDiagnosticId];
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Use_Utf8_string_literal, nameof(CSharpAnalyzersResources.Use_Utf8_string_literal));
+        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(

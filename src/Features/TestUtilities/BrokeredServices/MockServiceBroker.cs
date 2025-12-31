@@ -22,6 +22,6 @@ internal sealed class MockServiceBroker : IServiceBroker
     public ValueTask<IDuplexPipe?> GetPipeAsync(ServiceMoniker serviceMoniker, ServiceActivationOptions options = default, CancellationToken cancellationToken = default)
         => throw new NotImplementedException();
 
-    public async ValueTask<T?> GetProxyAsync<T>(ServiceRpcDescriptor serviceDescriptor, ServiceActivationOptions options = default, CancellationToken cancellationToken = default) where T : class
-        => (T?)(CreateService ?? throw new NotImplementedException()).Invoke(typeof(T));
+    public ValueTask<T?> GetProxyAsync<T>(ServiceRpcDescriptor serviceDescriptor, ServiceActivationOptions options = default, CancellationToken cancellationToken = default) where T : class
+        => ValueTask.FromResult((T?)(CreateService ?? throw new NotImplementedException()).Invoke(typeof(T)));
 }

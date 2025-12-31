@@ -44,11 +44,11 @@ internal sealed partial class ConfigureSeverityLevelCodeFixProvider : IConfigura
     public FixAllProvider? GetFixAllProvider()
         => null;
 
-    public async Task<ImmutableArray<CodeFix>> GetFixesAsync(TextDocument document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
-        => GetConfigurations(document.Project, diagnostics, cancellationToken);
+    public Task<ImmutableArray<CodeFix>> GetFixesAsync(TextDocument document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        => Task.FromResult(GetConfigurations(document.Project, diagnostics, cancellationToken));
 
-    public async Task<ImmutableArray<CodeFix>> GetFixesAsync(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
-        => GetConfigurations(project, diagnostics, cancellationToken);
+    public Task<ImmutableArray<CodeFix>> GetFixesAsync(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        => Task.FromResult(GetConfigurations(project, diagnostics, cancellationToken));
 
     private static ImmutableArray<CodeFix> GetConfigurations(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
     {

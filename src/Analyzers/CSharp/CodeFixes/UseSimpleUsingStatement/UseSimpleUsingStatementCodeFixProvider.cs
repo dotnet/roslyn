@@ -34,12 +34,13 @@ internal sealed class UseSimpleUsingStatementCodeFixProvider() : SyntaxEditorBas
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
         [IDEDiagnosticIds.UseSimpleUsingStatementDiagnosticId];
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Use_simple_using_statement, nameof(CSharpAnalyzersResources.Use_simple_using_statement));
+        return Task.CompletedTask;
     }
 
-    protected override async Task FixAllAsync(
+    protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
@@ -55,6 +56,8 @@ internal sealed class UseSimpleUsingStatementCodeFixProvider() : SyntaxEditorBas
             (original, current) => RewriteBlock(original, current, topmostUsingStatements));
 
         editor.ReplaceNode(root, updatedRoot);
+
+        return Task.CompletedTask;
     }
 
     private static SyntaxNode RewriteBlock(
