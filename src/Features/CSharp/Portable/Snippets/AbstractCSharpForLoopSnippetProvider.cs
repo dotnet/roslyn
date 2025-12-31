@@ -45,14 +45,14 @@ internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSn
     protected override bool CanInsertStatementAfterToken(SyntaxToken token)
         => token.IsBeginningOfStatementContext() || token.IsBeginningOfGlobalStatementContext();
 
-    protected override ValueTask<ForStatementSyntax> AdjustSnippetExpressionAsync(
+    protected override async ValueTask<ForStatementSyntax> AdjustSnippetExpressionAsync(
         Document document, ForStatementSyntax snippetExpressionNode, CancellationToken cancellationToken)
     {
         var editor = new SyntaxEditor(snippetExpressionNode, document.Project.Solution.Services);
         foreach (var node in snippetExpressionNode.Declaration!.DescendantNodesAndSelf().Reverse())
             editor.ReplaceNode(node, (node, _) => node.WithAdditionalAnnotations(Simplifier.Annotation));
 
-        return new((ForStatementSyntax)editor.GetChangedRoot());
+        return (ForStatementSyntax)editor.GetChangedRoot();
     }
 
     protected override ForStatementSyntax GenerateStatement(
@@ -108,7 +108,7 @@ internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSn
         }
     }
 
-    protected override ValueTask<ImmutableArray<SnippetPlaceholder>> GetPlaceHolderLocationsListAsync(
+    protected override async ValueTask<ImmutableArray<SnippetPlaceholder>> GetPlaceHolderLocationsListAsync(
         Document document, ForStatementSyntax forStatement, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var result);
@@ -133,7 +133,7 @@ internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSn
         foreach (var (key, value) in placeholderBuilder)
             result.Add(new(key, [.. value]));
 
-        return new(result.ToImmutableAndClear());
+        return result.ToImmutableAndClear();
     }
 
     protected override int GetTargetCaretPosition(ForStatementSyntax forStatement, SourceText sourceText)

@@ -88,7 +88,7 @@ internal sealed class OrganizeImportsCodeRefactoringProvider() : SyntaxEditorBas
 
         context.RegisterRefactoring(CodeAction.Create(
             document.GetRequiredLanguageService<IOrganizeImportsService>().SortImportsDisplayStringWithoutAccelerator,
-            cancellationToken => Task.FromResult(document.WithSyntaxRoot(newRoot))),
+            async cancellationToken => document.WithSyntaxRoot(newRoot)),
             applicableToSpan: imports.GetContainedSpan());
     }
 }

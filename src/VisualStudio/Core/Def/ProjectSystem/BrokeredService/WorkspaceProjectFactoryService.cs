@@ -34,9 +34,9 @@ internal sealed class WorkspaceProjectFactoryService : IWorkspaceProjectFactoryS
         return new WorkspaceProject(project);
     }
 
-    public Task<IReadOnlyCollection<string>> GetSupportedBuildSystemPropertiesAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyCollection<string>> GetSupportedBuildSystemPropertiesAsync(CancellationToken cancellationToken)
     {
-        return Task.FromResult((IReadOnlyCollection<string>)_workspaceProjectContextFactory.EvaluationItemNames);
+        return (IReadOnlyCollection<string>)_workspaceProjectContextFactory.EvaluationItemNames;
     }
 
     private sealed class EvaluationDataShim : EvaluationData

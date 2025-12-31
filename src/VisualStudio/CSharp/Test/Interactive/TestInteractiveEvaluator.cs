@@ -23,19 +23,19 @@ internal sealed class TestInteractiveEvaluator : IInteractiveEvaluator, IResetta
     {
     }
 
-    public Task<ExecutionResult> InitializeAsync()
-        => Task.FromResult(ExecutionResult.Success);
+    public async Task<ExecutionResult> InitializeAsync()
+        => ExecutionResult.Success;
 
-    public Task<ExecutionResult> ResetAsync(bool initialize = true)
-        => Task.FromResult(ExecutionResult.Success);
+    public async Task<ExecutionResult> ResetAsync(bool initialize = true)
+        => ExecutionResult.Success;
 
     public bool CanExecuteCode(string text)
         => true;
 
-    public Task<ExecutionResult> ExecuteCodeAsync(string text)
+    public async Task<ExecutionResult> ExecuteCodeAsync(string text)
     {
         OnExecute?.Invoke(this, text);
-        return Task.FromResult(ExecutionResult.Success);
+        return ExecutionResult.Success;
     }
 
     public string FormatClipboard()

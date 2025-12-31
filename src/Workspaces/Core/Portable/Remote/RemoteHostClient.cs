@@ -19,37 +19,37 @@ internal abstract class RemoteHostClient : IDisposable
 {
     public abstract void Dispose();
 
-    public static Task WaitForClientCreationAsync(Workspace workspace, CancellationToken cancellationToken)
+    public static async Task WaitForClientCreationAsync(Workspace workspace, CancellationToken cancellationToken)
     {
         var service = workspace.Services.GetService<IRemoteHostClientProvider>();
         if (service == null)
-            return Task.CompletedTask;
+            return;
 
-        return service.WaitForClientCreationAsync(cancellationToken);
+        await service.WaitForClientCreationAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    public static Task<RemoteHostClient?> TryGetClientAsync(Project project, CancellationToken cancellationToken)
+    public static async Task<RemoteHostClient?> TryGetClientAsync(Project project, CancellationToken cancellationToken)
     {
         if (!RemoteSupportedLanguages.IsSupported(project.Language))
         {
-            return SpecializedTasks.Null<RemoteHostClient>();
+            return null;
         }
 
-        return TryGetClientAsync(project.Solution.Services, cancellationToken);
+        return await TryGetClientAsync(project.Solution.Services, cancellationToken).ConfigureAwait(false);
     }
 
     public static Task<RemoteHostClient?> TryGetClientAsync(Workspace workspace, CancellationToken cancellationToken)
         => TryGetClientAsync(workspace.Services.SolutionServices, cancellationToken);
 
-    public static Task<RemoteHostClient?> TryGetClientAsync(SolutionServices services, CancellationToken cancellationToken)
+    public static async Task<RemoteHostClient?> TryGetClientAsync(SolutionServices services, CancellationToken cancellationToken)
     {
         var service = services.GetService<IRemoteHostClientProvider>();
         if (service == null)
         {
-            return SpecializedTasks.Null<RemoteHostClient>();
+            return null;
         }
 
-        return service.TryGetRemoteHostClientAsync(cancellationToken);
+        return await service.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
     }
 
     public abstract RemoteServiceConnection<T> CreateConnection<T>(object? callbackTarget)
