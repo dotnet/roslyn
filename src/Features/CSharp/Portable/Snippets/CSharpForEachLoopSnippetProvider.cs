@@ -111,7 +111,7 @@ internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSn
     /// Goes through each piece of the foreach statement and extracts the identifiers
     /// as well as their locations to create SnippetPlaceholder's of each.
     /// </summary>
-    protected override ValueTask<ImmutableArray<SnippetPlaceholder>> GetPlaceHolderLocationsListAsync(
+    protected override async ValueTask<ImmutableArray<SnippetPlaceholder>> GetPlaceHolderLocationsListAsync(
         Document document, ForEachStatementSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
@@ -120,7 +120,7 @@ internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSn
         if (!ConstructedFromInlineExpression)
             arrayBuilder.Add(new SnippetPlaceholder(node.Expression.ToString(), node.Expression.SpanStart));
 
-        return new(arrayBuilder.ToImmutableAndClear());
+        return arrayBuilder.ToImmutableAndClear();
     }
 
     protected override int GetTargetCaretPosition(ForEachStatementSyntax forEachStatement, SourceText sourceText)
