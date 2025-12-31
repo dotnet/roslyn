@@ -28,12 +28,12 @@ internal sealed class RemoteInitializationService(
 
         try
         {
-            var processId = await RunServiceAsync(async cancellationToken =>
+            var processId = await RunServiceAsync(cancellationToken =>
             {
                 var service = (RemoteWorkspaceConfigurationService)GetWorkspaceServices().GetRequiredService<IWorkspaceConfigurationService>();
                 service.InitializeOptions(options);
 
-                return Process.GetCurrentProcess().Id;
+                return ValueTask.FromResult(Process.GetCurrentProcess().Id);
             }, cancellationToken).ConfigureAwait(false);
 
             return (processId, errorMessage);

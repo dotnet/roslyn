@@ -30,10 +30,10 @@ internal sealed partial class EnableNullableCodeRefactoringProvider : CodeRefact
         public override IEnumerable<RefactorAllScope> GetSupportedRefactorAllScopes()
             => [RefactorAllScope.Solution];
 
-        public override async Task<CodeAction?> GetRefactoringAsync(RefactorAllContext fixAllContext)
+        public override Task<CodeAction?> GetRefactoringAsync(RefactorAllContext fixAllContext)
         {
             Debug.Assert(fixAllContext.Scope == RefactorAllScope.Solution);
-            return new FixAllCodeAction(EnableNullableReferenceTypesInSolutionAsync);
+            return Task.FromResult<CodeAction?>(new FixAllCodeAction(EnableNullableReferenceTypesInSolutionAsync));
 
             async Task<Solution> EnableNullableReferenceTypesInSolutionAsync(
                 CodeActionPurpose purpose, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)

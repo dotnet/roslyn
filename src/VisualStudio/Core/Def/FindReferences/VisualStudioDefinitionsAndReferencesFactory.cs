@@ -89,13 +89,13 @@ internal sealed class VisualStudioDefinitionsAndReferencesFactory(
     {
         internal override bool IsExternal => true;
 
-        public override async Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, CancellationToken cancellationToken)
+        public override Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, CancellationToken cancellationToken)
         {
-            return new NavigableLocation(async (options, cancellationToken) =>
+            return Task.FromResult<INavigableLocation?>(new NavigableLocation(async (options, cancellationToken) =>
             {
                 await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 return TryOpenFile() && TryNavigateToPosition();
-            });
+            }));
         }
 
         private bool TryOpenFile()

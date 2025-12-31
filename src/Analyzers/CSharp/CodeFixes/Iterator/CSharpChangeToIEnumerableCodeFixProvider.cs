@@ -104,7 +104,7 @@ internal sealed class CSharpChangeToIEnumerableCodeFixProvider() : AbstractItera
             type.ToMinimalDisplayString(model, node.SpanStart),
             ienumerableGenericSymbol.ToMinimalDisplayString(model, node.SpanStart));
 
-        return CodeAction.Create(title, async _ => newDocument, title);
+        return CodeAction.Create(title, _ => Task.FromResult(newDocument), title);
     }
 
     private static bool TryGetIEnumerableSymbols(

@@ -37,19 +37,19 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         private static bool ShouldAddProjectReference(Document originalDocument, AddImportFixData fixData)
             => fixData.ProjectReferenceToAdd != null && fixData.ProjectReferenceToAdd != originalDocument.Project.Id;
 
-        protected override async Task<CodeActionOperation?> UpdateProjectAsync(Project project, bool isPreview, CancellationToken cancellationToken)
+        protected override Task<CodeActionOperation?> UpdateProjectAsync(Project project, bool isPreview, CancellationToken cancellationToken)
         {
             if (!ShouldAddProjectReference(this.OriginalDocument, this.FixData))
-                return null;
+                return SpecializedTasks.Null<CodeActionOperation>();
 
             var projectWithAddedReference = project.AddProjectReference(new ProjectReference(FixData.ProjectReferenceToAdd));
             var applyOperation = new ApplyChangesOperation(projectWithAddedReference.Solution);
             if (isPreview)
             {
-                return applyOperation;
+                return Task.FromResult<CodeActionOperation?>(applyOperation);
             }
 
-            return new AddProjectReferenceCodeActionOperation(OriginalDocument.Project.Id, FixData.ProjectReferenceToAdd, applyOperation);
+            return Task.FromResult<CodeActionOperation?>(new AddProjectReferenceCodeActionOperation(OriginalDocument.Project.Id, FixData.ProjectReferenceToAdd, applyOperation));
         }
 
         private sealed class AddProjectReferenceCodeActionOperation(ProjectId referencingProject, ProjectId referencedProject, ApplyChangesOperation applyOperation) : CodeActionOperation
@@ -68,13 +68,13 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 _applyOperation.Apply(workspace, cancellationToken);
             }
 
-            internal override async Task<bool> TryApplyAsync(
+            internal override Task<bool> TryApplyAsync(
                 Workspace workspace, Solution originalSolution, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
             {
                 if (!CanApply(workspace))
-                    return false;
+                    return SpecializedTasks.False;
 
-                return await _applyOperation.TryApplyAsync(workspace, originalSolution, progressTracker, cancellationToken).ConfigureAwait(false);
+                return _applyOperation.TryApplyAsync(workspace, originalSolution, progressTracker, cancellationToken);
             }
 
             private bool CanApply(Workspace workspace)

@@ -752,8 +752,8 @@ public abstract partial class CodeAction
             CodeActionPriority priority = CodeActionPriority.Default)
             => new(title, equivalenceKey, priority, createdFromFactoryMethod: true);
 
-        protected sealed override async Task<Solution?> GetChangedSolutionAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
-             => null;
+        protected sealed override Task<Solution?> GetChangedSolutionAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+             => SpecializedTasks.Null<Solution>();
     }
 
     #endregion

@@ -28,14 +28,16 @@ internal sealed class SimpleFindUsagesContext : FindUsagesContext
     public string Message { get; private set; }
     public string SearchTitle { get; private set; }
 
-    public override async ValueTask ReportNoResultsAsync(string message, CancellationToken cancellationToken)
+    public override ValueTask ReportNoResultsAsync(string message, CancellationToken cancellationToken)
     {
         Message = message;
+        return default;
     }
 
-    public override async ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
+    public override ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
     {
         SearchTitle = title;
+        return default;
     }
 
     public ImmutableArray<DefinitionItem> GetDefinitions()
@@ -54,12 +56,14 @@ internal sealed class SimpleFindUsagesContext : FindUsagesContext
         }
     }
 
-    public override async ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
+    public override ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
     {
         lock (_gate)
         {
             _definitionItems.Add(definition);
         }
+
+        return default;
     }
 
     public override async ValueTask OnReferencesFoundAsync(IAsyncEnumerable<SourceReferenceItem> references, CancellationToken cancellationToken)

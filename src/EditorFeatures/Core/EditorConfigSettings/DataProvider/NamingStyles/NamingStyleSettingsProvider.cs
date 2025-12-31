@@ -31,7 +31,7 @@ internal sealed class NamingStyleSettingsProvider : SettingsProviderBase<NamingS
         Update();
     }
 
-    protected override async Task UpdateOptionsAsync(
+    protected override Task UpdateOptionsAsync(
         TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken)
     {
         options.GetInitialLocationAndValue<NamingStylePreferences>(NamingStyleOptions.NamingPreferences, out var location, out var namingPreferences);
@@ -41,5 +41,6 @@ internal sealed class NamingStyleSettingsProvider : SettingsProviderBase<NamingS
         var namingStyles = namingPreferences.Rules.NamingRules.Select(namingRule => new NamingStyleSetting(namingRule, allStyles, SettingsUpdater, fileName));
 
         AddRange(namingStyles);
+        return Task.CompletedTask;
     }
 }

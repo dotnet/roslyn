@@ -134,7 +134,7 @@ internal sealed partial class FindReferencesSearchEngine
         {
             await ProducerConsumer<FinderLocation>.RunAsync(
                 ProducerConsumerOptions.SingleReaderWriterOptions,
-                static async (callback, args, cancellationToken) =>
+                static (callback, args, cancellationToken) =>
                 {
                     var (@this, symbol, group, state) = args;
 
@@ -148,6 +148,8 @@ internal sealed partial class FindReferencesSearchEngine
                             static (finderLocation, callback) => callback(finderLocation),
                             callback, @this._options, cancellationToken);
                     }
+
+                    return Task.CompletedTask;
                 },
                 consumeItems: static async (values, args, cancellationToken) =>
                 {

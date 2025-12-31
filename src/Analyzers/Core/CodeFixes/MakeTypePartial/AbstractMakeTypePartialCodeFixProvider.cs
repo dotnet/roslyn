@@ -15,9 +15,10 @@ namespace Microsoft.CodeAnalysis.MakeTypePartial;
 internal abstract class AbstractMakeTypePartialCodeFixProvider()
     : SyntaxEditorBasedCodeFixProvider(supportsFixAll: false)
 {
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CodeFixesResources.Make_type_partial, nameof(CodeFixesResources.Make_type_partial));
+        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)

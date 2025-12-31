@@ -142,7 +142,7 @@ internal abstract class AbstractConvertForEachToLinqQueryProvider<TForEachStatem
         }
     }
 
-    private async Task<Document> ApplyConversionAsync(
+    private Task<Document> ApplyConversionAsync(
         IConverter<TForEachStatement, TStatement> converter,
         Document document,
         bool convertToQuery,
@@ -152,7 +152,7 @@ internal abstract class AbstractConvertForEachToLinqQueryProvider<TForEachStatem
         converter.Convert(editor, convertToQuery, cancellationToken);
         var newRoot = editor.GetChangedRoot();
         var rootWithLinqUsing = AddLinqUsing(converter, converter.ForEachInfo.SemanticModel, newRoot);
-        return document.WithSyntaxRoot(rootWithLinqUsing);
+        return Task.FromResult(document.WithSyntaxRoot(rootWithLinqUsing));
     }
 
     /// <summary>

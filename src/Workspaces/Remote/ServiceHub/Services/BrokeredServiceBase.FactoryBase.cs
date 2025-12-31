@@ -44,7 +44,7 @@ internal abstract partial class BrokeredServiceBase
             object? clientRpcTarget)
             => CreateService(arguments);
 
-        public async Task<object> CreateAsync(
+        public Task<object> CreateAsync(
            Stream stream,
            IServiceProvider hostProvidedServices,
            ServiceActivationOptions serviceActivationOptions,
@@ -67,11 +67,11 @@ internal abstract partial class BrokeredServiceBase
                     CultureInfo.DefaultThreadCurrentCulture = serviceActivationOptions.ClientCulture;
                 }
 
-                return (object)Create(
+                return Task.FromResult((object)Create(
                     stream.UsePipe(),
                     hostProvidedServices,
                     serviceActivationOptions,
-                    serviceBroker);
+                    serviceBroker));
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {

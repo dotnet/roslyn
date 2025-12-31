@@ -18,14 +18,14 @@ internal sealed class SymbolSearchUpdateNoOpEngine : ISymbolSearchUpdateEngine
         // Nothing to do for the no-op version.
     }
 
-    public async ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
-        => ImmutableArray<PackageWithAssemblyResult>.Empty;
+    public ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
+        => ValueTask.FromResult(ImmutableArray<PackageWithAssemblyResult>.Empty);
 
-    public async ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(string source, TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
-        => ImmutableArray<PackageResult>.Empty;
+    public ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(string source, TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
+        => ValueTask.FromResult(ImmutableArray<PackageResult>.Empty);
 
-    public async ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
-        => ImmutableArray<ReferenceAssemblyResult>.Empty;
+    public ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
+        => ValueTask.FromResult(ImmutableArray<ReferenceAssemblyResult>.Empty);
 
     public ValueTask UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory, CancellationToken cancellationToken)
         => default;
