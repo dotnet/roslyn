@@ -1742,6 +1742,11 @@
         <target state="translated">Non è stato possibile individuare la directory di output</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonNullableEventNotInitialized">
+        <source>Non-nullable event '{0}' must contain a non-null value when exiting constructor. Consider declaring the event as nullable or initializing it.</source>
+        <target state="new">Non-nullable event '{0}' must contain a non-null value when exiting constructor. Consider declaring the event as nullable or initializing it.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
         <source>Record member '{0}' must be private.</source>
         <target state="translated">Il membro del record '{0}' deve essere privato.</target>

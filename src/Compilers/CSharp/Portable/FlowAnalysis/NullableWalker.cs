@@ -832,8 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var info = new CSDiagnosticInfo(
                     errorCode,
                     new object[] { symbol.Kind.Localize(), symbol.Name },
-                    ImmutableArray<Symbol>.Empty,
-                    additionalLocations);
+                    ImmutableArray<Symbol>.Empty);
 
                 Diagnostics.Add(info, exitLocation ?? symbol.GetFirstLocationOrNone());
 

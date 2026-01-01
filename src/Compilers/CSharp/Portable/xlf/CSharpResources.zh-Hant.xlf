@@ -1742,6 +1742,11 @@
         <target state="translated">無法判斷輸出目錄</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonNullableEventNotInitialized">
+        <source>Non-nullable event '{0}' must contain a non-null value when exiting constructor. Consider declaring the event as nullable or initializing it.</source>
+        <target state="new">Non-nullable event '{0}' must contain a non-null value when exiting constructor. Consider declaring the event as nullable or initializing it.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
         <source>Record member '{0}' must be private.</source>
         <target state="translated">記錄成員 '{0}' 必須為私人。</target>

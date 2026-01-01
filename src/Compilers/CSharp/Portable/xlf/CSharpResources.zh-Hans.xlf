@@ -1742,6 +1742,11 @@
         <target state="translated">无法确定输出目录</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonNullableEventNotInitialized">
+        <source>Non-nullable event '{0}' must contain a non-null value when exiting constructor. Consider declaring the event as nullable or initializing it.</source>
+        <target state="new">Non-nullable event '{0}' must contain a non-null value when exiting constructor. Consider declaring the event as nullable or initializing it.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
         <source>Record member '{0}' must be private.</source>
         <target state="translated">记录成员“{0}”必须是非公开的。</target>
