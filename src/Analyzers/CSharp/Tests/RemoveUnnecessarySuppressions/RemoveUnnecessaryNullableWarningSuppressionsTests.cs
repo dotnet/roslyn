@@ -186,4 +186,24 @@ public sealed class RemoveUnnecessaryNullableWarningSuppressionsTests
                 """,
         }.RunAsync();
 
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81632")]
+    public Task TestGetMethod_NoDiagnostic()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+                using System.Reflection;
+
+                class C
+                {
+                    void M()
+                    {
+                        MethodInfo m = typeof(C).GetMethod("M")!;
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+        }.RunAsync();
+
 }
