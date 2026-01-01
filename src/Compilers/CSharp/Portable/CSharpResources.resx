@@ -5639,6 +5639,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_UninitializedNonNullableField" xml:space="preserve">
     <value>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the {0} as nullable.</value>
   </data>
+  <data name="ERR_NonNullableEventNotInitialized" xml:space="preserve">
+    <value>Non-nullable event '{0}' must contain a non-null value when exiting constructor. Consider declaring the event as nullable or initializing it.</value>
+  </data>
   <data name="WRN_UninitializedNonNullableField_Title" xml:space="preserve">
     <value>Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.</value>
   </data>

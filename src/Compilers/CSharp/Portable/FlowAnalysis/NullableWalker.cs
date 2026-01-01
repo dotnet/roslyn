@@ -822,9 +822,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     : NullableFlowState.MaybeNull;
                 if (memberState >= badState) // is 'memberState' as bad as or worse than 'badState'?
                 {
-                    var errorCode = usesFieldKeyword ? ErrorCode.WRN_UninitializedNonNullableBackingField : ErrorCode.WRN_UninitializedNonNullableField;
-                    var info = new CSDiagnosticInfo(errorCode, new object[] { symbol.Kind.Localize(), symbol.Name }, ImmutableArray<Symbol>.Empty, additionalLocations: symbol.Locations);
-                    Diagnostics.Add(info, exitLocation ?? symbol.GetFirstLocationOrNone());
+                    var errorCode =
+                        symbol.Kind == SymbolKind.Event
+                            ? ErrorCode.ERR_NonNullableEventNotInitialized
+                            : (usesFieldKeyword
+                                ? ErrorCode.WRN_UninitializedNonNullableBackingField
+                                : ErrorCode.WRN_UninitializedNonNullableField);
+
+                var info = new CSDiagnosticInfo(
+                    errorCode,
+                    new object[] { symbol.Kind.Localize(), symbol.Name },
+                    ImmutableArray<Symbol>.Empty,
+                    additionalLocations);
+
+                Diagnostics.Add(info, exitLocation ?? symbol.GetFirstLocationOrNone());
+
                 }
             }
 
