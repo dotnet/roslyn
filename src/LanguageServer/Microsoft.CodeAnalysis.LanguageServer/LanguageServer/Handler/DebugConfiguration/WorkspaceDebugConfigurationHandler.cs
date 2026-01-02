@@ -28,7 +28,7 @@ internal sealed class WorkspaceDebugConfigurationHandler : ILspServiceRequestHan
 
     public bool RequiresLSPSolution => true;
 
-    public Task<ProjectDebugConfiguration[]> HandleRequestAsync(WorkspaceDebugConfigurationParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<ProjectDebugConfiguration[]> HandleRequestAsync(WorkspaceDebugConfigurationParams request, RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Solution, nameof(context.Solution));
 
@@ -36,7 +36,7 @@ internal sealed class WorkspaceDebugConfigurationHandler : ILspServiceRequestHan
             .Where(p => p.FilePath != null && p.OutputFilePath != null)
             .Where(p => IsProjectInWorkspace(request.WorkspacePath, p))
             .Select(GetProjectDebugConfiguration).ToArray();
-        return Task.FromResult(projects);
+        return projects;
     }
 
     private static bool IsProjectInWorkspace(DocumentUri workspacePath, Project project)
