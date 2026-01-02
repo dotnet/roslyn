@@ -186,6 +186,7 @@ internal static class CodeActionDescriptions
         { "Microsoft.CodeAnalysis.CSharp.PopulateSwitch.CSharpPopulateSwitchExpressionCodeFixProvider", "Populate Switch: Expression" },
         { "Microsoft.CodeAnalysis.CSharp.PopulateSwitch.CSharpPopulateSwitchStatementCodeFixProvider", "Populate Switch: Statement" },
         { "Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess.CSharpQualifyMemberAccessCodeFixProvider", "Qualify Member Access" },
+        { "Microsoft.CodeAnalysis.CSharp.RemoveAsyncModifier.CSharpRemoveAsyncModifierCodeFixProvider", "Remove Async Modifier" },
         { "Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression.CSharpRemoveConfusingSuppressionCodeFixProvider", "Remove Confusing Suppression" },
         { "Microsoft.CodeAnalysis.CSharp.RemoveInKeyword.RemoveInKeywordCodeFixProvider", "Remove In Keyword" },
         { "Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast.CSharpRemoveUnnecessaryCastCodeFixProvider", "Remove Unnecessary Cast" },
