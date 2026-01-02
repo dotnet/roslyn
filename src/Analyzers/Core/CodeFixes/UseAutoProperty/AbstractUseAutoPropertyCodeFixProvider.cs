@@ -585,6 +585,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
         // We do need a setter
         return true;
 
+        // Remove after .NET 10, https://github.com/dotnet/roslyn/issues/80198
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         async ValueTask<bool> IsWrittenToAsync(ReferenceLocation loc)
         {
