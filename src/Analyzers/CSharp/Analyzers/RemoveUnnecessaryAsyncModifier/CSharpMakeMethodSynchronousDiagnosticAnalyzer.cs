@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
@@ -11,25 +12,28 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
+/// <summary>
+/// Base class, responsible for walking the entire tree, and finding methods to analyze.
+/// </summary>
 internal abstract class AbstractRemoveUnnecessaryAsyncModifierDiagnosticAnalyzer(
     string diagnosticId,
-    EnforceOnBuild enforceOnBuild,
-    bool reportForInterfaceImplementationOrOverride) : AbstractBuiltInCodeStyleDiagnosticAnalyzer(
+    EnforceOnBuild enforceOnBuild) : AbstractBuiltInCodeStyleDiagnosticAnalyzer(
         diagnosticId,
         enforceOnBuild,
         option: null,
         new LocalizableResourceString(nameof(AnalyzersResources.Make_method_synchronous), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
         new LocalizableResourceString(nameof(AnalyzersResources.Method_can_be_made_synchronous), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
 {
-    private readonly bool _reportForInterfaceImplementationOrOverride = reportForInterfaceImplementationOrOverride;
+    protected abstract bool ShouldAnalyze(SemanticModel semanticModel, SyntaxNode methodLike, CancellationToken cancellationToken);
 
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
     protected override void InitializeWorker(AnalysisContext context)
-    {
-        context.RegisterSemanticModelAction(AnalyzeSemanticModel);
-    }
+        => context.RegisterSemanticModelAction(AnalyzeSemanticModel);
+
+    protected static bool IsInterfaceImplementationOrOverride(IMethodSymbol methodSymbol)
+        => methodSymbol.IsOverride || methodSymbol.ExplicitOrImplicitInterfaceImplementations().Length > 0;
 
     private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
     {
@@ -49,7 +53,7 @@ internal abstract class AbstractRemoveUnnecessaryAsyncModifierDiagnosticAnalyzer
         {
             // If it is an async-method that this analyzer cares about, check to see if it has any 'await' expressions
             // in it or not.
-            if (IsMethodLike(current) && HasAsyncModifier(current) && ShouldAnalyze(current))
+            if (IsMethodLike(current) && HasAsyncModifier(current) && ShouldAnalyze(semanticModel, current, cancellationToken))
             {
                 CheckForNoAwaitExpressions(current);
             }
@@ -63,24 +67,6 @@ internal abstract class AbstractRemoveUnnecessaryAsyncModifierDiagnosticAnalyzer
                 }
             }
         }
-
-        bool ShouldAnalyze(SyntaxNode methodLike)
-        {
-            if (methodLike is MethodDeclarationSyntax methodDeclaration)
-            {
-                // For methods, check if it's an interface/override, and analyze it according to which analyzer we are.
-                var methodSymbol = semanticModel.GetRequiredDeclaredSymbol(methodDeclaration, cancellationToken);
-                return _reportForInterfaceImplementationOrOverride == IsInterfaceImplementationOrOverride(methodSymbol);
-            }
-            else
-            {
-                // Have a lambda.  These are only reported for the normal case.  Not for the interface/override case.
-                return !_reportForInterfaceImplementationOrOverride;
-            }
-        }
-
-        static bool IsInterfaceImplementationOrOverride(IMethodSymbol methodSymbol)
-            => methodSymbol.IsOverride || methodSymbol.ExplicitOrImplicitInterfaceImplementations().Length > 0;
 
         static bool IsMethodLike(SyntaxNode current)
             => current is MethodDeclarationSyntax or LocalFunctionStatementSyntax or AnonymousFunctionExpressionSyntax;
@@ -157,14 +143,50 @@ internal abstract class AbstractRemoveUnnecessaryAsyncModifierDiagnosticAnalyzer
     }
 }
 
+/// <summary>
+/// Analyzer specific to reporting for normal methods (not interface-impl or override) or lambdas.
+/// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal sealed class CSharpRemoveUnnecessaryAsyncModifierDiagnosticAnalyzer() : AbstractRemoveUnnecessaryAsyncModifierDiagnosticAnalyzer(
     IDEDiagnosticIds.RemoveUnnecessaryAsyncModifier,
-    EnforceOnBuildValues.RemoveUnnecessaryAsyncModifier,
-    reportForInterfaceImplementationOrOverride: false);
+    EnforceOnBuildValues.RemoveUnnecessaryAsyncModifier)
+{
+    protected override bool ShouldAnalyze(SemanticModel semanticModel, SyntaxNode methodLike, CancellationToken cancellationToken)
+    {
+        if (methodLike is MethodDeclarationSyntax methodDeclaration)
+        {
+            // For methods, check if it's an interface/override, and analyze it according to which analyzer we are.
+            var methodSymbol = semanticModel.GetRequiredDeclaredSymbol(methodDeclaration, cancellationToken);
+            return !IsInterfaceImplementationOrOverride(methodSymbol);
+        }
+        else
+        {
+            // Have a lambda.  These are only reported for the normal case.  Not for the interface/override case.
+            return true;
+        }
+    }
+}
 
+/// <summary>
+/// Analyzer specific to reporting for interface-impl or override methods only.
+/// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal sealed class CSharpRemoveUnnecessaryAsyncModifierInterfaceImplementationOrOverrideDiagnosticAnalyzer() : AbstractRemoveUnnecessaryAsyncModifierDiagnosticAnalyzer(
     IDEDiagnosticIds.RemoveUnnecessaryAsyncModifierInterfaceImplementationOrOverride,
-    EnforceOnBuildValues.RemoveUnnecessaryAsyncModifierInterfaceImplementationOrOverride,
-    reportForInterfaceImplementationOrOverride: true);
+    EnforceOnBuildValues.RemoveUnnecessaryAsyncModifierInterfaceImplementationOrOverride)
+{
+    protected override bool ShouldAnalyze(SemanticModel semanticModel, SyntaxNode methodLike, CancellationToken cancellationToken)
+    {
+        if (methodLike is MethodDeclarationSyntax methodDeclaration)
+        {
+            // For methods, check if it's an interface/override, and analyze it according to which analyzer we are.
+            var methodSymbol = semanticModel.GetRequiredDeclaredSymbol(methodDeclaration, cancellationToken);
+            return IsInterfaceImplementationOrOverride(methodSymbol);
+        }
+        else
+        {
+            // Have a lambda.  These are only reported for the normal case.  Not for the interface/override case.
+            return false;
+        }
+    }
+}
