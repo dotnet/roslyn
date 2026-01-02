@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeMethodSynchronous;
 
 using VerifyCS = CSharpCodeFixVerifier<
-    EmptyDiagnosticAnalyzer,
+    CSharpRemoveUnnecessaryAsyncModifierDiagnosticAnalyzer,
     CSharpMakeMethodSynchronousCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]

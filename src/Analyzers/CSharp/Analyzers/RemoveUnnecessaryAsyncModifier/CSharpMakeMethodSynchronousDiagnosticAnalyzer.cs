@@ -127,7 +127,7 @@ internal abstract class AbstractRemoveUnnecessaryAsyncModifierDiagnosticAnalyzer
                 {
                     // Walk every child to see if we have an await.  Note, we don't stop when we see an await, as we
                     // still need to see if we run into nested methods that need to be analyzed.
-                    seenAwait = seenAwait || current.IsKind(SyntaxKind.AwaitExpression);
+                    seenAwait = seenAwait || IsAwait(current);
 
                     foreach (var child in current.ChildNodesAndTokens().Reverse())
                     {
@@ -144,6 +144,16 @@ internal abstract class AbstractRemoveUnnecessaryAsyncModifierDiagnosticAnalyzer
                     GetAsyncModifier(methodLike).GetLocation()));
             }
         }
+
+        static bool IsAwait(SyntaxNode node)
+            => node switch
+            {
+                AwaitExpressionSyntax => true,
+                CommonForEachStatementSyntax foreachStatement => foreachStatement.AwaitKeyword != default,
+                UsingStatementSyntax usingStatement => usingStatement.AwaitKeyword != default,
+                LocalDeclarationStatementSyntax localDeclaration => localDeclaration.AwaitKeyword != default,
+                _ => false,
+            };
     }
 }
 
