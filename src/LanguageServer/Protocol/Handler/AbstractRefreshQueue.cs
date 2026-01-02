@@ -118,6 +118,7 @@ internal abstract class AbstractRefreshQueue :
                 try
                 {
                     await notificationManager.SendRequestAsync(GetWorkspaceRefreshName(), cancellationToken).ConfigureAwait(false);
+                    return;
                 }
                 catch (Exception ex) when (ex is ObjectDisposedException or ConnectionLostException)
                 {
