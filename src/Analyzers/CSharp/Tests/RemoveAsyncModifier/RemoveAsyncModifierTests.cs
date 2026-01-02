@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveAsyncModifier;
 
 using VerifyCS = CSharpCodeFixVerifier<
-    EmptyDiagnosticAnalyzer,
+    CSharpRemoveUnnecessaryAsyncModifierDiagnosticAnalyzer,
     CSharpRemoveAsyncModifierCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
@@ -50,11 +50,11 @@ public sealed class RemoveAsyncModifierTests
                     }
                 }
 
-                async Task<string> {|CS1998:Tur|}()
+                {|IDE0390:async|} Task<string> Tur()
                 {
-                    async Task<string> {|CS1998:Duck|}()
+                    {|IDE0390:async|} Task<string> Duck()
                     {
-                        async Task<string> {|CS1998:En|}()
+                        {|IDE0390:async|} Task<string> En()
                         {
                             return "Developers!";
                         }
@@ -450,7 +450,7 @@ public sealed class RemoveAsyncModifierTests
 
             class C
             {
-                async Task<int> {|CS1998:Goo|}()
+                {|IDE0390:async|} Task<int> Goo()
                 {
                     if (System.DateTime.Now.Ticks > 0)
                     {
@@ -486,7 +486,7 @@ public sealed class RemoveAsyncModifierTests
 
             class C
             {
-                async Task<int> {|CS1998:Goo|}() => 2;
+                {|IDE0390:async|} Task<int> Goo() => 2;
             }
             """,
             """
@@ -602,7 +602,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 public void M1()
                 {
-                    async Task<int> {|CS1998:Goo|}()
+                    {|IDE0390:async|} Task<int> Goo()
                     {
                         return 1;
                     }
@@ -634,7 +634,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 public void M1()
                 {
-                    async Task<int> {|CS1998:Goo|}() => 1;
+                    {|IDE0390:async|} Task<int> Goo() => 1;
                 }
             }
             """,
@@ -1084,7 +1084,7 @@ public sealed class RemoveAsyncModifierTests
 
             class C
             {
-                async IAsyncEnumerable<int> M()
+                {|IDE0390:async|} IAsyncEnumerable<int> M()
                 {
                     yield return 1;
                 }
@@ -1095,11 +1095,6 @@ public sealed class RemoveAsyncModifierTests
         {
             ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
             TestCode = source,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(7,33): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                DiagnosticResult.CompilerWarning("CS1998").WithSpan(6, 33, 6, 34),
-            },
             FixedCode = source,
         }.RunAsync();
     }
