@@ -219,7 +219,7 @@ internal static class IDEDiagnosticIds
     public const string RemoveUnnecessaryUnsafeModifier = "IDE0380";
 
     public const string RemoveUnnecessaryAsyncModifier = "IDE0390";
-    public const string RemoveUnnecessaryAsyncModifierInterfaceOverride = "IDE0391";
+    public const string RemoveUnnecessaryAsyncModifierInterfaceImplementationOrOverride = "IDE0391";
 
     // Analyzer error Ids
     public const string AnalyzerChangedId = "IDE1001";

@@ -232,11 +232,6 @@
         <target state="translated">Statik yap</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_synchronous">
-        <source>Make method synchronous</source>
-        <target state="translated">Metodu zaman uyumlu hale getir</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Make_type_partial">
         <source>Make type partial</source>
         <target state="translated">Türü kısmi hale getir</target>

@@ -25,7 +25,7 @@ internal sealed partial class CSharpRemoveAsyncModifierCodeFixProvider() : Abstr
 {
     public override ImmutableArray<string> FixableDiagnosticIds { get; } = [
         IDEDiagnosticIds.RemoveUnnecessaryAsyncModifier,
-        IDEDiagnosticIds.RemoveUnnecessaryAsyncModifierInterfaceOverride];
+        IDEDiagnosticIds.RemoveUnnecessaryAsyncModifierInterfaceImplementationOrOverride];
 
     protected override bool IsAsyncSupportingFunctionSyntax(SyntaxNode node)
         => node.IsAsyncSupportingFunctionSyntax();

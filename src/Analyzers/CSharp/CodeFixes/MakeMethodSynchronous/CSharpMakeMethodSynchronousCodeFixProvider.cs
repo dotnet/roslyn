@@ -25,7 +25,7 @@ internal sealed class CSharpMakeMethodSynchronousCodeFixProvider() : AbstractMak
 {
     public override ImmutableArray<string> FixableDiagnosticIds { get; } = [
         IDEDiagnosticIds.RemoveUnnecessaryAsyncModifier,
-        IDEDiagnosticIds.RemoveUnnecessaryAsyncModifierInterfaceOverride];
+        IDEDiagnosticIds.RemoveUnnecessaryAsyncModifierInterfaceImplementationOrOverride];
 
     protected override bool IsAsyncSupportingFunctionSyntax(SyntaxNode node)
         => node.IsAsyncSupportingFunctionSyntax();
