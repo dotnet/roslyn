@@ -27,7 +27,7 @@ public sealed class MakeMethodSynchronousTests
 
             class C
             {
-                async Task Goo()
+                {|IDE0390:async|} Task Goo()
                 {
                 }
             }
@@ -51,7 +51,7 @@ public sealed class MakeMethodSynchronousTests
 
             class C
             {
-                async Task<int> Goo()
+                {|IDE0390:async|} Task<int> Goo()
                 {
                     return 1;
                 }
@@ -77,7 +77,7 @@ public sealed class MakeMethodSynchronousTests
 
             class C
             {
-                public async Task Goo()
+                public {|IDE0390:async|} Task Goo()
                 {
                 }
             }
@@ -125,7 +125,7 @@ public sealed class MakeMethodSynchronousTests
 
             class C
             {
-                async // comment
+                {|IDE0390:async|} // comment
                 Task Goo()
                 {
                 }
@@ -150,7 +150,7 @@ public sealed class MakeMethodSynchronousTests
 
             class C
             {
-                async Task GooAsync()
+                {|IDE0390:async|} Task GooAsync()
                 {
                 }
             }
@@ -174,7 +174,7 @@ public sealed class MakeMethodSynchronousTests
 
             class C
             {
-                async Task GooAsync()
+                {|IDE0390:async|} Task GooAsync()
                 {
                 }
 
@@ -274,7 +274,7 @@ public sealed class MakeMethodSynchronousTests
                 void Goo()
                 {
                     Func<string, Task> f =
-                        async a => { };
+                        {|IDE0390:async|} a => { };
                 }
             }
             """,
@@ -366,7 +366,7 @@ public sealed class MakeMethodSynchronousTests
                 void Goo()
                 {
                     Func<Task> f =
-                        async delegate { };
+                        {|IDE0390:async|} delegate { };
                 }
             }
             """,
@@ -448,7 +448,7 @@ public sealed class MakeMethodSynchronousTests
 
             public class Class1
             {
-                async Task GooAsync()
+                {|IDE0390:async|} Task GooAsync()
                 {
                 }
 
@@ -495,7 +495,7 @@ public sealed class MakeMethodSynchronousTests
 
             public class Class1
             {
-                async Task GooAsync()
+                {|IDE0390:async|} Task GooAsync()
                 {
                 }
 
@@ -542,7 +542,7 @@ public sealed class MakeMethodSynchronousTests
 
             public class Class1
             {
-                async Task GooAsync()
+                {|IDE0390:async|} Task GooAsync()
                 {
                 }
 
@@ -589,7 +589,7 @@ public sealed class MakeMethodSynchronousTests
 
             public class Class1
             {
-                async Task GooAsync()
+                {|IDE0390:async|} Task GooAsync()
                 {
                 }
 
