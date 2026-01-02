@@ -46,7 +46,7 @@ public sealed class RemoveAsyncModifierTests
                 {
                     {|IDE0390:async|} Task Baz()
                     {
-                        Func<Task<int>> g = async () {|CS1998:=>|} 5;
+                        Func<Task<int>> g = {|IDE0390:async|} () => 5;
                     }
                 }
 
@@ -67,7 +67,7 @@ public sealed class RemoveAsyncModifierTests
 
                 {|IDE0390:async|} Task Nurk()
                 {
-                    Func<Task<int>> f = async () {|CS1998:=>|} 4;
+                    Func<Task<int>> f = {|IDE0390:async|} () => 4;
 
                     if (DateTime.Now.Ticks > f().Result)
                     {
@@ -736,7 +736,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 public void M1()
                 {
-                    Func<int, Task<int>> foo = async x {|CS1998:=>|} 1;
+                    Func<int, Task<int>> foo = {|IDE0390:async|} x => 1;
                 }
             }
             """,
@@ -764,7 +764,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 public void M1()
                 {
-                    Func<int, Task<int>> foo = async x {|CS1998:=>|} {
+                    Func<int, Task<int>> foo = {|IDE0390:async|} x => {
                         return 1;
                     };
                 }
