@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.RemoveAsyncModifier;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.MakeMethodSynchronous;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -22,25 +23,24 @@ using static CSharpSyntaxTokens;
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
 internal sealed class CSharpMakeMethodSynchronousCodeFixProvider() : AbstractMakeMethodSynchronousCodeFixProvider
 {
-    private const string CS1998 = nameof(CS1998); // This async method lacks 'await' operators and will run synchronously.
-
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [CS1998];
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [
+        IDEDiagnosticIds.RemoveUnnecessaryAsyncModifier,
+        IDEDiagnosticIds.RemoveUnnecessaryAsyncModifierInterfaceOverride];
 
     protected override bool IsAsyncSupportingFunctionSyntax(SyntaxNode node)
         => node.IsAsyncSupportingFunctionSyntax();
 
     protected override SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbol, SyntaxNode node, KnownTaskTypes knownTypes)
-    {
-        switch (node)
+        => node switch
         {
-            case MethodDeclarationSyntax method: return FixMethod(methodSymbol, method, knownTypes);
-            case LocalFunctionStatementSyntax localFunction: return FixLocalFunction(methodSymbol, localFunction, knownTypes);
-            case AnonymousMethodExpressionSyntax method: return RemoveAsyncModifierHelpers.WithoutAsyncModifier(method);
-            case ParenthesizedLambdaExpressionSyntax lambda: return RemoveAsyncModifierHelpers.WithoutAsyncModifier(lambda);
-            case SimpleLambdaExpressionSyntax lambda: return RemoveAsyncModifierHelpers.WithoutAsyncModifier(lambda);
-            default: return node;
-        }
-    }
+            MethodDeclarationSyntax method => FixMethod(methodSymbol, method, knownTypes),
+            LocalFunctionStatementSyntax localFunction => FixLocalFunction(methodSymbol, localFunction, knownTypes),
+            AnonymousMethodExpressionSyntax method => RemoveAsyncModifierHelpers.WithoutAsyncModifier(method),
+            ParenthesizedLambdaExpressionSyntax lambda => RemoveAsyncModifierHelpers.WithoutAsyncModifier(lambda),
+            SimpleLambdaExpressionSyntax lambda => RemoveAsyncModifierHelpers.WithoutAsyncModifier(lambda),
+            _ => node,
+        };
+
     private static SyntaxNode FixMethod(IMethodSymbol methodSymbol, MethodDeclarationSyntax method, KnownTaskTypes knownTypes)
     {
         var newReturnType = FixMethodReturnType(methodSymbol, method.ReturnType, knownTypes);
