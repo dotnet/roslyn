@@ -29,7 +29,7 @@ public sealed class RemoveAsyncModifierTests
 
             class C
             {
-                async Task {|CS1998:Goo|}()
+                [|async|] Task Goo()
                 {
                     if (DateTime.Now.Ticks > 0)
                     {
@@ -37,14 +37,14 @@ public sealed class RemoveAsyncModifierTests
                     }
                 }
 
-                async Task {|CS1998:Foo|}()
+                [|async|] Task Foo()
                 {
                     Console.WriteLine(1);
                 }
 
-                async Task {|CS1998:Bar|}()
+                [|async|] Task Bar()
                 {
-                    async Task {|CS1998:Baz|}()
+                    [|async|] Task Baz()
                     {
                         Func<Task<int>> g = async () {|CS1998:=>|} 5;
                     }
@@ -65,7 +65,7 @@ public sealed class RemoveAsyncModifierTests
                     return "Developers! Developers! Developers!";
                 }
 
-                async Task {|CS1998:Nurk|}()
+                [|async|] Task Nurk()
                 {
                     Func<Task<int>> f = async () {|CS1998:=>|} 4;
 
@@ -144,7 +144,7 @@ public sealed class RemoveAsyncModifierTests
 
             class C
             {
-                async Task {|CS1998:Goo|}(){}
+                [|async|] Task Goo(){}
             }
             """,
             """
@@ -167,7 +167,7 @@ public sealed class RemoveAsyncModifierTests
 
             class C
             {
-                async Task {|CS1998:Goo|}()
+                [|async|] Task Goo()
                 {
                     if (System.DateTime.Now.Ticks > 0)
                     {
@@ -327,7 +327,7 @@ public sealed class RemoveAsyncModifierTests
 
             class C
             {
-                async Task {|CS1998:Goo|}()
+                [|async|] Task Goo()
                 {
                     if (System.DateTime.Now.Ticks > 0)
                     {
@@ -363,7 +363,7 @@ public sealed class RemoveAsyncModifierTests
 
             class C
             {
-                async Task {|CS1998:Goo|}()
+                [|async|] Task Goo()
                 {
                     if (GetTicks() > 0)
                     {
@@ -407,7 +407,7 @@ public sealed class RemoveAsyncModifierTests
 
             class C
             {
-                async Task {|CS1998:Goo|}()
+                [|async|] Task Goo()
                 {
                     System.Func<long> getTicks = () => {
                         return System.DateTime.Now.Ticks;
@@ -507,7 +507,7 @@ public sealed class RemoveAsyncModifierTests
 
             class C
             {
-                async Task {|CS1998:Goo|}() => Console.WriteLine("Hello");
+                [|async|] Task Goo() => Console.WriteLine("Hello");
             }
             """,
             """
@@ -534,7 +534,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 public void M1()
                 {
-                    async Task {|CS1998:Goo|}()
+                    [|async|] Task Goo()
                     {
                         if (System.DateTime.Now.Ticks > 0)
                         {
@@ -575,7 +575,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 public void M1()
                 {
-                    async Task {|CS1998:Goo|}() => Console.WriteLine(1);
+                    [|async|] Task Goo() => Console.WriteLine(1);
                 }
             }
             """,
@@ -661,7 +661,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 public void M1()
                 {
-                    Func<Task> foo = (Func<Task>)async {|CS1998:delegate|} {
+                    Func<Task> foo = (Func<Task>)[|async|] delegate {
                         if (System.DateTime.Now.Ticks > 0)
                         {
                             return;
@@ -702,7 +702,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 public void M1()
                 {
-                    Func<Task<int>> foo = (Func<Task<int>>)async {|CS1998:delegate|}
+                    Func<Task<int>> foo = (Func<Task<int>>)[|async|] delegate
                     {
                         return 1;
                     };
@@ -1198,7 +1198,7 @@ public sealed class RemoveAsyncModifierTests
 
             public class Class1
             {
-                public async Task {|CS1998:Goo|}()
+                public [|async|] Task Goo()
                 {
                     //Hello 
                     Console.WriteLine("Goo");
