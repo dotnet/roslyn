@@ -203,7 +203,7 @@ public sealed class RemoveAsyncModifierTests
 
             class C
             {
-                async ValueTask {|CS1998:Goo|}()
+                {|IDE0390:async|} ValueTask Goo()
                 {
                     if (System.DateTime.Now.Ticks > 0)
                     {
@@ -240,7 +240,7 @@ public sealed class RemoveAsyncModifierTests
 
             class C
             {
-                async ValueTask<int> {|CS1998:Goo|}()
+                {|IDE0390:async|} ValueTask<int> Goo()
                 {
                     if (System.DateTime.Now.Ticks > 0)
                     {
@@ -279,7 +279,7 @@ public sealed class RemoveAsyncModifierTests
 
             class C
             {
-                async ValueTask {|CS1998:Goo|}() => System.Console.WriteLine(1);
+                {|IDE0390:async|} ValueTask Goo() => System.Console.WriteLine(1);
             }
             """,
             FixedCode = """
@@ -306,7 +306,7 @@ public sealed class RemoveAsyncModifierTests
 
             class C
             {
-                async ValueTask<int> {|CS1998:Goo|}() => 3;
+                {|IDE0390:async|} ValueTask<int> Goo() => 3;
             }
             """,
             FixedCode = """
@@ -993,7 +993,7 @@ public sealed class RemoveAsyncModifierTests
             """
             class C
             {
-                async System.Threading.Tasks.Task {|CS1998:Goo|}()
+                {|IDE0390:async|} System.Threading.Tasks.Task Goo()
                 {
                     if (System.DateTime.Now.Ticks > 0)
                     {
@@ -1023,7 +1023,7 @@ public sealed class RemoveAsyncModifierTests
             """
             class C
             {
-                async System.Threading.Tasks.Task<int> {|CS1998:Goo|}()
+                {|IDE0390:async|} System.Threading.Tasks.Task<int> Goo()
                 {
                     if (System.DateTime.Now.Ticks > 0)
                     {
@@ -1057,7 +1057,7 @@ public sealed class RemoveAsyncModifierTests
 
             class C
             {
-                public async Task<IReadOnlyCollection<int>> {|CS1998:M|}()
+                public {|IDE0390:async|} Task<IReadOnlyCollection<int>> M()
                 {
                     return new int[0];
                 }
@@ -1107,7 +1107,7 @@ public sealed class RemoveAsyncModifierTests
 
             class C
             {
-                async void M()
+                {|IDE0390:async|} void M()
                 {
                     System.Console.WriteLine(1);
                 }
@@ -1118,11 +1118,6 @@ public sealed class RemoveAsyncModifierTests
         {
             ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
             TestCode = source,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(6,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                DiagnosticResult.CompilerWarning("CS1998").WithSpan(5, 16, 5, 17),
-            },
             FixedCode = source,
         }.RunAsync();
     }
