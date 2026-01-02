@@ -797,7 +797,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 public void M1()
                 {
-                    Func<int, Task> foo = async x {|CS1998:=>|} Console.WriteLine(1);
+                    Func<int, Task> foo = {|IDE0390:async|} x => Console.WriteLine(1);
                 }
             }
             """,
@@ -825,7 +825,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 public void M1()
                 {
-                    Func<int, Task> foo = async x {|CS1998:=>|}
+                    Func<int, Task> foo = {|IDE0390:async|} x =>
                     {
                         if (System.DateTime.Now.Ticks > 0)
                         {
@@ -867,7 +867,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 public void M1()
                 {
-                    Func<Task<int>> foo = async () {|CS1998:=>|} 1;
+                    Func<Task<int>> foo = {|IDE0390:async|} () => 1;
                 }
             }
             """,
@@ -895,7 +895,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 public void M1()
                 {
-                    Func<Task<int>> foo = async () {|CS1998:=>|} {
+                    Func<Task<int>> foo = {|IDE0390:async|} () => {
                         return 1;
                     };
                 }
@@ -928,7 +928,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 public void M1()
                 {
-                    Func<Task> foo = async () {|CS1998:=>|} Console.WriteLine(1);
+                    Func<Task> foo = {|IDE0390:async|} () => Console.WriteLine(1);
                 }
             }
             """,
@@ -956,7 +956,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 public void M1()
                 {
-                    Func<Task> foo = async () {|CS1998:=>|}
+                    Func<Task> foo = {|IDE0390:async|} () =>
                     {
                         if (System.DateTime.Now.Ticks > 0)
                         {
@@ -1133,7 +1133,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 void M()
                 {
-                    Action a = async () => Console.WriteLine(1);
+                    Action a = {|IDE0390:async|} () => Console.WriteLine(1);
                 }
             }
             """;
@@ -1142,11 +1142,6 @@ public sealed class RemoveAsyncModifierTests
         {
             ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
             TestCode = source,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(9,29): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                DiagnosticResult.CompilerWarning("CS1998").WithSpan(8, 29, 8, 31),
-            },
             FixedCode = source,
         }.RunAsync();
     }
@@ -1162,7 +1157,7 @@ public sealed class RemoveAsyncModifierTests
             {
                 void M()
                 {
-                    Action<int> a = async x => Console.WriteLine(x);
+                    Action<int> a = {|IDE0390:async|} x => Console.WriteLine(x);
                 }
             }
             """;
@@ -1171,11 +1166,6 @@ public sealed class RemoveAsyncModifierTests
         {
             ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
             TestCode = source,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(9,33): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                DiagnosticResult.CompilerWarning("CS1998").WithSpan(8, 33, 8, 35),
-            },
             FixedCode = source,
         }.RunAsync();
     }
