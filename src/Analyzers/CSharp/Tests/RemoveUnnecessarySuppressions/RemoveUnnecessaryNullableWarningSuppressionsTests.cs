@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -185,7 +186,6 @@ public sealed class RemoveUnnecessaryNullableWarningSuppressionsTests
                 }
                 """,
         }.RunAsync();
-
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81632")]
     public Task TestGetMethod_NoDiagnostic()
