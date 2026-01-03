@@ -26,13 +26,12 @@ internal sealed class CSharpUseIndexOperatorCodeFixProvider() : SyntaxEditorBase
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
         [IDEDiagnosticIds.UseIndexOperatorDiagnosticId];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Use_index_operator, nameof(CSharpAnalyzersResources.Use_index_operator));
-        return Task.CompletedTask;
     }
 
-    protected override Task FixAllAsync(
+    protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
@@ -45,7 +44,5 @@ internal sealed class CSharpUseIndexOperatorCodeFixProvider() : SyntaxEditorBase
                 node,
                 (currentNode, _) => IndexExpression(((BinaryExpressionSyntax)currentNode).Right));
         }
-
-        return Task.CompletedTask;
     }
 }

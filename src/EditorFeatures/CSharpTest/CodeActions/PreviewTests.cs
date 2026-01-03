@@ -42,11 +42,10 @@ public sealed partial class PreviewTests : AbstractCSharpCodeActionTest
 
     private sealed class MyCodeRefactoringProvider : CodeRefactoringProvider
     {
-        public sealed override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var codeAction = new TestCodeAction(context.Document);
             context.RegisterRefactoring(codeAction, context.Span);
-            return Task.CompletedTask;
         }
 
         private sealed class TestCodeAction : CodeAction
@@ -64,7 +63,7 @@ public sealed partial class PreviewTests : AbstractCSharpCodeActionTest
                 }
             }
 
-            protected override Task<Solution> GetChangedSolutionAsync(
+            protected override async Task<Solution> GetChangedSolutionAsync(
                 IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var solution = _oldDocument.Project.Solution;
@@ -83,7 +82,7 @@ public sealed partial class PreviewTests : AbstractCSharpCodeActionTest
                 // Change a document - This will result in IWpfTextView previews.
                 solution = solution.WithDocumentSyntaxRoot(_oldDocument.Id, CSharpSyntaxTree.ParseText(ChangedDocumentText, cancellationToken: cancellationToken).GetRoot(cancellationToken));
 
-                return Task.FromResult(solution);
+                return solution;
             }
         }
     }
