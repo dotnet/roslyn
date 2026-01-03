@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -184,5 +186,22 @@ public sealed class RemoveUnnecessaryNullableWarningSuppressionsTests
                     public string S { get; } = null!;
                 }
                 """,
+        }.RunAsync();
+
+    [Fact]
+    public Task KeepWhenNeeded_PropertyInitializer_Net9()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                class C
+                {
+                    public C() { }
+                    public string S { get; set; } = null!;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
 }
