@@ -25284,11 +25284,9 @@ partial class Program
                 expectedOutput: IncludeExpectedOutput("[2], [3], [4], "));
             verifier.VerifyIL("Program.Main", """
                 {
-                  // Code size       61 (0x3d)
+                  // Code size       67 (0x43)
                   .maxstack  1
-                  .locals init (object V_0,
-                                object V_1,
-                                object V_2)
+                  .locals init (object V_0)
                   IL_0000:  ldc.i4.2
                   IL_0001:  box        "int"
                   IL_0006:  stloc.0
@@ -25296,21 +25294,27 @@ partial class Program
                   IL_0009:  newobj     "System.Span<object>..ctor(ref object)"
                   IL_000e:  call       "R Program.ReturnsRefStruct<object>(scoped System.Span<object>)"
                   IL_0013:  pop
-                  IL_0014:  ldc.i4.3
-                  IL_0015:  box        "int"
-                  IL_001a:  stloc.1
-                  IL_001b:  ldloca.s   V_1
-                  IL_001d:  newobj     "System.Span<object>..ctor(ref object)"
-                  IL_0022:  call       "ref int Program.ReturnsRef<object>(scoped System.Span<object>)"
-                  IL_0027:  pop
-                  IL_0028:  ldc.i4.4
-                  IL_0029:  box        "int"
-                  IL_002e:  stloc.2
-                  IL_002f:  ldloca.s   V_2
-                  IL_0031:  newobj     "System.Span<object>..ctor(ref object)"
-                  IL_0036:  call       "ref readonly int Program.ReturnsRefReadOnly<object>(scoped System.Span<object>)"
-                  IL_003b:  pop
-                  IL_003c:  ret
+                  IL_0014:  ldnull
+                  IL_0015:  stloc.0
+                  IL_0016:  ldc.i4.3
+                  IL_0017:  box        "int"
+                  IL_001c:  stloc.0
+                  IL_001d:  ldloca.s   V_0
+                  IL_001f:  newobj     "System.Span<object>..ctor(ref object)"
+                  IL_0024:  call       "ref int Program.ReturnsRef<object>(scoped System.Span<object>)"
+                  IL_0029:  pop
+                  IL_002a:  ldnull
+                  IL_002b:  stloc.0
+                  IL_002c:  ldc.i4.4
+                  IL_002d:  box        "int"
+                  IL_0032:  stloc.0
+                  IL_0033:  ldloca.s   V_0
+                  IL_0035:  newobj     "System.Span<object>..ctor(ref object)"
+                  IL_003a:  call       "ref readonly int Program.ReturnsRefReadOnly<object>(scoped System.Span<object>)"
+                  IL_003f:  pop
+                  IL_0040:  ldnull
+                  IL_0041:  stloc.0
+                  IL_0042:  ret
                 }
                 """);
         }

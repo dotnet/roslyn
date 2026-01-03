@@ -383,16 +383,15 @@ class Test : System.Attribute
                 {
                   // Code size       29 (0x1d)
                   .maxstack  1
-                  .locals init (int V_0,
-                                int V_1)
+                  .locals init (int V_0)
                   IL_0000:  ldc.i4.1
                   IL_0001:  stloc.0
                   IL_0002:  ldloca.s   V_0
                   IL_0004:  newobj     "System.Span<int>..ctor(ref int)"
                   IL_0009:  call       "void Program.M(params System.Span<int>)"
                   IL_000e:  ldc.i4.2
-                  IL_000f:  stloc.1
-                  IL_0010:  ldloca.s   V_1
+                  IL_000f:  stloc.0
+                  IL_0010:  ldloca.s   V_0
                   IL_0012:  newobj     "System.Span<int>..ctor(ref int)"
                   IL_0017:  call       "void Program.M(params System.Span<int>)"
                   IL_001c:  ret
