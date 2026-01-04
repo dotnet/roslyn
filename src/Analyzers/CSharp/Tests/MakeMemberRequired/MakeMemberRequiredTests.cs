@@ -591,4 +591,68 @@ public sealed class MakeMemberRequiredTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
+
+    [Fact]
+    public Task TestStaticProperty()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+                public class C
+                {
+                    public static string {|CS8618:MyProperty|} { get; set; }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+        }.RunAsync();
+
+    [Fact]
+    public Task TestReadonlyField()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+                public class C
+                {
+                    public readonly string {|CS8618:MyField|};
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+        }.RunAsync();
+
+    [Fact]
+    public Task TestEvent()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+                public class C
+                {
+                    public event System.Action {|CS8618:MyEvent|};
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+        }.RunAsync();
+
+    [Fact]
+    public Task TestOverrideProperty()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+                public abstract class Base
+                {
+                    public abstract string Text { get; set; }
+                }
+                public class Derived : Base
+                {
+                    public override string {|CS8618:Text|} { get; set; }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+        }.RunAsync();
 }

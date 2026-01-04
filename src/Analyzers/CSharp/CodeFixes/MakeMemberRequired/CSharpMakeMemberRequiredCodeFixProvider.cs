@@ -58,8 +58,14 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider() : SyntaxEditorBa
         }
 
         var fieldOrPropertySymbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
+        if (fieldOrPropertySymbol is null || fieldOrPropertySymbol.IsStatic || fieldOrPropertySymbol.Kind == SymbolKind.Event)
+            return;
+
         if (fieldOrPropertySymbol is IPropertySymbol propertySymbol)
         {
+            if (propertySymbol.IsOverride)
+                return;
+
             var setMethod = propertySymbol.SetMethod;
 
             // Property must have a `set` or `init` accessor in order to be able to be required
@@ -76,6 +82,9 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider() : SyntaxEditorBa
         }
         else if (fieldOrPropertySymbol is IFieldSymbol fieldSymbol)
         {
+            if (fieldSymbol.IsReadOnly)
+                return;
+
             var containingTypeVisibility = fieldSymbol.ContainingType.GetResultantVisibility();
             var accessibility = fieldSymbol.DeclaredAccessibility;
 

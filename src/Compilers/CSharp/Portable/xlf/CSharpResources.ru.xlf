@@ -5741,9 +5741,19 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField">
-        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
-        <target state="translated">{0} "{1}", не допускающий значения NULL, должен содержать значение, отличное от NULL, при выходе из конструктора. Рассмотрите возможность добавить модификатор "required", объявить {0} как допускающее значение NULL или добавить атрибуты "[field: MaybeNull, AllowNull]".</target>
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor.{2}</source>
+        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor.{2}</target>
         <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
+      </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableBackingField_NullableSuggestion">
+        <source> Consider declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
+        <target state="new"> Consider declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableBackingField_RequiredSuggestion">
+        <source> Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
+        <target state="new"> Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</target>
+        <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField_Title">
         <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
@@ -5751,8 +5761,18 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
-        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the {0} as nullable.</source>
-        <target state="translated">{0} "{1}", не допускающий значения NULL, должен содержать значение, отличное от NULL, при выходе из конструктора. Рассмотрите возможность добавления модификатора "required" или объявления значения {0}, допускающего значение NULL.</target>
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor.{2}</source>
+        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor.{2}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableField_NullableSuggestion">
+        <source> Consider declaring the {0} as nullable.</source>
+        <target state="new"> Consider declaring the {0} as nullable.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableField_RequiredSuggestion">
+        <source> Consider adding the 'required' modifier or declaring the {0} as nullable.</source>
+        <target state="new"> Consider adding the 'required' modifier or declaring the {0} as nullable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">

@@ -823,7 +823,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (memberState >= badState) // is 'memberState' as bad as or worse than 'badState'?
                 {
                     var errorCode = usesFieldKeyword ? ErrorCode.WRN_UninitializedNonNullableBackingField : ErrorCode.WRN_UninitializedNonNullableField;
-                    var info = new CSDiagnosticInfo(errorCode, new object[] { symbol.Kind.Localize(), symbol.Name }, ImmutableArray<Symbol>.Empty, additionalLocations: symbol.Locations);
+                    var isReadOnly = symbol is FieldSymbol { IsReadOnly: true } || symbol is PropertySymbol { IsReadOnly: true };
+
+                    var useSiteInfo = Microsoft.CodeAnalysis.CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependencies;
+                    var canBeRequired = !symbol.IsStatic && !isReadOnly && symbol.Kind != SymbolKind.Event && !symbol.IsOverride &&
+                                        symbol.IsAsRestrictive(symbol.ContainingType, ref useSiteInfo);
+
+                    if (canBeRequired && symbol is PropertySymbol { SetMethod: { } setMethod } && !setMethod.IsAsRestrictive(symbol.ContainingType, ref useSiteInfo))
+                    {
+                        canBeRequired = false;
+                    }
+
+                    string suggestion = usesFieldKeyword
+                        ? (canBeRequired
+                            ? string.Format(CSharpResources.WRN_UninitializedNonNullableBackingField_RequiredSuggestion, symbol.Kind.Localize())
+                            : string.Format(CSharpResources.WRN_UninitializedNonNullableBackingField_NullableSuggestion, symbol.Kind.Localize()))
+                        : (canBeRequired
+                            ? string.Format(CSharpResources.WRN_UninitializedNonNullableField_RequiredSuggestion, symbol.Kind.Localize())
+                            : string.Format(CSharpResources.WRN_UninitializedNonNullableField_NullableSuggestion, symbol.Kind.Localize()));
+
+                    var info = new CSDiagnosticInfo(errorCode, new object[] { symbol.Kind.Localize(), symbol.Name, suggestion }, ImmutableArray<Symbol>.Empty, additionalLocations: symbol.Locations);
                     Diagnostics.Add(info, exitLocation ?? symbol.GetFirstLocationOrNone());
                 }
             }
