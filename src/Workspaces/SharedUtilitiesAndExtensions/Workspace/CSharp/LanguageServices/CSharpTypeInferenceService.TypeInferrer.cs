@@ -1253,7 +1253,8 @@ internal partial class CSharpTypeInferenceService
             if (expressionOpt != null && expressionOpt != forEachStatementSyntax.Expression)
                 return [];
 
-            var enumerableType = forEachStatementSyntax.AwaitKeyword == default
+            var isAsync = forEachStatementSyntax.AwaitKeyword != default;
+            var enumerableType = !isAsync
                 ? this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T)
                 : this.Compilation.GetTypeByMetadataName(typeof(IAsyncEnumerable<>).FullName);
 
@@ -1261,14 +1262,21 @@ internal partial class CSharpTypeInferenceService
 
             // foreach (int v = Goo())
             var variableTypes = GetTypes(forEachStatementSyntax.Type);
-            if (!variableTypes.Any())
+            var typeInferenceInfos = variableTypes as TypeInferenceInfo[] ?? variableTypes.ToArray();
+
+            if (typeInferenceInfos.Length != 0)
+                return typeInferenceInfos.Select(v => new TypeInferenceInfo(enumerableType.Construct(v.InferredType)));
+
+            var objectType = Compilation.GetSpecialType(SpecialType.System_Object);
+            var results = CreateResult(enumerableType.Construct(objectType)).ToList();
+
+            if (!isAsync)
             {
-                return CreateResult(
-                    enumerableType
-                        .Construct(Compilation.GetSpecialType(SpecialType.System_Object)));
+                var nonGenericEnumerable = Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
+                results.AddRange(CreateResult(nonGenericEnumerable));
             }
 
-            return variableTypes.Select(v => new TypeInferenceInfo(enumerableType.Construct(v.InferredType)));
+            return results;
         }
 
         private IEnumerable<TypeInferenceInfo> InferTypeInForStatement(ForStatementSyntax forStatement, ExpressionSyntax expressionOpt = null, SyntaxToken? previousToken = null)
