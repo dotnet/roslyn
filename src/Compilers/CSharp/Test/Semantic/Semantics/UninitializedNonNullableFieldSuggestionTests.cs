@@ -20,7 +20,7 @@ public class UninitializedNonNullableFieldSuggestionTests : CSharpTestBase
                            """;
         var comp = CreateCompilation(Src);
         comp.VerifyDiagnostics(
-            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Text").WithArguments("property", "Text", " Consider declaring the property as nullable.").WithLocation(3, 26)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Text").WithArguments("property", "Text").WithLocation(3, 26)
         );
     }
 
@@ -35,7 +35,7 @@ public class UninitializedNonNullableFieldSuggestionTests : CSharpTestBase
                            """;
         var comp = CreateCompilation(Src);
         comp.VerifyDiagnostics(
-            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Text").WithArguments("property", "Text", " Consider adding the 'required' modifier or declaring the property as nullable.").WithLocation(3, 19)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Text").WithArguments("property", "Text").WithLocation(3, 19)
         );
     }
 
@@ -50,7 +50,7 @@ public class UninitializedNonNullableFieldSuggestionTests : CSharpTestBase
                            """;
         var comp = CreateCompilation(Src);
         comp.VerifyDiagnostics(
-            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Text").WithArguments("property", "Text", " Consider declaring the property as nullable.").WithLocation(3, 19)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Text").WithArguments("property", "Text").WithLocation(3, 19)
         );
     }
 
@@ -65,7 +65,7 @@ public class UninitializedNonNullableFieldSuggestionTests : CSharpTestBase
                            """;
         var comp = CreateCompilation(Src);
         comp.VerifyDiagnostics(
-            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Text").WithArguments("field", "Text", " Consider declaring the field as nullable.").WithLocation(3, 28)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Text").WithArguments("field", "Text").WithLocation(3, 28)
         );
     }
 
@@ -81,7 +81,7 @@ public class UninitializedNonNullableFieldSuggestionTests : CSharpTestBase
                            """;
         var comp = CreateCompilation(Src);
         comp.VerifyDiagnostics(
-            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E").WithArguments("event", "E", " Consider declaring the event as nullable.").WithLocation(4, 32)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E").WithArguments("event", "E").WithLocation(4, 32)
         );
     }
 
@@ -97,7 +97,7 @@ public class UninitializedNonNullableFieldSuggestionTests : CSharpTestBase
                            """;
         var comp = CreateCompilation(Src);
         comp.VerifyDiagnostics(
-            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Text", " Consider declaring the property as nullable.").WithLocation(4, 12)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Text").WithLocation(4, 12)
         );
     }
 
@@ -113,7 +113,7 @@ public class UninitializedNonNullableFieldSuggestionTests : CSharpTestBase
                            """;
         var comp = CreateCompilation(Src);
         comp.VerifyDiagnostics(
-            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Text", " Consider declaring the property as nullable.").WithLocation(4, 12)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Text").WithLocation(4, 12)
         );
     }
 
@@ -131,7 +131,87 @@ public class UninitializedNonNullableFieldSuggestionTests : CSharpTestBase
                            """;
         var comp = CreateCompilation(Src);
         comp.VerifyDiagnostics(
-            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Text").WithArguments("property", "Text", " Consider declaring the property as nullable.").WithLocation(6, 28)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Text").WithArguments("property", "Text").WithLocation(6, 28)
         );
+    }
+
+    [Fact]
+    public void InternalPropertyInInternalClassWarningMessage()
+    {
+        const string Src = """
+                           #nullable enable
+                           internal class C {
+                               internal string Text { get; set; }
+                           }
+                           """;
+        var comp = CreateCompilation(Src);
+        comp.VerifyDiagnostics(
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Text").WithArguments("property", "Text").WithLocation(3, 21)
+        );
+    }
+
+    [Fact]
+    public void PrivateNestedClassPublicPropertyWarningMessage()
+    {
+        const string Src = """
+                           #nullable enable
+                           public class Outer {
+                               private class Inner {
+                                   public string Text { get; set; }
+                               }
+                           }
+                           """;
+
+        var comp = CreateCompilation(Src);
+
+        comp.VerifyDiagnostics(
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Text").WithArguments("property", "Text").WithLocation(4, 23)
+        );
+    }
+
+    [Fact]
+    public void PrivatePropertyInPublicClassNoSuggestion()
+    {
+        const string Src = """
+                           #nullable enable
+                           public class C {
+                               private string Text { get; set; }
+                               public C() { }
+                           }
+                           """;
+        var comp = CreateCompilation(Src);
+        comp.VerifyDiagnostics(
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Text").WithLocation(4, 12)
+        );
+    }
+
+    [Fact]
+    public void PublicPropertyInInternalClassSuggestion()
+    {
+        const string Src = """
+                           #nullable enable
+                           internal class C {
+                               public string Text { get; set; }
+                           }
+                           """;
+        var comp = CreateCompilation(Src);
+        comp.VerifyDiagnostics(
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Text").WithArguments("property", "Text").WithLocation(3, 19)
+        );
+    }
+
+    [Fact]
+    public void StructConstructorRequiredMemberWarning()
+    {
+        const string Src = """
+                           #nullable enable
+                           public struct S {
+                               public required string Text;
+                               public S() { }
+                           }
+                           """;
+
+        var comp = CreateCompilation(new[] { Src, RequiredMemberAttribute, CompilerFeatureRequiredAttribute });
+        comp.VerifyDiagnostics();
     }
 }

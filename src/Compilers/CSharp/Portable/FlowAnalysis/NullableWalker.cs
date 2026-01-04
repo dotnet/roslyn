@@ -287,6 +287,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly MethodSymbol? _baseOrThisInitializer;
 
+        private NamedTypeSymbol? _lazyRequiredMemberAttribute;
+
 #if DEBUG
         /// <summary>
         /// Contains the expressions that should not be inserted into <see cref="_analyzedNullabilityMapOpt"/>.
@@ -822,11 +824,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     : NullableFlowState.MaybeNull;
                 if (memberState >= badState) // is 'memberState' as bad as or worse than 'badState'?
                 {
-                    var errorCode = usesFieldKeyword ? ErrorCode.WRN_UninitializedNonNullableBackingField : ErrorCode.WRN_UninitializedNonNullableField;
                     var isReadOnly = symbol is FieldSymbol { IsReadOnly: true } || symbol is PropertySymbol { IsReadOnly: true };
 
                     var useSiteInfo = Microsoft.CodeAnalysis.CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependencies;
-                    var canBeRequired = !symbol.IsStatic && !isReadOnly && symbol.Kind != SymbolKind.Event && !symbol.IsOverride &&
+                    var canBeRequired = compilation.LanguageVersion >= LanguageVersion.CSharp11 &&
+                                        (_lazyRequiredMemberAttribute ??= compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_RequiredMemberAttribute)) is { TypeKind: not TypeKind.Error } &&
+                                        !symbol.IsRequired() &&
+                                        !symbol.IsStatic && !isReadOnly && symbol.Kind != SymbolKind.Event &&
+                                        (!symbol.IsOverride || (symbol is PropertySymbol { OverriddenProperty: { IsRequired: true } })) &&
                                         symbol.IsAsRestrictive(symbol.ContainingType, ref useSiteInfo);
 
                     if (canBeRequired && symbol is PropertySymbol { SetMethod: { } setMethod } && !setMethod.IsAsRestrictive(symbol.ContainingType, ref useSiteInfo))
@@ -834,15 +839,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                         canBeRequired = false;
                     }
 
-                    string suggestion = usesFieldKeyword
-                        ? (canBeRequired
-                            ? string.Format(CSharpResources.WRN_UninitializedNonNullableBackingField_RequiredSuggestion, symbol.Kind.Localize())
-                            : string.Format(CSharpResources.WRN_UninitializedNonNullableBackingField_NullableSuggestion, symbol.Kind.Localize()))
-                        : (canBeRequired
-                            ? string.Format(CSharpResources.WRN_UninitializedNonNullableField_RequiredSuggestion, symbol.Kind.Localize())
-                            : string.Format(CSharpResources.WRN_UninitializedNonNullableField_NullableSuggestion, symbol.Kind.Localize()));
+                    ErrorCode identityCode = usesFieldKeyword ? ErrorCode.WRN_UninitializedNonNullableBackingField : ErrorCode.WRN_UninitializedNonNullableField;
+                    ErrorCode messageCode;
+                    if (usesFieldKeyword)
+                    {
+                        messageCode = canBeRequired ? ErrorCode.WRN_UninitializedNonNullableBackingField_Required : ErrorCode.WRN_UninitializedNonNullableBackingField;
+                    }
+                    else
+                    {
+                        messageCode = canBeRequired ? ErrorCode.WRN_UninitializedNonNullableField_Required : ErrorCode.WRN_UninitializedNonNullableField;
+                    }
 
-                    var info = new CSDiagnosticInfo(errorCode, new object[] { symbol.Kind.Localize(), symbol.Name, suggestion }, ImmutableArray<Symbol>.Empty, additionalLocations: symbol.Locations);
+                    DiagnosticInfo info;
+                    var args = new object[] { symbol.Kind.Localize(), symbol.Name };
+                    if (messageCode == identityCode)
+                    {
+                        info = new CSDiagnosticInfo(identityCode, args, ImmutableArray<Symbol>.Empty, additionalLocations: symbol.Locations);
+                    }
+                    else
+                    {
+                        info = new UninitializedNonNullableFieldDiagnosticInfo(messageCode, identityCode, args, additionalLocations: symbol.Locations);
+                    }
+
                     Diagnostics.Add(info, exitLocation ?? symbol.GetFirstLocationOrNone());
                 }
             }

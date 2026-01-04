@@ -46,7 +46,8 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider() : SyntaxEditorBa
         // public string [|MyProperty|] { get; set; }
         // public string [|_myField|];
         // public string [|_myField1|], [|_myField2|];
-        if (node is not (PropertyDeclarationSyntax or VariableDeclaratorSyntax { Parent.Parent: FieldDeclarationSyntax }))
+        // public [|C|]() { } // node is ConstructorDeclarationSyntax
+        if (node is not (PropertyDeclarationSyntax or VariableDeclaratorSyntax { Parent.Parent: FieldDeclarationSyntax } or ConstructorDeclarationSyntax))
             return;
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -57,41 +58,75 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider() : SyntaxEditorBa
             return;
         }
 
-        var fieldOrPropertySymbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
-        if (fieldOrPropertySymbol is null || fieldOrPropertySymbol.IsStatic || fieldOrPropertySymbol.Kind == SymbolKind.Event)
-            return;
-
-        if (fieldOrPropertySymbol is IPropertySymbol propertySymbol)
+        foreach (var diagnostic in context.Diagnostics)
         {
-            if (propertySymbol.IsOverride)
-                return;
+            var fieldOrPropertySymbol = node is ConstructorDeclarationSyntax
+                ? GetSymbolFromAdditionalLocation(diagnostic, root, semanticModel, cancellationToken)
+                : semanticModel.GetDeclaredSymbol(node, cancellationToken);
 
-            var setMethod = propertySymbol.SetMethod;
+            if (fieldOrPropertySymbol is null || fieldOrPropertySymbol.IsStatic || fieldOrPropertySymbol.Kind == SymbolKind.Event)
+                continue;
 
-            // Property must have a `set` or `init` accessor in order to be able to be required
-            if (setMethod is null)
-                return;
+            switch (fieldOrPropertySymbol)
+            {
+                case IPropertySymbol { IsOverride: true } propertySymbol when !IsBaseRequired(propertySymbol):
+                    continue;
+                case IPropertySymbol propertySymbol:
+                    {
+                        var setMethod = propertySymbol.SetMethod;
 
-            var containingTypeVisibility = propertySymbol.ContainingType.GetResultantVisibility();
-            var minimalAccessibility = (Accessibility)Math.Min((int)propertySymbol.DeclaredAccessibility, (int)setMethod.DeclaredAccessibility);
+                        // Property must have a `set` or `init` accessor in order to be able to be required
+                        if (setMethod is null)
+                            continue;
 
-            if (!CanBeAccessed(containingTypeVisibility, minimalAccessibility))
-                return;
+                        var containingTypeVisibility = propertySymbol.ContainingType.GetResultantVisibility();
+                        var minimalAccessibility = (Accessibility)Math.Min((int)propertySymbol.DeclaredAccessibility, (int)setMethod.DeclaredAccessibility);
 
-            RegisterCodeFix(context, CSharpCodeFixesResources.Make_property_required, nameof(CSharpCodeFixesResources.Make_property_required));
+                        if (!CanBeAccessed(containingTypeVisibility, minimalAccessibility))
+                            continue;
+
+                        RegisterCodeFix(context, CSharpCodeFixesResources.Make_property_required, nameof(CSharpCodeFixesResources.Make_property_required));
+                        break;
+                    }
+                case IFieldSymbol { IsReadOnly: true }:
+                    continue;
+                case IFieldSymbol fieldSymbol:
+                    {
+                        var containingTypeVisibility = fieldSymbol.ContainingType.GetResultantVisibility();
+                        var accessibility = fieldSymbol.DeclaredAccessibility;
+
+                        if (!CanBeAccessed(containingTypeVisibility, accessibility))
+                            continue;
+
+                        RegisterCodeFix(context, CSharpCodeFixesResources.Make_field_required, nameof(CSharpCodeFixesResources.Make_field_required));
+                        break;
+                    }
+            }
         }
-        else if (fieldOrPropertySymbol is IFieldSymbol fieldSymbol)
+
+        return;
+
+        static ISymbol? GetSymbolFromAdditionalLocation(Diagnostic diagnostic, SyntaxNode root, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            if (fieldSymbol.IsReadOnly)
-                return;
+            if (diagnostic.AdditionalLocations.Count <= 0)
+                return null;
+            var location = diagnostic.AdditionalLocations[0];
+            if (location.SourceTree != root.SyntaxTree)
+                return null;
+            var memberNode = root.FindNode(location.SourceSpan);
+            return semanticModel.GetDeclaredSymbol(memberNode, cancellationToken);
+        }
 
-            var containingTypeVisibility = fieldSymbol.ContainingType.GetResultantVisibility();
-            var accessibility = fieldSymbol.DeclaredAccessibility;
-
-            if (!CanBeAccessed(containingTypeVisibility, accessibility))
-                return;
-
-            RegisterCodeFix(context, CSharpCodeFixesResources.Make_field_required, nameof(CSharpCodeFixesResources.Make_field_required));
+        static bool IsBaseRequired(IPropertySymbol property)
+        {
+            var overridden = property.OverriddenProperty;
+            while (overridden != null)
+            {
+                if (overridden.IsRequired)
+                    return true;
+                overridden = overridden.OverriddenProperty;
+            }
+            return false;
         }
 
         // The `required` modifier cannot be used if a member is not accessible from outside of type.
@@ -120,17 +155,39 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider() : SyntaxEditorBa
 
         foreach (var diagnostic in diagnostics)
         {
-            var memberDeclarator = root.FindNode(diagnostic.Location.SourceSpan);
+            var node = root.FindNode(diagnostic.Location.SourceSpan);
+            var memberDeclarator = node;
 
-            // If we are fixing field, do not apply new declaration modifiers just to variable declarator, but to the whole field declaration.
-            // This is observable when there are several variables in single filed declaration:
-            // `public string _myField, _myField1;` -> `public required string _myField, _myField1;`
-            // Without this branch the result would be:
-            // ```
-            // public required string _myField;
-            // public required string _myField2;
-            // ```
-            if (memberDeclarator is VariableDeclaratorSyntax { Parent.Parent: FieldDeclarationSyntax fieldDeclaration })
+            if (node is ConstructorDeclarationSyntax)
+            {
+                memberDeclarator = null;
+                // Find the member node to apply the fix to from additional locations
+                if (diagnostic.AdditionalLocations.Count > 0)
+                {
+                    var location = diagnostic.AdditionalLocations[0];
+                    if (location.SourceTree == root.SyntaxTree)
+                        memberDeclarator = root.FindNode(location.SourceSpan);
+                }
+            }
+
+            switch (memberDeclarator)
+            {
+                case null:
+                    continue;
+                // If we are fixing field, do not apply new declaration modifiers just to variable declarator, but to the whole field declaration.
+                // This is observable when there are several variables in single field declaration:
+                // `public string _myField, _myField1;` -> `public required string _myField, _myField1;`
+                // Without this branch the result would be:
+                // ```
+                // public required string _myField;
+                // public required string _myField2;
+                // ```
+                case VariableDeclaratorSyntax { Parent.Parent: FieldDeclarationSyntax fieldDecl }:
+                    memberDeclarator = fieldDecl;
+                    break;
+            }
+
+            if (memberDeclarator is FieldDeclarationSyntax fieldDeclaration)
             {
                 // Skip field declarations we already visited to not try changing the same declaration twice.
                 // Otherwise we get an exception in fix-all scenario like this:
@@ -139,8 +196,6 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider() : SyntaxEditorBa
                 // Trying to change it again throws in `SyntaxEditor` later, because it cannot find the node.
                 if (!visitedFieldDeclarations.Add(fieldDeclaration))
                     continue;
-
-                memberDeclarator = fieldDeclaration;
             }
 
             var declarationModifiers = generator.GetModifiers(memberDeclarator);
