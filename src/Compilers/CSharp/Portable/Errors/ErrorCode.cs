@@ -2441,11 +2441,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_SingleInapplicableUnaryOperator = 9341,
         ERR_AmbigOperator = 9342,
 
-<<<<<<< HEAD
-        ERR_ClosedTypeNameDisallowed = 9365, // PROTOTYPE(cc): pack
-
-||||||| 79a12eb5b1f
-=======
         ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList = 9343,
         ERR_EqualityOperatorInPatternNotSupported = 9344,
         ERR_InequalityOperatorInPatternNotSupported = 9345,
@@ -2456,7 +2451,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ScopedAfterInOutRefReadonly = 9349,
         ERR_InvalidModifierAfterScoped = 9350,
 
->>>>>>> upstream/main
+        ERR_ClosedTypeNameDisallowed = 9365, // PROTOTYPE(cc): pack
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  2) Add message to CSharpResources.resx

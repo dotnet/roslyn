@@ -2550,10 +2550,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_SingleInapplicableBinaryOperator
                 or ErrorCode.ERR_SingleInapplicableUnaryOperator
                 or ErrorCode.ERR_AmbigOperator
-<<<<<<< HEAD
-                or ErrorCode.ERR_ClosedTypeNameDisallowed
-||||||| 79a12eb5b1f
-=======
                 or ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList
                 or ErrorCode.ERR_EqualityOperatorInPatternNotSupported
                 or ErrorCode.ERR_InequalityOperatorInPatternNotSupported
@@ -2561,7 +2557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_CompilationUnitUnexpected
                 or ErrorCode.ERR_ScopedAfterInOutRefReadonly
                 or ErrorCode.ERR_InvalidModifierAfterScoped
->>>>>>> upstream/main
+                or ErrorCode.ERR_ClosedTypeNameDisallowed
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.
