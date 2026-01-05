@@ -208,13 +208,12 @@ jobs:
           EOF
           )
           else
-            # PR-Val pipeline uses PRNumber, CommitSHA, and SourceBranch parameters
+            # PR-Val pipeline uses PRNumber and CommitSHA parameters
             REQUEST_BODY=$(cat <<EOF
           {
             "templateParameters": {
               "PRNumber": ${{ github.event.issue.number }},
-              "CommitSHA": "${{ steps.commit-sha.outputs.sha }}",
-              "SourceBranch": "${{ steps.pr-details.outputs.ref }}"
+              "CommitSHA": "${{ steps.commit-sha.outputs.sha }}"
             }
           }
           EOF
