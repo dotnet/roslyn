@@ -332,8 +332,8 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
 
         return false;
 
-        static bool IsUpperAlpha(char c) => c is >= 'A' and <= 'Z';
-        static bool IsNumeric(char c) => c is >= '0' and <= '9';
+        static bool IsUpperAlpha(char c) => char.IsUpper(c) && char.IsLetter(c);
+        static bool IsNumeric(char c) => char.IsDigit(c);
     }
 
     private static bool ParameterMatchesMemberAccessName(SyntaxNode argument, IParameterSymbol parameter, ISyntaxFactsService syntaxFacts)
@@ -368,7 +368,7 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
 
     private static string NormalizeIdentifier(string identifier)
     {
-        // Remove common prefixes and underscores, normalize to lowercase for comparison
+        // Remove common prefixes and underscores for comparison
         var normalized = identifier.TrimStart('_', '@');
         return normalized.Replace("_", "");
     }
