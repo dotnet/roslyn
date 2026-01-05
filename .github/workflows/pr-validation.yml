@@ -1,0 +1,271 @@
+name: PR Validation
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  pull-requests: write
+  id-token: write  # Required to fetch an OIDC token for Azure authentication
+
+jobs:
+  validate-and-trigger:
+    name: Validate and Trigger Azure Pipeline
+    if: |
+      github.event.issue.pull_request &&
+      (contains(github.event.comment.body, '/dart') || contains(github.event.comment.body, '/pr-val'))
+    runs-on: ubuntu-latest
+    environment: pr_val
+
+    steps:
+      - name: Check if user has write access
+        id: check-access
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: context.actor
+            });
+            
+            const hasWriteAccess = ['admin', 'write', 'maintain'].includes(permission.permission);
+            console.log(`User ${context.actor} has permission: ${permission.permission}`);
+            core.setOutput('has-access', hasWriteAccess);
+            return hasWriteAccess;
+
+      - name: Check Microsoft org membership
+        id: check-org
+        if: steps.check-access.outputs.has-access == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              await github.rest.orgs.checkMembershipForUser({
+                org: 'microsoft',
+                username: context.actor
+              });
+              console.log(`User ${context.actor} is a member of Microsoft org`);
+              core.setOutput('is-member', 'true');
+              return true;
+            } catch (error) {
+              console.log(`User ${context.actor} is not a member of Microsoft org`);
+              core.setOutput('is-member', 'false');
+              return false;
+            }
+
+      - name: Parse commit hash from comment
+        id: parse-commit
+        if: steps.check-access.outputs.has-access != 'true' || steps.check-org.outputs.is-member != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const commentBody = context.payload.comment.body;
+            // Extract commit hash after /dart or /pr-val
+            const match = commentBody.match(/\/(dart|pr-val)\s+([a-f0-9]{7,40})/i);
+
+            if (!match || !match[2]) {
+              console.log('No commit hash found in comment');
+              core.setOutput('has-commit', 'false');
+              return false;
+            }
+
+            const commitHash = match[2];
+            console.log(`Extracted commit hash: ${commitHash}`);
+            core.setOutput('has-commit', 'true');
+            core.setOutput('commit-hash', commitHash);
+            return true;
+
+      - name: Comment on missing commit hash
+        if: |
+          (steps.check-access.outputs.has-access != 'true' || steps.check-org.outputs.is-member != 'true') &&
+          steps.parse-commit.outputs.has-commit != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: 'You do not have permission to trigger this workflow without specifying a commit hash. Please use the format `/dart <commit-hash>` or `/pr-val <commit-hash>.'
+            });
+
+      - name: Exit if unauthorized without commit hash
+        if: |
+          (steps.check-access.outputs.has-access != 'true' || steps.check-org.outputs.is-member != 'true') &&
+          steps.parse-commit.outputs.has-commit != 'true'
+        run: exit 1
+
+      - name: Get PR details
+        id: pr-details
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+
+            core.setOutput('ref', pr.head.ref);
+            core.setOutput('repo', pr.head.repo.full_name);
+            console.log(`PR #${context.issue.number}: ${pr.head.repo.full_name}@${pr.head.ref} (${pr.head.sha})`);
+
+      - name: Determine commit SHA to use
+        id: commit-sha
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const parseCommitOutput = '${{ steps.parse-commit.outputs.has-commit }}';
+            const providedCommit = '${{ steps.parse-commit.outputs.commit-hash }}';
+
+            let commitSha;
+            if (parseCommitOutput === 'true' && providedCommit) {
+              // Use the commit hash provided in the comment
+              commitSha = providedCommit;
+              console.log(`Using commit hash from comment: ${commitSha}`);
+            } else {
+              // Use the PR head SHA for privileged users
+              const { data: pr } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number
+              });
+              commitSha = pr.head.sha;
+              console.log(`Using PR head SHA: ${commitSha}`);
+            }
+
+            core.setOutput('sha', commitSha);
+
+      - name: Validate commit exists in PR
+        if: steps.parse-commit.outputs.has-commit == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const commitSha = '${{ steps.commit-sha.outputs.sha }}';
+            const { data: commits } = await github.rest.pulls.listCommits({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+
+            const commitExists = commits.some(commit => commit.sha.startsWith(commitSha));
+
+            if (!commitExists) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `The specified commit hash \`${commitSha}\` was not found in this PR. Please ensure you are using a valid commit hash from this PR.`
+              });
+              core.setFailed(`Commit ${commitSha} not found in PR`);
+            } else {
+              console.log(`Validated commit ${commitSha} exists in PR`);
+            }
+
+      - name: Azure Login with OpenID Connect
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Determine validation type and pipeline ID
+        id: validation-type
+        run: |
+          COMMENT_BODY="${{ github.event.comment.body }}"
+          if echo "$COMMENT_BODY" | grep -q "/dart"; then
+            echo "type=dart" >> $GITHUB_OUTPUT
+            echo "pipeline-id=15324" >> $GITHUB_OUTPUT
+          elif echo "$COMMENT_BODY" | grep -q "/pr-val"; then
+            echo "type=pr-val" >> $GITHUB_OUTPUT
+            echo "pipeline-id=8972" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Trigger Pipeline
+        id: trigger-pipeline
+        run: |
+          # Get Azure DevOps access token
+          AZDO_TOKEN=$(az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv)
+          
+          VALIDATION_TYPE="${{ steps.validation-type.outputs.type }}"
+          PIPELINE_ID="${{ steps.validation-type.outputs.pipeline-id }}"
+          DEVDIV_ORG="devdiv"
+          DEVDIV_PROJECT="DevDiv"
+          
+          echo "Triggering DevDiv $VALIDATION_TYPE pipeline (ID: $PIPELINE_ID)..."
+          
+          # Build request body based on validation type
+          if [ "$VALIDATION_TYPE" = "dart" ]; then
+            # DART pipeline uses prNumber and sha parameters
+            REQUEST_BODY=$(cat <<EOF
+          {
+            "templateParameters": {
+              "prNumber": "${{ github.event.issue.number }}",
+              "sha": "${{ steps.commit-sha.outputs.sha }}"
+            }
+          }
+          EOF
+          )
+          else
+            # PR-Val pipeline uses PRNumber, CommitSHA, and SourceBranch parameters
+            REQUEST_BODY=$(cat <<EOF
+          {
+            "templateParameters": {
+              "PRNumber": ${{ github.event.issue.number }},
+              "CommitSHA": "${{ steps.commit-sha.outputs.sha }}",
+              "SourceBranch": "${{ steps.pr-details.outputs.ref }}"
+            }
+          }
+          EOF
+          )
+          fi
+          
+          echo "Request body: $REQUEST_BODY"
+          
+          # Trigger the pipeline
+          RESPONSE=$(curl -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $AZDO_TOKEN" \
+            -d "$REQUEST_BODY" \
+            "https://dev.azure.com/$DEVDIV_ORG/$DEVDIV_PROJECT/_apis/pipelines/$PIPELINE_ID/runs?api-version=7.0")
+          
+          echo "Response: $RESPONSE"
+          
+          # Extract pipeline run information
+          BUILD_ID=$(echo $RESPONSE | jq -r '.id // empty')
+          
+          if [ -z "$BUILD_ID" ]; then
+            echo "Failed to trigger pipeline"
+            echo "Error details: $(echo $RESPONSE | jq -r '.message // "Unknown error"')"
+            exit 1
+          fi
+          
+          WEB_URL="https://dev.azure.com/$DEVDIV_ORG/$DEVDIV_PROJECT/_build/results?buildId=$BUILD_ID"
+          echo "pipeline-url=$WEB_URL" >> $GITHUB_OUTPUT
+          echo "build-id=$BUILD_ID" >> $GITHUB_OUTPUT
+          echo "Successfully triggered pipeline: $WEB_URL"
+
+      - name: Comment pipeline link
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `Pipeline triggered by @${context.actor}\n\n[View Pipeline Run](${{ steps.trigger-pipeline.outputs.pipeline-url }})\n\n**Parameters:**\n- Validation Type: \`${{ steps.validation-type.outputs.type }}\`\n- Pipeline ID: \`${{ steps.validation-type.outputs.pipeline-id }}\`\n- PR Number: \`${{ github.event.issue.number }}\`\n- Commit SHA: \`${{ steps.commit-sha.outputs.sha }}\`\n- Source Branch: \`${{ steps.pr-details.outputs.ref }}\`\n- Build ID: \`${{ steps.trigger-pipeline.outputs.build-id }}\``
+            });
+
+      - name: Comment on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: 'Failed to trigger the pipeline. Please check the workflow logs for details.'
+            });
