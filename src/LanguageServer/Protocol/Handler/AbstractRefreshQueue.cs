@@ -30,8 +30,6 @@ internal abstract class AbstractRefreshQueue :
     private readonly CancellationTokenSource _disposalTokenSource;
     private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
 
-    protected bool _isQueueCreated;
-
     protected abstract string GetFeatureAttribute();
     protected abstract bool? GetRefreshSupport(ClientCapabilities clientCapabilities);
     protected abstract string GetWorkspaceRefreshName();
@@ -42,7 +40,6 @@ internal abstract class AbstractRefreshQueue :
         LspWorkspaceManager lspWorkspaceManager,
         IClientLanguageServerManager notificationManager)
     {
-        _isQueueCreated = false;
         _asyncListener = asynchronousOperationListenerProvider.GetListener(GetFeatureAttribute());
         _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
         _disposalTokenSource = new();
@@ -71,7 +68,6 @@ internal abstract class AbstractRefreshQueue :
                 equalityComparer: EqualityComparer<DocumentUri?>.Default,
                 asyncListener: _asyncListener,
                 _disposalTokenSource.Token);
-            _isQueueCreated = true;
             _lspWorkspaceRegistrationService.LspSolutionChanged += OnLspSolutionChanged;
         }
     }
@@ -95,14 +91,13 @@ internal abstract class AbstractRefreshQueue :
         }
     }
 
+    /// <summary>
+    /// Enqueues a request to refresh the workspace.  If <paramref name="documentUri"/> is null, then the refresh will
+    /// always happen.  If non-null, the refresh will only happen if the client is <em>not</em> tracking that document.
+    /// If the client is tracking the document, no refresh is necessary as the client clearly knows about the change.
+    /// </summary>
     protected void EnqueueRefreshNotification(DocumentUri? documentUri)
-    {
-        if (_isQueueCreated)
-        {
-            Contract.ThrowIfNull(_refreshQueue);
-            _refreshQueue.AddWork(documentUri);
-        }
-    }
+        => _refreshQueue?.AddWork(documentUri);
 
     private async ValueTask FilterLspTrackedDocumentsAsync(
         LspWorkspaceManager lspWorkspaceManager,
