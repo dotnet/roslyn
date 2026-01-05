@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 
@@ -20,8 +21,11 @@ public class UninitializedNonNullableFieldSuggestionTests : CSharpTestBase
                            """;
         var comp = CreateCompilation(Src);
         comp.VerifyDiagnostics(
+            // (3,26): warning CS8618: Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public static string Text { get; set; }
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Text").WithArguments("property", "Text").WithLocation(3, 26)
         );
+        Assert.Equal("Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.", comp.GetDiagnostics().Single().GetMessage());
     }
 
     [Fact]
@@ -35,8 +39,11 @@ public class UninitializedNonNullableFieldSuggestionTests : CSharpTestBase
                            """;
         var comp = CreateCompilation(Src);
         comp.VerifyDiagnostics(
+            // (3,19): warning CS8618: Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public string Text { get; set; }
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Text").WithArguments("property", "Text").WithLocation(3, 19)
         );
+        Assert.Equal("Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.", comp.GetDiagnostics().Single().GetMessage());
     }
 
     [Fact]
@@ -50,8 +57,11 @@ public class UninitializedNonNullableFieldSuggestionTests : CSharpTestBase
                            """;
         var comp = CreateCompilation(Src);
         comp.VerifyDiagnostics(
+            // (3,19): warning CS8618: Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public string Text { get; }
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Text").WithArguments("property", "Text").WithLocation(3, 19)
         );
+        Assert.Equal("Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.", comp.GetDiagnostics().Single().GetMessage());
     }
 
     [Fact]
@@ -65,8 +75,11 @@ public class UninitializedNonNullableFieldSuggestionTests : CSharpTestBase
                            """;
         var comp = CreateCompilation(Src);
         comp.VerifyDiagnostics(
+            // (3,28): warning CS8618: Non-nullable field 'Text' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+            //     public readonly string Text;
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Text").WithArguments("field", "Text").WithLocation(3, 28)
         );
+        Assert.Equal("Non-nullable field 'Text' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.", comp.GetDiagnostics().Single().GetMessage());
     }
 
     [Fact]
@@ -81,8 +94,11 @@ public class UninitializedNonNullableFieldSuggestionTests : CSharpTestBase
                            """;
         var comp = CreateCompilation(Src);
         comp.VerifyDiagnostics(
+            // (4,32): warning CS8618: Non-nullable event 'E' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+            //     public event System.Action E;
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E").WithArguments("event", "E").WithLocation(4, 32)
         );
+        Assert.Equal("Non-nullable event 'E' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.", comp.GetDiagnostics().Single().GetMessage());
     }
 
     [Fact]
@@ -97,8 +113,11 @@ public class UninitializedNonNullableFieldSuggestionTests : CSharpTestBase
                            """;
         var comp = CreateCompilation(Src);
         comp.VerifyDiagnostics(
+            // (4,12): warning CS8618: Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public C() { }
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Text").WithLocation(4, 12)
         );
+        Assert.Equal("Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.", comp.GetDiagnostics().Single().GetMessage());
     }
 
     [Fact]
@@ -113,8 +132,11 @@ public class UninitializedNonNullableFieldSuggestionTests : CSharpTestBase
                            """;
         var comp = CreateCompilation(Src);
         comp.VerifyDiagnostics(
+            // (4,12): warning CS8618: Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public C() { }
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Text").WithLocation(4, 12)
         );
+        Assert.Equal("Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.", comp.GetDiagnostics().Single().GetMessage());
     }
 
     [Fact]
@@ -131,8 +153,11 @@ public class UninitializedNonNullableFieldSuggestionTests : CSharpTestBase
                            """;
         var comp = CreateCompilation(Src);
         comp.VerifyDiagnostics(
+            // (6,28): warning CS8618: Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public override string Text { get; set; }
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Text").WithArguments("property", "Text").WithLocation(6, 28)
         );
+        Assert.Equal("Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.", comp.GetDiagnostics().Single().GetMessage());
     }
 
     [Fact]
@@ -146,8 +171,11 @@ public class UninitializedNonNullableFieldSuggestionTests : CSharpTestBase
                            """;
         var comp = CreateCompilation(Src);
         comp.VerifyDiagnostics(
+            // (3,21): warning CS8618: Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     internal string Text { get; set; }
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Text").WithArguments("property", "Text").WithLocation(3, 21)
         );
+        Assert.Equal("Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.", comp.GetDiagnostics().Single().GetMessage());
     }
 
     [Fact]
@@ -165,8 +193,11 @@ public class UninitializedNonNullableFieldSuggestionTests : CSharpTestBase
         var comp = CreateCompilation(Src);
 
         comp.VerifyDiagnostics(
+            // (4,23): warning CS8618: Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public string Text { get; set; }
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Text").WithArguments("property", "Text").WithLocation(4, 23)
         );
+        Assert.Equal("Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.", comp.GetDiagnostics().Single().GetMessage());
     }
 
     [Fact]
@@ -181,8 +212,11 @@ public class UninitializedNonNullableFieldSuggestionTests : CSharpTestBase
                            """;
         var comp = CreateCompilation(Src);
         comp.VerifyDiagnostics(
+            // (4,12): warning CS8618: Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public C() { }
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Text").WithLocation(4, 12)
         );
+        Assert.Equal("Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.", comp.GetDiagnostics().Single().GetMessage());
     }
 
     [Fact]
@@ -196,8 +230,11 @@ public class UninitializedNonNullableFieldSuggestionTests : CSharpTestBase
                            """;
         var comp = CreateCompilation(Src);
         comp.VerifyDiagnostics(
+            // (3,19): warning CS8618: Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public string Text { get; set; }
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Text").WithArguments("property", "Text").WithLocation(3, 19)
         );
+        Assert.Equal("Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.", comp.GetDiagnostics().Single().GetMessage());
     }
 
     [Fact]
@@ -213,5 +250,23 @@ public class UninitializedNonNullableFieldSuggestionTests : CSharpTestBase
 
         var comp = CreateCompilation(new[] { Src, RequiredMemberAttribute, CompilerFeatureRequiredAttribute });
         comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstancePropertyWarningMessage_RequiredSuggestion()
+    {
+        const string Src = """
+                           #nullable enable
+                           public class C {
+                               public string Text { get; set; }
+                           }
+                           """;
+        var comp = CreateCompilation(new[] { Src, RequiredMemberAttribute, CompilerFeatureRequiredAttribute }, parseOptions: TestOptions.Regular11);
+        comp.VerifyDiagnostics(
+            // (3,19): warning CS8618: Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+            //     public string Text { get; set; }
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Text").WithArguments("property", "Text").WithLocation(3, 19)
+        );
+        Assert.Equal("Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.", comp.GetDiagnostics().Single().GetMessage());
     }
 }
