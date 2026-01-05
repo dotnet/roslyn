@@ -2445,6 +2445,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EqualityOperatorInPatternNotSupported = 9344,
         ERR_InequalityOperatorInPatternNotSupported = 9345,
         ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime = 9346,
+        ERR_ExtensionParameterInStaticContext = 9347,
+        ERR_CompilationUnitUnexpected = 9348,
+
+        ERR_ScopedAfterInOutRefReadonly = 9349,
+        ERR_InvalidModifierAfterScoped = 9350,
 
         // PROTOTYPE: Renumber accordingly.
         ERR_CollectionArgumentsMustBeFirst = 9400,

@@ -1012,7 +1012,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return TupleExpansion.CreateExpansion(inspectionContext, declaredTypeAndInfo, value, cardinality);
             }
 
-            if (InlineArrayHelpers.TryGetInlineArrayInfo(runtimeType, out int inlineArrayLength, out Type inlineArrayElementType))
+            int inlineArrayLength;
+            Type inlineArrayElementType;
+            if (InlineArrayHelpers.TryGetInlineArrayInfo(runtimeType, out inlineArrayLength, out inlineArrayElementType) ||
+                InlineArrayHelpers.TryGetFixedBufferInfo(runtimeType, out inlineArrayLength, out inlineArrayElementType))
             {
                 // Inline arrays are always 1D, zero-based arrays.
                 return ArrayExpansion.CreateExpansion(
