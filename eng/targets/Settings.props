@@ -152,16 +152,10 @@
     Analyzers
   -->
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" PrivateAssets="all" />
     <PackageReference Include="Roslyn.Diagnostics.Analyzers" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" PrivateAssets="all" />
   </ItemGroup>
-
-  <!-- Disable SDK supplied netanalyzers as we reference them from nugets instead -->
-  <PropertyGroup>
-    <EnableNetAnalyzers>false</EnableNetAnalyzers>
-  </PropertyGroup>
 
   <!--
     Don't inject PerformanceSensitiveAttribute source by default to avoid duplicate definitions caused by IVT.

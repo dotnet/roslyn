@@ -49,8 +49,6 @@ This file should be imported by eng/Versions.props
     <MicrosoftDiaSymReaderPackageVersion>2.0.0</MicrosoftDiaSymReaderPackageVersion>
     <!-- dotnet/arcade-services dependencies -->
     <MicrosoftDotNetDarcLibPackageVersion>1.1.0-beta.25161.2</MicrosoftDotNetDarcLibPackageVersion>
-    <!-- dotnet/roslyn-analyzers dependencies -->
-    <MicrosoftCodeAnalysisNetAnalyzersPackageVersion>10.0.0-preview.25375.1</MicrosoftCodeAnalysisNetAnalyzersPackageVersion>
   </PropertyGroup>
   <!--Property group for alternate package version names-->
   <PropertyGroup>
@@ -98,7 +96,5 @@ This file should be imported by eng/Versions.props
     <MicrosoftDiaSymReaderVersion>$(MicrosoftDiaSymReaderPackageVersion)</MicrosoftDiaSymReaderVersion>
     <!-- dotnet/arcade-services dependencies -->
     <MicrosoftDotNetDarcLibVersion>$(MicrosoftDotNetDarcLibPackageVersion)</MicrosoftDotNetDarcLibVersion>
-    <!-- dotnet/roslyn-analyzers dependencies -->
-    <MicrosoftCodeAnalysisNetAnalyzersVersion>$(MicrosoftCodeAnalysisNetAnalyzersPackageVersion)</MicrosoftCodeAnalysisNetAnalyzersVersion>
   </PropertyGroup>
 </Project>
