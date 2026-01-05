@@ -976,7 +976,7 @@ End Structure
             Return CreateCSharpCompilation(
                 ExtendedLayoutMinimalCoreLibrary,
                 referencedAssemblies:=Array.Empty(Of MetadataReference)()
-            ).EmitToImageReference(New CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion:="v4.0.3100.0"))
+            ).EmitToImageReference(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"))
         End Function
 
         <Fact>

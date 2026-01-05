@@ -1348,6 +1348,7 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)InternalSpecialType.System_Threading_Tasks_Task_T,
                     1,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+
                 // System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor
                 (byte)MemberFlags.Constructor,                                                                              // Flags
                 (byte)InternalSpecialType.System_Runtime_InteropServices_ExtendedLayoutAttribute,                           // DeclaringTypeId
