@@ -222,9 +222,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         };
     }
 
-    protected override ValueTask OnProjectUnloadedAsync(string projectFilePath)
+    protected override async ValueTask OnProjectUnloadedAsync(string projectFilePath)
     {
-        return ValueTask.CompletedTask;
     }
 
     protected override async ValueTask TransitionPrimordialProjectToLoaded_NoLockAsync(

@@ -78,20 +78,17 @@ internal sealed class TotalClassificationAggregateTagger(
         AddTagsAsync(
             spans,
             totalTags,
-            addSyntacticSpansAsync: static (spans, tags, arg) =>
+            addSyntacticSpansAsync: static async (spans, tags, arg) =>
             {
                 arg.syntacticTagger.AddTags(spans, tags);
-                return Task.CompletedTask;
             },
-            addSemanticSpansAsync: static (spans, tags, arg) =>
+            addSemanticSpansAsync: static async (spans, tags, arg) =>
             {
                 arg.semanticTagger.AddTags(spans, tags);
-                return Task.CompletedTask;
             },
-            addEmbeddedSpansAsync: static (spans, tags, arg) =>
+            addEmbeddedSpansAsync: static async (spans, tags, arg) =>
             {
                 arg.embeddedTagger.AddTags(spans, tags);
-                return Task.CompletedTask;
             },
             (syntacticTagger, semanticTagger, embeddedTagger)).VerifyCompleted();
     }
