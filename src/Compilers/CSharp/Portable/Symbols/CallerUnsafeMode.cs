@@ -22,21 +22,15 @@ internal enum CallerUnsafeMode
     Implicit,
 
     /// <summary>
-    /// The member is explicitly marked as <see langword="unsafe"/> under the updated memory safety rules.
+    /// The member is explicitly marked as <see langword="unsafe"/> or <see langword="extern"/> under the updated memory safety rules.
     /// </summary>
     Explicit,
-
-    /// <summary>
-    /// The member is explicitly marked as <see langword="extern"/> under the updated memory safety rules.
-    /// This can only appear for source symbols (after metadata roundtrip, this turns into <see cref="Explicit"/>).
-    /// </summary>
-    Extern,
 }
 
 internal static class CallerUnsafeModeExtensions
 {
     public static bool NeedsRequiresUnsafeAttribute(this CallerUnsafeMode mode)
     {
-        return mode is CallerUnsafeMode.Explicit or CallerUnsafeMode.Extern;
+        return mode is CallerUnsafeMode.Explicit;
     }
 }

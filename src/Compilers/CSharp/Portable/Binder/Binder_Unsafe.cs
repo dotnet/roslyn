@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Updated,
                     customErrorCode: callerUnsafeMode switch
                     {
-                        CallerUnsafeMode.Explicit or CallerUnsafeMode.Extern => ErrorCode.ERR_UnsafeMemberOperation,
+                        CallerUnsafeMode.Explicit => ErrorCode.ERR_UnsafeMemberOperation,
                         CallerUnsafeMode.Implicit => ErrorCode.ERR_UnsafeMemberOperationCompat,
                         _ => throw ExceptionUtilities.UnexpectedValue(callerUnsafeMode),
                     },

@@ -834,10 +834,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (ContainingModule.UseUpdatedMemorySafetyRules)
                 {
-                    return IsDeclaredUnsafe
+                    return IsDeclaredUnsafe || IsExtern
                         ? CallerUnsafeMode.Explicit
-                        : IsExtern
-                        ? CallerUnsafeMode.Extern
                         : CallerUnsafeMode.None;
                 }
 

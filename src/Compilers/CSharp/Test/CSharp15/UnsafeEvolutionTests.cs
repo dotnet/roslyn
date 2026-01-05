@@ -250,12 +250,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
             if (symbol.ContainingModule is PEModuleSymbol peModuleSymbol)
             {
-                if (symbolExpectedUnsafeMode is CallerUnsafeMode.Extern)
-                {
-                    // 'extern' is not preserved through metadata
-                    symbolExpectedUnsafeMode = CallerUnsafeMode.Explicit;
-                }
-
                 var unfilteredAttributes = peModuleSymbol.GetCustomAttributesForToken(MetadataTokens.EntityHandle(symbol.MetadataToken));
                 var unfilteredAttribute = unfilteredAttributes.SingleOrDefault(a => a.AttributeClass?.Name == Name);
                 var expectedUnfilteredAttribute = symbolExpectedUnsafeMode.NeedsRequiresUnsafeAttribute();
@@ -3572,7 +3566,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             verify: Verification.Skipped,
             expectedUnsafeSymbols: ["C.M2", "C.M3", "C.M4"],
             expectedSafeSymbols: ["C", "C.M1"],
-            expectedUnsafeMode: CallerUnsafeMode.Extern,
             expectedDiagnostics:
             [
                 // (3,1): error CS9502: 'C.M2()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
@@ -3645,8 +3638,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 includesAttributeDefinition: !useCompilationReference,
                 isSynthesized: useCompilationReference ? null : true,
                 expectedUnsafeSymbols: ["C.M"],
-                expectedSafeSymbols: ["C"],
-                expectedUnsafeMode: CallerUnsafeMode.Extern);
+                expectedSafeSymbols: ["C"]);
         }
 
         CreateCompilation(getLibSource("extern")).VerifyDiagnostics(
@@ -3704,7 +3696,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             verify: Verification.Skipped,
             expectedUnsafeSymbols: ["C.M"],
             expectedSafeSymbols: ["C"],
-            expectedUnsafeMode: CallerUnsafeMode.Explicit,
             expectedDiagnostics:
             [
                 // (2,1): error CS9502: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
@@ -3765,7 +3756,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             verify: Verification.Skipped,
             expectedUnsafeSymbols: ["C.P2", "C.set_P2", "C.P3", "C.set_P3", "C.P4", "C.set_P4"],
             expectedSafeSymbols: ["C", "C.P1", "C.set_P1"],
-            expectedUnsafeMode: CallerUnsafeMode.Extern,
             expectedDiagnostics:
             [
                 // (3,1): error CS9502: 'C.P2' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
@@ -3838,8 +3828,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 includesAttributeDefinition: !useCompilationReference,
                 isSynthesized: useCompilationReference ? null : true,
                 expectedUnsafeSymbols: ["C.P", "C.set_P"],
-                expectedSafeSymbols: ["C"],
-                expectedUnsafeMode: CallerUnsafeMode.Extern);
+                expectedSafeSymbols: ["C"]);
         }
 
         CreateCompilation(getLibSource("extern")).VerifyDiagnostics(
@@ -3897,7 +3886,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             verify: Verification.Skipped,
             expectedUnsafeSymbols: ["C.P", "C.set_P"],
             expectedSafeSymbols: ["C"],
-            expectedUnsafeMode: CallerUnsafeMode.Explicit,
             expectedDiagnostics:
             [
                 // (2,1): error CS9502: 'C.P' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
