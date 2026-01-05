@@ -20,7 +20,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 {
     /// <param name="expectedUnsafeSymbols">See <see cref="VerifyRequiresUnsafeAttribute"/>.</param>
     /// <param name="expectedSafeSymbols">See <see cref="VerifyRequiresUnsafeAttribute"/>.</param>
-    private void CompileAndVerify(
+    private void CompileAndVerifyUnsafe(
         string lib,
         string caller,
         object[] expectedUnsafeSymbols,
@@ -2745,7 +2745,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Method_OverloadResolution()
     {
-        CompileAndVerify(
+        CompileAndVerifyUnsafe(
             lib: """
                 public class C
                 {
@@ -2772,7 +2772,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Method_SafeBoundary()
     {
-        CompileAndVerify(
+        CompileAndVerifyUnsafe(
             lib: """
                 public class C
                 {
@@ -2798,7 +2798,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Method_NameOf()
     {
-        CompileAndVerify(
+        CompileAndVerifyUnsafe(
             lib: """
                 public class C
                 {
@@ -2816,7 +2816,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Method_Extension()
     {
-        CompileAndVerify(
+        CompileAndVerifyUnsafe(
             lib: """
                 public static class E
                 {
@@ -2849,7 +2849,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     public void Member_Method_InUnsafeClass()
     {
         // PROTOTYPE: unsafe modifier on a class should result in a warning
-        CompileAndVerify(
+        CompileAndVerifyUnsafe(
             lib: """
                 using System.Collections.Generic;
                 public unsafe class C
@@ -2881,7 +2881,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Method_ConvertToFunctionPointer()
     {
-        CompileAndVerify(
+        CompileAndVerifyUnsafe(
             lib: """
                 public static class C
                 {
@@ -2919,7 +2919,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Property()
     {
-        CompileAndVerify(
+        CompileAndVerifyUnsafe(
             lib: """
                 public class C
                 {
@@ -2948,7 +2948,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Property_Extension()
     {
-        CompileAndVerify(
+        CompileAndVerifyUnsafe(
             lib: """
                 public static class E
                 {
@@ -2980,7 +2980,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Property_Record()
     {
-        CompileAndVerify(
+        CompileAndVerifyUnsafe(
             lib: """
                 public record C(int P1, int P2)
                 {
@@ -3560,7 +3560,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             c.M4();
             """;
 
-        CompileAndVerify(
+        CompileAndVerifyUnsafe(
             libSource,
             callerSource,
             verify: Verification.Skipped,
@@ -3690,7 +3690,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             c.M();
             """;
 
-        CompileAndVerify(
+        CompileAndVerifyUnsafe(
             libSource,
             callerSource,
             verify: Verification.Skipped,
@@ -3750,7 +3750,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             c.P4 = 0;
             """;
 
-        CompileAndVerify(
+        CompileAndVerifyUnsafe(
             libSource,
             callerSource,
             verify: Verification.Skipped,
@@ -3880,7 +3880,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             c.P = 0;
             """;
 
-        CompileAndVerify(
+        CompileAndVerifyUnsafe(
             libSource,
             callerSource,
             verify: Verification.Skipped,
