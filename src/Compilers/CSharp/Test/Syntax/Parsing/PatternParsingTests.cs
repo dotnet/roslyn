@@ -13815,10 +13815,7 @@ switch (e)
                     (CustomEnum.EnumTwo) when flag => "ok",
                     _ => "nope"
                 }
-                """,
-                // (3,31): error CS1003: Syntax error, '=>' expected
-                //     (CustomEnum.EnumTwo) when flag => "ok",
-                Diagnostic(ErrorCode.ERR_SyntaxError, "flag").WithArguments("=>").WithLocation(3, 31));
+                """);
 
             N(SyntaxKind.SwitchExpression);
             {
@@ -13832,10 +13829,10 @@ switch (e)
                 {
                     N(SyntaxKind.ConstantPattern);
                     {
-                        N(SyntaxKind.CastExpression);
+                        N(SyntaxKind.ParenthesizedExpression);
                         {
                             N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.QualifiedName);
+                            N(SyntaxKind.SimpleMemberAccessExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
@@ -13848,24 +13845,20 @@ switch (e)
                                 }
                             }
                             N(SyntaxKind.CloseParenToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "when");
-                            }
                         }
                     }
-                    M(SyntaxKind.EqualsGreaterThanToken);
-                    N(SyntaxKind.SimpleLambdaExpression);
+                    N(SyntaxKind.WhenClause);
                     {
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.WhenKeyword);
+                        N(SyntaxKind.IdentifierName);
                         {
                             N(SyntaxKind.IdentifierToken, "flag");
                         }
-                        N(SyntaxKind.EqualsGreaterThanToken);
-                        N(SyntaxKind.StringLiteralExpression);
-                        {
-                            N(SyntaxKind.StringLiteralToken, "\"ok\"");
-                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.StringLiteralExpression);
+                    {
+                        N(SyntaxKind.StringLiteralToken, "\"ok\"");
                     }
                 }
                 N(SyntaxKind.CommaToken);
@@ -14181,6 +14174,204 @@ switch (e)
                     N(SyntaxKind.StringLiteralExpression);
                     {
                         N(SyntaxKind.StringLiteralToken, "\"ok\"");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.DiscardPattern);
+                    {
+                        N(SyntaxKind.UnderscoreToken);
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.StringLiteralExpression);
+                    {
+                        N(SyntaxKind.StringLiteralToken, "\"nope\"");
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81837")]
+        public void ParenthesizedTypeOrConstant6()
+        {
+            UsingExpression("""
+                x is (A.B)when
+                """);
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.ConstantPattern);
+                {
+                    N(SyntaxKind.CastExpression);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "B");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "when");
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81837")]
+        public void ParenthesizedTypeOrConstant7()
+        {
+            UsingExpression("""
+                x is (A.B) or (A.B)when
+                """);
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.OrPattern);
+                {
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.ParenthesizedExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.SimpleMemberAccessExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "A");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "B");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.OrKeyword);
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.CastExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.QualifiedName);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "A");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "B");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "when");
+                            }
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81837")]
+        public void ParenthesizedTypeOrConstant8()
+        {
+            UsingExpression("""
+                reqs switch
+                {
+                    (CustomEnum.EnumTwo) when => "ok",
+                    _ => "nope"
+                }
+                """,
+                // (3,31): error CS1001: Identifier expected
+                //     (CustomEnum.EnumTwo) when => "ok",
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(3, 31),
+                // (3,38): error CS1003: Syntax error, '=>' expected
+                //     (CustomEnum.EnumTwo) when => "ok",
+                Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments("=>").WithLocation(3, 38),
+                // (3,38): error CS1525: Invalid expression term ','
+                //     (CustomEnum.EnumTwo) when => "ok",
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(3, 38));
+
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "reqs");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.ParenthesizedExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.SimpleMemberAccessExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "CustomEnum");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "EnumTwo");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.WhenClause);
+                    {
+                        N(SyntaxKind.WhenKeyword);
+                        N(SyntaxKind.SimpleLambdaExpression);
+                        {
+                            M(SyntaxKind.Parameter);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.StringLiteralExpression);
+                            {
+                                N(SyntaxKind.StringLiteralToken, "\"ok\"");
+                            }
+                        }
+                    }
+                    M(SyntaxKind.EqualsGreaterThanToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
                     }
                 }
                 N(SyntaxKind.CommaToken);
