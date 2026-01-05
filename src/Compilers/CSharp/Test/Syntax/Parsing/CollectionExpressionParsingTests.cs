@@ -18499,4 +18499,343 @@ class C
             }
             """).VerifyDiagnostics();
     }
+
+    [Fact]
+    public void CollectionExpression_KeywordKey1()
+    {
+        UsingExpression("[default:0]");
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.KeyValuePairElement);
+            {
+                N(SyntaxKind.DefaultLiteralExpression);
+                {
+                    N(SyntaxKind.DefaultKeyword);
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "0");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CollectionExpression_KeywordKey2()
+    {
+        UsingExpression("[false:0]");
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.KeyValuePairElement);
+            {
+                N(SyntaxKind.FalseLiteralExpression);
+                {
+                    N(SyntaxKind.FalseKeyword);
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "0");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CollectionExpression_KeywordKey3()
+    {
+        UsingExpression("[this:0]");
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.KeyValuePairElement);
+            {
+                N(SyntaxKind.ThisExpression);
+                {
+                    N(SyntaxKind.ThisKeyword);
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "0");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CollectionExpression_KeywordKey4()
+    {
+        UsingExpression("[true:0]");
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.KeyValuePairElement);
+            {
+                N(SyntaxKind.TrueLiteralExpression);
+                {
+                    N(SyntaxKind.TrueKeyword);
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "0");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CollectionExpression_KeywordKey5()
+    {
+        UsingExpression("[null:0]");
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.KeyValuePairElement);
+            {
+                N(SyntaxKind.NullLiteralExpression);
+                {
+                    N(SyntaxKind.NullKeyword);
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "0");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CollectionExpression_KeywordKey6()
+    {
+        UsingExpression("[base:0]");
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.KeyValuePairElement);
+            {
+                N(SyntaxKind.BaseExpression);
+                {
+                    N(SyntaxKind.BaseKeyword);
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "0");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CollectionExpression_KeywordKey_Illegal1()
+    {
+        UsingExpression("[throw:0]",
+            // (1,7): error CS1525: Invalid expression term ':'
+            // [throw:0]
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":").WithLocation(1, 7));
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.KeyValuePairElement);
+            {
+                N(SyntaxKind.ThrowExpression);
+                {
+                    N(SyntaxKind.ThrowKeyword);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "0");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CollectionExpression_KeywordKey_Illegal2()
+    {
+        UsingExpression("[new:0]",
+            // (1,5): error CS1526: A new expression requires an argument list or (), [], or {} after type
+            // [new:0]
+            Diagnostic(ErrorCode.ERR_BadNewExpr, ":").WithLocation(1, 5));
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.KeyValuePairElement);
+            {
+                N(SyntaxKind.ObjectCreationExpression);
+                {
+                    N(SyntaxKind.NewKeyword);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.ArgumentList);
+                    {
+                        M(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "0");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CollectionExpression_KeywordKey_Illegal3()
+    {
+        UsingExpression("[typeof:0]",
+            // (1,8): error CS1003: Syntax error, '(' expected
+            // [typeof:0]
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("(").WithLocation(1, 8),
+            // (1,8): error CS1031: Type expected
+            // [typeof:0]
+            Diagnostic(ErrorCode.ERR_TypeExpected, ":").WithLocation(1, 8),
+            // (1,8): error CS1026: ) expected
+            // [typeof:0]
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, ":").WithLocation(1, 8));
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.KeyValuePairElement);
+            {
+                N(SyntaxKind.TypeOfExpression);
+                {
+                    N(SyntaxKind.TypeOfKeyword);
+                    M(SyntaxKind.OpenParenToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "0");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CollectionExpression_KeywordKey_Illegal4()
+    {
+        UsingExpression("[sizeof:0]",
+            // (1,8): error CS1003: Syntax error, '(' expected
+            // [sizeof:0]
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("(").WithLocation(1, 8),
+            // (1,8): error CS1031: Type expected
+            // [sizeof:0]
+            Diagnostic(ErrorCode.ERR_TypeExpected, ":").WithLocation(1, 8),
+            // (1,8): error CS1026: ) expected
+            // [sizeof:0]
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, ":").WithLocation(1, 8));
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.KeyValuePairElement);
+            {
+                N(SyntaxKind.SizeOfExpression);
+                {
+                    N(SyntaxKind.SizeOfKeyword);
+                    M(SyntaxKind.OpenParenToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "0");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CollectionExpression_KeywordKey_Illegal5()
+    {
+        UsingExpression("[checked:0]",
+            // (1,9): error CS1003: Syntax error, '(' expected
+            // [checked:0]
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("(").WithLocation(1, 9),
+            // (1,9): error CS1525: Invalid expression term ':'
+            // [checked:0]
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":").WithLocation(1, 9),
+            // (1,9): error CS1026: ) expected
+            // [checked:0]
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, ":").WithLocation(1, 9));
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.KeyValuePairElement);
+            {
+                N(SyntaxKind.CheckedExpression);
+                {
+                    N(SyntaxKind.CheckedKeyword);
+                    M(SyntaxKind.OpenParenToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "0");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
 }
