@@ -2782,7 +2782,7 @@
         <target state="translated">확인된 사용자 정의 연산자</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureClosedClass">
+      <trans-unit id="IDS_FeatureClosedClasses">
         <source>closed classes</source>
         <target state="new">closed classes</target>
         <note />

@@ -14,12 +14,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 public sealed class ClosedModifierParsingTests : ParsingTests
 {
-    public ClosedModifierParsingTests(ITestOutputHelper output) : base(output) { }
-
-    protected override SyntaxTree ParseTree(string text, CSharpParseOptions? options)
+    public static readonly TheoryData<LanguageVersion> LanguageVersions_14_15_Preview = new TheoryData<LanguageVersion>()
     {
-        return SyntaxFactory.ParseSyntaxTree(text, options ?? TestOptions.Regular);
-    }
+        LanguageVersion.CSharp14, // latest which lacks 'closed classes' feature
+        LanguageVersionFacts.CSharpNext, // first which has 'closed classes' feature
+        LanguageVersion.Preview
+    };
+
+    public static readonly TheoryData<LanguageVersion> LanguageVersions_15_Preview = new TheoryData<LanguageVersion>()
+    {
+        LanguageVersionFacts.CSharpNext,
+        LanguageVersion.Preview
+    };
+
+    public ClosedModifierParsingTests(ITestOutputHelper output) : base(output) { }
 
     private void UsingNode(string text, params DiagnosticDescription[] expectedDiagnostics)
     {
@@ -650,7 +658,7 @@ public sealed class ClosedModifierParsingTests : ParsingTests
         UsingNode("""
             closed class C { }
             """,
-            options: TestOptions.Regular10,
+            options: TestOptions.Regular14,
             expectedBindingDiagnostics: [
                 // (1,14): error CS8652: The feature 'closed classes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // closed class C { }
@@ -1423,7 +1431,7 @@ public sealed class ClosedModifierParsingTests : ParsingTests
                 closed item;
             }
             """,
-            options: TestOptions.Regular10,
+            options: TestOptions.Regular14,
             expectedBindingDiagnostics: [
                 // (3,5): error CS0246: The type or namespace name 'closed' could not be found (are you missing a using directive or an assembly reference?)
                 //     closed item;
@@ -1560,7 +1568,7 @@ public sealed class ClosedModifierParsingTests : ParsingTests
         UsingNode($$"""
             class closed { }
             """,
-            options: TestOptions.Regular10,
+            options: TestOptions.Regular14,
             expectedBindingDiagnostics: [
                 // (1,7): warning CS8981: The type name 'closed' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // class closed { }
@@ -1582,8 +1590,7 @@ public sealed class ClosedModifierParsingTests : ParsingTests
     }
 
     [Theory]
-    [InlineData(LanguageVersion.CSharp10)]
-    [InlineData(LanguageVersion.CSharp11)]
+    [MemberData(nameof(LanguageVersions_14_15_Preview))]
     public void TypeNamedClosed_02(LanguageVersion languageVersion)
     {
         UsingNode($$"""
@@ -1623,9 +1630,9 @@ public sealed class ClosedModifierParsingTests : ParsingTests
             """,
             options: TestOptions.Regular14,
             expectedBindingDiagnostics: [
-                // (1,15): error CS9365: Types and aliases cannot be named 'closed'.
+                // (1,15): warning CS8981: The type name 'closed' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // public struct closed { public int item; }
-                Diagnostic(ErrorCode.ERR_ClosedTypeNameDisallowed, "closed").WithLocation(1, 15),
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "closed").WithArguments("closed").WithLocation(1, 15),
                 // (3,21): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // public unsafe class C
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(3, 21)
@@ -1824,8 +1831,9 @@ public sealed class ClosedModifierParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void TypeNamedClosed_03_CSharp15()
+    [Theory]
+    [MemberData(nameof(LanguageVersions_15_Preview))]
+    public void TypeNamedClosed_03(LanguageVersion languageVersion)
     {
         UsingNode($$"""
             public struct closed { public int item; }
@@ -1840,6 +1848,7 @@ public sealed class ClosedModifierParsingTests : ParsingTests
                 public (closed, closed) _tuple;
             }
             """,
+            options: TestOptions.Regular.WithLanguageVersion(languageVersion),
             expectedParsingDiagnostics: [
                 // (5,26): error CS1519: Invalid token ';' in a member declaration
                 //     public closed _closed;
@@ -1882,9 +1891,6 @@ public sealed class ClosedModifierParsingTests : ParsingTests
                 // (7,20): error CS0106: The modifier 'closed' is not valid for this item
                 //     public closed* _ptr;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "_ptr").WithArguments("closed").WithLocation(7, 20),
-                // (7,20): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('?')
-                //     public closed* _ptr;
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "_ptr").WithArguments("?").WithLocation(7, 20),
                 // (8,18): error CS1031: Type expected
                 //     public closed? _nullable;
                 Diagnostic(ErrorCode.ERR_TypeExpected, "?").WithLocation(8, 18),
@@ -2186,12 +2192,12 @@ public sealed class ClosedModifierParsingTests : ParsingTests
     }
 
     [Fact]
-    public void Errors_02_CSharp10()
+    public void Errors_02_CSharp14()
     {
         UsingNode($$"""
             closed;
             """,
-            options: TestOptions.Regular10,
+            options: TestOptions.Regular14,
             expectedBindingDiagnostics: [
                 // (1,1): error CS0103: The name 'closed' does not exist in the current context
                 // closed;
@@ -2604,7 +2610,7 @@ public sealed class ClosedModifierParsingTests : ParsingTests
     }
 
     [Fact]
-    public void MethodNamedRecord_01_CSharp15()
+    public void MethodNamedRecord_01()
     {
         UsingNode("""
             class C
@@ -2698,7 +2704,7 @@ public sealed class ClosedModifierParsingTests : ParsingTests
     }
 
     [Fact]
-    public void MethodNamedRecord_02_CSharp11()
+    public void MethodNamedRecord_02()
     {
         UsingNode("""
             class C
@@ -2795,7 +2801,7 @@ public sealed class ClosedModifierParsingTests : ParsingTests
     }
 
     [Fact]
-    public void ClosedRecord_01_CSharp15()
+    public void ClosedRecord_01()
     {
         UsingNode("""
             class C
@@ -2886,7 +2892,7 @@ public sealed class ClosedModifierParsingTests : ParsingTests
     }
 
     [Fact]
-    public void ClosedRecord_02_CSharp11()
+    public void ClosedRecord_02()
     {
         UsingNode("""
             class C
@@ -2974,7 +2980,7 @@ public sealed class ClosedModifierParsingTests : ParsingTests
     }
 
     [Fact]
-    public void ClosedRecord_03_CSharp14()
+    public void ClosedRecord_03()
     {
         UsingNode("""
             class C
@@ -3005,7 +3011,7 @@ public sealed class ClosedModifierParsingTests : ParsingTests
     }
 
     [Fact]
-    public void ClosedRecord_04_CSharp11()
+    public void ClosedRecord_04()
     {
         UsingNode("""
             closed record X();
@@ -3154,8 +3160,7 @@ public sealed class ClosedModifierParsingTests : ParsingTests
     }
 
     [Theory]
-    [InlineData(LanguageVersion.CSharp14)]
-    [InlineData(LanguageVersion.Preview)]
+    [MemberData(nameof(LanguageVersions_14_15_Preview))]
     public void TopLevelVariable_01(LanguageVersion languageVersion)
     {
         UsingNode("""
@@ -3197,8 +3202,7 @@ public sealed class ClosedModifierParsingTests : ParsingTests
     }
 
     [Theory]
-    [InlineData(LanguageVersion.CSharp10)]
-    [InlineData(LanguageVersion.CSharp11)]
+    [MemberData(nameof(LanguageVersions_14_15_Preview))]
     public void TopLevelVariable_02(LanguageVersion languageVersion)
     {
         UsingNode("""
@@ -3236,8 +3240,7 @@ public sealed class ClosedModifierParsingTests : ParsingTests
     }
 
     [Theory]
-    [InlineData(LanguageVersion.CSharp10)]
-    [InlineData(LanguageVersion.CSharp11)]
+    [MemberData(nameof(LanguageVersions_14_15_Preview))]
     public void TopLevelVariable_03(LanguageVersion languageVersion)
     {
         UsingNode("""
@@ -3611,7 +3614,7 @@ public sealed class ClosedModifierParsingTests : ParsingTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75992")]
-    public void TestClosedModifierAfterIncompleteBaseList1()
+    public void TestClosedModifierInBaseList1()
     {
         UsingTree("""
             class C : B
@@ -3660,7 +3663,7 @@ public sealed class ClosedModifierParsingTests : ParsingTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75992")]
-    public void TestClosedModifierAfterIncompleteBaseList2()
+    public void TestClosedModifierInBaseList2()
     {
         UsingTree("""
             class C : B, closed
@@ -3704,6 +3707,99 @@ public sealed class ClosedModifierParsingTests : ParsingTests
             {
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "closed");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75992")]
+    public void TestClosedModifierInBaseList3()
+    {
+        UsingTree("""
+            class C : closed
+            class D
+            {
+            }
+            """,
+            // (1,17): error CS1514: { expected
+            // class C : closed
+            Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 17),
+            // (1,17): error CS1513: } expected
+            // class C : closed
+            Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 17));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.BaseList);
+                {
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.SimpleBaseType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "closed");
+                        }
+                    }
+                }
+                M(SyntaxKind.OpenBraceToken);
+                M(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "D");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75992")]
+    public void TestClosedModifierInBaseList4()
+    {
+        UsingTree("""
+            class C : closed
+            {
+            }
+
+            class D
+            {
+            }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.BaseList);
+                {
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.SimpleBaseType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "closed");
+                        }
+                    }
+                }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "D");
                 N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.CloseBraceToken);
             }

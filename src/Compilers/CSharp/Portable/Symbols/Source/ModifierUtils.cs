@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 checkFeature(DeclarationModifiers.PrivateProtected, MessageID.IDS_FeaturePrivateProtected) |
                 checkFeature(DeclarationModifiers.Required, MessageID.IDS_FeatureRequiredMembers) |
                 checkFeature(DeclarationModifiers.File, MessageID.IDS_FeatureFileTypes) |
-                checkFeature(DeclarationModifiers.Closed, MessageID.IDS_FeatureClosedClass) |
+                checkFeature(DeclarationModifiers.Closed, MessageID.IDS_FeatureClosedClasses) |
                 checkFeature(DeclarationModifiers.Async, MessageID.IDS_FeatureAsync);
 
             return result;

@@ -21,7 +21,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
-public class ClosedTests : CSharpTestBase
+public sealed class ClosedClassesTests : CSharpTestBase
 {
     [Fact]
     public void LangVersion()
@@ -35,6 +35,9 @@ public class ClosedTests : CSharpTestBase
             // (1,14): error CS8652: The feature 'closed classes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // closed class C { }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("closed classes").WithLocation(1, 14));
+
+        comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+        comp.VerifyDiagnostics();
 
         comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
@@ -59,6 +62,10 @@ public class ClosedTests : CSharpTestBase
         var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()]);
         comp2.VerifyEmitDiagnostics();
 
+        comp2 = CreateCompilation(source2, references: [comp1.EmitToImageReference()]);
+        comp2.VerifyEmitDiagnostics();
+
+        comp1 = CreateCompilation(source1, options: TestOptions.ReleaseModule);
         comp2 = CreateCompilation(source2, references: [comp1.EmitToImageReference()]);
         comp2.VerifyEmitDiagnostics();
     }

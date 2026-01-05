@@ -8207,7 +8207,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_AmbigOperator" xml:space="preserve">
     <value>Operator resolution is ambiguous between the following members: '{0}' and '{1}'</value>
   </data>
-  <data name="IDS_FeatureClosedClass" xml:space="preserve">
+  <data name="IDS_FeatureClosedClasses" xml:space="preserve">
     <value>closed classes</value>
   </data>
   <data name="ERR_ClosedTypeNameDisallowed" xml:space="preserve">

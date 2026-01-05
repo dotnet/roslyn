@@ -2782,7 +2782,7 @@
         <target state="translated">选中的用户定义运算符</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureClosedClass">
+      <trans-unit id="IDS_FeatureClosedClasses">
         <source>closed classes</source>
         <target state="new">closed classes</target>
         <note />
