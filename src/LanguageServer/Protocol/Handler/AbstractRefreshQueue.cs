@@ -117,6 +117,9 @@ internal abstract class AbstractRefreshQueue :
             {
                 try
                 {
+                    // Fire the notification and immediately return.  Refresh notifications are server-wide, and are not
+                    // associated with a particular project/document.  So once we've sent one, we can stop processing
+                    // entirely.
                     await notificationManager.SendRequestAsync(GetWorkspaceRefreshName(), cancellationToken).ConfigureAwait(false);
                     return;
                 }
