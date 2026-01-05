@@ -170,10 +170,13 @@ internal sealed class CSharpInlineTypeHintsService() : AbstractInlineTypeHintsSe
     private static bool IsTargetTyped(SyntaxNode node)
     {
         // Check if the expression is in a context where the type is locally apparent
+        // from the surrounding code (target-typed context).
         // Examples:
         // - Variable declaration: Vector2 foo = new(...);
-        // - Assignment to a typed variable: typedVar = new(...);
+        // - Assignment: typedVar = new(...);
         // - Collection expression: int[] arr = [1, 2, 3];
+        // - Return statement: return new(...); (when method has explicit return type)
+        // - Argument: Method(new(...)); (when parameter type is known)
 
         var parent = node.Parent;
 
@@ -187,18 +190,21 @@ internal sealed class CSharpInlineTypeHintsService() : AbstractInlineTypeHintsSe
         }
 
         // Check for assignment: variable = new(...) or variable = [...]
+        // The assignment operator itself provides target typing context
         if (parent is AssignmentExpressionSyntax)
         {
             return true;
         }
 
-        // Check for return statement with explicit return type
+        // Check for return statement
+        // The method's return type provides target typing context
         if (parent is ReturnStatementSyntax)
         {
             return true;
         }
 
-        // Check for array initializer or other contexts where type is explicit
+        // Could also check for: argument expressions, array initializers, etc.
+        // but keeping it simple for now with the most common cases
         return false;
     }
 }
