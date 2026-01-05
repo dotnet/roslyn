@@ -30,7 +30,6 @@
   <ValueType Name="LookupResultKind"/>
   <ValueType Name="NoOpStatementFlavor"/>
   <ValueType Name="RefKind"/>
-  <ValueType Name="BoundTypeOrValueData"/>
   <ValueType Name="BoundLocalDeclarationKind"/>
   <ValueType Name="NullableAnnotation"/>
   <ValueType Name="ErrorCode"/>
@@ -95,12 +94,7 @@
   <AbstractNode Name="BoundEarlyValuePlaceholderBase" Base="BoundValuePlaceholderBase">
   </AbstractNode>
 
-  <!--
-  This node will not survive the local rewriting,
-  except in some scenarios in a Linq Expression Tree when the containing node
-  survives.
-  -->
-  <Node Name="BoundValuePlaceholder" Base="BoundValuePlaceholderBase">
+  <Node Name="BoundValuePlaceholder" Base="BoundValuePlaceholderBase" DoesNotSurvive="LocalRewriting">
   </Node>
 
   <!--
@@ -109,14 +103,13 @@
   -->
   <Node Name="BoundCapturedReceiverPlaceholder" Base="BoundValuePlaceholderBase">
     <Field Name="Receiver" Type="BoundExpression"/>
-    <Field Name="LocalScopeDepth" Type="SafeContext"/>
   </Node>
 
   <!--
   This node is used to represent an expression returning value of a certain type.
-  It is used to perform intermediate binding, and will not survive the local rewriting.
+  It is used to perform intermediate binding.
   -->
-  <Node Name="BoundDeconstructValuePlaceholder" Base="BoundValuePlaceholderBase">
+  <Node Name="BoundDeconstructValuePlaceholder" Base="BoundValuePlaceholderBase" DoesNotSurvive="LocalRewriting">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="VariableSymbol" Type="Symbol?"/>
     <Field Name="IsDiscardExpression" Type="bool" Null="NotApplicable"/>
@@ -125,24 +118,22 @@
   <!--
   In a tuple binary operator, this node is used to represent tuple elements in a tuple binary
   operator, and to represent an element-wise comparison result to convert back to bool.
-  It does not survive the initial binding.
   -->
-  <Node Name="BoundTupleOperandPlaceholder" Base="BoundValuePlaceholderBase">
+  <Node Name="BoundTupleOperandPlaceholder" Base="BoundValuePlaceholderBase" DoesNotSurvive="InitialBinding">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
 
   <!--
   This node is used to represent an awaitable expression of a certain type, when binding an using-await statement.
   -->
-  <Node Name="BoundAwaitableValuePlaceholder" Base="BoundValuePlaceholderBase">
+  <Node Name="BoundAwaitableValuePlaceholder" Base="BoundValuePlaceholderBase" DoesNotSurvive="StateMachineRewriting">
     <Field Name="Type" Type="TypeSymbol?" Override="true" Null="allow"/>
   </Node>
 
   <!--
   This node is used to represent an expression of a certain type, when attempting to bind its pattern dispose method
-  It does not survive past initial binding.
   -->
-  <Node Name="BoundDisposableValuePlaceholder" Base="BoundValuePlaceholderBase">
+  <Node Name="BoundDisposableValuePlaceholder" Base="BoundValuePlaceholderBase" DoesNotSurvive="InitialBinding">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
 
@@ -157,29 +148,29 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
 
-  <!-- This node is used to represent the receiver for an implicit Index or Range indexer. It does not survive lowering -->
-  <Node Name="BoundImplicitIndexerReceiverPlaceholder" Base="BoundValuePlaceholderBase">
+  <!-- This node is used to represent the receiver for an implicit Index or Range indexer. -->
+  <Node Name="BoundImplicitIndexerReceiverPlaceholder" Base="BoundValuePlaceholderBase" DoesNotSurvive="LocalRewriting">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="IsEquivalentToThisReference" Type="bool" PropertyOverrides="true"/>
   </Node>
 
-  <!-- This node represents the receiver for a list pattern. It does not survive lowering -->
-  <Node Name="BoundListPatternReceiverPlaceholder" Base="BoundEarlyValuePlaceholderBase">
+  <!-- This node represents the receiver for a list pattern. -->
+  <Node Name="BoundListPatternReceiverPlaceholder" Base="BoundEarlyValuePlaceholderBase" DoesNotSurvive="LocalRewriting">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
 
-  <!-- This node represents the Index value of accessing an element in a list pattern. It does not survive lowering -->
-  <Node Name="BoundListPatternIndexPlaceholder" Base="BoundEarlyValuePlaceholderBase">
+  <!-- This node represents the Index value of accessing an element in a list pattern. -->
+  <Node Name="BoundListPatternIndexPlaceholder" Base="BoundEarlyValuePlaceholderBase" DoesNotSurvive="LocalRewriting">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
 
-  <!-- This node represents the receiver for a slice pattern. It does not survive lowering -->
-  <Node Name="BoundSlicePatternReceiverPlaceholder" Base="BoundEarlyValuePlaceholderBase">
+  <!-- This node represents the receiver for a slice pattern. -->
+  <Node Name="BoundSlicePatternReceiverPlaceholder" Base="BoundEarlyValuePlaceholderBase" DoesNotSurvive="LocalRewriting">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
 
-  <!-- This node represents the Range value of accessing a range in a slice pattern. It does not survive lowering -->
-  <Node Name="BoundSlicePatternRangePlaceholder" Base="BoundEarlyValuePlaceholderBase">
+  <!-- This node represents the Range value of accessing a range in a slice pattern. -->
+  <Node Name="BoundSlicePatternRangePlaceholder" Base="BoundEarlyValuePlaceholderBase" DoesNotSurvive="LocalRewriting">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
 
@@ -210,7 +201,7 @@
   -->
 
   <!-- This node is used when we can't create a real expression node because things are too broken. Example: lookup of a name fails to find anything. -->
-  <Node Name="BoundBadExpression" Base="BoundExpression">
+  <Node Name="BoundBadExpression" Base="BoundExpression" HasValidate="true">
     <!-- Categorizes the way in which "Symbols" is bad. -->
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     
@@ -304,16 +295,18 @@
     NOTE:
     * The node can only be a qualifier of a method or a property group access 
       as only those may require overload resolution.
-    * It is possible for a node of this type to appear in a tree where there
-      are no errors.  Consider (Color.M is Object).  M may be overloaded to
-      contain both static and instance methods.  In this case the expression is
-      always *false*, but the left-hand-side of the is operator is a method
-      group whose receiver is a BoundTypeOrValueExpression.
+    
+    * The Binder should make sure that such a node doesn't escape the binding
+      process, especially for success scenarios. The binder should resolve
+      the node in a most appropriate way, usually to a member access. Asserts
+      were added in some components to help detect a "leak". 
+      
     -->
-  <Node Name="BoundTypeOrValueExpression" Base="BoundExpression">
+  <Node Name="BoundTypeOrValueExpression" Base="BoundExpression" HasValidate="true" DoesNotSurvive="InitialBinding">
     <!-- Type is required for this node type; may not be null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <Field Name="Data" Type="BoundTypeOrValueData"/>
+    <Field Name="Binder" Type="Binder" Null="disallow"/>
+    <Field Name="ValueSymbol" Type="Symbol" Null="disallow"/>
   </Node>
 
   <Node Name="BoundNamespaceExpression" Base="BoundExpression">
@@ -394,9 +387,8 @@
     <Field Name="IsManaged" Type="bool"/>  
   </Node>
   <!-- Represents an AddressOf operator that has not yet been assigned to a
-       target-type. It has no natural type, and should not survive initial binding
-       except in error cases that are observable via the SemanticModel. -->
-  <Node Name="BoundUnconvertedAddressOfOperator" Base="BoundExpression">
+       target-type. It has no natural type. -->
+  <Node Name="BoundUnconvertedAddressOfOperator" Base="BoundExpression" DoesNotSurvive="InitialBinding">
     <Field Name="Operand" Type="BoundMethodGroup"/>
     <!-- Type is null. -->
     <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
@@ -638,7 +630,7 @@
     <Field Name="RightOperand" Type="BoundExpression" />
   </Node>
 
-  <Node Name="BoundUnconvertedConditionalOperator" Base="BoundExpression">
+  <Node Name="BoundUnconvertedConditionalOperator" Base="BoundExpression" DoesNotSurvive="InitialBinding">
     <!-- Type is null. -->
     <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
 
@@ -695,7 +687,7 @@
     <Field Name="Expression" Type="BoundExpression"/>
   </Node>
 
-  <Node Name="BoundAwaitableInfo" Base="BoundNode" HasValidate="true">
+  <Node Name="BoundAwaitableInfo" Base="BoundNode" HasValidate="true" DoesNotSurvive="StateMachineRewriting">
     <!-- Used to refer to the awaitable expression in GetAwaiter -->
     <Field Name="AwaitableInstancePlaceholder" Type="BoundAwaitableValuePlaceholder?" Null="allow" />
     <Field Name="IsDynamic" Type="bool"/>
@@ -710,7 +702,7 @@
     <Field Name="RuntimeAsyncAwaitCallPlaceholder" Type="BoundAwaitableValuePlaceholder?" Null="allow"/>
   </Node>
 
-  <Node Name="BoundAwaitExpression" Base="BoundExpression">
+  <Node Name="BoundAwaitExpression" Base="BoundExpression" DoesNotSurvive="StateMachineRewriting">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
@@ -844,7 +836,7 @@
   Default literals can convert to the target type.
   Does not survive initial lowering.
   -->
-   <Node Name="BoundDefaultLiteral" Base="BoundExpression">
+   <Node Name="BoundDefaultLiteral" Base="BoundExpression" DoesNotSurvive="LocalRewriting">
     <!-- Type is null. -->
     <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
   </Node>
@@ -891,7 +883,7 @@
     <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true"/>
   </Node>
 
-  <Node Name="BoundConversion" Base="BoundExpression">
+  <Node Name="BoundConversion" Base="BoundExpression" HasValidate="true">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     
@@ -1131,7 +1123,7 @@
   Bound node that represents a local function declaration:
     void Foo() { }
   -->
-  <Node Name="BoundLocalFunctionStatement" Base="BoundStatement">
+  <Node Name="BoundLocalFunctionStatement" Base="BoundStatement" DoesNotSurvive="ClosureConversion">
     <!-- Must be a LocalFunctionSymbol until the node reaches LocalRewriter -->
     <Field Name="Symbol" Type="MethodSymbol"/>
     <Field Name="BlockBody" Type="BoundBlock?"/>
@@ -1162,11 +1154,11 @@
     <Field Name="Checked" Type="bool"/>
   </Node>
 
-  <Node Name="BoundYieldReturnStatement" Base="BoundStatement">
+  <Node Name="BoundYieldReturnStatement" Base="BoundStatement" DoesNotSurvive="StateMachineRewriting">
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
   </Node>
 
-  <Node Name="BoundYieldBreakStatement" Base="BoundStatement"/>
+  <Node Name="BoundYieldBreakStatement" Base="BoundStatement" DoesNotSurvive="StateMachineRewriting"/>
 
   <Node Name="BoundThrowStatement" Base="BoundStatement">
     <Field Name="ExpressionOpt" Type="BoundExpression?"/>
@@ -1224,7 +1216,7 @@
     <Field Name="LengthBasedStringSwitchDataOpt" Type="LengthBasedStringSwitchData?" />
   </Node>
 
-  <Node Name="BoundIfStatement" Base="BoundStatement">
+  <Node Name="BoundIfStatement" Base="BoundStatement" DoesNotSurvive="LocalRewriting">
     <Field Name="Condition" Type="BoundExpression"/>
     <Field Name="Consequence" Type="BoundStatement"/>
     <Field Name="AlternativeOpt" Type="BoundStatement?"/>
@@ -1293,7 +1285,7 @@
     <Field Name="TargetPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
   </Node>
 
-  <Node Name="BoundUsingStatement" Base="BoundStatement">
+  <Node Name="BoundUsingStatement" Base="BoundStatement" DoesNotSurvive="LocalRewriting">
     <!-- DeclarationsOpt and ExpressionOpt cannot both be non-null. -->
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="DeclarationsOpt" Type="BoundMultipleLocalDeclarations?"/>
@@ -1530,7 +1522,7 @@
     <Field Name="Label" Type="LabelSymbol" Null="disallow"/>
   </Node>
 
-  <Node Name="BoundUnconvertedSwitchExpression" Base="BoundSwitchExpression">
+  <Node Name="BoundUnconvertedSwitchExpression" Base="BoundSwitchExpression" DoesNotSurvive="InitialBinding">
   </Node>
 
   <!-- 
@@ -1729,8 +1721,10 @@
   spill sequence because the process of moving it to the top level
   causes values that would be on the stack during its evaluation to be
   spilled to temporary variables.
+  Note: this node is also produced during async rewriting for runtime async codegen
+        but is removed shortly thereafter.
   -->
-  <Node Name="BoundSpillSequence" Base="BoundExpression">
+  <Node Name="BoundSpillSequence" Base="BoundExpression" DoesNotSurvive="Spilling">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="SideEffects" Type="ImmutableArray&lt;BoundStatement&gt;"/>
@@ -1882,9 +1876,8 @@
 
   <!--
   This node is used to represent a target-typed object creation expression
-  It does not survive past initial binding.
   -->
-  <Node Name="BoundUnconvertedObjectCreationExpression" Base="BoundExpression">
+  <Node Name="BoundUnconvertedObjectCreationExpression" Base="BoundExpression" DoesNotSurvive="InitialBinding">
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
@@ -1928,9 +1921,8 @@
 
   <!--
   An unconverted collection expression.
-  It does not survive past initial binding.
   -->
-  <Node Name="BoundUnconvertedCollectionExpression" Base="BoundCollectionExpressionBase">
+  <Node Name="BoundUnconvertedCollectionExpression" Base="BoundCollectionExpressionBase" DoesNotSurvive="InitialBinding">
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
   </Node>
@@ -1991,7 +1983,7 @@
   Once converted to a target type, they cannot be target-typed again.
   The tuple literal is one which has not been converted to a target type.
   -->
-  <Node Name="BoundTupleLiteral" Base="BoundTupleExpression">
+  <Node Name="BoundTupleLiteral" Base="BoundTupleExpression" DoesNotSurvive="InitialBinding">
     <!-- 
     It is possible for a tuple to not have a type in a literal form
     Ex: 
@@ -2346,12 +2338,12 @@
 
   <!-- 
   Special node to encapsulate initializers added into a constructor. 
-  Helps to do special optimizations in lowering, doesn't survive the lowering.
+  Helps to do special optimizations in lowering.
   -->
-  <Node Name="BoundTypeOrInstanceInitializers" Base="BoundStatementList">
+  <Node Name="BoundTypeOrInstanceInitializers" Base="BoundStatementList" DoesNotSurvive="LocalRewriting">
   </Node>
 
-  <Node Name="BoundNameOfOperator" Base="BoundExpression">
+  <Node Name="BoundNameOfOperator" Base="BoundExpression" HasValidate="true">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Argument" Type="BoundExpression" Null="disallow"/>
@@ -2366,19 +2358,19 @@
     <Field Name="ConstantValueOpt" Type="ConstantValue?" PropertyOverrides="true"/>
   </AbstractNode>
 
-  <Node Name="BoundUnconvertedInterpolatedString" Base="BoundInterpolatedStringBase">
+  <Node Name="BoundUnconvertedInterpolatedString" Base="BoundInterpolatedStringBase" DoesNotSurvive="InitialBinding">
   </Node>
 
   <Node Name="BoundInterpolatedString" Base="BoundInterpolatedStringBase">
     <Field Name="InterpolationData" Type="InterpolatedStringHandlerData?"/>
   </Node>
 
-  <Node Name="BoundInterpolatedStringHandlerPlaceholder" Base="BoundValuePlaceholderBase"/>
+  <Node Name="BoundInterpolatedStringHandlerPlaceholder" Base="BoundValuePlaceholderBase" DoesNotSurvive="LocalRewriting"/>
 
   <!-- A typed expression placeholder for the arguments to the constructor call for an interpolated string handler
        conversion. We intentionally use a placeholder for overload resolution here to ensure that no conversion
-       from expression can occur. This node is only used for intermediate binding and does not survive local rewriting. -->
-  <Node Name="BoundInterpolatedStringArgumentPlaceholder" Base="BoundValuePlaceholderBase">
+       from expression can occur. -->
+  <Node Name="BoundInterpolatedStringArgumentPlaceholder" Base="BoundValuePlaceholderBase" DoesNotSurvive="LocalRewriting">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow" />
     <!-- The index in the containing member of the argument this is the placeholder for. Should be a positive number or
          one of the constants in the other part of the partial class. -->
@@ -2574,7 +2566,7 @@
   <Node Name="OutVariablePendingInference" Base="VariablePendingInference" />
 
   <!-- The node is transformed into BoundLocal or BoundFieldAccess after inference -->
-  <Node Name="DeconstructionVariablePendingInference" Base="VariablePendingInference" />
+  <Node Name="DeconstructionVariablePendingInference" Base="VariablePendingInference" DoesNotSurvive="LocalRewriting" />
   
   <!-- The node is transformed into BoundDeconstructValuePlaceholder after inference -->
   <Node Name="OutDeconstructVarPendingInference" Base="BoundExpression">
