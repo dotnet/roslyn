@@ -831,7 +831,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         (_lazyRequiredMemberAttribute ??= compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_RequiredMemberAttribute)) is { TypeKind: not TypeKind.Error } &&
                                         !symbol.IsRequired() &&
                                         !symbol.IsStatic && !isReadOnly && symbol.Kind != SymbolKind.Event &&
-                                        (!symbol.IsOverride || (symbol is PropertySymbol { OverriddenProperty: { IsRequired: true } })) &&
+                                        !symbol.IsOverride &&
                                         symbol.IsAsRestrictive(symbol.ContainingType, ref useSiteInfo);
 
                     if (canBeRequired && symbol is PropertySymbol { SetMethod: { } setMethod } && !setMethod.IsAsRestrictive(symbol.ContainingType, ref useSiteInfo))
