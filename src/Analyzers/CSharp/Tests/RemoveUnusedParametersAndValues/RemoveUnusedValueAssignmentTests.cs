@@ -9369,6 +9369,29 @@ class C
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81554")]
+    public Task TestWriteIntoExtensionRefReceiver()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                public static class E
+                {
+                    extension(ref double number)
+                    {
+                        public void M(double max)
+                        {
+                            number = max;
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
+            Options =
+            {
+                { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable, NotificationOption2.Suggestion },
+            },
+        }.RunAsync();
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77258")]
     public Task TestWriteIntoStructIndexer()
         => new VerifyCS.Test

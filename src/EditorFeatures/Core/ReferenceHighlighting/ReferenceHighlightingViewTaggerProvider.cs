@@ -90,7 +90,7 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(TaggerHost
         return true;
     }
 
-    protected override Task ProduceTagsAsync(
+    protected override async Task ProduceTagsAsync(
         TaggerContext<NavigableHighlightTag> context, CancellationToken cancellationToken)
     {
         // NOTE(cyrusn): Normally we'd limit ourselves to producing tags in the span we were
@@ -99,7 +99,7 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(TaggerHost
         // don't generate all the tags then the user will cycle through an incorrect subset.
         if (context.CaretPosition == null)
         {
-            return Task.CompletedTask;
+            return;
         }
 
         var caretPosition = context.CaretPosition.Value;
@@ -108,13 +108,13 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(TaggerHost
         var document = context.SpansToTag.FirstOrDefault(vt => vt.SnapshotSpan.Snapshot == caretPosition.Snapshot).Document;
         if (document == null)
         {
-            return Task.CompletedTask;
+            return;
         }
 
         // Don't produce tags if the feature is not enabled.
         if (!this.GlobalOptions.GetOption(ReferenceHighlightingOptionsStorage.ReferenceHighlighting, document.Project.Language))
         {
-            return Task.CompletedTask;
+            return;
         }
 
         // See if the user is just moving their caret around in an existing tag.  If so, we don't want to actually go
@@ -125,12 +125,12 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(TaggerHost
         if (onExistingTags)
         {
             context.SetSpansTagged([]);
-            return Task.CompletedTask;
+            return;
         }
 
         // Otherwise, we need to go produce all tags.
         var options = this.GlobalOptions.GetHighlightingOptions(document.Project.Language);
-        return ProduceTagsAsync(context, caretPosition, document, options, cancellationToken);
+        await ProduceTagsAsync(context, caretPosition, document, options, cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task ProduceTagsAsync(
