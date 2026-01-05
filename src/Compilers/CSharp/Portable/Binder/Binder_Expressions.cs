@@ -10363,8 +10363,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(receiver is not null);
             OverloadResolutionResult<PropertySymbol> overloadResolutionResult = OverloadResolutionResult<PropertySymbol>.GetInstance();
-            // We don't consider when we're in default parameter values or attribute arguments so that we avoid cycles. This is an error scenario,
-            // so we don't care if we accidentally miss a parameter being applicable.
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.OverloadResolution.PropertyOverloadResolution(propertyGroup, receiver, analyzedArguments, overloadResolutionResult,
                 allowRefOmittedArguments: AllowRefOmittedArguments(receiver),

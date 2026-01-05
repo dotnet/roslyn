@@ -37056,7 +37056,7 @@ public static class E
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("<Main>$"), verify: Verification.Skipped).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("<Main>$"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -37083,7 +37083,7 @@ public static class E
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("M"), verify: Verification.Skipped).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("M"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact, CompilerTrait(CompilerFeature.RefLifetime)]
@@ -37110,7 +37110,7 @@ static class E
 """;
 
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("4243"), verify: Verification.Skipped).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("4243"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact, CompilerTrait(CompilerFeature.RefLifetime)]

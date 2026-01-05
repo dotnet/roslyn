@@ -56,12 +56,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new MethodInfo(method, method);
             }
 
-            internal static MethodInfo CreateFromPropertyRead(PropertySymbol property)
+            internal static MethodInfo CreateFromPropertyGetter(PropertySymbol property)
             {
                 return new MethodInfo(property, property.GetOwnOrInheritedGetMethod());
             }
 
-            internal static MethodInfo CreateFromPropertyWrite(PropertySymbol property)
+            internal static MethodInfo CreateFromPropertySetter(PropertySymbol property)
             {
                 return new MethodInfo(property, property.GetOwnOrInheritedSetMethod());
             }
@@ -151,12 +151,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 };
             }
 
-            public static MethodInvocationInfo FromIndexerReadAccess(BoundIndexerAccess indexerAccess, BoundExpression? substitutedReceiver = null)
+            public static MethodInvocationInfo FromIndexerGetter(BoundIndexerAccess indexerAccess, BoundExpression? substitutedReceiver = null)
             {
                 Debug.Assert(indexerAccess.AccessorKind != AccessorKind.Set);
                 return new MethodInvocationInfo
                 {
-                    MethodInfo = MethodInfo.CreateFromPropertyRead(indexerAccess.Indexer),
+                    MethodInfo = MethodInfo.CreateFromPropertyGetter(indexerAccess.Indexer),
                     Receiver = substitutedReceiver ?? indexerAccess.ReceiverOpt,
                     ReceiverIsSubjectToCloning = indexerAccess.InitialBindingReceiverIsSubjectToCloning,
                     Parameters = indexerAccess.Indexer.Parameters,
@@ -301,12 +301,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     HasAnyErrors = hasAnyErrors
                 };
 
-            public static MethodInvocationInfo FromPropertyReadAccess(BoundPropertyAccess propertyAccess)
+            public static MethodInvocationInfo FromPropertyGetter(BoundPropertyAccess propertyAccess)
             {
                 Debug.Assert(propertyAccess.AutoPropertyAccessorKind != AccessorKind.Set);
                 return new MethodInvocationInfo
                 {
-                    MethodInfo = MethodInfo.CreateFromPropertyRead(propertyAccess.PropertySymbol),
+                    MethodInfo = MethodInfo.CreateFromPropertyGetter(propertyAccess.PropertySymbol),
                     Receiver = propertyAccess.ReceiverOpt,
                     ReceiverIsSubjectToCloning = propertyAccess.InitialBindingReceiverIsSubjectToCloning,
                     HasAnyErrors = propertyAccess.HasAnyErrors,
@@ -3786,7 +3786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var indexerSymbol = indexerAccess.Indexer;
 
                         return GetInvocationEscapeScope(
-                            MethodInvocationInfo.FromIndexerReadAccess(indexerAccess),
+                            MethodInvocationInfo.FromIndexerGetter(indexerAccess),
                             isRefEscape: true);
                     }
 
@@ -3801,7 +3801,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var indexerSymbol = indexerAccess.Indexer;
 
                             return GetInvocationEscapeScope(
-                                MethodInvocationInfo.FromIndexerReadAccess(indexerAccess, implicitIndexerAccess.Receiver),
+                                MethodInvocationInfo.FromIndexerGetter(indexerAccess, implicitIndexerAccess.Receiver),
                                 isRefEscape: true);
 
                         case BoundArrayAccess:
@@ -3855,7 +3855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // not passing any arguments/parameters
                     return GetInvocationEscapeScope(
-                        MethodInvocationInfo.FromPropertyReadAccess(propertyAccess),
+                        MethodInvocationInfo.FromPropertyGetter(propertyAccess),
                         isRefEscape: true);
 
                 case BoundKind.AssignmentOperator:
@@ -4067,7 +4067,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         return CheckInvocationEscape(
                             indexerAccess.Syntax,
-                            MethodInvocationInfo.FromIndexerReadAccess(indexerAccess),
+                            MethodInvocationInfo.FromIndexerGetter(indexerAccess),
                             checkingReceiver,
                             escapeTo,
                             diagnostics,
@@ -4091,7 +4091,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             return CheckInvocationEscape(
                                 indexerAccess.Syntax,
-                                MethodInvocationInfo.FromIndexerReadAccess(indexerAccess, implicitIndexerAccess.Receiver),
+                                MethodInvocationInfo.FromIndexerGetter(indexerAccess, implicitIndexerAccess.Receiver),
                                 checkingReceiver,
                                 escapeTo,
                                 diagnostics,
@@ -4180,7 +4180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // not passing any arguments/parameters
                     return CheckInvocationEscape(
                         propertyAccess.Syntax,
-                        MethodInvocationInfo.FromPropertyReadAccess(propertyAccess),
+                        MethodInvocationInfo.FromPropertyGetter(propertyAccess),
                         checkingReceiver,
                         escapeTo,
                         diagnostics,
@@ -4424,7 +4424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var indexerSymbol = indexerAccess.Indexer;
 
                         return GetInvocationEscapeScope(
-                            MethodInvocationInfo.FromIndexerReadAccess(indexerAccess),
+                            MethodInvocationInfo.FromIndexerGetter(indexerAccess),
                             isRefEscape: false);
                     }
 
@@ -4439,7 +4439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var indexerSymbol = indexerAccess.Indexer;
 
                             return GetInvocationEscapeScope(
-                                MethodInvocationInfo.FromIndexerReadAccess(indexerAccess, implicitIndexerAccess.Receiver),
+                                MethodInvocationInfo.FromIndexerGetter(indexerAccess, implicitIndexerAccess.Receiver),
                                 isRefEscape: false);
 
                         case BoundArrayAccess:
@@ -4478,7 +4478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // not passing any arguments/parameters
                     return GetInvocationEscapeScope(
-                        MethodInvocationInfo.FromPropertyReadAccess(propertyAccess),
+                        MethodInvocationInfo.FromPropertyGetter(propertyAccess),
                         isRefEscape: false);
 
                 case BoundKind.ObjectCreationExpression:
@@ -4844,7 +4844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SafeContext rightEscapeScope)
             {
                 bool isSet = indexer.RefKind == RefKind.None;
-                var methodInfo = isSet ? MethodInfo.CreateFromPropertyWrite(indexer) : MethodInfo.CreateFromPropertyRead(indexer);
+                var methodInfo = isSet ? MethodInfo.CreateFromPropertySetter(indexer) : MethodInfo.CreateFromPropertyGetter(indexer);
                 if (methodInfo.Method is null)
                 {
                     return SafeContext.CallingMethod;
@@ -4900,8 +4900,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SafeContext rightEscapeScope)
             {
                 bool isSet = property.RefKind == RefKind.None;
-                var accessorKind = isSet ? AccessorKind.Set : AccessorKind.Get;
-                var methodInfo = isSet ? MethodInfo.CreateFromPropertyWrite(property) : MethodInfo.CreateFromPropertyRead(property);
+                var methodInfo = isSet ? MethodInfo.CreateFromPropertySetter(property) : MethodInfo.CreateFromPropertyGetter(property);
                 if (methodInfo.Method is null || methodInfo.Method.IsEffectivelyReadOnly)
                 {
                     return SafeContext.CallingMethod;
@@ -5106,7 +5105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         return CheckInvocationEscape(
                             indexerAccess.Syntax,
-                            MethodInvocationInfo.FromIndexerReadAccess(indexerAccess),
+                            MethodInvocationInfo.FromIndexerGetter(indexerAccess),
                             checkingReceiver,
                             escapeTo,
                             diagnostics,
@@ -5125,7 +5124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             return CheckInvocationEscape(
                                 indexerAccess.Syntax,
-                                MethodInvocationInfo.FromIndexerReadAccess(indexerAccess, implicitIndexerAccess.Receiver),
+                                MethodInvocationInfo.FromIndexerGetter(indexerAccess, implicitIndexerAccess.Receiver),
                                 checkingReceiver,
                                 escapeTo,
                                 diagnostics,
@@ -5178,7 +5177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // not passing any arguments/parameters
                     return CheckInvocationEscape(
                         propertyAccess.Syntax,
-                        MethodInvocationInfo.FromPropertyReadAccess(propertyAccess),
+                        MethodInvocationInfo.FromPropertyGetter(propertyAccess),
                         checkingReceiver,
                         escapeTo,
                         diagnostics,

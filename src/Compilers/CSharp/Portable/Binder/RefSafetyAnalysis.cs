@@ -1066,7 +1066,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(node.AccessorKind is AccessorKind.Get or AccessorKind.Both);
             Debug.Assert(node.InitialBindingReceiverIsSubjectToCloning != ThreeState.Unknown);
-            var methodInvocationInfo = MethodInvocationInfo.FromIndexerReadAccess(node);
+            var methodInvocationInfo = MethodInvocationInfo.FromIndexerGetter(node);
             methodInvocationInfo = ReplaceWithExtensionImplementationIfNeeded(in methodInvocationInfo);
             Visit(methodInvocationInfo.Receiver);
             VisitArgumentsAndGetArgumentPlaceholders(methodInvocationInfo.Receiver, methodInvocationInfo.ArgsOpt, node.Indexer.IsExtensionBlockMember());

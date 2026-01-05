@@ -626,7 +626,7 @@ class C
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("get(^1) set(^2, 10)"), verify: Verification.Skipped).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("get(^1) set(^2, 10)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -662,7 +662,7 @@ class C
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("get(^1) set(^2, 10)"), verify: Verification.Skipped).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("get(^1) set(^2, 10)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -2260,7 +2260,7 @@ class C
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("get(^1) set(^2, 10)"), verify: Verification.Skipped).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("get(^1) set(^2, 10)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -2363,7 +2363,7 @@ class C
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("get(0..^1) set(0..^1, 10)"), verify: Verification.Skipped).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("get(0..^1) set(0..^1, 10)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -2599,7 +2599,7 @@ public static class E
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("^1"), verify: Verification.Skipped).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("^1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
   // Code size       44 (0x2c)
@@ -2655,7 +2655,7 @@ public static class E
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("False ^1 False"), verify: Verification.Skipped).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("False ^1 False"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("E.Test", """
 {
   // Code size       51 (0x33)
@@ -2764,7 +2764,7 @@ public static class E
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("1..^0"), verify: Verification.Skipped).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("1..^0"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
   // Code size       55 (0x37)
@@ -4767,7 +4767,7 @@ public class C
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("[0]=C"), verify: Verification.Skipped).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("[0]=C"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -4789,7 +4789,7 @@ public static class E
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("<Main>$"), verify: Verification.Skipped).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("<Main>$"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -4820,7 +4820,7 @@ public static class E
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("Item"), verify: Verification.Skipped).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("Item"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -4852,7 +4852,7 @@ public static class E
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("MyIndexer"), verify: Verification.Skipped).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("MyIndexer"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -4875,7 +4875,7 @@ public static class E
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("<Main>$"), verify: Verification.Skipped).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("<Main>$"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -5268,7 +5268,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("42"), verify: Verification.Skipped).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -5294,7 +5294,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("Cannot apply indexing with [] to an expression of type 'int'"), verify: Verification.Skipped)
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("Cannot apply indexing with [] to an expression of type 'int'"), verify: Verification.FailsPEVerify)
             .VerifyDiagnostics();
     }
 
