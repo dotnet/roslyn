@@ -1388,5 +1388,216 @@ class C
 
             Await VerifyParamHints(input, output)
         End Function
+
+        <WpfFact>
+        Public Async Function TestSuppressForCaseInsensitiveMatch() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void fn(int fooBar)
+    {
+    }
+
+    void Main()
+    {
+        int FooBar = 5;
+        fn(FooBar);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input, input)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestSuppressForUnderscorePrefixMatch() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void fn(int fooBar)
+    {
+    }
+
+    void Main()
+    {
+        int _fooBar = 5;
+        fn(_fooBar);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input, input)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestSuppressForUnderscoreInNameMatch() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void fn(int fooBar)
+    {
+    }
+
+    void Main()
+    {
+        int FOO_BAR = 5;
+        fn(FOO_BAR);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input, input)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestSuppressForParameterDifferingByTrailingUnderscore() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void fn(int fooBar)
+    {
+    }
+
+    void Main()
+    {
+        int fooBar_ = 5;
+        fn(fooBar_);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim options = New InlineParameterHintsOptions() With
+            {
+                .EnabledForParameters = True,
+                .SuppressForParametersThatDifferOnlyBySuffix = True
+            }
+
+            Await VerifyParamHintsWithOptions(input, input, options)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestSuppressForArgumentDifferingByTrailingUnderscore() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void fn(int fooBar_)
+    {
+    }
+
+    void Main()
+    {
+        int fooBar = 5;
+        fn(fooBar);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim options = New InlineParameterHintsOptions() With
+            {
+                .EnabledForParameters = True,
+                .SuppressForParametersThatDifferOnlyBySuffix = True
+            }
+
+            Await VerifyParamHintsWithOptions(input, input, options)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestSuppressForMemberAccessMatch() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class Vector2
+{
+    public int X;
+    public int Y;
+}
+
+class A
+{
+    void Create(int x, int y)
+    {
+    }
+
+    void Main()
+    {
+        var foo = new Vector2();
+        Create(foo.X, foo.Y);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim options = New InlineParameterHintsOptions() With
+            {
+                .EnabledForParameters = True,
+                .SuppressForParametersThatMatchMemberName = True
+            }
+
+            Await VerifyParamHintsWithOptions(input, input, options)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestSuppressForMemberAccessMatchCaseInsensitive() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class Vector2
+{
+    public int x;
+    public int y;
+}
+
+class A
+{
+    void Create(int X, int Y)
+    {
+    }
+
+    void Main()
+    {
+        var foo = new Vector2();
+        Create(foo.x, foo.y);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim options = New InlineParameterHintsOptions() With
+            {
+                .EnabledForParameters = True,
+                .SuppressForParametersThatMatchMemberName = True
+            }
+
+            Await VerifyParamHintsWithOptions(input, input, options)
+        End Function
     End Class
 End Namespace

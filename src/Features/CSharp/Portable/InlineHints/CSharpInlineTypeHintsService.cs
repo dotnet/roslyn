@@ -26,6 +26,8 @@ internal sealed class CSharpInlineTypeHintsService() : AbstractInlineTypeHintsSe
         bool forLambdaParameterTypes,
         bool forImplicitObjectCreation,
         bool forCollectionExpressions,
+        bool suppressForTargetTypedNew,
+        bool suppressForTargetTypedCollectionExpressions,
         CancellationToken cancellationToken)
     {
         if (forImplicitVariableTypes || displayAllOverride)
@@ -91,6 +93,10 @@ internal sealed class CSharpInlineTypeHintsService() : AbstractInlineTypeHintsSe
                 var type = semanticModel.GetTypeInfo(implicitNew, cancellationToken).Type;
                 if (IsValidType(type))
                 {
+                    // Check if this is target-typed (i.e., the type is locally apparent from context)
+                    if (suppressForTargetTypedNew && IsTargetTyped(implicitNew))
+                        return null;
+
                     var span = new TextSpan(implicitNew.NewKeyword.Span.End, 0);
                     return new(type, span, new TextChange(span, " " + GetTypeDisplayString(type)), leadingSpace: true);
                 }
@@ -104,6 +110,10 @@ internal sealed class CSharpInlineTypeHintsService() : AbstractInlineTypeHintsSe
                 var type = semanticModel.GetTypeInfo(collectionExpression, cancellationToken).ConvertedType;
                 if (IsValidType(type))
                 {
+                    // Check if this is target-typed (i.e., the type is locally apparent from context)
+                    if (suppressForTargetTypedCollectionExpressions && IsTargetTyped(collectionExpression))
+                        return null;
+
                     var span = new TextSpan(collectionExpression.OpenBracketToken.SpanStart, 0);
 
                     // We pass null for the TextChange in collection expressions because
@@ -155,5 +165,40 @@ internal sealed class CSharpInlineTypeHintsService() : AbstractInlineTypeHintsSe
     private static bool IsValidType([NotNullWhen(true)] ITypeSymbol? type)
     {
         return type is not null and not IErrorTypeSymbol && type.Name != "var";
+    }
+
+    private static bool IsTargetTyped(SyntaxNode node)
+    {
+        // Check if the expression is in a context where the type is locally apparent
+        // Examples:
+        // - Variable declaration: Vector2 foo = new(...);
+        // - Assignment to a typed variable: typedVar = new(...);
+        // - Collection expression: int[] arr = [1, 2, 3];
+
+        var parent = node.Parent;
+
+        // Check for variable declaration: Type name = new(...) or Type name = [...]
+        if (parent is EqualsValueClauseSyntax equalsValue &&
+            equalsValue.Parent is VariableDeclaratorSyntax variableDeclarator &&
+            variableDeclarator.Parent is VariableDeclarationSyntax variableDeclaration &&
+            !variableDeclaration.Type.IsVar)
+        {
+            return true;
+        }
+
+        // Check for assignment: variable = new(...) or variable = [...]
+        if (parent is AssignmentExpressionSyntax)
+        {
+            return true;
+        }
+
+        // Check for return statement with explicit return type
+        if (parent is ReturnStatementSyntax)
+        {
+            return true;
+        }
+
+        // Check for array initializer or other contexts where type is explicit
+        return false;
     }
 }

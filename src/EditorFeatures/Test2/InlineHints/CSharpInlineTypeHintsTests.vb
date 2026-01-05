@@ -965,5 +965,113 @@ class A
 
             Await VerifyTypeHints(input, output)
         End Function
+
+        <WpfFact>
+        Public Async Function TestSuppressForTargetTypedNew() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class Vector2
+{
+}
+
+class A
+{
+    void Main()
+    {
+        Vector2 foo = new();
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim options = New InlineTypeHintsOptions() With
+            {
+                .EnabledForTypes = True,
+                .ForImplicitObjectCreation = True,
+                .SuppressForTargetTypedNew = True
+            }
+
+            Await VerifyTypeHintsWithOptions(input, input, options)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestSuppressForTargetTypedCollectionExpression() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferencesNet6="true">
+                    <Document>
+class A
+{
+    void Main()
+    {
+        int[] arr = [1, 2, 3];
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim options = New InlineTypeHintsOptions() With
+            {
+                .EnabledForTypes = True,
+                .ForCollectionExpressions = True,
+                .SuppressForTargetTypedCollectionExpressions = True
+            }
+
+            Await VerifyTypeHintsWithOptions(input, input, options)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestShowForNonTargetTypedNew() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class Vector2
+{
+}
+
+class A
+{
+    void Main()
+    {
+        var foo = {|Vector2 :|}new();
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class Vector2
+{
+}
+
+class A
+{
+    void Main()
+    {
+        var foo = new Vector2();
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim options = New InlineTypeHintsOptions() With
+            {
+                .EnabledForTypes = True,
+                .ForImplicitObjectCreation = True,
+                .SuppressForTargetTypedNew = True
+            }
+
+            Await VerifyTypeHintsWithOptions(input, output, options)
+        End Function
     End Class
 End Namespace
