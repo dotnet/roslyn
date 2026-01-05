@@ -57,9 +57,6 @@
     <EnforceExtendedAnalyzerRules>false</EnforceExtendedAnalyzerRules>
     <EnforceExtendedAnalyzerRules Condition="'$(IsAnalyzer)' == 'true'">true</EnforceExtendedAnalyzerRules>
 
-    <!-- TODO --> 
-    <_SkipUpgradeNetAnalyzersNuGetWarning>true</_SkipUpgradeNetAnalyzersNuGetWarning>
-
     <!-- https://github.com/dotnet/msbuild/issues/10306 -->
     <CoreCompileDependsOn>$(CoreCompileDependsOn);ResolveKeySource</CoreCompileDependsOn> 
 
