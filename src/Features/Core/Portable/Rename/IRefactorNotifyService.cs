@@ -4,7 +4,7 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Editor;
+namespace Microsoft.CodeAnalysis.Rename;
 
 /// <summary>
 /// Allows editors to listen to refactoring events and take appropriate action. For example, 

@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
@@ -38,41 +39,11 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
         // If the given symbol is an extension member, cascade to its implementation method
         result.AddIfNotNull(symbol.AssociatedExtensionImplementation);
 
-        CascadeFromExtensionImplementation(symbol, result);
+        // If the given symbol is an implementation method of an extension member, cascade to the extension member itself
+        if (symbol.TryGetCorrespondingExtensionBlockMethod() is IMethodSymbol method)
+            result.Add(method);
 
         return new(result.ToImmutableAndClear());
-    }
-
-    private static void CascadeFromExtensionImplementation(IMethodSymbol symbol, ArrayBuilder<ISymbol> result)
-    {
-        // If the given symbol is an implementation method of an extension member, cascade to the extension member itself
-        var containingType = symbol.ContainingType;
-        if (symbol is not { IsStatic: true, IsImplicitlyDeclared: true, ContainingType.MightContainExtensionMethods: true })
-            return;
-
-        // Having a compiler API to go from implementation method back to its corresponding extension member would be useful
-        // Tracked by https://github.com/dotnet/roslyn/issues/81686
-
-        foreach (var nestedType in containingType.GetTypeMembers())
-        {
-            if (!nestedType.IsExtension || nestedType.ExtensionParameter is null)
-                continue;
-
-            foreach (var member in nestedType.GetMembers())
-            {
-                if (member is IMethodSymbol method)
-                {
-                    var associated = method.AssociatedExtensionImplementation;
-                    if (associated is null)
-                        continue;
-                    if (!Equals(associated, symbol))
-                        continue;
-
-                    result.Add(method);
-                    return;
-                }
-            }
-        }
     }
 
     private static ImmutableArray<ISymbol> GetOtherPartsOfPartial(IMethodSymbol symbol)

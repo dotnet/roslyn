@@ -31,10 +31,9 @@ internal abstract class AbstractRemoveUnusedMembersCodeFixProvider<TFieldDeclara
     /// </summary>
     protected abstract void AdjustAndAddAppropriateDeclaratorsToRemove(HashSet<TFieldDeclarationSyntax> fieldDeclarators, HashSet<SyntaxNode> declarators);
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, AnalyzersResources.Remove_unused_member, nameof(AnalyzersResources.Remove_unused_member));
-        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(

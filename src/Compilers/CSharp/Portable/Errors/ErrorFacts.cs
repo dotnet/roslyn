@@ -2554,6 +2554,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_EqualityOperatorInPatternNotSupported
                 or ErrorCode.ERR_InequalityOperatorInPatternNotSupported
                 or ErrorCode.ERR_DesignatorBeforePropertyPattern
+                or ErrorCode.ERR_CompilationUnitUnexpected
+                or ErrorCode.ERR_ScopedAfterInOutRefReadonly
+                or ErrorCode.ERR_InvalidModifierAfterScoped
                 or ErrorCode.ERR_StructLayoutAndExtendedLayout
                 or ErrorCode.ERR_RuntimeDoesNotSupportExtendedLayoutTypes
                     => false,

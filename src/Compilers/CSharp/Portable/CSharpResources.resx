@@ -699,6 +699,9 @@
   <data name="ERR_NamespaceUnexpected" xml:space="preserve">
     <value>A namespace cannot directly contain members such as fields, methods or statements</value>
   </data>
+  <data name="ERR_CompilationUnitUnexpected" xml:space="preserve">
+    <value>A compilation unit cannot directly contain members such as fields, methods or properties</value>
+  </data>
   <data name="ERR_NoSuchMember" xml:space="preserve">
     <value>'{0}' does not contain a definition for '{1}'</value>
   </data>
@@ -6992,6 +6995,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ScopedMismatchInParameterOfPartial" xml:space="preserve">
     <value>The 'scoped' modifier of parameter '{0}' doesn't match partial definition.</value>
+  </data>
+  <data name="ERR_ScopedAfterInOutRefReadonly" xml:space="preserve">
+    <value>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</value>
+  </data>
+  <data name="ERR_InvalidModifierAfterScoped" xml:space="preserve">
+    <value>The '{0}' modifier cannot immediately follow the 'scoped' modifier.</value>
   </data>
   <data name="ERR_FixedFieldMustNotBeRef" xml:space="preserve">
     <value>A fixed field must not be a ref field.</value>

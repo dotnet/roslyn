@@ -25,14 +25,12 @@ internal sealed class FindUsagesTestContext : FindUsagesContext
         return definition.DisplayIfNoReferences;
     }
 
-    public override ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
+    public override async ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
     {
         lock (_gate)
         {
             Definitions.Add(definition);
         }
-
-        return default;
     }
 
     public override async ValueTask OnReferencesFoundAsync(IAsyncEnumerable<SourceReferenceItem> references, CancellationToken cancellationToken)

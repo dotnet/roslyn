@@ -1091,16 +1091,16 @@ partial struct C
                 source,
                 references: [s_extendedLayoutAttributeMinimalCoreLibrary])
             .VerifyEmitDiagnostics(
-                // (5,8): error CS9348: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
+                // (5,8): error CS9351: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
                 // struct C
                 Diagnostic(ErrorCode.ERR_StructLayoutAndExtendedLayout, "C").WithLocation(5, 8),
-                // (12,8): error CS9348: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
+                // (12,8): error CS9351: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
                 // struct D
                 Diagnostic(ErrorCode.ERR_StructLayoutAndExtendedLayout, "D").WithLocation(12, 8),
                 // (14,6): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
                 //     [FieldOffset(0)]
                 Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "FieldOffset").WithLocation(14, 6),
-                // (20,8): error CS9348: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
+                // (20,8): error CS9351: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
                 // struct E
                 Diagnostic(ErrorCode.ERR_StructLayoutAndExtendedLayout, "E").WithLocation(20, 8)
                 );
@@ -1249,7 +1249,7 @@ partial struct C
 
             CreateCompilation(source)
             .VerifyEmitDiagnostics(
-                // (3,8): error CS9349: The target runtime does not support extended layout types.
+                // (3,8): error CS9352: The target runtime does not support extended layout types.
                 // struct S
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportExtendedLayoutTypes, "S").WithLocation(3, 8));
         }
