@@ -261,13 +261,15 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
                     // > Note that a server’s ability to fulfill requests is independent of whether a text document is open or closed.
                     if (!didGetLanguage)
                     {
+                        var message = $"Failed to get language for {work.MethodName}";
                         if (handler.MutatesSolutionState)
                         {
-                            throw new InvalidOperationException($"Failed to get language for {work.MethodName}");
+                            throw new InvalidOperationException(message);
                         }
                         else
                         {
-                            _logger.LogWarning($"Could not get language for {work.MethodName}. Proceeding with default language handler.");
+                            work.FailRequest(message);
+                            return;
                         }
                     }
 

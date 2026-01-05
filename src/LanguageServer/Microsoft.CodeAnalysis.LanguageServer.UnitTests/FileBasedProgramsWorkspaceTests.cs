@@ -434,5 +434,13 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
                 new DocumentDiagnosticParams() { TextDocument = new TextDocumentIdentifier { DocumentUri = nonFileUri } },
                 CancellationToken.None).ConfigureAwait(false);
         Assert.Empty(((FullDocumentDiagnosticReport)diagnostics).Items);
+
+        // Issue a "textDocument/hover" request for the closed document
+        // At the time of authoring this test, the HoverHandler calls 'GetRequiredDocument' which we would expect to fail.
+        var hover = await testLspServer.ExecuteRequestAsync<HoverParams, Hover>(
+                Methods.TextDocumentHoverName,
+                new HoverParams() { Position = new Position(0, 0), TextDocument = new TextDocumentIdentifier { DocumentUri = nonFileUri } },
+                CancellationToken.None).ConfigureAwait(false);
+        Assert.Null(hover);
     }
 }
