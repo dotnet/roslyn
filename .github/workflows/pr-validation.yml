@@ -193,7 +193,16 @@ jobs:
           DEVDIV_ORG="devdiv"
           DEVDIV_PROJECT="DevDiv"
           
+          # Determine if commit was explicitly provided (EnforceLatestCommit should be false if commit was provided)
+          HAS_COMMIT="${{ steps.parse-commit.outputs.has-commit }}"
+          if [ "$HAS_COMMIT" = "true" ]; then
+            ENFORCE_LATEST="false"
+          else
+            ENFORCE_LATEST="true"
+          fi
+          
           echo "Triggering DevDiv $VALIDATION_TYPE pipeline (ID: $PIPELINE_ID)..."
+          echo "EnforceLatestCommit: $ENFORCE_LATEST"
           
           # Build request body based on validation type
           if [ "$VALIDATION_TYPE" = "dart" ]; then
@@ -202,7 +211,8 @@ jobs:
           {
             "templateParameters": {
               "prNumber": "${{ github.event.issue.number }}",
-              "sha": "${{ steps.commit-sha.outputs.sha }}"
+              "sha": "${{ steps.commit-sha.outputs.sha }}",
+              "EnforceLatestCommit": "$ENFORCE_LATEST"
             }
           }
           EOF
@@ -213,7 +223,8 @@ jobs:
           {
             "templateParameters": {
               "PRNumber": ${{ github.event.issue.number }},
-              "CommitSHA": "${{ steps.commit-sha.outputs.sha }}"
+              "CommitSHA": "${{ steps.commit-sha.outputs.sha }}",
+              "EnforceLatestCommit": "$ENFORCE_LATEST"
             }
           }
           EOF
