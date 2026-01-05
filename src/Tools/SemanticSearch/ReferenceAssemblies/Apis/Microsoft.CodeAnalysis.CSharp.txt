@@ -454,6 +454,7 @@ Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitInvocationExpression(Mic
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitIsPatternExpression(Microsoft.CodeAnalysis.CSharp.Syntax.IsPatternExpressionSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitJoinClause(Microsoft.CodeAnalysis.CSharp.Syntax.JoinClauseSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitJoinIntoClause(Microsoft.CodeAnalysis.CSharp.Syntax.JoinIntoClauseSyntax)
+Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitKeyValuePairElement(Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitLabeledStatement(Microsoft.CodeAnalysis.CSharp.Syntax.LabeledStatementSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitLetClause(Microsoft.CodeAnalysis.CSharp.Syntax.LetClauseSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitLineDirectivePosition(Microsoft.CodeAnalysis.CSharp.Syntax.LineDirectivePositionSyntax)
@@ -752,6 +753,7 @@ Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitInvocationExpression(Micr
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitIsPatternExpression(Microsoft.CodeAnalysis.CSharp.Syntax.IsPatternExpressionSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitJoinClause(Microsoft.CodeAnalysis.CSharp.Syntax.JoinClauseSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitJoinIntoClause(Microsoft.CodeAnalysis.CSharp.Syntax.JoinIntoClauseSyntax)
+Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitKeyValuePairElement(Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitLabeledStatement(Microsoft.CodeAnalysis.CSharp.Syntax.LabeledStatementSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitLetClause(Microsoft.CodeAnalysis.CSharp.Syntax.LetClauseSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitLineDirectivePosition(Microsoft.CodeAnalysis.CSharp.Syntax.LineDirectivePositionSyntax)
@@ -1004,6 +1006,7 @@ Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitInvocationExpression(Mi
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitIsPatternExpression(Microsoft.CodeAnalysis.CSharp.Syntax.IsPatternExpressionSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitJoinClause(Microsoft.CodeAnalysis.CSharp.Syntax.JoinClauseSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitJoinIntoClause(Microsoft.CodeAnalysis.CSharp.Syntax.JoinIntoClauseSyntax)
+Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitKeyValuePairElement(Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitLabeledStatement(Microsoft.CodeAnalysis.CSharp.Syntax.LabeledStatementSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitLetClause(Microsoft.CodeAnalysis.CSharp.Syntax.LetClauseSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitLineDirectivePosition(Microsoft.CodeAnalysis.CSharp.Syntax.LineDirectivePositionSyntax)
@@ -3114,6 +3117,16 @@ Microsoft.CodeAnalysis.CSharp.Syntax.JoinIntoClauseSyntax.WithIdentifier(Microso
 Microsoft.CodeAnalysis.CSharp.Syntax.JoinIntoClauseSyntax.WithIntoKeyword(Microsoft.CodeAnalysis.SyntaxToken)
 Microsoft.CodeAnalysis.CSharp.Syntax.JoinIntoClauseSyntax.get_Identifier
 Microsoft.CodeAnalysis.CSharp.Syntax.JoinIntoClauseSyntax.get_IntoKeyword
+Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor)
+Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax.Accept``1(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor{``0})
+Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax.Update(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax,Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax)
+Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax.WithColonToken(Microsoft.CodeAnalysis.SyntaxToken)
+Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax.WithKeyExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax)
+Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax.WithValueExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax)
+Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax.get_ColonToken
+Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax.get_KeyExpression
+Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax.get_ValueExpression
 Microsoft.CodeAnalysis.CSharp.Syntax.LabeledStatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.LabeledStatementSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor)
 Microsoft.CodeAnalysis.CSharp.Syntax.LabeledStatementSyntax.Accept``1(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor{``0})
@@ -5171,6 +5184,8 @@ Microsoft.CodeAnalysis.CSharp.SyntaxFactory.JoinClause(System.String,Microsoft.C
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.JoinIntoClause(Microsoft.CodeAnalysis.SyntaxToken)
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.JoinIntoClause(Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.SyntaxToken)
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.JoinIntoClause(System.String)
+Microsoft.CodeAnalysis.CSharp.SyntaxFactory.KeyValuePairElement(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax,Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax)
+Microsoft.CodeAnalysis.CSharp.SyntaxFactory.KeyValuePairElement(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax,Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax)
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.LabeledStatement(Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax},Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax)
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.LabeledStatement(Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax},Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax)
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.LabeledStatement(Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax)
@@ -6019,6 +6034,7 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.IsPatternExpression
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.JoinClause
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.JoinIntoClause
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.JoinKeyword
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.KeyValuePairElement
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.LabeledStatement
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.LeftShiftAssignmentExpression
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.LeftShiftExpression
