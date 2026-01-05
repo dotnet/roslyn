@@ -11,6 +11,8 @@
     <!-- this project is also used as a test input for Go To Definition tests in it, so needs some test data embedded -->
     <DebugType>embedded</DebugType>
     <EmbedAllSources>true</EmbedAllSources>
+
+    <DefineConstants Condition="'$(RoslynIntegrationTestsEmptyRootSuffix)' == 'true'">$(DefineConstants);ROSLYN_INTEGRATION_TESTS_EMPTY_ROOT_SUFFIX</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\..\EditorFeatures\TestUtilities\DirectoryExtensions.cs" Link="DirectoryExtensions.cs" />
