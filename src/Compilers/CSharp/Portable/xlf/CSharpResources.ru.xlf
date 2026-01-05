@@ -7277,7 +7277,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadRetType">
         <source>'{1} {0}' has the wrong return type</source>
-        <target state="translated">'{1} {0}" имеет неправильный возвращаемый тип.</target>
+        <target state="translated">"{1} {0}" имеет неправильный возвращаемый тип.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DelegateRefMismatch">

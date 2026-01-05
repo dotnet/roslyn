@@ -7276,7 +7276,7 @@ target:module               Compila un modulo che può essere aggiunto ad altro
       </trans-unit>
       <trans-unit id="ERR_BadRetType">
         <source>'{1} {0}' has the wrong return type</source>
-        <target state="translated">'Il tipo restituito di '{1} {0}' è errato</target>
+        <target state="translated">Il tipo restituito di '{1} {0}' è errato</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DelegateRefMismatch">
