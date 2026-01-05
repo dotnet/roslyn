@@ -4278,7 +4278,7 @@ class C { }
         {
             var generator = new IncrementalGeneratorWrapper(new InterceptorGenerator1());
 
-            var parseOptions = TestOptions.RegularPreview.WithFeature("InterceptorsNamespaces", "global");
+            var parseOptions = TestOptions.RegularPreview.WithFeature(Feature.InterceptorsNamespaces, "global");
             var projectDir = TempRoot.Root;
 
             var source1 = ("""

@@ -605,7 +605,9 @@ internal sealed partial class SolutionCompilationState
             .WithProjectMetadataReferences(projectId, info.MetadataReferences)
             .WithProjectAnalyzerReferences(projectId, info.AnalyzerReferences);
 
-        var oldProjectState = SolutionState.GetRequiredProjectState(projectId);
+        // It is important to get the project state instance with ParseOptions updated
+        // as these new options need to be applied to the documents being updated or added below.
+        var projectStateWithUpdatedOptions = newState.SolutionState.GetRequiredProjectState(projectId);
 
         // Note: buffers are reused across all calls to UpdateDocuments and cleared after each:
         using var _1 = ArrayBuilder<DocumentInfo>.GetInstance(out var addedDocumentInfos);
@@ -625,7 +627,7 @@ internal sealed partial class SolutionCompilationState
 
             using var _3 = ArrayBuilder<TDocumentState>.GetInstance(out var updatedDocuments);
 
-            var oldDocumentStates = oldProjectState.GetDocumentStates<TDocumentState>();
+            var oldDocumentStates = projectStateWithUpdatedOptions.GetDocumentStates<TDocumentState>();
 
             foreach (var newDocumentInfo in newDocumentInfos)
             {

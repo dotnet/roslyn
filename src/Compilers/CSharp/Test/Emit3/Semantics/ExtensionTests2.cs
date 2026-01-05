@@ -7160,6 +7160,122 @@ static class E
             Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).M()").WithArguments("extension(int).M()").WithLocation(10, 28));
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81710")]
+    public void Cref_68()
+    {
+        var src = """
+/// <see cref="E.extension(int).M(string)"/>
+static class E
+{
+    extension(int i)
+    {
+        public void M(string s) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var extensionCref = GetSyntax<ExtensionMemberCrefSyntax>(tree, "extension(int).M(string)", descendIntoTrivia: true);
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal("E.extension(int).M(string)", model.GetSymbolInfo(extensionCref).Symbol.ToDisplayString());
+        AssertEx.Equal("E.extension(int).M(string)", model.GetSymbolInfo(extensionCref.Member).Symbol.ToDisplayString());
+
+        var m = ((NameMemberCrefSyntax)extensionCref.Member).Name;
+        Assert.Equal("M", m.ToString());
+        AssertEx.Equal("E.extension(int).M(string)", model.GetSymbolInfo(m).Symbol.ToDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81710")]
+    public void Cref_69()
+    {
+        var src = """
+/// <see cref="E.extension(int).Property"/>
+static class E
+{
+    extension(int i)
+    {
+        public int Property => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var extensionCref = GetSyntax<ExtensionMemberCrefSyntax>(tree, "extension(int).Property", descendIntoTrivia: true);
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal("E.extension(int).Property", model.GetSymbolInfo(extensionCref).Symbol.ToDisplayString());
+        AssertEx.Equal("E.extension(int).Property", model.GetSymbolInfo(extensionCref.Member).Symbol.ToDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81710")]
+    public void Cref_70()
+    {
+        var src = """
+namespace N;
+
+/// <see cref="N.E.extension(int).M(string)"/>
+static class E
+{
+    extension(int i)
+    {
+        public void M(string s) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var qualifiedCref = GetSyntax<QualifiedCrefSyntax>(tree, "N.E.extension(int).M(string)", descendIntoTrivia: true);
+        AssertEx.Equal("N.E.extension(int).M(string)", model.GetSymbolInfo(qualifiedCref).Symbol.ToDisplayString());
+
+        var extensionCref = GetSyntax<ExtensionMemberCrefSyntax>(tree, "extension(int).M(string)", descendIntoTrivia: true);
+        AssertEx.Equal("N.E.extension(int).M(string)", model.GetSymbolInfo(extensionCref).Symbol.ToDisplayString());
+        AssertEx.Equal("N.E.extension(int).M(string)", model.GetSymbolInfo(extensionCref.Member).Symbol.ToDisplayString());
+
+        var m = ((NameMemberCrefSyntax)extensionCref.Member).Name;
+        Assert.Equal("M", m.ToString());
+        AssertEx.Equal("N.E.extension(int).M(string)", model.GetSymbolInfo(m).Symbol.ToDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81710")]
+    public void Cref_71()
+    {
+        var src = """
+/// <see cref="extension(int).M(string)"/>
+extension(int i)
+{
+    public void M(string s) => throw null!;
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1574: XML comment has cref attribute 'extension(int).M(string)' that could not be resolved
+            // /// <see cref="extension(int).M(string)"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).M(string)").WithArguments("extension(int).M(string)").WithLocation(1, 16),
+            // (2,1): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            // extension(int i)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(2, 1),
+            // (4,17): warning CS1591: Missing XML comment for publicly visible type or member 'extension(int).M(string)'
+            //     public void M(string s) => throw null!;
+            Diagnostic(ErrorCode.WRN_MissingXMLComment, "M").WithArguments("extension(int).M(string)").WithLocation(4, 17));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var extensionCref = GetSyntax<ExtensionMemberCrefSyntax>(tree, "extension(int).M(string)", descendIntoTrivia: true);
+        Assert.Null(model.GetSymbolInfo(extensionCref).Symbol);
+        Assert.Null(model.GetSymbolInfo(extensionCref.Member).Symbol);
+
+        var m = ((NameMemberCrefSyntax)extensionCref.Member).Name;
+        Assert.Null(model.GetSymbolInfo(m).Symbol);
+    }
+
     [Fact]
     public void PropertyAccess_Set_01()
     {
@@ -24749,7 +24865,7 @@ class BAttribute : System.Attribute { }
             var extension = module.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
             Assert.Equal(["AAttribute", "BAttribute"], extension.TypeParameters[0].GetAttributes().Select(a => a.ToString()));
             Assert.Equal(["AAttribute", "BAttribute"], extension.ExtensionParameter.GetAttributes().Select(a => a.ToString()));
-            Assert.Equal(module is SourceModuleSymbol ? "" : "value", extension.ExtensionParameter.Name);
+            Assert.Equal("", extension.ExtensionParameter.Name);
         }
     }
 
@@ -36013,6 +36129,29 @@ static class E
     }
 
     [Fact]
+    public void ReduceExtensionMember_14()
+    {
+        // extension without containing type
+        var src = """
+extension<T>(T)
+{
+    public static void M() { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            // extension<T>(T)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(1, 1));
+
+        var extension = comp.GlobalNamespace.GetTypeMembers("").Single().GetPublicSymbol();
+        Assert.True(extension.IsExtension);
+        var m = extension.GetMember<IMethodSymbol>("M");
+        var reduced = m.ReduceExtensionMember(comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol());
+        AssertEx.Equal("void <G>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()", reduced.ToTestDisplayString());
+    }
+
+    [Fact]
     public void ReportDiagnostics_01()
     {
         // two properties
@@ -36853,6 +36992,84 @@ static class E4
             // (1,5): error CS9339: The extension resolution is ambiguous between the following members: 'E4.extension(object).Member(int)' and 'E1.extension(object).Member'
             // _ = object.Member(42);
             Diagnostic(ErrorCode.ERR_AmbigExtension, "object.Member").WithArguments("E4.extension(object).Member(int)", "E1.extension(object).Member").WithLocation(1, 5));
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/81180")]
+    public void InternalsVisibleTo_01()
+    {
+        var sourceA =
+@"
+using System.Runtime.CompilerServices;
+[assembly: InternalsVisibleTo(""B"")]
+
+internal static class Extensions
+{
+    extension(string text)
+    {
+        internal bool IsEmpty => string.IsNullOrEmpty(text);
+    }
+}
+";
+        var compA = CreateCompilation(sourceA, assemblyName: "A");
+        CompileAndVerify(compA).VerifyDiagnostics();
+
+        var sourceB =
+@"
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write((null as string).IsEmpty);
+        System.Console.Write("""".IsEmpty);
+        System.Console.Write(""\t"".IsEmpty);
+    }
+}
+";
+        var compB = CreateCompilation(sourceB, references: [compA.ToMetadataReference()], assemblyName: "B", options: TestOptions.DebugExe);
+        CompileAndVerify(compB, expectedOutput: "TrueTrueFalse").VerifyDiagnostics();
+
+        compB = CreateCompilation(sourceB, references: [compA.EmitToImageReference()], assemblyName: "B", options: TestOptions.DebugExe);
+        CompileAndVerify(compB, expectedOutput: "TrueTrueFalse").VerifyDiagnostics();
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/81180")]
+    public void InternalsVisibleTo_02()
+    {
+        var sourceA =
+@"
+using System.Runtime.CompilerServices;
+[assembly: InternalsVisibleTo(""B"")]
+
+internal static class Extensions
+{
+    extension(string text)
+    {
+        internal bool IsEmpty() => string.IsNullOrEmpty(text);
+    }
+}
+";
+        var compA = CreateCompilation(sourceA, assemblyName: "A");
+        CompileAndVerify(compA).VerifyDiagnostics();
+
+        var sourceB =
+@"
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write((null as string).IsEmpty());
+        System.Console.Write("""".IsEmpty());
+        System.Console.Write(""\t"".IsEmpty());
+    }
+}
+";
+        var compB = CreateCompilation(sourceB, references: [compA.ToMetadataReference()], assemblyName: "B", options: TestOptions.DebugExe);
+        CompileAndVerify(compB, expectedOutput: "TrueTrueFalse").VerifyDiagnostics();
+
+        compB = CreateCompilation(sourceB, references: [compA.EmitToImageReference()], assemblyName: "B", options: TestOptions.DebugExe);
+        CompileAndVerify(compB, expectedOutput: "TrueTrueFalse").VerifyDiagnostics();
     }
 }
 

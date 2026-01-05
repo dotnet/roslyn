@@ -619,4 +619,12 @@
   <data name="Adds_a_project_reference" xml:space="preserve">
     <value>Adds a project reference.</value>
   </data>
+  <data name="Add_using_0" xml:space="preserve">
+    <value>Add 'using {0};'</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Add_using_0_and_simplify_all_occurrences" xml:space="preserve">
+    <value>Add 'using {0};' and simplify all occurrences</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
 </root>

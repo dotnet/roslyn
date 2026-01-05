@@ -17,8 +17,8 @@
              x:Name="DocumentOutline"
              Background="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
              platformimaging:ImageThemingUtilities.ImageBackgroundColor="{StaticResource {x:Static vsshell:VsColors.ToolWindowBackgroundKey}}"
-             FontFamily="{StaticResource {x:Static vsshell:VsFonts.EnvironmentFontFamilyKey}}"
-             FontSize="{StaticResource {x:Static vsshell:VsFonts.EnvironmentFontSizeKey}}">
+             FontFamily="{DynamicResource {x:Static vsshell:VsFonts.EnvironmentFontFamilyKey}}"
+             FontSize="{DynamicResource {x:Static vsshell:VsFonts.EnvironmentFontSizeKey}}">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -76,7 +76,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <ContentControl Grid.Row="0" Name="Commands" Focusable="True" />
-        <Grid Grid.Row="1" x:Name="SearchHost" />
+        <Grid Grid.Row="1" x:Name="SearchHost" Focusable="False" KeyboardNavigation.TabNavigation="Continue" />
         <!-- Note: we register TreeViewItem.SourceUpdated and set `NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=False`
              for the item `IsSelected` event.  This is important for a reentrancy issue we would otherwise have.  Specifically,
              As the user moves around, we want to expand/select the correct item of interest in the tree.  However, we do not 
@@ -94,23 +94,41 @@
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type self:DocumentSymbolDataViewModel}">
                     <HierarchicalDataTemplate.ItemsSource>
-                        <MultiBinding Converter="{StaticResource ItemSorter}"> <!-- This binding ensures our TreeViewItems are sorted if the collection is changed OR the sort option is changed -->
+                        <MultiBinding Converter="{StaticResource ItemSorter}">
+                            <!-- This binding ensures our TreeViewItems are sorted if the collection is changed OR the sort option is changed -->
                             <Binding Path="Children" />
                             <Binding Path="DataContext.SortOption" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=UserControl}" />
                         </MultiBinding>
                     </HierarchicalDataTemplate.ItemsSource>
-                    <StackPanel Orientation="Horizontal"
-                                VerticalAlignment="Center">
-                        <imaging:CrispImage Moniker="{Binding ImageMoniker}" Margin="0, 0, 5, 0" />
-                        <TextBlock Text="{Binding Data.Name}" />
-                    </StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="3" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border x:Name="SelectionIndicator"
+                            Grid.Column="0"
+                            Background="{DynamicResource {x:Static vsui:EnvironmentColors.SnaplinesBrushKey}}"
+                            Visibility="Collapsed" />
+                        <StackPanel Grid.Column="1"
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center"
+                                Margin="5, 0, 0, 0">
+                            <imaging:CrispImage Moniker="{Binding ImageMoniker}" Margin="0, 0, 5, 0" />
+                            <TextBlock Text="{Binding Data.Name}" />
+                        </StackPanel>
+                    </Grid>
+                    <HierarchicalDataTemplate.Triggers>
+                        <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                            <Setter TargetName="SelectionIndicator" Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </HierarchicalDataTemplate.Triggers>
                 </HierarchicalDataTemplate>
                 <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}"
-                     Color="{StaticResource {x:Static vsshell:VsColors.NewProjectItemInactiveBorderKey}}" />
+                     Color="{StaticResource {x:Static vsshell:VsColors.ToolboxSelectedHeadingBeginKey}}" />
                 <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}"
                      Color="{DynamicResource {x:Static vsshell:VsColors.ButtonTextKey}}"/>
                 <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}"
-                     Color="{StaticResource {x:Static vsshell:VsColors.NewProjectItemInactiveBorderKey}}" />
+                     Color="{StaticResource {x:Static vsshell:VsColors.ToolboxSelectedHeadingBeginKey}}" />
                 <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}"
                      Color="{DynamicResource {x:Static vsshell:VsColors.ButtonTextKey}}"/>
             </TreeView.Resources>
@@ -120,7 +138,7 @@
                     <Setter Property="AutomationProperties.Name" Value="{Binding Data.Name, Mode=OneWay}" />
                     <!-- See docs above for why we set `NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=False` -->
                     <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=False}" />
-                    <Setter Property="Padding" Value="4, 0, 6, 1" />
+                    <Setter Property="Padding" Value="0, 0, 6, 1" />
                     <Setter Property="Margin" Value="0, 0, 0, 1" />
                 </Style>
             </TreeView.ItemContainerStyle>

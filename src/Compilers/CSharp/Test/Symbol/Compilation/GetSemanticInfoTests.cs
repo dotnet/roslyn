@@ -1241,7 +1241,7 @@ class C
             var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
 
             var systemActionType = GetSystemActionType(comp);
-            Assert.Null(bindInfo.Type);
+            Assert.Equal("System.Action", bindInfo.Type.ToTestDisplayString());
             Assert.Equal(systemActionType, bindInfo.Symbol);
         }
 
@@ -5025,6 +5025,17 @@ public class T
             PreprocessingSymbolInfo symbolInfo = GetPreprocessingSymbolInfoForTest(sourceCode, "Z //bind");
             Assert.Equal("Z", symbolInfo.Symbol.Name);
             Assert.False(symbolInfo.IsDefined, "must not be defined");
+        }
+
+        [Fact, WorkItem(72907, "https://github.com/dotnet/roslyn/issues/72907")]
+        public void GetPreprocessingSymbolInfoOnUnrelatedDirective()
+        {
+            const string sourceCode = """
+                #pragma warning disable Z //bind pragma warning disable
+                """;
+
+            var symbolInfo = GetPreprocessingSymbolInfoForTest(sourceCode, "Z //bind pragma warning disable");
+            Assert.Null(symbolInfo.Symbol);
         }
 
         [Fact, WorkItem(720566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720566")]

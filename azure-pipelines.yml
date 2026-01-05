@@ -70,6 +70,12 @@ variables:
     ${{ else }}:
       value: windows.vs2022.amd64
 
+  - name: Vs2026PreviewQueueName
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+      value: windows.vs2026preview.scout.amd64.open
+    ${{ else }}:
+      value: windows.vs2026preview.scout.amd64
+
   - name: UbuntuQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
       value: Build.Ubuntu.2204.Amd64.Open
@@ -129,16 +135,11 @@ parameters:
     type: object
     default:
       vmImage: macOS-15
-  - name: vs2022PreviewPool
+  - name: vs2026PreviewPool
     type: object
     default:
       name: $(PoolName)
-      demands: ImageOverride -equals $(Vs2022PreviewQueueName)
-  - name: vs2022RegularPool
-    type: object
-    default:
-      name: $(PoolName)
-      demands: ImageOverride -equals $(Vs2022RegularQueueName)
+      demands: ImageOverride -equals $(Vs2026PreviewQueueName)
 
 stages:
 - stage: Windows_Debug_Build
@@ -149,7 +150,7 @@ stages:
       jobName: Build_Windows_Debug
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
-      poolParameters: ${{ parameters.vs2022PreviewPool }}
+      poolParameters: ${{ parameters.vs2026PreviewPool }}
       restoreArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
       buildArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
@@ -161,7 +162,7 @@ stages:
       jobName: Build_Windows_Release
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
-      poolParameters: ${{ parameters.vs2022PreviewPool }}
+      poolParameters: ${{ parameters.vs2026PreviewPool }}
       restoreArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
       buildArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
@@ -313,7 +314,7 @@ stages:
         jobName: Test_Windows_CoreClr_Debug_Single_Machine
         testArtifactName: Transport_Artifacts_Windows_Debug
         configuration: Debug
-        poolParameters: ${{ parameters.vs2022RegularPool }}
+        poolParameters: ${{ parameters.vs2026PreviewPool }}
         testArguments: -testCoreClr
 
   - template: eng/pipelines/test-windows-job.yml
@@ -440,7 +441,7 @@ stages:
 
   - job: Correctness_Build_Artifacts
     dependsOn: Determine_Changes
-    pool: ${{ parameters.vs2022PreviewPool }}
+    pool: ${{ parameters.vs2026PreviewPool }}
     timeoutInMinutes: 90
     variables:
       - template: eng/pipelines/variables-build.yml
@@ -491,6 +492,13 @@ stages:
           custom: 'run'
           arguments: '--file $(Build.SourcesDirectory)/eng/generate-compiler-code.cs -- -test -configuration Release'
 
+      - task: DotNetCoreCLI@2
+        displayName: Verify Synchronized Sources
+        inputs:
+          command: 'custom'
+          custom: 'run'
+          arguments: '--file $(Build.SourcesDirectory)/eng/ensure-sources-synced.cs'
+
       - powershell: eng/validate-code-formatting.ps1 -ci -rootDirectory $(Build.SourcesDirectory)\src -includeDirectories Compilers\CSharp\Portable\Generated\, Compilers\VisualBasic\Portable\Generated\, ExpressionEvaluator\VisualBasic\Source\ResultProvider\Generated\ 
         displayName: Validate Generated Syntax Files
         condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['compilerChange'], 'true'))
@@ -503,7 +511,7 @@ stages:
   - job: Correctness_Determinism
     dependsOn: Determine_Changes
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
-    pool: ${{ parameters.vs2022PreviewPool }}
+    pool: ${{ parameters.vs2026PreviewPool }}
     timeoutInMinutes: 90
     variables:
       - template: eng/pipelines/variables-build.yml
@@ -528,7 +536,7 @@ stages:
   - job: Correctness_Bootstrap_Build_Default
     dependsOn: Determine_Changes
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
-    pool: ${{ parameters.vs2022PreviewPool }}
+    pool: ${{ parameters.vs2026PreviewPool }}
     timeoutInMinutes: 90
     variables:
       - template: eng/pipelines/variables-build.yml
@@ -542,7 +550,7 @@ stages:
   - job: Correctness_Bootstrap_Build_Framework
     dependsOn: Determine_Changes
     condition: ne(variables['Build.Reason'], 'PullRequest')
-    pool: ${{ parameters.vs2022PreviewPool }}
+    pool: ${{ parameters.vs2026PreviewPool }}
     timeoutInMinutes: 90
     variables:
       - template: eng/pipelines/variables-build.yml
@@ -565,7 +573,7 @@ stages:
   - job: Correctness_Rebuild
     dependsOn: Determine_Changes
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
-    pool: ${{ parameters.vs2022PreviewPool }}
+    pool: ${{ parameters.vs2026PreviewPool }}
     timeoutInMinutes: 90
     variables:
       - template: eng/pipelines/variables-build.yml

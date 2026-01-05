@@ -754,9 +754,7 @@ internal abstract class AbstractSpeculationAnalyzer<
     /// </summary>
     private static bool IsSymbolSystemObjectInstanceMethod([NotNullWhen(true)] ISymbol? symbol)
     {
-        return symbol != null
-            && symbol.IsKind(SymbolKind.Method)
-            && symbol.ContainingType.SpecialType == SpecialType.System_Object
+        return symbol is IMethodSymbol { ContainingType.SpecialType: SpecialType.System_Object }
             && !symbol.IsOverridable()
             && !symbol.IsStaticType();
     }
@@ -1034,10 +1032,8 @@ internal abstract class AbstractSpeculationAnalyzer<
         if (receiver != null)
         {
             var receiverType = semanticModel.GetTypeInfo(receiver).Type;
-            if (receiverType.IsKind(SymbolKind.TypeParameter) && !receiverType.IsReferenceType)
-            {
+            if (receiverType is ITypeParameterSymbol { IsReferenceType: false })
                 return !IsReceiverUniqueInstance(receiver, semanticModel);
-            }
         }
 
         return false;
@@ -1049,13 +1045,7 @@ internal abstract class AbstractSpeculationAnalyzer<
     private static bool IsReceiverUniqueInstance(TExpressionSyntax receiver, SemanticModel semanticModel)
     {
         var receiverSymbol = semanticModel.GetSymbolInfo(receiver).GetAnySymbol();
-
-        if (receiverSymbol == null)
-            return false;
-
-        return receiverSymbol.IsKind(SymbolKind.Method) ||
-               receiverSymbol.IsIndexer() ||
-               receiverSymbol.IsKind(SymbolKind.Property);
+        return receiverSymbol is IMethodSymbol or IPropertySymbol;
     }
 
     private bool SymbolsHaveCompatibleParameterLists(ISymbol originalSymbol, ISymbol newSymbol, TExpressionSyntax originalInvocation)

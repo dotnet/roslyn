@@ -22,7 +22,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
-internal abstract class AbstractCSharpTypeSnippetProvider<TTypeDeclarationSyntax> : AbstractTypeSnippetProvider<TTypeDeclarationSyntax>
+internal abstract class AbstractCSharpTypeSnippetProvider<TTypeDeclarationSyntax>(
+    TypeKind typeKind, string defaultPrefix = "")
+    : AbstractTypeSnippetProvider<TTypeDeclarationSyntax>(typeKind, defaultPrefix)
     where TTypeDeclarationSyntax : BaseTypeDeclarationSyntax
 {
     protected abstract ISet<SyntaxKind> ValidModifiers { get; }

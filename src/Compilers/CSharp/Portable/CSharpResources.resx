@@ -699,6 +699,9 @@
   <data name="ERR_NamespaceUnexpected" xml:space="preserve">
     <value>A namespace cannot directly contain members such as fields, methods or statements</value>
   </data>
+  <data name="ERR_CompilationUnitUnexpected" xml:space="preserve">
+    <value>A compilation unit cannot directly contain members such as fields, methods or properties</value>
+  </data>
   <data name="ERR_NoSuchMember" xml:space="preserve">
     <value>'{0}' does not contain a definition for '{1}'</value>
   </data>
@@ -1798,6 +1801,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_DllImportOnInvalidMethod" xml:space="preserve">
     <value>The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member</value>
+  </data>
+  <data name="ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime" xml:space="preserve">
+    <value>Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</value>
   </data>
   <data name="ERR_EncUpdateFailedMissingSymbol" xml:space="preserve">
     <value>Cannot emit update; {0} '{1}' is missing.</value>
@@ -6423,6 +6429,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DesignatorBeneathPatternCombinator" xml:space="preserve">
     <value>A variable may not be declared within a 'not' or 'or' pattern.</value>
   </data>
+  <data name="ERR_DesignatorBeforePropertyPattern" xml:space="preserve">
+    <value>A variable designator must come after a property pattern.</value>
+  </data>
   <data name="ERR_UnsupportedTypeForRelationalPattern" xml:space="preserve">
     <value>Relational patterns may not be used for a value of type '{0}'.</value>
   </data>
@@ -6566,6 +6575,15 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_UnexpectedArgumentList" xml:space="preserve">
     <value>Unexpected argument list.</value>
+  </data>
+  <data name="ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList" xml:space="preserve">
+    <value>Cannot pass arguments to the base type without a parameter list on the type declaration.</value>
+  </data>
+  <data name="ERR_EqualityOperatorInPatternNotSupported" xml:space="preserve">
+    <value>The '==' operator is not supported in a pattern.</value>
+  </data>
+  <data name="ERR_InequalityOperatorInPatternNotSupported" xml:space="preserve">
+    <value>The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.</value>
   </data>
   <data name="ERR_UnexpectedOrMissingConstructorInitializerInRecord" xml:space="preserve">
     <value>A constructor declared in a type with parameter list must have 'this' constructor initializer.</value>
@@ -6977,6 +6995,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ScopedMismatchInParameterOfPartial" xml:space="preserve">
     <value>The 'scoped' modifier of parameter '{0}' doesn't match partial definition.</value>
+  </data>
+  <data name="ERR_ScopedAfterInOutRefReadonly" xml:space="preserve">
+    <value>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</value>
+  </data>
+  <data name="ERR_InvalidModifierAfterScoped" xml:space="preserve">
+    <value>The '{0}' modifier cannot immediately follow the 'scoped' modifier.</value>
   </data>
   <data name="ERR_FixedFieldMustNotBeRef" xml:space="preserve">
     <value>A fixed field must not be a ref field.</value>
@@ -8026,6 +8050,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_InvalidExtensionParameterReference" xml:space="preserve">
     <value>Cannot use extension parameter '{0}' in this context.</value>
+  </data>
+  <data name="ERR_ExtensionParameterInStaticContext" xml:space="preserve">
+    <value>Static members cannot access the value of extension parameter '{0}'.</value>
   </data>
   <data name="ERR_ValueParameterSameNameAsExtensionTypeParameter" xml:space="preserve">
     <value>'value': an automatically-generated parameter name conflicts with an extension type parameter name</value>
