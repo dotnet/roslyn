@@ -180,16 +180,10 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static bool HasDisposeBoolMethodSignature(this IMethodSymbol method)
         {
-            if (method.Name == "Dispose" && method.MethodKind == MethodKind.Ordinary &&
-                method.ReturnsVoid && method.Parameters.Length == 1)
+            return method is
             {
-                IParameterSymbol parameter = method.Parameters[0];
-                return parameter.Type != null &&
-                    parameter.Type.SpecialType == SpecialType.System_Boolean &&
-                    parameter.RefKind == RefKind.None;
-            }
-
-            return false;
+                Name: "Dispose", MethodKind: MethodKind.Ordinary, ReturnsVoid: true, Parameters: [{ Type.SpecialType: SpecialType.System_Boolean, RefKind: RefKind.None }]
+            };
         }
 
         /// <summary>
@@ -197,8 +191,7 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         private static bool HasDisposeCloseMethodSignature(this IMethodSymbol method)
         {
-            return method.Name == "Close" && method.MethodKind == MethodKind.Ordinary &&
-                method.ReturnsVoid && method.Parameters.IsEmpty;
+            return method is { Name: "Close", MethodKind: MethodKind.Ordinary, ReturnsVoid: true, Parameters.IsEmpty: true };
         }
 
         /// <summary>
