@@ -292,6 +292,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     VerifyExpression(leftConversion);
                 }
 
+                if (node.Left is BoundPropertyAccess { PropertySymbol.SetMethod: { } propSet } propertyAccess
+                    && propSet.IsExtensionBlockMember()
+                    && node.FinalPlaceholder is not null)
+                {
+                    Visit(node.FinalPlaceholder);
+                }
+
                 Visit(node.Left);
                 Visit(node.Right);
                 return null;

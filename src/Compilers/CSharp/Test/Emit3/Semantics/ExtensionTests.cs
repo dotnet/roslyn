@@ -42128,25 +42128,17 @@ public class C
 
 class Program
 {
-    static void Main()
-    {
-        var e = Test();
-        System.Console.Write(e.Compile().Invoke("1"));
-        System.Console.Write(": ");
-        System.Console.Write(e);
-    }
-
     static Expression<Func<string, object>> Test()
     {
         return (s) => new object() { P = { F = s } };
     }
 }
 """;
-        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (29,38): error CS9296: An expression tree may not contain an extension property access
+            // (21,38): error CS9296: An expression tree may not contain an extension property access
             //         return (s) => new object() { P = { F = s } };
-            Diagnostic(ErrorCode.ERR_ExpressionTreeContainsExtensionPropertyAccess, "P").WithLocation(29, 38)
+            Diagnostic(ErrorCode.ERR_ExpressionTreeContainsExtensionPropertyAccess, "P").WithLocation(21, 38)
             );
     }
 
@@ -42292,6 +42284,43 @@ class Program
 """;
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         CompileAndVerify(comp, expectedOutput: @"1: () => Convert(System.String M(System.String).CreateDelegate(System.Func`2[System.String,System.String], null)" + (ExecutionConditionUtil.IsMonoOrCoreClr ? ", Func`2)" : ")")).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExpressionTrees_11()
+    {
+        // target-typed object creation with nested initializer
+        var src = """
+using System;
+using System.Linq.Expressions;
+
+public static class Extensions
+{
+    extension(object o)
+    {
+        public C P { get => default; }
+    }
+}
+
+public class C
+{
+    public string F;
+}
+
+class Program
+{
+    static Expression<Func<string, object>> Test()
+    {
+        return (s) => new() { P = { F = s } };
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics(
+            // (21,31): error CS9296: An expression tree may not contain an extension property access
+            //         return (s) => new() { P = { F = s } };
+            Diagnostic(ErrorCode.ERR_ExpressionTreeContainsExtensionPropertyAccess, "P").WithLocation(21, 31)
+            );
     }
 
     [Fact]
@@ -49304,9 +49333,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (4,31): warning CS8601: Possible null reference assignment.
+            // (4,31): warning CS8604: Possible null reference argument for parameter 'value' in 'void E.extension(object).Property.set'.
             // _ = new object() { Property = oNull };
-            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNull").WithLocation(4, 31));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("value", "void E.extension(object).Property.set").WithLocation(4, 31));
     }
 
     [Fact]
@@ -49356,15 +49385,13 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
-            // (4,31): warning CS8601: Possible null reference assignment.
-            // _ = new object() { Property = oNull };
-            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNull").WithLocation(4, 31));
+        comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "Property = oNull");
-        AssertEx.Equal("System.Object! E.extension<System.Object!>(System.Object!).Property { set; }",
+
+        AssertEx.Equal("System.Object? E.extension<System.Object?>(System.Object?).Property { set; }",
             model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
 
         assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "Property = oNotNull");
@@ -49374,6 +49401,37 @@ static class E
 
     [Fact]
     public void Nullability_ObjectInitializer_04()
+    {
+        var src = """
+#nullable enable
+
+_ = new C<string>() { Property = null };
+_ = new C<string>() { Property = "a" };
+
+_ = new C<string?>() { Property = null };
+_ = new C<string?>() { Property = "a" };
+
+class C<T> { }
+
+static class E
+{
+    extension<T>(C<T> c)
+    {
+        public T Property { set { } }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyTypes(comp.SyntaxTrees[0]);
+        comp.VerifyEmitDiagnostics(
+            // (3,23): warning CS8620: Argument of type 'C<string>' cannot be used for parameter 'c' of type 'C<string?>' in 'E.extension<string?>(C<string?>)' due to differences in the nullability of reference types.
+            // _ = new C<string>() { Property = null };
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "Property").WithArguments("C<string>", "C<string?>", "c", "E.extension<string?>(C<string?>)").WithLocation(3, 23));
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_05()
     {
         var src = """
 #nullable enable
@@ -49391,19 +49449,28 @@ Use(s, (new("a") { Property = "a" })/*T:C<string!>!*/);
 Use("a", (new("a") { Property = null })/*T:C<string!>!*/); // 4
 Use("a", (new("a") { Property = "a" })/*T:C<string!>!*/);
 
-if (s != null)
-    return;
-
+if (s != null) return;
 Use(s, (new(s) { Property = null })/*T:C<string?>!*/);
+
+if (s != null) return;
 Use(s, (new(s) { Property = "a" })/*T:C<string?>!*/);
 
+if (s != null) return;
 Use("a", (new(s) { Property = null })/*T:C<string!>!*/); // 5, 6
-Use("a", (new(s) { Property = "a" })/*T:C<string!>!*/);
 
-Use(s, (new("a") { Property = null })/*T:C<string!>!*/); // 7
-Use(s, (new("a") { Property = "a" })/*T:C<string!>!*/);
+if (s != null) return;
+Use("a", (new(s) { Property = "a" })/*T:C<string!>!*/); // 7
 
+if (s != null) return;
+Use(s, (new("a") { Property = null })/*T:C<string?>!*/);
+
+if (s != null) return;
+Use(s, (new("a") { Property = "a" })/*T:C<string?>!*/);
+
+if (s != null) return;
 Use("a", (new("a") { Property = null })/*T:C<string!>!*/); // 8
+
+if (s != null) return;
 Use("a", (new("a") { Property = "a" })/*T:C<string!>!*/);
 
 void Use<T>(T value, C<T> c) => throw null!;
@@ -49422,35 +49489,157 @@ static class E
         var comp = CreateCompilation([src, IsExternalInitTypeDefinition]);
         comp.VerifyTypes(comp.SyntaxTrees[0]);
         comp.VerifyEmitDiagnostics(
-            // (4,29): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // (4,18): warning CS8620: Argument of type 'C<string>' cannot be used for parameter 'c' of type 'C<string?>' in 'E.extension<string?>(C<string?>)' due to differences in the nullability of reference types.
             // Use(s, (new(s) { Property = null })/*T:C<string!>!*/); // 1
-            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 29),
-            // (7,31): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "Property").WithArguments("C<string>", "C<string?>", "c", "E.extension<string?>(C<string?>)").WithLocation(4, 18),
+            // (7,20): warning CS8620: Argument of type 'C<string>' cannot be used for parameter 'c' of type 'C<string?>' in 'E.extension<string?>(C<string?>)' due to differences in the nullability of reference types.
             // Use("a", (new(s) { Property = null })/*T:C<string!>!*/); // 2
-            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 31),
-            // (10,31): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "Property").WithArguments("C<string>", "C<string?>", "c", "E.extension<string?>(C<string?>)").WithLocation(7, 20),
+            // (10,20): warning CS8620: Argument of type 'C<string>' cannot be used for parameter 'c' of type 'C<string?>' in 'E.extension<string?>(C<string?>)' due to differences in the nullability of reference types.
             // Use(s, (new("a") { Property = null })/*T:C<string!>!*/); // 3
-            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 31),
-            // (13,33): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "Property").WithArguments("C<string>", "C<string?>", "c", "E.extension<string?>(C<string?>)").WithLocation(10, 20),
+            // (13,22): warning CS8620: Argument of type 'C<string>' cannot be used for parameter 'c' of type 'C<string?>' in 'E.extension<string?>(C<string?>)' due to differences in the nullability of reference types.
             // Use("a", (new("a") { Property = null })/*T:C<string!>!*/); // 4
-            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 33),
-            // (22,15): warning CS8604: Possible null reference argument for parameter 'Value' in 'C<string>.C(string Value)'.
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "Property").WithArguments("C<string>", "C<string?>", "c", "E.extension<string?>(C<string?>)").WithLocation(13, 22),
+            // (23,15): warning CS8604: Possible null reference argument for parameter 'Value' in 'C<string>.C(string Value)'.
             // Use("a", (new(s) { Property = null })/*T:C<string!>!*/); // 5, 6
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("Value", "C<string>.C(string Value)").WithLocation(22, 15),
-            // (22,31): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("Value", "C<string>.C(string Value)").WithLocation(23, 15),
+            // (23,20): warning CS8620: Argument of type 'C<string>' cannot be used for parameter 'c' of type 'C<string?>' in 'E.extension<string?>(C<string?>)' due to differences in the nullability of reference types.
             // Use("a", (new(s) { Property = null })/*T:C<string!>!*/); // 5, 6
-            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(22, 31),
-            // (25,31): warning CS8625: Cannot convert null literal to non-nullable reference type.
-            // Use(s, (new("a") { Property = null })/*T:C<string!>!*/); // 7
-            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(25, 31),
-            // (28,33): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "Property").WithArguments("C<string>", "C<string?>", "c", "E.extension<string?>(C<string?>)").WithLocation(23, 20),
+            // (26,15): warning CS8604: Possible null reference argument for parameter 'Value' in 'C<string>.C(string Value)'.
+            // Use("a", (new(s) { Property = "a" })/*T:C<string!>!*/); // 7
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("Value", "C<string>.C(string Value)").WithLocation(26, 15),
+            // (35,22): warning CS8620: Argument of type 'C<string>' cannot be used for parameter 'c' of type 'C<string?>' in 'E.extension<string?>(C<string?>)' due to differences in the nullability of reference types.
             // Use("a", (new("a") { Property = null })/*T:C<string!>!*/); // 8
-            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(28, 33));
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "Property").WithArguments("C<string>", "C<string?>", "c", "E.extension<string?>(C<string?>)").WithLocation(35, 22));
 
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var assignment = GetSyntaxes<AssignmentExpressionSyntax>(tree, "Property = null").First();
+
+        AssertEx.Equal("System.String? E.extension<System.String?>(C<System.String?>!).Property { set; }",
+            model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
     }
 
     [Fact]
-    public void Nullability_ObjectInitializer_05()
+    public void Nullability_ObjectInitializer_06()
+    {
+        // notnull constraint
+        var src = """
+#nullable enable
+
+var s = "a";
+Use(s, (new(s) { Property = null })/*T:C<string!>!*/); // 1, 2
+Use(s, (new(s) { Property = "a" })/*T:C<string!>!*/);
+
+Use("a", (new(s) { Property = null })/*T:C<string!>!*/); // 3, 4
+Use("a", (new(s) { Property = "a" })/*T:C<string!>!*/);
+
+Use(s, (new("a") { Property = null })/*T:C<string!>!*/); // 5, 6
+Use(s, (new("a") { Property = "a" })/*T:C<string!>!*/);
+
+Use("a", (new("a") { Property = null })/*T:C<string!>!*/); // 7, 8
+Use("a", (new("a") { Property = "a" })/*T:C<string!>!*/);
+
+if (s != null) return;
+Use(s, (new(s) { Property = null })/*T:C<string?>!*/); // 9
+
+if (s != null) return;
+Use(s, (new(s) { Property = "a" })/*T:C<string?>!*/); // 10
+
+if (s != null) return;
+Use("a", (new(s) { Property = null })/*T:C<string!>!*/); // 11, 12, 13
+
+if (s != null) return;
+Use("a", (new(s) { Property = "a" })/*T:C<string!>!*/); // 14
+
+if (s != null) return;
+Use(s, (new("a") { Property = null })/*T:C<string?>!*/); // 15
+
+if (s != null) return;
+Use(s, (new("a") { Property = "a" })/*T:C<string?>!*/); // 16
+
+if (s != null) return;
+Use("a", (new("a") { Property = null })/*T:C<string!>!*/); // 17, 18
+
+if (s != null) return;
+Use("a", (new("a") { Property = "a" })/*T:C<string!>!*/);
+
+void Use<T>(T value, C<T> c) => throw null!;
+
+record C<T>(T Value) { }
+
+static class E
+{
+    extension<T>(C<T> c) where T : notnull
+    {
+        public T Property { set { } }
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, IsExternalInitTypeDefinition]);
+        comp.VerifyTypes(comp.SyntaxTrees[0]);
+        comp.VerifyEmitDiagnostics(
+            // (4,18): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(C<T>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+            // Use(s, (new(s) { Property = null })/*T:C<string!>!*/); // 1, 2
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "Property").WithArguments("E.extension<T>(C<T>)", "T", "string?").WithLocation(4, 18),
+            // (4,18): warning CS8620: Argument of type 'C<string>' cannot be used for parameter 'c' of type 'C<string?>' in 'E.extension<string?>(C<string?>)' due to differences in the nullability of reference types.
+            // Use(s, (new(s) { Property = null })/*T:C<string!>!*/); // 1, 2
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "Property").WithArguments("C<string>", "C<string?>", "c", "E.extension<string?>(C<string?>)").WithLocation(4, 18),
+            // (7,20): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(C<T>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+            // Use("a", (new(s) { Property = null })/*T:C<string!>!*/); // 3, 4
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "Property").WithArguments("E.extension<T>(C<T>)", "T", "string?").WithLocation(7, 20),
+            // (7,20): warning CS8620: Argument of type 'C<string>' cannot be used for parameter 'c' of type 'C<string?>' in 'E.extension<string?>(C<string?>)' due to differences in the nullability of reference types.
+            // Use("a", (new(s) { Property = null })/*T:C<string!>!*/); // 3, 4
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "Property").WithArguments("C<string>", "C<string?>", "c", "E.extension<string?>(C<string?>)").WithLocation(7, 20),
+            // (10,20): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(C<T>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+            // Use(s, (new("a") { Property = null })/*T:C<string!>!*/); // 5, 6
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "Property").WithArguments("E.extension<T>(C<T>)", "T", "string?").WithLocation(10, 20),
+            // (10,20): warning CS8620: Argument of type 'C<string>' cannot be used for parameter 'c' of type 'C<string?>' in 'E.extension<string?>(C<string?>)' due to differences in the nullability of reference types.
+            // Use(s, (new("a") { Property = null })/*T:C<string!>!*/); // 5, 6
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "Property").WithArguments("C<string>", "C<string?>", "c", "E.extension<string?>(C<string?>)").WithLocation(10, 20),
+            // (13,22): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(C<T>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+            // Use("a", (new("a") { Property = null })/*T:C<string!>!*/); // 7, 8
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "Property").WithArguments("E.extension<T>(C<T>)", "T", "string?").WithLocation(13, 22),
+            // (13,22): warning CS8620: Argument of type 'C<string>' cannot be used for parameter 'c' of type 'C<string?>' in 'E.extension<string?>(C<string?>)' due to differences in the nullability of reference types.
+            // Use("a", (new("a") { Property = null })/*T:C<string!>!*/); // 7, 8
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "Property").WithArguments("C<string>", "C<string?>", "c", "E.extension<string?>(C<string?>)").WithLocation(13, 22),
+            // (17,18): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(C<T>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+            // Use(s, (new(s) { Property = null })/*T:C<string?>!*/); // 9
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "Property").WithArguments("E.extension<T>(C<T>)", "T", "string?").WithLocation(17, 18),
+            // (20,18): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(C<T>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+            // Use(s, (new(s) { Property = "a" })/*T:C<string?>!*/); // 10
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "Property").WithArguments("E.extension<T>(C<T>)", "T", "string?").WithLocation(20, 18),
+            // (23,15): warning CS8604: Possible null reference argument for parameter 'Value' in 'C<string>.C(string Value)'.
+            // Use("a", (new(s) { Property = null })/*T:C<string!>!*/); // 11, 12, 13
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("Value", "C<string>.C(string Value)").WithLocation(23, 15),
+            // (23,20): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(C<T>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+            // Use("a", (new(s) { Property = null })/*T:C<string!>!*/); // 11, 12, 13
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "Property").WithArguments("E.extension<T>(C<T>)", "T", "string?").WithLocation(23, 20),
+            // (23,20): warning CS8620: Argument of type 'C<string>' cannot be used for parameter 'c' of type 'C<string?>' in 'E.extension<string?>(C<string?>)' due to differences in the nullability of reference types.
+            // Use("a", (new(s) { Property = null })/*T:C<string!>!*/); // 11, 12, 13
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "Property").WithArguments("C<string>", "C<string?>", "c", "E.extension<string?>(C<string?>)").WithLocation(23, 20),
+            // (26,15): warning CS8604: Possible null reference argument for parameter 'Value' in 'C<string>.C(string Value)'.
+            // Use("a", (new(s) { Property = "a" })/*T:C<string!>!*/); // 14
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("Value", "C<string>.C(string Value)").WithLocation(26, 15),
+            // (29,20): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(C<T>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+            // Use(s, (new("a") { Property = null })/*T:C<string?>!*/); // 15
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "Property").WithArguments("E.extension<T>(C<T>)", "T", "string?").WithLocation(29, 20),
+            // (32,20): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(C<T>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+            // Use(s, (new("a") { Property = "a" })/*T:C<string?>!*/); // 16
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "Property").WithArguments("E.extension<T>(C<T>)", "T", "string?").WithLocation(32, 20),
+            // (35,22): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(C<T>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+            // Use("a", (new("a") { Property = null })/*T:C<string!>!*/); // 17, 18
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "Property").WithArguments("E.extension<T>(C<T>)", "T", "string?").WithLocation(35, 22),
+            // (35,22): warning CS8620: Argument of type 'C<string>' cannot be used for parameter 'c' of type 'C<string?>' in 'E.extension<string?>(C<string?>)' due to differences in the nullability of reference types.
+            // Use("a", (new("a") { Property = null })/*T:C<string!>!*/); // 17, 18
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "Property").WithArguments("C<string>", "C<string?>", "c", "E.extension<string?>(C<string?>)").WithLocation(35, 22));
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_07()
     {
         var src = """
 #nullable enable
@@ -49460,10 +49649,10 @@ var s = "a";
 Create(s).Use(new() { Property = null }); // 1
 Create(s).Use(new() { Property = "a" });
 
-if (s != null)
-    return;
-
+if (s != null) return;
 Create(s).Use(new() { Property = null });
+
+if (s != null) return;
 Create(s).Use(new() { Property = "a" });
 
 Consumer<T> Create<T>(T value) => throw null!;
@@ -49486,9 +49675,254 @@ static class E
 
         var comp = CreateCompilation([src, IsExternalInitTypeDefinition]);
         comp.VerifyEmitDiagnostics(
-            // (5,34): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // (5,23): warning CS8620: Argument of type 'C<string>' cannot be used for parameter 'c' of type 'C<string?>' in 'E.extension<string?>(C<string?>)' due to differences in the nullability of reference types.
             // Create(s).Use(new() { Property = null }); // 1
-            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 34));
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "Property").WithArguments("C<string>", "C<string?>", "c", "E.extension<string?>(C<string?>)").WithLocation(5, 23));
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_08()
+    {
+        // nested
+        var src = """
+#nullable enable
+
+_ = new object() { P = { F = "" } };
+
+public static class E
+{
+    extension<T>(T t)
+    {
+        public C P { get => new C(); }
+    }
+}
+
+public class C
+{
+    public string? F;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, """P = { F = "" }""");
+
+        AssertEx.Equal("C! E.extension<System.Object!>(System.Object!).P { get; }",
+            model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_09()
+    {
+        // nested
+        var src = """
+#nullable enable
+
+object o = new() { P = { F = "" } };
+
+public static class E
+{
+    extension<T>(T t)
+    {
+        public C P { get => new C(); }
+    }
+}
+
+public class C
+{
+    public string? F;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, """P = { F = "" }""");
+
+        AssertEx.Equal("C! E.extension<System.Object!>(System.Object!).P { get; }",
+            model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_10()
+    {
+        // nested
+        var src = """
+#nullable enable
+
+_ = new C<string>() { P = { F = null } };
+
+public static class E
+{
+    extension<T>(C<T> c)
+    {
+        public C<T> P { get => c; }
+    }
+}
+
+public class C<T>
+{
+    public T F = default!;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,33): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // _ = new C<string>() { P = { F = null } };
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 33));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "P = { F = null }");
+
+        AssertEx.Equal("C<System.String!>! E.extension<System.String!>(C<System.String!>!).P { get; }",
+            model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_11()
+    {
+        // nested
+        var src = """
+#nullable enable
+
+C<string> c = new() { P = { F = null } };
+
+public static class E
+{
+    extension<T>(C<T> c)
+    {
+        public C<T> P { get => c; }
+    }
+}
+
+public class C<T>
+{
+    public T F = default!;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,33): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // C<string> c = new() { P = { F = null } };
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 33));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "P = { F = null }");
+
+        AssertEx.Equal("C<System.String!>! E.extension<System.String!>(C<System.String!>!).P { get; }",
+            model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_12()
+    {
+        // nested
+        var src = """
+#nullable enable
+
+C<string> c = new() { P = { F = null } };
+
+public static class E
+{
+    extension<T>(C<T> c)
+    {
+        public C<T> P { set { } } // no getter
+    }
+}
+
+public class C<T>
+{
+    public T F = default!;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,23): error CS0154: The property or indexer 'E.extension<string>(C<string>).P' cannot be used in this context because it lacks the get accessor
+            // C<string> c = new() { P = { F = null } };
+            Diagnostic(ErrorCode.ERR_PropertyLacksGet, "P").WithArguments("E.extension<string>(C<string>).P").WithLocation(3, 23),
+            // (3,33): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // C<string> c = new() { P = { F = null } };
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 33));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "P = { F = null }");
+        Assert.Null(model.GetSymbolInfo(assignment.Left).Symbol);
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_13()
+    {
+        // nested
+        var src = """
+#nullable enable
+
+_ = new C<string>() { P = { F = null } };
+
+public static class E
+{
+    extension<T>(C<T> c)
+    {
+        public T F => default!; // no setter
+    }
+}
+
+public class C<T>
+{
+    public C<T> P { get => this; }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,29): error CS0200: Property or indexer 'E.extension<string>(C<string>).F' cannot be assigned to -- it is read only
+            // _ = new C<string>() { P = { F = null } };
+            Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "F").WithArguments("E.extension<string>(C<string>).F").WithLocation(3, 29));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "F = null");
+        Assert.Null(model.GetSymbolInfo(assignment.Left).Symbol);
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_14()
+    {
+        // nested
+        var src = """
+#nullable enable
+
+_ = new C<string>() { P = { F = null } };
+
+public static class E
+{
+    extension<T>(C<T> c)
+    {
+        public T F { set { } }
+    }
+}
+
+public class C<T>
+{
+    public C<T> P { get => this; }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,29): warning CS8620: Argument of type 'C<string>' cannot be used for parameter 'c' of type 'C<string?>' in 'E.extension<string?>(C<string?>)' due to differences in the nullability of reference types.
+            // _ = new C<string>() { P = { F = null } };
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "F").WithArguments("C<string>", "C<string?>", "c", "E.extension<string?>(C<string?>)").WithLocation(3, 29));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "F = null");
+
+        AssertEx.Equal("System.String? E.extension<System.String?>(C<System.String?>!).F { set; }",
+            model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
     }
 
     [Fact]
@@ -49516,9 +49950,9 @@ static class E
 
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (4,31): warning CS8601: Possible null reference assignment.
+            // (4,31): warning CS8604: Possible null reference argument for parameter 'value' in 'void E.extension(object).Property.set'.
             // _ = new S() with { Property = oNull };
-            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNull").WithLocation(4, 31));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("value", "void E.extension(object).Property.set").WithLocation(4, 31));
     }
 
     [Fact]
@@ -49609,6 +50043,13 @@ static class E
             // (4,5): warning CS8602: Dereference of a possibly null reference.
             // _ = cNull with { Property = 42 };
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "cNull").WithLocation(4, 5));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var assignment = GetSyntaxes<AssignmentExpressionSyntax>(tree, "Property = 42").First();
+
+        AssertEx.Equal("System.Int32 E.extension<C!>(C!).Property { set; }",
+            model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
     }
 
     [Fact]
@@ -49692,7 +50133,7 @@ if (s != null)
     return;
 
 var c2 = Create(s);
-c2 = c2 with { Property = null }; // ok
+c2 = c2 with { Property = null };
 c2 = c2 with { Property = "a" };
 C<T> Create<T>(T value) => throw null!;
 
@@ -49709,9 +50150,16 @@ static class E
 
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,27): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // (5,16): warning CS8620: Argument of type 'C<string>' cannot be used for parameter 'c' of type 'C<string?>' in 'E.extension<string?>(C<string?>)' due to differences in the nullability of reference types.
             // c1 = c1 with { Property = null }; // 1
-            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 27));
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "Property").WithArguments("C<string>", "C<string?>", "c", "E.extension<string?>(C<string?>)").WithLocation(5, 16));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var assignment = GetSyntaxes<AssignmentExpressionSyntax>(tree, "Property = null").Last();
+
+        AssertEx.Equal("System.String? E.extension<System.String?>(C<System.String?>!).Property { set; }",
+            model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
     }
 
     [Fact]
