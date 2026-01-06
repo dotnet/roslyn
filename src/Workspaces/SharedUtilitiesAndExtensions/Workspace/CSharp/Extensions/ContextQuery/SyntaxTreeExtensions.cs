@@ -1267,7 +1267,7 @@ internal static partial class SyntaxTreeExtensions
         {
             parent = token.Parent.Parent;
         }
-        else if (token.IsKind(SyntaxKind.IdentifierToken) && token.Text == "scoped" && token.Parent is IdentifierNameSyntax scopedIdentifierName && scopedIdentifierName.Parent.IsKind(SyntaxKind.Parameter))
+        else if (token.IsKind(SyntaxKind.IdentifierToken) && token is { Text: "scoped", Parent: IdentifierNameSyntax scopedIdentifierName } && scopedIdentifierName.Parent.IsKind(SyntaxKind.Parameter))
         {
             parent = scopedIdentifierName.Parent.Parent;
         }
