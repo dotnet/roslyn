@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -208,27 +209,59 @@ internal sealed partial class RemoteWorkspace : Workspace
         CancellationToken cancellationToken)
     {
         // See if we can just incrementally update the current solution.
-        var currentSolution = this.CurrentSolution;
-        if (await IsIncrementalUpdateAsync().ConfigureAwait(false))
-            return currentSolution;
+        var newSolutionCompilationChecksums = await assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
+            AssetPathKind.SolutionCompilationStateChecksums, solutionChecksum, cancellationToken).ConfigureAwait(false);
+        var newSolutionChecksums = await assetProvider.GetAssetAsync<SolutionStateChecksums>(
+            AssetPathKind.SolutionStateChecksums, newSolutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
+        var newSolutionInfo = await assetProvider.GetAssetAsync<SolutionInfo.SolutionAttributes>(
+            AssetPathKind.SolutionAttributes, newSolutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
+
+        // In solution load, we might not yet have CurrentSolution updated since we haven't synchronized our primary solution over. But we might already have
+        // synchronized part of it over, so let's see if we have a solution that matches what we need.
+        Solution? bestSolution = null;
+        int? bestSolutionProjectsMissing = null;
+
+        void UpdateBestSolution(Solution candidateSolution)
+        {
+            if (candidateSolution.Id == newSolutionInfo.Id && candidateSolution.FilePath == newSolutionInfo.FilePath)
+            {
+                // Compute how many projects are missing from this one
+                var ids = new HashSet<ProjectId>(newSolutionChecksums.Projects.Ids);
+                foreach (var id in candidateSolution.ProjectIds)
+                    ids.Remove(id);
+
+                var projectsMissing = ids.Count;
+
+                if (!bestSolutionProjectsMissing.HasValue)
+                {
+                    bestSolution = candidateSolution;
+                    bestSolutionProjectsMissing = projectsMissing;
+                }
+                else if (projectsMissing < bestSolutionProjectsMissing.Value)
+                {
+                    bestSolution = candidateSolution;
+                    bestSolutionProjectsMissing = projectsMissing;
+                }
+            }
+        }
+
+        // First, is our CurrentSolution already a candidate that can't be beat?
+        UpdateBestSolution(this.CurrentSolution);
+        if (bestSolution is not null && bestSolutionProjectsMissing == 0)
+            return bestSolution;
+
+        var solutions = new HashSet<Solution>();
+        _lastRequestedAnyBranchSolutions.AddAllTo(solutions);
+        foreach (var solution in solutions)
+            UpdateBestSolution(solution);
+
+        if (bestSolution is not null)
+            return bestSolution;
 
         // If not, have to create a new, fresh, solution instance to update.
         var solutionInfo = await assetProvider.CreateSolutionInfoAsync(
             solutionChecksum, this.Services.SolutionServices, cancellationToken).ConfigureAwait(false);
         return CreateSolutionFromInfo(solutionInfo);
-
-        async Task<bool> IsIncrementalUpdateAsync()
-        {
-            var newSolutionCompilationChecksums = await assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
-                AssetPathKind.SolutionCompilationStateChecksums, solutionChecksum, cancellationToken).ConfigureAwait(false);
-            var newSolutionChecksums = await assetProvider.GetAssetAsync<SolutionStateChecksums>(
-                AssetPathKind.SolutionStateChecksums, newSolutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
-            var newSolutionInfo = await assetProvider.GetAssetAsync<SolutionInfo.SolutionAttributes>(
-                AssetPathKind.SolutionAttributes, newSolutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
-
-            // if either solution id or file path changed, then we consider it as new solution
-            return currentSolution.Id == newSolutionInfo.Id && currentSolution.FilePath == newSolutionInfo.FilePath;
-        }
     }
 
     /// <summary>
