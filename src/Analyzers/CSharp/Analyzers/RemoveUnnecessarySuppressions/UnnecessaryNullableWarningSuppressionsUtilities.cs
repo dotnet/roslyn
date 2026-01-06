@@ -92,8 +92,8 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
         var updatedSemanticModel = updatedCompilation.GetSemanticModel(updatedTree);
 
         using var _1 = ArrayBuilder<PostfixUnaryExpressionSyntax>.GetInstance(out var inGlobalStatements);
-        using var _2 = ArrayBuilder<(PostfixUnaryExpressionSyntax suppression, SyntaxNode rewritten)>.GetInstance(out var inFieldsOrProperties);
-        using var _3 = ArrayBuilder<(PostfixUnaryExpressionSyntax suppression, SyntaxNode rewritten)>.GetInstance(out var remainder);
+        using var _2 = ArrayBuilder<(PostfixUnaryExpressionSyntax suppression, SyntaxNode rewrittenAncestor)>.GetInstance(out var inFieldsOrProperties);
+        using var _3 = ArrayBuilder<(PostfixUnaryExpressionSyntax suppression, SyntaxNode rewrittenAncestor)>.GetInstance(out var remainder);
 
         foreach (var (suppression, annotation) in nodeToAnnotation)
         {
@@ -134,36 +134,9 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
             }
         }
 
-        updatedNodes.AddRange(nodeToAnnotation.Select(kvp => (kvp.Key, updateRoot.GetAnnotatedNodes(kvp.Value).Single())));
-
-        var containingTypes = nodeToAnnotation.Select(kvp => updateRoot.GetAnnotatedNodes(kvp.Value).Single().FirstAncestorOrSelf<TypeDeclarationSyntax>()).WhereNotNull().Distinct();
-        foreach (var type in containingTypes)
-        {
-            var diagnostics2 = updatedSemanticModel.GetDiagnostics(type.Span, cancellationToken);
-            Console.WriteLine(diagnostics2);
-        }
-
         CheckGlobalStatements();
         CheckFieldsAndProperties();
         CheckRemainder();
-
-        // Group nodes by the span we need to check for errors/warnings. That way we only need to get the diagnostics
-        // once per span instead of once per node.
-        foreach (var group in nodeToAnnotation.GroupBy(tuple => GetSpanToCheck(updateRoot.GetAnnotatedNodes(tuple.Value).Single())))
-        {
-            var groupSpan = group.Key;
-            if (groupSpan is null)
-                continue;
-
-            var updatedDiagnostics = updatedSemanticModel.GetDiagnostics(groupSpan, cancellationToken);
-            if (ContainsErrorOrWarning(updatedDiagnostics))
-                continue;
-
-            // If there were no errors in that span after removing all the suppressions, then we can offer all of these
-            // nodes up for fixing.
-            foreach (var (suppressionNode, _) in group)
-                result.Add(suppressionNode);
-        }
 
         void CheckGlobalStatements()
         {
@@ -185,21 +158,42 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
 
         void CheckFieldsAndProperties()
         {
+            foreach (var typeDeclarationGroup in inFieldsOrProperties.GroupBy(t => t.rewrittenAncestor.FirstAncestorOrSelf<TypeDeclarationSyntax>()))
+            {
+                var typeDeclaration = typeDeclarationGroup.Key;
+                if (typeDeclaration is null)
+                    continue;
 
+                var typeDeclarationDiagnostics = updatedSemanticModel.GetDiagnostics(typeDeclaration.Span, cancellationToken);
+
+                foreach (var ancestorGroup in typeDeclarationGroup.GroupBy(t => t.rewrittenAncestor))
+                {
+                    var rewrittenAncestor = ancestorGroup.Key;
+                    var updatedDiagnostics = typeDeclarationDiagnostics.Where(d => d.Location.SourceSpan.IntersectsWith(rewrittenAncestor.Span));
+                    if (ContainsErrorOrWarning(updatedDiagnostics))
+                        continue;
+
+                    // If there were no errors in that span after removing all the suppressions, then we can offer all of these
+                    // nodes up for fixing.
+                    result.AddRange(ancestorGroup.Select(t => t.suppression));
+                }
+            }
         }
-    }
 
-    private static TextSpan? GetSpanToCheck(SyntaxNode updatedNode)
-    {
-        // If we're in a global statement, check all global statements from the start of this one to the end of the last one.
-        var globalStatement = updatedNode.Ancestors().OfType<GlobalStatementSyntax>().FirstOrDefault();
-        if (globalStatement is not null)
+        void CheckRemainder()
         {
-            var compilationUnit = (CompilationUnitSyntax)globalStatement.GetRequiredParent();
-            return TextSpan.FromBounds(globalStatement.SpanStart, compilationUnit.Members.OfType<GlobalStatementSyntax>().Last().Span.End);
+            foreach (var group in remainder.GroupBy(t => t.rewrittenAncestor))
+            {
+                var rewrittenAncestor = group.Key;
+                var updatedDiagnostics = updatedSemanticModel.GetDiagnostics(rewrittenAncestor.Span, cancellationToken);
+                if (ContainsErrorOrWarning(updatedDiagnostics))
+                    continue;
+
+                // If there were no errors in that span after removing all the suppressions, then we can offer all of these
+                // nodes up for fixing.
+                foreach (var (suppressionNode, _) in group)
+                    result.Add(suppressionNode);
+            }
         }
-
-
-        return ancestor?.Span;
     }
 }
