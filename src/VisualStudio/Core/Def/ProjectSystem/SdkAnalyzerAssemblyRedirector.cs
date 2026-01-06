@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -77,11 +76,11 @@ internal class SdkAnalyzerAssemblyRedirectorCore : IAnalyzerAssemblyRedirector
             return ImmutableDictionary<string, List<AnalyzerInfo>>.Empty;
         }
 
-        Dictionary<string, string>? versions;
+        Dictionary<string, MetadataEntry>? metadata;
 
         try
         {
-            versions = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(metadataFilePath));
+            metadata = JsonSerializer.Deserialize<Dictionary<string, MetadataEntry>>(File.ReadAllText(metadataFilePath));
         }
         catch (Exception ex)
         {
@@ -89,9 +88,9 @@ internal class SdkAnalyzerAssemblyRedirectorCore : IAnalyzerAssemblyRedirector
             return ImmutableDictionary<string, List<AnalyzerInfo>>.Empty;
         }
 
-        if (versions is null || versions.Count == 0)
+        if (metadata is null || metadata.Count == 0)
         {
-            Log($"Versions are empty: {metadataFilePath}", __ACTIVITYLOG_ENTRYTYPE.ALE_WARNING);
+            Log($"Metadata dictionary is empty: {metadataFilePath}", __ACTIVITYLOG_ENTRYTYPE.ALE_WARNING);
             return ImmutableDictionary<string, List<AnalyzerInfo>>.Empty;
         }
 
@@ -99,32 +98,23 @@ internal class SdkAnalyzerAssemblyRedirectorCore : IAnalyzerAssemblyRedirector
 
         // Expects layout like:
         // VsInstallDir\DotNetRuntimeAnalyzers\WindowsDesktopAnalyzers\analyzers\dotnet\System.Windows.Forms.Analyzers.dll
-        //                                     ~~~~~~~~~~~~~~~~~~~~~~~                                                     = topLevelDirectory
-        //                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ = analyzerPath
+        //                                     ~~~~~~~~~~~~~~~~~~~~~~~                                                     = subsetName
+        //                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ = pathSuffix
 
-        foreach (var topLevelDirectory in Directory.EnumerateDirectories(insertedAnalyzersDirectory))
+        foreach (var (subsetName, entry) in metadata)
         {
-            var subsetName = Path.GetFileName(topLevelDirectory);
-
-            foreach (var analyzerPath in Directory.EnumerateFiles(topLevelDirectory, "*.dll", SearchOption.AllDirectories))
+            foreach (var file in entry.Files)
             {
-                if (!analyzerPath.StartsWith(topLevelDirectory, StringComparison.OrdinalIgnoreCase))
+                var analyzerFullPath = Path.Combine(insertedAnalyzersDirectory, subsetName, file);
+
+                AnalyzerInfo analyzer = new()
                 {
-                    // We can't continue, because computations in code below assume this.
-                    Debug.Fail($"Analyzer path '{analyzerPath}' must start with '{topLevelDirectory}'.");
-                    continue;
-                }
+                    FullPath = analyzerFullPath,
+                    ProductVersion = entry.Version,
+                    PathSuffix = Path.GetDirectoryName(file),
+                };
 
-                if (!versions.TryGetValue(subsetName, out var version))
-                {
-                    continue;
-                }
-
-                var analyzerName = Path.GetFileNameWithoutExtension(analyzerPath);
-                var pathSuffix = analyzerPath.Substring(topLevelDirectory.Length + 1 /* slash */);
-                pathSuffix = Path.GetDirectoryName(pathSuffix);
-
-                AnalyzerInfo analyzer = new() { FullPath = analyzerPath, ProductVersion = version, PathSuffix = pathSuffix };
+                var analyzerName = Path.GetFileNameWithoutExtension(file);
 
                 if (builder.TryGetValue(analyzerName, out var existing))
                 {
@@ -207,4 +197,10 @@ internal class SdkAnalyzerAssemblyRedirectorCore : IAnalyzerAssemblyRedirector
             "Roslyn" + nameof(SdkAnalyzerAssemblyRedirector),
             message);
     }
+}
+
+internal sealed class MetadataEntry
+{
+    public required string Version { get; init; }
+    public ImmutableArray<string> Files { get; init; }
 }

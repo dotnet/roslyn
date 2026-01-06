@@ -24,7 +24,7 @@ public sealed class SdkAnalyzerAssemblyRedirectorTests : TestBase
         var testDir = Temp.CreateDirectory();
 
         var vsDir = Path.Combine(testDir.Path, "vs");
-        Metadata(vsDir, new() { { "AspNetCoreAnalyzers", a } });
+        Metadata(vsDir, new() { { "AspNetCoreAnalyzers", new() { Version = a, Files = [@"analyzers\dotnet\cs\Microsoft.AspNetCore.App.Analyzers.dll"] } } });
         var vsAnalyzerPath = FakeDll(vsDir, @$"AspNetCoreAnalyzers\analyzers\dotnet\cs", "Microsoft.AspNetCore.App.Analyzers");
         var sdkAnalyzerPath = @$"Z:\Program Files\dotnet\sdk\packs\Microsoft.AspNetCore.App.Ref\{b}\analyzers\dotnet\cs\Microsoft.AspNetCore.App.Analyzers.dll";
 
@@ -39,7 +39,7 @@ public sealed class SdkAnalyzerAssemblyRedirectorTests : TestBase
         var testDir = Temp.CreateDirectory();
 
         var vsDir = Path.Combine(testDir.Path, "vs");
-        Metadata(vsDir, new() { { "AspNetCoreAnalyzers", "9.0.0-preview.5.24306.11" } });
+        Metadata(vsDir, new() { { "AspNetCoreAnalyzers", new() { Version = "9.0.0-preview.5.24306.11", Files = [@"analyzers\dotnet\cs\Microsoft.AspNetCore.App.Analyzers.dll"] } } });
         FakeDll(vsDir, @"AspNetCoreAnalyzers\analyzers\dotnet\cs", "Microsoft.AspNetCore.App.Analyzers");
         var sdkAnalyzerPath = @"Z:\Program Files\dotnet\sdk\packs\Microsoft.AspNetCore.App.Ref\9.0.0-preview.7.24406.2\analyzers\dotnet\vb\Microsoft.AspNetCore.App.Analyzers.dll";
 
@@ -54,7 +54,7 @@ public sealed class SdkAnalyzerAssemblyRedirectorTests : TestBase
         var testDir = Temp.CreateDirectory();
 
         var vsDir = Path.Combine(testDir.Path, "vs");
-        Metadata(vsDir, new() { { "AspNetCoreAnalyzers", "9.0.0-preview.5.24306.11" } });
+        Metadata(vsDir, new() { { "AspNetCoreAnalyzers", new() { Version = "9.0.0-preview.5.24306.11", Files = [@"analyzers\dotnet\cs\Microsoft.AspNetCore.App.Analyzers.dll"] } } });
         var vsAnalyzerPath = FakeDll(vsDir, @"AspNetCoreAnalyzers\analyzers\dotnet\cs", "Microsoft.AspNetCore.App.Analyzers");
 
         // The suffix matches but there is no parent directory.
@@ -73,8 +73,8 @@ public sealed class SdkAnalyzerAssemblyRedirectorTests : TestBase
         var vsDir = Path.Combine(testDir.Path, "vs");
         Metadata(vsDir, new()
         {
-            { "AspNetCoreAnalyzers9", "9.0.0-preview.5.24306.11" },
-            { "AspNetCoreAnalyzers10", "10.0.0-preview.5.24306.11" },
+            { "AspNetCoreAnalyzers9", new() { Version = "9.0.0-preview.5.24306.11", Files = [@"analyzers\dotnet\cs\Microsoft.AspNetCore.App.Analyzers.dll"] } },
+            { "AspNetCoreAnalyzers10", new() { Version = "10.0.0-preview.5.24306.11", Files = [@"analyzers\dotnet\cs\Microsoft.AspNetCore.App.Analyzers.dll"] } },
         });
         var vsAnalyzerPath9 = FakeDll(vsDir, @"AspNetCoreAnalyzers9\analyzers\dotnet\cs", "Microsoft.AspNetCore.App.Analyzers");
         var vsAnalyzerPath10 = FakeDll(vsDir, @"AspNetCoreAnalyzers10\analyzers\dotnet\cs", "Microsoft.AspNetCore.App.Analyzers");
@@ -98,7 +98,7 @@ public sealed class SdkAnalyzerAssemblyRedirectorTests : TestBase
         var testDir = Temp.CreateDirectory();
 
         var vsDir = Path.Combine(testDir.Path, "vs");
-        Metadata(vsDir, new() { { "AspNetCoreAnalyzers", a } });
+        Metadata(vsDir, new() { { "AspNetCoreAnalyzers", new() { Version = a, Files = [@"analyzers\dotnet\cs\Microsoft.AspNetCore.App.Analyzers.dll"] } } });
         FakeDll(vsDir, @$"AspNetCoreAnalyzers\analyzers\dotnet\cs", "Microsoft.AspNetCore.App.Analyzers");
         var sdkAnalyzerPath = @$"Z:\Program Files\dotnet\sdk\packs\Microsoft.AspNetCore.App.Ref\{b}\analyzers\dotnet\cs\Microsoft.AspNetCore.App.Analyzers.dll";
 
@@ -115,10 +115,10 @@ public sealed class SdkAnalyzerAssemblyRedirectorTests : TestBase
         return dllPath;
     }
 
-    private static void Metadata(string root, Dictionary<string, string> versions)
+    private static void Metadata(string root, Dictionary<string, MetadataEntry> metadata)
     {
         var metadataFilePath = Path.Combine(root, "metadata.json");
         Directory.CreateDirectory(Path.GetDirectoryName(metadataFilePath));
-        File.WriteAllText(metadataFilePath, JsonSerializer.Serialize(versions));
+        File.WriteAllText(metadataFilePath, JsonSerializer.Serialize(metadata));
     }
 }
