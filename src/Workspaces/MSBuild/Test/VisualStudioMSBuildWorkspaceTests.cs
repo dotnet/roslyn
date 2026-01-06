@@ -1304,12 +1304,10 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
             .WithFile(@"CSharpProject\CSharpProject.noproj", Resources.ProjectFiles.CSharp.CSharpProject));
         var projectFilePath = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
 
-        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-        {
-            using var workspace = CreateMSBuildWorkspace();
-            workspace.SkipUnrecognizedProjects = false;
-            await workspace.OpenProjectAsync(projectFilePath);
-        });
+        using var workspace = CreateMSBuildWorkspace();
+        workspace.SkipUnrecognizedProjects = false;
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => workspace.OpenProjectAsync(projectFilePath));
     }
 
     [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -2611,11 +2609,9 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
 
         // open for read-write so no-one else can read
         var projectFile = GetSolutionFileName(@"CSharpProject\NoProject.csproj");
-        await Assert.ThrowsAsync<FileNotFoundException>(async () =>
-            {
-                using var workspace = CreateMSBuildWorkspace();
-                await workspace.OpenProjectAsync(projectFile);
-            });
+        using var workspace = CreateMSBuildWorkspace();
+
+        await Assert.ThrowsAsync<FileNotFoundException>(() => workspace.OpenProjectAsync(projectFile));
     }
 
     [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -2625,11 +2621,9 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
 
         // open for read-write so no-one else can read
         var solutionFile = GetSolutionFileName(@"NoSolution.sln");
-        await Assert.ThrowsAsync<FileNotFoundException>(async () =>
-            {
-                using var workspace = CreateMSBuildWorkspace();
-                await workspace.OpenSolutionAsync(solutionFile);
-            });
+        using var workspace = CreateMSBuildWorkspace();
+
+        await Assert.ThrowsAsync<FileNotFoundException>(() => workspace.OpenSolutionAsync(solutionFile));
     }
 
     [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
