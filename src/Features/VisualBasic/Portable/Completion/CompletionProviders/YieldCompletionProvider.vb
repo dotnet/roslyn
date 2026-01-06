@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim methodSymbol = TryCast(semanticModel.GetDeclaredSymbol(declaration, cancellationToken), IMethodSymbol)
             If methodSymbol Is Nothing Then Return False
 
-            If methodSymbol.IsIterator AndAlso (methodSymbol.IsAsync OrElse Not CanBeAsync(declaration)) Then Return False
+            If methodSymbol.IsIterator AndAlso (methodSymbol.IsAsync OrElse Not AllowsAsyncModifier(declaration)) Then Return False
 
             Dim returnType = methodSymbol.ReturnType
             If returnType Is Nothing OrElse TypeOf returnType Is IErrorTypeSymbol Then Return False
@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim isAsyncIterator = returnType.OriginalDefinition.Equals(taskLikeTypes.IAsyncEnumerableOfTType) OrElse
                                   returnType.OriginalDefinition.Equals(taskLikeTypes.IAsyncEnumeratorOfTType)
 
-            If isAsyncIterator AndAlso Not methodSymbol.IsAsync AndAlso CanBeAsync(declaration) Then
+            If isAsyncIterator AndAlso Not methodSymbol.IsAsync AndAlso AllowsAsyncModifier(declaration) Then
                 modifiersToAdd &= "Async "
             End If
 
@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return builder.ToImmutableAndFree()
         End Function
 
-        Private Shared Function CanBeAsync(declaration As SyntaxNode) As Boolean
+        Private Shared Function AllowsAsyncModifier(declaration As SyntaxNode) As Boolean
             ' Properties cannot be Async in VB
             Return Not declaration.IsKind(SyntaxKind.GetAccessorBlock)
         End Function
