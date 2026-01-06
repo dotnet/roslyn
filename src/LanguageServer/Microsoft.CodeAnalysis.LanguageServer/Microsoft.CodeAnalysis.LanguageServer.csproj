@@ -73,6 +73,9 @@
   <ItemGroup>
     <!-- Include MIBC data if available.  This is produced by a separate profiling pipeline for the C# extension, and injected in official builds -->
     <PublishReadyToRunPgoFiles Condition="'$(VSCodeOptimizationDataRoot)'!=''" Include="$(VSCodeOptimizationDataRoot)\*.mibc" />
+
+    <!-- Workaround https://github.com/dotnet/dotnet/issues/3995 -->
+    <PublishReadyToRunExclude Include="Microsoft.VisualStudio.TestPlatform.Common.dll" />
   </ItemGroup>
 
   <Target Name="SetCrossgen2ExtraArgs" BeforeTargets="ResolveReadyToRunCompilers" Condition="'$(PublishReadyToRun)' == 'true'">
