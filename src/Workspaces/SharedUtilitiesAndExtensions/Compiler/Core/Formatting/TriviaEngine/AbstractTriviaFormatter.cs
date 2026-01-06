@@ -765,7 +765,7 @@ internal abstract class AbstractTriviaFormatter
         TextSpan notUsed,
         ArrayBuilder<SyntaxTrivia> changes)
     {
-        if (delta.Lines == 0 && delta.Spaces == 0)
+        if (delta is { Lines: 0, Spaces: 0 })
         {
             // remove trivia
             return;
