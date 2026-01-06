@@ -655,7 +655,7 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
             case SyntaxKind.ConversionOperatorDeclaration:
             case SyntaxKind.OperatorDeclaration:
                 var method = (BaseMethodDeclarationSyntax)declaration;
-                return (method.Body == null && method.ExpressionBody == null) ? method.WithSemicolonToken(default).WithBody(CreateBlock()) : method;
+                return method is { Body: null, ExpressionBody: null } ? method.WithSemicolonToken(default).WithBody(CreateBlock()) : method;
 
             case SyntaxKind.PropertyDeclaration:
                 var prop = (PropertyDeclarationSyntax)declaration;
