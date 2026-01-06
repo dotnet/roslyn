@@ -123,7 +123,7 @@ internal sealed partial class XmlDocCommentCompletionProvider : AbstractDocComme
                 return GetAttributeValueItems(declaredSymbol, elementName, attributeName);
             }
 
-            if (trigger.Kind == CompletionTriggerKind.Insertion && trigger.Character != '<')
+            if (trigger is { Kind: CompletionTriggerKind.Insertion, Character: not '<' })
             {
                 // With the use of IsTriggerAfterSpaceOrStartOfWordCharacter, the code below is much
                 // too aggressive at suggesting tags, so exit early before degrading the experience
