@@ -26,7 +26,7 @@ internal sealed class MultipleBlankLinesCodeFixProvider() : CodeFixProvider
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.MultipleBlankLinesDiagnosticId];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var document = context.Document;
         var diagnostic = context.Diagnostics.First();
@@ -35,7 +35,6 @@ internal sealed class MultipleBlankLinesCodeFixProvider() : CodeFixProvider
             c => UpdateDocumentAsync(document, diagnostic, c),
             nameof(CodeFixesResources.Remove_extra_blank_lines)),
             context.Diagnostics);
-        return Task.CompletedTask;
     }
 
     private static Task<Document> UpdateDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)

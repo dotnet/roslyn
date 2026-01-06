@@ -12,9 +12,8 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
-[ExportCompletionProvider(nameof(AggregateEmbeddedLanguageCompletionProvider), LanguageNames.CSharp)]
-[ExtensionOrder(After = nameof(ExtensionMethodImportCompletionProvider))]
-[Shared]
+[ExportCompletionProvider(nameof(AggregateEmbeddedLanguageCompletionProvider), LanguageNames.CSharp), Shared]
+[ExtensionOrder(After = nameof(ExtensionMemberImportCompletionProvider))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class AggregateEmbeddedLanguageCompletionProvider([ImportMany] IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> languageServices) : AbstractAggregateEmbeddedLanguageCompletionProvider(languageServices, LanguageNames.CSharp)

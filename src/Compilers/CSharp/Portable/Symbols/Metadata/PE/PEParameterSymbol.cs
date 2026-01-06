@@ -353,8 +353,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             bool hasNameInMetadata = !string.IsNullOrEmpty(_name);
             if (!hasNameInMetadata)
             {
-                // As was done historically, if the parameter doesn't have a name, we give it the name "value".
-                _name = "value";
+                if (isExtensionMarkerParameter(containingSymbol, ordinal))
+                {
+                    _name = "";
+                }
+                else
+                {
+                    // As was done historically, if the parameter doesn't have a name, we give it the name "value".
+                    _name = "value";
+                }
             }
 
             _packedFlags = new PackedFlags(refKind, attributesAreComplete: handle.IsNil, hasNameInMetadata: hasNameInMetadata, scope, hasUnscopedRefAttribute);
@@ -362,6 +369,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Debug.Assert(refKind == this.RefKind);
             Debug.Assert(hasNameInMetadata == this.HasNameInMetadata);
             Debug.Assert(_name is not null);
+
+            static bool isExtensionMarkerParameter(Symbol containingSymbol, int ordinal)
+            {
+                if (containingSymbol.MetadataName != WellKnownMemberNames.ExtensionMarkerMethodName)
+                {
+                    return false;
+                }
+
+                var markerMethod = ((PENamedTypeSymbol)containingSymbol.ContainingType).GetMarkerMethodSymbol();
+                return object.ReferenceEquals(markerMethod, containingSymbol) && ordinal == 0;
+            }
         }
 
         private bool HasNameInMetadata

@@ -87,6 +87,8 @@
     "Microsoft.CodeAnalysis.PublicApiAnalyzers": "arcade",
     "Microsoft.CodeAnalysis.ResxSourceGenerator": "arcade",
     "Microsoft.CodeAnalysis.RulesetToEditorconfigConverter": "arcade",
+    "Microsoft.VisualStudio.Extensibility.Testing.Xunit": "vssdk",
+    "Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator": "vssdk",
     "Roslyn.Diagnostics.Analyzers": "arcade",
     "Text.Analyzers": "arcade"
   },
@@ -95,7 +97,7 @@
       "Shipping",
       "NonShipping"
     ],
-    "vsBranch": "rel/d18.3",
+    "vsBranch": "main",
     "insertionCreateDraftPR": false,
     "insertionTitlePrefix": "[d18.3]"
   }

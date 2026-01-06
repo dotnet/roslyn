@@ -96,5 +96,25 @@ internal static class FindUsagesHelpers
         .AddParameterOptions(SymbolDisplayParameterOptions.IncludeName);
 
     public static ImmutableArray<TaggedText> GetDisplayParts(ISymbol definition)
-        => definition.ToDisplayParts(GetFormat(definition)).ToTaggedText();
+        // Range variables have to be specially handled as only ToMinimalDisplayParts can pass enough information 
+        // to the compiler to properly display the pseudo-return-type they have.
+        => (definition is IRangeVariableSymbol rangeVariable
+            ? GetDisplayPartsForRangeVariable(rangeVariable)
+            : definition.ToDisplayParts(GetFormat(definition))).ToTaggedText();
+
+    private static ImmutableArray<SymbolDisplayPart> GetDisplayPartsForRangeVariable(IRangeVariableSymbol rangeVariable)
+    {
+        if (rangeVariable is
+            {
+                ContainingAssembly: ISourceAssemblySymbol sourceAssembly,
+                Locations: [{ SourceTree: { } syntaxTree, SourceSpan: var sourceSpan }, ..],
+            })
+        {
+            var compilation = sourceAssembly.Compilation;
+            var semanticModel = compilation.GetSemanticModel(syntaxTree);
+            return rangeVariable.ToMinimalDisplayParts(semanticModel, sourceSpan.Start);
+        }
+
+        return rangeVariable.ToDisplayParts(GetFormat(rangeVariable));
+    }
 }

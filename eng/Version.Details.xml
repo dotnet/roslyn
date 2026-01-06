@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
-  <Source Uri="https://github.com/dotnet/dotnet" Mapping="roslyn" Sha="be28ec777bf12db631725399c442448d52093087" BarId="287454" />
+  <Source Uri="https://github.com/dotnet/dotnet" Mapping="roslyn" Sha="5661a2c0a84a3fd32916395b254ce50e5ad7e9fe" BarId="295411" />
   <ProductDependencies>
     <!-- RoslynAnalyzers reference older builds of Roslyn and this is necessary for SourceBuild. -->
-    <Dependency Name="Microsoft.CodeAnalysis" Version="3.11.0">
+    <Dependency Name="Microsoft.CodeAnalysis" Version="5.3.0-2.25625.1">
       <Uri>https://github.com/dotnet/roslyn</Uri>
-      <Sha>ae1fff344d46976624e68ae17164e0607ab68b10</Sha>
+      <Sha>5dd606bb21208dfc6fd3d9b07ae963a93248483b</Sha>
     </Dependency>
-    <Dependency Name="System.CommandLine" Version="2.0.0-rc.1.25515.110">
+    <Dependency Name="System.CommandLine" Version="3.0.0-alpha.1.25619.109">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>be28ec777bf12db631725399c442448d52093087</Sha>
+      <Sha>5661a2c0a84a3fd32916395b254ce50e5ad7e9fe</Sha>
     </Dependency>
     <!-- Necessary for source-build. This allows the live version of the package to be used by source-build. -->
     <Dependency Name="Microsoft.Bcl.AsyncInterfaces" Version="9.0.0">
@@ -115,25 +115,33 @@
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="11.0.0-beta.25527.2">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="11.0.0-beta.25626.7">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>d48732057be73512b3bac9c01eeacd59398c16d5</Sha>
+      <Sha>47888ab45fbdd0e6c0fe5e7f82eb1fe47cd7b7f0</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="11.0.0-beta.25527.2">
+    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="11.0.0-beta.25626.7">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>d48732057be73512b3bac9c01eeacd59398c16d5</Sha>
+      <Sha>47888ab45fbdd0e6c0fe5e7f82eb1fe47cd7b7f0</Sha>
     </Dependency>
     <Dependency Name="Microsoft.DiaSymReader" Version="2.0.0">
       <Uri>https://github.com/dotnet/symreader</Uri>
       <Sha>27e584661980ee6d82c419a2a471ae505b7d122e</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="4.10.0-1.24061.4">
+    <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="5.3.0-2.25625.1">
       <Uri>https://github.com/dotnet/roslyn</Uri>
-      <Sha>5d10d428050c0d6afef30a072c4ae68776621877</Sha>
+      <Sha>5dd606bb21208dfc6fd3d9b07ae963a93248483b</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="11.0.0-beta.25527.2">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="11.0.0-beta.25626.7">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>d48732057be73512b3bac9c01eeacd59398c16d5</Sha>
+      <Sha>47888ab45fbdd0e6c0fe5e7f82eb1fe47cd7b7f0</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.DotNet.DarcLib" Version="1.1.0-beta.25161.2">
+      <Uri>https://github.com/dotnet/arcade-services</Uri>
+      <Sha>8b5a2ffee4f4097893b7fc670f7d86d84c8c841f</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.DotNet.FileBasedPrograms" Version="10.0.200-preview.0.25556.104">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>cc979c006a27c251782bee45e8887213c24bf806</Sha>
     </Dependency>
     <Dependency Name="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.0-preview.25375.1">
       <Uri>https://github.com/dotnet/roslyn-analyzers</Uri>
@@ -145,13 +153,17 @@
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0">
-      <Uri>https://github.com/dotnet/roslyn-analyzers</Uri>
-      <Sha>f2384e61845314d0e8ad74cc0fe67d1bd4e9f102</Sha>
+    <Dependency Name="Microsoft.CodeAnalysis.Analyzers" Version="5.3.0-2.25625.1">
+      <Uri>https://github.com/dotnet/roslyn</Uri>
+      <Sha>5dd606bb21208dfc6fd3d9b07ae963a93248483b</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="3.3.0">
-      <Uri>https://github.com/dotnet/roslyn-analyzers</Uri>
-      <Sha>596f8f422003d89b65e2bd50dc5a1aea7ce4ce91</Sha>
+    <Dependency Name="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="5.3.0-2.25625.1">
+      <Uri>https://github.com/dotnet/roslyn</Uri>
+      <Sha>5dd606bb21208dfc6fd3d9b07ae963a93248483b</Sha>
+    </Dependency>
+    <Dependency Name="Roslyn.Diagnostics.Analyzers" Version="5.3.0-2.25625.1">
+      <Uri>https://github.com/dotnet/roslyn</Uri>
+      <Sha>5dd606bb21208dfc6fd3d9b07ae963a93248483b</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>

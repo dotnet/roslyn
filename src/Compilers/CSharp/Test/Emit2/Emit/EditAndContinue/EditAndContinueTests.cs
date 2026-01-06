@@ -14,6 +14,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -17521,7 +17522,7 @@ class C
         [Fact]
         public void Method_Delete_PredefinedHotReloadException_DataSectionLiterals()
         {
-            var parseOptions = TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0");
+            var parseOptions = TestOptions.Regular.WithFeature(Feature.ExperimentalDataSectionStringLiterals, "0");
 
             var exceptionSource = """
                 namespace System.Runtime.CompilerServices
@@ -21047,7 +21048,7 @@ file class C
         [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
         public void PrivateImplDetails_DataSectionStringLiterals_FieldRvaSupported()
         {
-            var parseOptions = TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0");
+            var parseOptions = TestOptions.Regular.WithFeature(Feature.ExperimentalDataSectionStringLiterals, "0");
 
             using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped, parseOptions: parseOptions)
                 .AddBaseline(
@@ -21146,7 +21147,7 @@ file class C
         [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
         public void PrivateImplDetails_DataSectionStringLiterals_FieldRvaNotSupported()
         {
-            var parseOptions = TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0");
+            var parseOptions = TestOptions.Regular.WithFeature(Feature.ExperimentalDataSectionStringLiterals, "0");
 
             using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped, parseOptions: parseOptions)
                 .AddBaseline(
@@ -21748,12 +21749,12 @@ file class C
                     {
                         g.VerifyTypeDefNames(
                             "<Module>",
+                            "<>y__InlineArray3`1",
                             "MyCollection`1",
                             "MyCollectionBuilder",
                             "C",
                             "CollectionBuilderAttribute",
-                            "<PrivateImplementationDetails>",
-                            "<>y__InlineArray3`1");
+                            "<PrivateImplementationDetails>");
 
                         g.VerifyMethodDefNames(
                             ".ctor",
@@ -21781,7 +21782,7 @@ file class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "<>y__InlineArray4#1`1");
+                        g.VerifyTypeDefNames("<>y__InlineArray4#1`1", "<PrivateImplementationDetails>#1");
                         g.VerifyMethodDefNames("F", "InlineArrayAsReadOnlySpan", "InlineArrayElementRef");
 
                         g.VerifyEncLogDefinitions(new[]
@@ -21789,12 +21790,12 @@ file class C
                             Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(8, TableIndex.TypeDef, EditAndContinueOperation.Default),
                             Row(9, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                            Row(9, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(8, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                             Row(3, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(8, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(9, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(8, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(9, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(11, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                             Row(9, TableIndex.Param, EditAndContinueOperation.Default),
@@ -21852,7 +21853,7 @@ file class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#2", "<>y__InlineArray4#2`1");
+                        g.VerifyTypeDefNames("<>y__InlineArray4#2`1", "<PrivateImplementationDetails>#2");
                         g.VerifyMethodDefNames("F", "InlineArrayAsReadOnlySpan", "InlineArrayElementRef");
 
                         g.VerifyEncLogDefinitions(new[]
@@ -21860,12 +21861,12 @@ file class C
                             Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(10, TableIndex.TypeDef, EditAndContinueOperation.Default),
                             Row(11, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                            Row(11, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(10, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                             Row(4, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(10, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(11, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(10, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(11, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(14, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(13, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                             Row(13, TableIndex.Param, EditAndContinueOperation.Default),
@@ -21913,8 +21914,8 @@ file class C
                 .Verify();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void PrivateImplDetails_CollectionExpressions_ReadOnlyListTypes()
+        [Fact]
+        public void PrivateImplDetails_CollectionExpressions_ReadOnlyListTypes_MethodImplSupported()
         {
             using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80, verification: Verification.Skipped)
                 .AddBaseline(
@@ -21929,13 +21930,10 @@ file class C
                     {
                         g.VerifyTypeDefNames(
                             "<Module>",
-                            "C",
-                            "<PrivateImplementationDetails>",
-                            "<>z__ReadOnlyArray`1");
+                            "<>z__ReadOnlyArray`1",
+                            "C");
 
                         g.VerifyMethodDefNames(
-                            "F",
-                            ".ctor",
                             ".ctor",
                             "System.Collections.IEnumerable.GetEnumerator",
                             "System.Collections.ICollection.get_Count",
@@ -21967,7 +21965,10 @@ file class C
                             "System.Collections.Generic.IList<T>.set_Item",
                             "System.Collections.Generic.IList<T>.IndexOf",
                             "System.Collections.Generic.IList<T>.Insert",
-                            "System.Collections.Generic.IList<T>.RemoveAt");
+                            "System.Collections.Generic.IList<T>.RemoveAt",
+                            "F",
+                            ".ctor"
+                            );
                     })
 
                 .AddGeneration(
@@ -21984,7 +21985,7 @@ file class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "<>z__ReadOnlyArray#1`1");
+                        g.VerifyTypeDefNames("<>z__ReadOnlyArray#1`1");
                         g.VerifyMethodDefNames(
                             "F",
                             ".ctor",
@@ -22036,7 +22037,7 @@ file class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#2", "<>z__ReadOnlyList#2`1");
+                        g.VerifyTypeDefNames("<>z__ReadOnlyList#2`1");
                         g.VerifyMethodDefNames(
                             "F",
                             ".ctor",
@@ -22074,6 +22075,82 @@ file class C
 
                         // Many EncLog and EncMap entries added.
                     })
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/2631743")]
+        public void PrivateImplDetails_CollectionExpressions_ReadOnlyListTypes_MethodImplNotSupported()
+        {
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.NetFramework, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: """
+                        using System.Collections.Generic;
+                        class C
+                        {
+                            static IEnumerable<int> F(int x, int y, IEnumerable<int> e) => [x, y];
+                        }
+                        """)
+
+                .AddGeneration(
+                    """
+                    using System.Collections.Generic;
+                    class C
+                    {
+                        static IEnumerable<int> F(int x, int y, IEnumerable<int> e) => [x, y, default];
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    ],
+                    options: new EmitDifferenceOptions()
+                    {
+                        MethodImplEntriesSupported = false
+                    },
+                    expectedErrors:
+                    [
+                        Diagnostic(ErrorCode.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime)
+                    ])
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/2631743")]
+        public void ExplicitInterfaceImplementation_MethodImplNotSupported()
+        {
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.NetFramework, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: """
+                    interface I 
+                    {
+                        void M();
+                    }
+                    """)
+
+                .AddGeneration(
+                    """
+                    interface I 
+                    {
+                        void M();
+                    }
+                    class C : I
+                    {
+                        void I.M() { }
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C")),
+                    ],
+                    options: new EmitDifferenceOptions()
+                    {
+                        MethodImplEntriesSupported = false
+                    },
+                    expectedErrors:
+                    [
+                        Diagnostic(ErrorCode.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime)
+                    ])
                 .Verify();
         }
     }

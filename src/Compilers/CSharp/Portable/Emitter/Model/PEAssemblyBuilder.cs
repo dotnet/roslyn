@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             => _sourceAssembly;
 
         public sealed override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes()
-            => _additionalTypes;
+            => _additionalTypes.Concat(base.GetAdditionalTopLevelTypes());
 
         internal sealed override ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(BindingDiagnosticBag diagnostics)
         {
@@ -693,6 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         public override EmitBaseline? PreviousGeneration => null;
         public override SymbolChanges? EncSymbolChanges => null;
         public override bool FieldRvaSupported => true;
+        public override bool MethodImplSupported => true;
 
         public override INamedTypeSymbolInternal? TryGetOrCreateSynthesizedHotReloadExceptionType()
             => null;

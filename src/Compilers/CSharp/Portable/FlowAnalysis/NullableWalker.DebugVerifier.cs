@@ -147,6 +147,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            public override BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node)
+            {
+                Visit(node.Expression);
+
+                if (node.Conversion is BoundConversion conversion)
+                {
+                    Visit(conversion);
+                }
+
+                return null;
+            }
+
             public override BoundNode? VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
             {
                 // https://github.com/dotnet/roslyn/issues/35010: handle
@@ -246,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode? VisitTypeOrValueExpression(BoundTypeOrValueExpression node)
             {
-                Visit(node.Data.ValueExpression);
+                Debug.Assert(node is not BoundTypeOrValueExpression, "The Binder is expected to resolve the member access in the most appropriate way, even in an error scenario.");
                 return base.VisitTypeOrValueExpression(node);
             }
 

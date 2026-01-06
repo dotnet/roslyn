@@ -239,10 +239,10 @@ ICoalesceAssignmentOperation (OperationKind.CoalesceAssignment, Type: ?, IsInval
       Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(5,6): error CS1525: Invalid expression term '??='
-                //     {
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("??=").WithLocation(5, 6),
-                // file.cs(6,33): error CS1525: Invalid expression term ';'
+                // (6,19): error CS1525: Invalid expression term '??='
+                //         /*<bind>*/??=/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "??=").WithArguments("??=").WithLocation(6, 19),
+                // (6,33): error CS1525: Invalid expression term ';'
                 //         /*<bind>*/??=/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 33)
             };
@@ -598,12 +598,12 @@ Block[B0] - Entry
                 Predecessors: [B0]
                 Statements (1)
                     IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'o1')
-                      Value: 
+                      Value:
                         IParameterReferenceOperation: o1 (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'o1')
 
                 Jump if True (Regular) to Block[B3]
                     IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'o1')
-                      Operand: 
+                      Operand:
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'o1')
                     Leaving: {R3}
 
@@ -612,7 +612,7 @@ Block[B0] - Entry
                 Predecessors: [B1]
                 Statements (1)
                     IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'o1')
-                      Value: 
+                      Value:
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'o1')
 
                 Next (Regular) Block[B4]
@@ -623,7 +623,7 @@ Block[B0] - Entry
             Predecessors: [B1]
             Statements (1)
                 IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'o2')
-                  Value: 
+                  Value:
                     IParameterReferenceOperation: o2 (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'o2')
 
             Next (Regular) Block[B4]
@@ -631,7 +631,7 @@ Block[B0] - Entry
             Predecessors: [B2] [B3]
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'o1 ?? o2')
-                  Value: 
+                  Value:
                     IInvalidOperation (OperationKind.Invalid, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'o1 ?? o2')
                       Children(1):
                           IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'o1 ?? o2')
@@ -647,12 +647,12 @@ Block[B0] - Entry
             Predecessors: [B4]
             Statements (1)
                 IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'o1 ?? o2')
-                  Value: 
+                  Value:
                     IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'o1 ?? o2')
 
             Jump if True (Regular) to Block[B6]
                 IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'o1 ?? o2')
-                  Operand: 
+                  Operand:
                     IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'o1 ?? o2')
                 Leaving: {R4}
                 Entering: {R5} {R6}
@@ -670,12 +670,12 @@ Block[B0] - Entry
                 Predecessors: [B5]
                 Statements (1)
                     IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 's1')
-                      Value: 
+                      Value:
                         IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.String) (Syntax: 's1')
 
                 Jump if True (Regular) to Block[B8]
                     IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 's1')
-                      Operand: 
+                      Operand:
                         IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 's1')
                     Leaving: {R6}
 
@@ -684,7 +684,7 @@ Block[B0] - Entry
                 Predecessors: [B6]
                 Statements (1)
                     IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 's1')
-                      Value: 
+                      Value:
                         IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 's1')
 
                 Next (Regular) Block[B9]
@@ -695,18 +695,22 @@ Block[B0] - Entry
             Predecessors: [B6]
             Statements (1)
                 IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 's2')
-                  Value: 
+                  Value:
                     IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: System.String) (Syntax: 's2')
 
             Next (Regular) Block[B9]
         Block[B9] - Block
             Predecessors: [B7] [B8]
             Statements (1)
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: '(o1 ?? o2)  ...  (s1 ?? s2)')
-                  Left: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsInvalid, IsImplicit) (Syntax: '(o1 ?? o2)  ...  (s1 ?? s2)')
+                  Left:
                     IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'o1 ?? o2')
-                  Right: 
-                    IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 's1 ?? s2')
+                  Right:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 's1 ?? s2')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (ImplicitReference)
+                      Operand:
+                        IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 's1 ?? s2')
 
             Next (Regular) Block[B10]
                 Leaving: {R5} {R1}

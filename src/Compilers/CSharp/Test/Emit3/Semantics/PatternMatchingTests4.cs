@@ -2164,14 +2164,14 @@ public class C
   // sequence point: }
   IL_0052:  ret
 }
-", sequencePoints: "C.Main", source: source).VerifyIL("<PrivateImplementationDetails>.ThrowInvalidOperationException", @"
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced).VerifyIL("<PrivateImplementationDetails>.ThrowInvalidOperationException", @"
 {
   // Code size        6 (0x6)
   .maxstack  1
   IL_0000:  newobj     ""System.InvalidOperationException..ctor()""
   IL_0005:  throw
 }
-", sequencePoints: "<PrivateImplementationDetails>.ThrowInvalidOperationException", source: source);
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [Fact]
@@ -2326,14 +2326,14 @@ namespace System.Runtime.CompilerServices
   // sequence point: }
   IL_007a:  ret
 }
-", sequencePoints: "C.Main", source: source).VerifyIL("<PrivateImplementationDetails>.ThrowSwitchExpressionExceptionParameterless", @"
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced).VerifyIL("<PrivateImplementationDetails>.ThrowSwitchExpressionExceptionParameterless", @"
 {
   // Code size        6 (0x6)
   .maxstack  1
   IL_0000:  newobj     ""System.Runtime.CompilerServices.SwitchExpressionException..ctor()""
   IL_0005:  throw
 }
-", sequencePoints: "<PrivateImplementationDetails>.ThrowSwitchExpressionExceptionParameterless", source: source);
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [Fact]
@@ -2520,7 +2520,7 @@ namespace System.Runtime.CompilerServices
   // sequence point: }
   IL_0071:  ret
 }
-", sequencePoints: "C.Main", source: source).VerifyIL("<PrivateImplementationDetails>.ThrowSwitchExpressionException", @"
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced).VerifyIL("<PrivateImplementationDetails>.ThrowSwitchExpressionException", @"
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -2528,7 +2528,7 @@ namespace System.Runtime.CompilerServices
   IL_0001:  newobj     ""System.Runtime.CompilerServices.SwitchExpressionException..ctor(object)""
   IL_0006:  throw
 }
-", sequencePoints: "<PrivateImplementationDetails>.ThrowSwitchExpressionException", source: source);
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [Fact]
@@ -3500,9 +3500,13 @@ class Program
                 }
                 """;
             CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
-                // (5,22): error CS1525: Invalid expression term '=='
-                //         if (p is     == null) { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, op).WithArguments(op).WithLocation(5, 22));
+                op == "!="
+                    // (5,22): error CS9344: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
+                    //         if (p is     != null) { }
+                    ? Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, op).WithLocation(5, 22)
+                    // (5,22): error CS9344: The '==' operator is not supported in a pattern.
+                    //         if (p is     == null) { }
+                    : Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, op).WithLocation(5, 22));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70048")]

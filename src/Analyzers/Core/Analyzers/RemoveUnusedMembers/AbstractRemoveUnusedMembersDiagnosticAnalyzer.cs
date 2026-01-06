@@ -27,8 +27,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
     TTypeDeclarationSyntax,
     TMemberDeclarationSyntax>()
     : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(
-        [s_removeUnusedMembersRule, s_removeUnreadMembersRule],
-        FadingOptions.FadeOutUnusedMembers)
+        [s_removeUnusedMembersRule, s_removeUnreadMembersRule])
     where TDocumentationCommentTriviaSyntax : SyntaxNode
     where TIdentifierNameSyntax : SyntaxNode
     where TTypeDeclarationSyntax : TMemberDeclarationSyntax
@@ -63,7 +62,9 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
     protected abstract ISemanticFacts SemanticFacts { get; }
 
     protected abstract IEnumerable<TTypeDeclarationSyntax> GetTypeDeclarations(INamedTypeSymbol namedType, CancellationToken cancellationToken);
-    protected abstract SyntaxList<TMemberDeclarationSyntax> GetMembers(TTypeDeclarationSyntax typeDeclaration);
+
+    // We analyze extension block members as part of the enclosing static class.
+    protected abstract IEnumerable<TMemberDeclarationSyntax> GetMembersIncludingExtensionBlockMembers(TTypeDeclarationSyntax typeDeclaration);
     protected abstract SyntaxNode GetParentIfSoleDeclarator(SyntaxNode declaration);
 
     /// <summary>
@@ -238,6 +239,8 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                 symbolStartContext.RegisterOperationAction(AnalyzeInvocationOperation, OperationKind.Invocation);
                 symbolStartContext.RegisterOperationAction(AnalyzeLoopOperation, OperationKind.Loop);
                 symbolStartContext.RegisterOperationAction(AnalyzeMemberReferenceOperation, OperationKind.FieldReference, OperationKind.MethodReference, OperationKind.PropertyReference, OperationKind.EventReference);
+                symbolStartContext.RegisterOperationAction(AnalyzeParameterInitializerOperation, OperationKind.ParameterInitializer);
+                symbolStartContext.RegisterOperationAction(AnalyzeFunctionParameterDefaults, OperationKind.AnonymousFunction, OperationKind.LocalFunction);
                 symbolStartContext.RegisterOperationAction(AnalyzeNameOfOperation, OperationKind.NameOf);
                 symbolStartContext.RegisterOperationAction(AnalyzeObjectCreationOperation, OperationKind.ObjectCreation);
 
@@ -271,7 +274,11 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                     OperationKind.DynamicMemberReference,
                     OperationKind.DynamicObjectCreation);
 
-                symbolStartContext.RegisterSymbolEndAction(symbolEndContext => OnSymbolEnd(symbolEndContext, hasUnsupportedOperation));
+                // We analyze extension block members as part of the enclosing static class.
+                if (symbolStartContext.Symbol is not INamedTypeSymbol { IsExtension: true })
+                {
+                    symbolStartContext.RegisterSymbolEndAction(symbolEndContext => OnSymbolEnd(symbolEndContext, hasUnsupportedOperation));
+                }
 
                 // Register custom language-specific actions, if any.
                 _analyzer.HandleNamedTypeSymbolStart(symbolStartContext, onSymbolUsageFound);
@@ -279,8 +286,13 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
 
             bool ShouldAnalyze(SymbolStartAnalysisContext context, INamedTypeSymbol namedType)
             {
+                // Extension members are analyzed as part of the enclosing static class.
+                // When we enter the scope of the enclosing static class, we'll analyze extension members there.
+                if (namedType.IsExtension)
+                    return false;
+
                 // Check if we have at least one candidate symbol in analysis scope.
-                foreach (var member in namedType.GetMembers())
+                foreach (var member in GetMembersIncludingExtensionBlockMembers(namedType))
                 {
                     if (IsCandidateSymbol(member)
                         && context.ShouldAnalyzeLocation(GetDiagnosticLocation(member)))
@@ -442,6 +454,87 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
             }
         }
 
+        private void AnalyzeParameterInitializerOperation(OperationAnalysisContext operationContext)
+        {
+            var parameterInitializer = (IParameterInitializerOperation)operationContext.Operation;
+            var value = parameterInitializer.Value;
+
+            if (value is null || value.Syntax is null)
+                return;
+
+            var semanticModel = parameterInitializer.SemanticModel;
+
+            if (semanticModel is null)
+                return;
+
+            AnalyzeDefaultValueSyntax(semanticModel, value.Syntax, operationContext.CancellationToken);
+        }
+
+        private void AnalyzeFunctionParameterDefaults(OperationAnalysisContext operationContext)
+        {
+            var semanticModel = operationContext.Operation.SemanticModel;
+
+            if (semanticModel is null)
+                return;
+
+            var parameters = operationContext.Operation switch
+            {
+                IAnonymousFunctionOperation anonymousFunction => anonymousFunction.Symbol.Parameters,
+                ILocalFunctionOperation localFunction => localFunction.Symbol.Parameters,
+                _ => default,
+            };
+
+            if (parameters.IsDefaultOrEmpty)
+                return;
+
+            var syntaxFacts = _analyzer.SemanticFacts.SyntaxFacts;
+            var cancellationToken = operationContext.CancellationToken;
+
+            foreach (var parameter in parameters)
+            {
+                if (!parameter.HasExplicitDefaultValue)
+                    continue;
+
+                foreach (var reference in parameter.DeclaringSyntaxReferences)
+                {
+                    var parameterSyntax = reference.GetSyntax(cancellationToken);
+                    var equalsValueSyntax = syntaxFacts.GetDefaultOfParameter(parameterSyntax);
+
+                    if (equalsValueSyntax is null)
+                        continue;
+
+                    var valueSyntax = syntaxFacts.GetValueOfEqualsValueClause(equalsValueSyntax);
+
+                    if (valueSyntax is null)
+                        continue;
+
+                    AnalyzeDefaultValueSyntax(semanticModel, valueSyntax, cancellationToken);
+                }
+            }
+        }
+
+        private void AnalyzeDefaultValueSyntax(
+            SemanticModel semanticModel,
+            SyntaxNode valueSyntax,
+            CancellationToken cancellationToken)
+        {
+            var syntaxFacts = _analyzer.SemanticFacts.SyntaxFacts;
+
+            foreach (var node in valueSyntax.DescendantNodesAndSelf())
+            {
+                if (!syntaxFacts.IsSimpleName(node))
+                    continue;
+
+                var symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken);
+
+                foreach (var symbol in symbolInfo.GetAllSymbols())
+                {
+                    if (IsCandidateSymbol(symbol))
+                        OnSymbolUsage(symbol, ValueUsageInfo.Read);
+                }
+            }
+        }
+
         private void AnalyzeLoopOperation(OperationAnalysisContext operationContext)
         {
             var operation = operationContext.Operation;
@@ -464,8 +557,14 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
 
             // If the invoked method is a reduced extension method, also mark the original
             // method from which it was reduced as "used".
-            if (targetMethod.ReducedFrom != null)
-                OnSymbolUsage(targetMethod.ReducedFrom, ValueUsageInfo.Read);
+            OnSymbolUsage(targetMethod.ReducedFrom, ValueUsageInfo.Read);
+
+            // If the invoked method is an implementation method for an extension member,
+            // also mark that extension member as "used".
+            // If the extension member is an accessor, also mark its associated property as "used".
+            var extensionBlockMethod = targetMethod.TryGetCorrespondingExtensionBlockMethod();
+            OnSymbolUsage(extensionBlockMethod, ValueUsageInfo.Read);
+            OnSymbolUsage(extensionBlockMethod?.AssociatedSymbol, ValueUsageInfo.Read);
         }
 
         private void AnalyzeNameOfOperation(OperationAnalysisContext operationContext)
@@ -523,7 +622,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
 
             var isInlineArray = namedType.HasAttribute(_inlineArrayAttributeType);
 
-            foreach (var member in namedType.GetMembers())
+            foreach (var member in GetMembersIncludingExtensionBlockMembers(namedType))
             {
                 if (SymbolEqualityComparer.Default.Equals(entryPoint, member))
                     continue;
@@ -628,6 +727,24 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
             }
         }
 
+        // We analyze extension block members as part of the enclosing static class.
+        private static IEnumerable<ISymbol> GetMembersIncludingExtensionBlockMembers(INamedTypeSymbol namedType)
+        {
+            Debug.Assert(!namedType.IsExtension);
+            foreach (var member in namedType.GetMembers())
+            {
+                if (member is INamedTypeSymbol { IsExtension: true } extensionBlock)
+                {
+                    foreach (var extensionMember in extensionBlock.GetMembers())
+                        yield return extensionMember;
+                }
+                else
+                {
+                    yield return member;
+                }
+            }
+        }
+
         private static LocalizableString GetMessage(
            DiagnosticDescriptor rule,
            ISymbol member,
@@ -694,8 +811,14 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                         lazyModel ??= compilation.GetSemanticModel(syntaxTree);
                         var symbol = lazyModel.GetSymbolInfo(node, cancellationToken).Symbol;
 
-                        if (IsCandidateSymbol(symbol))
-                            builder.Add(symbol);
+                        AddIfCandidateSymbol(builder, symbol);
+
+                        if (symbol is IMethodSymbol methodSymbol)
+                        {
+                            var extensionBlockMethod = methodSymbol.TryGetCorrespondingExtensionBlockMethod();
+                            AddIfCandidateSymbol(builder, extensionBlockMethod);
+                            AddIfCandidateSymbol(builder, extensionBlockMethod?.AssociatedSymbol);
+                        }
                     }
                 }
             }
@@ -718,7 +841,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                         AddDocumentationComments(currentType, documentationComments);
 
                         // Walk each member
-                        foreach (var member in _analyzer.GetMembers(currentType))
+                        foreach (var member in _analyzer.GetMembersIncludingExtensionBlockMembers(currentType))
                         {
                             if (member is TTypeDeclarationSyntax childType)
                             {
@@ -748,13 +871,19 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                         documentationComments.AddIfNotNull(trivia.GetStructure() as TDocumentationCommentTriviaSyntax);
                 }
             }
+
+            void AddIfCandidateSymbol(HashSet<ISymbol> builder, ISymbol? symbol)
+            {
+                if (IsCandidateSymbol(symbol))
+                    builder.Add(symbol);
+            }
         }
 
         private void AddDebuggerDisplayAttributeArguments(INamedTypeSymbol namedTypeSymbol, ArrayBuilder<string> builder)
         {
             AddDebuggerDisplayAttributeArgumentsCore(namedTypeSymbol, builder);
 
-            foreach (var member in namedTypeSymbol.GetMembers())
+            foreach (var member in GetMembersIncludingExtensionBlockMembers(namedTypeSymbol))
             {
                 switch (member)
                 {
@@ -773,10 +902,26 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
         {
             foreach (var attribute in symbol.GetAttributes())
             {
-                if (attribute.AttributeClass == _debuggerDisplayAttributeType &&
-                    attribute.ConstructorArguments is [{ Kind: TypedConstantKind.Primitive, Type.SpecialType: SpecialType.System_String, Value: string value }])
+                if (attribute.AttributeClass == _debuggerDisplayAttributeType)
                 {
-                    builder.Add(value);
+                    // Add the constructor argument (Value parameter)
+                    if (attribute.ConstructorArguments is [{ Kind: TypedConstantKind.Primitive, Type.SpecialType: SpecialType.System_String, Value: string value }])
+                    {
+                        builder.Add(value);
+                    }
+
+                    // Add the Name and Type named parameters
+                    foreach (var namedArgument in attribute.NamedArguments)
+                    {
+                        if (namedArgument is
+                            {
+                                Key: "Name" or "Type",
+                                Value: { Kind: TypedConstantKind.Primitive, Type.SpecialType: SpecialType.System_String, Value: string namedValue },
+                            })
+                        {
+                            builder.Add(namedValue);
+                        }
+                    }
                 }
             }
         }

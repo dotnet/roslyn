@@ -29,6 +29,7 @@ usage()
   echo "  --testMono                 Run unit tests on Mono"
   echo "  --testCompilerOnly         Run only the compiler unit tests"
   echo "  --testIOperation           Run unit tests with the IOperation test hook"
+  echo "  --testRuntimeAsync         Run unit tests with runtime async validation enabled"
   echo ""
   echo "Advanced settings:"
   echo "  --ci                       Building in CI"
@@ -66,6 +67,7 @@ publish=false
 test_core_clr=false
 test_mono=false
 test_ioperation=false
+test_runtime_async=false
 test_compiler_only=false
 
 configuration="Debug"
@@ -143,6 +145,9 @@ while [[ $# > 0 ]]; do
       ;;
     --testioperation)
       test_ioperation=true
+      ;;
+    --testruntimeasync)
+      test_runtime_async=true
       ;;
     --ci)
       ci=true
@@ -264,6 +269,14 @@ function BuildSolution {
     fi
   fi
 
+  if [[ "$test_runtime_async" == true ]]; then
+    export DOTNET_RuntimeAsync="1"
+
+    if [[ "$test_mono" != true && "$test_core_clr" != true ]]; then
+      test_core_clr=true
+    fi
+  fi
+
   local test=false
   local test_runtime=""
   local mono_tool=""
@@ -334,6 +347,7 @@ function GetCompilerTestAssembliesIncludePaths {
   assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit\.UnitTests$'"
   assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit2\.UnitTests$'"
   assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit3\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.CSharp15\.UnitTests$'"
   assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.IOperation\.UnitTests$'"
   assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.CommandLine\.UnitTests$'"
   assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Syntax\.UnitTests$'"

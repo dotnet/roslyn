@@ -48,14 +48,14 @@ internal sealed class AssemblyResolver : IAssemblyResolver
         }
     }
 
-    public Task<MetadataFile> ResolveAsync(IAssemblyReference name)
+    public async Task<MetadataFile> ResolveAsync(IAssemblyReference name)
     {
-        return Task.FromResult(Resolve(name));
+        return Resolve(name);
     }
 
-    public Task<MetadataFile> ResolveModuleAsync(MetadataFile mainModule, string moduleName)
+    public async Task<MetadataFile> ResolveModuleAsync(MetadataFile mainModule, string moduleName)
     {
-        return Task.FromResult(ResolveModule(mainModule, moduleName));
+        return ResolveModule(mainModule, moduleName);
     }
 
     [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Could be non-static if instance data is accessed")]

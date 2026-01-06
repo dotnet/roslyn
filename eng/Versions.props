@@ -1,15 +1,14 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
-  <Import Project="Version.Details.props" Condition="Exists('Version.Details.props')" />
-  <!--
-    Roslyn version
-  -->
+
+  <Import Project="Version.Details.props" />
+
+  <!-- Roslyn version -->
   <PropertyGroup>
     <MajorVersion>5</MajorVersion>
     <MinorVersion>3</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseVersionLabel>1</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>2</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel Condition="'$(DotNetSignType)' == 'test'">$(PreReleaseVersionLabel)-test</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <!--
       By default the assembly version in official builds is "$(MajorVersion).$(MinorVersion).0.0".
@@ -17,6 +16,7 @@
     -->
     <AssemblyVersion Condition="'$(OfficialBuild)' == 'true' or '$(DotNetUseShippingVersions)' == 'true'">$(MajorVersion).$(MinorVersion).0.0</AssemblyVersion>
   </PropertyGroup>
+
   <!--
     The maintenance-packages dependency versions need to be conditionally selected:
     https://github.com/dotnet/sdk/issues/45155
@@ -45,6 +45,7 @@
     <SystemThreadingTasksExtensionsVersion>4.6.0</SystemThreadingTasksExtensionsVersion>
     <SystemValueTupleVersion>4.5.0</SystemValueTupleVersion>
   </PropertyGroup>
+
   <PropertyGroup>
     <MicrosoftVSSDKBuildToolsVersion>17.14.1043-preview2</MicrosoftVSSDKBuildToolsVersion>
     <vswhereVersion>3.1.7</vswhereVersion>
@@ -58,6 +59,7 @@
     <NewtonsoftJsonVersion>13.0.3</NewtonsoftJsonVersion>
     <SystemIdentityModelTokensJwtVersion>6.34.0</SystemIdentityModelTokensJwtVersion>
   </PropertyGroup>
+
   <!--
     Microsoft.CodeAnalysis.* versions used by the RoslynAnalyzers.
   -->
@@ -100,6 +102,7 @@
       </PropertyGroup>
     </Otherwise>
   </Choose>
+
   <!--
     Patched package versions used by src\RoslynAnalyzers\Tools\Metrics*
 
@@ -108,9 +111,11 @@
     Analyzer, it needs to directly reference patched versions of some transitive dependencies.
   -->
   <PropertyGroup>
-    <MicrosoftBuildTasksCoreVersionForMetrics>17.11.48</MicrosoftBuildTasksCoreVersionForMetrics>
+    <MicrosoftBuildVersionForMetrics>17.11.48</MicrosoftBuildVersionForMetrics>
     <SystemTextJsonVersionForMetrics>8.0.5</SystemTextJsonVersionForMetrics>
   </PropertyGroup>
+
+  <!-- Arcade features -->
   <PropertyGroup>
     <UsingToolVSSDK Condition="$([MSBuild]::IsOSPlatform('Windows'))">true</UsingToolVSSDK>
     <UsingToolPdbConverter>false</UsingToolPdbConverter>
@@ -122,9 +127,8 @@
     <UsingToolXliff>true</UsingToolXliff>
     <UsingToolXUnit>false</UsingToolXUnit>
     <UseVSTestRunner>true</UseVSTestRunner>
-    <!-- Prohibit the usage of .NET Standard 1.x dependencies. -->
-    <FlagNetStandard1XDependencies Condition="'$(DotNetBuildSourceOnly)' == 'true' and '$(DotNetBuildFromVMR)' == 'true'">true</FlagNetStandard1XDependencies>
   </PropertyGroup>
+
   <PropertyGroup>
     <!--
       Test SDK should match the version of TestPlatform packages required by this repo and defined
@@ -133,4 +137,5 @@
     -->
     <MicrosoftNETTestSdkVersion>17.13.0</MicrosoftNETTestSdkVersion>
   </PropertyGroup>
+
 </Project>

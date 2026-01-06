@@ -486,5 +486,7 @@ namespace Roslyn.Test.Utilities
         public override int ERR_DataSectionStringLiteralHashCollision => throw new NotImplementedException();
 
         public override int? WRN_ByValArraySizeConstRequired => throw new NotImplementedException();
+
+        public override int ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime => throw new NotImplementedException();
     }
 }
