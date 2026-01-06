@@ -14170,8 +14170,7 @@ class Program
             """);
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_01()
     {
         var src = """
@@ -14298,7 +14297,7 @@ class Program
 }
 ");
 
-        var src2 = $$$"""
+        var src2 = """
 static class E
 {
     extension(S1 x)
@@ -14326,8 +14325,7 @@ class Program
             );
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
@@ -14471,15 +14469,34 @@ class Program
 """;
 
         var comp2 = CreateCompilation(src2);
-        comp2.VerifyDiagnostics(
-            // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(S1)[0] += 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1)[0]").WithLocation(15, 9)
-            );
+        if (refKind == "ref readonly")
+        {
+            comp2.VerifyDiagnostics(
+                // (15,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         default(S1)[0] += 1;
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9),
+                // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         default(S1)[0] += 1;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1)[0]").WithLocation(15, 9));
+        }
+        else if (refKind == "in")
+        {
+            // Tracked by https://github.com/dotnet/roslyn/issues/79451 : consider adjusting receiver requirements for extension members
+            comp2.VerifyDiagnostics(
+                // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         default(S1)[0] += 1;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1)[0]").WithLocation(15, 9));
+        }
+        else
+        {
+            comp2.VerifyDiagnostics(
+                // (15,9): error CS1510: A ref or out value must be an assignable variable
+                //         default(S1)[0] += 1;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(S1)").WithLocation(15, 9));
+        }
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_03()
     {
         var src = """
@@ -14567,8 +14584,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_04()
     {
         var src = """
@@ -14773,7 +14789,7 @@ namespace NS2
             );
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_05()
     {
@@ -14915,9 +14931,9 @@ namespace NS2
 
         var comp2 = CreateCompilation(src2);
         comp2.VerifyDiagnostics(
-            // (13,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            // (13,9): error CS1510: A ref or out value must be an assignable variable
             //         default(T)[0] += 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T)[0]").WithLocation(13, 9),
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(T)").WithLocation(13, 9),
             // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
             //         extension<T>(in T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
@@ -14927,7 +14943,7 @@ namespace NS2
             );
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_06()
     {
@@ -15081,7 +15097,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_07()
     {
@@ -15174,7 +15190,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_08()
     {
@@ -15298,7 +15314,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_01()
     {
@@ -15496,7 +15512,7 @@ struct InterpolationHandler
             );
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Theory(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
@@ -15685,7 +15701,7 @@ struct InterpolationHandler
             );
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_03()
     {
@@ -15789,7 +15805,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_04()
     {
@@ -16050,7 +16066,7 @@ struct InterpolationHandler<TR>
             );
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_05()
     {
@@ -16239,7 +16255,7 @@ struct InterpolationHandler<TR>
             );
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_06()
     {
@@ -16432,7 +16448,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79415")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_07()
@@ -16553,7 +16569,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79415")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_08()
@@ -16715,7 +16731,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_WithInterpolationHandler_01()
     {
@@ -16899,7 +16915,7 @@ struct InterpolationHandler
             );
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Theory(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
@@ -17066,7 +17082,7 @@ struct InterpolationHandler
             );
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_WithInterpolationHandler_03()
     {
@@ -17159,7 +17175,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
     public void IndexerAccess_Set_WithInterpolationHandler_04()
@@ -17411,7 +17427,7 @@ struct InterpolationHandler<TR>
             );
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_WithInterpolationHandler_05()
     {
@@ -17589,7 +17605,7 @@ struct InterpolationHandler<TR>
             );
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
     public void IndexerAccess_Set_WithInterpolationHandler_06()
@@ -17768,7 +17784,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_WithInterpolationHandler_07()
     {
@@ -17874,7 +17890,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_WithInterpolationHandler_08()
     {
@@ -18010,7 +18026,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_LValueReceiver_01()
     {
@@ -18153,7 +18169,7 @@ class Program
 ");
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Theory(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
@@ -18313,7 +18329,7 @@ struct InterpolationHandler
             );
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_LValueReceiver_03()
     {
@@ -18401,7 +18417,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
     public void IndexerAccess_Get_WithInterpolationHandler_LValueReceiver_04()
@@ -18586,7 +18602,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_LValueReceiver_05()
     {
@@ -18758,7 +18774,7 @@ struct InterpolationHandler<TR>
             );
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
     public void IndexerAccess_Get_WithInterpolationHandler_LValueReceiver_06()
@@ -18932,7 +18948,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_RValueReceiver_01()
     {
@@ -19016,7 +19032,7 @@ class Program
 ");
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Theory(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
@@ -19107,7 +19123,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_RValueReceiver_03()
     {
@@ -19191,7 +19207,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_RValueReceiver_04()
     {
@@ -19324,7 +19340,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_RValueReceiver_05()
     {
@@ -19426,7 +19442,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_RValueReceiver_06()
     {
@@ -19558,7 +19574,7 @@ class Program
 ");
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Theory(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
@@ -19649,7 +19665,7 @@ class Program
 ");
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Theory(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
@@ -19742,7 +19758,7 @@ class Program
 ");
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Theory(Skip = "PROTOTYPE assertion in NullableWalker")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref readonly")]
     [InlineData("in")]
@@ -19848,7 +19864,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_01()
     {
@@ -19958,7 +19974,7 @@ class Program
 }
 ");
 
-        var src2 = $$$"""
+        var src2 = """
 static class E
 {
     extension(S1 x)
@@ -19986,7 +20002,7 @@ class Program
             );
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Theory]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
@@ -20108,14 +20124,37 @@ class Program
 """;
 
         var comp2 = CreateCompilation([src2]);
-        comp2.VerifyDiagnostics(
-            // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(S1)[0] = 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1)[0]").WithLocation(15, 9)
-            );
+        if (refKind == "ref")
+        {
+            comp2.VerifyDiagnostics(
+                // (15,9): error CS1510: A ref or out value must be an assignable variable
+                //         default(S1)[0] = 1;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(S1)").WithLocation(15, 9)
+                );
+        }
+        else if (refKind == "ref readonly")
+        {
+            comp2.VerifyDiagnostics(
+                // (15,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         default(S1)[0] = 1;
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9),
+                // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         default(S1)[0] = 1;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1)[0]").WithLocation(15, 9)
+                );
+        }
+        else
+        {
+            // Tracked by https://github.com/dotnet/roslyn/issues/79451 : consider adjusting receiver requirements for extension members
+            comp2.VerifyDiagnostics(
+                // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         default(S1)[0] = 1;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1)[0]").WithLocation(15, 9)
+                );
+        }
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_03()
     {
@@ -20188,7 +20227,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
     public void IndexerAccess_Set_04()
@@ -20393,7 +20432,7 @@ namespace NS2
             );
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_05()
     {
@@ -20528,9 +20567,9 @@ namespace NS2
 
         var comp2 = CreateCompilation([src2]);
         comp2.VerifyDiagnostics(
-            // (13,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            // (13,9): error CS1510: A ref or out value must be an assignable variable
             //         default(T)[0] = 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T)[0]").WithLocation(13, 9),
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(T)").WithLocation(13, 9),
             // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
             //         extension<T>(in T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
@@ -20540,7 +20579,7 @@ namespace NS2
             );
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
     public void IndexerAccess_Set_06()
@@ -20688,7 +20727,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_07()
     {
@@ -20774,7 +20813,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_08()
     {
@@ -20884,7 +20923,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_LValueReceiver_01()
     {
@@ -20984,7 +21023,7 @@ class Program
 ");
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Theory]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
@@ -21099,12 +21138,46 @@ class Program
 """;
 
         var comp2 = CreateCompilation([src2]);
-        // !!! Shouldn't there be a not a variable error for 'default(T)[0, $"", 1]' !!!
-        comp2.VerifyDiagnostics(
-            );
+        if (refKind == "ref")
+        {
+            comp2.VerifyDiagnostics(
+                // (15,13): error CS1510: A ref or out value must be an assignable variable
+                //         _ = default(S1)[0];
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(S1)").WithLocation(15, 13));
+        }
+        else if (refKind == "ref readonly")
+        {
+            comp2.VerifyDiagnostics(
+                // (15,13): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         _ = default(S1)[0];
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 13));
+        }
+        else
+        {
+            comp2.VerifyDiagnostics();
+        }
+
+        if (refKind != "ref")
+        {
+            verifier = CompileAndVerify(comp2);
+            verifier.VerifyIL("Program.Test", $$"""
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  .locals init (S1 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  dup
+  IL_0003:  initobj    "S1"
+  IL_0009:  ldc.i4.0
+  IL_000a:  call       "int E.get_Item({{refKind}} S1, int)"
+  IL_000f:  pop
+  IL_0010:  ret
+}
+""");
+        }
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_LValueReceiver_03()
     {
@@ -21171,7 +21244,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
     public void IndexerAccess_Get_LValueReceiver_04()
@@ -21312,7 +21385,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_LValueReceiver_05()
     {
@@ -21441,8 +21514,10 @@ namespace NS2
 
         var comp2 = CreateCompilation([src2]);
 
-        // !!! Shouldn't there be a not a variable error for 'default(T)[0, $"", 1]' !!!
         comp2.VerifyDiagnostics(
+            // (13,13): error CS1510: A ref or out value must be an assignable variable
+            //         _ = default(T)[0];
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(T)").WithLocation(13, 13),
             // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
             //         extension<T>(in T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
@@ -21452,7 +21527,7 @@ namespace NS2
             );
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
     public void IndexerAccess_Get_LValueReceiver_06()
@@ -21590,7 +21665,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_RValueReceiver_01()
     {
@@ -21654,7 +21729,7 @@ class Program
 ");
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Theory]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
@@ -21704,7 +21779,27 @@ class Program
 """;
 
         var comp = CreateCompilation([src], options: TestOptions.DebugExe.WithAllowUnsafe(true));
-        var verifier = CompileAndVerify(comp, expectedOutput: "123", verify: Verification.Skipped).VerifyDiagnostics();
+        if (refKind == "ref")
+        {
+            comp.VerifyEmitDiagnostics(
+                // (30,13): error CS1510: A ref or out value must be an assignable variable
+                //         _ = GetS1()[Get1()];
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "GetS1()").WithLocation(30, 13));
+            return;
+        }
+        else if (refKind == "ref readonly")
+        {
+            comp.VerifyEmitDiagnostics(
+                // (30,13): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         _ = GetS1()[Get1()];
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetS1()").WithArguments("0").WithLocation(30, 13));
+        }
+        else
+        {
+            comp.VerifyEmitDiagnostics();
+        }
+
+        var verifier = CompileAndVerify(comp, expectedOutput: "123", verify: Verification.Skipped);
 
         verifier.VerifyIL("Program.Test",
 @"
@@ -21724,7 +21819,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_RValueReceiver_03()
     {
@@ -21788,7 +21883,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_RValueReceiver_04()
     {
@@ -21892,7 +21987,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_RValueReceiver_05()
     {
@@ -21956,27 +22051,16 @@ class Program
 """;
 
         var comp = CreateCompilation([src], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123:123").VerifyDiagnostics();
-
-        verifier.VerifyIL("Program.Test2<T>()",
-@"
-{
-  // Code size       21 (0x15)
-  .maxstack  2
-  .locals init (T V_0)
-  IL_0000:  nop
-  IL_0001:  call       ""T Program.GetT<T>()""
-  IL_0006:  stloc.0
-  IL_0007:  ldloca.s   V_0
-  IL_0009:  call       ""int Program.Get1()""
-  IL_000e:  call       ""int E.get_Item<T>(ref T, int)""
-  IL_0013:  pop
-  IL_0014:  ret
-}
-");
+        comp.VerifyEmitDiagnostics(
+            // (36,13): error CS1510: A ref or out value must be an assignable variable
+            //         _ = GetT<T>()[Get1()];
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "GetT<T>()").WithLocation(36, 13),
+            // (48,13): error CS1510: A ref or out value must be an assignable variable
+            //         _ = GetT<T>()[await Get1Async()];
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "GetT<T>()").WithLocation(48, 13));
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_RValueReceiver_06()
     {
@@ -33203,7 +33287,7 @@ public static class E
         }
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829 extension indexers"), CombinatorialData]
+    [Theory, CombinatorialData]
     public void PropagateAttributes_14(bool useCompilationReference)
     {
         // attribute on extension indexer
@@ -33213,7 +33297,7 @@ public static class E
     extension(int i1)
     {
         [A]
-        public this[int i2] => 0;
+        public int this[int i2] => 0;
     }
 }
 
@@ -33229,7 +33313,7 @@ public class AAttribute : System.Attribute { }
         {
             var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
             Assert.True(extension.IsExtension);
-            var extensionIndexer = extension.GetMember<PropertySymbol>("Item");
+            var extensionIndexer = extension.GetMember<PropertySymbol>("this[]");
             Assert.Equal("AAttribute", extensionIndexer.GetAttributes().Single().ToString());
             var extensionGetter = extension.GetMember<MethodSymbol>("get_Item");
             Assert.Empty(extensionGetter.GetAttributes());
@@ -33240,7 +33324,7 @@ public class AAttribute : System.Attribute { }
         }
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829 extension indexers"), CombinatorialData]
+    [Theory, CombinatorialData]
     public void PropagateAttributes_15(bool useCompilationReference)
     {
         // attribute on parameters for extension indexer
@@ -33249,7 +33333,7 @@ public static class E
 {
     extension([A] int i1)
     {
-        public this[[B] int i2] => 0;
+        public int this[[B] int i2] => 0;
     }
 }
 
@@ -33268,7 +33352,7 @@ public class BAttribute : System.Attribute { }
             Assert.True(extension.IsExtension);
             Assert.Equal("AAttribute", extension.ExtensionParameter.GetAttributes().Single().ToString());
 
-            var extensionIndexer = extension.GetMember<PropertySymbol>("Item");
+            var extensionIndexer = extension.GetMember<PropertySymbol>("this[]");
             Assert.Empty(extensionIndexer.GetAttributes());
             Assert.Equal("BAttribute", extensionIndexer.Parameters.Single().GetAttributes().Single().ToString());
 
@@ -33282,7 +33366,7 @@ public class BAttribute : System.Attribute { }
         }
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829 extension indexers"), CombinatorialData]
+    [Theory, CombinatorialData]
     public void PropagateAttributes_16(bool useCompilationReference)
     {
         // attribute on type parameters for extension indexer
@@ -33291,7 +33375,7 @@ public static class E
 {
     extension<[A] T>(T t)
     {
-        public this[int i] => 0;
+        public int this[int i] => 0;
     }
 }
 
@@ -33315,7 +33399,7 @@ public class AAttribute : System.Attribute { }
         }
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829 extension indexers"), CombinatorialData]
+    [Theory, CombinatorialData]
     public void PropagateAttributes_17(bool useCompilationReference)
     {
         // attribute on accessor for extension indexer
@@ -33324,7 +33408,7 @@ public static class E
 {
     extension(int i1)
     {
-        public this[int i2]
+        public int this[int i2]
         {
             [A]
             get => 0;
@@ -33357,7 +33441,7 @@ public class AAttribute : System.Attribute { }
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/80017")]
     public void PropagateAttributes_18(bool useCompilationReference)
     {
-        // return attribute on property
+        // return attribute on property accessor
         var libSrc = """
 public static class E
 {
@@ -35761,14 +35845,11 @@ public static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
-            // (5,20): error CS9282: This member is not allowed in an extension block
-            //         public int this[int i] { get => 0; set { } }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(5, 20));
+        comp.VerifyEmitDiagnostics();
 
         var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
         var indexer = extension.GetMember<PropertySymbol>("this[]").GetPublicSymbol();
-        Assert.Null(indexer.ReduceExtensionMember(comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol()));
+        Assert.Equal("E.extension<object>(object).this[int]", indexer.ReduceExtensionMember(comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol()).ToDisplayString());
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
@@ -36954,6 +37035,166 @@ class Program
 
         compB = CreateCompilation(sourceB, references: [compA.EmitToImageReference()], assemblyName: "B", options: TestOptions.DebugExe);
         CompileAndVerify(compB, expectedOutput: "TrueTrueFalse").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CallerMemberName_01()
+    {
+        var src = """
+42.M();
+
+public static class E
+{
+    extension(int i)
+    {
+        public void M([System.Runtime.CompilerServices.CallerMemberName] string s = "")
+        {
+            System.Console.Write(s);
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("<Main>$"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CallerMemberName_02()
+    {
+        var src = """
+42.M();
+
+public static class E
+{
+    extension(int i)
+    {
+        public void M()
+        {
+            local();
+
+            void local([System.Runtime.CompilerServices.CallerMemberName] string s = "")
+            {
+                System.Console.Write(s);
+            }
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("M"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.RefLifetime)]
+    public void RefAnalysis_ObjectCreation_01()
+    {
+        string source = """
+_ = new S() { Property = 42 };
+System.Console.Write(E.Field);
+
+S s = new S();
+E.get_Property(s) = 43;
+System.Console.Write(E.Field);
+
+ref struct S { }
+
+static class E
+{
+    public static int Field;
+    extension(S s)
+    {
+        public ref int Property { get => ref Field; }
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("4243"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.RefLifetime)]
+    public void RefAnalysis_ObjectCreation_02()
+    {
+        string source = """
+System.Span<byte> span = stackalloc byte[10];
+_ = new S() { Property = span };
+
+S s = new S();
+E.get_Property(s) = span;
+
+ref struct S { }
+
+static class E
+{
+    extension(S s)
+    {
+        public ref System.Span<byte> Property { get => throw null; }
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (5,21): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+            // E.get_Property(s) = span;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(5, 21));
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.RefLifetime)]
+    public void RefAnalysis_ObjectCreation_03()
+    {
+        string source = """
+System.Span<byte> span = stackalloc byte[10];
+_ = new S() { Property = span };
+
+S s = new S();
+E.get_Property(ref s) = span;
+
+ref struct S { }
+
+static class E
+{
+    extension(ref S s)
+    {
+        public ref System.Span<byte> Property { get => throw null; }
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (5,25): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+            // E.get_Property(ref s) = span;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(5, 25));
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.RefLifetime)]
+    public void RefAnalysis_ObjectCreation_04()
+    {
+        string source = """
+System.Span<byte> span = stackalloc byte[10];
+_ = new C() { Property = span };
+
+C c = new C();
+E.get_Property(c) = span;
+
+class C { }
+
+static class E
+{
+    extension(C c)
+    {
+        public ref System.Span<byte> Property { get => throw null; }
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (5,21): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+            // E.get_Property(s) = span;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(5, 21));
     }
 }
 

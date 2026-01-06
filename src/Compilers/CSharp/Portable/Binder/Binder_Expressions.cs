@@ -4,13 +4,6 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -19,6 +12,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -5384,7 +5384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(length > 0);
                     lengthOrCount = new BoundLiteral(expression.Syntax, ConstantValue.Create(length), @this.GetSpecialType(SpecialType.System_Int32, diagnostics, expression.Syntax)) { WasCompilerGenerated = true };
                 }
-                else if (!@this.TryBindLengthOrCount(syntax.Expression, expressionPlaceholder, out lengthOrCount, diagnostics))
+                else if (!@this.TryBindLengthOrCount(syntax.Expression, expressionPlaceholder, out lengthOrCount, diagnostics)) // PROTOTYPE should extension Length/Count count?
                 {
                     lengthOrCount = null;
                 }
@@ -8971,6 +8971,133 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private bool TryBindExtensionIndexer(SyntaxNode syntax, BoundExpression left, AnalyzedArguments analyzedArguments, BindingDiagnosticBag diagnostics, [NotNullWhen(true)] out BoundIndexerAccess? extensionIndexerAccess)
+        {
+            if (left.Kind == BoundKind.BaseReference)
+            {
+                extensionIndexerAccess = null;
+                return false;
+            }
+
+            Debug.Assert(left.Type is not null);
+            Debug.Assert(!left.Type.IsDynamic());
+
+            var lookupResult = LookupResult.GetInstance();
+            AnalyzedArguments? actualArguments = null;
+
+            foreach (var scope in new ExtensionScopes(this))
+            {
+                lookupResult.Clear();
+
+                if (tryBindExtensionIndexersInScope(
+                    syntax, left, lookupResult, analyzedArguments, ref actualArguments,
+                    binder: this, scope: scope, diagnostics: diagnostics, extensionIndexerAccess: out extensionIndexerAccess))
+                {
+                    lookupResult.Free();
+                    actualArguments?.Free();
+
+                    return extensionIndexerAccess is not null;
+                }
+            }
+
+            lookupResult.Free();
+            actualArguments?.Free();
+
+            extensionIndexerAccess = null;
+            return false;
+
+            // Returns true if we should stop searching in further scopes (ie. there were applicable candidates)
+            static bool tryBindExtensionIndexersInScope(
+                SyntaxNode syntax,
+                BoundExpression receiver,
+                LookupResult lookupResult,
+                AnalyzedArguments analyzedArguments,
+                ref AnalyzedArguments? actualArguments,
+                Binder binder,
+                ExtensionScope scope,
+                BindingDiagnosticBag diagnostics,
+                out BoundIndexerAccess? extensionIndexerAccess)
+            {
+                Debug.Assert(receiver.Type is not null);
+                Debug.Assert(lookupResult.IsClear);
+
+                // 1. gather candidates
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
+
+                scope.Binder.LookupExtensionBlockIndexersInSingleBinder(
+                    lookupResult, WellKnownMemberNames.Indexer, arity: 0, LookupOptions.Default,
+                    originalBinder: binder, useSiteInfo: ref useSiteInfo);
+
+                if (!lookupResult.IsMultiViable || lookupResult.Symbols.All(s => s is not PropertySymbol { IsIndexer: true }))
+                {
+                    diagnostics.Add(syntax, useSiteInfo);
+                    extensionIndexerAccess = null;
+                    return false;
+                }
+
+                // 2. resolve indexers
+                OverloadResolutionResult<PropertySymbol> result = resolveIndexers(receiver, lookupResult, binder, analyzedArguments, ref actualArguments, ref useSiteInfo);
+                diagnostics.Add(syntax, useSiteInfo);
+
+                if (!result.Succeeded)
+                {
+                    bool hasAnyApplicableMember = result.HasAnyApplicableMember;
+                    // PROTOTYPE diagnostic quality, consider returning something better and reporting useful diagnostic about overload resolution issues
+                    result.Free();
+                    extensionIndexerAccess = null;
+                    return hasAnyApplicableMember;
+                }
+
+                // 3. bind the result
+                Debug.Assert(actualArguments is not null);
+                ImmutableArray<string?> argumentNames = analyzedArguments.GetNames();
+                ImmutableArray<RefKind> argumentRefKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
+
+                MemberResolutionResult<PropertySymbol> resolutionResult = result.ValidResult;
+                Debug.Assert(resolutionResult.Result.ConversionForArg(0).Exists);
+                resolutionResult = resolutionResult.WithResult(resolutionResult.Result.WithoutReceiverArgument());
+
+                extensionIndexerAccess = binder.BindIndexerOrIndexedPropertyAccessContinued(syntax, receiver, analyzedArguments, diagnostics, argumentNames, argumentRefKinds, resolutionResult);
+
+                result.Free();
+                return true;
+            }
+
+            static OverloadResolutionResult<PropertySymbol> resolveIndexers(
+                BoundExpression receiver,
+                LookupResult lookupResult,
+                Binder binder,
+                AnalyzedArguments? analyzedArguments,
+                ref AnalyzedArguments? actualArguments,
+                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                ArrayBuilder<PropertySymbol>? properties = null;
+                foreach (var member in lookupResult.Symbols)
+                {
+                    if (member is PropertySymbol { IsIndexer: true } property)
+                    {
+                        properties ??= ArrayBuilder<PropertySymbol>.GetInstance();
+                        properties.Add(property);
+                    }
+                }
+
+                if (actualArguments == null)
+                {
+                    // Create a set of arguments for overload resolution including the receiver.
+                    actualArguments = AnalyzedArguments.GetInstance();
+                    CombineExtensionMethodArguments(receiver, analyzedArguments, actualArguments);
+                }
+
+                Debug.Assert(properties is not null);
+                OverloadResolutionResult<PropertySymbol> overloadResolutionResult = OverloadResolutionResult<PropertySymbol>.GetInstance();
+
+                binder.OverloadResolution.PropertyOverloadResolution(properties, receiver, actualArguments, overloadResolutionResult,
+                    allowRefOmittedArguments: binder.AllowRefOmittedArguments(receiver), dynamicResolution: actualArguments.HasDynamicArgument, ref useSiteInfo);
+
+                return overloadResolutionResult;
+            }
+        }
+
         private bool AllowRefOmittedArguments(BoundExpression receiver)
         {
             // We don't consider when we're in default parameter values or attribute arguments so that we avoid cycles. This is an error scenario,
@@ -10084,7 +10211,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!lookupResult.IsMultiViable)
             {
-                if (TryBindIndexOrRangeImplicitIndexer(
+                if (TryBindExtensionIndexer(node, expr, analyzedArguments, diagnostics, out BoundIndexerAccess extensionIndexerAccess))
+                {
+                    indexerAccessExpression = extensionIndexerAccess;
+                }
+                else if (TryBindIndexOrRangeImplicitIndexer(
                     node,
                     expr,
                     analyzedArguments,
@@ -10107,7 +10238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     indexerGroup.Add((PropertySymbol)symbol);
                 }
 
-                indexerAccessExpression = BindIndexerOrIndexedPropertyAccess(node, expr, indexerGroup, analyzedArguments, diagnostics);
+                indexerAccessExpression = BindNonExtensionIndexerOrIndexedPropertyAccess(node, expr, indexerGroup, analyzedArguments, diagnostics);
                 indexerGroup.Free();
             }
 
@@ -10173,7 +10304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // converting the ArrayBuilder to ImmutableArray. Avoid the extra copy.
             var properties = ArrayBuilder<PropertySymbol>.GetInstance();
             properties.AddRange(propertyGroup);
-            var result = BindIndexerOrIndexedPropertyAccess(syntax, receiver, properties, arguments, diagnostics);
+            var result = BindNonExtensionIndexerOrIndexedPropertyAccess(syntax, receiver, properties, arguments, diagnostics);
             properties.Free();
             return result;
         }
@@ -10223,7 +10354,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors);
         }
 
-        private BoundExpression BindIndexerOrIndexedPropertyAccess(
+        private BoundExpression BindNonExtensionIndexerOrIndexedPropertyAccess(
             SyntaxNode syntax,
             BoundExpression receiver,
             ArrayBuilder<PropertySymbol> propertyGroup,
@@ -10232,12 +10363,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(receiver is not null);
             OverloadResolutionResult<PropertySymbol> overloadResolutionResult = OverloadResolutionResult<PropertySymbol>.GetInstance();
-            // We don't consider when we're in default parameter values or attribute arguments so that we avoid cycles. This is an error scenario,
-            // so we don't care if we accidentally miss a parameter being applicable.
-            bool allowRefOmittedArguments = !InParameterDefaultValue && !InAttributeArgument && receiver.IsExpressionOfComImportType();
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.OverloadResolution.PropertyOverloadResolution(propertyGroup, receiver, analyzedArguments, overloadResolutionResult,
-                allowRefOmittedArguments: allowRefOmittedArguments,
+                allowRefOmittedArguments: AllowRefOmittedArguments(receiver),
                 dynamicResolution: analyzedArguments.HasDynamicArgument,
                 ref useSiteInfo);
             diagnostics.Add(syntax, useSiteInfo);
@@ -10276,8 +10404,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> argumentRefKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
             if (!overloadResolutionResult.Succeeded)
             {
-                // If the arguments had an error reported about them then suppress further error
-                // reporting for overload resolution. 
+                if (TryBindExtensionIndexer(syntax, receiver, analyzedArguments, diagnostics, out BoundIndexerAccess extensionIndexerAccess))
+                {
+                    return extensionIndexerAccess;
+                }
 
                 ImmutableArray<PropertySymbol> candidates = propertyGroup.ToImmutable();
 
@@ -10328,45 +10458,56 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 MemberResolutionResult<PropertySymbol> resolutionResult = overloadResolutionResult.ValidResult;
-                PropertySymbol property = resolutionResult.Member;
-
-                ReportDiagnosticsIfObsolete(diagnostics, property, syntax, hasBaseReceiver: receiver != null && receiver.Kind == BoundKind.BaseReference);
-
-                // Make sure that the result of overload resolution is valid.
-                var gotError = MemberGroupFinalValidationAccessibilityChecks(receiver, property, syntax, diagnostics, invokedAsExtensionMethod: false);
-
-                receiver = ReplaceTypeOrValueReceiver(receiver, property.IsStatic, diagnostics);
-
-                ImmutableArray<int> argsToParams;
-                this.CheckAndCoerceArguments<PropertySymbol>(syntax, resolutionResult, analyzedArguments, diagnostics, receiver, invokedAsExtensionMethod: false, out argsToParams);
-
-                if (!gotError && receiver != null && receiver.Kind == BoundKind.ThisReference && receiver.WasCompilerGenerated)
-                {
-                    gotError = IsRefOrOutThisParameterCaptured(syntax, diagnostics);
-                }
-
-                var arguments = analyzedArguments.Arguments.ToImmutable();
-
-                // Note that we do not bind default arguments here, because at this point we do not know whether
-                // the indexer is being used in a 'get', or 'set', or 'get+set' (compound assignment) context.
-                propertyAccess = new BoundIndexerAccess(
-                    syntax,
-                    receiver,
-                    initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, property),
-                    property,
-                    arguments,
-                    argumentNames,
-                    argumentRefKinds,
-                    expanded: resolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
-                    AccessorKind.Unknown,
-                    argsToParams,
-                    defaultArguments: default,
-                    property.Type,
-                    gotError);
+                propertyAccess = BindIndexerOrIndexedPropertyAccessContinued(syntax, receiver, analyzedArguments, diagnostics, argumentNames, argumentRefKinds, resolutionResult);
             }
 
             overloadResolutionResult.Free();
             return propertyAccess;
+        }
+
+        private BoundIndexerAccess BindIndexerOrIndexedPropertyAccessContinued(SyntaxNode syntax, BoundExpression receiver, AnalyzedArguments analyzedArguments, BindingDiagnosticBag diagnostics, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, MemberResolutionResult<PropertySymbol> resolutionResult)
+        {
+            PropertySymbol property = resolutionResult.Member;
+
+            ReportDiagnosticsIfObsolete(diagnostics, property, syntax, hasBaseReceiver: receiver != null && receiver.Kind == BoundKind.BaseReference);
+            ReportDisallowedExtensionBlockIndexer(property, syntax, diagnostics);
+
+            // Make sure that the result of overload resolution is valid.
+            var gotError = MemberGroupFinalValidationAccessibilityChecks(receiver, property, syntax, diagnostics, invokedAsExtensionMethod: false);
+
+            receiver = ReplaceTypeOrValueReceiver(receiver, property.IsStatic, diagnostics);
+
+            ImmutableArray<int> argsToParams;
+            this.CheckAndCoerceArguments<PropertySymbol>(syntax, resolutionResult, analyzedArguments, diagnostics, receiver, invokedAsExtensionMethod: false, out argsToParams);
+
+            if (!gotError && receiver != null && receiver.Kind == BoundKind.ThisReference && receiver.WasCompilerGenerated)
+            {
+                gotError = IsRefOrOutThisParameterCaptured(syntax, diagnostics);
+            }
+
+            if (property.IsExtensionBlockMember())
+            {
+                receiver = CheckAndConvertExtensionReceiver(receiver, property.ContainingType.ExtensionParameter, diagnostics);
+            }
+
+            var arguments = analyzedArguments.Arguments.ToImmutable();
+
+            // Note that we do not bind default arguments here, because at this point we do not know whether
+            // the indexer is being used in a 'get', or 'set', or 'get+set' (compound assignment) context.
+            return new BoundIndexerAccess(
+                syntax,
+                receiver,
+                initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, property),
+                property,
+                arguments,
+                argumentNames,
+                argumentRefKinds,
+                expanded: resolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
+                AccessorKind.Unknown,
+                argsToParams,
+                defaultArguments: default,
+                property.Type,
+                gotError);
         }
 
 #nullable enable
@@ -10474,7 +10615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // 2. For Index: Has an accessible indexer with a single int parameter
             //    For Range: Has an accessible Slice method that takes two int parameters
 
-            if (TryBindLengthOrCount(syntax, receiverPlaceholder, out lengthOrCountAccess, diagnostics) &&
+            if (TryBindLengthOrCount(syntax, receiverPlaceholder, out lengthOrCountAccess, diagnostics) && // PROTOTYPE should extension Length/Count count?
                 tryBindUnderlyingIndexerOrSliceAccess(syntax, receiverPlaceholder, argIsIndex, out indexerOrSliceAccess, out argumentPlaceholders, diagnostics))
             {
                 return true;
@@ -10533,7 +10674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 analyzedArguments.Arguments.Add(intPlaceholder);
                                 var properties = ArrayBuilder<PropertySymbol>.GetInstance();
                                 properties.AddRange(property);
-                                indexerOrSliceAccess = BindIndexerOrIndexedPropertyAccess(syntax, receiver, properties, analyzedArguments, diagnostics).MakeCompilerGenerated();
+                                indexerOrSliceAccess = BindNonExtensionIndexerOrIndexedPropertyAccess(syntax, receiver, properties, analyzedArguments, diagnostics).MakeCompilerGenerated();
                                 properties.Free();
                                 analyzedArguments.Free();
                                 lookupResult.Free();

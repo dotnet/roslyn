@@ -29,7 +29,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Metadata.Tools;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
@@ -3221,6 +3220,44 @@ namespace System.Runtime.CompilerServices
             }
 
             return CreateCompilation(source, options: options, parseOptions: parseOptions, targetFramework: TargetFramework.Net100);
+        }
+
+        /// <summary>
+        /// Dumps all the cref xml doc nodes with their associated symbols in a format convenient for testing.
+        /// </summary>
+        internal static IEnumerable<string> PrintXmlCrefSymbols(SyntaxTree tree, SemanticModel model)
+        {
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var crefs = docComments.SelectMany(doc => doc.DescendantNodes().OfType<XmlCrefAttributeSyntax>());
+            var result = crefs.Select(name => print(name));
+            return result;
+
+            string print(XmlCrefAttributeSyntax cref)
+            {
+                CrefSyntax crefSyntax = cref.Cref;
+                var symbol = model.GetSymbolInfo(crefSyntax).Symbol;
+                var symbolDisplay = symbol is null ? "null" : symbol.ToTestDisplayString();
+                return (crefSyntax, symbolDisplay).ToString();
+            }
+        }
+
+        /// <summary>
+        /// Dumps all the name xml doc attributes with their associated symbols in a format convenient for testing.
+        /// </summary>
+        internal static IEnumerable<string> PrintXmlNameSymbols(SyntaxTree tree, SemanticModel model)
+        {
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var xmlNames = docComments.SelectMany(doc => doc.DescendantNodes().OfType<XmlNameAttributeSyntax>());
+            var result = xmlNames.Select(name => print(name));
+            return result;
+
+            string print(XmlNameAttributeSyntax name)
+            {
+                IdentifierNameSyntax identifier = name.Identifier;
+                var symbol = model.GetSymbolInfo(identifier).Symbol;
+                var symbolDisplay = symbol is null ? "null" : symbol.ToTestDisplayString();
+                return (identifier, symbolDisplay).ToString();
+            }
         }
 
         #endregion

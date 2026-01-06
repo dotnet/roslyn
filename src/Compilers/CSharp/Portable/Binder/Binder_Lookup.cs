@@ -196,35 +196,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             singleLookupResults.Free();
         }
 
+        private void LookupExtensionBlockIndexersInSingleBinder(LookupResult result, string? name,
+                int arity, LookupOptions options, Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            Debug.Assert(name == WellKnownMemberNames.Indexer);
+            var singleLookupResults = ArrayBuilder<SingleLookupResult>.GetInstance();
+
+            PooledHashSet<MethodSymbol>? implementationsToShadow = EnumerateExtensionBlockMembersInSingleBinder(
+                singleLookupResults, name, arity, options, originalBinder, trackImplementationsToShadow: false, ref useSiteInfo);
+
+            Debug.Assert(implementationsToShadow is null);
+            foreach (var singleLookupResult in singleLookupResults)
+            {
+                result.MergeEqual(singleLookupResult);
+            }
+
+            singleLookupResults.Free();
+        }
+
         internal void EnumerateAllExtensionMembersInSingleBinder(ArrayBuilder<SingleLookupResult> result,
             string? name, int arity, LookupOptions options, Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ref CompoundUseSiteInfo<AssemblySymbol> classicExtensionUseSiteInfo)
         {
-            PooledHashSet<MethodSymbol>? implementationsToShadow = null;
-
             // 1. Collect new extension members
-            var extensionCandidates = ArrayBuilder<Symbol>.GetInstance();
-            this.GetCandidateExtensionMembersInSingleBinder(extensionCandidates, name, alternativeName: null, arity, options, originalBinder);
-
-            foreach (var candidate in extensionCandidates)
-            {
-                SingleLookupResult resultOfThisMember = originalBinder.CheckViability(candidate, arity, options, null, diagnose: true, useSiteInfo: ref useSiteInfo);
-                if (resultOfThisMember.Kind == LookupResultKind.Empty)
-                {
-                    continue;
-                }
-
-                Debug.Assert(resultOfThisMember.Symbol is not null);
-                result.Add(resultOfThisMember);
-
-                if (candidate is MethodSymbol { IsStatic: false } shadows &&
-                    shadows.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is { } toShadow)
-                {
-                    implementationsToShadow ??= PooledHashSet<MethodSymbol>.GetInstance();
-                    implementationsToShadow.Add(toShadow);
-                }
-            }
-
-            extensionCandidates.Free();
+            PooledHashSet<MethodSymbol>? implementationsToShadow = EnumerateExtensionBlockMembersInSingleBinder(
+                result, name, arity, options, originalBinder, trackImplementationsToShadow: true, ref useSiteInfo);
 
             // 2. Collect classic extension methods
             var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
@@ -245,6 +240,44 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             extensionMethods.Free();
             implementationsToShadow?.Free();
+        }
+
+        private PooledHashSet<MethodSymbol>? EnumerateExtensionBlockMembersInSingleBinder(
+            ArrayBuilder<SingleLookupResult> result,
+            string? name,
+            int arity,
+            LookupOptions options,
+            Binder originalBinder,
+            bool trackImplementationsToShadow,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            PooledHashSet<MethodSymbol>? implementationsToShadow = null;
+
+            var extensionCandidates = ArrayBuilder<Symbol>.GetInstance();
+            this.GetCandidateExtensionMembersInSingleBinder(extensionCandidates, name, alternativeName: null, arity, options, originalBinder);
+
+            foreach (var candidate in extensionCandidates)
+            {
+                SingleLookupResult resultOfThisMember = originalBinder.CheckViability(candidate, arity, options, null, diagnose: true, useSiteInfo: ref useSiteInfo);
+                if (resultOfThisMember.Kind == LookupResultKind.Empty)
+                {
+                    continue;
+                }
+
+                Debug.Assert(resultOfThisMember.Symbol is not null);
+                result.Add(resultOfThisMember);
+
+                if (trackImplementationsToShadow &&
+                    candidate is MethodSymbol { IsStatic: false } shadows &&
+                    shadows.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is { } toShadow)
+                {
+                    implementationsToShadow ??= PooledHashSet<MethodSymbol>.GetInstance();
+                    implementationsToShadow.Add(toShadow);
+                }
+            }
+
+            extensionCandidates.Free();
+            return implementationsToShadow;
         }
 #nullable disable
 
@@ -1840,7 +1873,7 @@ symIsHidden:;
         // Check if the given symbol can be accessed with the given arity. If OK, return false.
         // If not OK, return true and return a diagnosticinfo. Note that methods with type arguments
         // can be accesses with arity zero due to type inference (but non types).
-        private static bool WrongArity(Symbol symbol, int arity, bool diagnose, LookupOptions options, out DiagnosticInfo diagInfo)
+        internal static bool WrongArity(Symbol symbol, int arity, bool diagnose, LookupOptions options, out DiagnosticInfo diagInfo)
         {
             switch (symbol.Kind)
             {

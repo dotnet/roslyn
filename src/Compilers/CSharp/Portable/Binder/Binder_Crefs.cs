@@ -242,6 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 memberName = GetOperatorMethodName(operatorSyntax);
                 parameters = operatorSyntax.Parameters;
             }
+            // PROTOTYPE handle IndexerMemberCrefSyntax and check for LangVersion
 
             if (memberName == null)
             {
@@ -326,7 +327,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     foreach (var candidate in candidates)
                     {
-                        if (!SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(candidate))
+                        // PROTOTYPE we should find all the members supported in latest LangVer, but report if they require a new LangVer than current
+                        if (!SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(candidate, LanguageVersion.Preview))
                         {
                             continue;
                         }

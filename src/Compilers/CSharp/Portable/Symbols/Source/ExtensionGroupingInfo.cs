@@ -793,6 +793,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     yield return extensionAttribute;
                 }
+
+                if (synthesizeDefaultMemberAttributeIfNeeded(ExtensionMarkerTypes) is { } defaultMemberAttribute)
+                {
+                    yield return defaultMemberAttribute;
+                }
+
+                static SynthesizedAttributeData? synthesizeDefaultMemberAttributeIfNeeded(ImmutableArray<ExtensionMarkerType> extensionMarkerTypes)
+                {
+                    PropertySymbol? firstIndexer = tryGetFirstIndexer(extensionMarkerTypes);
+
+                    if (firstIndexer is not null)
+                    {
+                        var compilation = firstIndexer.DeclaringCompilation;
+                        var defaultMemberNameConstant = new TypedConstant(compilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, firstIndexer.MetadataName);
+                        return compilation.TrySynthesizeAttribute(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor, [defaultMemberNameConstant]);
+                    }
+
+                    return null;
+                }
+
+                static PropertySymbol? tryGetFirstIndexer(ImmutableArray<ExtensionMarkerType> extensionMarkerTypes)
+                {
+                    foreach (var markerType in extensionMarkerTypes)
+                    {
+                        foreach (var extension in markerType.UnderlyingExtensions)
+                        {
+                            foreach (var member in extension.GetMembers())
+                            {
+                                if (member is PropertySymbol { IsIndexer: true } property)
+                                {
+                                    return property;
+                                }
+                            }
+                        }
+                    }
+
+                    return null;
+                }
             }
         }
 

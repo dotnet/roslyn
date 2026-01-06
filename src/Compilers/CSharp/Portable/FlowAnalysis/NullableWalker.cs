@@ -8803,7 +8803,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static Symbol AsMemberOfType(TypeSymbol? type, Symbol symbol)
         {
             Debug.Assert((object)symbol != null);
-            Debug.Assert(!symbol.IsExtensionBlockMember(), symbol.ToDisplayString());
+            //Debug.Assert(!symbol.IsExtensionBlockMember(), symbol.ToDisplayString());
+            if (symbol.IsExtensionBlockMember())
+            {
+                return symbol; // PROTOTYPE restore assertion above
+            }
 
             var containingType = type as NamedTypeSymbol;
             if (containingType is null || containingType.IsErrorType() || symbol is ErrorMethodSymbol)
@@ -11530,7 +11534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverType = VisitRvalueWithState(receiverOpt).Type;
             // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
             // after indices have been visited, and only if the receiver has not changed.
-            // Tracked by https://github.com/dotnet/roslyn/issues/78829: add support for indexers
+            // PROTOTYPE Tracked by https://github.com/dotnet/roslyn/issues/78829: add support for indexers
             _ = CheckPossibleNullReceiver(receiverOpt);
 
             var indexer = node.Indexer;

@@ -8049,7 +8049,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</value>
   </data>
   <data name="ERR_ExpressionTreeContainsExtensionPropertyAccess" xml:space="preserve">
-    <value>An expression tree may not contain an extension property access</value>
+    <value>An expression tree may not contain an extension property or indexer access</value>
   </data>
   <data name="ERR_PPIgnoredFollowsToken" xml:space="preserve">
     <value>'#:' directives cannot be after first token in file</value>
@@ -8194,5 +8194,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_AmbigOperator" xml:space="preserve">
     <value>Operator resolution is ambiguous between the following members: '{0}' and '{1}'</value>
+  </data>
+  <data name="IDS_FeatureExtensionIndexers" xml:space="preserve">
+    <value>extension indexers</value>
   </data>
 </root>

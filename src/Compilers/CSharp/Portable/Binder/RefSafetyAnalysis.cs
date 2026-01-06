@@ -601,7 +601,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.VisitAssignmentOperator(node);
             if (node.Left.Kind != BoundKind.DiscardExpression)
             {
-                ValidateAssignment(node.Syntax, node.Left, node.Right, node.IsRef, _diagnostics);
+                var syntaxForReporting = node.Left is BoundPropertyAccess or BoundIndexerAccess
+                    ? node.Left.Syntax
+                    : node.Syntax;
+
+                ValidateAssignment(syntaxForReporting, node.Left, node.Right, node.IsRef, _diagnostics);
             }
             return null;
         }
@@ -627,6 +631,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ValidateAssignment(node.Syntax, node.Left, node, isRef: false, _diagnostics);
+            return null;
+        }
+
+        public override BoundNode? VisitIncrementOperator(BoundIncrementOperator node)
+        {
+            base.VisitIncrementOperator(node);
+            var syntaxForReporting = node.Operand is BoundPropertyAccess or BoundIndexerAccess
+                ? node.Operand.Syntax
+                : node.Syntax;
+
+            ValidateAssignment(syntaxForReporting, node.Operand, node, isRef: false, _diagnostics);
             return null;
         }
 
@@ -1035,10 +1050,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitPropertyAccess(node);
         }
 
+        /// <remark>
+        /// For assignment scenarios, arg mixing will be checked in 
+        /// <see cref="VisitAssignmentOperator"/> / <see cref="ValidateAssignment"/>.
+        /// </remark>
         public override BoundNode? VisitIndexerAccess(BoundIndexerAccess node)
         {
+            Debug.Assert(node.AccessorKind is not AccessorKind.Unknown);
+            if (node.AccessorKind is AccessorKind.Set)
+            {
+                Visit(node.ReceiverOpt);
+                VisitArgumentsAndGetArgumentPlaceholders(node.ReceiverOpt, node.Arguments, isNewExtensionMethod: false);
+                return null;
+            }
+
+            Debug.Assert(node.AccessorKind is AccessorKind.Get or AccessorKind.Both);
             Debug.Assert(node.InitialBindingReceiverIsSubjectToCloning != ThreeState.Unknown);
-            var methodInvocationInfo = MethodInvocationInfo.FromIndexerAccess(node);
+            var methodInvocationInfo = MethodInvocationInfo.FromIndexerGetter(node);
             methodInvocationInfo = ReplaceWithExtensionImplementationIfNeeded(in methodInvocationInfo);
             Visit(methodInvocationInfo.Receiver);
             VisitArgumentsAndGetArgumentPlaceholders(methodInvocationInfo.Receiver, methodInvocationInfo.ArgsOpt, node.Indexer.IsExtensionBlockMember());

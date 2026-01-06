@@ -32,13 +32,6 @@ public partial class ExtensionTests : CompilingTestBase
         return ExecutionConditionUtil.IsMonoOrCoreClr ? output : null;
     }
 
-    private static void AssertEqualAndNoDuplicates(string[] expected, string[] actual)
-    {
-        Assert.True(expected.All(new HashSet<string>().Add), $"Duplicates were found in '{nameof(expected)}'");
-        Assert.True(actual.All(new HashSet<string>().Add), $"Duplicates were found in '{nameof(actual)}'");
-        AssertEx.SetEqual(expected, actual);
-    }
-
     private static void AssertExtensionDeclaration(INamedTypeSymbol symbol)
     {
         // Verify things that are common for all extension types
@@ -2410,11 +2403,17 @@ public static class Extensions
     }
 }
 """;
-        var comp = CreateCompilation(src);
+        var comp = CreateCompilation(src, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (5,13): error CS9282: This member is not allowed in an extension block
+            // (5,13): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //         int this[int i] { get => 42; set { } }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(5, 13));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(5, 13));
+
+        comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
+        comp.VerifyEmitDiagnostics();
+
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -2435,10 +2434,7 @@ public static class Extensions
         comp5.VerifyEmitDiagnostics(
             // (3,5): error CS1110: Cannot define a new extension because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
             //     extension(object o)
-            Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "extension").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(3, 5),
-            // (5,13): error CS9282: This member is not allowed in an extension block
-            //         int this[int i] { get => 42; set { } }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(5, 13)
+            Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "extension").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(3, 5)
             );
     }
 
@@ -2462,10 +2458,7 @@ public static class Extensions
             Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "extension").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(3, 5),
             // (5,20): error CS0106: The modifier 'static' is not valid for this item
             //         static int this[int i] { get => 42; set { } }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(5, 20),
-            // (5,20): error CS9282: This member is not allowed in an extension block
-            //         static int this[int i] { get => 42; set { } }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(5, 20)
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(5, 20)
             );
     }
 
@@ -3225,18 +3218,9 @@ public static class E
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
-            // (5,20): error CS9282: Extension declarations can include only methods or properties
-            //         public int this[int j] => 0;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(5, 20),
             // (5,20): error CS9295: The type parameter `T` is not referenced by either the extension parameter or a parameter of this member
             //         public int this[int j] => 0;
-            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "this").WithArguments("T").WithLocation(5, 20),
-            // (6,20): error CS9282: Extension declarations can include only methods or properties
-            //         public int this[long l, T t] => 0;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(6, 20),
-            // (10,20): error CS9282: Extension declarations can include only methods or properties
-            //         public int this[string s] => 0;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(10, 20));
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "this").WithArguments("T").WithLocation(5, 20));
     }
 
     [Fact]
@@ -4427,18 +4411,9 @@ class C {}
             // (6,20): error CS0055: Inconsistent accessibility: parameter type 'C' is less accessible than indexer or property 'Extensions.extension(C).P'
             //         public int P { get => 0; set {}}
             Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "P").WithArguments("Extensions.extension(C).P", "C").WithLocation(6, 20),
-            // (7,20): error CS9282: This member is not allowed in an extension block
-            //         public int this[int i] { get => 0; set {}}
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 20),
             // (7,20): error CS0055: Inconsistent accessibility: parameter type 'C' is less accessible than indexer or property 'Extensions.extension(C).this[int]'
             //         public int this[int i] { get => 0; set {}}
-            Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "this").WithArguments("Extensions.extension(C).this[int]", "C").WithLocation(7, 20),
-            // (11,21): error CS9282: This member is not allowed in an extension block
-            //         private int this[long i] { get => 0; set {}}
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(11, 21),
-            // (15,22): error CS9282: This member is not allowed in an extension block
-            //         internal int this[byte i] { get => 0; set {}}
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(15, 22)
+            Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "this").WithArguments("Extensions.extension(C).this[int]", "C").WithLocation(7, 20)
             );
     }
 
@@ -4543,24 +4518,15 @@ public static class Extensions
             // (6,20): error CS0055: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than indexer or property 'Extensions.extension(Extensions.C).P'
             //         public int P { get => 0; set {}}
             Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "P").WithArguments("Extensions.extension(Extensions.C).P", "Extensions.C").WithLocation(6, 20),
-            // (7,20): error CS9282: This member is not allowed in an extension block
-            //         public int this[int i] { get => 0; set {}}
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 20),
             // (7,20): error CS0055: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than indexer or property 'Extensions.extension(Extensions.C).this[int]'
             //         public int this[int i] { get => 0; set {}}
             Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "this").WithArguments("Extensions.extension(Extensions.C).this[int]", "Extensions.C").WithLocation(7, 20),
-            // (11,21): error CS9282: This member is not allowed in an extension block
-            //         private int this[long i] { get => 0; set {}}
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(11, 21),
             // (13,23): error CS0051: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than method 'Extensions.extension(Extensions.C).M2()'
             //         internal void M2() {}
             Diagnostic(ErrorCode.ERR_BadVisParamType, "M2").WithArguments("Extensions.extension(Extensions.C).M2()", "Extensions.C").WithLocation(13, 23),
             // (14,22): error CS0055: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than indexer or property 'Extensions.extension(Extensions.C).P2'
             //         internal int P2 { get => 0; set {}}
             Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "P2").WithArguments("Extensions.extension(Extensions.C).P2", "Extensions.C").WithLocation(14, 22),
-            // (15,22): error CS9282: This member is not allowed in an extension block
-            //         internal int this[byte i] { get => 0; set {}}
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(15, 22),
             // (15,22): error CS0055: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than indexer or property 'Extensions.extension(Extensions.C).this[byte]'
             //         internal int this[byte i] { get => 0; set {}}
             Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "this").WithArguments("Extensions.extension(Extensions.C).this[byte]", "Extensions.C").WithLocation(15, 22)
@@ -4801,11 +4767,7 @@ file static class Extensions
 }
 """;
         var comp = CreateCompilation(src);
-
-        comp.VerifyEmitDiagnostics(
-            // (9,20): error CS9282: This member is not allowed in an extension block
-            //         public int this[int i] => 0;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(9, 20));
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -4828,14 +4790,7 @@ file static class Extensions
 }
 """;
         var comp = CreateCompilation(src);
-
-        comp.VerifyEmitDiagnostics(
-            // (9,18): error CS9282: This member is not allowed in an extension block
-            //         public C this[int y]  => null;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(9, 18),
-            // (10,20): error CS9282: This member is not allowed in an extension block
-            //         public int this[C y]  => 0;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(10, 20));
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -24198,7 +24153,7 @@ static class E
         Assert.True(implM.Parameters[1].InterpolatedStringHandlerArgumentIndexes.IsEmpty);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    [Fact(Skip = "PROTOTYPE nullability"), WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
     public void InterpolationHandler_ExtensionIndexer_Basic()
     {
         var src = """
@@ -24228,28 +24183,21 @@ static class E
             """;
 
         var exeSource = """
-            1[2, $""] = 2;
-            _ = 3[4, $""];
+            int i1 = 1;
+            i1[2, $""] = 2;
+
+            int i3 = 3;
+            _ = i3[4, $""];
+
             E.set_Item(5, 6, $"", 0);
             E.get_Item(7, 8, $"");
             """;
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : add full support for indexers or disallow them
-        // var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "12345678" : null;
-        CreateCompilation([exeSource, src], targetFramework: TargetFramework.Net90).VerifyDiagnostics(
-            // (1,1): error CS0021: Cannot apply indexing with [] to an expression of type 'int'
-            // 1[2, $""] = 2;
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, @"1[2, $""""]").WithArguments("int").WithLocation(1, 1),
-            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'int'
-            // _ = 3[4, $""];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, @"3[4, $""""]").WithArguments("int").WithLocation(2, 5),
-            // (17,20): error CS9282: Extension declarations can include only methods or properties
-            //         public int this[int j, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("i", "j")] InterpolationHandler h]
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(17, 20)
-        );
+        var comp = CreateCompilation([exeSource, src], targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("12345678"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    [Fact(Skip = "PROTOTYPE nullability"), WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
     public void InterpolationHandler_ExtensionIndexer_NullableWarnings()
     {
         var src = """
@@ -24282,17 +24230,16 @@ static class E
             E.set_Item("test", null, $"", "");
             """;
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : add full support for indexers or disallow them
-        CreateCompilation([src, exeSource], parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Net90).VerifyDiagnostics(
-            // (2,1): error CS1501: No overload for method 'this' takes 2 arguments
+        CreateCompilation([src, exeSource], targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+            // (2,2): warning CS8604: Possible null reference argument for parameter 'receiver' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string receiver, string key)'.
             // ((string?)null)["key", $""] = "";
-            Diagnostic(ErrorCode.ERR_BadArgCount, @"((string?)null)[""key"", $""""]").WithArguments("this", "2").WithLocation(2, 1),
-            // (2,2): warning CS8602: Dereference of a possibly null reference.
-            // ((string?)null)["key", $""] = "";
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(string?)null").WithLocation(2, 2),
-            // (3,1): error CS1501: No overload for method 'this' takes 2 arguments
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "(string?)null").WithArguments("receiver", "InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string receiver, string key)").WithLocation(2, 2),
+            // (3,8): warning CS8625: Cannot convert null literal to non-nullable reference type.
             // "test"[null, $""] = "";
-            Diagnostic(ErrorCode.ERR_BadArgCount, @"""test""[null, $""""]").WithArguments("this", "2").WithLocation(3, 1),
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 8),
+            // (3,8): warning CS8604: Possible null reference argument for parameter 'key' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string receiver, string key)'.
+            // "test"[null, $""] = "";
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null").WithArguments("key", "InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string receiver, string key)").WithLocation(3, 8),
             // (4,12): warning CS8604: Possible null reference argument for parameter 'receiver' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string receiver, string key)'.
             // E.set_Item((string?)null, "key", $"", "");
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "(string?)null").WithArguments("receiver", "InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string receiver, string key)").WithLocation(4, 12),
@@ -24301,10 +24248,7 @@ static class E
             Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 20),
             // (5,20): warning CS8604: Possible null reference argument for parameter 'key' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string receiver, string key)'.
             // E.set_Item("test", null, $"", "");
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null").WithArguments("key", "InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string receiver, string key)").WithLocation(5, 20),
-            // (17,23): error CS9282: Extension declarations can include only methods or properties
-            //         public string this[string key, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("s", "key")] InterpolationHandler h] { set { } }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(17, 23)
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null").WithArguments("key", "InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string receiver, string key)").WithLocation(5, 20)
         );
     }
 
@@ -24671,7 +24615,7 @@ static class E
         );
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE nullability")]
     public void InterpolationHandler_Indexer_InObjectInitializer()
     {
         var code = """
@@ -24704,17 +24648,10 @@ static class E
             """;
 
         var comp = CreateCompilation(code, targetFramework: TargetFramework.NetCoreApp);
-
-        // When extension indexers are supported, this should start reporting ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers,
-        // instead of the current errors.
         comp.VerifyDiagnostics(
-            // (1,15): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // (1,16): error CS8976: Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.
             // _ = new C() { [$"{1}"] = 1 };
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, @"[$""{1}""]").WithArguments("C").WithLocation(1, 15),
-            // (21,20): error CS9282: This member is not allowed in an extension block
-            //         public int this[[System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("c")] CustomHandler h]
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(21, 20)
-        );
+            Diagnostic(ErrorCode.ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers, @"$""{1}""").WithLocation(1, 16));
     }
 
     [Fact]
@@ -27161,6 +27098,7 @@ static class E
             // _ = c[^1];
             Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "int").WithLocation(4, 7)];
 
+        // PROTOTYPE should extension Length/Count count?
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(expectedDiagnostics);
 
@@ -27214,6 +27152,7 @@ static class E
 }
 """;
 
+        // PROTOTYPE where should extension Length/Count count?
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
             // (2,7): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
@@ -27254,14 +27193,34 @@ static class E
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE confirm whether extension `this[int]` indexer should contribute to implicit Index indexer
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
             // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             // _ = c[^1];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5),
-            // (13,20): error CS9282: This member is not allowed in an extension block
+            // (13,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //         public int this[int i] => throw null;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(13, 20));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(13, 20));
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = c[^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5));
+
+        src = """
+var c = new C();
+_ = c[^1];
+
+class C
+{
+    public int Length => throw null;
+    public int this[int i] => throw null;
+}
+""";
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -27271,41 +27230,24 @@ static class E
 var c = new C();
 _ = c[^1];
 
-class C
-{
-    public int Length => throw null;
-}
+class C { }
 
 static class E
 {
     extension(C c)
     {
-        public int this[System.Index i] => throw null;
+        public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/78829 : revisit when implementing extension indexers
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-            // _ = c[^1];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5),
-            // (13,20): error CS9282: This member is not allowed in an extension block
-            //         public int this[System.Index i] => throw null;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(13, 20));
+            // (10,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(10, 20));
 
-        src = """
-var c = new C();
-_ = c[^1];
-
-class C
-{
-    public int Length => throw null;
-    public int this[System.Index i] => throw null;
-}
-""";
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("^1"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
     [Fact]
@@ -27332,6 +27274,7 @@ static class E
 }
 """;
 
+        // PROTOTYPE confirm whether extension `Slice(int, int)` method should contribute to implicit Range indexer
         DiagnosticDescription[] expectedDiagnostics = [
             // (4,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             // _ = c[1..^1];
@@ -27398,6 +27341,7 @@ static class E
 }
 """;
 
+        // PROTOTYPE where should extension Length/Count count?
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
             // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
@@ -27426,15 +27370,14 @@ static class E
 }
 """;
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/78829 : revisit when implementing extension indexers
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-            // _ = c[1..^1];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(2, 5),
-            // (13,20): error CS9282: This member is not allowed in an extension block
+            // (13,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //         public int this[System.Range r] => throw null;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(13, 20));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(13, 20));
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
 
         src = """
 var c = new C();
@@ -27471,6 +27414,7 @@ static class E
 }
 """;
 
+        // PROTOTYPE where should extension Length/Count count?
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
             // (1,16): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
@@ -27512,58 +27456,51 @@ static class E
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE confirm whether extension `this[int]` indexer should contribute to implicit Index indexer
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
             // (1,16): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             // _ = new C() is [1];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "[1]").WithArguments("C").WithLocation(1, 16),
-            // (12,20): error CS9282: This member is not allowed in an extension block
+            // (12,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //         public int this[int i] => throw null;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(12, 20));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(12, 20));
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = new C() is [1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[1]").WithArguments("C").WithLocation(1, 16));
     }
 
     [Fact]
     public void ExtensionMemberLookup_PatternBased_ListPattern_RegularIndexer()
     {
         var src = """
-_ = new C() is [1];
+_ = new C() is [.., 1];
 
 class C
 {
-    public int Length => throw null;
+    public int Length => 3;
 }
 
 static class E
 {
     extension(C c)
     {
-        public int this[System.Index i] => throw null;
+        public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
     }
 }
 """;
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/78829 : revisit when implementing extension indexers
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (1,16): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
-            // _ = new C() is [1];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[1]").WithArguments("C").WithLocation(1, 16),
-            // (12,20): error CS9282: This member is not allowed in an extension block
-            //         public int this[System.Index i] => throw null;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(12, 20));
-
-        src = """
-_ = new C() is [1];
-
-class C
-{
-    public int Length => throw null;
-    public int this[System.Index i] => throw null;
-}
-""";
+            // (12,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(12, 20));
 
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("^1"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
     [Fact]
@@ -27587,6 +27524,7 @@ static class E
 }
 """;
 
+        // PROTOTYPE where should extension Length/Count count?
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
             // (1,16): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
@@ -27631,6 +27569,7 @@ static class E
 }
 """;
 
+        // PROTOTYPE confirm whether extension `Slice(int, int)` method should contribute to implicit Range indexer
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
             // (1,20): error CS1503: Argument 1: cannot convert from 'System.Range' to 'System.Index'
@@ -27647,26 +27586,26 @@ _ = new C() is [_, .. var x];
 class C
 {
     public int this[System.Index i] => throw null;
-    public int Length => throw null;
+    public int Length => 3;
 }
 
 static class E
 {
     extension(C c)
     {
-        public int this[System.Range r] => throw null;
+        public int this[System.Range r] { get { System.Console.WriteLine(r); return 0; } }
     }
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (1,20): error CS1503: Argument 1: cannot convert from 'System.Range' to 'System.Index'
-            // _ = new C() is [_, .. var x];
-            Diagnostic(ErrorCode.ERR_BadArgType, ".. var x").WithArguments("1", "System.Range", "System.Index").WithLocation(1, 20),
-            // (13,20): error CS9282: This member is not allowed in an extension block
-            //         public int this[System.Range r] => throw null;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(13, 20));
+            // (13,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         public int this[System.Range r] { get { System.Console.WriteLine(r); return 0; } }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(13, 20));
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("1..^0"), verify: Verification.Skipped).VerifyDiagnostics();
 
         src = """
 _ = new C() is [_, .. var x];
@@ -28244,6 +28183,7 @@ static class E
 }
 """;
 
+        // PROTOTYPE should extension Length/Count count?
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
             // (1,33): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
@@ -30208,9 +30148,6 @@ static class Extensions
             // (15,28): error CS9288: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
             //         static void M3(int T){}
             Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(15, 28),
-            // (16,13): error CS9282: This member is not allowed in an extension block
-            //         int this[int T] => 0;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(16, 13),
             // (16,22): error CS9288: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
             //         int this[int T] => 0;
             Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(16, 22)
@@ -30265,15 +30202,9 @@ static class Extensions
             // (4,15): warning CS8981: The type name 'value' only contains lower-cased ascii characters. Such names may become reserved for the language.
             //     extension<value>(value[] p)
             Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "value").WithArguments("value").WithLocation(4, 15),
-            // (6,13): error CS9282: This member is not allowed in an extension block
-            //         int this[int i] {set{}}
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(6, 13),
             // (6,26): error CS9294: 'value': an automatically-generated parameter name conflicts with an extension type parameter name
             //         int this[int i] {set{}}
-            Diagnostic(ErrorCode.ERR_ValueParameterSameNameAsExtensionTypeParameter, "set").WithLocation(6, 26),
-            // (7,13): error CS9282: This member is not allowed in an extension block
-            //         int this[long i] => 0;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 13)
+            Diagnostic(ErrorCode.ERR_ValueParameterSameNameAsExtensionTypeParameter, "set").WithLocation(6, 26)
             );
     }
 
@@ -30742,9 +30673,9 @@ class C8<T> {}
             // (13,18): error CS0119: 'T' is a type, which is not valid in the given context
             //         int T => T;
             Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(13, 18),
-            // (19,13): error CS9282: This member is not allowed in an extension block
+            // (19,13): error CS0102: The type 'Extensions' already contains a definition for 'T'
             //         int this[int x] => T;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(19, 13),
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "this").WithArguments("Extensions", "T").WithLocation(19, 13),
             // (19,28): error CS0119: 'T' is a type, which is not valid in the given context
             //         int this[int x] => T;
             Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(19, 28),
@@ -30753,13 +30684,7 @@ class C8<T> {}
             Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(26, 20),
             // (32,25): error CS0119: 'T' is a type, which is not valid in the given context
             //         static int T => T;
-            Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(32, 25),
-            // (43,13): error CS9282: This member is not allowed in an extension block
-            //         int this[int x] => 0;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(43, 13),
-            // (48,13): error CS9282: This member is not allowed in an extension block
-            //         int this[int x] => 0;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(48, 13)
+            Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(32, 25)
             );
     }
 
@@ -30844,21 +30769,12 @@ static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (27,13): error CS9282: This member is not allowed in an extension block
-            //         int this[int y]
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(27, 13),
             // (42,23): error CS9293: Cannot use extension parameter 'short M1' in this context.
             //             short x = M1;
             Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "M1").WithArguments("short M1").WithLocation(42, 23),
             // (53,17): error CS9293: Cannot use extension parameter 'string P1' in this context.
             //                 P1 = "val";
-            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "P1").WithArguments("string P1").WithLocation(53, 17),
-            // (67,13): error CS9282: This member is not allowed in an extension block
-            //         int this[int x] => 0;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(67, 13),
-            // (72,13): error CS9282: This member is not allowed in an extension block
-            //         int this[int x] => 0;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(72, 13)
+            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "P1").WithArguments("string P1").WithLocation(53, 17)
             );
     }
 
@@ -30978,9 +30894,6 @@ static class Extensions
             // (6,28): error CS9290: 'p': a parameter, local variable, or local function cannot have the same name as an extension parameter
             //         static void M3(int p){}
             Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionParameter, "p").WithArguments("p").WithLocation(6, 28),
-            // (7,13): error CS9282: This member is not allowed in an extension block
-            //         int this[int p] => 0;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 13),
             // (7,22): error CS9290: 'p': a parameter, local variable, or local function cannot have the same name as an extension parameter
             //         int this[int p] => 0;
             Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionParameter, "p").WithArguments("p").WithLocation(7, 22),
@@ -31014,18 +30927,9 @@ static class Extensions
             // (6,17): error CS9291: 'value': an automatically-generated parameter name conflicts with an extension parameter name
             //         int P2 {set{}}
             Diagnostic(ErrorCode.ERR_ValueParameterSameNameAsExtensionParameter, "set").WithLocation(6, 17),
-            // (7,13): error CS9282: This member is not allowed in an extension block
-            //         int this[int x] {get=>0;}
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 13),
-            // (8,13): error CS9282: This member is not allowed in an extension block
-            //         int this[long x] {set{}}
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(8, 13),
             // (8,27): error CS9291: 'value': an automatically-generated parameter name conflicts with an extension parameter name
             //         int this[long x] {set{}}
             Diagnostic(ErrorCode.ERR_ValueParameterSameNameAsExtensionParameter, "set").WithLocation(8, 27),
-            // (9,13): error CS9282: This member is not allowed in an extension block
-            //         int this[long x, int value] {set{}}
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(9, 13),
             // (9,30): error CS9290: 'value': a parameter, local variable, or local function cannot have the same name as an extension parameter
             //         int this[long x, int value] {set{}}
             Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionParameter, "value").WithArguments("value").WithLocation(9, 30),
@@ -31671,11 +31575,7 @@ class MyAttr : System.Attribute
 }
 ";
         var comp = CreateCompilation(src);
-
-        comp.VerifyEmitDiagnostics(
-            // (7,13): error CS9282: This member is not allowed in an extension block
-            //         int this[int y]
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 13));
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -31705,10 +31605,7 @@ static class Extensions
             Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "p").WithArguments("string p").WithLocation(6, 54),
             // (6,54): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
             //         [System.Runtime.CompilerServices.IndexerName(p)]
-            Diagnostic(ErrorCode.ERR_BadAttributeArgument, "p").WithLocation(6, 54),
-            // (7,13): error CS9282: This member is not allowed in an extension block
-            //         int this[int y]
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 13)
+            Diagnostic(ErrorCode.ERR_BadAttributeArgument, "p").WithLocation(6, 54)
             );
     }
 
@@ -31829,15 +31726,11 @@ static class Extensions
 ";
         var comp = CreateCompilation(src);
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/78829 : indexers, We do not allow complex forms of IndexerName attribute due to a possible binding cycle
+        // PROTOTYPE Tracked by https://github.com/dotnet/roslyn/issues/78829 : indexers, We do not allow complex forms of IndexerName attribute due to a possible binding cycle
         comp.VerifyEmitDiagnostics(
             // (7,54): error CS8078: An expression is too long or complex to compile
             //         [System.Runtime.CompilerServices.IndexerName(Str)]
-            Diagnostic(ErrorCode.ERR_InsufficientStack, "Str").WithLocation(7, 54),
-            // (8,13): error CS9282: This member is not allowed in an extension block
-            //         int this[int y]
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(8, 13)
-            );
+            Diagnostic(ErrorCode.ERR_InsufficientStack, "Str").WithLocation(7, 54));
     }
 
     [Fact]
@@ -32339,7 +32232,7 @@ static class Extensions6
 """;
         var comp = CreateCompilation(src);
 
-        comp.VerifyDiagnostics(
+        comp.VerifyEmitDiagnostics(
             // (5,26): error CS0082: Type 'Extensions' already reserves a member called 'get_P1' with the same parameter types
             //         public int P1 => 1;
             Diagnostic(ErrorCode.ERR_MemberReserved, "1").WithArguments("get_P1", "Extensions").WithLocation(5, 26),
@@ -32364,21 +32257,12 @@ static class Extensions6
             // (49,20): error CS0082: Type 'Extensions4' already reserves a member called 'set_P4' with the same parameter types
             //         public int P4 => 4;
             Diagnostic(ErrorCode.ERR_MemberReserved, "P4").WithArguments("set_P4", "Extensions4").WithLocation(49, 20),
-            // (57,20): error CS9282: This member is not allowed in an extension block
-            //         public int this[int x] => 1;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(57, 20),
             // (57,35): error CS0082: Type 'Extensions5' already reserves a member called 'get_Item' with the same parameter types
             //         public int this[int x] => 1;
             Diagnostic(ErrorCode.ERR_MemberReserved, "1").WithArguments("get_Item", "Extensions5").WithLocation(57, 35),
-            // (64,20): error CS9282: This member is not allowed in an extension block
-            //         public int this[long b] => 4;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(64, 20),
             // (64,36): error CS0082: Type 'Extensions5' already reserves a member called 'get_Item' with the same parameter types
             //         public int this[long b] => 4;
             Diagnostic(ErrorCode.ERR_MemberReserved, "4").WithArguments("get_Item", "Extensions5").WithLocation(64, 36),
-            // (73,20): error CS9282: This member is not allowed in an extension block
-            //         public int this[int x] => 1;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(73, 20),
             // (73,35): error CS0082: Type 'Extensions6' already reserves a member called 'get_Indexer' with the same parameter types
             //         public int this[int x] => 1;
             Diagnostic(ErrorCode.ERR_MemberReserved, "1").WithArguments("get_Indexer", "Extensions6").WithLocation(73, 35)
@@ -32421,15 +32305,9 @@ static class Extensions2
             // (10,20): error CS0102: The type 'Extensions1' already contains a definition for 'P1'
             //         public int P1 {set{}}
             Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P1").WithArguments("Extensions1", "P1").WithLocation(10, 20),
-            // (18,20): error CS9282: This member is not allowed in an extension block
-            //         public int this[int x] => 1;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(18, 20),
             // (23,20): error CS0111: Type 'Extensions2' already defines a member called 'this' with the same parameter types
             //         public int this[int y] {set{}}
-            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "Extensions2").WithLocation(23, 20),
-            // (23,20): error CS9282: This member is not allowed in an extension block
-            //         public int this[int y] {set{}}
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(23, 20)
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "Extensions2").WithLocation(23, 20)
             );
     }
 
@@ -33616,10 +33494,7 @@ public static class Extensions
         comp.VerifyDiagnostics(
             // (8,13): error CS0102: The type 'Extensions' already contains a definition for 'Item'
             //         int this[T x] => default;
-            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "this").WithArguments("Extensions", "Item").WithLocation(8, 13),
-            // (8,13): error CS9282: This member is not allowed in an extension block
-            //         int this[T x] => default;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(8, 13)
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "this").WithArguments("Extensions", "Item").WithLocation(8, 13)
             );
     }
 
@@ -33657,15 +33532,9 @@ public static class Extensions
         var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
-            // (8,13): error CS9282: This member is not allowed in an extension block
-            //         int this[T x] => default;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(8, 13),
             // (18,13): error CS0111: Type 'Extensions' already defines a member called 'this' with the same parameter types
             //         int this[U x] { set{}}
-            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "Extensions").WithLocation(18, 13),
-            // (18,13): error CS9282: This member is not allowed in an extension block
-            //         int this[U x] { set{}}
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(18, 13)
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "Extensions").WithLocation(18, 13)
             );
     }
 
@@ -33705,15 +33574,9 @@ public static class Extensions
 
         // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, the "within a type" part of the message might be somewhat misleading
         comp.VerifyDiagnostics(
-            // (8,13): error CS9282: This member is not allowed in an extension block
-            //         int this[T x] => default;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(8, 13),
             // (19,13): error CS0668: Two indexers have different names; the IndexerName attribute must be used with the same name on every indexer within a type
             //         int this[int x] { set{}}
-            Diagnostic(ErrorCode.ERR_InconsistentIndexerNames, "this").WithLocation(19, 13),
-            // (19,13): error CS9282: This member is not allowed in an extension block
-            //         int this[int x] { set{}}
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(19, 13)
+            Diagnostic(ErrorCode.ERR_InconsistentIndexerNames, "this").WithLocation(19, 13)
             );
     }
 
@@ -40360,6 +40223,43 @@ WrittenInside: i, i2, i3
 WrittenOutside:
 """, analysisResults);
         }
+
+        [Fact]
+        public void RegionAnalysis_10()
+        {
+            // in indexer
+            var analysisResults = CompileAndAnalyzeDataFlowExpression("""
+static class E
+{
+    extension(int i)
+    {
+        public int this[int i2]
+        {
+            get
+            {
+                _ = /*<bind>*/i + i2/*</bind>*/;
+                return 0;
+            }
+        }
+    }
+}
+""");
+            VerifyDataFlowAnalysis("""
+VariablesDeclared:
+AlwaysAssigned:
+Captured:
+CapturedInside:
+CapturedOutside:
+DataFlowsIn: i, i2
+DataFlowsOut:
+DefinitelyAssignedOnEntry: i, i2
+DefinitelyAssignedOnExit: i, i2
+ReadInside: i, i2
+ReadOutside:
+WrittenInside:
+WrittenOutside: i, i2
+""", analysisResults);
+        }
     }
 
     [Fact]
@@ -41973,29 +41873,17 @@ public static class Extensions
 
 class Program
 {
-    static void Main()
-    {
-        var e = Test();
-        System.Console.Write(e.Compile().Invoke("1", "2"));
-        System.Console.Write(": ");
-        System.Console.Write(e);
-    }
-
     static Expression<Func<object, string, string>> Test()
     {
         return (o, s) => o[s];
     }
 }
 """;
-        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (8,23): error CS9282: This member is not allowed in an extension block
-            //         public string this[string s] => o + s;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(8, 23),
-            // (24,26): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
+            // (16,26): error CS9296: An expression tree may not contain an extension property or indexer access
             //         return (o, s) => o[s];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "o[s]").WithArguments("object").WithLocation(24, 26)
-            );
+            Diagnostic(ErrorCode.ERR_ExpressionTreeContainsExtensionPropertyAccess, "o[s]").WithLocation(16, 26));
     }
 
     [Fact]
@@ -42262,6 +42150,33 @@ class Program
 """;
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         CompileAndVerify(comp, expectedOutput: @"1: () => Convert(System.String M(System.String).CreateDelegate(System.Func`2[System.String,System.String], null)" + (ExecutionConditionUtil.IsMonoOrCoreClr ? ", Func`2)" : ")")).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExpressionTrees_11_InstanceIndexer()
+    {
+        var src = """
+using System;
+using System.Linq.Expressions;
+
+Expression<Func<object>> e = () => new object() { [""] = "" };
+
+public static class Extensions
+{
+    extension(object o)
+    {
+        public string this[string s] { set { } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics(
+            // (4,51): error CS8074: An expression tree lambda may not contain a dictionary initializer.
+            // Expression<Func<object>> e = () => new object() { [""] = "" };
+            Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, @"[""""]").WithLocation(4, 51),
+            // (4,51): error CS9296: An expression tree may not contain an extension property or indexer access
+            // Expression<Func<object>> e = () => new object() { [""] = "" };
+            Diagnostic(ErrorCode.ERR_ExpressionTreeContainsExtensionPropertyAccess, @"[""""]").WithLocation(4, 51));
     }
 
     [Fact]
@@ -42791,9 +42706,6 @@ static class E
             // (14,20): error CS9303: 'P3': cannot declare instance members in an extension block with an unnamed receiver parameter
             //         public int P3 => 0; // 2
             Diagnostic(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, "P3").WithArguments("P3").WithLocation(14, 20),
-            // (16,20): error CS9282: This member is not allowed in an extension block
-            //         public int this[int j] => 0; // 3
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(16, 20),
             // (16,20): error CS9303: 'this[]': cannot declare instance members in an extension block with an unnamed receiver parameter
             //         public int this[int j] => 0; // 3
             Diagnostic(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, "this").WithArguments("this[]").WithLocation(16, 20));
@@ -43032,6 +42944,7 @@ static class E
     {
         public virtual void M() { }
         public virtual int P { get => 0; set { } }
+        public virtual int this[int j] { get => 0; set { } }
     }
 }
 """;
@@ -43042,7 +42955,10 @@ static class E
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("virtual").WithLocation(5, 29),
             // (6,28): error CS0106: The modifier 'virtual' is not valid for this item
             //         public virtual int P { get => 0; set { } }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("virtual").WithLocation(6, 28));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("virtual").WithLocation(6, 28),
+            // (7,28): error CS0106: The modifier 'virtual' is not valid for this item
+            //         public virtual int this[int j] { get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("virtual").WithLocation(7, 28));
     }
 
     [Fact]
@@ -43086,9 +43002,6 @@ static class E
             // (8,29): error CS0106: The modifier 'abstract' is not valid for this item
             //         public abstract int this[int j] { get; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("abstract").WithLocation(8, 29),
-            // (8,29): error CS9282: This member is not allowed in an extension block
-            //         public abstract int this[int j] { get; }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(8, 29),
             // (8,43): error CS0501: 'E.extension(int).this[int].get' must declare a body because it is not marked abstract, extern, or partial
             //         public abstract int this[int j] { get; }
             Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("E.extension(int).this[int].get").WithLocation(8, 43));
@@ -43118,10 +43031,7 @@ static class E
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("new").WithLocation(6, 24),
             // (7,24): error CS0106: The modifier 'new' is not valid for this item
             //         public new int this[int j] { get => 0; }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("new").WithLocation(7, 24),
-            // (7,24): error CS9282: This member is not allowed in an extension block
-            //         public new int this[int j] { get => 0; }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 24));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("new").WithLocation(7, 24));
     }
 
     [Fact]
@@ -43148,10 +43058,7 @@ static class E
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("override").WithLocation(6, 29),
             // (7,29): error CS0106: The modifier 'override' is not valid for this item
             //         public override int this[int j] { get => 0; }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("override").WithLocation(7, 29),
-            // (7,29): error CS9282: This member is not allowed in an extension block
-            //         public override int this[int j] { get => 0; }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 29));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("override").WithLocation(7, 29));
     }
 
     [Fact]
@@ -43182,9 +43089,6 @@ static class E
             // (7,21): error CS0751: A partial member must be declared within a partial type
             //         partial int P { get; set; }
             Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "P").WithLocation(7, 21),
-            // (9,21): error CS9282: This member is not allowed in an extension block
-            //         partial int this[int j] { get; }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(9, 21),
             // (9,21): error CS0751: A partial member must be declared within a partial type
             //         partial int this[int j] { get; }
             Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "this").WithLocation(9, 21));
@@ -43214,10 +43118,7 @@ static class E
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("sealed").WithLocation(6, 20),
             // (7,20): error CS0106: The modifier 'sealed' is not valid for this item
             //         sealed int this[int j] { get => 0; }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("sealed").WithLocation(7, 20),
-            // (7,20): error CS9282: This member is not allowed in an extension block
-            //         sealed int this[int j] { get => 0; }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 20));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("sealed").WithLocation(7, 20));
     }
 
     [Fact]
@@ -43251,10 +43152,7 @@ static class E
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("readonly").WithLocation(7, 46),
             // (8,22): error CS0106: The modifier 'readonly' is not valid for this item
             //         readonly int this[int j] { get => 0; }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("readonly").WithLocation(8, 22),
-            // (8,22): error CS9282: This member is not allowed in an extension block
-            //         readonly int this[int j] { get => 0; }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(8, 22));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("readonly").WithLocation(8, 22));
     }
 
     [Fact]
@@ -43281,10 +43179,7 @@ static class E
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("required").WithLocation(6, 22),
             // (7,22): error CS0106: The modifier 'required' is not valid for this item
             //         required int this[int j] { get => 0; }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("required").WithLocation(7, 22),
-            // (7,22): error CS9282: This member is not allowed in an extension block
-            //         required int this[int j] { get => 0; }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 22));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("required").WithLocation(7, 22));
     }
 
     [Fact]
@@ -44069,9 +43964,6 @@ static class E
 }
 """;
         CreateCompilation(source).VerifyEmitDiagnostics(
-            // (5,20): error CS9282: This member is not allowed in an extension block
-            //         extern int this[int j] { get => 0; }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(5, 20),
             // (5,34): error CS0179: 'E.extension(int).this[int].get' cannot be extern and declare a body
             //         extern int this[int j] { get => 0; }
             Diagnostic(ErrorCode.ERR_ExternHasBody, "get").WithArguments("E.extension(int).this[int].get").WithLocation(5, 34));
@@ -44503,10 +44395,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
-        comp.VerifyEmitDiagnostics(
-            // (7,21): error CS9282: This member is not allowed in an extension block
-            //         unsafe int* this[int j] { get => throw null; }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 21));
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -44540,15 +44429,9 @@ static class E
             // (8,45): error CS9302: 'E.extension(int).P3.set': new protected member declared in an extension block
             //         public int P3 { get => 0; protected set { } }
             Diagnostic(ErrorCode.ERR_ProtectedInExtension, "set").WithArguments("E.extension(int).P3.set").WithLocation(8, 45),
-            // (9,23): error CS9282: This member is not allowed in an extension block
-            //         protected int this[int j] { get => throw null; }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(9, 23),
             // (9,23): error CS9302: 'E.extension(int).this[int]': new protected member declared in an extension block
             //         protected int this[int j] { get => throw null; }
             Diagnostic(ErrorCode.ERR_ProtectedInExtension, "this").WithArguments("E.extension(int).this[int]").WithLocation(9, 23),
-            // (10,20): error CS9282: This member is not allowed in an extension block
-            //         public int this[int j, int k] { protected get => throw null; set { } }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(10, 20),
             // (10,51): error CS9302: 'E.extension(int).this[int, int].get': new protected member declared in an extension block
             //         public int this[int j, int k] { protected get => throw null; set { } }
             Diagnostic(ErrorCode.ERR_ProtectedInExtension, "get").WithArguments("E.extension(int).this[int, int].get").WithLocation(10, 51));
@@ -44585,15 +44468,9 @@ static class E
             // (8,54): error CS9302: 'E.extension(int).P3.set': new protected member declared in an extension block
             //         public int P3 { get => 0; protected internal set { } }
             Diagnostic(ErrorCode.ERR_ProtectedInExtension, "set").WithArguments("E.extension(int).P3.set").WithLocation(8, 54),
-            // (9,32): error CS9282: This member is not allowed in an extension block
-            //         protected internal int this[int j] { get => throw null; }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(9, 32),
             // (9,32): error CS9302: 'E.extension(int).this[int]': new protected member declared in an extension block
             //         protected internal int this[int j] { get => throw null; }
             Diagnostic(ErrorCode.ERR_ProtectedInExtension, "this").WithArguments("E.extension(int).this[int]").WithLocation(9, 32),
-            // (10,20): error CS9282: This member is not allowed in an extension block
-            //         public int this[int j, int k] { protected internal get => throw null; set { } }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(10, 20),
             // (10,60): error CS9302: 'E.extension(int).this[int, int].get': new protected member declared in an extension block
             //         public int this[int j, int k] { protected internal get => throw null; set { } }
             Diagnostic(ErrorCode.ERR_ProtectedInExtension, "get").WithArguments("E.extension(int).this[int, int].get").WithLocation(10, 60));
@@ -44630,15 +44507,9 @@ static class E
             // (8,53): error CS9302: 'E.extension(int).P3.set': new protected member declared in an extension block
             //         public int P3 { get => 0; private protected set { } }
             Diagnostic(ErrorCode.ERR_ProtectedInExtension, "set").WithArguments("E.extension(int).P3.set").WithLocation(8, 53),
-            // (9,31): error CS9282: This member is not allowed in an extension block
-            //         private protected int this[int j] { get => throw null; }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(9, 31),
             // (9,31): error CS9302: 'E.extension(int).this[int]': new protected member declared in an extension block
             //         private protected int this[int j] { get => throw null; }
             Diagnostic(ErrorCode.ERR_ProtectedInExtension, "this").WithArguments("E.extension(int).this[int]").WithLocation(9, 31),
-            // (10,20): error CS9282: This member is not allowed in an extension block
-            //         public int this[int j, int k] { private protected get => throw null; set { } }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(10, 20),
             // (10,59): error CS9302: 'E.extension(int).this[int, int].get': new protected member declared in an extension block
             //         public int this[int j, int k] { private protected get => throw null; set { } }
             Diagnostic(ErrorCode.ERR_ProtectedInExtension, "get").WithArguments("E.extension(int).this[int, int].get").WithLocation(10, 59));
@@ -45851,44 +45722,43 @@ static class E
 
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
-                // (24,13): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-                //         s = x.Property;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(24, 13),
-                // (24,13): error CS8347: Cannot use a result of 'E.extension(S).Property' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
-                //         s = x.Property;
-                Diagnostic(ErrorCode.ERR_EscapeCall, "x.Property").WithArguments("E.extension(S).Property", "s").WithLocation(24, 13),
-                // (26,13): error CS8347: Cannot use a result of 'E.get_Property(S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
-                //         s = E.get_Property(x);
-                Diagnostic(ErrorCode.ERR_EscapeCall, "E.get_Property(x)").WithArguments("E.get_Property(S)", "s").WithLocation(26, 13),
-                // (26,28): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-                //         s = E.get_Property(x);
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(26, 28),
-                // (28,9): error CS8350: This combination of arguments to 'E.extension(ref S).RefReceiverProperty.set' is disallowed because it may expose variables referenced by parameter 'value' outside of their declaration scope
-                //         s.RefReceiverProperty = x;
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "s.RefReceiverProperty = x").WithArguments("E.extension(ref S).RefReceiverProperty.set", "value").WithLocation(28, 9),
-                // (28,33): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-                //         s.RefReceiverProperty = x;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(28, 33),
-                // (29,9): error CS8350: This combination of arguments to 'E.set_RefReceiverProperty(ref S, S)' is disallowed because it may expose variables referenced by parameter 'value' outside of their declaration scope
-                //         E.set_RefReceiverProperty(ref s, x);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "E.set_RefReceiverProperty(ref s, x)").WithArguments("E.set_RefReceiverProperty(ref S, S)", "value").WithLocation(29, 9),
-                // (29,42): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-                //         E.set_RefReceiverProperty(ref s, x);
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(29, 42),
-                // (30,13): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-                //         s = x.RefReceiverProperty;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(30, 13),
-                // (30,13): error CS8347: Cannot use a result of 'E.extension(ref S).RefReceiverProperty' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
-                //         s = x.RefReceiverProperty;
-                Diagnostic(ErrorCode.ERR_EscapeCall, "x.RefReceiverProperty").WithArguments("E.extension(ref S).RefReceiverProperty", "s").WithLocation(30, 13),
-                // (31,13): error CS8347: Cannot use a result of 'E.get_RefReceiverProperty(ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
-                //         s = E.get_RefReceiverProperty(ref x);
-                Diagnostic(ErrorCode.ERR_EscapeCall, "E.get_RefReceiverProperty(ref x)").WithArguments("E.get_RefReceiverProperty(ref S)", "s").WithLocation(31, 13),
-                // (31,43): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-                //         s = E.get_RefReceiverProperty(ref x);
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(31, 43)
-
-        );
+            // (24,13): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         s = x.Property;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(24, 13),
+            // (24,13): error CS8347: Cannot use a result of 'E.extension(S).Property' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+            //         s = x.Property;
+            Diagnostic(ErrorCode.ERR_EscapeCall, "x.Property").WithArguments("E.extension(S).Property", "s").WithLocation(24, 13),
+            // (26,13): error CS8347: Cannot use a result of 'E.get_Property(S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+            //         s = E.get_Property(x);
+            Diagnostic(ErrorCode.ERR_EscapeCall, "E.get_Property(x)").WithArguments("E.get_Property(S)", "s").WithLocation(26, 13),
+            // (26,28): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         s = E.get_Property(x);
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(26, 28),
+            // (28,9): error CS8350: This combination of arguments to 'E.extension(ref S).RefReceiverProperty' is disallowed because it may expose variables referenced by parameter 'value' outside of their declaration scope
+            //         s.RefReceiverProperty = x;
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "s.RefReceiverProperty").WithArguments("E.extension(ref S).RefReceiverProperty", "value").WithLocation(28, 9),
+            // (28,33): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         s.RefReceiverProperty = x;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(28, 33),
+            // (29,9): error CS8350: This combination of arguments to 'E.set_RefReceiverProperty(ref S, S)' is disallowed because it may expose variables referenced by parameter 'value' outside of their declaration scope
+            //         E.set_RefReceiverProperty(ref s, x);
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "E.set_RefReceiverProperty(ref s, x)").WithArguments("E.set_RefReceiverProperty(ref S, S)", "value").WithLocation(29, 9),
+            // (29,42): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         E.set_RefReceiverProperty(ref s, x);
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(29, 42),
+            // (30,13): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         s = x.RefReceiverProperty;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(30, 13),
+            // (30,13): error CS8347: Cannot use a result of 'E.extension(ref S).RefReceiverProperty' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+            //         s = x.RefReceiverProperty;
+            Diagnostic(ErrorCode.ERR_EscapeCall, "x.RefReceiverProperty").WithArguments("E.extension(ref S).RefReceiverProperty", "s").WithLocation(30, 13),
+            // (31,13): error CS8347: Cannot use a result of 'E.get_RefReceiverProperty(ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+            //         s = E.get_RefReceiverProperty(ref x);
+            Diagnostic(ErrorCode.ERR_EscapeCall, "E.get_RefReceiverProperty(ref x)").WithArguments("E.get_RefReceiverProperty(ref S)", "s").WithLocation(31, 13),
+            // (31,43): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         s = E.get_RefReceiverProperty(ref x);
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(31, 43)
+            );
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79654")]
@@ -45984,56 +45854,58 @@ static class E
 
     public static void Test1(S s)
     {
-        var x = new S {  field = stackalloc int[10] };
+        var x = new S { field = stackalloc int[10] };
         s[0] = x;
         E.set_Item(s, 0, x);
-        s = x[0];
-        s = e.get_Item(x, 0);
+        s = x[0]; // 1, 2
+        s = E.get_Item(x, 0); // 3, 4
 
-        s[1.0] = x;
-        E.set_Item(ref s, 1.0, x);
-        s = x[1.0];
-        s = E.get_Item(ref x, 1.0);
+        s[1.0] = x; // 5, 6
+        E.set_Item(ref s, 1.0, x); // 7, 8
+        s = x[1.0]; // 9, 10
+        s = E.get_Item(ref x, 1.0); // 11, 12
     }
 }
 """;
 
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
-            // (12,18): error CS9282: This member is not allowed in an extension block
-            //         public S this[int i] { get => throw null!; set => throw null!; }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(12, 18),
-            // (17,18): error CS9282: This member is not allowed in an extension block
-            //         public S this[double d] { get => throw null!; set => throw null!; }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(17, 18),
-            // (23,9): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
-            //         s[0] = x;
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[0]").WithArguments("S").WithLocation(23, 9),
-            // (25,13): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
-            //         s = x[0];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "x[0]").WithArguments("S").WithLocation(25, 13),
-            // (26,13): error CS0103: The name 'e' does not exist in the current context
-            //         s = e.get_Item(x, 0);
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(26, 13),
-            // (28,9): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
-            //         s[1.0] = x;
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[1.0]").WithArguments("S").WithLocation(28, 9),
+            // (25,13): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         s = x[0]; // 1, 2
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(25, 13),
+            // (25,13): error CS8347: Cannot use a result of 'E.extension(S).this[int]' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+            //         s = x[0]; // 1, 2
+            Diagnostic(ErrorCode.ERR_EscapeCall, "x[0]").WithArguments("E.extension(S).this[int]", "s").WithLocation(25, 13),
+            // (26,13): error CS8347: Cannot use a result of 'E.get_Item(S, int)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+            //         s = E.get_Item(x, 0); // 3, 4
+            Diagnostic(ErrorCode.ERR_EscapeCall, "E.get_Item(x, 0)").WithArguments("E.get_Item(S, int)", "s").WithLocation(26, 13),
+            // (26,24): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         s = E.get_Item(x, 0); // 3, 4
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(26, 24),
+            // (28,9): error CS8350: This combination of arguments to 'E.extension(ref S).this[double]' is disallowed because it may expose variables referenced by parameter 'value' outside of their declaration scope
+            //         s[1.0] = x; // 5, 6
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "s[1.0]").WithArguments("E.extension(ref S).this[double]", "value").WithLocation(28, 9),
+            // (28,18): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         s[1.0] = x; // 5, 6
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(28, 18),
             // (29,9): error CS8350: This combination of arguments to 'E.set_Item(ref S, double, S)' is disallowed because it may expose variables referenced by parameter 'value' outside of their declaration scope
-            //         E.set_Item(ref s, 1.0, x);
+            //         E.set_Item(ref s, 1.0, x); // 7, 8
             Diagnostic(ErrorCode.ERR_CallArgMixing, "E.set_Item(ref s, 1.0, x)").WithArguments("E.set_Item(ref S, double, S)", "value").WithLocation(29, 9),
             // (29,32): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-            //         E.set_Item(ref s, 1.0, x);
+            //         E.set_Item(ref s, 1.0, x); // 7, 8
             Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(29, 32),
-            // (30,13): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
-            //         s = x[1.0];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "x[1.0]").WithArguments("S").WithLocation(30, 13),
+            // (30,13): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         s = x[1.0]; // 9, 10
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(30, 13),
+            // (30,13): error CS8347: Cannot use a result of 'E.extension(ref S).this[double]' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+            //         s = x[1.0]; // 9, 10
+            Diagnostic(ErrorCode.ERR_EscapeCall, "x[1.0]").WithArguments("E.extension(ref S).this[double]", "s").WithLocation(30, 13),
             // (31,13): error CS8347: Cannot use a result of 'E.get_Item(ref S, double)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
-            //         s = E.get_Item(ref x, 1.0);
+            //         s = E.get_Item(ref x, 1.0); // 11, 12
             Diagnostic(ErrorCode.ERR_EscapeCall, "E.get_Item(ref x, 1.0)").WithArguments("E.get_Item(ref S, double)", "s").WithLocation(31, 13),
             // (31,28): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-            //         s = E.get_Item(ref x, 1.0);
-            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(31, 28)
-        );
+            //         s = E.get_Item(ref x, 1.0); // 11, 12
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(31, 28));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79654")]
@@ -46061,53 +45933,46 @@ static class E
 
     public static void Test1(S s)
     {
-        var x = new S {  field = stackalloc int[10] };
-        s[0] = x;
-        E.get_Item(s, 0) = x;
+        var x = new S { field = stackalloc int[10] };
+        s[0] = x; // 1
+        E.get_Item(s, 0) = x; // 2
         s = x[0];
         s = E.get_Item(x, 0);
 
-        s[1.0] = x;
-        E.get_Item(ref s, 1.0) = x;
-        s = x[1.0];
-        s = E.get_Item(ref x, 1.0);
+        s[1.0] = x; // 3
+        E.get_Item(ref s, 1.0) = x; // 4
+        s = x[1.0]; // 5, 6
+        s = E.get_Item(ref x, 1.0); // 7, 8
     }
 }
 """;
 
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
-            // (12,22): error CS9282: This member is not allowed in an extension block
-            //         public ref S this[int i] { get => throw null!; }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(12, 22),
-            // (17,22): error CS9282: This member is not allowed in an extension block
-            //         public ref S this[double d] { get => throw null!; }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(17, 22),
-            // (23,9): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
-            //         s[0] = x;
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[0]").WithArguments("S").WithLocation(23, 9),
+            // (23,16): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         s[0] = x; // 1
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(23, 16),
             // (24,28): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-            //         E.get_Item(s, 0) = x;
+            //         E.get_Item(s, 0) = x; // 2
             Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(24, 28),
-            // (25,13): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
-            //         s = x[0];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "x[0]").WithArguments("S").WithLocation(25, 13),
-            // (28,9): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
-            //         s[1.0] = x;
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[1.0]").WithArguments("S").WithLocation(28, 9),
+            // (28,18): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         s[1.0] = x; // 3
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(28, 18),
             // (29,34): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-            //         E.get_Item(ref s, 1.0) = x;
+            //         E.get_Item(ref s, 1.0) = x; // 4
             Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(29, 34),
-            // (30,13): error CS0021: Cannot apply indexing with [] to an expression of type 'S'
-            //         s = x[1.0];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "x[1.0]").WithArguments("S").WithLocation(30, 13),
+            // (30,13): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         s = x[1.0]; // 5, 6
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(30, 13),
+            // (30,13): error CS8347: Cannot use a result of 'E.extension(ref S).this[double]' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+            //         s = x[1.0]; // 5, 6
+            Diagnostic(ErrorCode.ERR_EscapeCall, "x[1.0]").WithArguments("E.extension(ref S).this[double]", "s").WithLocation(30, 13),
             // (31,13): error CS8347: Cannot use a result of 'E.get_Item(ref S, double)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
-            //         s = E.get_Item(ref x, 1.0);
+            //         s = E.get_Item(ref x, 1.0); // 7, 8
             Diagnostic(ErrorCode.ERR_EscapeCall, "E.get_Item(ref x, 1.0)").WithArguments("E.get_Item(ref S, double)", "s").WithLocation(31, 13),
             // (31,28): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
-            //         s = E.get_Item(ref x, 1.0);
-            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(31, 28)
-        );
+            //         s = E.get_Item(ref x, 1.0); // 7, 8
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(31, 28));
     }
 
     [Fact]
@@ -50484,38 +50349,6 @@ static class E
         AssertEx.SequenceEqual(["(T, T)", "(t, T t)", "(U, U)", "(u, U u)"], PrintXmlNameSymbols(tree, model));
     }
 
-    private static IEnumerable<string> PrintXmlNameSymbols(SyntaxTree tree, SemanticModel model)
-    {
-        var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
-        var xmlNames = docComments.SelectMany(doc => doc.DescendantNodes().OfType<XmlNameAttributeSyntax>());
-        var result = xmlNames.Select(name => print(name));
-        return result;
-
-        string print(XmlNameAttributeSyntax name)
-        {
-            IdentifierNameSyntax identifier = name.Identifier;
-            var symbol = model.GetSymbolInfo(identifier).Symbol;
-            var symbolDisplay = symbol is null ? "null" : symbol.ToTestDisplayString();
-            return (identifier, symbolDisplay).ToString();
-        }
-    }
-
-    internal static IEnumerable<string> PrintXmlCrefSymbols(SyntaxTree tree, SemanticModel model)
-    {
-        var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
-        var crefs = docComments.SelectMany(doc => doc.DescendantNodes().OfType<XmlCrefAttributeSyntax>());
-        var result = crefs.Select(name => print(name));
-        return result;
-
-        string print(XmlCrefAttributeSyntax cref)
-        {
-            CrefSyntax crefSyntax = cref.Cref;
-            var symbol = model.GetSymbolInfo(crefSyntax).Symbol;
-            var symbolDisplay = symbol is null ? "null" : symbol.ToTestDisplayString();
-            return (crefSyntax, symbolDisplay).ToString();
-        }
-    }
-
     [Fact]
     public void XmlDoc_02()
     {
@@ -52017,6 +51850,16 @@ static class E
 
         [Attr3]
         public int P => 0;
+
+        [Attr4]
+        public int this[int j]
+        {
+            [Attr5]
+            get => 0;
+
+            [Attr6]
+            set { }
+        }
     }
 }
 """;
@@ -52032,7 +51875,13 @@ static class E
             "P -> System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<T>.P { get; }",
             "T -> E.<G>$8048A6C8BE30A622530249B904B537EB<T>.<M>$4294E9E080371DCE7DAC7C951C4773A1",
             "Attr -> E.<G>$8048A6C8BE30A622530249B904B537EB<T>.<M>$4294E9E080371DCE7DAC7C951C4773A1",
-            "extension -> E.<G>$8048A6C8BE30A622530249B904B537EB<T>.<M>$4294E9E080371DCE7DAC7C951C4773A1"],
+            "extension -> E.<G>$8048A6C8BE30A622530249B904B537EB<T>.<M>$4294E9E080371DCE7DAC7C951C4773A1",
+            "Attr4 -> System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<T>.this[System.Int32 j] { get; set; }",
+            "Attr5 -> System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<T>.this[System.Int32 j].get",
+            "Attr6 -> void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.this[System.Int32 j].set",
+            "this -> System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<T>.this[System.Int32 j] { get; set; }",
+            "get -> System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<T>.this[System.Int32 j].get",
+            "set -> void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.this[System.Int32 j].set"],
             analyzer._results.ToArray());
     }
 
@@ -52051,6 +51900,9 @@ static class E
             context.RegisterSyntaxNodeAction(handle, SyntaxKind.IdentifierName);
             context.RegisterSyntaxNodeAction(handle, SyntaxKind.MethodDeclaration);
             context.RegisterSyntaxNodeAction(handle, SyntaxKind.PropertyDeclaration);
+            context.RegisterSyntaxNodeAction(handle, SyntaxKind.IndexerDeclaration);
+            context.RegisterSyntaxNodeAction(handle, SyntaxKind.GetAccessorDeclaration);
+            context.RegisterSyntaxNodeAction(handle, SyntaxKind.SetAccessorDeclaration);
 
             void handle(SyntaxNodeAnalysisContext context)
             {
@@ -52065,6 +51917,8 @@ static class E
                     ExtensionBlockDeclarationSyntax => "extension",
                     MethodDeclarationSyntax method => method.Identifier.ValueText,
                     PropertyDeclarationSyntax property => property.Identifier.ValueText,
+                    IndexerDeclarationSyntax indexer => indexer.ThisKeyword.ValueText,
+                    AccessorDeclarationSyntax accessor => accessor.Keyword.ValueText,
                     _ => context.Node.ToString()
                 };
 
