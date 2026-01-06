@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 
@@ -90,6 +91,62 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
             .WithOptions(semanticModel.Compilation.Options.WithSpecificDiagnosticOptions([]));
         var updatedSemanticModel = updatedCompilation.GetSemanticModel(updatedTree);
 
+        using var _1 = ArrayBuilder<PostfixUnaryExpressionSyntax>.GetInstance(out var inGlobalStatements);
+        using var _2 = ArrayBuilder<(PostfixUnaryExpressionSyntax suppression, SyntaxNode rewritten)>.GetInstance(out var inFieldsOrProperties);
+        using var _3 = ArrayBuilder<(PostfixUnaryExpressionSyntax suppression, SyntaxNode rewritten)>.GetInstance(out var remainder);
+
+        foreach (var (suppression, annotation) in nodeToAnnotation)
+        {
+            var rewritten = updateRoot.GetAnnotatedNodes(annotation).Single();
+            var globalStatement = rewritten.Ancestors().OfType<GlobalStatementSyntax>().FirstOrDefault();
+
+            if (globalStatement is not null)
+            {
+                inGlobalStatements.Add(suppression);
+            }
+            else
+            {
+                // Otherwise, find our containing code-containing member (attributes, accessors, fields, methods, properties,
+                // anonymous methods), and check that entire member.  This means we only offer to remove the suppression if all
+                // the suppressions in the member are unnecessary.  We need this granularity as doing things on a
+                // per-suppression is just far too slow.
+                //
+                // We also check at this level because suppressions can have effects far outside of the containing statement (or
+                // even things like the containing block.  For example: a suppression inside a block like `a = b!` can affect
+                // the nullability of a variable which may be referenced far outside of the block.  So we really need to check
+                // the entire code region that the suppression is in to make an accurate determination.
+                var ancestor = rewritten.Ancestors().FirstOrDefault(
+                    n => n is AttributeSyntax
+                           or AccessorDeclarationSyntax
+                           or AnonymousMethodExpressionSyntax
+                           or BaseFieldDeclarationSyntax
+                           or BaseMethodDeclarationSyntax
+                           or BasePropertyDeclarationSyntax);
+
+                if (ancestor is BaseFieldDeclarationSyntax or BasePropertyDeclarationSyntax)
+                {
+                    inFieldsOrProperties.Add((suppression, ancestor));
+                }
+                else if (ancestor != null)
+                {
+                    remainder.Add((suppression, ancestor));
+                }
+            }
+        }
+
+        updatedNodes.AddRange(nodeToAnnotation.Select(kvp => (kvp.Key, updateRoot.GetAnnotatedNodes(kvp.Value).Single())));
+
+        var containingTypes = nodeToAnnotation.Select(kvp => updateRoot.GetAnnotatedNodes(kvp.Value).Single().FirstAncestorOrSelf<TypeDeclarationSyntax>()).WhereNotNull().Distinct();
+        foreach (var type in containingTypes)
+        {
+            var diagnostics2 = updatedSemanticModel.GetDiagnostics(type.Span, cancellationToken);
+            Console.WriteLine(diagnostics2);
+        }
+
+        CheckGlobalStatements();
+        CheckFieldsAndProperties();
+        CheckRemainder();
+
         // Group nodes by the span we need to check for errors/warnings. That way we only need to get the diagnostics
         // once per span instead of once per node.
         foreach (var group in nodeToAnnotation.GroupBy(tuple => GetSpanToCheck(updateRoot.GetAnnotatedNodes(tuple.Value).Single())))
@@ -107,6 +164,29 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
             foreach (var (suppressionNode, _) in group)
                 result.Add(suppressionNode);
         }
+
+        void CheckGlobalStatements()
+        {
+            if (inGlobalStatements.Count == 0)
+                return;
+
+            var compilationUnit = (CompilationUnitSyntax)updatedSemanticModel.SyntaxTree.GetRoot(cancellationToken);
+            var globalStatements = compilationUnit.Members.OfType<GlobalStatementSyntax>();
+            var span = TextSpan.FromBounds(globalStatements.First().SpanStart, globalStatements.Last().Span.End);
+
+            var updatedDiagnostics = updatedSemanticModel.GetDiagnostics(span, cancellationToken);
+            if (ContainsErrorOrWarning(updatedDiagnostics))
+                return;
+
+            // If there were no errors in that span after removing all the suppressions, then we can offer all of these
+            // nodes up for fixing.
+            result.AddRange(inGlobalStatements);
+        }
+
+        void CheckFieldsAndProperties()
+        {
+
+        }
     }
 
     private static TextSpan? GetSpanToCheck(SyntaxNode updatedNode)
@@ -119,22 +199,6 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
             return TextSpan.FromBounds(globalStatement.SpanStart, compilationUnit.Members.OfType<GlobalStatementSyntax>().Last().Span.End);
         }
 
-        // Otherwise, find our containing code-containing member (attributes, accessors, fields, methods, properties,
-        // anonymous methods), and check that entire member.  This means we only offer to remove the suppression if all
-        // the suppressions in the member are unnecessary.  We need this granularity as doing things on a
-        // per-suppression is just far too slow.
-        //
-        // We also check at this level because suppressions can have effects far outside of the containing statement (or
-        // even things like the containing block.  For example: a suppression inside a block like `a = b!` can affect
-        // the nullability of a variable which may be referenced far outside of the block.  So we really need to check
-        // the entire code region that the suppression is in to make an accurate determination.
-        var ancestor = updatedNode.Ancestors().FirstOrDefault(
-            n => n is AttributeSyntax
-                   or AccessorDeclarationSyntax
-                   or AnonymousMethodExpressionSyntax
-                   or BaseFieldDeclarationSyntax
-                   or BaseMethodDeclarationSyntax
-                   or BasePropertyDeclarationSyntax);
 
         return ancestor?.Span;
     }
