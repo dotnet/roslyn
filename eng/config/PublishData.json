@@ -12,6 +12,7 @@
     "Microsoft.CodeAnalysis.Scripting.Common": "arcade",
     "Microsoft.CodeAnalysis.Workspaces.Common": "vssdk",
     "Microsoft.CodeAnalysis.Workspaces.MSBuild": "arcade",
+    "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost": "arcade",
     "Microsoft.CodeAnalysis.Workspaces.Desktop": "arcade",
     "Microsoft.CodeAnalysis.Workspaces.Test.Utilities": "vs-impl",
     "Microsoft.CodeAnalysis.Compiler.Test.Resources": "vs-impl",
@@ -98,7 +99,7 @@
       "NonShipping"
     ],
     "vsBranch": "main",
-    "insertionCreateDraftPR": false,
+    "insertionCreateDraftPR": true,
     "insertionTitlePrefix": "[InsidersVNext]"
   }
 }
