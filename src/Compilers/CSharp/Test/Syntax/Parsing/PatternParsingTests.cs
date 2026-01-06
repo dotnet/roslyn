@@ -13813,7 +13813,6 @@ switch (e)
                 reqs switch
                 {
                     (CustomEnum.EnumTwo) when flag => "ok",
-                    _ => "nope"
                 }
                 """);
 
@@ -13862,18 +13861,6 @@ switch (e)
                     }
                 }
                 N(SyntaxKind.CommaToken);
-                N(SyntaxKind.SwitchExpressionArm);
-                {
-                    N(SyntaxKind.DiscardPattern);
-                    {
-                        N(SyntaxKind.UnderscoreToken);
-                    }
-                    N(SyntaxKind.EqualsGreaterThanToken);
-                    N(SyntaxKind.StringLiteralExpression);
-                    {
-                        N(SyntaxKind.StringLiteralToken, "\"nope\"");
-                    }
-                }
                 N(SyntaxKind.CloseBraceToken);
             }
             EOF();
@@ -13886,7 +13873,6 @@ switch (e)
                 reqs switch
                 {
                     CustomEnum.EnumTwo when flag => "ok",
-                    _ => "nope"
                 }
                 """);
 
@@ -13930,18 +13916,6 @@ switch (e)
                     }
                 }
                 N(SyntaxKind.CommaToken);
-                N(SyntaxKind.SwitchExpressionArm);
-                {
-                    N(SyntaxKind.DiscardPattern);
-                    {
-                        N(SyntaxKind.UnderscoreToken);
-                    }
-                    N(SyntaxKind.EqualsGreaterThanToken);
-                    N(SyntaxKind.StringLiteralExpression);
-                    {
-                        N(SyntaxKind.StringLiteralToken, "\"nope\"");
-                    }
-                }
                 N(SyntaxKind.CloseBraceToken);
             }
             EOF();
@@ -13954,7 +13928,6 @@ switch (e)
                 (reqs, true) switch
                 {
                     (CustomEnum.EnumTwo, _) when flag => "ok",
-                    _ => "nope"
                 }
                 """);
 
@@ -14033,18 +14006,6 @@ switch (e)
                     }
                 }
                 N(SyntaxKind.CommaToken);
-                N(SyntaxKind.SwitchExpressionArm);
-                {
-                    N(SyntaxKind.DiscardPattern);
-                    {
-                        N(SyntaxKind.UnderscoreToken);
-                    }
-                    N(SyntaxKind.EqualsGreaterThanToken);
-                    N(SyntaxKind.StringLiteralExpression);
-                    {
-                        N(SyntaxKind.StringLiteralToken, "\"nope\"");
-                    }
-                }
                 N(SyntaxKind.CloseBraceToken);
             }
             EOF();
@@ -14057,7 +14018,6 @@ switch (e)
                 reqs switch
                 {
                     (CustomEnum.EnumTwo) => "ok",
-                    _ => "nope"
                 }
                 """);
 
@@ -14098,18 +14058,6 @@ switch (e)
                     }
                 }
                 N(SyntaxKind.CommaToken);
-                N(SyntaxKind.SwitchExpressionArm);
-                {
-                    N(SyntaxKind.DiscardPattern);
-                    {
-                        N(SyntaxKind.UnderscoreToken);
-                    }
-                    N(SyntaxKind.EqualsGreaterThanToken);
-                    N(SyntaxKind.StringLiteralExpression);
-                    {
-                        N(SyntaxKind.StringLiteralToken, "\"nope\"");
-                    }
-                }
                 N(SyntaxKind.CloseBraceToken);
             }
             EOF();
@@ -14122,7 +14070,6 @@ switch (e)
                 ((int)reqs) switch
                        {
                            (1) when flag => "ok",
-                           _ => "nope"
                        }
                 """);
 
@@ -14177,18 +14124,6 @@ switch (e)
                     }
                 }
                 N(SyntaxKind.CommaToken);
-                N(SyntaxKind.SwitchExpressionArm);
-                {
-                    N(SyntaxKind.DiscardPattern);
-                    {
-                        N(SyntaxKind.UnderscoreToken);
-                    }
-                    N(SyntaxKind.EqualsGreaterThanToken);
-                    N(SyntaxKind.StringLiteralExpression);
-                    {
-                        N(SyntaxKind.StringLiteralToken, "\"nope\"");
-                    }
-                }
                 N(SyntaxKind.CloseBraceToken);
             }
             EOF();
@@ -14309,7 +14244,6 @@ switch (e)
                 reqs switch
                 {
                     (CustomEnum.EnumTwo) when => "ok",
-                    _ => "nope"
                 }
                 """,
                 // (3,31): error CS1001: Identifier expected
@@ -14375,18 +14309,500 @@ switch (e)
                     }
                 }
                 N(SyntaxKind.CommaToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81837")]
+        public void ParenthesizedTypeOrConstant9()
+        {
+            UsingExpression("""
+                reqs switch
+                {
+                    ((CustomEnum.EnumTwo)when) => "ok",
+                }
+                """);
+
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "reqs");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.SwitchExpressionArm);
                 {
-                    N(SyntaxKind.DiscardPattern);
+                    N(SyntaxKind.ConstantPattern);
                     {
-                        N(SyntaxKind.UnderscoreToken);
+                        N(SyntaxKind.ParenthesizedExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CastExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.QualifiedName);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "CustomEnum");
+                                    }
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "EnumTwo");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "when");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
                     }
                     N(SyntaxKind.EqualsGreaterThanToken);
                     N(SyntaxKind.StringLiteralExpression);
                     {
-                        N(SyntaxKind.StringLiteralToken, "\"nope\"");
+                        N(SyntaxKind.StringLiteralToken, "\"ok\"");
                     }
                 }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81837")]
+        public void ParenthesizedTypeOrConstant10()
+        {
+            UsingExpression("""
+                reqs switch
+                {
+                    (CustomEnum.EnumTwo when) => "ok",
+                }
+                """);
+
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "reqs");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.ParenthesizedPattern);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.DeclarationPattern);
+                        {
+                            N(SyntaxKind.QualifiedName);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "CustomEnum");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "EnumTwo");
+                                }
+                            }
+                            N(SyntaxKind.SingleVariableDesignation);
+                            {
+                                N(SyntaxKind.IdentifierToken, "when");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.StringLiteralExpression);
+                    {
+                        N(SyntaxKind.StringLiteralToken, "\"ok\"");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81837")]
+        public void ParenthesizedTypeOrConstant11()
+        {
+            UsingExpression("""
+                reqs switch
+                {
+                    (CustomEnum.EnumTwo when, CustomEnum.EnumTwo when) => "ok",
+                }
+                """);
+
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "reqs");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.PositionalPatternClause);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Subpattern);
+                            {
+                                N(SyntaxKind.DeclarationPattern);
+                                {
+                                    N(SyntaxKind.QualifiedName);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "CustomEnum");
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "EnumTwo");
+                                        }
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Subpattern);
+                            {
+                                N(SyntaxKind.DeclarationPattern);
+                                {
+                                    N(SyntaxKind.QualifiedName);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "CustomEnum");
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "EnumTwo");
+                                        }
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.StringLiteralExpression);
+                    {
+                        N(SyntaxKind.StringLiteralToken, "\"ok\"");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81837")]
+        public void ParenthesizedTypeOrConstant12()
+        {
+            UsingExpression("""
+                reqs switch
+                {
+                    (CustomEnum.EnumTwo when, CustomEnum.EnumTwo when) other => "ok",
+                }
+                """);
+
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "reqs");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.PositionalPatternClause);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Subpattern);
+                            {
+                                N(SyntaxKind.DeclarationPattern);
+                                {
+                                    N(SyntaxKind.QualifiedName);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "CustomEnum");
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "EnumTwo");
+                                        }
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Subpattern);
+                            {
+                                N(SyntaxKind.DeclarationPattern);
+                                {
+                                    N(SyntaxKind.QualifiedName);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "CustomEnum");
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "EnumTwo");
+                                        }
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "other");
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.StringLiteralExpression);
+                    {
+                        N(SyntaxKind.StringLiteralToken, "\"ok\"");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81837")]
+        public void ParenthesizedTypeOrConstant13()
+        {
+            UsingExpression("""
+                reqs switch
+                {
+                    (CustomEnum.EnumTwo when, CustomEnum.EnumTwo when) when => "ok",
+                }
+                """,
+                // (3,61): error CS1001: Identifier expected
+                //     (CustomEnum.EnumTwo when, CustomEnum.EnumTwo when) when => "ok",
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(3, 61),
+                // (3,68): error CS1003: Syntax error, '=>' expected
+                //     (CustomEnum.EnumTwo when, CustomEnum.EnumTwo when) when => "ok",
+                Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments("=>").WithLocation(3, 68),
+                // (3,68): error CS1525: Invalid expression term ','
+                //     (CustomEnum.EnumTwo when, CustomEnum.EnumTwo when) when => "ok",
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(3, 68));
+
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "reqs");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.PositionalPatternClause);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Subpattern);
+                            {
+                                N(SyntaxKind.DeclarationPattern);
+                                {
+                                    N(SyntaxKind.QualifiedName);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "CustomEnum");
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "EnumTwo");
+                                        }
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Subpattern);
+                            {
+                                N(SyntaxKind.DeclarationPattern);
+                                {
+                                    N(SyntaxKind.QualifiedName);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "CustomEnum");
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "EnumTwo");
+                                        }
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.WhenClause);
+                    {
+                        N(SyntaxKind.WhenKeyword);
+                        N(SyntaxKind.SimpleLambdaExpression);
+                        {
+                            M(SyntaxKind.Parameter);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.StringLiteralExpression);
+                            {
+                                N(SyntaxKind.StringLiteralToken, "\"ok\"");
+                            }
+                        }
+                    }
+                    M(SyntaxKind.EqualsGreaterThanToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81837")]
+        public void ParenthesizedTypeOrConstant14()
+        {
+            UsingExpression("""
+                reqs switch
+                {
+                    (CustomEnum.EnumTwo when, CustomEnum.EnumTwo when) when true => "ok",
+                }
+                """);
+
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "reqs");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.PositionalPatternClause);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Subpattern);
+                            {
+                                N(SyntaxKind.DeclarationPattern);
+                                {
+                                    N(SyntaxKind.QualifiedName);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "CustomEnum");
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "EnumTwo");
+                                        }
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Subpattern);
+                            {
+                                N(SyntaxKind.DeclarationPattern);
+                                {
+                                    N(SyntaxKind.QualifiedName);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "CustomEnum");
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "EnumTwo");
+                                        }
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.WhenClause);
+                    {
+                        N(SyntaxKind.WhenKeyword);
+                        N(SyntaxKind.TrueLiteralExpression);
+                        {
+                            N(SyntaxKind.TrueKeyword);
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.StringLiteralExpression);
+                    {
+                        N(SyntaxKind.StringLiteralToken, "\"ok\"");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
                 N(SyntaxKind.CloseBraceToken);
             }
             EOF();
