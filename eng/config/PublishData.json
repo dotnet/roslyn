@@ -97,8 +97,8 @@
       "Shipping",
       "NonShipping"
     ],
-    "vsBranch": "main",
+    "vsBranch": "rel/d18.3",
     "insertionCreateDraftPR": false,
-    "insertionTitlePrefix": "[InsidersVNext]"
+    "insertionTitlePrefix": "[d18.3]"
   }
 }
