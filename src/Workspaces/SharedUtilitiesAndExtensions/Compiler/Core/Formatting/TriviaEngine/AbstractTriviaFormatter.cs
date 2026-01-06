@@ -868,8 +868,8 @@ internal abstract class AbstractTriviaFormatter
             // if there was already new lines, ignore elastic
             var lineColumnAfterPreviousTrivia = GetLineColumn(lineColumn, previousTrivia);
 
-            var newLineFromPreviousOperation = (whitespaceBetween.Lines > 0) ||
-                                               (lineColumnAfterPreviousTrivia.Line > 0 && lineColumnAfterPreviousTrivia.Column == 0);
+            var newLineFromPreviousOperation = whitespaceBetween.Lines > 0 ||
+                                               lineColumnAfterPreviousTrivia is { Line: > 0, Column: 0 };
             if (newLineFromPreviousOperation && whitespaceBetween.WhitespaceOnly)
             {
                 return LineColumnDelta.Default;
