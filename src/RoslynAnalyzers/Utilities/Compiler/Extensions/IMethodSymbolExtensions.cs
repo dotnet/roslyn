@@ -162,8 +162,7 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         private static bool HasDisposeMethodSignature(this IMethodSymbol method)
         {
-            return method.Name == "Dispose" && method.MethodKind == MethodKind.Ordinary &&
-                method.ReturnsVoid && method.Parameters.IsEmpty;
+            return method is { Name: "Dispose", MethodKind: MethodKind.Ordinary, ReturnsVoid: true, Parameters.IsEmpty: true };
         }
 
         /// <summary>
