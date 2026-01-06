@@ -1019,7 +1019,6 @@ partial struct C
                 );
         }
 
-
         [Fact]
         public void ExtendedLayout_FieldOffset_Errors()
         {
