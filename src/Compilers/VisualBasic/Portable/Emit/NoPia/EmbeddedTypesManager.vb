@@ -30,6 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
         Private ReadOnly _reportedSymbolsMap As New ConcurrentDictionary(Of Symbol, Boolean)(ReferenceEqualityComparer.Instance)
         Private _lazySystemStringType As NamedTypeSymbol = ErrorTypeSymbol.UnknownResultType
         Private ReadOnly _lazyWellKnownTypeMethods As MethodSymbol()
+        Private ReadOnly _lazySpecialTypeMethods As MethodSymbol()
 
         Public Sub New(moduleBeingBuilt As PEModuleBuilder)
             MyBase.New(moduleBeingBuilt)
@@ -37,6 +38,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             _lazyWellKnownTypeMethods = New MethodSymbol(WellKnownMember.Count - 1) {}
             For i = 0 To WellKnownMember.Count - 1
                 _lazyWellKnownTypeMethods(i) = ErrorMethodSymbol.UnknownMethod
+            Next
+            _lazySpecialTypeMethods = New MethodSymbol(SpecialMember.Count - 1) {}
+            For i = 0 To SpecialMember.Count - 1
+                _lazySpecialTypeMethods(i) = ErrorMethodSymbol.UnknownMethod
             Next
         End Sub
 
@@ -67,6 +72,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             If lazyMethod Is ErrorMethodSymbol.UnknownMethod Then
                 Dim info As UseSiteInfo(Of AssemblySymbol) = Nothing
                 Dim symbol = DirectCast(Binder.GetWellKnownTypeMember(ModuleBeingBuilt.Compilation, method, info), MethodSymbol)
+
+                Debug.Assert(info.DiagnosticInfo Is Nothing OrElse symbol Is Nothing)
+
+                If Interlocked.CompareExchange(Of MethodSymbol)(lazyMethod, symbol, ErrorMethodSymbol.UnknownMethod) = ErrorMethodSymbol.UnknownMethod Then
+                    If info.DiagnosticInfo IsNot Nothing Then
+                        ReportDiagnostic(diagnostics, syntaxNodeOpt, info.DiagnosticInfo)
+                    End If
+                End If
+            End If
+
+            Return lazyMethod
+        End Function
+        Public Function GetSpecialMethod(method As SpecialMember, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As MethodSymbol
+            Return LazyGetSpecialTypeMethod(_lazyWellKnownTypeMethods(CInt(method)), method, syntaxNodeOpt, diagnostics)
+        End Function
+
+        Private Function LazyGetSpecialTypeMethod(ByRef lazyMethod As MethodSymbol, method As SpecialMember, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As MethodSymbol
+            If lazyMethod Is ErrorMethodSymbol.UnknownMethod Then
+                Dim info As UseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim symbol = DirectCast(Binder.GetSpecialTypeMember(ModuleBeingBuilt.Compilation.Assembly, method, info), MethodSymbol)
 
                 Debug.Assert(info.DiagnosticInfo Is Nothing OrElse symbol Is Nothing)
 
@@ -112,6 +137,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
                     Return New SynthesizedAttributeData(ModuleBeingBuilt.Compilation, ctor, constructorArguments, namedArguments)
 
             End Select
+        End Function
+        Friend Overrides Function CreateSynthesizedAttribute(constructor As SpecialMember, constructorArguments As ImmutableArray(Of TypedConstant), namedArguments As ImmutableArray(Of KeyValuePair(Of String, TypedConstant)), syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As VisualBasicAttributeData
+            Dim ctor = GetSpecialMethod(constructor, syntaxNodeOpt, diagnostics)
+            If ctor Is Nothing Then
+                Return Nothing
+            End If
+
+            Return New SynthesizedAttributeData(ModuleBeingBuilt.Compilation, ctor, constructorArguments, namedArguments)
         End Function
 
         Friend Overrides Function TryGetAttributeArguments(attrData As VisualBasicAttributeData, ByRef constructorArguments As ImmutableArray(Of TypedConstant), ByRef namedArguments As ImmutableArray(Of KeyValuePair(Of String, TypedConstant)), syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As Boolean
