@@ -227,7 +227,7 @@ public partial class MSBuildProjectLoader
             onPathFailure: reportingMode,
             onLoaderFailure: reportingMode);
 
-        if (!_pathResolver.TryGetAbsoluteProjectPath(projectFilePath, Directory.GetCurrentDirectory(), reportingMode, out var absoluteProjectPath))
+        if (!_pathResolver.TryGetAbsoluteProjectPath(projectFilePath, Directory.GetCurrentDirectory(), DiagnosticReportingMode.Throw, out var absoluteProjectPath))
         {
             return Task.FromResult(ImmutableArray<ProjectInfo>.Empty);
         }

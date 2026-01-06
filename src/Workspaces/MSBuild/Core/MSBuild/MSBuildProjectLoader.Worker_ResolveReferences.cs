@@ -338,7 +338,7 @@ public partial class MSBuildProjectLoader
         }
 
         private bool IsProjectLoadable(string projectPath)
-            => _projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out _);
+            => _projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, _discoveredProjectOptions.OnLoaderFailure, out _);
 
         private async Task<bool> VerifyUnloadableProjectOutputExistsAsync(string projectPath, ResolvedReferencesBuilder builder, CancellationToken cancellationToken)
         {
