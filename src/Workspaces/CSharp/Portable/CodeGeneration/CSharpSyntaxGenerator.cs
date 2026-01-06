@@ -677,16 +677,9 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
         => accessorList.WithAccessors([.. accessorList.Accessors.Select(WithBody)]);
 
     private static AccessorDeclarationSyntax WithBody(AccessorDeclarationSyntax accessor)
-    {
-        if (accessor.Body == null && accessor.ExpressionBody == null)
-        {
-            return accessor.WithSemicolonToken(default).WithBody(CreateBlock(null));
-        }
-        else
-        {
-            return accessor;
-        }
-    }
+        => accessor is { Body: null, ExpressionBody: null }
+            ? accessor.WithSemicolonToken(default).WithBody(CreateBlock(null))
+            : accessor;
 
     private static AccessorListSyntax? WithoutBodies(AccessorListSyntax? accessorList)
         => accessorList?.WithAccessors([.. accessorList.Accessors.Select(WithoutBody)]);
