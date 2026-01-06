@@ -1110,7 +1110,7 @@ internal static partial class SyntaxTreeExtensions
             parameter4 = token.Parent as ParameterSyntax;
             previousModifier = token.Kind();
         }
-        else if (token.IsKind(SyntaxKind.IdentifierToken) && token.Text == "scoped" && token.Parent is IdentifierNameSyntax scopedIdentifierName)
+        else if (token.IsKind(SyntaxKind.IdentifierToken) && token is { Text: "scoped", Parent: IdentifierNameSyntax scopedIdentifierName })
         {
             parameter4 = scopedIdentifierName.Parent as ParameterSyntax;
             previousModifier = SyntaxKind.ScopedKeyword;
