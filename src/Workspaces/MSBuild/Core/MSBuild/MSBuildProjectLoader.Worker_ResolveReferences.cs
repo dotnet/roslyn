@@ -217,7 +217,7 @@ public partial class MSBuildProjectLoader
                         continue;
                     }
 
-                    if (IsProjectLoadable(projectReferencePath))
+                    if (IsProjectLoadable(projectReferencePath, DiagnosticReportingMode.Ignore))
                     {
                         // If metadata is preferred, see if the project reference's output exists on disk and is included
                         // in our metadata references. If it is, don't create a project reference; we'll just use the metadata.
@@ -242,6 +242,9 @@ public partial class MSBuildProjectLoader
                         {
                             continue;
                         }
+
+                        // report error if requested:
+                        _ = IsProjectLoadable(projectReferencePath, _discoveredProjectOptions.OnLoaderFailure);
                     }
                 }
 
@@ -337,8 +340,8 @@ public partial class MSBuildProjectLoader
             return true;
         }
 
-        private bool IsProjectLoadable(string projectPath)
-            => _projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, _discoveredProjectOptions.OnLoaderFailure, out _);
+        private bool IsProjectLoadable(string projectPath, DiagnosticReportingMode mode)
+            => _projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, mode, out _);
 
         private async Task<bool> VerifyUnloadableProjectOutputExistsAsync(string projectPath, ResolvedReferencesBuilder builder, CancellationToken cancellationToken)
         {
