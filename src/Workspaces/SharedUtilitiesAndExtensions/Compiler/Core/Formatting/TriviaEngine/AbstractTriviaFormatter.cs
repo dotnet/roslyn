@@ -619,7 +619,7 @@ internal abstract class AbstractTriviaFormatter
     /// one new line at the end of the trivia
     /// </summary>
     private static int GetTrailingLinesAtEndOfTrivia1(LineColumn lineColumnAfterTrivia1)
-        => (lineColumnAfterTrivia1.Column == 0 && lineColumnAfterTrivia1.Line > 0) ? 1 : 0;
+        => lineColumnAfterTrivia1 is { Column: 0, Line: > 0 } ? 1 : 0;
 
     private void AddExtraLines(int linesBetweenTokens, ArrayBuilder<SyntaxTrivia> changes)
     {
