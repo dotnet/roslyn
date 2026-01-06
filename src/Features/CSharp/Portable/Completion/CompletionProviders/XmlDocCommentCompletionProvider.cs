@@ -111,8 +111,7 @@ internal sealed partial class XmlDocCommentCompletionProvider : AbstractDocComme
                     addEqualsAndQuotes: !nextToken.IsKind(SyntaxKind.EqualsToken) || nextToken.HasLeadingTrivia);
             }
 
-            var wasTriggeredAfterSpace = trigger.Kind == CompletionTriggerKind.Insertion && trigger.Character == ' ';
-            if (wasTriggeredAfterSpace)
+            if (trigger is { Kind: CompletionTriggerKind.Insertion, Character: ' ' })
             {
                 // Nothing below this point should triggered by a space character
                 // (only attribute names should be triggered by <SPACE>)
