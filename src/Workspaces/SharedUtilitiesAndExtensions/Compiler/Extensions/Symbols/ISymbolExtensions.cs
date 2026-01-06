@@ -792,7 +792,7 @@ internal static partial class ISymbolExtensions
             .ToList();
 
         // T Current { get }
-        if (!members.OfType<IPropertySymbol>().Any(p => p.Name == WellKnownMemberNames.CurrentPropertyName && p.GetMethod != null))
+        if (!members.OfType<IPropertySymbol>().Any(p => p is { Name: WellKnownMemberNames.CurrentPropertyName, GetMethod: not null }))
         {
             return false;
         }
