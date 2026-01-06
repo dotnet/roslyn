@@ -411,8 +411,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 switch (CurrentToken.ContextualKind)
                 {
                     case SyntaxKind.WhenKeyword:
-                        // In a switch arm, we *always* treat 'when' as a keyword starting the 'when clause'.  In other
-                        // patterns, we allow 'when' to be a normal designator.
+                        // When directly in a switch arm, we *always* treat 'when' as a keyword starting the 'when
+                        // clause'.  In other patterns, we allow 'when' to be a normal designator.
                         return !inSwitchArmPattern;
                     case SyntaxKind.AndKeyword:
                     case SyntaxKind.OrKeyword:

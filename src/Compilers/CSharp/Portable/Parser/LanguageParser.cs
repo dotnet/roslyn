@@ -12881,8 +12881,9 @@ done:
                 if (isBinaryPattern())
                     return false;
 
-                // Similarly `(A.B) when` should be treated as the start of a `when` clause not a cast of a `when` variable
-                // when in a switch expression arm.  This matches the exact checking logic in IsValidPatternDesignation.
+                // Similarly `(A.B) when` directly in a switch arm should be treated as the start of a `when` clause not
+                // a cast of a `when` variable when in a switch expression arm.  This matches the exact checking logic
+                // in IsValidPatternDesignation.
                 if (inSwitchArmPattern && this.CurrentToken.ContextualKind == SyntaxKind.WhenKeyword)
                     return false;
 
