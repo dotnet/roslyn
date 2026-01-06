@@ -175,7 +175,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 Debug.Assert(method.IsExtensionMethod);
                                 receiver = _factory.Type(method.ContainingType);
-                                addArg(method.ParameterRefKinds[0], input);
+                                // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, Consider preserving the BoundConversion from initial binding instead of using markAsChecked here
+                                addArg(method.ParameterRefKinds[0], _localRewriter.ConvertReceiverForExtensionIfNeeded(input, markAsChecked: true, method.Parameters[0]));
                                 extensionExtra = 1;
                             }
                             else
@@ -205,7 +206,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 // Avoid using dynamic conversions for pattern-matching.
                                 inputType = _factory.SpecialType(SpecialType.System_Object);
-                                input = _factory.Convert(inputType, input);
+                                Debug.Assert(_factory.ClassifyEmitConversion(input, inputType).IsIdentity);
+                                input = _factory.Convert(inputType, input, Conversion.Identity);
                             }
 
                             TypeSymbol type = t.Type;
@@ -228,7 +230,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
-                                    evaluated = _factory.Convert(type, input, conversion);
+                                    conversion.MarkUnderlyingConversionsCheckedRecursive(); // Assuming that Binder.ExpressionOfTypeMatchesPatternType wouldn't let anything non-trivial through
+                                    evaluated = _localRewriter.MakeConversionNode(t.Syntax, input, conversion, type, @checked: false);
                                 }
                             }
                             else
@@ -379,8 +382,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return _localRewriter.MakeBinaryOperator(
                         syntax,
                         operatorKind,
-                        _factory.Convert(operandType, rewrittenExpr),
-                        _factory.Convert(operandType, new BoundLiteral(syntax, ConstantValue.Null, objectType)),
+                        _factory.Convert(operandType, rewrittenExpr, Conversion.PointerToVoid),
+                        _factory.Convert(operandType, new BoundLiteral(syntax, ConstantValue.Null, objectType), Conversion.NullToPointer),
                         _factory.SpecialType(SpecialType.System_Boolean),
                         method: null, constrainedToTypeOpt: null);
                 }
@@ -425,8 +428,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _ => false
                     });
                     comparisonType = _factory.SpecialType(SpecialType.System_Int32);
-                    input = _factory.Convert(comparisonType, input);
-                    literal = _factory.Convert(comparisonType, literal);
+
+                    Conversion c = _factory.ClassifyEmitConversion(input, comparisonType);
+                    Debug.Assert(c.IsNumeric || c.IsEnumeration);
+                    input = _factory.Convert(comparisonType, input, c);
+
+                    c = _factory.ClassifyEmitConversion(literal, comparisonType);
+                    Debug.Assert(c.IsNumeric || c.IsEnumeration);
+                    literal = _factory.Convert(comparisonType, literal, c);
                 }
 
                 return this._localRewriter.MakeBinaryOperator(_factory.Syntax, operatorKind, input, literal, _factory.SpecialType(SpecialType.System_Boolean), method: null, constrainedToTypeOpt: null);
@@ -492,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression input = _tempAllocator.GetTemp(test.Input);
                     var baseType = typeEvaluation2.Type;
                     BoundExpression output = _tempAllocator.GetTemp(new BoundDagTemp(evaluation.Syntax, baseType, evaluation));
-                    sideEffect = _factory.AssignmentExpression(output, _factory.Convert(baseType, input));
+                    sideEffect = _factory.AssignmentExpression(output, _factory.Convert(baseType, input, conv));
                     testExpression = _factory.ObjectNotEqual(output, _factory.Null(baseType));
                     _localRewriter._diagnostics.Add(test.Syntax, useSiteInfo);
                     return true;

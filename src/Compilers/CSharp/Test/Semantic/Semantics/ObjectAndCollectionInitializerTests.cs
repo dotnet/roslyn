@@ -4021,7 +4021,7 @@ class X
             {
                 Assert.Equal("List<string>", name.ToString());
                 Assert.Equal("System.Collections.Generic.List<System.String>", semanticModel.GetSymbolInfo(name).Symbol.ToTestDisplayString());
-                Assert.Null(semanticModel.GetTypeInfo(name).Type);
+                Assert.Equal("System.Collections.Generic.List<System.String>", semanticModel.GetTypeInfo(name).Type.ToTestDisplayString());
             }
         }
 

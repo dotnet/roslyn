@@ -2717,7 +2717,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_ObjectRequired, node.Location, memberSymbol);
                     return true;
                 }
-                else if (WasImplicitReceiver(receiverOpt))
+                else if (WasImplicitReceiver(receiverOpt) && !(IsInsideNameof && Compilation.IsFeatureEnabled(MessageID.IDS_FeatureInstanceMemberInNameof)))
                 {
                     if (InFieldInitializer && !ContainingType!.IsScriptClass || InConstructorInitializer || InAttributeArgument)
                     {

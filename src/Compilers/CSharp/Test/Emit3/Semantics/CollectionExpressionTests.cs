@@ -47326,5 +47326,145 @@ class Program
             Assert.Contains(libraryRef, usedRefs);
 
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81552")]
+        public void VisitedNodes_CollectionExpression()
+        {
+            var source = """
+                #nullable enable
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                Merge([.. D.P]);
+
+                static void Merge(params ReadOnlySpan<C> cs) { }
+
+                [CollectionBuilder(typeof(C), methodName: nameof(Create))]
+                class C : IEnumerable<int>
+                {
+                    public static C Create(ReadOnlySpan<int> span) => new();
+
+                    public IEnumerator<int> GetEnumerator() => throw new NotImplementedException();
+
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                class D
+                {
+                    public static IEnumerable<int> P => [1];
+                }
+                """;
+
+            CompileAndVerify(CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition]), expectedOutput: "").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81576")]
+        public void Issue81576_01()
+        {
+            var source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                [CollectionBuilder(typeof(MyFancyCollection), nameof(MyFancyCollection.))]
+                public class MyFancyCollection : IEnumerable<int>
+                {
+                    public MyFancyCollection Create(ReadOnlySpan<int> ints)
+                    {
+                        return null;
+                    }
+
+                    public IEnumerator<int> GetEnumerator()
+                    {
+                        throw new NotImplementedException();
+                    }
+
+                    IEnumerator IEnumerable.GetEnumerator()
+                    {
+                        return GetEnumerator();
+                    }
+                }               
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition]).VerifyEmitDiagnostics(
+                // (6,72): error CS1001: Identifier expected
+                // [CollectionBuilder(typeof(MyFancyCollection), nameof(MyFancyCollection.))]
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(6, 72)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81576")]
+        public void Issue81576_02()
+        {
+            var source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                [CollectionBuilder(typeof(MyFancyCollection), nameof(MyFancyCollection.Missing))]
+                public class MyFancyCollection : IEnumerable<int>
+                {
+                    public MyFancyCollection Create(ReadOnlySpan<int> ints)
+                    {
+                        return null;
+                    }
+
+                    public IEnumerator<int> GetEnumerator()
+                    {
+                        throw new NotImplementedException();
+                    }
+
+                    IEnumerator IEnumerable.GetEnumerator()
+                    {
+                        return GetEnumerator();
+                    }
+                }               
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition]).VerifyEmitDiagnostics(
+                // (6,72): error CS0117: 'MyFancyCollection' does not contain a definition for 'Missing'
+                // [CollectionBuilder(typeof(MyFancyCollection), nameof(MyFancyCollection.Missing))]
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Missing").WithArguments("MyFancyCollection", "Missing").WithLocation(6, 72)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81576")]
+        public void Issue81576_03()
+        {
+            var source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                [CollectionBuilder(typeof(MyFancyCollection), nameof(MyFancyCollection.Create))]
+                public class MyFancyCollection : IEnumerable<int>
+                {
+                    public MyFancyCollection Create(ReadOnlySpan<int> ints)
+                    {
+                        return null;
+                    }
+
+                    public IEnumerator<int> GetEnumerator()
+                    {
+                        throw new NotImplementedException();
+                    }
+
+                    IEnumerator IEnumerable.GetEnumerator()
+                    {
+                        return GetEnumerator();
+                    }
+                }               
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition]).VerifyEmitDiagnostics();
+        }
     }
 }
