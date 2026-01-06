@@ -227,23 +227,23 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
 
         bool IDiagnosticSourceProvider.IsEnabled(LSP.ClientCapabilities clientCapabilities) => true;
 
-        ValueTask<ImmutableArray<IDiagnosticSource>> IDiagnosticSourceProvider.CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
+        async ValueTask<ImmutableArray<IDiagnosticSource>> IDiagnosticSourceProvider.CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
         {
             if (context.TextDocument is not null && context.TextDocument is not Document)
             {
-                return new([new TestAdditionalFileDocumentSource(context.TextDocument)]);
+                return [new TestAdditionalFileDocumentSource(context.TextDocument)];
             }
 
-            return new([]);
+            return [];
         }
 
         private class TestAdditionalFileDocumentSource(TextDocument textDocument) : IDiagnosticSource
         {
-            public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
+            public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
             {
                 var diagnostic = Diagnostic.Create(MockAdditionalFileDiagnosticAnalyzer.Descriptor,
                     location: Location.Create(context.TextDocument!.FilePath!, Text.TextSpan.FromBounds(0, 0), new Text.LinePositionSpan(new Text.LinePosition(0, 0), new Text.LinePosition(0, 0))), "args");
-                return Task.FromResult<ImmutableArray<DiagnosticData>>([DiagnosticData.Create(diagnostic, context.TextDocument.Project)]);
+                return [DiagnosticData.Create(diagnostic, context.TextDocument.Project)];
             }
 
             public LSP.TextDocumentIdentifier? GetDocumentIdentifier() => new()
