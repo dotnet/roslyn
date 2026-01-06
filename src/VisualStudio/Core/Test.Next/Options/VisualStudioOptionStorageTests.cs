@@ -237,7 +237,6 @@ public sealed class VisualStudioOptionStorageTests
             "dotnet_binary_log_path",                                                       // VSCode only option for the VS Code project system; does not apply to VS
             "dotnet_enable_automatic_restore",                                              // VSCode only option for the VS Code project system; does not apply to VS
             "dotnet_enable_file_based_programs",                                            // VSCode only option for the VS Code project system; does not apply to VS
-            "dotnet_enable_file_based_programs_when_ambiguous",                             // VSCode only option for the VS Code project system; does not apply to VS
             "dotnet_lsp_using_devkit",                                                      // VSCode internal only option.  Does not need any UI.
             "dotnet_enable_references_code_lens",                                           // VSCode only option.  Does not apply to VS.
             "dotnet_enable_tests_code_lens",                                                // VSCode only option.  Does not apply to VS.

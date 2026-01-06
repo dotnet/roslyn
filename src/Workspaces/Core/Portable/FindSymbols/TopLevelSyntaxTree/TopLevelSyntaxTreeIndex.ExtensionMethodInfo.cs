@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -12,8 +12,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols;
 
 internal sealed partial class TopLevelSyntaxTreeIndex
 {
-    private readonly struct ExtensionMemberInfo(
-        ImmutableDictionary<string, ImmutableArray<int>> receiverTypeNameToExtensionMethodMap)
+    private readonly struct ExtensionMethodInfo(ImmutableDictionary<string, ImmutableArray<int>> receiverTypeNameToExtensionMethodMap)
     {
         // We divide extension methods into two categories, simple and complex, for filtering purpose.
         // Whether a method is simple is determined based on if we can determine it's receiver type easily
@@ -41,22 +40,22 @@ internal sealed partial class TopLevelSyntaxTreeIndex
         /// T (where T is a type parameter) => ""
         /// T[,] (where T is a type parameter) => "T[]"
         /// </summary>
-        public readonly ImmutableDictionary<string, ImmutableArray<int>> ReceiverTypeNameToExtensionMemberMap { get; } = receiverTypeNameToExtensionMethodMap;
+        public readonly ImmutableDictionary<string, ImmutableArray<int>> ReceiverTypeNameToExtensionMethodMap { get; } = receiverTypeNameToExtensionMethodMap;
 
-        public bool ContainsExtensionMember => !ReceiverTypeNameToExtensionMemberMap.IsEmpty;
+        public bool ContainsExtensionMethod => !ReceiverTypeNameToExtensionMethodMap.IsEmpty;
 
         public void WriteTo(ObjectWriter writer)
         {
-            writer.WriteInt32(ReceiverTypeNameToExtensionMemberMap.Count);
+            writer.WriteInt32(ReceiverTypeNameToExtensionMethodMap.Count);
 
-            foreach (var (name, indices) in ReceiverTypeNameToExtensionMemberMap)
+            foreach (var (name, indices) in ReceiverTypeNameToExtensionMethodMap)
             {
                 writer.WriteString(name);
                 writer.WriteArray(indices, static (w, i) => w.WriteInt32(i));
             }
         }
 
-        public static ExtensionMemberInfo? TryReadFrom(ObjectReader reader)
+        public static ExtensionMethodInfo? TryReadFrom(ObjectReader reader)
         {
             try
             {
@@ -66,7 +65,7 @@ internal sealed partial class TopLevelSyntaxTreeIndex
                 for (var i = 0; i < count; ++i)
                     receiverTypeNameToExtensionMethodMapBuilder[reader.ReadRequiredString()] = reader.ReadArray(static r => r.ReadInt32());
 
-                return new(receiverTypeNameToExtensionMethodMapBuilder.ToImmutable());
+                return new ExtensionMethodInfo(receiverTypeNameToExtensionMethodMapBuilder.ToImmutable());
             }
             catch (Exception)
             {

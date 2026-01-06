@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTesting;
@@ -68,13 +69,21 @@ internal sealed class RoslynPackage : AbstractPackage
         base.RegisterInitializeAsyncWork(packageInitializationTasks);
 
         packageInitializationTasks.AddTask(isMainThreadTask: false, task: PackageInitializationBackgroundThreadAsync);
+        packageInitializationTasks.AddTask(isMainThreadTask: true, task: PackageInitializationMainThreadAsync);
 
         return;
 
-        async Task PackageInitializationBackgroundThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
+        Task PackageInitializationBackgroundThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
         {
-            await RegisterEditorFactoryAsync(new SettingsEditorFactory(), cancellationToken).ConfigureAwait(true);
-            await ProfferServiceBrokerServicesAsync(cancellationToken).ConfigureAwait(true);
+            return ProfferServiceBrokerServicesAsync(cancellationToken);
+        }
+
+        Task PackageInitializationMainThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
+        {
+            var settingsEditorFactory = SettingsEditorFactory.GetInstance();
+            RegisterEditorFactory(settingsEditorFactory);
+
+            return Task.CompletedTask;
         }
     }
 
@@ -82,9 +91,18 @@ internal sealed class RoslynPackage : AbstractPackage
     {
         base.RegisterOnAfterPackageLoadedAsyncWork(afterPackageLoadedTasks);
 
+        afterPackageLoadedTasks.AddTask(isMainThreadTask: false, task: OnAfterPackageLoadedBackgroundThreadAsync);
         afterPackageLoadedTasks.AddTask(isMainThreadTask: true, task: OnAfterPackageLoadedMainThreadAsync);
 
         return;
+
+        Task OnAfterPackageLoadedBackgroundThreadAsync(PackageLoadTasks afterPackageLoadedTasks, CancellationToken cancellationToken)
+        {
+            // Ensure the options persisters are loaded since we have to fetch options from the shell
+            _ = ComponentModel.GetService<IGlobalOptionService>();
+
+            return Task.CompletedTask;
+        }
 
         Task OnAfterPackageLoadedMainThreadAsync(PackageLoadTasks afterPackageLoadedTasks, CancellationToken cancellationToken)
         {

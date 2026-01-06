@@ -408,59 +408,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public static void CheckForDuplicateModifiers(
-            SyntaxTokenList modifiers,
-            DiagnosticBag diagnostics)
-        {
-            GetDeclarationModifiersAndCheckForDuplicateModifiers(modifiers, diagnostics);
-        }
-
-        private static DeclarationModifiers GetDeclarationModifiersAndCheckForDuplicateModifiers(
-            SyntaxTokenList modifiers,
-            DiagnosticBag diagnostics)
-        {
-            var allModifiers = DeclarationModifiers.None;
-
-            var seenNoDuplicates = true;
-            foreach (var modifierToken in modifiers)
-            {
-                var thisModifier = ToDeclarationModifier(modifierToken.ContextualKind());
-                ReportDuplicateModifiers(
-                    modifierToken,
-                    thisModifier,
-                    allModifiers,
-                    ref seenNoDuplicates,
-                    diagnostics);
-
-                allModifiers |= thisModifier;
-            }
-
-            return allModifiers;
-        }
-
         public static DeclarationModifiers ToDeclarationModifiers(
             this SyntaxTokenList modifiers, bool isForTypeDeclaration, DiagnosticBag diagnostics, bool isOrdinaryMethod = false)
         {
-            var result = GetDeclarationModifiersAndCheckForDuplicateModifiers(modifiers, diagnostics);
-            if ((result & DeclarationModifiers.Partial) == DeclarationModifiers.Partial)
+            var result = DeclarationModifiers.None;
+            bool seenNoDuplicates = true;
+
+            for (int i = 0; i < modifiers.Count; i++)
             {
-                var i = modifiers.IndexOf(SyntaxKind.PartialKeyword);
-                var modifier = modifiers[i];
+                SyntaxToken modifier = modifiers[i];
+                DeclarationModifiers one = ToDeclarationModifier(modifier.ContextualKind());
 
-                var messageId = isForTypeDeclaration ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod;
-                messageId.CheckFeatureAvailability(diagnostics, modifier);
+                ReportDuplicateModifiers(
+                    modifier, one, result,
+                    ref seenNoDuplicates,
+                    diagnostics);
 
-                // `partial` must always be the last modifier according to the language.  However, there was a bug
-                // where we allowed `partial async` at the end of modifiers on methods. We keep this behavior for
-                // backcompat.
-                var isLast = i == modifiers.Count - 1;
-                var isPartialAsyncMethod = isOrdinaryMethod && i == modifiers.Count - 2 && modifiers[i + 1].ContextualKind() is SyntaxKind.AsyncKeyword;
-                if (!isLast && !isPartialAsyncMethod)
+                if (one == DeclarationModifiers.Partial)
                 {
-                    diagnostics.Add(
-                        ErrorCode.ERR_PartialMisplaced,
-                        modifier.GetLocation());
+                    var messageId = isForTypeDeclaration ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod;
+                    messageId.CheckFeatureAvailability(diagnostics, modifier);
+
+                    // `partial` must always be the last modifier according to the language.  However, there was a bug
+                    // where we allowed `partial async` at the end of modifiers on methods. We keep this behavior for
+                    // backcompat.
+                    var isLast = i == modifiers.Count - 1;
+                    var isPartialAsyncMethod = isOrdinaryMethod && i == modifiers.Count - 2 && modifiers[i + 1].ContextualKind() is SyntaxKind.AsyncKeyword;
+                    if (!isLast && !isPartialAsyncMethod)
+                    {
+                        diagnostics.Add(
+                            ErrorCode.ERR_PartialMisplaced,
+                            modifier.GetLocation());
+                    }
                 }
+
+                result |= one;
             }
 
             switch (result & DeclarationModifiers.AccessibilityMask)

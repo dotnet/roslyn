@@ -319,10 +319,6 @@ internal static class FSharpGlyphHelpers
                 {
                     return FSharpGlyph.TargetTypeMatch;
                 }
-            case Microsoft.CodeAnalysis.Glyph.Copilot:
-                {
-                    return FSharpGlyph.Copilot;
-                }
             default:
                 {
                     throw ExceptionUtilities.UnexpectedValue(glyph);
@@ -637,10 +633,6 @@ internal static class FSharpGlyphHelpers
             case FSharpGlyph.TargetTypeMatch:
                 {
                     return Microsoft.CodeAnalysis.Glyph.TargetTypeMatch;
-                }
-            case FSharpGlyph.Copilot:
-                {
-                    return Microsoft.CodeAnalysis.Glyph.Copilot;
                 }
             default:
                 {

@@ -50,8 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private Dictionary<FieldSymbol, NamedTypeSymbol> _fixedImplementationTypes;
 
         private SynthesizedPrivateImplementationDetailsType _lazyPrivateImplementationDetailsClass;
-        private readonly ConcurrentDictionary<int, NamedTypeSymbol> _inlineArrayTypes = new ConcurrentDictionary<int, NamedTypeSymbol>();
-        private readonly NamedTypeSymbol[] _readOnlyListTypes = new NamedTypeSymbol[(int)SynthesizedReadOnlyListKind.List + 1];
 
         private int _needsGeneratedAttributes;
         private bool _needsGeneratedAttributes_IsFrozen;
@@ -2111,16 +2109,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 }
             }
 
-            return _inlineArrayTypes.GetOrAdd(arrayLength, static (arrayLength, arg) =>
-                {
-                    var attributeConstructor = (MethodSymbol)arg.factory.SpecialMember(SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor);
-                    Debug.Assert(attributeConstructor is { });
+            string typeName = GeneratedNames.MakeSynthesizedInlineArrayName(arrayLength, CurrentGenerationOrdinal);
+            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics.DiagnosticBag).PrivateImplementationDetails;
+            var typeAdapter = privateImplClass.GetSynthesizedType(typeName);
 
-                    string typeName = GeneratedNames.MakeSynthesizedInlineArrayName(arrayLength, arg.@this.CurrentGenerationOrdinal);
-                    var typeSymbol = new SynthesizedInlineArrayTypeSymbol(arg.@this.SourceModule, typeName, arrayLength, attributeConstructor);
-                    return typeSymbol;
-                },
-                (@this: this, factory));
+            if (typeAdapter is null)
+            {
+                var attributeConstructor = (MethodSymbol)factory.SpecialMember(SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor);
+                Debug.Assert(attributeConstructor is { });
+
+                var typeSymbol = new SynthesizedInlineArrayTypeSymbol(SourceModule, typeName, arrayLength, attributeConstructor);
+                privateImplClass.TryAddSynthesizedType(typeSymbol.GetCciAdapter());
+                typeAdapter = privateImplClass.GetSynthesizedType(typeName)!;
+            }
+
+            Debug.Assert(typeAdapter.Name == typeName);
+            return (NamedTypeSymbol)typeAdapter.GetInternalSymbol()!;
         }
 
         internal NamedTypeSymbol EnsureReadOnlyListTypeExists(SyntaxNode syntaxNode, SynthesizedReadOnlyListKind kind, DiagnosticBag diagnostics)
@@ -2128,17 +2132,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Debug.Assert(syntaxNode is { });
             Debug.Assert(diagnostics is { });
 
-            ref NamedTypeSymbol readOnlyListType = ref _readOnlyListTypes[(int)kind];
+            string typeName = GeneratedNames.MakeSynthesizedReadOnlyListName(kind, CurrentGenerationOrdinal);
+            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics).PrivateImplementationDetails;
+            var typeAdapter = privateImplClass.GetSynthesizedType(typeName);
             NamedTypeSymbol typeSymbol;
 
-            if (readOnlyListType is null)
+            if (typeAdapter is null)
             {
-                string typeName = GeneratedNames.MakeSynthesizedReadOnlyListName(kind, CurrentGenerationOrdinal);
                 typeSymbol = SynthesizedReadOnlyListTypeSymbol.Create(SourceModule, typeName, kind);
-                Interlocked.CompareExchange(ref readOnlyListType, typeSymbol, null);
+                privateImplClass.TryAddSynthesizedType(typeSymbol.GetCciAdapter());
+                typeAdapter = privateImplClass.GetSynthesizedType(typeName)!;
             }
 
-            typeSymbol = readOnlyListType;
+            Debug.Assert(typeAdapter.Name == typeName);
+            typeSymbol = (NamedTypeSymbol)typeAdapter.GetInternalSymbol()!;
+
             var info = typeSymbol.GetUseSiteInfo().DiagnosticInfo;
             if (info is { })
             {
@@ -2232,30 +2240,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                    .Select(type => type.GetCciAdapter())
 #endif
                    ;
-        }
-
-        public override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes()
-        {
-            ImmutableArray<NamedTypeSymbol> prepend = [];
-
-            if (_inlineArrayTypes.Count != 0 || _readOnlyListTypes.Any(t => t is not null))
-            {
-                ArrayBuilder<NamedTypeSymbol> builder = ArrayBuilder<NamedTypeSymbol>.GetInstance(_inlineArrayTypes.Count + _readOnlyListTypes.Length);
-                builder.AddRange(_inlineArrayTypes.Values);
-                foreach (var type in _readOnlyListTypes)
-                {
-                    if (type is not null)
-                    {
-                        builder.Add(type);
-                    }
-                }
-
-                builder.Sort(static (a, b) => StringComparer.Ordinal.Compare(a.MetadataName, b.MetadataName));
-
-                prepend = builder.ToImmutableAndFree();
-            }
-
-            return prepend.Concat(base.GetAdditionalTopLevelTypes());
         }
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetEmbeddedTypeDefinitions(EmitContext context)

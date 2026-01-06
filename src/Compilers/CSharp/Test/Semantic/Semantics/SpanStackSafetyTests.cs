@@ -34,7 +34,10 @@ class C
         s2 = (s1 = s2);
     }
 }");
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (11,15): error CS8352: Cannot use variable 's1' in this context because it may expose referenced variables outside of their declaration scope
+                //         s2 = (s1 = s2);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s1 = s2").WithArguments("s1").WithLocation(11, 15));
         }
 
         [Fact]

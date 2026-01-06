@@ -7,6 +7,4 @@ namespace Microsoft.CodeAnalysis.Symbols;
 internal static partial class CommonGeneratedNames
 {
     public const char GenerationSeparator = '#';
-
-    public const string FixedBufferFieldSuffix = ">e__FixedBuffer";
 }

@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (containingAssembly?.IsMissing == false)
                     {
-                        DependenciesBag.Add(containingAssembly);
+                        DependenciesBag!.Add(containingAssembly);
                     }
                 }
             }
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => Add(code, syntax.Location, args);
 
         internal CSDiagnosticInfo Add(ErrorCode code, SyntaxToken syntax, params object[] args)
-            => Add(code, syntax.GetLocation(), args);
+            => Add(code, syntax.GetLocation()!, args);
 
         internal CSDiagnosticInfo Add(ErrorCode code, Location location, params object[] args)
         {

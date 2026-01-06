@@ -561,19 +561,27 @@ internal sealed class CSharpHelpContextService() : AbstractHelpContextService
             return null;
 
         if (symbol is ITypeSymbol or INamespaceSymbol)
+        {
             return FormatNamespaceOrTypeSymbol((INamespaceOrTypeSymbol)symbol);
+        }
 
-        if (symbol is IAliasSymbol or ILocalSymbol or IParameterSymbol)
+        if (symbol.MatchesKind(SymbolKind.Alias, SymbolKind.Local, SymbolKind.Parameter))
+        {
             return FormatSymbol(symbol.GetSymbolType());
+        }
 
         var containingType = FormatNamespaceOrTypeSymbol(symbol.ContainingType);
         var name = symbol.ToDisplayString(NameFormat);
 
         if (symbol.IsConstructor())
+        {
             return $"{containingType}.#ctor";
+        }
 
         if (symbol.GetTypeArguments().Any())
+        {
             return $"{containingType}.{name}``{symbol.GetTypeArguments().Length}";
+        }
 
         return $"{containingType}.{name}";
     }

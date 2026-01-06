@@ -27,11 +27,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
-[ExportCompletionProvider(nameof(SnippetCompletionProvider), LanguageNames.CSharp), Shared]
+[ExportCompletionProvider(nameof(SnippetCompletionProvider), LanguageNames.CSharp)]
 [ExtensionOrder(After = nameof(CrefCompletionProvider))]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class SnippetCompletionProvider() : LSPCompletionProvider
+[Shared]
+internal sealed class SnippetCompletionProvider : LSPCompletionProvider
 {
     private static readonly HashSet<string> s_snippetsWithReplacements =
     [
@@ -57,6 +56,12 @@ internal sealed class SnippetCompletionProvider() : LSPCompletionProvider
     ];
 
     internal override bool IsSnippetProvider => true;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public SnippetCompletionProvider()
+    {
+    }
 
     internal override string Language => LanguageNames.CSharp;
 
@@ -85,7 +90,7 @@ internal sealed class SnippetCompletionProvider() : LSPCompletionProvider
 
                 context.AddItems(await document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
                     UnionCompletionItemComparer.Instance,
-                    document => GetSnippetsForDocumentAsync(document, context, cancellationToken)).ConfigureAwait(false));
+                    d => GetSnippetsForDocumentAsync(d, context, cancellationToken)).ConfigureAwait(false));
             }
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))

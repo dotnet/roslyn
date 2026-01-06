@@ -51,31 +51,28 @@ internal sealed class CSharpAddRequiredExpressionParenthesesDiagnosticAnalyzer()
 
     protected override bool IsBinaryLike(ExpressionSyntax node)
         => node is BinaryExpressionSyntax ||
-           // Support `x is const` pattern as binary-like for precedence purposes.
-           node is IsPatternExpressionSyntax { Pattern: ConstantPatternSyntax } ||
-           // Support `x is not const` pattern as binary-like for precedence purposes.
-           node is IsPatternExpressionSyntax { Pattern: UnaryPatternSyntax { Pattern: ConstantPatternSyntax } };
+           node is IsPatternExpressionSyntax { Pattern: ConstantPatternSyntax };
 
     protected override (ExpressionSyntax, SyntaxToken, ExpressionSyntax) GetPartsOfBinaryLike(ExpressionSyntax binaryLike)
     {
         Debug.Assert(IsBinaryLike(binaryLike));
-        return binaryLike switch
+        switch (binaryLike)
         {
-            BinaryExpressionSyntax binaryExpression => (binaryExpression.Left, binaryExpression.OperatorToken, binaryExpression.Right),
-            IsPatternExpressionSyntax { Pattern: ConstantPatternSyntax constantPattern } isPatternExpression => (isPatternExpression.Expression, isPatternExpression.IsKeyword, constantPattern.Expression),
-            IsPatternExpressionSyntax { Pattern: UnaryPatternSyntax { Pattern: ConstantPatternSyntax constantPattern } } isPatternExpression => (isPatternExpression.Expression, isPatternExpression.IsKeyword, constantPattern.Expression),
-            _ => throw ExceptionUtilities.UnexpectedValue(binaryLike),
-        };
+            case BinaryExpressionSyntax binaryExpression:
+                return (binaryExpression.Left, binaryExpression.OperatorToken, binaryExpression.Right);
+
+            case IsPatternExpressionSyntax { Pattern: ConstantPatternSyntax constantPattern } isPatternExpression:
+                return (isPatternExpression.Expression, isPatternExpression.IsKeyword, constantPattern.Expression);
+
+            default:
+                throw ExceptionUtilities.UnexpectedValue(binaryLike);
+        }
     }
 
     protected override ExpressionSyntax? TryGetAppropriateParent(ExpressionSyntax binaryLike)
-        => binaryLike.Parent switch
-        {
-            ExpressionSyntax expression => expression,
-            ConstantPatternSyntax { Parent: ExpressionSyntax expression } => expression,
-            ConstantPatternSyntax { Parent: UnaryPatternSyntax { Parent: ExpressionSyntax expression } } => expression,
-            _ => null,
-        };
+        => binaryLike.Parent is ConstantPatternSyntax
+            ? binaryLike.Parent.Parent as ExpressionSyntax
+            : binaryLike.Parent as ExpressionSyntax;
 
     protected override bool IsAsExpression(ExpressionSyntax node)
         => node.Kind() == SyntaxKind.AsExpression;

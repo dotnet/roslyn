@@ -34,14 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary> 
         ''' Given anonymous type descriptor provided construct an anonymous type symbol
         ''' </summary>
-        Public Function ConstructAnonymousTypeSymbol(typeDescr As AnonymousTypeDescriptor, diagnostics As BindingDiagnosticBag) As AnonymousTypePublicSymbol
-            If diagnostics.AccumulatesDependencies Then
-                Dim dependencies = BindingDiagnosticBag.GetInstance(withDependencies:=True, withDiagnostics:=False)
-                ReportMissingOrErroneousSymbols(dependencies, hasClass:=True, hasDelegate:=False, hasKeys:=typeDescr.Fields.Any(Function(f) f.IsKey))
-                diagnostics.AddRange(dependencies)
-                dependencies.Free()
-            End If
-
+        Public Function ConstructAnonymousTypeSymbol(typeDescr As AnonymousTypeDescriptor) As AnonymousTypePublicSymbol
             Return New AnonymousTypePublicSymbol(Me, typeDescr)
         End Function
 
@@ -49,8 +42,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Given anonymous delegate descriptor provided, construct an anonymous delegate symbol
         ''' </summary>
         Public Function ConstructAnonymousDelegateSymbol(delegateDescriptor As AnonymousTypeDescriptor) As AnonymousDelegatePublicSymbol
-            ' ReportMissingOrErroneousSymbols reports only Special types for delegates.
-            ' Therefore, we have no additional dependencies to report here.
             Return New AnonymousDelegatePublicSymbol(Me, delegateDescriptor)
         End Function
 

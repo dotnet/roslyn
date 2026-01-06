@@ -148,7 +148,6 @@ public sealed class DidChangeConfigurationNotificationHandlerTest : AbstractLang
             "projects.dotnet_binary_log_path",
             "projects.dotnet_enable_automatic_restore",
             "projects.dotnet_enable_file_based_programs",
-            "projects.dotnet_enable_file_based_programs_when_ambiguous",
             "navigation.dotnet_navigate_to_source_link_and_embedded_sources",
             "formatting.dotnet_organize_imports_on_format",
         };

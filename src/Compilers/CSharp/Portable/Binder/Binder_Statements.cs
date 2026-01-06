@@ -706,11 +706,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindDeclarationStatementParts(LocalDeclarationStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
-            // Check for duplicate modifiers in local declarations.
-            // The actual modifier (const) is determined by node.IsConst below.
-            if (diagnostics.DiagnosticBag is not null)
-                ModifierUtils.CheckForDuplicateModifiers(node.Modifiers, diagnostics.DiagnosticBag);
-
             var typeSyntax = node.Declaration.Type;
             bool isConst = node.IsConst;
 
@@ -1566,8 +1561,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // 1. `e2` must have *ref-safe-to-escape* at least as large as the *ref-safe-to-escape* of `e1`
                     // 2. `e1` must have the same *safe-to-escape* as `e2`
 
-                    var leftEscape = GetRefEscape(op1);
-                    var rightEscape = GetRefEscape(op2);
+                    var leftEscape = GetRefEscape(op1, _localScopeDepth);
+                    var rightEscape = GetRefEscape(op2, _localScopeDepth);
                     if (!rightEscape.IsConvertibleTo(leftEscape))
                     {
                         var errorCode = (rightEscape, _inUnsafeRegion) switch
@@ -1586,8 +1581,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (op1.Kind is BoundKind.Local or BoundKind.Parameter)
                     {
-                        leftEscape = GetValEscape(op1);
-                        rightEscape = GetValEscape(op2);
+                        leftEscape = GetValEscape(op1, _localScopeDepth);
+                        rightEscape = GetValEscape(op2, _localScopeDepth);
 
                         Debug.Assert(leftEscape.Equals(rightEscape) || op1.Type.IsRefLikeOrAllowsRefLikeType());
 
@@ -1626,7 +1621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!hasErrors && op1.Type.IsRefLikeOrAllowsRefLikeType())
                 {
-                    var leftEscape = GetValEscape(op1);
+                    var leftEscape = GetValEscape(op1, _localScopeDepth);
                     ValidateEscape(op2, leftEscape, isByRef: false, diagnostics);
                 }
             }
@@ -1655,7 +1650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Analyze as if this is a call to the setter directly, not an assignment.
                 var localMethodInvocationInfo = ReplaceWithExtensionImplementationIfNeeded(in methodInvocationInfo);
                 Debug.Assert(methodInvocationInfo.MethodInfo.Method is not null);
-                CheckInvocationArgMixing(node, in localMethodInvocationInfo, methodInvocationInfo.MethodInfo.Method, diagnostics);
+                CheckInvocationArgMixing(node, in localMethodInvocationInfo, _localScopeDepth, methodInvocationInfo.MethodInfo.Method, diagnostics);
             }
         }
     }
@@ -1756,7 +1751,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundArrayAccess => null,
                 BoundDynamicIndexerAccess => null,
                 BoundBadExpression => null,
-                BoundPointerElementAccess => null,
                 _ => throw ExceptionUtilities.UnexpectedValue(e.Kind)
             };
         }
@@ -2748,10 +2742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // It was not. Does it implement operator true?
             expr = BindToNaturalType(expr, diagnostics);
-            OperatorResolutionForReporting discardedOperatorResolutionForReporting = default;
-            var best = this.UnaryOperatorOverloadResolution(UnaryOperatorKind.True, expr, node, diagnostics, ref discardedOperatorResolutionForReporting, out LookupResultKind resultKind, out ImmutableArray<MethodSymbol> originalUserDefinedOperators);
-            discardedOperatorResolutionForReporting.Free();
-
+            var best = this.UnaryOperatorOverloadResolution(UnaryOperatorKind.True, expr, node, diagnostics, out LookupResultKind resultKind, out ImmutableArray<MethodSymbol> originalUserDefinedOperators);
             if (!best.HasValue)
             {
                 // No. Give a "not convertible to bool" error.
@@ -4030,11 +4021,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (baseConstructor is null)
             {
-                // Check if the base type is a valid record base first.
-                // If it's not a record, then ERR_BadRecordBase will have already been reported,
-                // so we should not report a copy constructor error.
-                if (baseType.IsRecord)
-                    diagnostics.Add(ErrorCode.ERR_NoCopyConstructorInBaseType, diagnosticsLocation, baseType);
+                diagnostics.Add(ErrorCode.ERR_NoCopyConstructorInBaseType, diagnosticsLocation, baseType);
                 return null;
             }
 

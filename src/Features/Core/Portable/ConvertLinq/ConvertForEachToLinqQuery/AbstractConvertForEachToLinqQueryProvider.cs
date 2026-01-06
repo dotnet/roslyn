@@ -113,7 +113,7 @@ internal abstract class AbstractConvertForEachToLinqQueryProvider<TForEachStatem
         context.RegisterRefactoring(
             CodeAction.Create(
                 FeaturesResources.Convert_to_linq,
-                cancellationToken => ApplyConversionAsync(queryConverter, document, convertToQuery: true, cancellationToken),
+                c => ApplyConversionAsync(queryConverter, document, convertToQuery: true, c),
                 nameof(FeaturesResources.Convert_to_linq)),
             forEachStatement.Span);
 
@@ -136,7 +136,7 @@ internal abstract class AbstractConvertForEachToLinqQueryProvider<TForEachStatem
             context.RegisterRefactoring(
                 CodeAction.Create(
                     FeaturesResources.Convert_to_linq_call_form,
-                    cancellationToken => ApplyConversionAsync(linqConverter, document, convertToQuery: false, cancellationToken),
+                    c => ApplyConversionAsync(linqConverter, document, convertToQuery: false, c),
                     nameof(FeaturesResources.Convert_to_linq_call_form)),
                 forEachStatement.Span);
         }

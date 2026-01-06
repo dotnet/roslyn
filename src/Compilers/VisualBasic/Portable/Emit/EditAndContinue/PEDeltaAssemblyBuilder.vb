@@ -101,12 +101,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Public Overrides ReadOnly Property MethodImplSupported As Boolean
-            Get
-                Return _options.MethodImplEntriesSupported
-            End Get
-        End Property
-
         Friend Shared Function GetOrCreateMetadataSymbols(initialBaseline As EmitBaseline, compilation As VisualBasicCompilation) As EmitBaseline.MetadataSymbols
             If initialBaseline.LazyMetadataSymbols IsNot Nothing Then
                 Return initialBaseline.LazyMetadataSymbols

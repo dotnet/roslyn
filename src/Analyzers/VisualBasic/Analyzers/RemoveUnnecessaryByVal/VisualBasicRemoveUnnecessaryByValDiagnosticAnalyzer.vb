@@ -16,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
                 diagnosticId:=IDEDiagnosticIds.RemoveUnnecessaryByValDiagnosticId,
                 enforceOnBuild:=EnforceOnBuildValues.RemoveUnnecessaryByVal,
                 [option]:=Nothing,
+                fadingOption:=Nothing,
                 title:=New LocalizableResourceString(NameOf(VisualBasicAnalyzersResources.Remove_ByVal), VisualBasicAnalyzersResources.ResourceManager, GetType(VisualBasicAnalyzersResources)))
         End Sub
 

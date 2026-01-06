@@ -31,3 +31,10 @@ steps:
         PathtoPublish: '$(Build.SourcesDirectory)\artifacts\packages\Release\PreRelease'
         ArtifactName: 'Bootstrap Packages - ${{parameters.toolset}}'
         publishLocation: Container
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish VSIX Packages
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\VSSetup\Release\Installer'
+        ArtifactName: 'Bootstrap VSIX - ${{parameters.toolset}}'
+        publishLocation: Container

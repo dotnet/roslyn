@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
     /// as that is not part of the C# or VB floating-point literal lexical syntax.
     /// 
     /// If you change this code, please run the set of long-running random tests in the solution
-    /// RandomRealParserTests.sln. That solution is not included in Roslyn.slnx as it is Windows-specific.
+    /// RandomRealParserTests.sln. That solution is not included in Roslyn.sln as it is Windows-specific.
     /// </summary>
     internal static class RealParser
     {

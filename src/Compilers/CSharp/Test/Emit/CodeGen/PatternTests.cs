@@ -3525,7 +3525,7 @@ public class Program
       // sequence point: }
       IL_003c:  ret
     }
-", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
+", sequencePoints: "Program.Main", source: source);
         }
 
         [Fact, WorkItem(33675, "https://github.com/dotnet/roslyn/issues/33675")]

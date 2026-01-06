@@ -61,7 +61,7 @@ internal abstract partial class AbstractConvertToAsyncCodeFixProvider : CodeFixP
         var title = await GetDescriptionAsync(diagnostic, node, semanticModel, cancellationToken).ConfigureAwait(false);
         return CodeAction.Create(
             title,
-            async token => otherDocument.WithSyntaxRoot(newRoot),
+            token => Task.FromResult(otherDocument.WithSyntaxRoot(newRoot)),
             title);
     }
 }

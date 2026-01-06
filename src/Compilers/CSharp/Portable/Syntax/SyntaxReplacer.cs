@@ -329,11 +329,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return new InvalidOperationException(CodeAnalysisResources.MissingListItem);
         }
 
-        private static InvalidOperationException GetTokenNotListElementException()
-        {
-            return new InvalidOperationException(CodeAnalysisResources.MissingTokenListItem);
-        }
-
         private abstract class BaseListEditor : CSharpSyntaxRewriter
         {
             private readonly TextSpan _elementSpan;
@@ -509,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 if (token == _originalToken)
                 {
-                    throw GetTokenNotListElementException();
+                    throw GetItemNotListElementException();
                 }
 
                 return base.VisitToken(token);

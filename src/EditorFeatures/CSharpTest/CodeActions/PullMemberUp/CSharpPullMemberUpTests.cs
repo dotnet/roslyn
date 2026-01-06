@@ -3980,7 +3980,7 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
 
                 public partial class TestClass : IInterface
                 {
-                    partial void Bar[||]Bar();
+                    partial void Bar[||]Bar()
                 }
 
                 public partial class TestClass
@@ -4004,7 +4004,7 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
 
                 public partial class TestClass : IInterface
                 {
-                    partial void BarBar();
+                    void BarBar()
                 }
 
                 public partial class TestClass
@@ -5781,126 +5781,6 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
             {
                 publ[||] int DoSomething() {
                     return 5;
-                }
-            }
-            """);
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81066")]
-    public Task PullPartialEventUpToClass()
-        => TestWithPullMemberDialogAsync("""
-            using System;
-            namespace PushUpTest
-            {
-                public class BaseClass
-                {
-                }
-
-                public partial class TestClass : BaseClass
-                {
-                    public partial event EventHandler E[||]vent1;
-                }
-
-                public partial class TestClass
-                {
-                    public partial event EventHandler Event1 { add { } remove { } }
-                }
-            }
-            """, """
-            using System;
-            namespace PushUpTest
-            {
-                public class BaseClass
-                {
-                    public event EventHandler Event1;
-                }
-
-                public partial class TestClass : BaseClass
-                {
-                }
-
-                public partial class TestClass
-                {
-                    public partial event EventHandler Event1 { add { } remove { } }
-                }
-            }
-            """);
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81066")]
-    public Task PullPartialPropertyUpToClass()
-        => TestWithPullMemberDialogAsync("""
-            using System;
-            namespace PushUpTest
-            {
-                public class BaseClass
-                {
-                }
-
-                public partial class TestClass : BaseClass
-                {
-                    public partial int Pr[||]op { get; }
-                }
-
-                public partial class TestClass
-                {
-                    public partial int Prop => 42;
-                }
-            }
-            """, """
-            using System;
-            namespace PushUpTest
-            {
-                public class BaseClass
-                {
-                    public partial int Prop { get; }
-                }
-
-                public partial class TestClass : BaseClass
-                {
-                }
-
-                public partial class TestClass
-                {
-                    public partial int Prop => 42;
-                }
-            }
-            """);
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81066")]
-    public Task PullPartialMethodUpToClass()
-        => TestWithPullMemberDialogAsync("""
-            using System;
-            namespace PushUpTest
-            {
-                public class BaseClass
-                {
-                }
-
-                public partial class TestClass : BaseClass
-                {
-                    public partial void M[||]ethod();
-                }
-
-                public partial class TestClass
-                {
-                    public partial void Method() { }
-                }
-            }
-            """, """
-            using System;
-            namespace PushUpTest
-            {
-                public class BaseClass
-                {
-                    public partial void Method();
-                }
-
-                public partial class TestClass : BaseClass
-                {
-                }
-
-                public partial class TestClass
-                {
-                    public partial void Method() { }
                 }
             }
             """);

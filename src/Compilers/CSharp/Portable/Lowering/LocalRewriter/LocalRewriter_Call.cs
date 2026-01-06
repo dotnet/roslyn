@@ -689,7 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (methodOrIndexer.IsExtensionBlockMember())
                 {
-                    refKind = GetExtensionBlockMemberReceiverCaptureRefKind(rewrittenReceiver, methodOrIndexer);
+                    refKind = GetNewExtensionMemberReceiverCaptureRefKind(rewrittenReceiver, methodOrIndexer);
                 }
                 else
                 {
@@ -946,7 +946,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private RefKind GetExtensionBlockMemberReceiverCaptureRefKind(BoundExpression rewrittenReceiver, Symbol methodOrIndexer)
+        private RefKind GetNewExtensionMemberReceiverCaptureRefKind(BoundExpression rewrittenReceiver, Symbol methodOrIndexer)
         {
             Debug.Assert(rewrittenReceiver.Type is { });
             Debug.Assert(methodOrIndexer.ContainingType.ExtensionParameter is { });

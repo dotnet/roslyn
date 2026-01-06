@@ -1776,7 +1776,7 @@ class C
   IL_000e:  nop
  -IL_000f:  ret
 }
-", sequencePointDisplay: SequencePointDisplayMode.Minimal);
+", sequencePoints: "C+<>c.<F>b__0_0");
         }
 
         [Fact]
@@ -1820,7 +1820,7 @@ class C
  -IL_0010:  nop
  -IL_0011:  ret
 }
-", sequencePointDisplay: SequencePointDisplayMode.Minimal);
+", sequencePoints: "C+<>c.<F>b__0_0");
         }
 
         [Fact]
@@ -2194,7 +2194,7 @@ class C
   // sequence point: }
   IL_003b:  ret
 }
-", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
+", sequencePoints: "C.F", source: source);
         }
     }
 }

@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -108,8 +106,8 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
 
         var initialExpression = (TConditionalExpressionSyntax)generator.ConditionalExpression(
             condition.WithoutTrivia(),
-            WithoutLeadingWhiteSpaceOrEndOfLineTrivia(trueExpression),
-            WithoutLeadingWhiteSpaceOrEndOfLineTrivia(falseExpression));
+            trueExpression,
+            falseExpression);
         var (conditionalExpression, makeMultiLine) = UpdateConditionalExpression(ifOperation, initialExpression);
 
         conditionalExpression = conditionalExpression.WithAdditionalAnnotations(Simplifier.Annotation);
@@ -123,14 +121,6 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
         }
 
         return MakeRef(generatorInternal, isRef, conditionalExpression);
-    }
-
-    private TExpressionSyntax WithoutLeadingWhiteSpaceOrEndOfLineTrivia(TExpressionSyntax expression)
-    {
-        var syntaxFacts = this.SyntaxFacts;
-        return expression.GetLeadingTrivia().All(syntaxFacts.IsWhitespaceOrEndOfLineTrivia)
-            ? expression.WithoutLeadingTrivia()
-            : expression;
     }
 
     protected virtual (TConditionalExpressionSyntax conditional, bool makeMultiLine) UpdateConditionalExpression(

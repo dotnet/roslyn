@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
 
             controlFlowGraph = anonymousFlowGraph;
-            Debug.Assert(controlFlowGraph.Parent == this);
+            Debug.Assert(controlFlowGraph!.Parent == this);
             return true;
         }
     }

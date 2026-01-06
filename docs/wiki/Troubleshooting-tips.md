@@ -33,7 +33,7 @@ The solution is to copy the command-line options into a test file (for instance,
 
 If you have access to a command-line, simply running `csc.exe` will print out the version of the compiler.
 
-For environments where you cannot use the command-line, you can include `#error version` in your program and the compiler and language versions will be printed as an error message. (Note this only works with compiler version 2.3 or later, which shipped with Visual Studio 2017 version 15.3)
+For environments where you cannot use the command-line, you can include `#error version` in your program and the compiler and language versions will be printed as an error message. (Note this only works with C# 7.1 or later)
 
 # Investigating regressions and back compat issues
 

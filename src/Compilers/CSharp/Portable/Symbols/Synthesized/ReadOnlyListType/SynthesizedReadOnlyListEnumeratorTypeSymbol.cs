@@ -55,16 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var containingType = (SynthesizedReadOnlyListEnumeratorTypeSymbol)method.ContainingType;
                         var itemField = containingType._itemField;
                         var itemFieldReference = f.Field(f.This(), itemField);
-
-                        Debug.Assert(method.ReturnType.IsObjectType());
-                        Debug.Assert(itemFieldReference.Type.IsTypeParameter());
-
-                        Conversion c = f.ClassifyEmitConversion(itemFieldReference, method.ReturnType);
-                        Debug.Assert(c.IsImplicit);
-                        Debug.Assert(c.IsBoxing);
-
                         // return (object)_item;
-                        return f.Return(f.Convert(method.ReturnType, itemFieldReference, c));
+                        return f.Return(f.Convert(method.ReturnType, itemFieldReference));
                     }));
             addProperty(membersBuilder,
                 new SynthesizedReadOnlyListProperty(

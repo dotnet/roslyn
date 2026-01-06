@@ -26,34 +26,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestSimpleDeclarations()
         {
-            var text1 = """
-                namespace NA.NB
-                {
-                  partial class C<T>
-                  { 
-                    partial class D
-                    {
-                      int F;
-                    }
-                  }
-                  class C { }
-                }
-                """;
-            var text2 = """
-                namespace NA
-                {
-                  namespace NB
-                  {
-                    partial class C<T>
-                    { 
-                      partial class D
-                      {
-                        void G() {};
-                      }
-                    }
-                  }
-                }
-                """;
+            var text1 = @"
+namespace NA.NB
+{
+  partial class C<T>
+  { 
+    partial class D
+    {
+      int F;
+    }
+  }
+  class C { }
+}
+";
+            var text2 = @"
+namespace NA
+{
+  namespace NB
+  {
+    partial class C<T>
+    { 
+      partial class D
+      {
+        void G() {};
+      }
+    }
+  }
+}
+";
             var tree1 = SyntaxFactory.ParseSyntaxTree(text1);
             var tree2 = SyntaxFactory.ParseSyntaxTree(text2);
             Assert.NotNull(tree1);
@@ -122,9 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(mr.Declarations.IsEmpty);
             Assert.True(table.TypeNames.IsEmpty());
 
-            var builder = table.ToBuilder();
-            builder.AddRootDeclaration(Lazy(decl1));
-            table = builder.ToDeclarationTableAndFree();
+            table = table.AddRootDeclaration(Lazy(decl1));
             mr = table.CalculateMergedRoot(null);
 
             Assert.Equal(mr.Declarations, new[] { decl1 });
@@ -156,9 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(DeclarationKind.Class, d.Kind);
             Assert.Equal("D", d.Name);
 
-            builder = table.ToBuilder();
-            builder.AddRootDeclaration(Lazy(decl2));
-            table = builder.ToDeclarationTableAndFree();
+            table = table.AddRootDeclaration(Lazy(decl2));
             mr = table.CalculateMergedRoot(null);
 
             Assert.True(table.TypeNames.Distinct().OrderBy(s => s).SequenceEqual(new[] { "C", "D" }));
@@ -200,33 +196,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestTypeNames()
         {
-            var text1 = """
-                namespace NA.NB
-                {
-                  partial class A<T>
-                  { 
-                    partial class B
-                    {
-                      int F;
-                    }
-                  }
-                }
-                """;
-            var text2 = """
-                namespace NA
-                {
-                  namespace NB
-                  {
-                    partial class C<T>
-                    { 
-                      partial class D
-                      {
-                        void G() {};
-                      }
-                    }
-                  }
-                }
-                """;
+            var text1 = @"
+namespace NA.NB
+{
+  partial class A<T>
+  { 
+    partial class B
+    {
+      int F;
+    }
+  }
+}
+";
+            var text2 = @"
+namespace NA
+{
+  namespace NB
+  {
+    partial class C<T>
+    { 
+      partial class D
+      {
+        void G() {};
+      }
+    }
+  }
+}
+";
             var tree1 = SyntaxFactory.ParseSyntaxTree(text1);
             var tree2 = SyntaxFactory.ParseSyntaxTree(text2);
             Assert.NotNull(tree1);
@@ -235,133 +231,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var decl2 = Lazy(DeclarationTreeBuilder.ForTree(tree2, TestOptions.DebugExe.ScriptClassName, isSubmission: false));
 
             var table = DeclarationTable.Empty;
-            var builder = table.ToBuilder();
-            builder.AddRootDeclaration(decl1);
-            table = builder.ToDeclarationTableAndFree();
+            table = table.AddRootDeclaration(decl1);
 
             Assert.True(table.TypeNames.OrderBy(s => s).SequenceEqual(new[] { "A", "B" }));
 
-            builder = table.ToBuilder();
-            builder.AddRootDeclaration(decl2);
-            table = builder.ToDeclarationTableAndFree();
+            table = table.AddRootDeclaration(decl2);
             Assert.True(table.TypeNames.OrderBy(s => s).SequenceEqual(new[] { "A", "B", "C", "D" }));
 
-            builder = table.ToBuilder();
-            builder.RemoveRootDeclaration(decl2);
-            table = builder.ToDeclarationTableAndFree();
+            table = table.RemoveRootDeclaration(decl2);
             Assert.True(table.TypeNames.OrderBy(s => s).SequenceEqual(new[] { "A", "B" }));
 
-            builder = table.ToBuilder();
-            builder.AddRootDeclaration(decl2);
-            table = builder.ToDeclarationTableAndFree();
+            table = table.AddRootDeclaration(decl2);
             Assert.True(table.TypeNames.OrderBy(s => s).SequenceEqual(new[] { "A", "B", "C", "D" }));
 
-            builder = table.ToBuilder();
-            builder.RemoveRootDeclaration(decl1);
-            table = builder.ToDeclarationTableAndFree();
+            table = table.RemoveRootDeclaration(decl1);
             Assert.True(table.TypeNames.OrderBy(s => s).SequenceEqual(new[] { "C", "D" }));
 
-            builder = table.ToBuilder();
-            builder.RemoveRootDeclaration(decl2);
-            table = builder.ToDeclarationTableAndFree();
-            Assert.True(table.TypeNames.IsEmpty());
-        }
-
-        [Fact]
-        public void TestTypeNames_MultipleOperationsPerBuilder()
-        {
-            var text1 = """
-                namespace NA.NB
-                {
-                  partial class A<T>
-                  { 
-                    partial class B
-                    {
-                      int F;
-                    }
-                  }
-                }
-                """;
-            var text2 = """
-                namespace NA
-                {
-                  namespace NB
-                  {
-                    partial class C<T>
-                    { 
-                      partial class D
-                      {
-                        void G() {};
-                      }
-                    }
-                  }
-                }
-                """;
-            var tree1 = SyntaxFactory.ParseSyntaxTree(text1);
-            var tree2 = SyntaxFactory.ParseSyntaxTree(text2);
-            Assert.NotNull(tree1);
-            Assert.NotNull(tree2);
-            var decl1 = Lazy(DeclarationTreeBuilder.ForTree(tree1, TestOptions.DebugExe.ScriptClassName, isSubmission: false));
-            var decl2 = Lazy(DeclarationTreeBuilder.ForTree(tree2, TestOptions.DebugExe.ScriptClassName, isSubmission: false));
-
-            var table = DeclarationTable.Empty;
-            var builder = table.ToBuilder();
-            builder.AddRootDeclaration(decl1);
-            builder.AddRootDeclaration(decl2);
-            table = builder.ToDeclarationTableAndFree();
-            Assert.True(table.TypeNames.OrderBy(s => s).SequenceEqual(new[] { "A", "B", "C", "D" }));
-
-            builder = table.ToBuilder();
-            builder.RemoveRootDeclaration(decl1);
-            builder.RemoveRootDeclaration(decl2);
-            table = builder.ToDeclarationTableAndFree();
-            Assert.True(table.TypeNames.IsEmpty());
-        }
-
-        [Fact]
-        public void TestTypeNames_MultipleAddAndRemoveOperationsBeforeBuilding()
-        {
-            var text1 = """
-                namespace NA.NB
-                {
-                  partial class A<T>
-                  { 
-                    partial class B
-                    {
-                      int F;
-                    }
-                  }
-                }
-                """;
-            var text2 = """
-                namespace NA
-                {
-                  namespace NB
-                  {
-                    partial class C<T>
-                    { 
-                      partial class D
-                      {
-                        void G() {};
-                      }
-                    }
-                  }
-                }
-                """;
-            var tree1 = SyntaxFactory.ParseSyntaxTree(text1);
-            var tree2 = SyntaxFactory.ParseSyntaxTree(text2);
-            Assert.NotNull(tree1);
-            Assert.NotNull(tree2);
-            var decl1 = Lazy(DeclarationTreeBuilder.ForTree(tree1, TestOptions.DebugExe.ScriptClassName, isSubmission: false));
-            var decl2 = Lazy(DeclarationTreeBuilder.ForTree(tree2, TestOptions.DebugExe.ScriptClassName, isSubmission: false));
-
-            var table = DeclarationTable.Empty;
-            var builder = table.ToBuilder();
-            builder.AddRootDeclaration(decl1);
-            builder.AddRootDeclaration(decl2);
-            builder.RemoveRootDeclaration(decl1);
-            builder.RemoveRootDeclaration(decl2);
-            table = builder.ToDeclarationTableAndFree();
+            table = table.RemoveRootDeclaration(decl2);
             Assert.True(table.TypeNames.IsEmpty());
         }
 

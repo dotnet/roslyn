@@ -8075,44 +8075,5 @@ End Class
                     Verify()
             End Using
         End Sub
-
-        <Fact>
-        <WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/2631743")>
-        Public Sub ExplicitInterfaceImplementation_MethodImplNotSupported()
-            Using New EditAndContinueTest(targetFramework:=TargetFramework.NetFramework, verification:=Verification.Skipped).
-                AddBaseline(
-                    source:="
-Interface I 
-    Sub M()
-End Interface
-").
-                AddGeneration(
-                    source:="
-Interface I 
-    Sub M()
-End Interface
-Class C
-    Implements I
-    
-    Sub M() Implements I.M
-    End Sub
-End Class
-",
-                    edits:=
-                    {
-                        Edit(SemanticEditKind.Insert, symbolProvider:=Function(c) c.GetMember("C"))
-                    },
-                    options:=
-                        New EmitDifferenceOptions() With
-                        {
-                            .MethodImplEntriesSupported = False
-                        },
-                    expectedErrors:=
-                    {
-                        Diagnostic(ERRID.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime)
-                    }).
-                Verify()
-            End Using
-        End Sub
     End Class
 End Namespace

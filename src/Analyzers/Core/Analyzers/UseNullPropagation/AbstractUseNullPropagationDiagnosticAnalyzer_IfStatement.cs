@@ -94,7 +94,7 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
             // `if (<expr> != null) { <expr>.Method(); <expr> = null; }`
             //
             // If 'expr' is not null, then we execute the body and then end up with expr being null.  So `expr?.Method(); expr = null;`
-            // preserves those semantics.  Simialarly, if is expr is null, then `expr?.Method();` does nothing, and `expr = null` keeps it
+            // preserves those semantics.  Simialrly, if is expr is null, then `expr?.Method();` does nothing, and `expr = null` keeps it
             // the same as well.  So this is a valid conversion in all cases.
             if (!syntaxFacts.IsSimpleAssignmentStatement(nullAssignmentOpt))
                 return null;

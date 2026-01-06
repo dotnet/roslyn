@@ -3626,7 +3626,7 @@ class Program
             {
                 private Task<string> DoSomethingAsync() => Task.FromResult("");
 
-                public async Task<string?> M()
+                public Task<string?> async M()
                 {
                     [|string? x = await DoSomethingAsync();|]
                     x = null;
@@ -3644,7 +3644,7 @@ class Program
             {
                 private Task<string> DoSomethingAsync() => Task.FromResult("");
 
-                public async Task<string?> M()
+                public Task<string?> async M()
                 {
                     string? x = await {|Rename:NewMethod|}();
                     x = null;

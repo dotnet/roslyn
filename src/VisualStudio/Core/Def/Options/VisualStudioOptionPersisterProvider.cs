@@ -14,7 +14,6 @@ using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using UnifiedSettingsManager = Microsoft.VisualStudio.Utilities.UnifiedSettings.ISettingsManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Options;
 
@@ -48,7 +47,7 @@ internal sealed class VisualStudioOptionPersisterProvider : IOptionPersisterProv
     public IOptionPersister GetOrCreatePersister()
         => _lazyPersister.Value;
 
-    private VisualStudioOptionPersister CreatePersister()
+    private IOptionPersister CreatePersister()
     {
         var settingsManager = GetFreeThreadedService<SVsSettingsPersistenceManager, ISettingsManager>();
         Assumes.Present(settingsManager);
@@ -56,14 +55,10 @@ internal sealed class VisualStudioOptionPersisterProvider : IOptionPersisterProv
         var localRegistry = GetFreeThreadedService<SLocalRegistry, ILocalRegistry4>();
         Assumes.Present(localRegistry);
 
-        var unifiedSettingsManager = GetFreeThreadedService<SVsUnifiedSettingsManager, UnifiedSettingsManager>();
-        Assumes.Present(unifiedSettingsManager);
-
         var featureFlags = GetFreeThreadedService<SVsFeatureFlags, IVsFeatureFlags>();
 
         return new VisualStudioOptionPersister(
             new VisualStudioSettingsOptionPersister(RefreshOption, _readFallbacks, settingsManager),
-            new VisualStudioUnifiedSettingsOptionPersister(RefreshOption, unifiedSettingsManager),
             LocalUserRegistryOptionPersister.Create(localRegistry),
             new FeatureFlagPersister(featureFlags));
     }

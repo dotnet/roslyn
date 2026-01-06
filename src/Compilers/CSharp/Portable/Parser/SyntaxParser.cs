@@ -642,13 +642,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return token;
         }
 
-        protected SyntaxToken EatContextualToken(SyntaxKind kind, ErrorCode code)
+        protected SyntaxToken EatContextualToken(SyntaxKind kind, ErrorCode code, bool reportError = true)
         {
             Debug.Assert(SyntaxFacts.IsAnyToken(kind));
 
             if (this.CurrentToken.ContextualKind != kind)
             {
-                return CreateMissingToken(kind, code, reportError: true);
+                return CreateMissingToken(kind, code, reportError);
             }
             else
             {

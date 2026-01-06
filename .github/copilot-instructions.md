@@ -75,7 +75,6 @@ var symbolInfo = semanticModel.GetSymbolInfo(expression);
 - **Cancellation**: Always thread `CancellationToken` through async operations
 - **MEF Lifecycle**: Use `[ImportingConstructor]` with obsolete attribute for MEF v2 compatibility
 - **PROTOTYPE Comments**: Only used to track follow-up work in feature branches and are disallowed in main branch
-- **Code Formatting**: Avoid trailing spaces and blank lines (lines with only whitespace). Ensure all lines either have content or are completely empty.
 
 ## Common Gotchas
 
@@ -91,4 +90,4 @@ var symbolInfo = semanticModel.GetSymbolInfo(expression);
 - `docs/contributing/Building, Debugging, and Testing on Unix.md` - Development setup
 - `src/Compilers/Core/Portable/` - Core compiler APIs
 - `src/Workspaces/Core/Portable/` - Workspace object model
-- Solution filters: `Roslyn.slnx`, `Compilers.slnf`, `Ide.slnf` for focused builds
+- Solution filters: `Roslyn.sln`, `Compilers.slnf`, `Ide.slnf` for focused builds

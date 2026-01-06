@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek;
 [Export(typeof(IPeekableItemSourceProvider))]
 [ContentType(ContentTypeNames.RoslynContentType)]
 [Name("Roslyn Peekable Item Provider")]
-[Order(Before = "LSPPeekableSourceProvider")]
 [SupportsStandaloneFiles(true)]
 [SupportsPeekRelationship("IsDefinedBy")]
 internal sealed class PeekableItemSourceProvider : IPeekableItemSourceProvider

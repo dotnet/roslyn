@@ -2039,7 +2039,7 @@ class Program
   // sequence point: }
   IL_000e:  ret
 }
-", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
+", sequencePoints: "S0..ctor", source: source);
         }
 
         [Fact]
@@ -2783,7 +2783,7 @@ S3 { X = , Y = 3 }
   IL_0009:  box        ""int""
   IL_000e:  stfld      ""object S1.X""
   IL_0013:  ret
-}", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
+}", sequencePoints: "S1..ctor", source: source);
 
             verifier.VerifyIL("S2..ctor", @"
 {
@@ -2799,7 +2799,7 @@ S3 { X = , Y = 3 }
   IL_0009:  box        ""int""
   IL_000e:  stfld      ""object S2.<X>k__BackingField""
   IL_0013:  ret
-}", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
+}", sequencePoints: "S2..ctor", source: source);
 
             verifier.VerifyIL("S3..ctor", @"
 {
@@ -2815,7 +2815,7 @@ S3 { X = , Y = 3 }
   IL_0009:  box        ""int""
   IL_000e:  stfld      ""object S3.<Y>k__BackingField""
   IL_0013:  ret
-}", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
+}", sequencePoints: "S3..ctor", source: source);
         }
 
         [Fact]
@@ -4468,7 +4468,8 @@ public struct S
   IL_0014:  ret
 }
 ",
-                sequencePointDisplay: SequencePointDisplayMode.Enhanced);
+                sequencePoints: "S..ctor",
+                source: source);
         }
 
         [Fact]
@@ -4507,7 +4508,8 @@ public struct S
   IL_0013:  ret
 }
 ",
-                sequencePointDisplay: SequencePointDisplayMode.Enhanced);
+                sequencePoints: "S..ctor",
+                source: source);
         }
 
         [Fact]

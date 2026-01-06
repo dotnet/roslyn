@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -9,8 +11,7 @@ using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure;
 
-internal sealed class CSharpBlockStructureProvider()
-    : AbstractBlockStructureProvider(CreateDefaultNodeProviderMap(), CreateDefaultTriviaProviderMap())
+internal sealed class CSharpBlockStructureProvider : AbstractBlockStructureProvider
 {
     private static ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> CreateDefaultNodeProviderMap()
     {
@@ -31,7 +32,6 @@ internal sealed class CSharpBlockStructureProvider()
         builder.Add<EnumMemberDeclarationSyntax, EnumMemberDeclarationStructureProvider>();
         builder.Add<EventDeclarationSyntax, EventDeclarationStructureProvider>();
         builder.Add<EventFieldDeclarationSyntax, EventFieldDeclarationStructureProvider>();
-        builder.Add<ExtensionBlockDeclarationSyntax, TypeDeclarationStructureProvider>();
         builder.Add<FieldDeclarationSyntax, FieldDeclarationStructureProvider>();
         builder.Add<FileScopedNamespaceDeclarationSyntax, FileScopedNamespaceDeclarationStructureProvider>();
         builder.Add<IndexerDeclarationSyntax, IndexerDeclarationStructureProvider>();
@@ -54,7 +54,6 @@ internal sealed class CSharpBlockStructureProvider()
         builder.Add<IfDirectiveTriviaSyntax, IfDirectiveTriviaStructureProvider>();
         builder.Add<CollectionExpressionSyntax, CollectionExpressionStructureProvider>();
         builder.Add<ArgumentListSyntax, ArgumentListStructureProvider>();
-        builder.Add<ParameterListSyntax, ParameterListStructureProvider>();
 
         return builder.ToImmutable();
     }
@@ -67,5 +66,10 @@ internal sealed class CSharpBlockStructureProvider()
         builder.Add((int)SyntaxKind.MultiLineCommentTrivia, [new MultilineCommentBlockStructureProvider()]);
 
         return builder.ToImmutable();
+    }
+
+    internal CSharpBlockStructureProvider()
+        : base(CreateDefaultNodeProviderMap(), CreateDefaultTriviaProviderMap())
+    {
     }
 }

@@ -24,7 +24,7 @@ public sealed class CSharpInterfaceSnippetProviderTests : AbstractCSharpSnippetP
             """, """
             namespace Namespace
             {
-                interface I{|0:MyInterface|}
+                interface {|0:MyInterface|}
                 {
                     $$
                 }
@@ -40,7 +40,7 @@ public sealed class CSharpInterfaceSnippetProviderTests : AbstractCSharpSnippetP
             """, """
             namespace Namespace;
 
-            interface I{|0:MyInterface|}
+            interface {|0:MyInterface|}
             {
                 $$
             }
@@ -51,7 +51,7 @@ public sealed class CSharpInterfaceSnippetProviderTests : AbstractCSharpSnippetP
         => VerifySnippetAsync("""
             $$
             """, """
-            interface I{|0:MyInterface|}
+            interface {|0:MyInterface|}
             {
                 $$
             }
@@ -64,7 +64,7 @@ public sealed class CSharpInterfaceSnippetProviderTests : AbstractCSharpSnippetP
             $$
             """, """
             System.Console.WriteLine();
-            interface I{|0:MyInterface|}
+            interface {|0:MyInterface|}
             {
                 $$
             }
@@ -80,7 +80,7 @@ public sealed class CSharpInterfaceSnippetProviderTests : AbstractCSharpSnippetP
             """, """
             class MyClass
             {
-                interface I{|0:MyInterface|}
+                interface {|0:MyInterface|}
                 {
                     $$
                 }
@@ -97,7 +97,7 @@ public sealed class CSharpInterfaceSnippetProviderTests : AbstractCSharpSnippetP
             """, """
             record MyRecord
             {
-                interface I{|0:MyInterface|}
+                interface {|0:MyInterface|}
                 {
                     $$
                 }
@@ -114,7 +114,7 @@ public sealed class CSharpInterfaceSnippetProviderTests : AbstractCSharpSnippetP
             """, """
             struct MyStruct
             {
-                interface I{|0:MyInterface|}
+                interface {|0:MyInterface|}
                 {
                     $$
                 }
@@ -131,24 +131,7 @@ public sealed class CSharpInterfaceSnippetProviderTests : AbstractCSharpSnippetP
             """, """
             interface MyInterface
             {
-                interface I{|0:MyInterface|}
-                {
-                    $$
-                }
-            }
-            """);
-
-    [Fact]
-    public Task InsertInterfaceSnippetInInterfaceTest2()
-        => VerifySnippetAsync("""
-            interface IMyInterface
-            {
-                $$
-            }
-            """, """
-            interface IMyInterface
-            {
-                interface I{|0:MyInterface1|}
+                interface {|0:MyInterface1|}
                 {
                     $$
                 }
@@ -160,7 +143,7 @@ public sealed class CSharpInterfaceSnippetProviderTests : AbstractCSharpSnippetP
         => VerifySnippetAsync("""
             $$
             """, """
-            public interface I{|0:MyInterface|}
+            public interface {|0:MyInterface|}
             {
                 $$
             }
@@ -211,7 +194,7 @@ public sealed class CSharpInterfaceSnippetProviderTests : AbstractCSharpSnippetP
         => VerifySnippetAsync($"""
             {modifier} $$
             """, $$"""
-            {{modifier}} interface I{|0:MyInterface|}
+            {{modifier}} interface {|0:MyInterface|}
             {
                 $$
             }
@@ -223,7 +206,7 @@ public sealed class CSharpInterfaceSnippetProviderTests : AbstractCSharpSnippetP
         => VerifySnippetAsync($"""
             {modifier} $$
             """, $$"""
-            {{modifier}} interface I{|0:MyInterface|}
+            {{modifier}} interface {|0:MyInterface|}
             {
                 $$
             }
@@ -241,7 +224,7 @@ public sealed class CSharpInterfaceSnippetProviderTests : AbstractCSharpSnippetP
         => VerifySnippetAsync($"""
             {modifier} $$
             """, $$"""
-            {{modifier}} interface I{|0:MyInterface|}
+            {{modifier}} interface {|0:MyInterface|}
             {
                 $$
             }
@@ -264,7 +247,7 @@ public sealed class CSharpInterfaceSnippetProviderTests : AbstractCSharpSnippetP
         => VerifySnippetAsync($"""
             {modifier} partial $$
             """, $$"""
-            {{modifier}} partial interface I{|0:MyInterface|}
+            {{modifier}} partial interface {|0:MyInterface|}
             {
                 $$
             }
@@ -281,7 +264,7 @@ public sealed class CSharpInterfaceSnippetProviderTests : AbstractCSharpSnippetP
         => VerifySnippetAsync("""
             partial $$
             """, """
-            public partial interface I{|0:MyInterface|}
+            public partial interface {|0:MyInterface|}
             {
                 $$
             }

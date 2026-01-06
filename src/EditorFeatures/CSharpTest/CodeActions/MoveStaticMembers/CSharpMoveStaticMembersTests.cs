@@ -3395,19 +3395,6 @@ public sealed class CSharpMoveStaticMembersTests
             },
         }.RunAsync().ConfigureAwait(false);
     }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81116")]
-    public Task TestSelectEnumMember_NoAction()
-        => TestNoRefactoringAsync("""
-            namespace TestNs1
-            {
-                enum E
-                {
-                    No[||]ne = 0,
-                    Some = 1
-                }
-            }
-            """);
     #endregion
 
     private sealed class Test : VerifyCS.Test
@@ -3436,7 +3423,7 @@ public sealed class CSharpMoveStaticMembersTests
 
         private readonly bool _testPreselection;
 
-        protected override async Task<Workspace> CreateWorkspaceImplAsync()
+        protected override Task<Workspace> CreateWorkspaceImplAsync()
         {
             var hostServices = s_testServices.GetHostServices();
 
@@ -3448,7 +3435,7 @@ public sealed class CSharpMoveStaticMembersTests
             testOptionsService.CreateNew = _createNew;
             testOptionsService.ExpectedPrecheckedMembers = _testPreselection ? _selection : [];
 
-            return workspace;
+            return Task.FromResult<Workspace>(workspace);
         }
     }
 

@@ -12,7 +12,6 @@ internal static class ReferenceFinders
     public static readonly ImmutableArray<IReferenceFinder> DefaultRenameReferenceFinders = [
             AliasSymbolReferenceFinder.Instance,
             ConstructorSymbolReferenceFinder.Instance,
-            CrefTypeParameterSymbolReferenceFinder.Instance,
             PropertySymbolReferenceFinder.Instance,
             new DestructorSymbolReferenceFinder(),
             DynamicTypeSymbolReferenceFinder.Instance,
@@ -22,7 +21,7 @@ internal static class ReferenceFinders
             new FieldSymbolReferenceFinder(),
             new LabelSymbolReferenceFinder(),
             new LocalSymbolReferenceFinder(),
-            MethodTypeParameterSymbolReferenceFinder.Instance,
+            new MethodTypeParameterSymbolReferenceFinder(),
             new NamedTypeSymbolReferenceFinder(),
             new NamespaceSymbolReferenceFinder(),
             new OperatorSymbolReferenceFinder(),
@@ -31,7 +30,7 @@ internal static class ReferenceFinders
             new PreprocessingSymbolReferenceFinder(),
             new PropertyAccessorSymbolReferenceFinder(),
             new RangeVariableSymbolReferenceFinder(),
-            TypeParameterSymbolReferenceFinder.Instance,
+            new TypeParameterSymbolReferenceFinder(),
         ];
 
     /// <summary>

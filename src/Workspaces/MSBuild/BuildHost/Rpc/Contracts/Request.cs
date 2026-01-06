@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Text.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
@@ -24,5 +24,5 @@ internal sealed class Request
     /// </summary>
     public required string Method { get; init; }
 
-    public required ImmutableArray<JsonElement> Parameters { get; init; }
+    public required ImmutableArray<JToken> Parameters { get; init; }
 }

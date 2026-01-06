@@ -76,7 +76,7 @@ internal static class AspNetCoreAddPackageCodeAction
     private static async Task<Document> AddImportAsync(Document document, int position, SyntaxGenerator generator, SyntaxNode importDirective, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
         var addImportOptions = await document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);
 
@@ -84,7 +84,7 @@ internal static class AspNetCoreAddPackageCodeAction
 
         var contextNode = root.FindToken(position).GetRequiredParent();
         var newRoot = service.AddImport(
-            semanticModel, root, contextNode, importDirective, generator, addImportOptions, cancellationToken);
+            compilation, root, contextNode, importDirective, generator, addImportOptions, cancellationToken);
 
         var updatedDocument = document.WithSyntaxRoot(newRoot);
         return updatedDocument;

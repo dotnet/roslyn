@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Features.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
@@ -54,11 +52,9 @@ internal static partial class ProtocolConversions
         }
 
         // DiagnosticId supports fading, check if the corresponding VS option is turned on.
-        if (FadingOptions.TryGetFadingOptionForDiagnostic(diagnosticData.Id, out var fadingOption))
+        if (!SupportsFadingOption(diagnosticData, globalOptionService))
         {
-            Contract.ThrowIfNull(diagnosticData.Language, $"diagnostic {diagnosticData.Id} is missing a language");
-            if (!globalOptionService.GetOption(fadingOption, diagnosticData.Language))
-                return [diagnostic];
+            return [diagnostic];
         }
 
         // Check to see if there are specific locations marked to fade.
@@ -269,5 +265,16 @@ internal static partial class ProtocolConversions
             result.Add(VSDiagnosticTags.EditAndContinueError);
 
         return result.ToArray();
+    }
+
+    private static bool SupportsFadingOption(DiagnosticData diagnosticData, IGlobalOptionService globalOptionService)
+    {
+        if (IDEDiagnosticIdToOptionMappingHelper.TryGetMappedFadingOption(diagnosticData.Id, out var fadingOption))
+        {
+            Contract.ThrowIfNull(diagnosticData.Language, $"diagnostic {diagnosticData.Id} is missing a language");
+            return globalOptionService.GetOption(fadingOption, diagnosticData.Language);
+        }
+
+        return true;
     }
 }

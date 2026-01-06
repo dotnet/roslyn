@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        private sealed class ExtensionMetadataMethodParameterSymbol : RewrittenMethodParameterSymbolBase
+        private sealed class ExtensionMetadataMethodParameterSymbol : RewrittenMethodParameterSymbol
         {
             public ExtensionMetadataMethodParameterSymbol(SourceExtensionImplementationMethodSymbol containingMethod, ParameterSymbol sourceParameter) :
                 base(containingMethod, sourceParameter)
@@ -205,6 +205,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     valueParameter.AddSynthesizedFlowAnalysisAttributes(ref attributes);
                 }
 
+                // Synthesized nullability attributes are context-dependent, so we intentionally do not call base.AddSynthesizedAttributes here
+                // as that would delegate to underlying parameter symbol
                 SourceParameterSymbolBase.AddSynthesizedAttributes(this, moduleBuilder, ref attributes);
             }
 

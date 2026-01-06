@@ -44,17 +44,15 @@ internal abstract class AbstractCodeQualityDiagnosticAnalyzer : DiagnosticAnalyz
         bool isUnnecessary,
         bool isEnabledByDefault = true,
         bool isConfigurable = true,
-        LocalizableString? description = null,
-        DiagnosticSeverity defaultSeverity = DiagnosticSeverity.Info,
-        string? helpLinkUri = null)
+        LocalizableString? description = null)
 #pragma warning disable RS0030 // Do not use banned APIs
         => new(
                 id, title, messageFormat,
                 DiagnosticCategory.CodeQuality,
-                defaultSeverity,
+                DiagnosticSeverity.Info,
                 isEnabledByDefault,
                 description,
-                helpLinkUri: helpLinkUri ?? DiagnosticHelper.GetHelpLinkForDiagnosticId(id),
+                helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(id),
                 customTags: DiagnosticCustomTags.Create(isUnnecessary, isConfigurable, isCustomConfigurable: hasAnyCodeStyleOption, enforceOnBuild));
 #pragma warning restore RS0030 // Do not use banned APIs
 }

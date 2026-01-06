@@ -60,7 +60,6 @@ try {
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.Contracts.Package.dll" +
   " --exclude net8.0\Microsoft.CodeAnalysis.Contracts.Package.dll" +
   " --exclude net9.0\Microsoft.CodeAnalysis.Contracts.Package.dll" +
-  " --exclude net10.0\Microsoft.CodeAnalysis.Contracts.Package.dll" +
   " --exclude netcoreapp3.1\Microsoft.CodeAnalysis.Collections.Package.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.Collections.Package.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.Debugging.Package.dll" +
@@ -70,6 +69,8 @@ try {
   " --exclude net9.0\Microsoft.CodeAnalysis.Threading.Package.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.Extensions.Package.dll" +
   " --exclude netcoreapp3.1\Microsoft.CodeAnalysis.Workspaces.UnitTests.dll" +
+  " --exclude net472\Zip\tools\vsixexpinstaller\System.ValueTuple.dll" +
+  " --exclude net472\Zip\tools\vsixexpinstaller\VSIXExpInstaller.exe" +
 
   # Semantic Search reference assemblies can't be reconstructed from source.
   # The assemblies are not marked with ReferenceAssemblyAttribute attribute.

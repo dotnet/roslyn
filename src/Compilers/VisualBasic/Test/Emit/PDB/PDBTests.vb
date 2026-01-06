@@ -830,7 +830,7 @@ End Module
   IL_0066:  nop
  -IL_0067:  ret
 }
-", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
+", sequencePoints:="M1.Main")
 
             v.VerifyPdb("M1.Main",
 <symbols>
@@ -985,7 +985,7 @@ End Module
   }
  -IL_0066:  ret
 }
-", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
+", sequencePoints:="M1.Main")
         End Sub
 
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
@@ -1180,7 +1180,7 @@ End Class
   IL_0024:  nop
  -IL_0025:  ret
 }
-", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
+", sequencePoints:="C.F")
 
             v.VerifyPdb("C.F",
 <symbols>
@@ -1259,7 +1259,7 @@ End Class
   IL_0013:  brtrue.s   IL_0003
  -IL_0015:  ret
 }
-", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
+", sequencePoints:="C.F")
 
             v.VerifyPdb("C.F",
 <symbols>
@@ -1335,7 +1335,7 @@ End Class
   IL_0012:  brtrue.s   IL_0001
  -IL_0014:  ret
 }
-", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
+", sequencePoints:="C.F")
 
             v.VerifyPdb("C.F",
 <symbols>
@@ -1435,7 +1435,7 @@ End Class
   IL_0033:  xor
   IL_0034:  ble.s      IL_001d
  -IL_0036:  ret
-}", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
+}", sequencePoints:="C.F")
 
             v.VerifyPdb("C.F",
 <symbols>
@@ -1540,7 +1540,7 @@ End Class
   IL_0043:  brtrue.s   IL_0029
  -IL_0045:  ret
 }
-", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
+", sequencePoints:="MyClass1.Main")
 
             v.VerifyPdb("MyClass1.Main",
 <symbols>
@@ -1650,7 +1650,7 @@ End Class
  -IL_0036:  nop
  -IL_0037:  ret
 }
-", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
+", sequencePoints:="C.F")
 
             v.VerifyPdb("C.F",
 <symbols>
@@ -2216,7 +2216,7 @@ End Module
   IL_0020:  nop
  -IL_0021:  ret
 }
-", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
+", sequencePoints:="MyMod.Main")
 
             compilation.VerifyPdb("MyMod.Main",
 <symbols>
@@ -2788,7 +2788,7 @@ End Module
  -IL_0035:  nop
  -IL_0036:  ret
 }
-", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
+", sequencePoints:="Module1.Main")
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
@@ -4060,7 +4060,7 @@ End Class
   IL_0010:  nop
  -IL_0011:  ret
 }
-", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
+", sequencePoints:="IntervalUpdate.Update")
 
             compilation.VerifyPdb(
 <symbols>

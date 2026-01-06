@@ -7,8 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
@@ -29,21 +27,9 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
     {
         // If it's a delegate method, then cascade to the type as well.  These guys are
         // practically equivalent for users.
-        if (symbol.ContainingType.TypeKind == TypeKind.Delegate)
-            return new([symbol.ContainingType]);
-
-        using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
-
-        result.AddRange(GetOtherPartsOfPartial(symbol));
-
-        // If the given symbol is an extension member, cascade to its implementation method
-        result.AddIfNotNull(symbol.AssociatedExtensionImplementation);
-
-        // If the given symbol is an implementation method of an extension member, cascade to the extension member itself
-        if (symbol.TryGetCorrespondingExtensionBlockMethod() is IMethodSymbol method)
-            result.Add(method);
-
-        return new(result.ToImmutableAndClear());
+        return symbol.ContainingType.TypeKind == TypeKind.Delegate
+            ? new(ImmutableArray.Create<ISymbol>(symbol.ContainingType))
+            : new(GetOtherPartsOfPartial(symbol));
     }
 
     private static ImmutableArray<ISymbol> GetOtherPartsOfPartial(IMethodSymbol symbol)

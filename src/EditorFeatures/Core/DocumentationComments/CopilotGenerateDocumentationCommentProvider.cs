@@ -23,46 +23,26 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments;
 
-internal sealed class CopilotGenerateDocumentationCommentProvider(IThreadingContext threadingContext, ICopilotCodeAnalysisService copilotService) : SuggestionProviderBase
+internal sealed class CopilotGenerateDocumentationCommentProvider : SuggestionProviderBase
 {
     private SuggestionManagerBase? _suggestionManager;
-    private DocumentationCommentSuggestion? _currentSuggestion;
+    private readonly ICopilotCodeAnalysisService _copilotService;
 
-    public readonly IThreadingContext ThreadingContext = threadingContext;
+    public readonly IThreadingContext ThreadingContext;
 
     [MemberNotNullWhen(true, nameof(_suggestionManager))]
     public bool Enabled => _enabled && (_suggestionManager != null);
     private bool _enabled = true;
 
+    public CopilotGenerateDocumentationCommentProvider(IThreadingContext threadingContext, ICopilotCodeAnalysisService copilotService)
+    {
+        _copilotService = copilotService;
+        ThreadingContext = threadingContext;
+    }
+
     public async Task InitializeAsync(ITextView textView, SuggestionServiceBase suggestionServiceBase, CancellationToken cancellationToken)
     {
         _suggestionManager ??= await suggestionServiceBase.TryRegisterProviderAsync(this, textView, "AmbientAIDocumentationComments", cancellationToken).ConfigureAwait(false);
-    }
-
-    public async Task StartSuggestionSessionAsync(CancellationToken cancellationToken)
-    {
-        if (!Enabled)
-        {
-            return;
-        }
-
-        // We need to disable IntelliCode Line Completions when starting a documentation comment session
-        var intelliCodeLineCompletionsDisposable = await _suggestionManager.DisableProviderAsync(
-            SuggestionServiceNames.IntelliCodeLineCompletions, cancellationToken).ConfigureAwait(false);
-
-        var suggestion = new DocumentationCommentSuggestion(this, _suggestionManager, intelliCodeLineCompletionsDisposable);
-
-        // Start the session early to claim exclusive control
-        var sessionStarted = await suggestion.StartSuggestionSessionAsync(cancellationToken).ConfigureAwait(false);
-
-        if (sessionStarted)
-        {
-            _currentSuggestion = suggestion;
-        }
-        else
-        {
-            _currentSuggestion = null;
-        }
     }
 
     public async Task GenerateDocumentationProposalAsync(DocumentationCommentSnippet snippet,
@@ -81,38 +61,24 @@ internal sealed class CopilotGenerateDocumentationCommentProvider(IThreadingCont
 
         if (snippetProposal is null)
         {
-            // Clean up the pre-started session if proposal is invalid
-            if (_currentSuggestion != null)
-            {
-                await _currentSuggestion.DismissSuggestionSessionAsync(cancellationToken).ConfigureAwait(false);
-                _currentSuggestion = null;
-            }
             return;
         }
 
-        // Use the pre-started suggestion session if available, otherwise create a new one
-        DocumentationCommentSuggestion suggestion;
-        if (_currentSuggestion != null)
-        {
-            suggestion = _currentSuggestion;
-            _currentSuggestion = null;
-        }
-        else
-        {
-            var intelliCodeLineCompletionsDisposable = await _suggestionManager.DisableProviderAsync(
-                SuggestionServiceNames.IntelliCodeLineCompletions, cancellationToken).ConfigureAwait(false);
-            suggestion = new DocumentationCommentSuggestion(this, _suggestionManager, intelliCodeLineCompletionsDisposable);
-        }
+        // We need to disable IntelliCode Line Completions when starting a documentation comment session. Our suggestions take precedence to line completions in the documentation comment case.
+        // It needs to be disposed of in any case we have left the session, either after a user has accepted grey text or if we needed to bail out earlier in the process.
+        // Disposing of the provider is necessary to reenable the provider.
+        var intelliCodeLineCompletionsDisposable = await _suggestionManager.DisableProviderAsync(SuggestionServiceNames.IntelliCodeLineCompletions, cancellationToken).ConfigureAwait(false);
 
+        var suggestion = new DocumentationCommentSuggestion(this, _suggestionManager, intelliCodeLineCompletionsDisposable);
         Func<CancellationToken, Task<ProposalBase?>> generateProposal = async (cancellationToken) =>
         {
             var proposalEdits = await GetProposedEditsAsync(
-                snippetProposal, copilotService, oldSnapshot, snippet.IndentText, cancellationToken).ConfigureAwait(false);
+                snippetProposal, _copilotService, oldSnapshot, snippet.IndentText, cancellationToken).ConfigureAwait(false);
 
             return Proposal.TryCreateProposal(description: null, proposalEdits, oldCaret, flags: ProposalFlags.ShowCommitHighlight);
         };
 
-        await suggestion.ContinueSuggestionSessionWithProposalAsync(generateProposal, cancellationToken).ConfigureAwait(false);
+        await suggestion.StartSuggestionSessionWithProposalAsync(generateProposal, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -343,13 +309,15 @@ internal sealed class CopilotGenerateDocumentationCommentProvider(IThreadingCont
         }
     }
 
-    public override async Task EnabledAsync(CancellationToken cancel)
+    public override Task EnabledAsync(CancellationToken cancel)
     {
         _enabled = true;
+        return Task.CompletedTask;
     }
 
-    public override async Task DisabledAsync(CancellationToken cancel)
+    public override Task DisabledAsync(CancellationToken cancel)
     {
         _enabled = false;
+        return Task.CompletedTask;
     }
 }

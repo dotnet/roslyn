@@ -226,13 +226,12 @@ internal static partial class ITypeSymbolExtensions
     {
         for (var b = symbol.BaseType; b != null; b = b.BaseType)
         {
-            if (b is
-                {
-                    MetadataName: nameof(Attribute),
-                    ContainingType: null,
-                    ContainingNamespace.Name: nameof(System),
-                    ContainingNamespace.ContainingNamespace.IsGlobalNamespace: true,
-                })
+            if (b.MetadataName == "Attribute" &&
+                b.ContainingType == null &&
+                b.ContainingNamespace != null &&
+                b.ContainingNamespace.Name == "System" &&
+                b.ContainingNamespace.ContainingNamespace != null &&
+                b.ContainingNamespace.ContainingNamespace.IsGlobalNamespace)
             {
                 return true;
             }
@@ -342,14 +341,8 @@ internal static partial class ITypeSymbolExtensions
                     type = arrayType.ElementType;
                     continue;
                 case IPointerTypeSymbol pointerType:
-                    // For normal pointers like Customer*, unwrap to get a meaningful name (customer)
-                    // rather than using a generic default
                     type = pointerType.PointedAtType;
                     continue;
-                case IFunctionPointerTypeSymbol:
-                    // Function pointer types like "delegate*<void>" don't have a meaningful underlying type
-                    // to generate a name from, so use the default parameter name
-                    return capitalize ? DefaultParameterName.ToPascalCase() : DefaultParameterName;
             }
 
             break;

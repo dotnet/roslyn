@@ -159,10 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResultKind resultKind;
             ImmutableArray<MethodSymbol> originalUserDefinedOperators;
             BoundExpression comparisonResult = new BoundTupleOperandPlaceholder(node, type);
-            OperatorResolutionForReporting discardedOperatorResolutionForReporting = default;
-            UnaryOperatorAnalysisResult best = this.UnaryOperatorOverloadResolution(boolOpKind, comparisonResult, node, diagnostics, ref discardedOperatorResolutionForReporting, out resultKind, out originalUserDefinedOperators);
-            discardedOperatorResolutionForReporting.Free();
-
+            UnaryOperatorAnalysisResult best = this.UnaryOperatorOverloadResolution(boolOpKind, comparisonResult, node, diagnostics, out resultKind, out originalUserDefinedOperators);
             if (best.HasValue)
             {
                 conversionForBoolPlaceholder = new BoundValuePlaceholder(node, type).MakeCompilerGenerated();
@@ -212,10 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (left.IsLiteralDefaultOrImplicitObjectCreation() ||
                 right.IsLiteralDefaultOrImplicitObjectCreation())
             {
-                OperatorResolutionForReporting discardedOperatorResolutionForReporting = default;
-                ReportBinaryOperatorError(node, diagnostics, node.OperatorToken, left, right, LookupResultKind.Ambiguous, ref discardedOperatorResolutionForReporting);
-                discardedOperatorResolutionForReporting.Free();
-
+                ReportBinaryOperatorError(node, diagnostics, node.OperatorToken, left, right, LookupResultKind.Ambiguous);
                 return TupleBinaryOperatorInfo.Multiple.ErrorInstance;
             }
 

@@ -1544,7 +1544,6 @@ namespace System
             public override SymbolChanges EncSymbolChanges => _builder.EncSymbolChanges;
             public override EmitBaseline PreviousGeneration => _builder.PreviousGeneration;
             public override bool FieldRvaSupported => _builder.FieldRvaSupported;
-            public override bool MethodImplSupported => _builder.MethodImplSupported;
 
             public override ISourceAssemblySymbolInternal SourceAssemblyOpt => _builder.SourceAssemblyOpt;
 

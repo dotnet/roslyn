@@ -28,6 +28,5 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.New.IntegrationTests" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests" />
   </ItemGroup>
 </Project>

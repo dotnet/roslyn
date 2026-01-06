@@ -25,9 +25,6 @@ public sealed class CrefCompletionProviderTests : AbstractCSharpCompletionProvid
     internal override Type GetCompletionProviderType()
         => typeof(CrefCompletionProvider);
 
-    protected override TestComposition GetComposition()
-        => base.GetComposition().AddParts(typeof(KeywordCompletionProvider));
-
     private protected override async Task VerifyWorkerAsync(string code, int position, string expectedItemOrNull,
         string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, char? deletedCharTrigger,
         bool checkForAbsence, Glyph? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
@@ -398,7 +395,7 @@ public sealed class CrefCompletionProviderTests : AbstractCSharpCompletionProvid
         var hostDocument = workspace.DocumentWithCursor;
         var document = workspace.CurrentSolution.GetRequiredDocument(hostDocument.Id);
         var service = GetCompletionService(document.Project);
-        var provider = service.GetTestAccessor().GetImportedAndBuiltInProviders([]).OfType<CrefCompletionProvider>().Single();
+        var provider = Assert.IsType<CrefCompletionProvider>(service.GetTestAccessor().GetImportedAndBuiltInProviders([]).Single());
         provider.GetTestAccessor().SetSpeculativeNodeCallback(n =>
         {
             // asserts that we aren't be asked speculate on nodes inside documentation trivia.

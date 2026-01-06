@@ -3066,9 +3066,10 @@ scoped readonly ref struct C { }
                 // (3,12): error CS1031: Type expected
                 // scoped ref struct B { }
                 Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(3, 12),
-                // (4,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (4,8): error CS1585: Member modifier 'readonly' must precede the member type and name
                 // scoped readonly ref struct C { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "scoped").WithLocation(4, 1));
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(4, 8)
+                );
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3118,7 +3119,10 @@ scoped readonly ref struct C { }
                 }
                 N(SyntaxKind.IncompleteMember);
                 {
-                    N(SyntaxKind.ScopedKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "scoped");
+                    }
                 }
                 N(SyntaxKind.StructDeclaration);
                 {

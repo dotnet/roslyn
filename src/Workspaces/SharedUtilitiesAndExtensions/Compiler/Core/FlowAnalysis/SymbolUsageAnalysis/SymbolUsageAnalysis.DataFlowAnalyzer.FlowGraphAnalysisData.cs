@@ -120,8 +120,7 @@ internal static partial class SymbolUsageAnalysis
             {
                 Debug.Assert(cfg.Parent == null);
 
-                var parameters = GetParameters(owningSymbol);
-
+                var parameters = owningSymbol.GetParameters();
                 return new FlowGraphAnalysisData(
                     cfg,
                     owningSymbol,
@@ -135,21 +134,6 @@ internal static partial class SymbolUsageAnalysis
                     reachingDelegateCreationTargets: PooledDictionary<IOperation, PooledHashSet<IOperation>>.GetInstance(),
                     localFunctionTargetsToAccessingCfgMap: PooledDictionary<IMethodSymbol, ControlFlowGraph>.GetInstance(),
                     lambdaTargetsToAccessingCfgMap: PooledDictionary<IFlowAnonymousFunctionOperation, ControlFlowGraph>.GetInstance());
-
-                static ImmutableArray<IParameterSymbol> GetParameters(ISymbol owningSymbol)
-                {
-                    var parameters = owningSymbol.GetParameters();
-#if !ROSLYN_4_12_OR_LOWER
-                    if (owningSymbol.ContainingSymbol is INamedTypeSymbol { IsExtension: true, ExtensionParameter: { } extensionParameter })
-                    {
-                        return parameters.Add(extensionParameter); // order doesn't matter
-                    }
-
-                    return parameters;
-#else
-                    return parameters;
-#endif
-                }
             }
 
             public static FlowGraphAnalysisData Create(

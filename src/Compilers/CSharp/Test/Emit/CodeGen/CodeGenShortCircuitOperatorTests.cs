@@ -5616,18 +5616,16 @@ unsafe class C
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
 
             compilation.VerifyDiagnostics(
-                // (16,39): error CS0029: Cannot implicitly convert type 'void*' to 'object'
+                // (16,41): error CS8977: 'void*' cannot be made nullable.
                 //         Func<object, object> a = o => c?.M();
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "c?.M()").WithArguments("void*", "object").WithLocation(16, 39),
-                // (16,39): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
-                //         Func<object, object> a = o => c?.M();
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "c?.M()").WithArguments("lambda expression").WithLocation(16, 39),
-                // (19,37): error CS0029: Cannot implicitly convert type 'void*' to 'object'
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".M()").WithArguments("void*").WithLocation(16, 41),
+                // (19,39): error CS8977: 'void*' cannot be made nullable.
                 //     static public object F2(C c) => c?.M();
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "c?.M()").WithArguments("void*", "object").WithLocation(19, 37),
-                // (21,32): error CS0029: Cannot implicitly convert type 'void*' to 'object'
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".M()").WithArguments("void*").WithLocation(19, 39),
+                // (21,42): error CS8977: 'void*' cannot be made nullable.
                 //     static public object P1 => (new C())?.M();
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(new C())?.M()").WithArguments("void*", "object").WithLocation(21, 32));
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".M()").WithArguments("void*").WithLocation(21, 42)
+                );
         }
 
         [WorkItem(1109164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109164")]

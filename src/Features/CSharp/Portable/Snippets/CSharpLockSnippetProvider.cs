@@ -25,11 +25,10 @@ internal sealed class CSharpLockSnippetProvider() : AbstractLockSnippetProvider<
 
     public override string Description => CSharpFeaturesResources.lock_statement;
 
-    protected override ValueTask<ImmutableArray<SnippetPlaceholder>> GetPlaceHolderLocationsListAsync(
-        Document document, LockStatementSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(LockStatementSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
     {
         var expression = node.Expression;
-        return new([new SnippetPlaceholder(expression.ToString(), expression.SpanStart)]);
+        return [new SnippetPlaceholder(expression.ToString(), expression.SpanStart)];
     }
 
     protected override int GetTargetCaretPosition(LockStatementSyntax lockStatement, SourceText sourceText)

@@ -12,12 +12,7 @@ using Microsoft.CodeAnalysis.SimplifyLinqExpression;
 namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class CSharpSimplifyLinqExpressionDiagnosticAnalyzer
-    : AbstractSimplifyLinqExpressionDiagnosticAnalyzer<
-        ExpressionSyntax,
-        SimpleNameSyntax,
-        InvocationExpressionSyntax,
-        MemberAccessExpressionSyntax>
+internal sealed class CSharpSimplifyLinqExpressionDiagnosticAnalyzer : AbstractSimplifyLinqExpressionDiagnosticAnalyzer<InvocationExpressionSyntax, MemberAccessExpressionSyntax>
 {
     protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
 

@@ -5350,8 +5350,8 @@ End Namespace
                 Assert.Equal(0, memberGroup.Length)
 
                 Dim typeInfo As TypeInfo = model.GetTypeInfo(creation.Type)
-                Assert.Equal("Test.C", typeInfo.Type.ToTestDisplayString())
-                Assert.Equal("Test.C", typeInfo.ConvertedType.ToTestDisplayString())
+                Assert.Null(typeInfo.Type)
+                Assert.Null(typeInfo.ConvertedType)
 
                 Dim conv = model.GetConversion(creation.Type)
                 Assert.True(conv.IsIdentity)
@@ -5439,8 +5439,8 @@ End Namespace
                 Assert.Equal(0, memberGroup.Length)
 
                 Dim typeInfo As TypeInfo = model.GetTypeInfo(creation.Type)
-                Assert.Equal("Test.I", typeInfo.Type.ToTestDisplayString())
-                Assert.Equal("Test.I", typeInfo.ConvertedType.ToTestDisplayString())
+                Assert.Null(typeInfo.Type)
+                Assert.Null(typeInfo.ConvertedType)
 
                 Dim conv = model.GetConversion(creation.Type)
                 Assert.True(conv.IsIdentity)
@@ -5544,8 +5544,8 @@ End Namespace
                 Assert.Equal(0, memberGroup.Length)
 
                 Dim typeInfo As TypeInfo = model.GetTypeInfo(creation.Type)
-                Assert.Equal("Test.I", typeInfo.Type.ToTestDisplayString())
-                Assert.Equal("Test.I", typeInfo.ConvertedType.ToTestDisplayString())
+                Assert.Null(typeInfo.Type)
+                Assert.Null(typeInfo.ConvertedType)
 
                 Dim conv = model.GetConversion(creation.Type)
                 Assert.True(conv.IsIdentity)

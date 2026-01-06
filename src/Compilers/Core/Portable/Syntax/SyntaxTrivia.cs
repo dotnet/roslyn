@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Text;
@@ -410,7 +409,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Location GetLocation()
         {
-            return this.SyntaxTree?.GetLocation(this.Span) ?? Location.None;
+            // https://github.com/dotnet/roslyn/issues/40773
+            return this.SyntaxTree!.GetLocation(this.Span);
         }
 
         /// <summary>
@@ -420,23 +420,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<Diagnostic> GetDiagnostics()
         {
-            if (UnderlyingNode is null)
-            {
-                return SpecializedCollections.EmptyEnumerable<Diagnostic>();
-            }
-
-            if (this.SyntaxTree is { } syntaxTree)
-            {
-                return syntaxTree.GetDiagnostics(this);
-            }
-            else
-            {
-                var diagnostics = UnderlyingNode.GetDiagnostics();
-
-                return diagnostics.Length == 0
-                    ? SpecializedCollections.EmptyEnumerable<Diagnostic>()
-                    : diagnostics.Select(Diagnostic.Create);
-            }
+            // https://github.com/dotnet/roslyn/issues/40773
+            return this.SyntaxTree!.GetDiagnostics(this);
         }
 
         /// <summary>

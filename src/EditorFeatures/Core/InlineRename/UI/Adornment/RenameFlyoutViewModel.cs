@@ -14,6 +14,7 @@ using System.Windows.Interop;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.EditorFeatures.Lightup;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
@@ -24,7 +25,6 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.PlatformUI.OleComponentSupport;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor.SmartRename;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
@@ -47,7 +47,7 @@ internal class RenameFlyoutViewModel : INotifyPropertyChanged, IDisposable
         IThreadingContext threadingContext,
         IAsynchronousOperationListenerProvider listenerProvider,
 #pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
-        Lazy<ISmartRenameSessionFactory>? smartRenameSessionFactory)
+        Lazy<ISmartRenameSessionFactoryWrapper>? smartRenameSessionFactory)
 #pragma warning restore CS0618 
     {
         Session = session;
@@ -63,7 +63,7 @@ internal class RenameFlyoutViewModel : INotifyPropertyChanged, IDisposable
         var smartRenameSession = smartRenameSessionFactory?.Value.CreateSmartRenameSession(Session.TriggerSpan);
         if (smartRenameSession is not null)
         {
-            SmartRenameViewModel = new SmartRenameViewModel(globalOptionService, threadingContext, listenerProvider, smartRenameSession, this);
+            SmartRenameViewModel = new SmartRenameViewModel(globalOptionService, threadingContext, listenerProvider, smartRenameSession.Value, this);
         }
 
         RegisterOleComponent();

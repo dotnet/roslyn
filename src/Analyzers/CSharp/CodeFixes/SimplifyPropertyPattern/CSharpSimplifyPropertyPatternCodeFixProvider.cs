@@ -29,12 +29,13 @@ internal sealed class CSharpSimplifyPropertyPatternCodeFixProvider() : SyntaxEdi
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
         [IDEDiagnosticIds.SimplifyPropertyPatternDiagnosticId];
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Simplify_property_pattern, nameof(CSharpAnalyzersResources.Simplify_property_pattern));
+        return Task.CompletedTask;
     }
 
-    protected override async Task FixAllAsync(
+    protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
@@ -55,6 +56,8 @@ internal sealed class CSharpSimplifyPropertyPatternCodeFixProvider() : SyntaxEdi
                     return simplified ?? currentSubpattern;
                 });
         }
+
+        return Task.CompletedTask;
     }
 
     private static SubpatternSyntax? TrySimplify(SubpatternSyntax currentSubpattern)

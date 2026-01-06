@@ -88,8 +88,7 @@ public readonly record struct DeclarationModifiers
                 isAsync: method?.IsAsync == true,
                 isRequired: symbol.IsRequired(),
                 isFile: type?.IsFileLocal == true,
-                isFixed: field?.IsFixedSizeBuffer == true,
-                isPartial: symbol.IsPartial());
+                isFixed: field?.IsFixedSizeBuffer == true);
         }
 
         // Only named types, members of named types, and local functions have modifiers.

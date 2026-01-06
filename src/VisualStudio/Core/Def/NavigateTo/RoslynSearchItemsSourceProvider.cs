@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices;
-using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.Search.Data;
 using Microsoft.VisualStudio.Utilities;
 
@@ -36,7 +35,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo;
 internal sealed partial class RoslynSearchItemsSourceProvider : ISearchItemsSourceProvider
 {
     private readonly VisualStudioWorkspace _workspace;
-    private readonly SourceGeneratedFileManager _sourceGeneratedFileManager;
     private readonly IThreadingContext _threadingContext;
     private readonly IUIThreadOperationExecutor _threadOperationExecutor;
     private readonly IAsynchronousOperationListener _asyncListener;
@@ -46,13 +44,11 @@ internal sealed partial class RoslynSearchItemsSourceProvider : ISearchItemsSour
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public RoslynSearchItemsSourceProvider(
         VisualStudioWorkspace workspace,
-        SourceGeneratedFileManager sourceGeneratedFileManager,
         IThreadingContext threadingContext,
         IUIThreadOperationExecutor threadOperationExecutor,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
         _workspace = workspace;
-        _sourceGeneratedFileManager = sourceGeneratedFileManager;
         _threadingContext = threadingContext;
         _threadOperationExecutor = threadOperationExecutor;
         _asyncListener = listenerProvider.GetListener(FeatureAttribute.NavigateTo);

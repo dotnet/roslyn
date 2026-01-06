@@ -1741,7 +1741,8 @@ public sealed partial class AddUsingTests
     [InlineData("object")]
     [InlineData("int")]
     public Task TestModernExtension_TypeParameter(string sourceType)
-        => TestInRegularAndScriptAsync(
+        // Will work once we get an API from https://github.com/dotnet/roslyn/issues/80273
+        => TestMissingAsync(
             $$"""
             namespace M
             {
@@ -1755,34 +1756,6 @@ public sealed partial class AddUsingTests
                 }
             }
 
-            namespace N
-            {
-                static class Test
-                {
-                    extension<T>(T t)
-                    {
-                        public void M1()
-                        {
-                        }
-                    }
-                }
-            }
-            """,
-            $$"""
-            using N;
-
-            namespace M
-            {
-                class C
-                {
-                    void X()
-                    {
-                        {{sourceType}} o = new();
-                        [|o.M1();|]
-                    }
-                }
-            }
-            
             namespace N
             {
                 static class Test

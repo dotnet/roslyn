@@ -11,14 +11,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
@@ -45,30 +43,18 @@ internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSn
     protected override bool CanInsertStatementAfterToken(SyntaxToken token)
         => token.IsBeginningOfStatementContext() || token.IsBeginningOfGlobalStatementContext();
 
-    protected override ValueTask<ForStatementSyntax> AdjustSnippetExpressionAsync(
-        Document document, ForStatementSyntax snippetExpressionNode, CancellationToken cancellationToken)
-    {
-        var editor = new SyntaxEditor(snippetExpressionNode, document.Project.Solution.Services);
-        foreach (var node in snippetExpressionNode.Declaration!.DescendantNodesAndSelf().Reverse())
-            editor.ReplaceNode(node, (node, _) => node.WithAdditionalAnnotations(Simplifier.Annotation));
-
-        return new((ForStatementSyntax)editor.GetChangedRoot());
-    }
-
-    protected override ForStatementSyntax GenerateStatement(
-        SyntaxGenerator generator, SyntaxContext syntaxContext, SimplifierOptions simplifierOptions, InlineExpressionInfo? inlineExpressionInfo)
+    protected override ForStatementSyntax GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, InlineExpressionInfo? inlineExpressionInfo)
     {
         var semanticModel = syntaxContext.SemanticModel;
         var compilation = semanticModel.Compilation;
-        var csharpSimplifierOptions = (CSharpSimplifierOptions)simplifierOptions;
 
         var iteratorName = NameGenerator.GenerateUniqueName(s_iteratorBaseNames, n => semanticModel.LookupSymbols(syntaxContext.Position, name: n).IsEmpty);
         var iteratorVariable = generator.Identifier(iteratorName);
         var indexVariable = (ExpressionSyntax)generator.IdentifierName(iteratorName);
-        var (iteratorType, inlineExpression) = GetLoopHeaderParts();
+        var (iteratorTypeSyntax, inlineExpression) = GetLoopHeaderParts(generator, inlineExpressionInfo, compilation);
 
         var variableDeclaration = VariableDeclaration(
-            iteratorType,
+            iteratorTypeSyntax,
             variables: [VariableDeclarator(iteratorVariable,
                 argumentList: null,
                 EqualsValueClause(GenerateInitializerValue(generator, inlineExpression)))])
@@ -81,20 +67,12 @@ internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSn
             [PostfixUnaryExpression(IncrementorKind, indexVariable)],
             Block());
 
-        (TypeSyntax iteratorType, SyntaxNode? inlineExpression) GetLoopHeaderParts()
+        static (TypeSyntax iteratorTypeSyntax, SyntaxNode? inlineExpression) GetLoopHeaderParts(SyntaxGenerator generator, InlineExpressionInfo? inlineExpressionInfo, Compilation compilation)
         {
             var inlineExpression = inlineExpressionInfo?.Node.WithoutLeadingTrivia();
 
             if (inlineExpressionInfo is null)
-            {
-                // Explicit emit 'var' if the user has asked for "var for built-in types" option.  We do that as the
-                // implicit 'allowVar' value passed to GenerateTypeSyntax doesn't work here as the inlineExpression will
-                // be in error, and thus the simplifier will not approve converting 'int' to 'var' in that scenario.
-                var iteratorType = csharpSimplifierOptions.VarForBuiltInTypes.Value
-                    ? IdentifierName("var")
-                    : compilation.GetSpecialType(SpecialType.System_Int32).GenerateTypeSyntax();
-                return (iteratorType, inlineExpression);
-            }
+                return (compilation.GetSpecialType(SpecialType.System_Int32).GenerateTypeSyntax(), inlineExpression);
 
             var inlineExpressionType = inlineExpressionInfo.TypeInfo.Type;
             Debug.Assert(inlineExpressionType is not null);
@@ -108,8 +86,7 @@ internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSn
         }
     }
 
-    protected override ValueTask<ImmutableArray<SnippetPlaceholder>> GetPlaceHolderLocationsListAsync(
-        Document document, ForStatementSyntax forStatement, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(ForStatementSyntax forStatement, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var result);
         var placeholderBuilder = new MultiDictionary<string, int>();
@@ -133,7 +110,7 @@ internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSn
         foreach (var (key, value) in placeholderBuilder)
             result.Add(new(key, [.. value]));
 
-        return new(result.ToImmutableAndClear());
+        return result.ToImmutableAndClear();
     }
 
     protected override int GetTargetCaretPosition(ForStatementSyntax forStatement, SourceText sourceText)

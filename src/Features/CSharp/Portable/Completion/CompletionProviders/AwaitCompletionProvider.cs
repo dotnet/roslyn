@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -50,8 +49,7 @@ internal sealed class AwaitCompletionProvider() : AbstractAwaitCompletionProvide
         };
     }
 
-    protected override async Task<TextChange?> GetReturnTypeChangeAsync(
-        Solution solution, SemanticModel semanticModel, SyntaxNode declaration, CancellationToken cancellationToken)
+    protected override TextChange? GetReturnTypeChange(SemanticModel semanticModel, SyntaxNode declaration, CancellationToken cancellationToken)
     {
         var existingReturnType = declaration switch
         {
@@ -68,24 +66,18 @@ internal sealed class AwaitCompletionProvider() : AbstractAwaitCompletionProvide
         if (existingReturnType is null)
             return null;
 
-        var newTypeName = await GetNewTypeNameAsync().ConfigureAwait(false);
+        var newTypeName = GetNewTypeName(existingReturnType);
 
         if (newTypeName is null)
             return null;
 
         return new TextChange(existingReturnType.Span, newTypeName);
 
-        async ValueTask<string?> GetNewTypeNameAsync()
+        string? GetNewTypeName(TypeSyntax existingReturnType)
         {
             // `void => Task`
             if (existingReturnType is PredefinedTypeSyntax { Keyword: (kind: SyntaxKind.VoidKeyword) })
-            {
-                // Don't change void to Task if this method is used as an event handler
-                if (await IsMethodUsedAsEventHandlerAsync().ConfigureAwait(false))
-                    return null;
-
                 return nameof(Task);
-            }
 
             // Don't change the return type if we don't understand it, or it already seems task-like.
             var taskLikeTypes = new KnownTaskTypes(semanticModel.Compilation);
@@ -99,52 +91,6 @@ internal sealed class AwaitCompletionProvider() : AbstractAwaitCompletionProvide
             }
 
             return $"{nameof(Task)}<{existingReturnType}>";
-        }
-
-        async ValueTask<bool> IsMethodUsedAsEventHandlerAsync()
-        {
-            if (declaration is not MethodDeclarationSyntax methodDeclaration)
-                return false;
-
-            var methodSymbol = semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken);
-            if (methodSymbol is not IMethodSymbol method)
-                return false;
-
-            var containingType = method.ContainingType;
-            if (containingType is null)
-                return false;
-
-            // For perf, only search for usages of the containing method within the same file. This may miss something
-            // in the case of a partial type, but it allows us to easily scope this to a single document.
-            var document = solution.GetDocument(containingType.DeclaringSyntaxReferences.FirstOrDefault(r => r.SyntaxTree == methodDeclaration.SyntaxTree)?.SyntaxTree);
-            if (document is null)
-                return false;
-
-            var references = await SymbolFinder.FindReferencesAsync(
-                methodSymbol, solution, [document], cancellationToken).ConfigureAwait(false);
-
-            foreach (var group in references.SelectMany(r => r.Locations).GroupBy(l => l.Location.SourceTree))
-            {
-                var tree = group.Key;
-                if (tree != methodDeclaration.SyntaxTree)
-                    continue;
-
-                foreach (var location in group)
-                {
-                    var node = location.Location.FindNode(cancellationToken) as ExpressionSyntax;
-                    if (node.IsRightSideOfDot())
-                        node = node.GetRequiredParent() as ExpressionSyntax;
-
-                    if (node?.Parent is AssignmentExpressionSyntax(kind: SyntaxKind.AddAssignmentExpression or SyntaxKind.SubtractAssignmentExpression) assignment)
-                    {
-                        var leftSymbol = semanticModel.GetSymbolInfo(assignment.Left, cancellationToken).GetAnySymbol();
-                        if (leftSymbol is IEventSymbol)
-                            return true;
-                    }
-                }
-            }
-
-            return false;
         }
     }
 

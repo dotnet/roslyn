@@ -26,8 +26,6 @@ internal partial class PickMembersDialog : DialogWindow
 
     // Expose localized strings for binding
     public string PickMembersDialogTitle => ServicesVSResources.Pick_members;
-    public string PickMembersSearchLabel => ServicesVSResources.Search_members;
-
     public string PickMembersTitle { get; }
 
     public string SelectAll => ServicesVSResources.Select_All;

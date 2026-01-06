@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -64,15 +63,14 @@ public sealed class BuildHostProcessManagerTests
         const string PipeName = "TestPipe";
 
         var processStartInfo = BuildHostProcessManager.CreateBuildHostStartInfo(buildHostKind, PipeName, dotnetPath: null);
-#if NET
-        var args = processStartInfo.ArgumentList;
-#else
-        var args = processStartInfo.Arguments.Split(' ');
-#endif
-        Assert.True(args.Count() >= 2, $"Expected at least 2 args: '{string.Join(",", args)}'");
 
-        Assert.Equal(PipeName, args[^2]);
-        Assert.Equal(System.Globalization.CultureInfo.CurrentUICulture.Name, args[^1]);
+#if NET
+        var binlogIndex = processStartInfo.ArgumentList.IndexOf("--pipe");
+        Assert.True(binlogIndex >= 0);
+        Assert.Equal(PipeName, processStartInfo.ArgumentList[binlogIndex + 1]);
+#else
+        Assert.Contains($"--pipe {PipeName}", processStartInfo.Arguments);
+#endif
     }
 
     [Theory]
@@ -82,17 +80,16 @@ public sealed class BuildHostProcessManagerTests
     [UseCulture("de-DE", "de-DE")]
     internal void ProcessStartInfo_PassesLocale(BuildHostProcessKind buildHostKind)
     {
-        const string PipeName = "TestPipe";
+        const string Locale = "de-DE";
 
-        var processStartInfo = BuildHostProcessManager.CreateBuildHostStartInfo(buildHostKind, PipeName, dotnetPath: null);
+        var processStartInfo = BuildHostProcessManager.CreateBuildHostStartInfo(buildHostKind, pipeName: "", dotnetPath: null);
+
 #if NET
-        var args = processStartInfo.ArgumentList;
+        var localeIndex = processStartInfo.ArgumentList.IndexOf("--locale");
+        Assert.True(localeIndex >= 0);
+        Assert.Equal(Locale, processStartInfo.ArgumentList[localeIndex + 1]);
 #else
-        var args = processStartInfo.Arguments.Split(' ');
+        Assert.Contains($"--locale {Locale}", processStartInfo.Arguments);
 #endif
-        Assert.True(args.Count() >= 2, $"Expected at least 2 args: '{string.Join(",", args)}'");
-
-        Assert.Equal(PipeName, args[^2]);
-        Assert.Equal("de-DE", args[^1]);
     }
 }

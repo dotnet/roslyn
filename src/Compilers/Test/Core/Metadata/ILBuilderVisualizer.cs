@@ -196,15 +196,6 @@ namespace Roslyn.Test.Utilities
             return sb.ToString();
         }
 
-#pragma warning disable IDE0051 // Remove unused private members, used for debugger display of BasicBlock via reflection
-        private static string BasicBlockToString(ILBuilder.BasicBlock block)
-#pragma warning restore IDE0051 // Remove unused private members
-        {
-            StringBuilder sb = new StringBuilder();
-            DumpBlockIL(block, sb);
-            return sb.ToString();
-        }
-
         private static void DumpBlockIL(ILBuilder.BasicBlock block, StringBuilder sb)
         {
             if (block is ILBuilder.SwitchBlock switchBlock)

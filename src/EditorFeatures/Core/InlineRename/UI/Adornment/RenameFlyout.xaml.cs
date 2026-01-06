@@ -48,12 +48,6 @@ internal partial class RenameFlyout : InlineRenameAdornment
 
         RenameUserInput = _viewModel.SmartRenameViewModel is null ? new RenameUserInputTextBox(_viewModel) : new SmartRenameUserInputComboBox(_viewModel);
 
-        if (RenameUserInput is Control renameControl)
-        {
-            renameControl.IsTabStop = true;
-            renameControl.Focusable = true;
-        }
-
         // On load focus the first tab target
         var token1 = _listener.BeginAsyncOperation(nameof(RenameUserInput.GotFocus));
         Loaded += (s, e) =>
@@ -189,6 +183,21 @@ internal partial class RenameFlyout : InlineRenameAdornment
                 _viewModel.Cancel();
                 break;
 
+            case Key.Tab:
+                // We don't want tab to lose focus for the adornment, so manually
+                // loop focus back to the first item that is focusable.
+                var lastItem = _viewModel.IsExpanded
+                    ? FileRenameCheckbox
+                    : (FrameworkElement)RenameUserInput;
+
+                if (lastItem.IsFocused)
+                {
+                    e.Handled = true;
+                    MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
+                }
+
+                break;
+
             case Key.Space:
                 if (Keyboard.Modifiers == ModifierKeys.Control)
                 {
@@ -199,7 +208,6 @@ internal partial class RenameFlyout : InlineRenameAdornment
                         e.Handled = true;
                     }
                 }
-
                 break;
         }
     }
@@ -207,6 +215,15 @@ internal partial class RenameFlyout : InlineRenameAdornment
     private void Adornment_ConsumeMouseEvent(object sender, MouseButtonEventArgs e)
     {
         e.Handled = true;
+    }
+
+    private void Adornment_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        if (e.NewFocus != RenameUserInput)
+        {
+            RenameUserInput.Focus();
+            e.Handled = true;
+        }
     }
 
     private void ToggleExpand(object sender, RoutedEventArgs e)

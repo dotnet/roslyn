@@ -836,9 +836,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 MyBase.New(container, binder, declaringIdentifier, declarationKind, Nothing)
 
-                Debug.Assert(modifiedIdentifierOpt IsNot Nothing OrElse declarationKind = LocalDeclarationKind.Catch,
-                             "Only catch variables should have Nothing for modifiedIdentifierOpt")
-
                 _modifiedIdentifierOpt = modifiedIdentifierOpt
                 _asClauseOpt = asClauseOpt
                 _initializerOpt = initializerOpt
@@ -923,11 +920,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
                 Get
-                    If _modifiedIdentifierOpt IsNot Nothing Then
-                        Return ImmutableArray.Create(_modifiedIdentifierOpt.GetReference())
-                    Else
-                        Return MyBase.DeclaringSyntaxReferences
-                    End If
+                    Select Case DeclarationKind
+                        Case LocalDeclarationKind.None, LocalDeclarationKind.FunctionValue
+                            Return ImmutableArray(Of SyntaxReference).Empty
+
+                        Case Else
+                            If _modifiedIdentifierOpt IsNot Nothing Then
+                                Return ImmutableArray.Create(Of SyntaxReference)(_modifiedIdentifierOpt.GetReference())
+                            Else
+                                Return ImmutableArray(Of SyntaxReference).Empty
+                            End If
+                    End Select
                 End Get
             End Property
         End Class

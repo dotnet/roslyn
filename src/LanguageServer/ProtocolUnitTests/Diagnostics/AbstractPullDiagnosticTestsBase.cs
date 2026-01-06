@@ -271,26 +271,30 @@ public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutp
         else
         {
             BufferedProgress<DocumentDiagnosticPartialReport>? progress = useProgress ? BufferedProgress.Create<DocumentDiagnosticPartialReport>(null) : null;
-            var diagnostics = await testLspServer.ExecuteRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>>(
+            var diagnostics = await testLspServer.ExecuteRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
                 Methods.TextDocumentDiagnosticName,
                 CreateProposedDocumentDiagnosticParams(vsTextDocumentIdentifier, previousResultId, category, progress),
                 CancellationToken.None).ConfigureAwait(false);
             if (useProgress)
             {
-                Assert.IsType<FullDocumentDiagnosticReport>(diagnostics.Value);
-                Assert.Empty(diagnostics.First.Items);
+                Assert.Null(diagnostics);
                 AssertEx.NotNull(progress);
                 diagnostics = progress.Value.GetValues()!.Single().First;
             }
 
-            if (diagnostics.Value is UnchangedDocumentDiagnosticReport)
+            if (diagnostics == null)
+            {
+                // The public LSP spec returns null when no diagnostics are available for a document wheres VS returns an empty array.
+                return [];
+            }
+            else if (diagnostics.Value.Value is UnchangedDocumentDiagnosticReport)
             {
                 // The public LSP spec returns different types when unchanged in contrast to VS which just returns null diagnostic array.
-                return [new TestDiagnosticResult(vsTextDocumentIdentifier, diagnostics.Second.ResultId!, null)];
+                return [new TestDiagnosticResult(vsTextDocumentIdentifier, diagnostics.Value.Second.ResultId!, null)];
             }
             else
             {
-                return [new TestDiagnosticResult(vsTextDocumentIdentifier, diagnostics.First.ResultId!, diagnostics.First.Items)];
+                return [new TestDiagnosticResult(vsTextDocumentIdentifier, diagnostics.Value.First.ResultId!, diagnostics.Value.First.Items)];
             }
         }
 
@@ -372,10 +376,10 @@ public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutp
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Descriptor];
 
-        public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument document, SyntaxTree? tree, CancellationToken cancellationToken)
+        public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument document, SyntaxTree? tree, CancellationToken cancellationToken)
         {
-            return ImmutableArray.Create(
-                Diagnostic.Create(Descriptor, Location.Create(document.FilePath!, default, default)));
+            return Task.FromResult(ImmutableArray.Create(
+                Diagnostic.Create(Descriptor, Location.Create(document.FilePath!, default, default))));
         }
     }
 }

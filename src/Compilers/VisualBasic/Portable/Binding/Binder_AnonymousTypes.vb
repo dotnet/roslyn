@@ -34,17 +34,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Next
 
-            Return CreateAnonymousObjectCreationExpression(node, typeDescr, initExpressions, diagnostics)
+            Return CreateAnonymousObjectCreationExpression(node, typeDescr, initExpressions)
         End Function
 
         Private Function CreateAnonymousObjectCreationExpression(node As VisualBasicSyntaxNode,
                                                                typeDescr As AnonymousTypeDescriptor,
                                                                initExpressions As ImmutableArray(Of BoundExpression),
-                                                               diagnostics As BindingDiagnosticBag,
                                                                Optional hasErrors As Boolean = False) As BoundExpression
             '  Get or create an anonymous type
             Dim anonymousType As AnonymousTypeManager.AnonymousTypePublicSymbol =
-                Me.Compilation.AnonymousTypeManager.ConstructAnonymousTypeSymbol(typeDescr, diagnostics)
+                Me.Compilation.AnonymousTypeManager.ConstructAnonymousTypeSymbol(typeDescr)
 
             ' get constructor
             Dim constructor As MethodSymbol = anonymousType.InstanceConstructors.First()
@@ -281,8 +280,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                     Me._fields.AsImmutableOrNull(),
                                                                     typeLocationToken.GetLocation(),
                                                                     False),
-                                                                boundInitializers.AsImmutableOrNull(),
-                                                                diagnostics)
+                                                                boundInitializers.AsImmutableOrNull())
 
                 Me._freeze = True
 

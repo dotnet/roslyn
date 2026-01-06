@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
@@ -12,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp;
 
@@ -44,7 +46,7 @@ internal sealed partial class CSharpSemanticFactsService : AbstractSemanticFacts
             SyntaxFacts.IsParameterList(container))
         {
             if (container.Parent is LocalFunctionStatementSyntax or TypeDeclarationSyntax)
-                visibleSymbols = visibleSymbols.WhereAsArray(s => s is not ILocalSymbol and not IParameterSymbol);
+                visibleSymbols = visibleSymbols.WhereAsArray(s => !s.MatchesKind(SymbolKind.Local, SymbolKind.Parameter));
         }
 
         // Some symbols in the enclosing block could cause conflicts even if they are not available at the location.
@@ -105,6 +107,9 @@ internal sealed partial class CSharpSemanticFactsService : AbstractSemanticFacts
 
     public bool IsAttributeNameContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         => semanticModel.SyntaxTree.IsAttributeNameContext(position, cancellationToken);
+
+    public CommonConversion ClassifyConversion(SemanticModel semanticModel, SyntaxNode expression, ITypeSymbol destination)
+        => semanticModel.ClassifyConversion((ExpressionSyntax)expression, destination).ToCommonConversion();
 
 #nullable enable
 

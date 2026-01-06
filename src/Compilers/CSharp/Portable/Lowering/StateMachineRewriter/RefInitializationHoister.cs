@@ -281,18 +281,10 @@ internal class RefInitializationHoister<THoistedSymbol, THoistedAccess>(Syntheti
                         // so we track that to ensure that we don't see unexpected cases here.
                         // This is an access to a field of a struct, or parameter or local of a type parameter, both of which happen by reference.
                         // The receiver should be a non-ref local or parameter.
+                        // This is safe to hoist into a proxy as the original local will be accessed directly.
                         Debug.Assert(_reportedError || isFieldAccessOfStruct || expr.Type!.IsTypeParameter());
                         Debug.Assert(_reportedError || expr is BoundLocal { LocalSymbol.RefKind: RefKind.None }
                                                             or BoundParameter { ParameterSymbol.RefKind: RefKind.None });
-
-                        // If we need to hoist a spilled local or parameter, and the original was a parameter or local not by ref, then we just directly
-                        // use the expression as-is. Making another hoisted copy would copy the value incorrectly.
-                        if (expr is BoundLocal { LocalSymbol.RefKind: RefKind.None }
-                                 or BoundParameter { ParameterSymbol.RefKind: RefKind.None })
-                        {
-                            Debug.Assert(assignedLocal.SynthesizedKind == SynthesizedLocalKind.Spill);
-                            return expr;
-                        }
                     }
                     else
                     {

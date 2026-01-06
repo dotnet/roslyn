@@ -19495,8 +19495,9 @@ public struct Buffer4<T>
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.FailsILVerify with
+            comp = CreateRuntimeAsyncCompilation(src);
+            // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
+            var verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.FailsILVerify with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x7f }
@@ -20390,8 +20391,9 @@ class Program
             comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
 
-            comp = CreateRuntimeAsyncCompilation(src + Buffer4Definition, options: TestOptions.ReleaseExe);
-            verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            comp = CreateRuntimeAsyncCompilation(src + Buffer4Definition);
+            // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
+            verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Test]: Return value missing on the stack. { Offset = 0x62 }

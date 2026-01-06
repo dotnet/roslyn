@@ -39,7 +39,7 @@
         "omnisharp.useModernNet": true,
         "omnisharp.enableAsyncCompletion": true,
         // ms-dotnettools.csdevkit settings
-        "dotnet.defaultSolution": "Roslyn.slnx",
+        "dotnet.defaultSolution": "Roslyn.sln",
         // ms-vscode.powershell settings
         "powershell.promptToUpdatePowerShell": false,
         "powershell.integratedConsole.showOnStartup": false,

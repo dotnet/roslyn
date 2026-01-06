@@ -181,7 +181,7 @@ struct S
         }
 
         [Fact]
-        public void RefReassignLifetimeIsRHS()
+        public void RefReassignLifetimeIsLHS()
         {
             var comp = CreateCompilation(@"
 class C
@@ -193,7 +193,10 @@ class C
         return ref (rx = ref (new int[1])[0]);
     }
 }");
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (8,21): error CS8157: Cannot return 'rx' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref (rx = ref (new int[1])[0]);
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "rx = ref (new int[1])[0]").WithArguments("rx").WithLocation(8, 21));
         }
 
         [Fact]

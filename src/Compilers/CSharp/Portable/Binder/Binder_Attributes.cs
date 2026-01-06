@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static BoundAttribute BindAttributeCore(Binder binder, AttributeSyntax node, NamedTypeSymbol attributeType, Symbol? attributedMember, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(binder.SkipSemanticModelBinder() == binder.GetRequiredBinder(node).SkipSemanticModelBinder());
-            Debug.Assert(binder.InAttributeArgument);
+            binder = binder.WithAdditionalFlags(BinderFlags.AttributeArgument);
 
             // If attribute name bound to an error type with a single named type
             // candidate symbol, we want to bind the attribute constructor

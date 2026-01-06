@@ -45,7 +45,7 @@ namespace IdeCoreBenchmarks
         private void RestoreCompilerSolution()
         {
             var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
-            _solutionPath = Path.Combine(roslynRoot, @"Roslyn.slnx");
+            _solutionPath = Path.Combine(roslynRoot, @"Roslyn.sln");
             var restoreOperation = Process.Start("dotnet", $"restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true {_solutionPath}");
             restoreOperation.WaitForExit();
             if (restoreOperation.ExitCode != 0)
@@ -55,12 +55,12 @@ namespace IdeCoreBenchmarks
         private void LoadSolution()
         {
             var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
-            _solutionPath = Path.Combine(roslynRoot, @"Roslyn.slnx");
+            _solutionPath = Path.Combine(roslynRoot, @"Roslyn.sln");
 
             if (!File.Exists(_solutionPath))
-                throw new ArgumentException("Couldn't find Roslyn.slnx");
+                throw new ArgumentException("Couldn't find Roslyn.sln");
 
-            Console.WriteLine("Found Roslyn.slnx: " + Process.GetCurrentProcess().Id);
+            Console.WriteLine("Found Roslyn.sln: " + Process.GetCurrentProcess().Id);
             var assemblies = MSBuildMefHostServices.DefaultAssemblies
                 .Add(typeof(AnalyzerRunnerHelper).Assembly)
                 .Add(typeof(FindReferencesBenchmarks).Assembly);

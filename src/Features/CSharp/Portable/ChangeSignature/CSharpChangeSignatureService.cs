@@ -163,8 +163,10 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
             token.Parent.AncestorsAndSelf().Any(a => a == objectCreation.Type))
         {
             var typeSymbol = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol;
-            if (typeSymbol is INamedTypeSymbol { TypeKind: TypeKind.Delegate })
+            if (typeSymbol != null && typeSymbol.IsKind(SymbolKind.NamedType) && ((ITypeSymbol)typeSymbol).TypeKind == TypeKind.Delegate)
+            {
                 return (typeSymbol, 0);
+            }
         }
 
         var symbolInfo = semanticModel.GetSymbolInfo(matchingNode, cancellationToken);

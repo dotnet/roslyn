@@ -8,9 +8,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
 using System.Reflection;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
@@ -67,7 +68,7 @@ internal sealed class RpcServer
 
             try
             {
-                request = JsonSerializer.Deserialize<Request>(line, JsonSettings.SingleLineSerializerOptions);
+                request = JsonConvert.DeserializeObject<Request>(line);
                 Contract.ThrowIfNull(request);
             }
             catch (Exception e)
@@ -132,7 +133,7 @@ internal sealed class RpcServer
                 if (i == methodParameters.Length - 1 && lastParameterIsCancellationToken)
                     arguments[i] = CancellationToken.None;
                 else
-                    arguments[i] = request.Parameters[i].Deserialize(methodParameters[i].ParameterType, JsonSettings.SingleLineSerializerOptions);
+                    arguments[i] = request.Parameters[i].ToObject(methodParameters[i].ParameterType);
             }
 
             var result = method.Invoke(rpcTarget, arguments);
@@ -155,7 +156,7 @@ internal sealed class RpcServer
                 }
             }
 
-            response = new Response { Id = request.Id, Value = result is not null ? JsonSerializer.SerializeToElement(result, JsonSettings.SingleLineSerializerOptions) : null };
+            response = new Response { Id = request.Id, Value = result is not null ? JToken.FromObject(result) : null };
         }
         catch (Exception e)
         {
@@ -165,7 +166,7 @@ internal sealed class RpcServer
             response = new Response { Id = request.Id, Exception = $"An exception of type {e.GetType()} was thrown: {e.Message}" };
         }
 
-        var responseJson = JsonSerializer.Serialize(response, JsonSettings.SingleLineSerializerOptions);
+        var responseJson = JsonConvert.SerializeObject(response, JsonSettings.SingleLineSerializerSettings);
 
 #if DEBUG
         // Assert we didn't put a newline in this, since if we did the receiving side won't know how to parse it

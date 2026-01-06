@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
@@ -34,8 +33,7 @@ internal abstract class AbstractInlineStatementSnippetProvider<TStatementSyntax>
     /// Generate statement node
     /// </summary>
     /// <param name="inlineExpressionInfo">Information about inline expression or <see langword="null"/> if snippet is executed in normal statement context</param>
-    protected abstract TStatementSyntax GenerateStatement(
-        SyntaxGenerator generator, SyntaxContext syntaxContext, SimplifierOptions simplifierOptions, InlineExpressionInfo? inlineExpressionInfo);
+    protected abstract TStatementSyntax GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, InlineExpressionInfo? inlineExpressionInfo);
 
     /// <summary>
     /// Tells whether the original snippet was constructed from member access expression.
@@ -47,23 +45,27 @@ internal abstract class AbstractInlineStatementSnippetProvider<TStatementSyntax>
     {
         var syntaxContext = context.SyntaxContext;
         var semanticModel = context.SemanticModel;
+        var targetToken = syntaxContext.TargetToken;
 
         var syntaxFacts = context.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-        return TryGetInlineExpressionInfo(syntaxContext, syntaxFacts, semanticModel, out var expressionInfo, cancellationToken) && expressionInfo.TypeInfo.Type is { } type
-            ? IsValidAccessingType(type, semanticModel.Compilation)
-            : base.IsValidSnippetLocationCore(context, cancellationToken);
+        if (TryGetInlineExpressionInfo(targetToken, syntaxFacts, semanticModel, out var expressionInfo, cancellationToken) && expressionInfo.TypeInfo.Type is { } type)
+        {
+            return IsValidAccessingType(type, semanticModel.Compilation);
+        }
+
+        return base.IsValidSnippetLocationCore(context, cancellationToken);
     }
 
     protected sealed override async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
     {
         var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-        var simplifierOptions = await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
         var syntaxContext = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
+        var targetToken = syntaxContext.TargetToken;
 
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-        _ = TryGetInlineExpressionInfo(syntaxContext, syntaxFacts, semanticModel, out var inlineExpressionInfo, cancellationToken);
+        _ = TryGetInlineExpressionInfo(targetToken, syntaxFacts, semanticModel, out var inlineExpressionInfo, cancellationToken);
 
-        var statement = GenerateStatement(SyntaxGenerator.GetGenerator(document), syntaxContext, simplifierOptions, inlineExpressionInfo);
+        var statement = GenerateStatement(SyntaxGenerator.GetGenerator(document), syntaxContext, inlineExpressionInfo);
         ConstructedFromInlineExpression = inlineExpressionInfo is not null;
 
         return new TextChange(TextSpan.FromBounds(inlineExpressionInfo?.Node.SpanStart ?? position, position), statement.ToFullString());
@@ -88,27 +90,21 @@ internal abstract class AbstractInlineStatementSnippetProvider<TStatementSyntax>
     }
 
     private bool TryGetInlineExpressionInfo(
-        SyntaxContext syntaxContext,
+        SyntaxToken targetToken,
         ISyntaxFactsService syntaxFacts,
         SemanticModel semanticModel,
         [NotNullWhen(true)] out InlineExpressionInfo? expressionInfo,
         CancellationToken cancellationToken)
     {
-        var targetToken = syntaxContext.TargetToken;
         var parentNode = targetToken.Parent;
 
-        if (syntaxFacts.SyntaxKinds.DotToken == targetToken.RawKind &&
-            syntaxFacts.IsMemberAccessExpression(parentNode) &&
+        if (syntaxFacts.IsMemberAccessExpression(parentNode) &&
             CanInsertStatementBeforeToken(parentNode.GetFirstToken()))
         {
             syntaxFacts.GetPartsOfMemberAccessExpression(parentNode, out var expression, out var dotToken, out var name);
             var sourceText = parentNode.SyntaxTree.GetText(cancellationToken);
 
-            // If we have `x.` with a name on the next line, then we want to offer things.  Similarly, if we have
-            // `x.f$$` then we want to offer as well as we've started writing the snippet name.
-            var nameToken = name.GetFirstToken();
-            if (sourceText.AreOnSameLine(dotToken, nameToken) &&
-                nameToken != syntaxContext.LeftToken)
+            if (sourceText.AreOnSameLine(dotToken, name.GetFirstToken()))
             {
                 expressionInfo = null;
                 return false;

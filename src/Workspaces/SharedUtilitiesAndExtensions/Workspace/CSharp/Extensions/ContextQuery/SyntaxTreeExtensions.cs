@@ -3071,6 +3071,7 @@ internal static partial class SyntaxTreeExtensions
     public static bool IsFunctionPointerCallingConventionContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
     {
         return targetToken.IsKind(SyntaxKind.AsteriskToken) &&
-               targetToken.GetPreviousToken().IsKind(SyntaxKind.DelegateKeyword);
+               targetToken.Parent is FunctionPointerTypeSyntax functionPointerType &&
+               targetToken == functionPointerType.AsteriskToken;
     }
 }

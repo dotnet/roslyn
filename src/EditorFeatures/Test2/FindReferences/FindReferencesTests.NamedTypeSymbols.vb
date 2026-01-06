@@ -446,7 +446,7 @@ class A
             private C<T> c2;
             private C<int> c3;
             private C<C<T>> c4;
-            private C<int,string> c5;
+            private [|C|]<int,string> c5;
         }
         class C<T>
         {

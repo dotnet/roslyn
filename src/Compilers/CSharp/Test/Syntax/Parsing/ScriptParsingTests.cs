@@ -9997,68 +9997,8 @@ using System;
 int a
 Console.Goo()
 ";
-
-            UsingTree(test,
-                // (3,6): error CS1003: Syntax error, '=' expected
-                // int a
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("=").WithLocation(3, 6),
-                // (4,14): error CS1002: ; expected
-                // Console.Goo()
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 14));
-
-            N(SyntaxKind.CompilationUnit);
-            {
-                N(SyntaxKind.UsingDirective);
-                {
-                    N(SyntaxKind.UsingKeyword);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "System");
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.FieldDeclaration);
-                {
-                    N(SyntaxKind.VariableDeclaration);
-                    {
-                        N(SyntaxKind.PredefinedType);
-                        {
-                            N(SyntaxKind.IntKeyword);
-                        }
-                        N(SyntaxKind.VariableDeclarator);
-                        {
-                            N(SyntaxKind.IdentifierToken, "a");
-                            N(SyntaxKind.EqualsValueClause);
-                            {
-                                M(SyntaxKind.EqualsToken);
-                                N(SyntaxKind.InvocationExpression);
-                                {
-                                    N(SyntaxKind.SimpleMemberAccessExpression);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "Console");
-                                        }
-                                        N(SyntaxKind.DotToken);
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "Goo");
-                                        }
-                                    }
-                                    N(SyntaxKind.ArgumentList);
-                                    {
-                                        N(SyntaxKind.OpenParenToken);
-                                        N(SyntaxKind.CloseParenToken);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.EndOfFileToken);
-            }
-            EOF();
+            ParseAndValidate(test,
+                new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 3, Column = 6 });
         }
 
         #endregion

@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.Extensions.Logging;
 using Roslyn.Test.Utilities;
@@ -60,20 +59,19 @@ public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
     {
     }
 
-    // Only run these on 64-bit machines; some templates have source generators that are 64-bit Ready-to-Run images,
-    // and those will fail to load if we're in a 32-bit process. Ideally if the machines had a 32-bit SDK we'd be able to run
-    // the tests in that case, but that's not worth the engineering work to set up.
-    [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled), typeof(Bitness64))]
+    [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled))]
     [MemberData(nameof(GetCSharpProjectTemplateNames), DisableDiscoveryEnumeration = false)]
     public Task ValidateCSharpTemplateProjects(string templateName)
     {
+        if (templateName is "blazor" or "blazorwasm")
+        {
+            // https://github.com/dotnet/roslyn/issues/80263
+            return Task.CompletedTask;
+        }
         return AssertTemplateProjectLoadsCleanlyAsync(templateName, LanguageNames.CSharp);
     }
 
-    // Only run these on 64-bit machines; some templates have source generators that are 64-bit Ready-to-Run images,
-    // and those will fail to load if we're in a 32-bit process. Ideally if the machines had a 32-bit SDK we'd be able to run
-    // the tests in that case, but that's not worth the engineering work to set up.
-    [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled), typeof(Bitness64))]
+    [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled))]
     [MemberData(nameof(GetVisualBasicProjectTemplateNames), DisableDiscoveryEnumeration = false)]
     public async Task ValidateVisualBasicTemplateProjects(string templateName)
     {
@@ -222,28 +220,12 @@ public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
         async Task AssertProjectLoadsCleanlyAsync(string projectFilePath, string[] ignoredDiagnostics)
         {
             using var workspace = CreateMSBuildWorkspace();
-
-            string binlogPath;
-            if (Environment.GetEnvironmentVariable("HELIX_DUMP_FOLDER") is string helixDumpFolder && !string.IsNullOrEmpty(helixDumpFolder))
-                binlogPath = Path.Combine(helixDumpFolder, Path.ChangeExtension(Path.GetFileName(projectFilePath), ".binlog"));
-            else
-                binlogPath = Path.ChangeExtension(projectFilePath, ".binlog");
-
-            LoggerFactory.CreateLogger(nameof(CreateNewProject)).LogInformation($"Creating binlog at {binlogPath}");
-
-            var logger = new Microsoft.Build.Logging.BinaryLogger { Parameters = binlogPath };
-            var project = await workspace.OpenProjectAsync(projectFilePath, msbuildLogger: logger, cancellationToken: CancellationToken.None);
-            var analyzerLoadDiagnostics = new List<AnalyzerLoadFailureEventArgs>();
-
-            foreach (var analyzerReference in project.AnalyzerReferences.OfType<AnalyzerFileReference>())
-                analyzerReference.AnalyzerLoadFailed += (sender, e) => analyzerLoadDiagnostics.Add(e);
+            var project = await workspace.OpenProjectAsync(projectFilePath, cancellationToken: CancellationToken.None);
 
             AssertEx.Empty(workspace.Diagnostics, $"The following workspace diagnostics are being reported for the template.");
 
             var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
             AssertEx.Empty(await project.GetSourceGeneratorDiagnosticsAsync(CancellationToken.None), $"The following source generator diagnostics are being reported for the template.");
-
-            AssertEx.Empty(analyzerLoadDiagnostics.Select(static d => $"{d.ErrorCode}: {d.Message}"));
 
             // Unnecessary using directives are reported with a severity of Hidden
             var nonHiddenDiagnostics = compilation.GetDiagnostics()

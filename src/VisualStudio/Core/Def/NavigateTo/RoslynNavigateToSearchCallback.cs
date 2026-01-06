@@ -47,17 +47,17 @@ internal sealed partial class RoslynSearchItemsSourceProvider
             _searchCallback.ReportIncomplete(IncompleteReason.Parsing);
         }
 
-        public async Task AddResultsAsync(
+        public Task AddResultsAsync(
             ImmutableArray<INavigateToSearchResult> results, Document? activeDocument, CancellationToken cancellationToken)
         {
             // Convert roslyn pattern matches to the platform type.
             foreach (var result in results)
             {
                 var matches = result.Matches.SelectAsArray(static m => new PatternMatch(
-                    ConvertKind(m.Kind),
-                    punctuationStripped: false,
-                    m.IsCaseSensitive,
-                    m.MatchedSpans.SelectAsArray(static s => s.ToSpan())));
+                ConvertKind(m.Kind),
+                punctuationStripped: false,
+                m.IsCaseSensitive,
+                m.MatchedSpans.SelectAsArray(static s => s.ToSpan())));
 
                 // Weight the items based on the overall pattern matching weights.  We want the items that have the best
                 // pattern matches (low .Kind values) to have the highest float values (as higher is better for the VS
@@ -72,24 +72,13 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                     result.Name,
                     result.SecondarySort,
                     matches,
-                    await GetFilePathAsync(result).ConfigureAwait(false),
+                    result.NavigableItem.Document.FilePath,
                     perProviderItemPriority,
                     project.Language,
                     isActiveDocument: activeDocument != null && activeDocument.Id == result.NavigableItem.Document.Id));
             }
 
-            async ValueTask<string?> GetFilePathAsync(INavigateToSearchResult result)
-            {
-                var document = result.NavigableItem.Document;
-                if (document.Id.IsSourceGenerated)
-                {
-                    var foundDocument = await document.GetRequiredDocumentAsync(_solution, cancellationToken).ConfigureAwait(false);
-                    if (foundDocument is SourceGeneratedDocument sourceGeneratedDocument)
-                        return _provider._sourceGeneratedFileManager.MapSourceGeneratedDocumentToOpenableFilePath(sourceGeneratedDocument);
-                }
-
-                return document.FilePath;
-            }
+            return Task.CompletedTask;
         }
 
         private static PatternMatchKind ConvertKind(PatternMatching.PatternMatchKind kind)

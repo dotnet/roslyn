@@ -885,11 +885,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Znaleziono pojedynczy zestaw: „{0}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_Equals">
-        <source>Generate Equals(...)</source>
-        <target state="new">Generate Equals(...)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">Generuj operatory porównania</target>
@@ -3933,6 +3928,11 @@ Jeśli specyfikator formatu „M” jest używany bez innych niestandardowych sp
       <trans-unit id="Generate_Equals_and_GetHashCode">
         <source>Generate Equals and GetHashCode</source>
         <target state="translated">Generuj element Equals i GetHashCode</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Equals_object">
+        <source>Generate Equals(object)</source>
+        <target state="translated">Generuj element Equals(object)</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_GetHashCode">

@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
             }
             else
             {
-                value = default;
+                value = default!;
                 return false;
             }
         }

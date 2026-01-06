@@ -12,10 +12,7 @@ internal static class IDEDiagnosticIds
     public const string SimplifyMemberAccessDiagnosticId = "IDE0002";
     public const string RemoveThisOrMeQualificationDiagnosticId = "IDE0003";
     public const string RemoveUnnecessaryCastDiagnosticId = "IDE0004";
-
     public const string RemoveUnnecessaryImportsDiagnosticId = "IDE0005";
-    public const string RemoveUnnecessaryImportsGeneratedCodeDiagnosticId = RemoveUnnecessaryImportsDiagnosticId + "_gen";
-
     public const string IntellisenseBuildFailedDiagnosticId = "IDE0006";
     public const string UseImplicitTypeDiagnosticId = "IDE0007";
     public const string UseExplicitTypeDiagnosticId = "IDE0008";

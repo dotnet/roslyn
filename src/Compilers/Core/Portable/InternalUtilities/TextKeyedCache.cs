@@ -138,7 +138,7 @@ namespace Roslyn.Utilities
                 return tk;
             }
 
-            return null;
+            return null!;
         }
 
         private SharedEntryValue? FindSharedEntry(ReadOnlySpan<char> chars, int hashCode)

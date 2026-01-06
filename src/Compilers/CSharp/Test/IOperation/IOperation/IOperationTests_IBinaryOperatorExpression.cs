@@ -4415,29 +4415,30 @@ Block[B1] - Block
     Predecessors: [B0]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'result = a && b;')
-          Expression:
+          Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsInvalid) (Syntax: 'result = a && b')
-              Left:
+              Left: 
                 IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'result')
-              Right:
+              Right: 
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'a && b')
                   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (NoConversion)
-                  Operand:
+                  Operand: 
                     IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'a && b')
-                      Left:
-                        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C.B3) (Syntax: 'a')
-                      Right:
-                        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C.B2) (Syntax: 'b')
+                      Left: 
+                        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C.B3, IsInvalid) (Syntax: 'a')
+                      Right: 
+                        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C.B2, IsInvalid) (Syntax: 'b')
+
     Next (Regular) Block[B2]
 Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // (6,20): error CS9342: Operator resolution is ambiguous between the following members: 'C.B3.operator &(C.B3, C.B2)' and 'C.B2.operator &(C.B3, C.B2)'
+                // file.cs(6,18): error CS0034: Operator '&&' is ambiguous on operands of type 'C.B3' and 'C.B2'
                 //         result = a && b;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "&&").WithArguments("C.B3.operator &(C.B3, C.B2)", "C.B2.operator &(C.B3, C.B2)").WithLocation(6, 20)
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "a && b").WithArguments("&&", "C.B3", "C.B2").WithLocation(6, 18)
             };
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
@@ -6349,7 +6350,7 @@ Block[B6] - Exit
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C' must not be an interface and must define operator 'false'.
+                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C' must define operator 'false'.
                 //         result = a && b;
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "a").WithArguments("C", "false").WithLocation(6, 18)
             };
@@ -6861,7 +6862,7 @@ Block[B6] - Exit
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C?' must not be an interface and must define operator 'false'.
+                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C?' must define operator 'false'.
                 //         result = a && b;
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "a").WithArguments("C?", "false").WithLocation(6, 18)
             };
@@ -7582,7 +7583,7 @@ Block[B6] - Exit
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C?' must not be an interface and must define operator 'false'.
+                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C?' must define operator 'false'.
                 //         result = a && b;
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "a").WithArguments("C?", "false").WithLocation(6, 18)
             };
@@ -7691,7 +7692,7 @@ Block[B6] - Exit
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C?' must not be an interface and must define operator 'false'.
+                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C?' must define operator 'false'.
                 //         result = a && b;
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "a").WithArguments("C?", "false").WithLocation(6, 18)
             };
@@ -8013,7 +8014,7 @@ Block[B6] - Exit
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'bool?' must not be an interface and must define operator 'false'.
+                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'bool?' must define operator 'false'.
                 //         result = a && b;
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "a").WithArguments("bool?", "false").WithLocation(6, 18)
             };

@@ -1680,7 +1680,7 @@ struct A
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature(Feature.RunNullableAnalysis, "never"));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);

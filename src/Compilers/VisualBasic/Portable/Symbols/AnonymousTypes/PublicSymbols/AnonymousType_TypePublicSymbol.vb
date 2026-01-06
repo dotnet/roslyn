@@ -168,7 +168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return New TypeWithModifiers(Me)
                 End If
 
-                Return New TypeWithModifiers(Me.Manager.ConstructAnonymousTypeSymbol(newDescriptor, BindingDiagnosticBag.Discarded))
+                Return New TypeWithModifiers(Me.Manager.ConstructAnonymousTypeSymbol(newDescriptor))
             End Function
 
             Public Overrides Function GetMembers() As ImmutableArray(Of Symbol)

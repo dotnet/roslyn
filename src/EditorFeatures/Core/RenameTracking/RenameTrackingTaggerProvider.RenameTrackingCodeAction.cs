@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
@@ -56,15 +55,15 @@ internal sealed partial class RenameTrackingTaggerProvider
         protected sealed override CodeActionPriority ComputePriority()
             => CodeActionPriority.High;
 
-        protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+        protected override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
             IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             // Invoked directly without previewing.
             if (_renameTrackingCommitter == null && !TryInitializeRenameTrackingCommitter())
-                return [];
+                return SpecializedTasks.EmptyImmutableArray<CodeActionOperation>();
 
             var committerOperation = new RenameTrackingCommitterOperation(_renameTrackingCommitter, _threadingContext);
-            return ImmutableArray.Create<CodeActionOperation>(committerOperation);
+            return Task.FromResult(ImmutableArray.Create<CodeActionOperation>(committerOperation));
         }
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)

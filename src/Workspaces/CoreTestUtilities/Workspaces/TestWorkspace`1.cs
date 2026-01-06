@@ -404,7 +404,7 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
         var hostProject = this.GetTestProject(info.Id.ProjectId);
         Contract.ThrowIfNull(hostProject);
 
-        var hostDocument = CreateDocument(text.ToString(), info.Name, id: info.Id, filePath: info.FilePath, folders: info.Folders, exportProvider: ExportProvider);
+        var hostDocument = CreateDocument(text.ToString(), info.Name, id: info.Id, exportProvider: ExportProvider);
         hostProject.AddAdditionalDocument(hostDocument);
         this.OnAdditionalDocumentAdded(hostDocument.ToDocumentInfo());
     }

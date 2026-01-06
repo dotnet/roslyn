@@ -63,12 +63,12 @@ error detection on invocation failure, incorrect parameters, etc ...
 
 ```powershell
 # DO NOT
-& msbuild /v:m /m Roslyn.slnx
-& dotnet build Roslyn.slnx
+& msbuild /v:m /m Roslyn.sln
+& dotnet build Roslyn.sln
 
 # DO
-Exec-Command "msbuild" "/v:m /m Roslyn.slnx"
-Exec-DotNet "build Roslyn.slnx"
+Exec-Command "msbuild" "/v:m /m Roslyn.sln"
+Exec-DotNet "build Roslyn.sln"
 ```
 
 Scripts that have many executions of `dotnet` commands can store the `dotnet` command in a variable

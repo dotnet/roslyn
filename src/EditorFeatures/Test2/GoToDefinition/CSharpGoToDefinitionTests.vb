@@ -4533,7 +4533,8 @@ public partial class Program
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77545")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/77545")>
+        <WpfFact>
         Public Async Function TestCSharpGoToConstructorWithMismatchingArguments_ImplicitConversion1() As Task
             Dim workspace =
 <Workspace>
@@ -4559,7 +4560,8 @@ public partial class Program
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77545")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/77545")>
+        <WpfFact>
         Public Async Function TestCSharpGoToConstructorWithMismatchingArguments_ImplicitConversion2() As Task
             Dim workspace =
 <Workspace>
@@ -4589,7 +4591,8 @@ public partial class Program
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77545")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/77545")>
+        <WpfFact>
         Public Async Function TestCSharpGoToConstructorWithMismatchingArguments_ImplicitConversion3() As Task
             Dim workspace =
 <Workspace>
@@ -4615,7 +4618,8 @@ public partial class Program
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77545")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/77545")>
+        <WpfFact>
         Public Async Function TestCSharpGoToConstructorWithMismatchingArguments_ImplicitConversion4() As Task
             Dim workspace =
 <Workspace>
@@ -4644,7 +4648,8 @@ public partial class Program
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77545")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/77545")>
+        <WpfFact>
         Public Async Function TestCSharpGoToConstructorWithMismatchingArguments_ExplicitConversion() As Task
             Dim workspace =
 <Workspace>
@@ -4674,7 +4679,8 @@ public partial class Program
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/73498")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/73498")>
+        <WpfFact>
         Public Async Function TestCSharpGoToClassMissingConstructor_ImplicitConversion() As Task
             Dim workspace =
 <Workspace>
@@ -4704,7 +4710,8 @@ public partial class Program
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/73498")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/73498")>
+        <WpfFact>
         Public Async Function TestCSharpGoToClassMissingConstructor_ExplicitConversion() As Task
             Dim workspace =
 <Workspace>

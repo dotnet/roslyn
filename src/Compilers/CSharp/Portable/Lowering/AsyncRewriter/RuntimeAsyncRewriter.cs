@@ -120,7 +120,7 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
             _factory.Diagnostics.Add(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync,
                 node.Syntax.Location,
                 _factory.CurrentFunction);
-            return node.WithHasErrors();
+            return node;
         }
 
         var runtimeAsyncAwaitCall = awaitableInfo.RuntimeAsyncAwaitCall;

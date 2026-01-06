@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -109,7 +108,6 @@ internal abstract partial class AbstractRecommendationService<
                 return symbol.IsOrContainsAccessibleAttribute(
                     _context.SemanticModel.GetEnclosingNamedType(_context.LeftToken.SpanStart, _cancellationToken)!,
                     _context.SemanticModel.Compilation.Assembly,
-                    _context.ValidAttributeTargets ?? AttributeTargets.All,
                     _cancellationToken);
             }
 

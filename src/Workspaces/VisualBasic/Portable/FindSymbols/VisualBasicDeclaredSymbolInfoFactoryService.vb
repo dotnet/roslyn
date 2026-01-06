@@ -24,7 +24,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             TypeBlockSyntax,
             EnumBlockSyntax,
             DeclarationStatementSyntax,
-            DeclarationStatementSyntax,
             StatementSyntax,
             NameSyntax,
             QualifiedNameSyntax,
@@ -495,7 +494,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Next
         End Sub
 
-        Protected Overrides Function GetExtensionReceiverTypeName(node As DeclarationStatementSyntax) As String
+        Protected Overrides Function GetReceiverTypeName(node As DeclarationStatementSyntax) As String
             node = If(TryCast(node, MethodBlockBaseSyntax)?.BlockStatement, node)
 
             Dim funcDecl = DirectCast(node, MethodStatementSyntax)
@@ -507,11 +506,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
 
             TryGetSimpleTypeNameWorker(funcDecl.ParameterList.Parameters(0).AsClause?.Type, typeParameterNames, targetTypeName, isArray)
             Return CreateReceiverTypeString(targetTypeName, isArray)
-        End Function
-
-        Protected Overrides Function GetExtensionReceiverTypeName(node As TypeBlockSyntax) As String
-            ' VB does not have extension blocks
-            Return Nothing
         End Function
 
         Protected Overrides Function TryGetAliasesFromUsingDirective(importStatement As ImportsStatementSyntax, ByRef aliases As ImmutableArray(Of (aliasName As String, name As String))) As Boolean

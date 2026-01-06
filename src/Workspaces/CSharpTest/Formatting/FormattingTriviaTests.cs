@@ -1192,7 +1192,7 @@ public sealed class FormattingEngineTriviaTests : CSharpFormattingTestBase
 
                 void Method()
                 {
-                #endregion
+                    #endregion
                     int i = 10;
                 }
             }
@@ -1533,58 +1533,6 @@ public sealed class FormattingEngineTriviaTests : CSharpFormattingTestBase
                     if (true)
                         a++;
                         #endregion
-                }
-            }
-            """);
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75919")]
-    public Task EndRegionFollowedByLabel()
-        => AssertFormatAsync("""
-            class C
-            {
-                void M()
-                {
-                    int i = 0;
-
-                    #region region one
-                    if (i == 0)
-                    {
-                        goto label0;
-                    }
-                    else if (i == 1)
-                    {
-                        goto label1;
-                    }
-                    #endregion
-
-                label0:
-                    return;
-                label1:
-                    return;
-                }
-            }
-            """, """
-            class C
-            {
-                void M()
-                {
-                    int i = 0;
-
-                    #region region one
-                    if (i == 0)
-                    {
-                        goto label0;
-                    }
-                    else if (i == 1)
-                    {
-                        goto label1;
-                    }
-            #endregion
-
-            label0:
-                    return;
-            label1:
-                    return;
                 }
             }
             """);

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -100,15 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static void VerifyOverridesEqualityContractFromBase(PropertySymbol overriding, BindingDiagnosticBag diagnostics)
         {
-            var baseType = overriding.ContainingType.BaseTypeNoUseSiteDiagnostics;
-            if (baseType.IsObjectType())
-            {
-                return;
-            }
-
-            // If the base type is not a record, ERR_BadRecordBase will already be reported.
-            // Don't cascade an override error in this case.
-            if (!baseType.IsRecord)
+            if (overriding.ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType())
             {
                 return;
             }
@@ -124,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var overridden = overriding.OverriddenProperty;
 
                 if (overridden is object &&
-                    !overridden.ContainingType.Equals(baseType, TypeCompareKind.AllIgnoreOptions))
+                    !overridden.ContainingType.Equals(overriding.ContainingType.BaseTypeNoUseSiteDiagnostics, TypeCompareKind.AllIgnoreOptions))
                 {
                     reportAnError = true;
                 }
@@ -132,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (reportAnError)
             {
-                diagnostics.Add(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, overriding.GetFirstLocation(), overriding, baseType);
+                diagnostics.Add(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, overriding.GetFirstLocation(), overriding, overriding.ContainingType.BaseTypeNoUseSiteDiagnostics);
             }
         }
 

@@ -54,7 +54,7 @@
         "group": "build"
     },
     {
-        "label": "build Roslyn.slnx",
+        "label": "build Roslyn.sln",
         "command": "dotnet",
         "type": "shell",
         "args": [
@@ -62,13 +62,13 @@
           "-p:RunAnalyzersDuringBuild=false",
           "-p:GenerateFullPaths=true",
           "-tl:off",
-          "Roslyn.slnx"
+          "Roslyn.sln"
         ],
         "problemMatcher": "$msCompile",
         "group": "build"
     },
     {
-        "label": "build Roslyn.slnx with analyzers",
+        "label": "build Roslyn.sln with analyzers",
         "command": "dotnet",
         "type": "shell",
         "args": [
@@ -76,7 +76,7 @@
           "-p:RunAnalyzersDuringBuild=true",
           "-p:GenerateFullPaths=true",
           "-tl:off",
-          "Roslyn.slnx"
+          "Roslyn.sln"
         ],
         "problemMatcher": "$msCompile",
         "group": "build"

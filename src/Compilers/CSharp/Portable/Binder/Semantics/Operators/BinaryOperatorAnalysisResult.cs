@@ -4,14 +4,13 @@
 
 #nullable disable
 
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
-    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal readonly struct BinaryOperatorAnalysisResult : IMemberResolutionResultWithPriority<MethodSymbol>
     {
         public readonly Conversion LeftConversion;
@@ -65,11 +64,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BinaryOperatorAnalysisResult Worse()
         {
             return new BinaryOperatorAnalysisResult(OperatorAnalysisResultKind.Worse, this.Signature, this.LeftConversion, this.RightConversion);
-        }
-
-        private string GetDebuggerDisplay()
-        {
-            return $"{Signature.Kind} {Kind} {Signature.Method?.ToDisplayString()}";
         }
     }
 }

@@ -5,7 +5,6 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Rename
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.InlineRename
     <ExportLanguageService(GetType(IEditorInlineRenameService), LanguageNames.VisualBasic), [Shared]>

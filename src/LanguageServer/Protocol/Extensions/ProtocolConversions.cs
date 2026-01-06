@@ -403,23 +403,15 @@ internal static partial class ProtocolConversions
     /// Compute all the <see cref="LSP.TextDocumentEdit"/> for the input list of changed documents.
     /// Additionally maps the locations of the changed documents if necessary.
     /// </summary>
-    public static async Task<LSP.TextDocumentEdit[]> ChangedDocumentsToTextDocumentEditsAsync(Solution newSolution, Solution oldSolution, CancellationToken cancellationToken)
+    public static async Task<LSP.TextDocumentEdit[]> ChangedDocumentsToTextDocumentEditsAsync(IEnumerable<DocumentId> changedDocuments, Solution newSolution,
+            Solution oldSolution, IDocumentTextDifferencingService? textDiffService, CancellationToken cancellationToken)
     {
-        var solutionChanges = newSolution.GetChanges(oldSolution);
-
-        var changedDocuments = solutionChanges
-            .GetProjectChanges()
-            .SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true))
-            .GroupBy(docId => newSolution.GetRequiredDocument(docId).FilePath, StringComparer.OrdinalIgnoreCase).Select(group => group.First());
-
-        var textDiffService = newSolution.Services.GetRequiredService<IDocumentTextDifferencingService>();
-
         using var _ = ArrayBuilder<(DocumentUri Uri, LSP.TextEdit TextEdit)>.GetInstance(out var uriToTextEdits);
 
         foreach (var docId in changedDocuments)
         {
-            var newDocument = newSolution.GetRequiredDocument(docId);
-            var oldDocument = oldSolution.GetRequiredDocument(docId);
+            var newDocument = await newSolution.GetRequiredDocumentAsync(docId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+            var oldDocument = await oldSolution.GetRequiredDocumentAsync(docId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
             var oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -467,55 +459,6 @@ internal static partial class ProtocolConversions
             }
         }
 
-        // Now process source generated documents that might have changed, via the source generated document mapping service
-        var sourceGeneratedDocumentMappingService = newSolution.Services.GetService<ISourceGeneratedDocumentSpanMappingService>();
-        if (sourceGeneratedDocumentMappingService is not null)
-        {
-            // Since we're mapping changes to source generated documents, we have to ensure the old solution has run the generators
-            // so the mapper has something to compare to.
-            foreach (var (docId, state) in solutionChanges.NewSolution.CompilationState.FrozenSourceGeneratedDocumentStates.States)
-            {
-                var document = await solutionChanges.OldSolution.GetRequiredDocumentAsync(docId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-                Contract.ThrowIfFalse(document.IsRazorSourceGeneratedDocument());
-            }
-
-            foreach (var docId in solutionChanges.GetExplicitlyChangedSourceGeneratedDocuments())
-            {
-                var oldDocument = solutionChanges.OldSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(docId);
-                var newDocument = solutionChanges.NewSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(docId);
-
-                if (sourceGeneratedDocumentMappingService.CanMapSpans(oldDocument))
-                {
-                    var mappedTextChanges = await sourceGeneratedDocumentMappingService.GetMappedTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
-                    foreach (var (filePath, textChange) in mappedTextChanges)
-                    {
-                        var mappedDocId = oldSolution.GetDocumentIdsWithFilePath(filePath).FirstOrDefault(d => d.ProjectId == oldDocument.Id.ProjectId);
-                        // Can't map to an edit in an unknown document
-                        if (mappedDocId is null)
-                            continue;
-
-                        var mappedDoc = oldSolution.GetRequiredTextDocument(mappedDocId);
-                        var mappedText = await mappedDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                        uriToTextEdits.Add((CreateAbsoluteDocumentUri(filePath), new LSP.TextEdit
-                        {
-                            Range = TextSpanToRange(textChange.Span, mappedText),
-                            NewText = textChange.NewText ?? string.Empty
-                        }));
-                    }
-                }
-                else
-                {
-                    // There's no span mapping available, just create text edits from the original text changes.
-                    var oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                    var textChanges = await textDiffService.GetTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
-                    foreach (var textChange in textChanges)
-                    {
-                        uriToTextEdits.Add((oldDocument.GetURI(), TextChangeToTextEdit(textChange, oldText)));
-                    }
-                }
-            }
-        }
-
         var documentEdits = uriToTextEdits.GroupBy(uriAndEdit => uriAndEdit.Uri, uriAndEdit => new LSP.SumType<LSP.TextEdit, LSP.AnnotatedTextEdit>(uriAndEdit.TextEdit), (uri, edits) => new LSP.TextDocumentEdit
         {
             TextDocument = new LSP.OptionalVersionedTextDocumentIdentifier { DocumentUri = uri },
@@ -543,40 +486,37 @@ internal static partial class ProtocolConversions
     {
         Debug.Assert(document.FilePath != null);
 
-        if (document is Document d &&
-            SpanMappingHelper.CanMapSpans(d))
+        var result = document is Document d
+            ? await SpanMappingHelper.TryGetMappedSpanResultAsync(d, [textSpan], cancellationToken).ConfigureAwait(false)
+            : null;
+        if (result == null)
+            return await ConvertTextSpanToLocationAsync(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
+
+        var mappedSpan = result.Value.Single();
+        if (mappedSpan.IsDefault)
+            return await ConvertTextSpanToLocationAsync(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
+
+        DocumentUri? uri = null;
+        try
         {
-            var result = await SpanMappingHelper.TryGetMappedSpanResultAsync(d, [textSpan], cancellationToken).ConfigureAwait(false);
-            if (result is not [{ IsDefault: false } mappedSpan])
-            {
-                // Couldn't map the span, but mapping is supported, so the mapper must not want to show include this result
-                return null;
-            }
-
-            DocumentUri? uri = null;
-            try
-            {
-                if (PathUtilities.IsAbsolute(mappedSpan.FilePath))
-                    uri = CreateAbsoluteDocumentUri(mappedSpan.FilePath);
-            }
-            catch (UriFormatException)
-            {
-            }
-
-            if (uri == null)
-            {
-                context?.TraceWarning($"Could not convert '{mappedSpan.FilePath}' to uri");
-                return null;
-            }
-
-            return new LSP.Location
-            {
-                DocumentUri = uri,
-                Range = MappedSpanResultToRange(mappedSpan)
-            };
+            if (PathUtilities.IsAbsolute(mappedSpan.FilePath))
+                uri = CreateAbsoluteDocumentUri(mappedSpan.FilePath);
+        }
+        catch (UriFormatException)
+        {
         }
 
-        return await ConvertTextSpanToLocationAsync(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
+        if (uri == null)
+        {
+            context?.TraceWarning($"Could not convert '{mappedSpan.FilePath}' to uri");
+            return null;
+        }
+
+        return new LSP.Location
+        {
+            DocumentUri = uri,
+            Range = MappedSpanResultToRange(mappedSpan)
+        };
 
         static async Task<LSP.Location> ConvertTextSpanToLocationAsync(
             TextDocument document,

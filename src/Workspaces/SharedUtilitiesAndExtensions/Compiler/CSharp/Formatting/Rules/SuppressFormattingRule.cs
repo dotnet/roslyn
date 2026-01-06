@@ -185,20 +185,28 @@ internal sealed class SuppressFormattingRule : BaseFormattingRule
         {
             if (switchSection.Labels.Count < 2)
             {
-                AddSuppressWrappingIfOnSingleLineOperation(list, switchSection.GetFirstToken(includeZeroWidth: true), switchSection.GetLastToken());
+                AddSuppressWrappingIfOnSingleLineOperation(list, switchSection.GetFirstToken(includeZeroWidth: true), switchSection.GetLastToken(includeZeroWidth: true));
+                return;
             }
             else
             {
                 // Add Separate suppression for each Label and for the last label, add the <> 
                 for (var i = 0; i < switchSection.Labels.Count - 1; ++i)
-                    AddSuppressWrappingIfOnSingleLineOperation(list, switchSection.Labels[i].GetFirstToken(includeZeroWidth: true), switchSection.Labels[i].GetLastToken());
+                {
+                    if (switchSection.Labels[i] != null)
+                    {
+                        AddSuppressWrappingIfOnSingleLineOperation(list, switchSection.Labels[i].GetFirstToken(includeZeroWidth: true), switchSection.Labels[i].GetLastToken(includeZeroWidth: true));
+                    }
+                }
 
                 // For the last label add the rest of the statements of the switch
-                if (switchSection.Labels[^1] != null)
-                    AddSuppressWrappingIfOnSingleLineOperation(list, switchSection.Labels[^1].GetFirstToken(includeZeroWidth: true), switchSection.GetLastToken());
-            }
+                if (switchSection.Labels[switchSection.Labels.Count - 1] != null)
+                {
+                    AddSuppressWrappingIfOnSingleLineOperation(list, switchSection.Labels[switchSection.Labels.Count - 1].GetFirstToken(includeZeroWidth: true), switchSection.GetLastToken(includeZeroWidth: true));
+                }
 
-            return;
+                return;
+            }
         }
 
         if (node is AnonymousFunctionExpressionSyntax or LocalFunctionStatementSyntax)

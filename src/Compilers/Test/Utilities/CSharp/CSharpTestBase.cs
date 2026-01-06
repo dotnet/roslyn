@@ -1295,16 +1295,16 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
             public class RuntimeAsyncMethodGenerationAttribute(bool runtimeAsync) : Attribute();
             """;
 
-        protected static T GetSyntax<T>(SyntaxTree tree, string text, bool descendIntoTrivia = false)
+        protected static T GetSyntax<T>(SyntaxTree tree, string text)
             where T : notnull
         {
-            return GetSyntaxes<T>(tree, text, descendIntoTrivia).Single();
+            return GetSyntaxes<T>(tree, text).Single();
         }
 
-        protected static IEnumerable<T> GetSyntaxes<T>(SyntaxTree tree, string text, bool descendIntoTrivia = false)
+        protected static IEnumerable<T> GetSyntaxes<T>(SyntaxTree tree, string text)
             where T : notnull
         {
-            return tree.GetRoot().DescendantNodes(descendIntoTrivia: descendIntoTrivia).OfType<T>().Where(e => e.ToString() == text);
+            return tree.GetRoot().DescendantNodes().OfType<T>().Where(e => e.ToString() == text);
         }
 
         protected static CSharpCompilationOptions WithNullableEnable(CSharpCompilationOptions? options = null)
@@ -3204,19 +3204,15 @@ namespace System.Runtime.CompilerServices
 
         #region Runtime Async
 
-        internal static CSharpParseOptions WithRuntimeAsync(CSharpParseOptions options) => options.WithFeature(Feature.RuntimeAsync, "on");
+        internal static CSharpParseOptions WithRuntimeAsync(CSharpParseOptions options) => options.WithFeature("runtime-async", "on");
 
-        internal static CSharpCompilation CreateRuntimeAsyncCompilation(CSharpTestSource source, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null, bool includeSuppression = true)
+        internal static CSharpCompilation CreateRuntimeAsyncCompilation(CSharpTestSource source, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null)
         {
             parseOptions ??= WithRuntimeAsync(TestOptions.RegularPreview);
             var syntaxTrees = source.GetSyntaxTrees(parseOptions, sourceFileName: "");
             if (options == null)
             {
                 options = CheckForTopLevelStatements(syntaxTrees);
-            }
-
-            if (includeSuppression)
-            {
                 options = options.WithSpecificDiagnosticOptions("SYSLIB5007", ReportDiagnostic.Suppress);
             }
 

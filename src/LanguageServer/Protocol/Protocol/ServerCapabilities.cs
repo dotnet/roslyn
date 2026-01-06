@@ -291,7 +291,7 @@ internal class ServerCapabilities
     /// </summary>
     [JsonPropertyName("workspace")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public WorkspaceServerCapabilities? Workspace { get; set; }
+    public WorkspaceServerCapabilities? Workspace { get; init; }
 
     /// <summary>
     /// Gets or sets experimental server capabilities.

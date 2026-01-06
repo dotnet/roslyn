@@ -7,9 +7,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
@@ -59,7 +60,7 @@ internal sealed class RpcClient
                     Response? response;
                     try
                     {
-                        response = JsonSerializer.Deserialize<Response>(line, JsonSettings.SingleLineSerializerOptions);
+                        response = JsonConvert.DeserializeObject<Response>(line);
                     }
                     catch (JsonException ex)
                     {
@@ -88,7 +89,7 @@ internal sealed class RpcClient
                             try
                             {
                                 // response.Value might be null if the response was in fact null.
-                                var result = response.Value?.Deserialize(expectedType, JsonSettings.SingleLineSerializerOptions);
+                                var result = response.Value?.ToObject(expectedType);
                                 completionSource.SetResult(result);
                             }
                             catch (Exception ex)
@@ -154,10 +155,10 @@ internal sealed class RpcClient
             Id = requestId,
             TargetObject = targetObject,
             Method = methodName,
-            Parameters = parameters.SelectAsArray(static p => JsonSerializer.SerializeToElement(p, JsonSettings.SingleLineSerializerOptions))
+            Parameters = parameters.SelectAsArray(static p => p is not null ? JToken.FromObject(p) : JValue.CreateNull())
         };
 
-        var requestJson = JsonSerializer.Serialize(request, JsonSettings.SingleLineSerializerOptions) + Environment.NewLine;
+        var requestJson = JsonConvert.SerializeObject(request, JsonSettings.SingleLineSerializerSettings) + Environment.NewLine;
         var requestJsonBytes = JsonSettings.StreamEncoding.GetBytes(requestJson);
 
         try

@@ -16,12 +16,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 
 internal static class Diagnostics
 {
-    public static LSP.VSDiagnosticProjectInformation GetProjectInformation(Project project)
-    {
-        var service = project.Solution.Services.GetRequiredService<IDiagnosticProjectInformationService>();
-        return service.GetDiagnosticProjectInformation(project);
-    }
-
     public static async Task<ImmutableArray<LSP.Diagnostic>> GetDocumentDiagnosticsAsync(Document document, bool supportsVisualStudioExtensions, CancellationToken cancellationToken)
     {
         var solutionServices = document.Project.Solution.Services;

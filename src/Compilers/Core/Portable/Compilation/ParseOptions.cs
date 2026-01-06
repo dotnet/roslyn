@@ -109,7 +109,6 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Enable some experimental language features for testing.
         /// </summary>
-        // Note: use Feature entry for known feature flags.
         public ParseOptions WithFeatures(IEnumerable<KeyValuePair<string, string>> features)
         {
             return CommonWithFeatures(features);
@@ -120,16 +119,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns the experimental features.
         /// </summary>
-        // Note: use Feature entry for known feature flags.
         public abstract IReadOnlyDictionary<string, string> Features
         {
             get;
-        }
-
-        internal bool HasFeature(string feature)
-        {
-            Feature.AssertValidFeature(feature);
-            return Features.TryGetValue(feature, out var value) && value is not null;
         }
 
         /// <summary>

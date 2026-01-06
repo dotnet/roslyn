@@ -22,17 +22,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseAutoProperty;
 public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
     : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    private const string s_allowNullAttribute = """
-        
-        namespace System.Diagnostics.CodeAnalysis
-        {
-            [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property)]
-            public sealed class AllowNullAttribute : Attribute
-            {
-            }
-        }
-        """;
-
     private readonly ParseOptions CSharp12 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12);
 
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
@@ -1891,21 +1880,21 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
         => TestMissingInRegularAndScriptAsync("""
             namespace RoslynSandbox
             {
-                public interface IGoo
+                public interface IFoo
                 {
                     object Bar { get; }
                 }
 
-                class Goo : IGoo
+                class Foo : IFoo
                 {
-                    public Goo(object bar)
+                    public Foo(object bar)
                     {
                         this.bar = bar;
                     }
 
                     readonly object [|bar|];
 
-                    object IGoo.Bar
+                    object IFoo.Bar
                     {
                         get { return bar; }
                     }
@@ -1918,21 +1907,21 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
         => TestMissingInRegularAndScriptAsync("""
             namespace RoslynSandbox
             {
-                public interface IGoo
+                public interface IFoo
                 {
                     object Bar { get; set; }
                 }
 
-                class Goo : IGoo
+                class Foo : IFoo
                 {
-                    public Goo(object bar)
+                    public Foo(object bar)
                     {
                         this.bar = bar;
                     }
 
                     object [|bar|];
 
-                    object IGoo.Bar
+                    object IFoo.Bar
                     {
                         get { return bar; }
                         set { bar = value; }
@@ -2577,7 +2566,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
     public Task TestUseTabs()
         => TestInRegularAndScriptAsync(
             """
-            public class Goo
+            public class Foo
             {
             	private readonly object o;
 
@@ -2585,7 +2574,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             }
             """,
             """
-            public class Goo
+            public class Foo
             {
             	public object O { get; }
             }
@@ -2595,7 +2584,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
     public Task TestUseSpaces()
         => TestInRegularAndScriptAsync(
             """
-            public class Goo
+            public class Foo
             {
             	private readonly object o;
 
@@ -2603,7 +2592,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             }
             """,
             """
-            public class Goo
+            public class Foo
             {
                 public object O { get; }
             }
@@ -2616,7 +2605,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document FilePath = "file.cs">
-            public class Goo
+            public class Foo
             {
             	private readonly object o;
 
@@ -2634,7 +2623,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document FilePath = "file.cs">
-            public class Goo
+            public class Foo
             {
             	public object O { get; }
             }
@@ -2654,7 +2643,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document FilePath = "file.cs">
-            public class Goo
+            public class Foo
             {
             	private readonly object o;
 
@@ -2672,7 +2661,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document FilePath = "file.cs">
-            public class Goo
+            public class Foo
             {
                 public object O { get; }
             }
@@ -3095,211 +3084,6 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
                 {
                     [A]
                     get;
-                }
-            }
-            """);
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/81179")]
-    public Task TestNullableFieldNonNullableProperty_WithAllowNullAttribute1()
-        => TestInRegularAndScriptAsync(
-            """
-            #nullable enable
-            class C
-            {
-                [|private string? _goo = "";|]
-
-                public string Goo => _goo ?? throw new System.InvalidOperationException();
-
-                public void Reset()
-                {
-                    _goo = null;
-                }
-            }
-            """ + s_allowNullAttribute,
-            """
-            #nullable enable
-            using System.Diagnostics.CodeAnalysis;
-
-            class C
-            {
-                [AllowNull]
-                public string Goo { get => field ?? throw new System.InvalidOperationException(); private set; } = "";
-
-                public void Reset()
-                {
-                    Goo = null;
-                }
-            }
-            """ + s_allowNullAttribute);
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/81179")]
-    public Task TestNullableFieldNonNullableProperty_WithAllowNullAttribute2()
-        => TestInRegularAndScriptAsync(
-            """
-            #nullable enable
-            class C
-            {
-                [|private string? _goo = "";|]
-
-                public string Goo => _goo ?? throw new System.InvalidOperationException();
-
-                public void Reset()
-                {
-                    this._goo = null;
-                }
-            }
-            """ + s_allowNullAttribute,
-            """
-            #nullable enable
-            using System.Diagnostics.CodeAnalysis;
-
-            class C
-            {
-                [AllowNull]
-                public string Goo { get => field ?? throw new System.InvalidOperationException(); private set; } = "";
-
-                public void Reset()
-                {
-                    Goo = null;
-                }
-            }
-            """ + s_allowNullAttribute);
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/81179")]
-    public Task TestNullableFieldNonNullableProperty_NoNullWrites()
-        => TestInRegularAndScriptAsync(
-            """
-            #nullable enable
-            class C
-            {
-                [|private string? _goo = "";|]
-            
-                public string Goo => _goo ?? throw new System.InvalidOperationException();
-
-                public void Reset()
-                {
-                    _goo = "";
-                }
-            }
-            """ + s_allowNullAttribute,
-            """
-            #nullable enable
-            class C
-            {
-                public string Goo { get => field ?? throw new System.InvalidOperationException(); private set; } = "";
-
-                public void Reset()
-                {
-                    Goo = "";
-                }
-            }
-            """ + s_allowNullAttribute);
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/81179")]
-    public Task TestNullableFieldNonNullableProperty_ReadOnly_NoAllowNull()
-        => TestInRegularAndScriptAsync(
-            """
-            #nullable enable
-            class C
-            {
-                [|private readonly string? _goo = "";|]
-            
-                public string Goo => _goo ?? throw new System.InvalidOperationException();
-            }
-            """ + s_allowNullAttribute,
-            """
-            #nullable enable
-            class C
-            {
-                public string Goo { get => field ?? throw new System.InvalidOperationException(); } = "";
-            }
-            """ + s_allowNullAttribute);
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81320")]
-    public Task TestStaticFieldWrittenInInstanceConstructor_ReadOnlyProperty()
-        => TestInRegularAndScriptAsync(
-            """
-            public sealed class Test
-            {
-                [|private static Test? s_instance;|]
-                public static Test Instance => s_instance!;
-
-                public Test()
-                {
-                    s_instance = this;
-                }
-            }
-            """,
-            """
-            public sealed class Test
-            {
-                public static Test Instance { get => field!; private set; }
-
-                public Test()
-                {
-                    Instance = this;
-                }
-            }
-            """);
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/XXXXX")]
-    public Task TestStaticFieldWrittenInStaticConstructor_ReadOnlyProperty()
-        => TestInRegularAndScriptAsync(
-            """
-            public sealed class Test
-            {
-                [|private static Test? s_instance;|]
-                public static Test Instance => s_instance!;
-
-                static Test()
-                {
-                    s_instance = new Test();
-                }
-            }
-            """,
-            """
-            public sealed class Test
-            {
-                public static Test Instance => field!;
-
-                static Test()
-                {
-                    Instance = new Test();
-                }
-            }
-            """);
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/XXXXX")]
-    public Task TestStaticFieldWrittenInInstanceConstructor_WithSetter()
-        => TestInRegularAndScriptAsync(
-            """
-            public sealed class Test
-            {
-                [|private static Test? s_instance;|]
-                public static Test Instance
-                {
-                    get => s_instance!;
-                    set => s_instance = value;
-                }
-
-                public Test()
-                {
-                    s_instance = this;
-                }
-            }
-            """,
-            """
-            public sealed class Test
-            {
-                public static Test Instance
-                {
-                    get => field!;
-                    set;
-                }
-
-                public Test()
-                {
-                    Instance = this;
                 }
             }
             """);

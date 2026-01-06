@@ -40,7 +40,7 @@ internal abstract partial class AbstractPullMemberUpRefactoringProvider
             if (options is PullMembersUpOptions pullMemberUpOptions)
             {
                 var changedSolution = await MembersPuller.PullMembersUpAsync(_document, pullMemberUpOptions, cancellationToken).ConfigureAwait(false);
-                return [new ApplyChangesOperation(changedSolution)];
+                return new[] { new ApplyChangesOperation(changedSolution) };
             }
             else
             {

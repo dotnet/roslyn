@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -314,70 +316,6 @@ public sealed class AutomaticBracketCompletionTests : AbstractAutomaticBraceComp
                 }
             }
             """);
-    }
-
-    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69993")]
-    public void IndexerInSwitchSection1()
-    {
-        var code = """
-        class Program
-        {
-            private void M()
-            {
-                switch (variable.Name)
-                {
-                    case "v": myarray$$
-                }
-            }
-        }
-        """;
-        using var session = CreateSession(code);
-        CheckStart(session.Session);
-        CheckText(session.Session, """
-        class Program
-        {
-            private void M()
-            {
-                switch (variable.Name)
-                {
-                    case "v": myarray[]
-                }
-            }
-        }
-        """);
-    }
-
-    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69993")]
-    public void IndexerInSwitchSection2()
-    {
-        var code = """
-        class Program
-        {
-            private void M()
-            {
-                switch (variable.Name)
-                {
-                    case "w":
-                    case "v": myarray$$
-                }
-            }
-        }
-        """;
-        using var session = CreateSession(code);
-        CheckStart(session.Session);
-        CheckText(session.Session, """
-        class Program
-        {
-            private void M()
-            {
-                switch (variable.Name)
-                {
-                    case "w":
-                    case "v": myarray[]
-                }
-            }
-        }
-        """);
     }
 
     internal static Holder CreateSession(string code)

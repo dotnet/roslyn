@@ -32,14 +32,14 @@
         <target state="translated">Copilot přemýšlí…</target>
         <note />
       </trans-unit>
-      <trans-unit id="Describe">
-        <source>Describe</source>
-        <target state="new">Describe</target>
+      <trans-unit id="Describe_with_Copilot">
+        <source>Describe with Copilot</source>
+        <target state="translated">Popis s využitím Copilotu</target>
         <note />
       </trans-unit>
-      <trans-unit id="Describe_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
-        <source>'Describe' is unavailable since the referenced document is excluded by your organization.</source>
-        <target state="new">'Describe' is unavailable since the referenced document is excluded by your organization.</target>
+      <trans-unit id="Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
+        <source>'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</source>
+        <target state="translated">Funkce Popis s využitím Copilotu není k dispozici, protože vaše organizace vyloučila odkazovaný dokument.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
@@ -437,11 +437,6 @@
         <target state="translated">Uživatelské členy – vlastnosti</target>
         <note />
       </trans-unit>
-      <trans-unit id="User_Types_Arrays">
-        <source>User Types - Arrays</source>
-        <target state="new">User Types - Arrays</target>
-        <note />
-      </trans-unit>
       <trans-unit id="User_Types_Classes">
         <source>User Types - Classes</source>
         <target state="translated">Uživatelské typy – třídy</target>
@@ -457,19 +452,9 @@
         <target state="translated">Uživatelské typy – výčty</target>
         <note />
       </trans-unit>
-      <trans-unit id="User_Types_Function_Pointers">
-        <source>User Types - Function Pointers</source>
-        <target state="new">User Types - Function Pointers</target>
-        <note />
-      </trans-unit>
       <trans-unit id="User_Types_Interfaces">
         <source>User Types - Interfaces</source>
         <target state="translated">Uživatelské typy – rozhraní</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="User_Types_Pointers">
-        <source>User Types - Pointers</source>
-        <target state="new">User Types - Pointers</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Record_Structs">

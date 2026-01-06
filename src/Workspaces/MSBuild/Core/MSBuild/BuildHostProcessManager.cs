@@ -110,21 +110,14 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             var process = Process.Start(processStartInfo);
             Contract.ThrowIfNull(process, "Process.Start failed to launch a process.");
 
-            var buildHostProcess = new BuildHostProcess(process, _loggerFactory);
+            var buildHostProcess = new BuildHostProcess(process, pipeName, _loggerFactory);
             buildHostProcess.Disconnected += BuildHostProcess_Disconnected;
 
-            try
+            // We've subscribed to Disconnected, but if the process crashed before that point we might have not seen it
+            if (process.HasExited)
             {
-                await buildHostProcess.ConnectAsync(pipeName).ConfigureAwait(false);
-            }
-            catch (Exception e)
-            {
-                // We failed to connect to the process, kill it if it's still around
-                if (!process.HasExited)
-                    process.Kill();
-
                 buildHostProcess.LogProcessFailure();
-                throw new Exception($"The build host was started but we were unable to connect to it's pipe. The process exited with {process.ExitCode}. Process output:{Environment.NewLine}{buildHostProcess.GetBuildHostProcessOutput()}", innerException: e);
+                throw new Exception($"BuildHost process exited immediately with {process.ExitCode}");
             }
 
             await buildHostProcess.BuildHost.ConfigureGlobalStateAsync(_globalMSBuildProperties, _binaryLogPathProvider?.GetNewLogPath(), cancellationToken).ConfigureAwait(false);
@@ -316,7 +309,10 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
     private static void AppendBuildHostCommandLineArgumentsAndConfigureProcess(ProcessStartInfo processStartInfo, string pipeName)
     {
+        AddArgument(processStartInfo, "--pipe");
         AddArgument(processStartInfo, pipeName);
+
+        AddArgument(processStartInfo, "--locale");
         AddArgument(processStartInfo, System.Globalization.CultureInfo.CurrentUICulture.Name);
 
         // MSBUILD_EXE_PATH is read by MSBuild to find related tasks and targets. We don't want this to be inherited by our build process, or otherwise
@@ -421,10 +417,14 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
     private sealed class BuildHostProcess : IAsyncDisposable
     {
+        /// <summary>
+        /// The time to wait for a named pipe connection to complete for a newly started server
+        /// </summary>
+        internal const int TimeOutMsNewProcess = 60_000;
+
         private readonly ILogger? _logger;
         private readonly Process _process;
-        private RpcClient? _rpcClient;
-        private RemoteBuildHost? _buildHost;
+        private readonly RpcClient _rpcClient;
 
         /// <summary>
         /// A string builder where we collect the process log messages, in case we do want to know them if the process crashes.
@@ -434,7 +434,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
         private int _disposed = 0;
 
-        public BuildHostProcess(Process process, ILoggerFactory? loggerFactory)
+        public BuildHostProcess(Process process, string pipeName, ILoggerFactory? loggerFactory)
         {
             _logger = loggerFactory?.CreateLogger($"BuildHost PID {process.Id}");
             _process = process;
@@ -442,21 +442,11 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             _process.EnableRaisingEvents = true;
             _process.Exited += Process_Exited;
 
-            // Hook up event handlers to see stdout/stderr from the process, and then call Begin*ReadLine to start getting events
             _process.OutputDataReceived += (_, e) => LogProcessOutput(e, "stdout");
             _process.ErrorDataReceived += (_, e) => LogProcessOutput(e, "stderr");
-            _process.BeginOutputReadLine();
-            _process.BeginErrorReadLine();
 
-            // Close the standard input stream so that if any build tasks were to try reading from the console, they won't deadlock waiting for input.
-            _process.StandardInput.Close();
-        }
-
-        public async Task ConnectAsync(string pipeName)
-        {
             var pipeClient = NamedPipeUtil.CreateClient(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
-            await pipeClient.ConnectAsync(timeout: 60_000).ConfigureAwait(false);
-
+            pipeClient.Connect(TimeOutMsNewProcess);
             if (!NamedPipeUtil.CheckPipeConnectionOwnership(pipeClient))
             {
                 throw new Exception("Ownership of BuildHost pipe is incorrect.");
@@ -465,7 +455,14 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             _rpcClient = new RpcClient(pipeClient);
             _rpcClient.Start();
             _rpcClient.Disconnected += Process_Exited;
-            _buildHost = new RemoteBuildHost(_rpcClient);
+            BuildHost = new RemoteBuildHost(_rpcClient);
+
+            // Close the standard input stream so that if any build tasks were to try reading from the console, they won't deadlock waiting for input.
+            _process.StandardInput.Close();
+
+            // Call Begin*ReadLine methods last so so our type is fully constructed before we start firing events.
+            _process.BeginOutputReadLine();
+            _process.BeginErrorReadLine();
         }
 
         private void Process_Exited(object? sender, EventArgs e)
@@ -484,7 +481,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             }
         }
 
-        public RemoteBuildHost BuildHost => _buildHost ?? throw new InvalidOperationException("Build host is not connected.");
+        public RemoteBuildHost BuildHost { get; }
 
         public event EventHandler? Disconnected;
 
@@ -504,17 +501,9 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
                     await BuildHost.ShutdownAsync(CancellationToken.None).ConfigureAwait(false);
                 }
 
-                if (_rpcClient is not null)
-                {
-                    _rpcClient.Shutdown();
-                    _logger?.LogTrace("Process shut down.");
-                }
-                else
-                {
-                    // We never successfully connected to the process, so just kill it
-                    _process.Kill();
-                    _logger?.LogTrace("Process killed since it was never connected");
-                }
+                _rpcClient.Shutdown();
+
+                _logger?.LogTrace("Process shut down.");
             }
             catch (Exception e)
             {
@@ -531,18 +520,15 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             if (_logger == null)
                 return;
 
-            var processLog = GetBuildHostProcessOutput();
+            string processLog;
+            lock (_processLogMessages)
+                processLog = _processLogMessages.ToString();
 
             if (!_process.HasExited)
                 _logger.LogError("The BuildHost process is not responding. Process output:{newLine}{processLog}", Environment.NewLine, processLog);
             else if (_process.ExitCode != 0)
                 _logger.LogError("The BuildHost process exited with {errorCode}. Process output:{newLine}{processLog}", _process.ExitCode, Environment.NewLine, processLog);
         }
-
-        public string GetBuildHostProcessOutput()
-        {
-            lock (_processLogMessages)
-                return _processLogMessages.ToString();
-        }
     }
 }
+

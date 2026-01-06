@@ -612,12 +612,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public Overrides ReadOnly Property ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime As Integer
-            Get
-                Return ERRID.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime
-            End Get
-        End Property
-
         ' Generators
         Public Overrides ReadOnly Property WRN_GeneratorFailedDuringInitialization As Integer
             Get

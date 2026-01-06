@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -20,7 +19,7 @@ using static VirtualCharUtilities;
 
 [ExportEmbeddedLanguageClassifier(
     PredefinedEmbeddedLanguageNames.CSharpTest, [LanguageNames.CSharp], supportsUnannotatedAPIs: false,
-    PredefinedEmbeddedLanguageNames.CSharpTest, LanguageNames.CSharp), Shared]
+    PredefinedEmbeddedLanguageNames.CSharpTest), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguageClassifier
@@ -47,11 +46,8 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
         foreach (var vc in virtualCharsWithMarkup)
             virtualCharsBuilder.Add(vc);
 
-        // If this is C#-test break the full sequence of virtual chars into the actual C# code and the markup.
-        // Otherwise, process the C# code as-is.
-        var (virtualCharsWithoutMarkup, markdownSpans) = StringComparer.OrdinalIgnoreCase.Equals(context.LanguageIdentifier, PredefinedEmbeddedLanguageNames.CSharpTest)
-            ? StripMarkupCharacters(virtualCharsBuilder, cancellationToken)
-            : (ImmutableSegmentedList.CreateRange(virtualCharsBuilder), []);
+        // Break the full sequence of virtual chars into the actual C# code and the markup
+        var (virtualCharsWithoutMarkup, markdownSpans) = StripMarkupCharacters(virtualCharsBuilder, cancellationToken);
 
         // First, add all the markdown components (`$$`, `[|`, etc.) into the result.
         foreach (var span in markdownSpans)

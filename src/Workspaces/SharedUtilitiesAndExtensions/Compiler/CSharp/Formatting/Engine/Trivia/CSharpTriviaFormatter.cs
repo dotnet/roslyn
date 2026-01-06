@@ -132,17 +132,6 @@ internal sealed partial class CSharpTriviaFormatter : AbstractTriviaFormatter
                     }
                 }
 
-                // For #endregion, match the indentation of the corresponding #region
-                if (trivia2.GetStructure() is EndRegionDirectiveTriviaSyntax endRegionDirective)
-                {
-                    var matchingRegion = endRegionDirective.GetMatchingDirective(cancellationToken);
-                    if (matchingRegion is RegionDirectiveTriviaSyntax)
-                    {
-                        var indentation = this.Context.GetBaseIndentation(matchingRegion.SpanStart);
-                        return LineColumnRule.PreserveLinesWithAbsoluteIndentation(lines, indentation);
-                    }
-                }
-
                 return LineColumnRule.PreserveLinesWithDefaultIndentation(lines);
             }
 

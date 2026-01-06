@@ -43,11 +43,6 @@
                         <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxMouseOverBorderBrushKey}}" />
                         <Setter TargetName="Bd" Property="TextElement.Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextHoverBrushKey}}" />
                     </Trigger>
-                    <Trigger Property="IsKeyboardFocusWithin" Value="true">
-                        <Setter TargetName="Bd" Property="Background" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxMouseOverBackgroundGradientBrushKey}}"/>
-                        <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxMouseOverBorderBrushKey}}" />
-                        <Setter TargetName="Bd" Property="TextElement.Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextHoverBrushKey}}" />
-                    </Trigger>
                     <Trigger Property="IsMouseOver" Value="true">
                         <Setter TargetName="Bd" Property="Background" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxMouseOverBackgroundGradientBrushKey}}"/>
                         <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxMouseOverBorderBrushKey}}" />

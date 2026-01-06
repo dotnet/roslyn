@@ -5791,10 +5791,6 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs.Errors.Verify();
             Assert.Equal("Unicode (UTF-8)", parsedArgs.Encoding.EncodingName);
 
-            parsedArgs = DefaultParse(new[] { "/CodePage:1252", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify();
-            Assert.Equal(1252, parsedArgs.Encoding.CodePage);
-
             //  error
             parsedArgs = DefaultParse(new[] { "/codepage:0", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.FTL_BadCodepage).WithArguments("0"));
@@ -7396,7 +7392,6 @@ public class C
             var file = dir.CreateFile(fileName);
             file.WriteAllText(source);
 
-            Assert.Equal("UseLegacyStrongNameProvider", Feature.UseLegacyStrongNameProvider);
             var cmd = CreateCSharpCompiler(null, dir.Path, new[] { "/nologo", "a.cs", "/keyFile:key.snk", "/features:UseLegacyStrongNameProvider" });
             var comp = cmd.CreateCompilation(TextWriter.Null, new TouchedFileLogger(), NullErrorLogger.Instance);
 
@@ -8150,7 +8145,6 @@ namespace System
             var src = Temp.CreateFile("NoStdLib02.cs");
             src.WriteAllText(source + mslib);
 
-            Assert.Equal("noRefSafetyRulesAttribute", Feature.NoRefSafetyRulesAttribute);
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             int exitCode = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/nologo", "/noconfig", "/nostdlib", "/runtimemetadataversion:v4.0.30319", "/nowarn:8625", "/features:noRefSafetyRulesAttribute", src.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
@@ -9856,8 +9850,8 @@ using System.Diagnostics; // Unused.
             args = DefaultParse(new[] { "/features:Test", "a.vb", "/Features:Experiment" }, WorkingDirectory);
             args.Errors.Verify();
             Assert.Equal(2, args.ParseOptions.Features.Count);
-            Assert.True(args.ParseOptions.HasFeature("Test"));
-            Assert.True(args.ParseOptions.HasFeature("Experiment"));
+            Assert.True(args.ParseOptions.Features.ContainsKey("Test"));
+            Assert.True(args.ParseOptions.Features.ContainsKey("Experiment"));
 
             args = DefaultParse(new[] { "/features:Test=false,Key=value", "a.vb" }, WorkingDirectory);
             args.Errors.Verify();
@@ -11659,7 +11653,6 @@ class C {
             // Legacy feature flag
             using (var dir = new DisposableDirectory(Temp))
             {
-                Assert.Equal("pdb-path-determinism", Feature.PdbPathDeterminism);
                 var pdbPath = Path.Combine(dir.Path, "a.pdb");
                 AssertPdbEmit(dir, pdbPath, @"a.pdb", $@"/features:pdb-path-determinism");
             }
@@ -12320,7 +12313,6 @@ public class TestAnalyzer : DiagnosticAnalyzer
         [InlineData(@"/features:""InterceptorsNamespaces=NS1.NS2;NS3.NS4""")]
         public void FeaturesInterceptorsNamespaces_OptionParsing(string features)
         {
-            Assert.Equal("InterceptorsNamespaces", Feature.InterceptorsNamespaces);
             var tempDir = Temp.CreateDirectory();
             var workingDir = Temp.CreateDirectory();
             workingDir.CreateFile("a.cs");
@@ -12330,7 +12322,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             var comp = (CSharpCompilation)csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
             var options = comp.SyntaxTrees[0].Options;
             Assert.Equal(1, options.Features.Count);
-            Assert.Equal("NS1.NS2;NS3.NS4", options.Features[Feature.InterceptorsNamespaces]);
+            Assert.Equal("NS1.NS2;NS3.NS4", options.Features["InterceptorsNamespaces"]);
 
             var previewNamespaces = ((CSharpParseOptions)options).InterceptorsNamespaces;
             Assert.Equal(2, previewNamespaces.Length);
@@ -12350,7 +12342,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             var comp = (CSharpCompilation)csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
             var options = comp.SyntaxTrees[0].Options;
             Assert.Equal(1, options.Features.Count);
-            Assert.Equal("NS3.NS4", options.Features[Feature.InterceptorsNamespaces]);
+            Assert.Equal("NS3.NS4", options.Features["InterceptorsNamespaces"]);
 
             var previewNamespaces = ((CSharpParseOptions)options).InterceptorsNamespaces;
             Assert.Equal(1, previewNamespaces.Length);
@@ -12374,7 +12366,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             Assert.Equal(1, options.Features.Count);
             Assert.Equal("NS1.NS2", options.Features["InterceptorsPreviewNamespaces"]);
 
-            Assert.False(options.HasFeature(Feature.InterceptorsNamespaces));
+            Assert.False(options.Features.ContainsKey("InterceptorsNamespaces"));
             Assert.Empty(((CSharpParseOptions)options).InterceptorsNamespaces);
         }
 

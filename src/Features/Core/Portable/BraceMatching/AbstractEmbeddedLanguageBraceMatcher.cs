@@ -39,7 +39,7 @@ internal abstract class AbstractEmbeddedLanguageBraceMatcher :
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-        var (braceMatchers, _) = GetServices(semanticModel, token, cancellationToken);
+        var braceMatchers = GetServices(semanticModel, token, cancellationToken);
         foreach (var braceMatcher in braceMatchers)
         {
             // If this service added values then need to check the other ones.

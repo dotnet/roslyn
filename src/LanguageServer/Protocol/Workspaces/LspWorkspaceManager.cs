@@ -596,7 +596,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             {
                 foreach (var document in workspace.CurrentSolution.Projects.SelectMany(documentSelector))
                 {
-                    if (await IsMiscellaneousFilesDocumentAsync(document).ConfigureAwait(false) && !document.FilePath?.Contains("roslyn-canonical-misc") == true)
+                    if (await IsMiscellaneousFilesDocumentAsync(document).ConfigureAwait(false))
                         yield return document;
                 }
             }

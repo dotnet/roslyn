@@ -20,6 +20,6 @@ internal sealed class DefaultExternalDefinitionItemProvider() : IExternalDefinit
     /// Provides an extension point that allows for other workspace layers to add additional
     /// results to the results found by the FindReferences engine.
     /// </summary>
-    public async ValueTask<DefinitionItem?> GetThirdPartyDefinitionItemAsync(Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken)
-        => null;
+    public Task<DefinitionItem?> GetThirdPartyDefinitionItemAsync(Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken)
+        => SpecializedTasks.Null<DefinitionItem>();
 }

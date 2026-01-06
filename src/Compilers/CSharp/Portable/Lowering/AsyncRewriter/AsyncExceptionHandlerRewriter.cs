@@ -613,18 +613,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var catchType = node.ExceptionTypeOpt ?? _F.SpecialType(SpecialType.System_Object);
             var catchTemp = _F.SynthesizedLocal(catchType);
-            BoundLocal carchTempRef = _F.Local(catchTemp);
-            TypeSymbol pendingCaughtExceptionType = currentAwaitCatchFrame.pendingCaughtException.Type;
-            Debug.Assert(pendingCaughtExceptionType.IsObjectType());
-            Conversion c = _F.ClassifyEmitConversion(carchTempRef, pendingCaughtExceptionType);
-            Debug.Assert(c.IsImplicit);
-            Debug.Assert(c.IsReference || c.IsIdentity);
 
             var storePending = _F.AssignmentExpression(
                         _F.Local(currentAwaitCatchFrame.pendingCaughtException),
-                        _F.Convert(pendingCaughtExceptionType,
-                                   carchTempRef,
-                                   c));
+                        _F.Convert(currentAwaitCatchFrame.pendingCaughtException.Type,
+                            _F.Local(catchTemp)));
 
             var setPendingCatchNum = _F.Assignment(
                             _F.Local(currentAwaitCatchFrame.pendingCatch),
@@ -735,17 +728,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (rewrittenSource != null)
             {
                 // exceptionSource = (exceptionSourceType)pendingCaughtException;
-                BoundLocal pendingExceptionRef = _F.Local(currentAwaitCatchFrame.pendingCaughtException);
-                TypeSymbol rewrittenSourceType = rewrittenSource.Type;
-                Debug.Assert(pendingExceptionRef.Type.IsObjectType());
-                Conversion c = _F.ClassifyEmitConversion(pendingExceptionRef, rewrittenSourceType);
-                Debug.Assert(c.IsReference || c.IsIdentity);
                 assignSource = _F.AssignmentExpression(
                                     rewrittenSource,
                                     _F.Convert(
-                                        rewrittenSourceType,
-                                        pendingExceptionRef,
-                                        c));
+                                        rewrittenSource.Type,
+                                        _F.Local(currentAwaitCatchFrame.pendingCaughtException)));
             }
 
             return assignSource;

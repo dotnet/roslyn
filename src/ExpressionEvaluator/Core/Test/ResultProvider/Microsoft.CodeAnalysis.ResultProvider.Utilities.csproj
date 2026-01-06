@@ -6,7 +6,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.Utilities</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworks>net472;$(NetRoslyn)</TargetFrameworks>
+    <TargetFramework>net472</TargetFramework>
     <IsShipping>false</IsShipping>
     <IsTestUtilityProject>true</IsTestUtilityProject>
 
@@ -23,14 +23,14 @@
     <!-- Disable CA1825 (Avoid unnecessary zero-length array allocations. Use Array.Empty<X>() instead) as Array.Empty not available in one of the targets for this shared project -->
     <NoWarn>$(NoWarn);CA1825</NoWarn>
   </PropertyGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'net472'" Label="File References">
+  <ItemGroup Label="File References">
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="System" />
     <PackageReference Include="System.Collections.Immutable" />
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" />
   </ItemGroup>

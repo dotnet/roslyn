@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
@@ -51,16 +49,22 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
         {
             case SyntaxKind.OpenBraceToken:
                 if (currentToken.IsInterpolation())
+                {
                     return null;
+                }
 
-                if (!previousToken.IsOpenParenOfParenthesizedExpression())
+                if (!previousToken.IsParenInParenthesizedExpression())
+                {
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+                }
 
                 break;
 
             case SyntaxKind.CloseBraceToken:
                 if (currentToken.IsInterpolation())
+                {
                     return null;
+                }
 
                 return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
         }
@@ -76,15 +80,16 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
         {
             case SyntaxKind.CloseBraceToken:
                 if (previousToken.IsInterpolation())
+                {
                     return null;
+                }
 
                 if (!previousToken.IsCloseBraceOfExpression())
                 {
                     if (!currentToken.IsKind(SyntaxKind.SemicolonToken) &&
-                        !currentToken.IsCloseParenOfParenthesizedExpression() && // Place ) after } in `(() => {})`
+                        !currentToken.IsParenInParenthesizedExpression() &&
                         !currentToken.IsCommaInInitializerExpression() &&
                         !currentToken.IsCommaInAnyArgumentsList() &&
-                        !currentToken.IsCommaInVariableDeclaration() &&
                         !currentToken.IsCommaInTupleExpression() &&
                         !currentToken.IsCommaInCollectionExpression() &&
                         !currentToken.IsParenInArgumentList() &&
@@ -102,7 +107,9 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
 
             case SyntaxKind.OpenBraceToken:
                 if (previousToken.IsInterpolation())
+                {
                     return null;
+                }
 
                 return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
         }
@@ -140,12 +147,10 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
             return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
         }
 
-        // else * except `else if` case on the same line.
-        if (previousToken.Kind() == SyntaxKind.ElseKeyword)
+        // else * except else if case
+        if (previousToken.Kind() == SyntaxKind.ElseKeyword && currentToken.Kind() != SyntaxKind.IfKeyword)
         {
-            var isElseIfOnSameLine = currentToken.Kind() == SyntaxKind.IfKeyword && FormattingHelpers.AreOnSameLine(previousToken, currentToken);
-            if (!isElseIfOnSameLine)
-                return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+            return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
         }
 
         // , * in enum declarations
@@ -223,14 +228,17 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
         if (previousToken.Parent is UsingDirectiveSyntax previousUsing)
         {
             // if the user is separating using-groups, and we're between two usings, and these
-            // usings *should* be separated, then do so (if the usings are properly grouped).
+            // usings *should* be separated, then do so (if the usings were already properly
+            // sorted).
             if (_options.SeparateImportDirectiveGroups &&
                 currentToken.Parent is UsingDirectiveSyntax currentUsing &&
                 UsingsAndExternAliasesOrganizer.NeedsGrouping(previousUsing, currentUsing))
             {
                 RoslynDebug.AssertNotNull(currentUsing.Parent);
 
-                if (AreUsingsProperlyGrouped(GetUsings(currentUsing.Parent)))
+                var usings = GetUsings(currentUsing.Parent);
+                if (usings.IsSorted(UsingsAndExternAliasesDirectiveComparer.SystemFirstInstance) ||
+                    usings.IsSorted(UsingsAndExternAliasesDirectiveComparer.NormalInstance))
                 {
                     // Force at least one blank line here.
                     return CreateAdjustNewLinesOperation(2, AdjustNewLinesOption.PreserveLines);
@@ -257,56 +265,6 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
             BaseNamespaceDeclarationSyntax namespaceDecl => namespaceDecl.Usings,
             _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
         };
-
-    private static bool AreUsingsProperlyGrouped(SyntaxList<UsingDirectiveSyntax> usings)
-    {
-        // Check if usings are properly grouped (contiguous).
-        // Usings are grouped if all usings with the same first namespace token are together.
-        // We don't care about sorting - only that groups are contiguous.
-
-        if (usings.Count <= 1)
-            return true;
-
-        // Track which group identifiers we've seen
-        using var _ = PooledHashSet<string>.GetInstance(out var seenGroups);
-        string? currentGroup = null;
-
-        for (var i = 0; i < usings.Count; i++)
-        {
-            var groupId = GetGroupIdentifier(usings[i]);
-
-            // If we're starting a new group
-            if (groupId != currentGroup)
-            {
-                // Check if we've seen this group before.  If so, then the groups are not contiguous
-                // and should not be separated.
-                if (!seenGroups.Add(groupId))
-                    return false;
-
-                currentGroup = groupId;
-            }
-        }
-
-        return true;
-    }
-
-    private static string GetGroupIdentifier(UsingDirectiveSyntax usingDirective)
-    {
-        // Get a unique identifier for the group this using belongs to
-        // NOTE: Stay in sync with UsingsAndExternAliasesOrganizer.NeedsGrouping
-
-        if (usingDirective.Alias != null)
-            return "alias";
-
-        if (usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword))
-            return "static";
-
-        // Regular namespace using - group by first token
-        // LanguageParser.ParseUsingDirective guarantees that if there is no alias, Name is always present
-        Contract.ThrowIfNull(usingDirective.Name);
-        var firstToken = usingDirective.Name.GetFirstToken().ValueText;
-        return $"namespace:{firstToken}";
-    }
 
     public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
     {

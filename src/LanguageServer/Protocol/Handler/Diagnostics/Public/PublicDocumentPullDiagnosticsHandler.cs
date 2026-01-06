@@ -23,7 +23,7 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler(
     IDiagnosticSourceManager diagnosticSourceManager,
     IDiagnosticsRefresher diagnosticsRefresher,
     IGlobalOptionService globalOptions)
-    : AbstractDocumentPullDiagnosticHandler<DocumentDiagnosticParams, DocumentDiagnosticPartialReport, DocumentDiagnosticReport>(
+    : AbstractDocumentPullDiagnosticHandler<DocumentDiagnosticParams, DocumentDiagnosticPartialReport, DocumentDiagnosticReport?>(
         diagnosticsRefresher, diagnosticSourceManager, globalOptions)
 {
     private readonly IClientLanguageServerManager _clientLanguageServerManager = clientLanguageServerManager;
@@ -57,7 +57,7 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler(
         return true;
     }
 
-    protected override DocumentDiagnosticReport CreateReturn(BufferedProgress<DocumentDiagnosticPartialReport> progress)
+    protected override DocumentDiagnosticReport? CreateReturn(BufferedProgress<DocumentDiagnosticPartialReport> progress)
     {
         // We only ever report one result for document diagnostics, which is the first DocumentDiagnosticReport.
         var progressValues = progress.GetValues();
@@ -71,10 +71,7 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler(
             return progressValues.Single().Second;
         }
 
-        return new RelatedFullDocumentDiagnosticReport
-        {
-            Items = []
-        };
+        return null;
     }
 
     protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(DocumentDiagnosticParams diagnosticsParams)

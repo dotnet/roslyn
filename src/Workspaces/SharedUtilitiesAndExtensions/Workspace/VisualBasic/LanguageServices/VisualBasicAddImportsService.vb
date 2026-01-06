@@ -30,7 +30,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
 
         Private Shared ReadOnly ImportsStatementComparer As ImportsStatementComparer = New ImportsStatementComparer(New CaseInsensitiveTokenComparer())
 
-        Protected Overrides ReadOnly Property Language As String = LanguageNames.VisualBasic
+        Protected Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
 
         Protected Overrides Function IsEquivalentImport(a As SyntaxNode, b As SyntaxNode) As Boolean
             Dim importsA = TryCast(a, ImportsStatementSyntax)
@@ -40,16 +44,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
             End If
 
             Return ImportsStatementComparer.Compare(importsA, importsB) = 0
+
         End Function
 
-        Protected Overrides Function GetGlobalImports(
-                semanticModel As SemanticModel,
-                contextLocation As SyntaxNode,
-                generator As SyntaxGenerator,
-                CancellationToken As CancellationToken) As ImmutableArray(Of SyntaxNode)
+        Protected Overrides Function GetGlobalImports(compilation As Compilation, generator As SyntaxGenerator) As ImmutableArray(Of SyntaxNode)
             Dim result = ArrayBuilder(Of SyntaxNode).GetInstance()
 
-            For Each import In semanticModel.Compilation.MemberImports()
+            For Each import In compilation.MemberImports()
                 If TypeOf import Is INamespaceSymbol Then
                     result.Add(generator.NamespaceImportDeclaration(import.ToDisplayString()))
                 End If

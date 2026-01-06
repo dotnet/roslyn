@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool IsExtensionPropertyWithByValPossiblyStructReceiverWhichHasHomeAndCanChangeValueBetweenReads(BoundExpression rewrittenReceiver, PropertySymbol property)
         {
             return CanChangeValueBetweenReads(rewrittenReceiver, localsMayBeAssignedOrCaptured: true, structThisCanChangeValueBetweenReads: true) &&
-                   IsExtensionBlockMemberWithByValPossiblyStructReceiver(property) &&
+                   IsNewExtensionMemberWithByValPossiblyStructReceiver(property) &&
                    CodeGen.CodeGenerator.HasHome(rewrittenReceiver,
                                        CodeGen.CodeGenerator.AddressKind.ReadOnlyStrict,
                                        _factory.CurrentFunction,

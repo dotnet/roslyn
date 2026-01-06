@@ -439,38 +439,6 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
             }
             """, RequireAllParenthesesForClarity);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81488")]
-    public Task TestCoalescePrecedence_IsNull()
-        => TestAsync(
-            """
-            class C
-            {
-                bool M(object x, object y) => x?.Equals(y) ?? y $$is null;
-            }
-            """,
-            """
-            class C
-            {
-                bool M(object x, object y) => x?.Equals(y) ?? (y is null);
-            }
-            """, RequireAllParenthesesForClarity);
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81488")]
-    public Task TestCoalescePrecedence_IsNotNull()
-        => TestAsync(
-            """
-            class C
-            {
-                bool M(object x, object y) => x?.Equals(y) ?? y $$is not null;
-            }
-            """,
-            """
-            class C
-            {
-                bool M(object x, object y) => x?.Equals(y) ?? (y is not null);
-            }
-            """, RequireAllParenthesesForClarity);
-
     [Fact]
     public Task TestBitwisePrecedence1()
         => TestAsync(

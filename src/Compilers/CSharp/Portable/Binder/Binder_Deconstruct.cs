@@ -717,7 +717,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (receiver.Type?.IsErrorType() == false)
             {
-                Error(diagnostics, ErrorCode.ERR_MissingDeconstruct, rightSyntax, receiver.Type, numParameters);
+                Error(diagnostics, ErrorCode.ERR_MissingDeconstruct, rightSyntax, receiver.Type!, numParameters);
             }
 
             outPlaceholders = default;

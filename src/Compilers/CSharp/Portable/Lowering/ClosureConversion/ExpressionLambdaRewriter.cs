@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly SyntheticBoundNodeFactory _bound;
         private readonly TypeMap _typeMap;
         private readonly Dictionary<ParameterSymbol, BoundExpression> _parameterMap = new Dictionary<ParameterSymbol, BoundExpression>();
-        private Dictionary<BoundValuePlaceholder, BoundExpression> _placeholderReplacementMap;
         private int _recursionDepth;
 
         private NamedTypeSymbol _ExpressionType;
@@ -174,10 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _bound.Syntax = node.Syntax;
             var result = VisitInternal(node);
             _bound.Syntax = old;
-            Conversion c = _bound.ClassifyEmitConversion(result, ExpressionType);
-            Debug.Assert(c.IsImplicit);
-            Debug.Assert(c.IsReference || c.IsIdentity);
-            return _bound.Convert(ExpressionType, result, c);
+            return _bound.Convert(ExpressionType, result);
         }
 
         private BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
@@ -250,8 +246,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ThisReference:
                 case BoundKind.TypeOfOperator:
                     return Constant(node);
-                case BoundKind.ValuePlaceholder:
-                    return _placeholderReplacementMap[(BoundValuePlaceholder)node];
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind);
             }
@@ -764,17 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression DelegateCreation(BoundExpression receiver, MethodSymbol method, TypeSymbol delegateType, bool requiresInstanceReceiver)
         {
             var nullObject = _bound.Null(_objectType);
-            if (requiresInstanceReceiver)
-            {
-                receiver = nullObject;
-            }
-            else if (!receiver.Type.IsReferenceType)
-            {
-                Conversion c = _bound.ClassifyEmitConversion(receiver, _objectType);
-                Debug.Assert(c.IsImplicit);
-                Debug.Assert(c.IsBoxing);
-                receiver = _bound.Convert(_objectType, receiver, c);
-            }
+            receiver = requiresInstanceReceiver ? nullObject : receiver.Type.IsReferenceType ? receiver : _bound.Convert(_objectType, receiver);
 
             var createDelegate = _bound.WellKnownMethod(WellKnownMember.System_Reflection_MethodInfo__CreateDelegate, isOptional: true);
             BoundExpression unquoted;
@@ -891,38 +875,36 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var left = Visit(node.LeftOperand);
             var right = Visit(node.RightOperand);
-            if (BoundNode.GetConversion(node.LeftConversion, node.LeftPlaceholder) is { IsUserDefined: true })
+            if (BoundNode.GetConversion(node.LeftConversion, node.LeftPlaceholder) is { IsUserDefined: true } leftConversion)
             {
                 Debug.Assert(node.LeftPlaceholder is not null);
-                return _bound.StaticCall(WellKnownMember.System_Linq_Expressions_Expression__Coalesce_Lambda, left, right, makeConversionLambda(node.LeftConversion, node.LeftPlaceholder));
+                TypeSymbol lambdaParamType = node.LeftPlaceholder.Type;
+                return _bound.StaticCall(WellKnownMember.System_Linq_Expressions_Expression__Coalesce_Lambda, left, right, MakeConversionLambda(leftConversion, lambdaParamType, node.LeftConversion.Type));
             }
             else
             {
                 return _bound.StaticCall(WellKnownMember.System_Linq_Expressions_Expression__Coalesce, left, right);
             }
+        }
 
-            BoundExpression makeConversionLambda(BoundExpression leftConversion, BoundValuePlaceholder leftPlaceholder)
-            {
-                string parameterName = "p";
-                var fromType = leftPlaceholder.Type;
-                ParameterSymbol lambdaParameter = _bound.SynthesizedParameter(fromType, parameterName);
-                var param = _bound.SynthesizedLocal(ParameterExpressionType);
-                var parameterReference = _bound.Local(param);
-                var parameter = _bound.StaticCall(WellKnownMember.System_Linq_Expressions_Expression__Parameter, _bound.Typeof(fromType, _bound.WellKnownType(WellKnownType.System_Type)), _bound.Literal(parameterName));
-
-                _placeholderReplacementMap ??= new Dictionary<BoundValuePlaceholder, BoundExpression>();
-                _placeholderReplacementMap.Add(leftPlaceholder, parameterReference);
-                var convertedValue = Visit(leftConversion);
-                _placeholderReplacementMap.Remove(leftPlaceholder);
-                var result = _bound.Sequence(
-                    ImmutableArray.Create(param),
-                    ImmutableArray.Create<BoundExpression>(_bound.AssignmentExpression(parameterReference, parameter)),
-                    _bound.StaticCall(
-                        WellKnownMember.System_Linq_Expressions_Expression__Lambda,
-                        convertedValue,
-                        _bound.ArrayOrEmpty(ParameterExpressionType, ImmutableArray.Create<BoundExpression>(parameterReference))));
-                return result;
-            }
+        private BoundExpression MakeConversionLambda(Conversion conversion, TypeSymbol fromType, TypeSymbol toType)
+        {
+            string parameterName = "p";
+            ParameterSymbol lambdaParameter = _bound.SynthesizedParameter(fromType, parameterName);
+            var param = _bound.SynthesizedLocal(ParameterExpressionType);
+            var parameterReference = _bound.Local(param);
+            var parameter = _bound.StaticCall(WellKnownMember.System_Linq_Expressions_Expression__Parameter, _bound.Typeof(fromType, _bound.WellKnownType(WellKnownType.System_Type)), _bound.Literal(parameterName));
+            _parameterMap[lambdaParameter] = parameterReference;
+            var convertedValue = Visit(_bound.Convert(toType, _bound.Parameter(lambdaParameter), conversion));
+            _parameterMap.Remove(lambdaParameter);
+            var result = _bound.Sequence(
+                ImmutableArray.Create(param),
+                ImmutableArray.Create<BoundExpression>(_bound.AssignmentExpression(parameterReference, parameter)),
+                _bound.StaticCall(
+                    WellKnownMember.System_Linq_Expressions_Expression__Lambda,
+                    convertedValue,
+                    _bound.ArrayOrEmpty(ParameterExpressionType, ImmutableArray.Create<BoundExpression>(parameterReference))));
+            return result;
         }
 
         private BoundExpression InitializerMemberSetter(Symbol symbol)
@@ -930,23 +912,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (symbol.Kind)
             {
                 case SymbolKind.Field:
-                    {
-                        BoundExpression fieldInfo = _bound.FieldInfo((FieldSymbol)symbol);
-                        Conversion c = _bound.ClassifyEmitConversion(fieldInfo, MemberInfoType);
-                        Debug.Assert(c.IsImplicit);
-                        Debug.Assert(c.IsReference);
-                        return _bound.Convert(MemberInfoType, fieldInfo, c);
-                    }
+                    return _bound.Convert(MemberInfoType, _bound.FieldInfo((FieldSymbol)symbol));
                 case SymbolKind.Property:
                     return _bound.MethodInfo(((PropertySymbol)symbol).GetOwnOrInheritedSetMethod(), _bound.WellKnownType(WellKnownType.System_Reflection_MethodInfo));
                 case SymbolKind.Event:
-                    {
-                        BoundExpression fieldInfo = _bound.FieldInfo(((EventSymbol)symbol).AssociatedField);
-                        Conversion c = _bound.ClassifyEmitConversion(fieldInfo, MemberInfoType);
-                        Debug.Assert(c.IsImplicit);
-                        Debug.Assert(c.IsReference);
-                        return _bound.Convert(MemberInfoType, fieldInfo, c);
-                    }
+                    return _bound.Convert(MemberInfoType, _bound.FieldInfo(((EventSymbol)symbol).AssociatedField));
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
             }
@@ -957,23 +927,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (symbol.Kind)
             {
                 case SymbolKind.Field:
-                    {
-                        BoundExpression fieldInfo = _bound.FieldInfo((FieldSymbol)symbol);
-                        Conversion c = _bound.ClassifyEmitConversion(fieldInfo, MemberInfoType);
-                        Debug.Assert(c.IsImplicit);
-                        Debug.Assert(c.IsReference);
-                        return _bound.Convert(MemberInfoType, fieldInfo, c);
-                    }
+                    return _bound.Convert(MemberInfoType, _bound.FieldInfo((FieldSymbol)symbol));
                 case SymbolKind.Property:
                     return _bound.MethodInfo(((PropertySymbol)symbol).GetOwnOrInheritedGetMethod(), _bound.WellKnownType(WellKnownType.System_Reflection_MethodInfo));
                 case SymbolKind.Event:
-                    {
-                        BoundExpression fieldInfo = _bound.FieldInfo(((EventSymbol)symbol).AssociatedField);
-                        Conversion c = _bound.ClassifyEmitConversion(fieldInfo, MemberInfoType);
-                        Debug.Assert(c.IsImplicit);
-                        Debug.Assert(c.IsReference);
-                        return _bound.Convert(MemberInfoType, fieldInfo, c);
-                    }
+                    return _bound.Convert(MemberInfoType, _bound.FieldInfo(((EventSymbol)symbol).AssociatedField));
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
             }
@@ -1103,13 +1061,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var ctor = _bound.ConstructorInfo(node.Constructor);
-            NamedTypeSymbol iEnumerableType = _IEnumerableType.Construct(ExpressionType);
-            BoundExpression args = Expressions(node.Arguments);
-            Debug.Assert(args.Type.IsSZArray());
-            Conversion c = _bound.ClassifyEmitConversion(args, iEnumerableType);
-            Debug.Assert(c.IsImplicit);
-            Debug.Assert(c.IsReference);
-            args = _bound.Convert(iEnumerableType, args, c);
+            var args = _bound.Convert(_IEnumerableType.Construct(ExpressionType), Expressions(node.Arguments));
             if (node.Type.IsAnonymousType && node.Arguments.Length != 0)
             {
                 var anonType = (NamedTypeSymbol)node.Type;
@@ -1250,12 +1202,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression Constant(BoundExpression node)
         {
-            Conversion c = _bound.ClassifyEmitConversion(node, _objectType);
-            Debug.Assert(c.IsImplicit);
-            Debug.Assert(c.IsBoxing || c.IsReference || c.IsIdentity);
             return _bound.StaticCall(
                 WellKnownMember.System_Linq_Expressions_Expression__Constant,
-                _bound.Convert(_objectType, node, c),
+                _bound.Convert(_objectType, node),
                 _bound.Typeof(node.Type, _bound.WellKnownType(WellKnownType.System_Type)));
         }
     }

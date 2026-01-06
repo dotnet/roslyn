@@ -484,18 +484,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     // return _items.GetEnumerator();
-                    NamedTypeSymbol interfaceType = interfaceMethod.ContainingType;
-                    Debug.Assert(interfaceType.IsInterface);
-                    Conversion c = f.ClassifyEmitConversion(fieldReference, interfaceType);
-                    Debug.Assert(c.IsImplicit);
-                    Debug.Assert(c.IsReference);
-
                     return f.Return(
                         f.Call(
                             f.Convert(
-                                interfaceType,
-                                fieldReference,
-                                c),
+                                interfaceMethod.ContainingType,
+                                fieldReference),
                             interfaceMethod));
                 }
             }
@@ -539,18 +532,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static BoundStatement generateSyncRoot(SyntheticBoundNodeFactory f, MethodSymbol method, MethodSymbol interfaceMethod)
             {
                 // return (object)this;
-                BoundThisReference thisRef = f.This();
-                TypeSymbol returnType = interfaceMethod.ReturnType;
-                Debug.Assert(returnType.IsObjectType());
-                Conversion c = f.ClassifyEmitConversion(thisRef, returnType);
-                Debug.Assert(c.IsImplicit);
-                Debug.Assert(c.IsReference);
-
                 return f.Return(
                     f.Convert(
-                        returnType,
-                        thisRef,
-                        c));
+                        interfaceMethod.ReturnType,
+                        f.This()));
             }
 
             // IList.IsFixedSize
@@ -583,18 +568,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else if (containingType.IsArray || !interfaceMethod.ContainingType.IsGenericType)
                 {
                     // return ((ICollection<T>)_items).Contains(param0);
-                    NamedTypeSymbol interfaceType = interfaceMethod.ContainingType;
-                    Debug.Assert(interfaceType.IsInterface);
-                    Conversion c = f.ClassifyEmitConversion(fieldReference, interfaceType);
-                    Debug.Assert(c.IsImplicit);
-                    Debug.Assert(c.IsReference);
-
                     return f.Return(
                         f.Call(
                             f.Convert(
-                                interfaceType,
-                                fieldReference,
-                                c),
+                                interfaceMethod.ContainingType,
+                                fieldReference),
                             interfaceMethod,
                             parameterReference));
                 }
@@ -626,14 +604,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var arraySetValueMethod = (MethodSymbol)method.DeclaringCompilation.GetSpecialTypeMember(SpecialMember.System_Array__SetValue)!;
 
                         // param0.SetValue((object)_item, param1)
-                        NamedTypeSymbol objectType = f.SpecialType(SpecialType.System_Object);
-                        Conversion c = f.ClassifyEmitConversion(fieldReference, objectType);
-                        Debug.Assert(c.IsImplicit);
-                        Debug.Assert(c.IsBoxing);
-
                         statement = f.ExpressionStatement(
                             f.Call(parameterReference0, arraySetValueMethod,
-                                f.Convert(objectType, fieldReference, c),
+                                f.Convert(f.SpecialType(SpecialType.System_Object), fieldReference),
                                 parameterReference1));
                     }
                     else
@@ -649,18 +622,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else if (containingType.IsArray || !interfaceMethod.ContainingType.IsGenericType)
                 {
                     // ((ICollection<T>)_items).CopyTo(param0, param1);
-                    NamedTypeSymbol interfaceType = interfaceMethod.ContainingType;
-                    Debug.Assert(interfaceType.IsInterface);
-                    Conversion c = f.ClassifyEmitConversion(fieldReference, interfaceType);
-                    Debug.Assert(c.IsImplicit);
-                    Debug.Assert(c.IsReference);
-
                     statement = f.ExpressionStatement(
                         f.Call(
                             f.Convert(
-                                interfaceType,
-                                fieldReference,
-                                c),
+                                interfaceMethod.ContainingType,
+                                fieldReference),
                             interfaceMethod,
                             parameterReference0,
                             parameterReference1));
@@ -733,18 +699,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else if (containingType.IsArray || !interfaceMethod.ContainingType.IsGenericType)
                 {
                     // return ((IList<T>)_items).IndexOf(param0);
-                    NamedTypeSymbol interfaceType = interfaceMethod.ContainingType;
-                    Debug.Assert(interfaceType.IsInterface);
-                    Conversion c = f.ClassifyEmitConversion(fieldReference, interfaceType);
-                    Debug.Assert(c.IsImplicit);
-                    Debug.Assert(c.IsReference);
-
                     return f.Return(
                         f.Call(
                             f.Convert(
-                                interfaceType,
-                                fieldReference,
-                                c),
+                                interfaceMethod.ContainingType,
+                                fieldReference),
                             interfaceMethod,
                             parameterReference));
                 }
@@ -789,9 +748,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var equalityComparerType = equalityComparer_Equals.ContainingType;
                 var constructedEqualityComparer = equalityComparerType.Construct(fieldType);
 
-                Conversion c = f.ClassifyEmitConversion(parameterReference, fieldType);
-                Debug.Assert(c.IsUnboxing || c.IsIdentity);
-
                 // If the parameter type is object:
                 //
                 //      EqualityComparer<T>.Default.Equals(_item, (T)param0)
@@ -806,7 +762,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         equalityComparer_get_Default.AsMember(constructedEqualityComparer)),
                     equalityComparer_Equals.AsMember(constructedEqualityComparer),
                     fieldReference,
-                    f.Convert(fieldType, parameterReference, c));
+                    f.Convert(fieldType, parameterReference));
             }
         }
 

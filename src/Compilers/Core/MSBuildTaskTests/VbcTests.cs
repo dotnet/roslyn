@@ -7,7 +7,6 @@ using System.IO;
 using Microsoft.CodeAnalysis.BuildTasks;
 using Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -433,30 +432,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var vbc = new Vbc();
             vbc.DisableSdkPath = true;
             Assert.Equal(@"/optionstrict:custom /nosdkpath", vbc.GenerateResponseFileContents());
-        }
-
-        /// <summary>
-        /// Setting ToolExe to "vbc.exe" should use the built-in compiler regardless of apphost being used or not.
-        /// </summary>
-        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2615118")]
-        public void BuiltInToolExe(bool useAppHost, bool setToolExe)
-        {
-            var vbc = new Vbc();
-            vbc.UseAppHost_TestOnly = useAppHost;
-            if (setToolExe)
-            {
-                vbc.ToolExe = $"vbc{PlatformInformation.ExeExtension}";
-            }
-            if (useAppHost)
-            {
-                AssertEx.Equal(vbc.PathToBuiltInTool, vbc.GeneratePathToTool());
-                AssertEx.Equal("", vbc.GenerateCommandLineContents());
-            }
-            else
-            {
-                AssertEx.Equal(RuntimeHostInfo.GetDotNetPathOrDefault(), vbc.GeneratePathToTool());
-                AssertEx.Equal(RuntimeHostInfo.GetDotNetExecCommandLine(vbc.PathToBuiltInTool, ""), vbc.GenerateCommandLineContents());
-            }
         }
 
         [Fact]

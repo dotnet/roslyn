@@ -13,11 +13,11 @@ namespace Microsoft.CodeAnalysis.IntelliSense;
 
 // This is the implementation at Editor layer to provide a CancellationToken
 // for the workqueue used for background cache refresh.
-[ExportWorkspaceServiceFactory(typeof(IImportCompletionCacheService<ExtensionMemberImportCompletionCacheEntry, object>), ServiceLayer.Editor), Shared]
+[ExportWorkspaceServiceFactory(typeof(IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object>), ServiceLayer.Editor), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class EditorExtensionMethodImportCompletionCacheServiceFactory(
     IAsynchronousOperationListenerProvider listenerProvider,
     IThreadingContext threadingContext)
-    : AbstractImportCompletionCacheServiceFactory<ExtensionMemberImportCompletionCacheEntry, object>(
-        listenerProvider, ExtensionMemberImportCompletionHelper.BatchUpdateCacheAsync, threadingContext.DisposalToken);
+    : AbstractImportCompletionCacheServiceFactory<ExtensionMethodImportCompletionCacheEntry, object>(
+        listenerProvider, ExtensionMethodImportCompletionHelper.BatchUpdateCacheAsync, threadingContext.DisposalToken);

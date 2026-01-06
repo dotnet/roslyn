@@ -146,7 +146,7 @@ public abstract class CoreFormatterTestsBase
         commandHandler.ExecuteCommand(commandArgs, TestCommandExecutionContext.Create());
         MarkupTestFile.GetPosition(expectedWithMarker, out var expected, out int expectedPosition);
 
-        AssertEx.Equal(expected, view.TextSnapshot.GetText());
+        Assert.Equal(expected, view.TextSnapshot.GetText());
 
         var caretPosition = view.Caret.Position.BufferPosition.Position;
         Assert.True(expectedPosition == caretPosition,

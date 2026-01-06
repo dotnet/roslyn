@@ -377,15 +377,7 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
         return (workspace, document as Document);
     }
 
-    private protected static async Task<(Workspace workspace, Document document)> GetRequiredLspWorkspaceAndDocumentAsync(DocumentUri uri, TestLspServer testLspServer)
-    {
-        var (workspace, document) = await GetLspWorkspaceAndDocumentAsync(uri, testLspServer);
-        Assert.NotNull(workspace);
-        Assert.NotNull(document);
-        return (workspace, document);
-    }
-
-    private protected static async ValueTask<Document?> GetMiscellaneousDocumentAsync(TestLspServer testLspServer)
+    private static async ValueTask<Document?> GetMiscellaneousDocumentAsync(TestLspServer testLspServer)
     {
         var documents = await testLspServer.GetManagerAccessor().GetMiscellaneousDocumentsAsync(static p => p.Documents).ToImmutableArrayAsync(CancellationToken.None);
         return documents.SingleOrDefault();
@@ -397,7 +389,7 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
         return documents.SingleOrDefault();
     }
 
-    private protected static async Task AssertFileInMiscWorkspaceAsync(TestLspServer testLspServer, DocumentUri fileUri)
+    private static async Task AssertFileInMiscWorkspaceAsync(TestLspServer testLspServer, DocumentUri fileUri)
     {
         var (_, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = fileUri }, CancellationToken.None);
         Assert.NotNull(document);

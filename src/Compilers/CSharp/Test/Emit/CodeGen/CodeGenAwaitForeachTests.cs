@@ -183,8 +183,8 @@ public class C : IAsyncEnumerable<uint>
             comp_unchecked.VerifyDiagnostics();
             CompileAndVerify(comp_unchecked, expectedOutput: "0xFFFFFFFF");
 
-            var runtimeAsyncCompChecked = CreateRuntimeAsyncCompilation(checkedSource, TestOptions.ReleaseExe);
-            var verifierChecked = CompileAndVerify(runtimeAsyncCompChecked, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("overflow"), verify: Verification.Fails with
+            var runtimeAsyncCompChecked = CreateRuntimeAsyncCompilation(checkedSource);
+            var verifierChecked = CompileAndVerify(runtimeAsyncCompChecked, expectedOutput: CodeGenAsyncTests.ExpectedOutput("overflow", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x95 }
@@ -271,8 +271,8 @@ public class C : IAsyncEnumerable<uint>
                 }
                 """);
 
-            var runtimeAsyncCompUnchecked = CreateRuntimeAsyncCompilation(uncheckedSource, TestOptions.ReleaseExe);
-            var verifierUnchecked = CompileAndVerify(runtimeAsyncCompUnchecked, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("0xFFFFFFFF"), verify: Verification.Fails with
+            var runtimeAsyncCompUnchecked = CreateRuntimeAsyncCompilation(uncheckedSource);
+            var verifierUnchecked = CompileAndVerify(runtimeAsyncCompUnchecked, expectedOutput: CodeGenAsyncTests.ExpectedOutput("0xFFFFFFFF", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x94 }
@@ -994,8 +994,8 @@ public class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync 1");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("MoveNextAsync 1"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync 1", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x2b }
@@ -1062,8 +1062,8 @@ public class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync 0");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("MoveNextAsync 0"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync 0", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x2f }
@@ -1285,8 +1285,8 @@ class Element
             CompileAndVerify(comp,
                 expectedOutput: expectedOutput);
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x91 }
@@ -1406,8 +1406,8 @@ public class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Got(1) Got(2) Captured(1)");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("Got(1) Got(2) Captured(1)"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("Got(1) Got(2) Captured(1)", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0xb8 }
@@ -1557,8 +1557,8 @@ class C<T> where T : IntContainer, new()
             var expectedOutput = "NextAsync(1) Current(1) Got(1) NextAsync(2) Current(2) Got(2) NextAsync(3) Current(3) Got(3) NextAsync(4) Dispose(4)";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x91 }
@@ -1676,8 +1676,8 @@ public class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "exception");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("exception"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("exception", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x67 }
@@ -1790,8 +1790,8 @@ public class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "dispose exception");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("dispose exception"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("dispose exception", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x67 }
@@ -1909,8 +1909,8 @@ public class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "wait dispose exception");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("wait dispose exception"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("wait dispose exception", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x5e }
@@ -2021,8 +2021,8 @@ public class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "wait exception");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("wait exception"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("wait exception", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x5e }
@@ -2109,7 +2109,7 @@ class C
             DiagnosticDescription expected = Diagnostic(ErrorCode.ERR_BadDynamicAwaitForEach, "(dynamic)new C()").WithLocation(6, 33);
             comp.VerifyDiagnostics(expected);
 
-            comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(expected);
         }
 
@@ -2374,8 +2374,8 @@ public class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("MoveNextAsync"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x21 }
@@ -2586,8 +2586,8 @@ class C
             comp = CreateCompilationWithTasksExtensions(sources, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x5b }
@@ -2926,8 +2926,8 @@ public ref struct S
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1 2 Done");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("1 2 Done"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("1 2 Done", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x6e }
@@ -3163,8 +3163,8 @@ public ref struct S
             var comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "1 2 Done").VerifyDiagnostics();
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("1 2 Done"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("1 2 Done", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x7d }
@@ -3272,8 +3272,8 @@ public ref struct S
             var comp = CreateCompilationWithTasksExtensions([source, AsyncStreamsTypes], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "2 4 -1 Done").VerifyDiagnostics();
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("2 4 -1 Done"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("2 4 -1 Done", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x8a }
@@ -3453,8 +3453,8 @@ public ref struct S
             comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x74 }
@@ -3591,8 +3591,8 @@ public ref struct S
             comp = CreateCompilationWithTasksExtensions(sources, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x76 }
@@ -3766,8 +3766,8 @@ public struct S
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1 2 3 Done", verify: Verification.Fails);
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("1 2 3 Done"), verify: Verification.Fails);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("1 2 3 Done", isRuntimeAsync: true), verify: Verification.Fails);
             verifier.VerifyIL("C.Main()", """
                 {
                   // Code size       77 (0x4d)
@@ -3853,8 +3853,8 @@ public struct S
             comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x64 }
@@ -3971,8 +3971,8 @@ public struct S
             comp = CreateCompilationWithTasksExtensions(sources, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x76 }
@@ -4271,8 +4271,8 @@ class C
             var expectedOutput = "NextAsync(0) Current(0) Got(1) NextAsync(1) Current(1) Got(2) NextAsync(2) Current(2) Got(3) NextAsync(3) Current(3) Got(4) NextAsync(4) DisposeAsync Done";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x8c }
@@ -4409,8 +4409,8 @@ class C
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposal);
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x96 }
@@ -4549,8 +4549,8 @@ class C
             Assert.Equal("C.Awaitable C.AsyncEnumerator.MoveNextAsync()", info.MoveNextMethod.ToTestDisplayString());
             Assert.Equal("System.Int32", info.ElementType.ToTestDisplayString());
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("Item(1) Dispose Done"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("Item(1) Dispose Done", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0xa7 }
@@ -4897,8 +4897,8 @@ public class C
             CompileAndVerify(comp,
                 expectedOutput: expectedOutput);
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x82 }
@@ -5163,7 +5163,7 @@ public class C
   IL_010f:  nop
   IL_0110:  ret
 }
-", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
+", sequencePoints: "C+<Main>d__0.MoveNext", source: source + s_IAsyncEnumerable);
         }
 
         [Fact]
@@ -5225,8 +5225,8 @@ class C
             var expectedOutput = "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4)";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x82 }
@@ -5479,8 +5479,8 @@ class C : IAsyncEnumerable<int>
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposal);
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x8c }
@@ -5828,8 +5828,8 @@ struct C : IAsyncEnumerable<int>
   IL_01ef:  ret
 }");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var runtimeAsyncVerifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncVerifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x98 }
@@ -5960,11 +5960,10 @@ class C : IAsyncEnumerable<int>
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
-            var expectedOutput = "NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done";
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: "NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x96 }
@@ -6098,8 +6097,8 @@ class C : IAsyncEnumerable<int>
             CompileAndVerify(comp,
                 expectedOutput: expectedOutput);
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0xec }
@@ -6265,8 +6264,8 @@ class C : IAsyncEnumerable<int>
             CompileAndVerify(comp,
                 expectedOutput: expectedOutput);
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0xfc }
@@ -6441,8 +6440,8 @@ class C : IAsyncEnumerable<int>
             CompileAndVerify(comp,
                 expectedOutput: expectedOutput);
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x96 }
@@ -6610,8 +6609,8 @@ class C : IAsyncEnumerable<int>
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Success");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("Success"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("Success", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x64 }
@@ -6740,11 +6739,11 @@ class C : IAsyncEnumerable<int>
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            var expectedOutput = "Try NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done";
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: "Try NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var expectedOutput = "Try NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done";
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0xb2 }
@@ -6930,8 +6929,7 @@ class Element
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            var expectedOutput = "NextAsync(0) Current(1) Convert(1) Got(1) NextAsync(1) Current(2) Convert(2) Got(2) NextAsync(2) Dispose(3) Done";
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Current(1) Convert(1) Got(1) NextAsync(1) Current(2) Convert(2) Got(2) NextAsync(2) Dispose(3) Done");
 
             var tree = comp.SyntaxTrees.Single();
             var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -6955,8 +6953,9 @@ class Element
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposal);
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var expectedOutput = "NextAsync(0) Current(1) Convert(1) Got(1) NextAsync(1) Current(2) Convert(2) Got(2) NextAsync(2) Dispose(3) Done";
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x9b }
@@ -7110,8 +7109,8 @@ struct C : IAsyncEnumerable<int>
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposal);
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0xae }
@@ -7233,8 +7232,8 @@ struct C : IAsyncEnumerable<int>
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Success");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("Success"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("Success", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x88 }
@@ -7389,8 +7388,8 @@ public static class Extensions
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposal);
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0xba }
@@ -7579,8 +7578,8 @@ class C : IAsyncEnumerable<(string, int)>
             Assert.Equal(ConversionKind.Identity, info.ElementConversion.Kind);
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0xb8 }
@@ -7735,8 +7734,8 @@ public static class Extensions
             string expectedOutput = "NextAsync(0) Current(1) Got(1,-1) NextAsync(1) Current(2) Got(2,-2) NextAsync(2) Dispose(3) Done";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0xb7 }
@@ -8074,8 +8073,8 @@ class C
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposal);
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x61 }
@@ -8358,10 +8357,10 @@ class C
   IL_0114:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_0119:  nop
   IL_011a:  ret
-}", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
+}", sequencePoints: "C+<Main>d__0.MoveNext", source: source);
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x5c, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<bool>' }
@@ -8465,8 +8464,8 @@ class C
 
             Assert.Null(info.DisposeMethod);
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier2 = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier2 = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x5c, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<bool>' }
@@ -8765,8 +8764,8 @@ class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("MoveNextAsync"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x26 }
@@ -8890,8 +8889,8 @@ class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("MoveNextAsync DisposeAsync Done"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync DisposeAsync Done", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x58 }
@@ -9036,8 +9035,8 @@ public static class Extension
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync Done");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("MoveNextAsync Done"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync Done", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x2b }
@@ -9114,8 +9113,8 @@ public static class Extension2
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync Done");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("MoveNextAsync Done"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync Done", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x2b }
@@ -9188,8 +9187,8 @@ class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("MoveNextAsync DisposeAsync Done"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync DisposeAsync Done", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x58 }
@@ -9380,8 +9379,8 @@ public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("MoveNextAsync DisposeAsync Done"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync DisposeAsync Done", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x6e }
@@ -9491,8 +9490,8 @@ class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("MoveNextAsync DisposeAsync Done"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync DisposeAsync Done", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x58 }
@@ -9595,8 +9594,8 @@ class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("MoveNextAsync DisposeAsync Done"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync DisposeAsync Done", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x59 }
@@ -9699,8 +9698,8 @@ class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync 1 Done");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("MoveNextAsync DisposeAsync 1 Done"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync DisposeAsync 1 Done", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x5a }
@@ -9813,8 +9812,8 @@ class Program
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "StructAwaitable1StructAwaitable2");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("StructAwaitable1StructAwaitable2"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions("SYSLIB5007", ReportDiagnostic.Suppress));
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("StructAwaitable1StructAwaitable2", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x86 }
@@ -9979,7 +9978,7 @@ public struct C : IAsyncEnumerable<int>
             comp.VerifyDiagnostics();
             CompileAndVerify(comp);
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -10069,7 +10068,7 @@ public struct C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp);
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -10230,8 +10229,8 @@ public static class Extensions
             Assert.Equal(ConversionKind.Identity, info.ElementConversion.Kind);
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x25 }
@@ -10287,8 +10286,8 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x25 }
@@ -10344,8 +10343,8 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x21 }
@@ -10401,8 +10400,8 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x27 }
@@ -10646,8 +10645,8 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0xb }
@@ -10710,8 +10709,8 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0xb }
@@ -10770,8 +10769,8 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x25 }
@@ -10829,8 +10828,8 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x25 }
@@ -10955,8 +10954,8 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x2e }
@@ -11017,8 +11016,8 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x25 }
@@ -11074,8 +11073,8 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x3f }
@@ -11140,8 +11139,8 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x21 }
@@ -11197,8 +11196,8 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x29 }
@@ -11257,8 +11256,8 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x21 }
@@ -11314,8 +11313,8 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x25 }
@@ -11377,8 +11376,8 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x5e }
@@ -11467,8 +11466,8 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x55 }
@@ -11563,8 +11562,8 @@ public static class Extensions
 3.3";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0xd4 }
@@ -11783,8 +11782,8 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x25 }
@@ -11897,8 +11896,8 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x5b }
@@ -11990,7 +11989,7 @@ public static class Extensions
             CreateCompilationWithCSharp(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(expected);
 
-            var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(expected);
         }
 
@@ -12147,8 +12146,8 @@ public static class Extensions2
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x25 }
@@ -12294,8 +12293,8 @@ public static class Extensions2
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x25 }
@@ -12397,8 +12396,8 @@ public static class Extensions2
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x25 }
@@ -12495,8 +12494,8 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "23");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("23"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("23", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x26 }
@@ -12590,8 +12589,8 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x2a }
@@ -12754,8 +12753,8 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x2b }
@@ -12817,8 +12816,8 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x2c }
@@ -12910,8 +12909,8 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x25 }
@@ -12967,8 +12966,8 @@ internal static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x25 }
@@ -13143,8 +13142,8 @@ internal static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x25 }
@@ -13203,8 +13202,8 @@ internal static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x25 }
@@ -13263,8 +13262,8 @@ struct Enumerator : IAsyncDisposable
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: @"123Disposed");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123Disposed"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123Disposed", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x52 }
@@ -13349,8 +13348,8 @@ struct Enumerator : IAsyncDisposable
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: @"123Disposed");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123Disposed"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123Disposed", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x58 }
@@ -13435,8 +13434,8 @@ struct Enumerator
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: @"123Disposed");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123Disposed"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123Disposed", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x52 }
@@ -13517,8 +13516,8 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x25 }
@@ -13593,8 +13592,8 @@ public static class Extensions
                 );
             CompileAndVerify(comp, expectedOutput: "123Disposed");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123Disposed"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123Disposed", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x52 }
@@ -13681,8 +13680,8 @@ namespace N
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x25 }
@@ -13826,8 +13825,8 @@ namespace N1
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x25 }
@@ -13905,8 +13904,8 @@ namespace N3
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N3;").WithLocation(5, 1));
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x25 }
@@ -14074,8 +14073,8 @@ public class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x25 }
@@ -14136,8 +14135,8 @@ public class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x25 }
@@ -14233,8 +14232,8 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123123");
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("123123"), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x58 }
@@ -14328,8 +14327,8 @@ struct AsyncEnumerator : IAsyncEnumerator<int>
                 comp.VerifyDiagnostics();
                 CompileAndVerify(comp, expectedOutput: "RAN");
 
-                var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-                var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("RAN"), verify: Verification.Fails with
+                var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+                var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("RAN", isRuntimeAsync: true), verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
                         [Main]: Return value missing on the stack. { Offset = 0x5b }
@@ -14465,8 +14464,8 @@ struct AsyncEnumerator : IAsyncDisposable
                 comp.VerifyDiagnostics();
                 CompileAndVerify(comp, expectedOutput: "RAN");
 
-                var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-                var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("RAN"), verify: Verification.Fails with
+                var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+                var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("RAN", isRuntimeAsync: true), verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
                         [Main]: Return value missing on the stack. { Offset = 0x5b }
@@ -14604,8 +14603,8 @@ struct AsyncEnumerator : IAsyncEnumerator<int>
                 comp.VerifyDiagnostics();
                 CompileAndVerify(comp, expectedOutput: "RAN");
 
-                var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-                var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("RAN"), verify: Verification.Fails with
+                var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+                var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("RAN", isRuntimeAsync: true), verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
                         [Main]: Return value missing on the stack. { Offset = 0x61 }
@@ -14800,8 +14799,8 @@ struct AsyncEnumerator : IAsyncEnumerator<(int, int)>
                 comp.VerifyDiagnostics();
                 CompileAndVerify(comp, expectedOutput: "RAN");
 
-                var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-                var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("RAN"), verify: Verification.Fails with
+                var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+                var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("RAN", isRuntimeAsync: true), verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
                         [Main]: Return value missing on the stack. { Offset = 0x5b }
@@ -14966,8 +14965,8 @@ class C
                 expectedOutput: expectedOutput,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
-            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(src, TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(src);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0xa }

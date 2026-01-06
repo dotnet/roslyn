@@ -34,7 +34,7 @@ Check that symbols are either re-used or not re-used after edit.
 1. See features excluded from edit and continue within CSharpEditAndContinueAnalyzer.cs and enable necessary ones.
 2. You probably get some ActiveStatementTests.cs tests failed with the change above. Correct them properly.
 3. Verify edit and continue features for new syntax manually:
-    1. Set VisualStudioSetup project as a startup project within Roslyn.slnx. 
+    1. Set VisualStudioSetup project as a startup project within Roslyn.sln. 
     2. Run the project with F5. 
     3. A new instance of Visual Studio appears.
     4. The instance uses changes made in the local version of Roslyn.

@@ -26,12 +26,13 @@ internal sealed partial class CSharpUseInterpolatedVerbatimStringCodeFixProvider
 
     private const string InterpolatedVerbatimText = "$@\"";
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpCodeFixesResources.Use_interpolated_verbatim_string, nameof(CSharpCodeFixesResources.Use_interpolated_verbatim_string));
+        return Task.CompletedTask;
     }
 
-    protected override async Task FixAllAsync(
+    protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
@@ -40,6 +41,8 @@ internal sealed partial class CSharpUseInterpolatedVerbatimStringCodeFixProvider
             cancellationToken.ThrowIfCancellationRequested();
             AddEdits(editor, diagnostic, cancellationToken);
         }
+
+        return Task.CompletedTask;
     }
 
     private static void AddEdits(

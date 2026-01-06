@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.QuickInfo.Presentation;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -73,18 +72,11 @@ internal static partial class Extensions
     {
         var documentIds = GetDocumentIds(solution, documentUri);
 
-        if (documentIds.IsEmpty)
-            return [];
-
-        using var _ = ArrayBuilder<TextDocument>.GetInstance(out var documentsBuilder);
-
-        foreach (var documentId in documentIds)
-        {
-            if (solution.GetTextDocument(documentId) is { } document)
-                documentsBuilder.Add(document);
-        }
-
-        return documentsBuilder.ToImmutableAndClear();
+        var documents = documentIds
+            .Select(solution.GetTextDocument)
+            .WhereNotNull()
+            .ToImmutableArray();
+        return documents;
     }
 
     public static ImmutableArray<DocumentId> GetDocumentIds(this Solution solution, DocumentUri documentUri)
@@ -474,8 +466,6 @@ internal static partial class Extensions
             Glyph.TargetTypeMatch => (KnownImageIds.ImageCatalogGuid, KnownImageIds.MatchType),
 
             Glyph.TypeParameter => (KnownImageIds.ImageCatalogGuid, KnownImageIds.Type),
-
-            Glyph.Copilot => (KnownImageIds.ImageCatalogGuid, KnownImageIds.SparkleNoColor),
 
             _ => throw new ArgumentException($"Unknown glyph value: {glyph}", nameof(glyph)),
         };

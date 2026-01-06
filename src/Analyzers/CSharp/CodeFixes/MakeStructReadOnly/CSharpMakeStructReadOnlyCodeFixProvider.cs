@@ -24,12 +24,13 @@ internal sealed class CSharpMakeStructReadOnlyCodeFixProvider() : SyntaxEditorBa
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
         [IDEDiagnosticIds.MakeStructReadOnlyDiagnosticId];
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Make_struct_readonly, nameof(CSharpAnalyzersResources.Make_struct_readonly));
+        return Task.CompletedTask;
     }
 
-    protected override async Task FixAllAsync(
+    protected override Task FixAllAsync(
         Document document,
         ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor,
@@ -44,5 +45,7 @@ internal sealed class CSharpMakeStructReadOnlyCodeFixProvider() : SyntaxEditorBa
                 typeDeclaration,
                 (current, generator) => generator.WithModifiers(current, generator.GetModifiers(current).WithIsReadOnly(true)));
         }
+
+        return Task.CompletedTask;
     }
 }

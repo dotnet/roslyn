@@ -6,7 +6,6 @@
 
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.Rename;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking;
 

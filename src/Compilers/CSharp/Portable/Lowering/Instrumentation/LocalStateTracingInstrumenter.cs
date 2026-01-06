@@ -484,9 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ImmutableArray.Create(toString, index);
             }
 
-            Conversion c = _factory.ClassifyEmitConversion(value, parameter.Type);
-            Debug.Assert(c.IsNumeric || c.IsReference || c.IsIdentity || c.IsPointer || c.IsBoxing || c.IsEnumeration);
-            return ImmutableArray.Create(_factory.Convert(parameter.Type, value, c), index);
+            return ImmutableArray.Create(_factory.Convert(parameter.Type, value), index);
         }
 
         private BoundExpression VariableRead(Symbol localOrParameterSymbol)
@@ -551,10 +549,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<BoundExpression> arguments = original.Arguments;
             MethodSymbol method = original.Method;
-            bool adjustForExtensionBlockMethod = method.IsExtensionBlockMember() && !method.IsStatic;
-            ImmutableArray<RefKind> argumentRefKindsOpt = NullableWalker.GetArgumentRefKinds(original.ArgumentRefKindsOpt, adjustForExtensionBlockMethod, method, arguments.Length);
+            bool adjustForNewExtension = method.IsExtensionBlockMember() && !method.IsStatic;
+            ImmutableArray<RefKind> argumentRefKindsOpt = NullableWalker.GetArgumentRefKinds(original.ArgumentRefKindsOpt, adjustForNewExtension, method, arguments.Length);
 
-            if (adjustForExtensionBlockMethod)
+            if (adjustForNewExtension)
             {
                 Debug.Assert(original.ReceiverOpt is not null);
                 arguments = [original.ReceiverOpt, .. arguments];

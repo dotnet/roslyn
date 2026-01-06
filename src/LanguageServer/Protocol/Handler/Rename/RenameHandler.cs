@@ -67,8 +67,18 @@ internal sealed class RenameHandler() : ILspServiceDocumentRequestHandler<LSP.Re
         // Linked files can correspond to multiple roslyn documents each with changes.  Merge the changes in the linked files so that all linked documents have the same text.
         // Then we can just take the text changes from the first document to avoid returning duplicate edits.
         renamedSolution = await renamedSolution.WithMergedLinkedFileChangesAsync(oldSolution, solutionChanges, cancellationToken: cancellationToken).ConfigureAwait(false);
+        solutionChanges = renamedSolution.GetChanges(oldSolution);
 
-        var documentEdits = await ProtocolConversions.ChangedDocumentsToTextDocumentEditsAsync(renamedSolution, oldSolution, cancellationToken).ConfigureAwait(false);
+        var changedDocuments = solutionChanges
+            .GetProjectChanges()
+            .SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true))
+            .GroupBy(docId => renamedSolution.GetRequiredDocument(docId).FilePath, StringComparer.OrdinalIgnoreCase).Select(group => group.First())
+            .Concat(solutionChanges.GetExplicitlyChangedSourceGeneratedDocuments());
+
+        var textDiffService = renamedSolution.Services.GetRequiredService<IDocumentTextDifferencingService>();
+
+        var documentEdits = await ProtocolConversions.ChangedDocumentsToTextDocumentEditsAsync(changedDocuments, renamedSolution, oldSolution,
+            textDiffService, cancellationToken).ConfigureAwait(false);
 
         return new WorkspaceEdit { DocumentChanges = documentEdits };
     }

@@ -1198,8 +1198,8 @@ End Module
             Assert.Equal(SymbolKind.NamedType, semanticInfo.Symbol.Kind)
             Assert.Equal("IInterface", semanticInfo.Symbol.ToDisplayString())
 
-            Assert.Equal("IInterface", semanticInfo.Type.ToDisplayString())
-            Assert.Equal("IInterface", semanticInfo.ConvertedType.ToDisplayString())
+            Assert.Null(semanticInfo.Type)
+            Assert.Null(semanticInfo.ConvertedType)
         End Sub
 
         <Fact()>

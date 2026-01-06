@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
+using System.CommandLine;
 using System.Globalization;
 using System.IO.Pipes;
 using System.Threading.Tasks;
@@ -11,27 +13,28 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal static class Program
 {
-    internal static async Task<int> Main(string[] args)
+    internal static async Task Main(string[] args)
     {
         // Note: we should limit the data passed through via command line strings, and pass information through IBuildHost.ConfigureGlobalState whenever possible.
         // This is because otherwise we might run into escaping issues, or command line length limits.
 
-        var logger = new BuildHostLogger(Console.Error);
+        var pipeOption = new Option<string>("--pipe") { Required = true };
+        var localeOption = new Option<string>("--locale") { Required = true };
+        var command = new RootCommand { pipeOption, localeOption };
+        var parsedArguments = command.Parse(args);
+        var pipeName = parsedArguments.GetValue(pipeOption)!;
+        var locale = parsedArguments.GetValue(localeOption)!;
 
-        if (args is not [var pipeName, var cultureName])
-        {
-            logger.LogCritical($"Expected arguments: <pipe name> <culture>");
-            return -1;
-        }
+        var logger = new BuildHostLogger(Console.Error);
 
         try
         {
-            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(cultureName);
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(locale);
         }
         catch (CultureNotFoundException)
         {
             // We couldn't find the culture, log a warning and fallback to the OS configured value.
-            logger.LogWarning($"Culture '{cultureName}' was not found, falling back to OS culture");
+            logger.LogWarning($"Culture {locale} was not found, falling back to OS culture");
         }
 
         logger.LogInformation($"BuildHost Runtime Version: {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription}");
@@ -47,7 +50,5 @@ internal static class Program
         await server.RunAsync().ConfigureAwait(false);
 
         logger.LogInformation("RPC channel closed; process exiting.");
-
-        return 0;
     }
 }

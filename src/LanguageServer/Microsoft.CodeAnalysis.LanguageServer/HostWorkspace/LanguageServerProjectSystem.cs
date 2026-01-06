@@ -35,8 +35,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         IAsynchronousOperationListenerProvider listenerProvider,
         ProjectLoadTelemetryReporter projectLoadTelemetry,
         ServerConfigurationFactory serverConfigurationFactory,
-        IBinLogPathProvider binLogPathProvider,
-        DotnetCliHelper dotnetCliHelper)
+        IBinLogPathProvider binLogPathProvider)
             : base(
                 workspaceFactory,
                 fileChangeWatcher,
@@ -45,8 +44,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
                 listenerProvider,
                 projectLoadTelemetry,
                 serverConfigurationFactory,
-                binLogPathProvider,
-                dotnetCliHelper)
+                binLogPathProvider)
     {
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectSystem));
         _hostProjectFactory = workspaceFactory.HostProjectFactory;
@@ -102,17 +100,9 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         };
     }
 
-    protected override async ValueTask OnProjectUnloadedAsync(string projectFilePath)
+    protected override ValueTask OnProjectUnloadedAsync(string projectFilePath)
     {
         // Nothing else to unload for ordinary projects.
-    }
-
-    protected override async ValueTask TransitionPrimordialProjectToLoaded_NoLockAsync(
-        string projectPath,
-        ProjectSystemProjectFactory primordialProjectFactory,
-        ProjectId primordialProjectId,
-        CancellationToken cancellationToken)
-    {
-        throw ExceptionUtilities.Unreachable();
+        return ValueTask.CompletedTask;
     }
 }

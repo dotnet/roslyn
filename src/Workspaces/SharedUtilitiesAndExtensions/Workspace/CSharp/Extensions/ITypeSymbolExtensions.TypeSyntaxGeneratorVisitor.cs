@@ -247,7 +247,7 @@ internal partial class ITypeSymbolExtensions
 
             foreach (var element in symbol.TupleElements)
             {
-                var name = element.IsImplicitlyDeclared ? default : element.Name.ToIdentifierToken();
+                var name = element.IsImplicitlyDeclared ? default : Identifier(element.Name);
                 list = list.Add(TupleElement(element.Type.GenerateTypeSyntax(), name));
             }
 

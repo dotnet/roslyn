@@ -1012,18 +1012,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return TupleExpansion.CreateExpansion(inspectionContext, declaredTypeAndInfo, value, cardinality);
             }
 
-            int inlineArrayLength;
-            Type inlineArrayElementType;
-            if (InlineArrayHelpers.TryGetInlineArrayInfo(runtimeType, out inlineArrayLength, out inlineArrayElementType) ||
-                InlineArrayHelpers.TryGetFixedBufferInfo(runtimeType, out inlineArrayLength, out inlineArrayElementType))
-            {
-                // Inline arrays are always 1D, zero-based arrays.
-                return ArrayExpansion.CreateExpansion(
-                        elementTypeAndInfo: new TypeAndCustomInfo(DkmClrType.Create(declaredTypeAndInfo.ClrType.AppDomain, inlineArrayElementType), null),
-                        sizes: new ReadOnlyCollection<int>([inlineArrayLength]),
-                        lowerBounds: new ReadOnlyCollection<int>([0]));
-            }
-
             return MemberExpansion.CreateExpansion(inspectionContext, declaredTypeAndInfo, value, flags, TypeHelpers.IsVisibleMember, this, isProxyType: false, supportsFavorites);
         }
 

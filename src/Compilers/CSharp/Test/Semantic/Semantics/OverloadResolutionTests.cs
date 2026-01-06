@@ -10586,9 +10586,9 @@ class Program
         Console.WriteLine(a + b);
     }
 }").VerifyDiagnostics(
-                // (15,29): error CS9342: Operator resolution is ambiguous between the following members: 'Test.operator +(in Test, Test)' and 'Test.operator +(Test, in Test)'
+                // (15,27): error CS0034: Operator '+' is ambiguous on operands of type 'Test' and 'Test'
                 //         Console.WriteLine(a + b);
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("Test.operator +(in Test, Test)", "Test.operator +(Test, in Test)").WithLocation(15, 29));
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "a + b").WithArguments("+", "Test", "Test").WithLocation(15, 27));
         }
 
         [Fact]
@@ -10611,9 +10611,9 @@ class Program
         Console.WriteLine(a + b);
     }
 }").VerifyDiagnostics(
-            // (15,29): error CS9342: Operator resolution is ambiguous between the following members: 'Test.operator +(Test, in Test)' and 'Test.operator +(in Test, Test)'
-            //         Console.WriteLine(a + b);
-            Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("Test.operator +(Test, in Test)", "Test.operator +(in Test, Test)").WithLocation(15, 29));
+                // (15,27): error CS0034: Operator '+' is ambiguous on operands of type 'Test' and 'Test'
+                //         Console.WriteLine(a + b);
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "a + b").WithArguments("+", "Test", "Test").WithLocation(15, 27));
         }
 
         [Fact]
@@ -11944,89 +11944,6 @@ class B : A
                 }
                 """;
             CreateCompilation(source).VerifyDiagnostics();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12933")]
-        public void ParamsErrorSuppression_StringConvertibleToObject()
-        {
-            var source = """
-                class Program
-                {
-                    static void M(char c, params object[] args) { }
-                    
-                    static void Test(string[] arr)
-                    {
-                        M(arr, "test");
-                    }
-                }
-                """;
-            CreateCompilation(source).VerifyDiagnostics(
-                // (7,11): error CS1503: Argument 1: cannot convert from 'string[]' to 'char'
-                //         M(arr, "test");
-                Diagnostic(ErrorCode.ERR_BadArgType, "arr").WithArguments("1", "string[]", "char").WithLocation(7, 11));
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12933")]
-        public void ParamsErrorSuppression_IntNotConvertibleToString()
-        {
-            var source = """
-                class C
-                {
-                    static void M(char c, params string[] args) { }
-                    
-                    static void Test()
-                    {
-                        M(1, 2);
-                    }
-                }
-                """;
-            CreateCompilation(source).VerifyDiagnostics(
-                // (7,11): error CS1503: Argument 1: cannot convert from 'int' to 'char'
-                //         M(1, 2);
-                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "char").WithLocation(7, 11),
-                // (7,14): error CS1503: Argument 2: cannot convert from 'int' to 'string'
-                //         M(1, 2);
-                Diagnostic(ErrorCode.ERR_BadArgType, "2").WithArguments("2", "int", "string").WithLocation(7, 14));
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43920")]
-        public void ParamsErrorSuppression_Issue43920()
-        {
-            var source = """
-                class Program
-                {
-                    static void M(int x, params object[] args) { }
-                    
-                    static void Test()
-                    {
-                        M("wrong", "test");
-                    }
-                }
-                """;
-            CreateCompilation(source).VerifyDiagnostics(
-                // (7,11): error CS1503: Argument 1: cannot convert from 'string' to 'int'
-                //         M("wrong", "test");
-                Diagnostic(ErrorCode.ERR_BadArgType, @"""wrong""").WithArguments("1", "string", "int").WithLocation(7, 11));
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43920")]
-        public void ParamsErrorSuppression_Issue43920_StringParams()
-        {
-            var source = """
-                class Program
-                {
-                    static void A(string a, params string[] b) { }
-                    
-                    static void Test()
-                    {
-                        A(1, "test");
-                    }
-                }
-                """;
-            CreateCompilation(source).VerifyDiagnostics(
-                // (7,11): error CS1503: Argument 1: cannot convert from 'int' to 'string'
-                //         A(1, "test");
-                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "string").WithLocation(7, 11));
         }
     }
 }

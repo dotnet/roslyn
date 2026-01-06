@@ -216,14 +216,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     else if (!value.Type.IsRestrictedType())
                     {
                         // Otherwise, an error has been reported elsewhere (SourceMemberFieldSymbol.TypeChecks)
-                        var objectType = F.SpecialType(SpecialType.System_Object);
-                        Conversion c = F.ClassifyEmitConversion(value, objectType);
-                        Debug.Assert(c.IsImplicit);
-                        Debug.Assert(c.IsIdentity || c.IsReference || c.IsBoxing);
                         block.Add(F.ExpressionStatement(
                             F.Call(receiver: builder,
                                 F.WellKnownMethod(WellKnownMember.System_Text_StringBuilder__AppendObject),
-                                F.Convert(objectType, value, c))));
+                                F.Convert(F.SpecialType(SpecialType.System_Object), value))));
                     }
                 }
 
@@ -268,13 +264,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             NamedTypeSymbol baseType = overriding.ContainingType.BaseTypeNoUseSiteDiagnostics;
             if (baseType.IsObjectType())
-            {
-                return;
-            }
-
-            // If the base type is not a record, ERR_BadRecordBase will already be reported.
-            // Don't cascade an override error in this case.
-            if (!baseType.IsRecord)
             {
                 return;
             }

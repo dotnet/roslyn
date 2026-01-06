@@ -96,9 +96,8 @@ internal interface ISyntaxKinds
 
     #endregion
 
-    #region xml nodes and tokens
+    #region xml tokens
 
-    int XmlCrefAttribute { get; }
     int XmlTextLiteralToken { get; }
 
     #endregion

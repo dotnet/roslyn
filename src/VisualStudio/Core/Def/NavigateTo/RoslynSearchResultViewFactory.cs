@@ -19,9 +19,14 @@ internal sealed partial class RoslynSearchItemsSourceProvider
     /// Implementation of the <see cref="ISearchResultViewFactory"/>.  Responsible for actually producing both the
     /// item presented in the search results list, and the async preview for that item.
     /// </summary>
-    private sealed class RoslynSearchResultViewFactory(RoslynSearchItemsSourceProvider provider) : ISearchResultViewFactory
+    private sealed class RoslynSearchResultViewFactory : ISearchResultViewFactory
     {
-        private readonly RoslynSearchItemsSourceProvider _provider = provider;
+        private readonly RoslynSearchItemsSourceProvider _provider;
+
+        public RoslynSearchResultViewFactory(RoslynSearchItemsSourceProvider provider)
+        {
+            _provider = provider;
+        }
 
         public SearchResultViewBase CreateSearchResultView(SearchResult result)
         {
@@ -54,40 +59,43 @@ internal sealed partial class RoslynSearchItemsSourceProvider
             // fail, don't show any preview for this item.
 
             var document = roslynResult.SearchResult.NavigableItem.Document;
-
-            // RoslynNavigateToSearchCallback will have placed the file-path for this document in the .Location property
-            // of this search result.  This will either be the true location of a real file in the workspace.  Or a
-            // temporary dummy file placed on disk for source-generated documents.  This dummy file will have been made
-            // in coordination with the SourceGeneratedFileManager.  That way when the editor tries to open that file,
-            // SourceGeneratedFileManager will intercept, fetch the actual contents, and pressent those in the text
-            // buffer that the user sees.
-            var filePath = roslynResult.Location;
+            var filePath = document.FilePath;
             if (filePath is null)
                 return null;
 
             Uri? absoluteUri;
-            try
+            if (document.SourceGeneratedDocumentIdentity is not null)
             {
-                absoluteUri = ProtocolConversions.CreateAbsoluteUri(filePath);
+                absoluteUri = SourceGeneratedDocumentUri.Create(document.SourceGeneratedDocumentIdentity.Value).GetRequiredParsedUri();
             }
-            catch (UriFormatException)
+            else
             {
-                // Unable to create an absolute URI for this path
-                return null;
+                try
+                {
+                    absoluteUri = ProtocolConversions.CreateAbsoluteUri(filePath);
+                }
+                catch (UriFormatException)
+                {
+                    // Unable to create an absolute URI for this path
+                    return null;
+                }
             }
 
             var projectGuid = _provider._workspace.GetProjectGuid(document.Project.Id);
             if (projectGuid == Guid.Empty)
                 return null;
 
-            return [new RoslynSearchResultPreviewPanel(
-                _provider,
-                // Editor APIs require a parseable System.Uri instance
-                absoluteUri,
-                projectGuid,
-                roslynResult.SearchResult.NavigableItem.SourceSpan.ToSpan(),
-                searchResultView.Title.Text,
-                searchResultView.PrimaryIcon)];
+            return new SearchResultPreviewPanelBase[]
+            {
+                new RoslynSearchResultPreviewPanel(
+                    _provider,
+                    // Editor APIs require a parseable System.Uri instance
+                    absoluteUri,
+                    projectGuid,
+                    roslynResult.SearchResult.NavigableItem.SourceSpan.ToSpan(),
+                    searchResultView.Title.Text,
+                    searchResultView.PrimaryIcon)
+            };
         }
     }
 }

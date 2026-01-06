@@ -42,7 +42,6 @@ internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUs
         });
 
         _smartRenameViewModel.SuggestedNames.CollectionChanged += SuggestedNames_CollectionChanged;
-        AddHandler(Keyboard.GotKeyboardFocusEvent, new KeyboardFocusChangedEventHandler(OnItemGotKeyboardFocus), handledEventsToo: true);
     }
 
     public int TextSelectionStart
@@ -100,16 +99,6 @@ internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUs
     {
         // Handle the event to avoid stack overflow through passing execution back RenameFlyout.Adornment_GotKeyboardFocus
         e.Handled = true;
-    }
-
-    private void OnItemGotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
-    {
-        // When a ComboBoxItem receives keyboard focus (e.g., via Tab navigation),
-        // update the ComboBox selection to match the focused item
-        if (e.NewFocus is ComboBoxItem comboBoxItem && comboBoxItem.DataContext != null)
-        {
-            SelectedItem = comboBoxItem.DataContext;
-        }
     }
 
     private void SuggestionsPanelScrollViewer_MouseDoubleClick(object sender, MouseEventArgs e)

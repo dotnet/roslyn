@@ -8,11 +8,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.Shared.Lightup;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
@@ -54,9 +55,9 @@ internal static partial class ITypeSymbolExtensions
         {
             var additionalAnnotation = type.NullableAnnotation switch
             {
-                NullableAnnotation.None => NullableSyntaxAnnotation.Oblivious,
-                NullableAnnotation.Annotated => NullableSyntaxAnnotation.AnnotatedOrNotAnnotated,
-                NullableAnnotation.NotAnnotated => NullableSyntaxAnnotation.AnnotatedOrNotAnnotated,
+                NullableAnnotation.None => NullableSyntaxAnnotationEx.Oblivious,
+                NullableAnnotation.Annotated => NullableSyntaxAnnotationEx.AnnotatedOrNotAnnotated,
+                NullableAnnotation.NotAnnotated => NullableSyntaxAnnotationEx.AnnotatedOrNotAnnotated,
                 _ => throw ExceptionUtilities.UnexpectedValue(type.NullableAnnotation),
             };
 

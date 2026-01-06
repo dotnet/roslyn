@@ -18,6 +18,7 @@
     <ProjectReference Include="..\..\Setup\DevDivVsix\CompilersPackage\arm64\Microsoft.CodeAnalysis.Compilers.Setup.arm64.csproj" />
     <ProjectReference Include="..\..\Setup\DevDivVsix\CompilersPackage\x64\Microsoft.CodeAnalysis.Compilers.Setup.x64.csproj" />
     <ProjectReference Include="..\..\Setup\DevDivVsix\CompilersPackage\x86\Microsoft.CodeAnalysis.Compilers.Setup.x86.csproj" />
+    <ProjectReference Include="..\..\Setup\Installer\Installer.Package.csproj" />
     <ProjectReference Include="..\..\Tools\PrepareTests\PrepareTests.csproj" />
     <ProjectReference Include="..\..\Tools\Source\RunTests\RunTests.csproj" />
     <ProjectReference Include="..\..\Tools\TestDiscoveryWorker\TestDiscoveryWorker.csproj" />
@@ -26,7 +27,6 @@
     <ProjectReference Include="..\Setup\Roslyn.VisualStudio.Setup.csproj" />
     <ProjectReference Include="..\VisualStudioDiagnosticsToolWindow\Roslyn.VisualStudio.DiagnosticsWindow.csproj" />
     <ProjectReference Include="New.IntegrationTests\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.csproj" />
-    <ProjectReference Include="New.IntegrationTests\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.csproj" />
-    <ProjectReference Include="Harness\XUnitIntegrationTests\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.csproj" />
+    <ProjectReference Include="TestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.csproj" />
   </ItemGroup>
 </Project>

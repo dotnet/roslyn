@@ -5,7 +5,6 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -54,7 +53,7 @@ class C2
   }
   // sequence point: }
   IL_0012:  ret
-}", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
+}", sequencePoints: "C2.Main", source: source);
         }
 
         [Fact]

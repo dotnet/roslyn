@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         continue;
                     }
 
-                    if (candidate.DeclaredAccessibility != method.DeclaredAccessibility)
+                    if (candidate.DeclaredAccessibility != @this.DeclaredAccessibility)
                     {
                         continue;
                     }
@@ -1795,18 +1795,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private ImmutableArray<NamedTypeSymbol> GetMemberTypesPrivate()
         {
-            var count = _lazyNestedTypes.Values.Sum(static a => a.Length);
-            var result = new PENamedTypeSymbol[count];
-            var destIndex = 0;
-
+            var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
             foreach (var typeArray in _lazyNestedTypes.Values)
             {
-                typeArray.CopyTo(result, destIndex);
-
-                destIndex += typeArray.Length;
+                builder.AddRange(typeArray);
             }
 
-            return ImmutableCollectionsMarshal.AsImmutableArray<NamedTypeSymbol>(result);
+            return builder.ToImmutableAndFree();
         }
 
         private void EnsureNestedTypesAreLoaded()

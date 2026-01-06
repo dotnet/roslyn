@@ -26,9 +26,6 @@ internal sealed class CustomLspSemanticTokenNames
     public const string Punctuation = "punctuation";
     public const string StringVerbatim = "stringVerbatim";
     public const string StringEscapeCharacter = "stringEscapeCharacter";
-    public const string ArrayName = "array";
-    public const string PointerName = "pointer";
-    public const string FunctionPointerName = "functionPointer";
     public const string RecordClassName = "recordClass";
     public const string DelegateName = "delegate";
     public const string ModuleName = "module";
@@ -95,9 +92,6 @@ internal sealed class CustomLspSemanticTokenNames
         [ClassificationTypeNames.Punctuation] = Punctuation,
         [ClassificationTypeNames.VerbatimStringLiteral] = StringVerbatim,
         [ClassificationTypeNames.StringEscapeCharacter] = StringEscapeCharacter,
-        [ClassificationTypeNames.ArrayName] = ArrayName,
-        [ClassificationTypeNames.PointerName] = PointerName,
-        [ClassificationTypeNames.FunctionPointerName] = FunctionPointerName,
         [ClassificationTypeNames.RecordClassName] = RecordClassName,
         [ClassificationTypeNames.DelegateName] = DelegateName,
         [ClassificationTypeNames.ModuleName] = ModuleName,

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 attributeType,
                 aliasOpt,
                 attributeTarget,
-                enclosingBinder,
+                enclosingBinder.WithAdditionalFlags(BinderFlags.AttributeArgument),
                 containingModel?.GetRemappedSymbols());
 
             Symbol? getAttributeTarget(SyntaxNode? targetSyntax)

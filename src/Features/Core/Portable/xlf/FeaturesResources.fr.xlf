@@ -885,11 +885,6 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Un seul assembly trouvé : '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_Equals">
-        <source>Generate Equals(...)</source>
-        <target state="new">Generate Equals(...)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">Générer des opérateurs de comparaison</target>
@@ -3933,6 +3928,11 @@ Si le spécificateur de format "M" est utilisé sans autres spécificateurs de f
       <trans-unit id="Generate_Equals_and_GetHashCode">
         <source>Generate Equals and GetHashCode</source>
         <target state="translated">Générer Equals et GetHashCode</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Equals_object">
+        <source>Generate Equals(object)</source>
+        <target state="translated">Générer Equals(object)</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_GetHashCode">

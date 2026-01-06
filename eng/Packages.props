@@ -1,11 +1,13 @@
 <Project>
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
+    <RoslynDiagnosticsNugetPackageVersion>3.11.0-beta1.24081.1</RoslynDiagnosticsNugetPackageVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.1.3-beta1.24319.1</MicrosoftCodeAnalysisTestingVersion>
+    <MicrosoftVisualStudioExtensibilityTestingVersion>0.1.800-beta</MicrosoftVisualStudioExtensibilityTestingVersion>
     <_BasicReferenceAssembliesVersion>1.8.3</_BasicReferenceAssembliesVersion>
     <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
     <CodeStyleAnalyzerVersion>4.8.0-3.final</CodeStyleAnalyzerVersion>
-    <VisualStudioEditorPackagesVersion>18.0.404-preview</VisualStudioEditorPackagesVersion>
+    <VisualStudioEditorPackagesVersion>18.0.332-preview</VisualStudioEditorPackagesVersion>
     <ILAsmPackageVersion>9.0.0-rc.2.24462.10</ILAsmPackageVersion>
     <ILDAsmPackageVersion>6.0.0-rtm.21518.12</ILDAsmPackageVersion>
     <MicrosoftILVerificationVersion>7.0.0-alpha.1.22060.1</MicrosoftILVerificationVersion>
@@ -29,24 +31,24 @@
   -->
 
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' == 'true'">
-    <PackageVersion Include="Microsoft.Build" Version="17.11.48" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="17.11.48" />
-    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.11.48" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.11.48" />
+    <PackageVersion Include="Microsoft.Build" Version="17.11.31" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.11.31" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.11.31" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.11.31" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(TargetFramework)' != 'net472'">
-    <PackageVersion Include="Microsoft.Build" Version="17.11.48" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="17.11.48" />
-    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.11.48" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.11.48" />
+    <PackageVersion Include="Microsoft.Build" Version="17.11.31" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.11.31" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.11.31" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.11.31" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(TargetFramework)' == 'net472'">
-    <PackageVersion Include="Microsoft.Build" Version="18.0.2" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="18.0.2" />
-    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="18.0.2" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.0.2" />
+    <PackageVersion Include="Microsoft.Build" Version="17.15.0-preview-25353-11" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.15.0-preview-25353-11" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.15.0-preview-25353-11" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.15.0-preview-25353-11" />
   </ItemGroup>
 
   <ItemGroup>
@@ -58,7 +60,7 @@
     <!--
       Visual Studio
     -->
-    <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="18.0.2188-preview.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="18.0.2101-preview.1" />
     <PackageVersion Include="Microsoft.Internal.VisualStudio.Shell.Framework" Version="18.0.1211-preview.1" />
     <PackageVersion Include="Microsoft.ServiceHub.Client" Version="4.6.3200" />
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Sdk" Version="18.0.52-preview1" />
@@ -76,7 +78,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.InteractiveWindow" Version="4.0.0" />
     <PackageVersion Include="Microsoft.VisualStudio.VsInteractiveWindow" Version="4.0.0" />
     <PackageVersion Include="Microsoft.VisualStudio.Search" Version="17.14.39337" />
-    <PackageVersion Include="Microsoft.VisualStudio.Shell.Styles" Version="18.0.2188-preview.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Shell.Styles" Version="18.0.2101-preview.1" />
     <PackageVersion Include="Microsoft.VisualStudio.WinForms.Interfaces" Version="17.0.0-previews-4-31709-430" />
     <PackageVersion Include="Microsoft.VisualStudio.Workspace.VSIntegration" Version="17.9.29-preview-0001" />
     <PackageVersion Include="Microsoft.VisualStudio.Copilot.Roslyn.SemanticSearch" Version="18.0.634-alpha" />
@@ -92,33 +94,33 @@
       Subset of Microsoft.VisualStudio.Sdk meta-package (run `csi generate-vssdk-versions.csx` to update based on VSSDK meta-package).
       See https://github.com/dotnet/arcade/blob/main/Documentation/MirroringPackages.md if any of these packages fail to restore.
     -->
-    <PackageVersion Include="Microsoft.ServiceHub.Framework" Version="4.9.14-beta" />
+    <PackageVersion Include="Microsoft.ServiceHub.Framework" Version="4.9.11-beta" />
     <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="17.13.50" />
     <PackageVersion Include="Microsoft.VisualStudio.Composition.Analyzers" Version="17.13.50" />
-    <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="$(VisualStudioEditorPackagesVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.Editor" Version="$(VisualStudioEditorPackagesVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.ImageCatalog" Version="18.0.2188-preview.1" />
-    <PackageVersion Include="Microsoft.VisualStudio.Imaging" Version="18.0.2188-preview.1" />
-    <PackageVersion Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="18.0.2154-preview.1" />
-    <PackageVersion Include="Microsoft.VisualStudio.Language" Version="$(VisualStudioEditorPackagesVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="$(VisualStudioEditorPackagesVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(VisualStudioEditorPackagesVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="18.0.332-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Editor" Version="18.0.332-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.ImageCatalog" Version="18.0.2101-preview.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Imaging" Version="18.0.2101-preview.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="18.0.2077-preview.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Language" Version="18.0.332-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="18.0.332-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Language.StandardClassification" Version="18.0.332-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client" Version="18.0.14-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.RemoteControl" Version="16.3.52" />
     <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="17.15.25-pre" />
-    <PackageVersion Include="Microsoft.VisualStudio.Shell.15.0" Version="18.0.2188-preview.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Shell.15.0" Version="18.0.2101-preview.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="18.0.22" />
-    <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="$(VisualStudioEditorPackagesVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="$(VisualStudioEditorPackagesVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.Text.UI" Version="$(VisualStudioEditorPackagesVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(VisualStudioEditorPackagesVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.15.22-alpha" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="18.0.332-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="18.0.332-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.UI" Version="18.0.332-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="18.0.332-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.15.20-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.15.20-alpha" />
-    <PackageVersion Include="Microsoft.VisualStudio.Utilities" Version="18.0.2188-preview.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Utilities" Version="18.0.2101-preview.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Utilities.Internal" Version="16.3.90" />
     <PackageVersion Include="Nerdbank.Streams" Version="2.12.87" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageVersion Include="StreamJsonRpc" Version="2.23.41-alpha" />
+    <PackageVersion Include="StreamJsonRpc" Version="2.23.39-alpha" />
     <PackageVersion Include="MessagePack" Version="2.5.198" />
 
     <!--
@@ -159,7 +161,7 @@
 
     <!--
       Since the Microsoft.CodeAnalysis.Analyzers package is a public dependency of our NuGet
-      packages we will keep it untied to the RoslynDiagnosticsAnalyzersPackageVersion we use for
+      packages we will keep it untied to the RoslynDiagnosticsNugetPackageVersion we use for
       other analyzers to ensure it stays on a release version.
     -->
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" />
@@ -264,6 +266,8 @@
     <PackageVersion Include="Microsoft.VisualStudio.Cache" Version="17.3.26-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.Diagnostics.Measurement" Version="17.9.36343-preview.3" />
     <PackageVersion Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider" Version="17.8.36726" />
+    <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator" Version="$(MicrosoftVisualStudioExtensibilityTestingVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Testing.Xunit" Version="$(MicrosoftVisualStudioExtensibilityTestingVersion)" />
     <PackageVersion Include="System.Management" Version="7.0.0" />
     <PackageVersion Include="System.Drawing.Common" Version="9.0.0" />
     <PackageVersion Include="NuGet.SolutionRestoreManager.Interop" Version="4.8.0" />
@@ -309,25 +313,16 @@
     <PackageVersion Include="System.Security.Cryptography.Xml" Version="8.0.0" />
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="8.0.0" />
     <!--
-      vs-extension-testing
-    -->
-    <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.106" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
-
-    <!--
       Infra
     -->
     <PackageVersion Include="Microsoft.Win32.Registry" Version="5.0.0" />
     <PackageVersion Include="MSBuild.StructuredLogger" Version="2.3.71" />
     <PackageVersion Include="Mono.Options" Version="6.6.0.161" />
-    <PackageVersion Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsAnalyzersPackageVersion)" />
+    <PackageVersion Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsNugetPackageVersion)" />
     <PackageVersion Include="SourceBrowser" Version="1.0.21" />
+    <PackageVersion Include="RoslynTools.VSIXExpInstaller" Version="1.1.0-beta3.22474.1" />
     <PackageVersion Include="MicroBuildPluginsSwixBuild" Version="1.1.87" />
     <PackageVersion Include="vswhere" Version="$(vswhereVersion)" />
-    <PackageVersion Include="CliWrap" Version="3.8.2" />
-    <PackageVersion Include="Microsoft.DotNet.DarcLib" Version="$(MicrosoftDotNetDarcLibPackageVersion)" />
-    <PackageVersion Include="Microsoft.DotNet.FileBasedPrograms" Version="$(MicrosoftDotNetFileBasedProgramsPackageVersion)" />
-    <PackageVersion Include="Spectre.Console" Version="0.51.1" />
     <!--
       The version of Roslyn we build Source Generators against that are built in this
       repository. This must be lower than MicrosoftNetCompilersToolsetVersion,

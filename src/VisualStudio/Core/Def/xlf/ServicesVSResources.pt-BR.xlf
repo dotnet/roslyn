@@ -237,11 +237,6 @@
         <target state="translated">Análise de código terminada antes da conclusão para '{0}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Code_preview">
-        <source>Code preview</source>
-        <target state="new">Code preview</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
         <source>Collapse local functions when collapsing to definitions</source>
         <target state="translated">Recolher funções locais ao recolher para definições</target>
@@ -1217,11 +1212,6 @@
         <target state="translated">Remover Usos Desnecessários</target>
         <note />
       </trans-unit>
-      <trans-unit id="Removed_0">
-        <source>Removed {0}</source>
-        <target state="new">Removed {0}</target>
-        <note>{0} is a modifier, type, and parameter name</note>
-      </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
         <source>Report invalid JSON strings</source>
         <target state="translated">Notificar cadeias de caracteres JSON inválidas</target>
@@ -1305,11 +1295,6 @@
       <trans-unit id="Search_found_no_results_no_csharp_or_vb_projects_opened">
         <source>Search found no results: no C# or Visual Basic projects are opened</source>
         <target state="translated">A pesquisa não encontrou resultados: nenhum projeto em C# ou Visual Basic está aberto</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Search_members">
-        <source>Search members</source>
-        <target state="new">Search members</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">
@@ -1701,11 +1686,6 @@
         <source>Visual Studio Settings</source>
         <target state="translated">Configurações do Visual Studio</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Warning_0_does_not_bind_to_type">
-        <source>Warning {0} does not bind to type</source>
-        <target state="new">Warning {0} does not bind to type</target>
-        <note>{0} is a type name</note>
       </trans-unit>
       <trans-unit id="Warning_colon_duplicate_parameter_name">
         <source>Warning: duplicate parameter name</source>

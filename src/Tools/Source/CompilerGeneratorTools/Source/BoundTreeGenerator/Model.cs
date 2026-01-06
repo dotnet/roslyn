@@ -60,11 +60,14 @@ namespace BoundTreeGenerator
         [XmlAttribute]
         public string SkipInNullabilityRewriter;
 
-        /// <summary>
-        /// See PipelinePhase enum
-        /// </summary>
+        [XmlElement(ElementName = "Kind", Type = typeof(Kind))]
+        public List<Kind> Kinds;
+    }
+
+    public class Kind
+    {
         [XmlAttribute]
-        public string DoesNotSurvive;
+        public string Name;
     }
 
     public class Field

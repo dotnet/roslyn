@@ -168,12 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Regular async (not async-iterator) kick-off method calls MoveNext, which contains user code.
                     // This means we need to emit DebuggerStepThroughAttribute in order
                     // to have correct stepping behavior during debugging.
-                    // However, when runtime async is enabled, no state machine is generated and the kickoff method
-                    // directly contains the async logic, so the attribute should not be added.
-                    if (!compilation.IsRuntimeAsyncEnabledIn(target))
-                    {
-                        AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerStepThroughAttribute());
-                    }
+                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerStepThroughAttribute());
                 }
             }
 

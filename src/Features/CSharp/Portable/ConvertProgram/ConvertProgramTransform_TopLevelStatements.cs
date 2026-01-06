@@ -79,7 +79,7 @@ internal static partial class ConvertProgramTransform
         var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
         var documentWithImportsAdded = document.WithSyntaxRoot(addImportsService.AddImports(
-            semanticModel: null!, root, contextLocation: null, directives, generator,
+            compilation: null!, root, contextLocation: null, directives, generator,
             options.AddImportOptions,
             cancellationToken));
 

@@ -321,7 +321,7 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 {
                 }
 
-                public record C(int P) : {|CS8864:B|};
+                public record {|CS0115:{|CS0115:{|CS0115:{|CS8867:C|}|}|}|}(int P) : {|CS8864:B|};
             }
             """);
 

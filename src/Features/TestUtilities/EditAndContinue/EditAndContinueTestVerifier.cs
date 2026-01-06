@@ -27,15 +27,6 @@ internal abstract class EditAndContinueTestVerifier
 {
     public const EditAndContinueCapabilities BaselineCapabilities = EditAndContinueCapabilities.Baseline;
 
-    public const EditAndContinueCapabilities NetFrameworkCapabilities =
-        EditAndContinueCapabilities.Baseline |
-        EditAndContinueCapabilities.AddInstanceFieldToExistingType |
-        EditAndContinueCapabilities.AddStaticFieldToExistingType |
-        EditAndContinueCapabilities.AddMethodToExistingType |
-        EditAndContinueCapabilities.NewTypeDefinition |
-        EditAndContinueCapabilities.ChangeCustomAttributes |
-        EditAndContinueCapabilities.UpdateParameters;
-
     public const EditAndContinueCapabilities Net5RuntimeCapabilities =
         EditAndContinueCapabilities.Baseline |
         EditAndContinueCapabilities.AddInstanceFieldToExistingType |

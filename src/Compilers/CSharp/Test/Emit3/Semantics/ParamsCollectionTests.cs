@@ -17035,54 +17035,5 @@ class Program
 }
 ");
         }
-
-        [Fact]
-        public void ScopedParams()
-        {
-            var source = """
-                using System.Collections;
-                using System.Collections.Generic;
-                ref struct S : IEnumerable<int>
-                {
-                    public void Add(int i) { }
-
-                    public IEnumerator<int> GetEnumerator() => throw null;
-                    IEnumerator IEnumerable.GetEnumerator() => throw null;
-                }
-                static class C
-                {
-                    public static void M(scoped params S x)
-                    {
-                    }
-                }
-                """;
-            CreateCompilation(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(
-                // (12,33): error CS9348: The 'params' modifier cannot immediately follow the 'scoped' modifier.
-                //     public static void M(scoped params S x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "params").WithArguments("params").WithLocation(12, 33));
-        }
-
-        [Fact]
-        public void ParamsScoped()
-        {
-            var source = """
-                using System.Collections;
-                using System.Collections.Generic;
-                ref struct S : IEnumerable<int>
-                {
-                    public void Add(int i) { }
-                
-                    public IEnumerator<int> GetEnumerator() => throw null;
-                    IEnumerator IEnumerable.GetEnumerator() => throw null;
-                }
-                static class C
-                {
-                    public static void M(params scoped S x)
-                    {
-                    }
-                }
-                """;
-            CreateCompilation(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics();
-        }
     }
 }

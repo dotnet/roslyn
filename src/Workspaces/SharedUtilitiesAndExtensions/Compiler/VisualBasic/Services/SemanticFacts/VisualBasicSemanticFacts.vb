@@ -9,7 +9,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.LanguageService
-Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -338,10 +337,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function TryGetPrimaryConstructor(typeSymbol As INamedTypeSymbol, <NotNullWhen(True)> ByRef primaryConstructor As IMethodSymbol) As Boolean Implements ISemanticFacts.TryGetPrimaryConstructor
             ' VB does not support primary constructors
             Return False
-        End Function
-
-        Public Function ClassifyConversion(semanticModel As SemanticModel, expression As SyntaxNode, destination As ITypeSymbol) As CommonConversion Implements ISemanticFacts.ClassifyConversion
-            Return semanticModel.ClassifyConversion(DirectCast(expression, ExpressionSyntax), destination).ToCommonConversion()
         End Function
 
 #If VISUAL_BASIC_WORKSPACE Then

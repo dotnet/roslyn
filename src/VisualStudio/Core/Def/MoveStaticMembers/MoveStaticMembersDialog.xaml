@@ -63,7 +63,7 @@
                     </Style>
                 </ComboBox.ItemContainerStyle>
                 <ComboBox.ItemTemplate>
-                    <DataTemplate DataType="movestaticmembers:TypeNameItem">
+                    <DataTemplate DataType="Microsoft.VisualStudio.LanguageServices.Implementation.MoveMembersToType.TypeNameItem">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -73,18 +73,18 @@
                             </Grid.ColumnDefinitions>
                             <imaging:CrispImage
                                 Grid.Column="0"
-                                Visibility="{Binding Path=IsFromHistory, Mode=OneTime, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                Visibility="{Binding IsFromHistory, Converter={StaticResource BooleanToVisibilityConverter}}" 
                                 Margin="0 0 5 0" 
                                 Moniker="{x:Static imagecatalog:KnownMonikers.History}" />
                             <TextBlock
                                 Grid.Column="3"
                                 HorizontalAlignment="Left"
                                 TextTrimming="CharacterEllipsis"
-                                Text="{Binding Path=FullyQualifiedTypeName, Mode=OneTime}"/>
+                                Text="{Binding TypeName}"/>
                             <TextBlock
                                 Grid.Column="4"
                                 HorizontalAlignment="Right"
-                                Text="{Binding Path=DeclarationFileName, Mode=OneTime}"/>
+                                Text="{Binding DeclarationFile}"/>
                         </Grid>
                     </DataTemplate>
                 </ComboBox.ItemTemplate>

@@ -34,7 +34,7 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
     /// </summary>
     /// <remarks>
     /// <para>The value of 256k reduced the number of files dumped to separate memory mapped files by 60% compared to
-    /// the next lower power-of-2 size for Roslyn.slnx itself.</para>
+    /// the next lower power-of-2 size for Roslyn.sln itself.</para>
     /// </remarks>
     /// <seealso cref="_fileReference"/>
     private const long SingleFileThreshold = 256 * 1024;
@@ -44,7 +44,7 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
     /// </summary>
     /// <remarks>
     /// <para>This value (8mb) creates roughly 35 memory mapped files (around 300MB) to store the contents of all of
-    /// Roslyn.slnx a snapshot. This keeps the data safe, so that we can drop it from memory when not needed, but
+    /// Roslyn.sln a snapshot. This keeps the data safe, so that we can drop it from memory when not needed, but
     /// reconstitute the contents we originally had in the snapshot in case the original files change on disk.</para>
     /// </remarks>
     /// <seealso cref="_fileReference"/>

@@ -63,16 +63,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServer;
     "CS8420", // ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait
     "CS9217", // ErrorCode.ERR_RefLocalAcrossAwait
     "CS9274", // ErrorCode.ERR_DataSectionStringLiteralHashCollision
-    "CS9328", // ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync
-    "CS8911", // ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported
-    "CS7043", // ErrorCode.ERR_EncUpdateFailedMissingSymbol
-    "CS7096", // ErrorCode.ERR_EncNoPIAReference
-    "CS7101", // ErrorCode.ERR_EncReferenceToAddedMember
-    "CS9346"  // ErrorCode.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime
+    "CS9328"  // ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync
     )]
 [Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpLspBuildOnlyDiagnostics() : ILspBuildOnlyDiagnostics
+internal sealed class CSharpLspBuildOnlyDiagnostics : ILspBuildOnlyDiagnostics
 {
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpLspBuildOnlyDiagnostics()
+    {
+    }
 }

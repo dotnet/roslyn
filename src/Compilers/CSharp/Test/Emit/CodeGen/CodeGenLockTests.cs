@@ -67,7 +67,7 @@ public class Test
  -IL_002c:  ldstr      ""After""
   IL_0031:  call       ""void System.Console.WriteLine(string)""
  -IL_0036:  ret
-}", sequencePointDisplay: SequencePointDisplayMode.Minimal);
+}", sequencePoints: "Test.M");
         }
 
         [Fact]
@@ -122,7 +122,7 @@ public class Test
  -IL_0030:  ldstr      ""After""
   IL_0035:  call       ""void System.Console.WriteLine(string)""
  -IL_003a:  ret
-}", sequencePointDisplay: SequencePointDisplayMode.Minimal);
+}", sequencePoints: "Test.M");
         }
 
         [Fact]
@@ -397,7 +397,7 @@ public class Test
  -IL_0030:  ldstr      ""After""
   IL_0035:  call       ""void System.Console.WriteLine(string)""
  -IL_003a:  ret
-}", sequencePointDisplay: SequencePointDisplayMode.Minimal);
+}", sequencePoints: "Test.M");
         }
 
         [Fact]
@@ -1387,7 +1387,7 @@ public class Test
  -IL_0025:  ldstr      ""After""
   IL_002a:  call       ""void System.Console.WriteLine(string)""
  -IL_002f:  ret
-}", sequencePointDisplay: SequencePointDisplayMode.Minimal);
+}", sequencePoints: "Test.M");
         }
 
         [Fact]

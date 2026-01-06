@@ -663,7 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // postfix: temp = operand;                        operand = (X)(T.Increment((T)temp)));
                 tempInitializers.Add(MakeAssignmentOperator(syntax, boundTemp, isPrefix ? newValue : MakeRValue(transformedLHS), used: false, isChecked: isChecked, AssignmentKind.SimpleAssignment));
 
-                if (!isPrefix && IsExtensionBlockMemberAccessWithByValPossiblyStructReceiver(transformedLHS))
+                if (!isPrefix && IsNewExtensionMemberAccessWithByValPossiblyStructReceiver(transformedLHS))
                 {
                     // We need to create a tree that ensures that receiver of 'set' is evaluated after the increment operation
                     BoundLocal incrementResult = _factory.StoreToTemp(newValue, out BoundAssignmentOperator assignmentToTemp, refKind: RefKind.None);

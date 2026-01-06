@@ -17,8 +17,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Shows the name and the parameters of the delegate (e.g. "SomeDelegate(int x)").  
         /// <para>
-        /// This option determines whether the parameter list (the <c>(...)</c> part) is shown.
-        /// The content of the parameter list is controlled by <see cref="SymbolDisplayParameterOptions"/>.
+        /// The format of the parameters will be determined by the other flags passed.
         /// </para>
         /// </summary>
         NameAndParameters = 1,
@@ -26,8 +25,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Shows the name and the signature of the delegate (e.g. "void SomeDelegate(int x)").
         /// <para>
-        /// This option determines whether the full signature (return type and parameter list) is shown.
-        /// The content of the parameter list is controlled by <see cref="SymbolDisplayParameterOptions"/>.
+        /// The format of the signature will be determined by the other flags passed.
         /// </para>
         /// </summary>
         NameAndSignature = 2,

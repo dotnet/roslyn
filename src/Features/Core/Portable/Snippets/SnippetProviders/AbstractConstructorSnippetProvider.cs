@@ -16,4 +16,7 @@ internal abstract class AbstractConstructorSnippetProvider<TConstructorDeclarati
     public sealed override string Description => FeaturesResources.constructor;
 
     public sealed override ImmutableArray<string> AdditionalFilterTexts { get; } = ["constructor"];
+
+    protected sealed override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(TConstructorDeclarationSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        => [];
 }

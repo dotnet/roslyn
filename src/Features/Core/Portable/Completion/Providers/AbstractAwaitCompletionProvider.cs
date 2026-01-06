@@ -57,7 +57,7 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
     }
 
     protected abstract int GetAsyncKeywordInsertionPosition(SyntaxNode declaration);
-    protected abstract Task<TextChange?> GetReturnTypeChangeAsync(Solution solution, SemanticModel semanticModel, SyntaxNode declaration, CancellationToken cancellationToken);
+    protected abstract TextChange? GetReturnTypeChange(SemanticModel semanticModel, SyntaxNode declaration, CancellationToken cancellationToken);
 
     protected abstract SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken leftToken, int position);
 
@@ -192,8 +192,7 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
 
             // Try to fixup the return type to be task-like if needed.
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var returnTypeChange = await GetReturnTypeChangeAsync(
-                document.Project.Solution, semanticModel, declaration, cancellationToken).ConfigureAwait(false);
+            var returnTypeChange = GetReturnTypeChange(semanticModel, declaration, cancellationToken);
             var addImportsChanges = returnTypeChange == null
                 ? []
                 : await ImportCompletionProviderHelpers.GetAddImportTextChangesAsync(

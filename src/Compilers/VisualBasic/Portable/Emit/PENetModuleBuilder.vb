@@ -52,12 +52,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Public Overrides ReadOnly Property MethodImplSupported As Boolean
-            Get
-                Return True
-            End Get
-        End Property
-
         Public Overrides Function TryGetOrCreateSynthesizedHotReloadExceptionType() As INamedTypeSymbolInternal
             Return Nothing
         End Function

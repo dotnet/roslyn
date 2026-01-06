@@ -65,9 +65,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var source = builder.ToString();
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
-                // (3,31): error CS9342: Operator resolution is ambiguous between the following members: 'C.operator +(C, C0)' and 'C.operator +(C, C1)'
+                // (3,29): error CS0034: Operator '+' is ambiguous on operands of type 'C' and '<null>'
                 //     static object F(C x) => x + null;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("C.operator +(C, C0)", "C.operator +(C, C1)").WithLocation(3, 31));
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x + null").WithArguments("+", "C", "<null>").WithLocation(3, 29));
         }
 
         [ConditionalFact(typeof(IsRelease))]

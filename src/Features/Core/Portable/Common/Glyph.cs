@@ -115,7 +115,5 @@ internal enum Glyph
 
     AddReference,
     NuGet,
-    TargetTypeMatch,
-
-    Copilot,
+    TargetTypeMatch
 }

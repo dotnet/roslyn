@@ -708,28 +708,4 @@ public sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzerTests(ITestOutp
                 }
             }
             """);
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80747")]
-    public Task TestArithmeticParentheses()
-        => TestInRegularAndScriptAsync(
-            """
-            class C
-            {
-                static void Main(string[] args)
-                {
-                    int a = 10;
-                    _ = [|a > -1 && a < 100|];
-                }
-            }
-            """,
-            """
-            class C
-            {
-                static void Main(string[] args)
-                {
-                    int a = 10;
-                    _ = a is > -1 and < 100;
-                }
-            }
-            """);
 }

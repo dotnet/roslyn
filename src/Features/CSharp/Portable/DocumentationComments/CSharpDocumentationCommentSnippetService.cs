@@ -56,7 +56,6 @@ internal sealed class CSharpDocumentationCommentSnippetService() : AbstractDocum
             case SyntaxKind.EventFieldDeclaration:
             case SyntaxKind.OperatorDeclaration:
             case SyntaxKind.ConversionOperatorDeclaration:
-            case SyntaxKind.ExtensionBlockDeclaration:
                 return true;
 
             default:

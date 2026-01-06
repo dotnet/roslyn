@@ -8670,24 +8670,20 @@ switch (e)
                 // (5,5): error CS8400: Feature 'relational pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     >= 3 => 3,
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, ">=").WithArguments("relational pattern", "9.0").WithLocation(5, 5),
-                // (6,5): error CS9344: The '==' operator is not supported in a pattern.
+                // (6,5): error CS8400: Feature 'relational pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     == 4 => 4,
-                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "==").WithLocation(6, 5),
-                // (7,1): error CS8400: Feature 'not pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //     != 5 => 5,
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "").WithArguments("not pattern", "9.0").WithLocation(7, 1),
-                // (7,5): error CS9345: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
-                //     != 5 => 5,
-                Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(7, 5));
-
-            UsingStatement(test, TestOptions.RegularWithoutPatternCombinators,
-                // (6,5): error CS9344: The '==' operator is not supported in a pattern.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "==").WithArguments("relational pattern", "9.0").WithLocation(6, 5),
+                // (6,5): error CS1525: Invalid expression term '=='
                 //     == 4 => 4,
-                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "==").WithLocation(6, 5),
-                // (7,5): error CS9345: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "==").WithArguments("==").WithLocation(6, 5),
+                // (7,5): error CS8400: Feature 'relational pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     != 5 => 5,
-                Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(7, 5));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "!=").WithArguments("relational pattern", "9.0").WithLocation(7, 5),
+                // (7,5): error CS1525: Invalid expression term '!='
+                //     != 5 => 5,
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!=").WithArguments("!=").WithLocation(7, 5));
 
+            UsingStatement(test, TestOptions.RegularWithoutPatternCombinators);
             N(SyntaxKind.ExpressionStatement);
             {
                 N(SyntaxKind.SimpleAssignmentExpression);
@@ -8775,8 +8771,9 @@ switch (e)
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.SwitchExpressionArm);
                         {
-                            N(SyntaxKind.ConstantPattern);
+                            N(SyntaxKind.RelationalPattern);
                             {
+                                N(SyntaxKind.EqualsEqualsToken);
                                 N(SyntaxKind.NumericLiteralExpression);
                                 {
                                     N(SyntaxKind.NumericLiteralToken, "4");
@@ -8791,15 +8788,12 @@ switch (e)
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.SwitchExpressionArm);
                         {
-                            N(SyntaxKind.NotPattern);
+                            N(SyntaxKind.RelationalPattern);
                             {
-                                M(SyntaxKind.NotKeyword);
-                                N(SyntaxKind.ConstantPattern);
+                                N(SyntaxKind.ExclamationEqualsToken);
+                                N(SyntaxKind.NumericLiteralExpression);
                                 {
-                                    N(SyntaxKind.NumericLiteralExpression);
-                                    {
-                                        N(SyntaxKind.NumericLiteralToken, "5");
-                                    }
+                                    N(SyntaxKind.NumericLiteralToken, "5");
                                 }
                             }
                             N(SyntaxKind.EqualsGreaterThanToken);
@@ -8839,13 +8833,31 @@ switch (e)
                 // (2,13): error CS8504: Pattern missing
                 //     < 0 < 0 => 0,
                 Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(2, 13),
-                // (3,5): error CS9344: The '==' operator is not supported in a pattern.
+                // (3,10): error CS1003: Syntax error, '=>' expected
                 //     == 4 < 4 => 4,
-                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "==").WithLocation(3, 5),
-                // (4,5): error CS9345: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
+                Diagnostic(ErrorCode.ERR_SyntaxError, "<").WithArguments("=>").WithLocation(3, 10),
+                // (3,10): error CS1525: Invalid expression term '<'
+                //     == 4 < 4 => 4,
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<").WithArguments("<").WithLocation(3, 10),
+                // (3,14): error CS1003: Syntax error, ',' expected
+                //     == 4 < 4 => 4,
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(3, 14),
+                // (3,14): error CS8504: Pattern missing
+                //     == 4 < 4 => 4,
+                Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(3, 14),
+                // (4,10): error CS1003: Syntax error, '=>' expected
                 //     != 5 < 5 => 5,
-                Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(4, 5));
-
+                Diagnostic(ErrorCode.ERR_SyntaxError, "<").WithArguments("=>").WithLocation(4, 10),
+                // (4,10): error CS1525: Invalid expression term '<'
+                //     != 5 < 5 => 5,
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<").WithArguments("<").WithLocation(4, 10),
+                // (4,14): error CS1003: Syntax error, ',' expected
+                //     != 5 < 5 => 5,
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(4, 14),
+                // (4,14): error CS8504: Pattern missing
+                //     != 5 < 5 => 5,
+                Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(4, 14)
+                );
             N(SyntaxKind.ExpressionStatement);
             {
                 N(SyntaxKind.SimpleAssignmentExpression);
@@ -8906,19 +8918,36 @@ switch (e)
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.SwitchExpressionArm);
                         {
-                            N(SyntaxKind.ConstantPattern);
+                            N(SyntaxKind.RelationalPattern);
                             {
-                                N(SyntaxKind.LessThanExpression);
+                                N(SyntaxKind.EqualsEqualsToken);
+                                N(SyntaxKind.NumericLiteralExpression);
                                 {
-                                    N(SyntaxKind.NumericLiteralExpression);
-                                    {
-                                        N(SyntaxKind.NumericLiteralToken, "4");
-                                    }
-                                    N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.NumericLiteralExpression);
-                                    {
-                                        N(SyntaxKind.NumericLiteralToken, "4");
-                                    }
+                                    N(SyntaxKind.NumericLiteralToken, "4");
+                                }
+                            }
+                            M(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.LessThanExpression);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "4");
+                                }
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.SwitchExpressionArm);
+                        {
+                            M(SyntaxKind.ConstantPattern);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
                                 }
                             }
                             N(SyntaxKind.EqualsGreaterThanToken);
@@ -8930,23 +8959,36 @@ switch (e)
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.SwitchExpressionArm);
                         {
-                            N(SyntaxKind.NotPattern);
+                            N(SyntaxKind.RelationalPattern);
                             {
-                                M(SyntaxKind.NotKeyword);
-                                N(SyntaxKind.ConstantPattern);
+                                N(SyntaxKind.ExclamationEqualsToken);
+                                N(SyntaxKind.NumericLiteralExpression);
                                 {
-                                    N(SyntaxKind.LessThanExpression);
-                                    {
-                                        N(SyntaxKind.NumericLiteralExpression);
-                                        {
-                                            N(SyntaxKind.NumericLiteralToken, "5");
-                                        }
-                                        N(SyntaxKind.LessThanToken);
-                                        N(SyntaxKind.NumericLiteralExpression);
-                                        {
-                                            N(SyntaxKind.NumericLiteralToken, "5");
-                                        }
-                                    }
+                                    N(SyntaxKind.NumericLiteralToken, "5");
+                                }
+                            }
+                            M(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.LessThanExpression);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "5");
+                                }
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.SwitchExpressionArm);
+                        {
+                            M(SyntaxKind.ConstantPattern);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
                                 }
                             }
                             N(SyntaxKind.EqualsGreaterThanToken);
@@ -8973,14 +9015,8 @@ switch (e)
     == 4 << 4 => 4,
     != 5 << 5 => 5,
 };",
-                TestOptions.RegularWithPatternCombinators,
-                // (3,5): error CS9344: The '==' operator is not supported in a pattern.
-                //     == 4 << 4 => 4,
-                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "==").WithLocation(3, 5),
-                // (4,5): error CS9345: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
-                //     != 5 << 5 => 5,
-                Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(4, 5));
-
+                TestOptions.RegularWithPatternCombinators
+                );
             N(SyntaxKind.ExpressionStatement);
             {
                 N(SyntaxKind.SimpleAssignmentExpression);
@@ -9025,8 +9061,9 @@ switch (e)
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.SwitchExpressionArm);
                         {
-                            N(SyntaxKind.ConstantPattern);
+                            N(SyntaxKind.RelationalPattern);
                             {
+                                N(SyntaxKind.EqualsEqualsToken);
                                 N(SyntaxKind.LeftShiftExpression);
                                 {
                                     N(SyntaxKind.NumericLiteralExpression);
@@ -9049,22 +9086,19 @@ switch (e)
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.SwitchExpressionArm);
                         {
-                            N(SyntaxKind.NotPattern);
+                            N(SyntaxKind.RelationalPattern);
                             {
-                                M(SyntaxKind.NotKeyword);
-                                N(SyntaxKind.ConstantPattern);
+                                N(SyntaxKind.ExclamationEqualsToken);
+                                N(SyntaxKind.LeftShiftExpression);
                                 {
-                                    N(SyntaxKind.LeftShiftExpression);
+                                    N(SyntaxKind.NumericLiteralExpression);
                                     {
-                                        N(SyntaxKind.NumericLiteralExpression);
-                                        {
-                                            N(SyntaxKind.NumericLiteralToken, "5");
-                                        }
-                                        N(SyntaxKind.LessThanLessThanToken);
-                                        N(SyntaxKind.NumericLiteralExpression);
-                                        {
-                                            N(SyntaxKind.NumericLiteralToken, "5");
-                                        }
+                                        N(SyntaxKind.NumericLiteralToken, "5");
+                                    }
+                                    N(SyntaxKind.LessThanLessThanToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "5");
                                     }
                                 }
                             }
@@ -12711,1096 +12745,6 @@ switch (e)
                         }
                         N(SyntaxKind.CloseBraceToken);
                     }
-                }
-            }
-            EOF();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58010")]
-        public void EqualityOperatorInPattern()
-        {
-            UsingStatement(@"_ = goo switch { == 5 => 5 };",
-                // (1,18): error CS9344: The '==' operator is not supported in a pattern.
-                // _ = goo switch { != 5 => 5 };
-                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "==").WithLocation(1, 18));
-
-            N(SyntaxKind.ExpressionStatement);
-            {
-                N(SyntaxKind.SimpleAssignmentExpression);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "_");
-                    }
-                    N(SyntaxKind.EqualsToken);
-                    N(SyntaxKind.SwitchExpression);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "goo");
-                        }
-                        N(SyntaxKind.SwitchKeyword);
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.SwitchExpressionArm);
-                        {
-                            N(SyntaxKind.ConstantPattern);
-                            {
-                                N(SyntaxKind.NumericLiteralExpression);
-                                {
-                                    N(SyntaxKind.NumericLiteralToken, "5");
-                                }
-                            }
-                            N(SyntaxKind.EqualsGreaterThanToken);
-                            N(SyntaxKind.NumericLiteralExpression);
-                            {
-                                N(SyntaxKind.NumericLiteralToken, "5");
-                            }
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
-            EOF();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58010")]
-        public void InequalityOperatorInPattern()
-        {
-            UsingStatement(@"_ = goo switch { != 5 => 5 };",
-                // (1,18): error CS9344: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
-                // _ = goo switch { != 5 => 5 };
-                Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(1, 18));
-
-            N(SyntaxKind.ExpressionStatement);
-            {
-                N(SyntaxKind.SimpleAssignmentExpression);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "_");
-                    }
-                    N(SyntaxKind.EqualsToken);
-                    N(SyntaxKind.SwitchExpression);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "goo");
-                        }
-                        N(SyntaxKind.SwitchKeyword);
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.SwitchExpressionArm);
-                        {
-                            N(SyntaxKind.NotPattern);
-                            {
-                                M(SyntaxKind.NotKeyword);
-                                N(SyntaxKind.ConstantPattern);
-                                {
-                                    N(SyntaxKind.NumericLiteralExpression);
-                                    {
-                                        N(SyntaxKind.NumericLiteralToken, "5");
-                                    }
-                                }
-                            }
-                            N(SyntaxKind.EqualsGreaterThanToken);
-                            N(SyntaxKind.NumericLiteralExpression);
-                            {
-                                N(SyntaxKind.NumericLiteralToken, "5");
-                            }
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.SemicolonToken);
-            }
-            EOF();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58010")]
-        public void InvalidUnaryOperatorInPattern1()
-        {
-            UsingStatement(@"if (x is == not 5) ;",
-                // (1,10): error CS9344: The '==' operator is not supported in a pattern.
-                // if (x is == not 5) ;
-                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "==").WithLocation(1, 10));
-
-            N(SyntaxKind.IfStatement);
-            {
-                N(SyntaxKind.IfKeyword);
-                N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.IsPatternExpression);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
-                    N(SyntaxKind.IsKeyword);
-                    N(SyntaxKind.NotPattern);
-                    {
-                        N(SyntaxKind.NotKeyword);
-                        N(SyntaxKind.ConstantPattern);
-                        {
-                            N(SyntaxKind.NumericLiteralExpression);
-                            {
-                                N(SyntaxKind.NumericLiteralToken, "5");
-                            }
-                        }
-                    }
-                }
-                N(SyntaxKind.CloseParenToken);
-                N(SyntaxKind.EmptyStatement);
-                {
-                    N(SyntaxKind.SemicolonToken);
-                }
-            }
-            EOF();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58010")]
-        public void InvalidUnaryOperatorInPattern2()
-        {
-            UsingStatement(@"if (x is == == 5) ;",
-                // (1,10): error CS9344: The '==' operator is not supported in a pattern.
-                // if (x is == == 5) ;
-                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "==").WithLocation(1, 10),
-                // (1,13): error CS9344: The '==' operator is not supported in a pattern.
-                // if (x is == == 5) ;
-                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "==").WithLocation(1, 13));
-
-            N(SyntaxKind.IfStatement);
-            {
-                N(SyntaxKind.IfKeyword);
-                N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.IsPatternExpression);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
-                    N(SyntaxKind.IsKeyword);
-                    N(SyntaxKind.ConstantPattern);
-                    {
-                        N(SyntaxKind.NumericLiteralExpression);
-                        {
-                            N(SyntaxKind.NumericLiteralToken, "5");
-                        }
-                    }
-                }
-                N(SyntaxKind.CloseParenToken);
-                N(SyntaxKind.EmptyStatement);
-                {
-                    N(SyntaxKind.SemicolonToken);
-                }
-            }
-            EOF();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58010")]
-        public void InvalidUnaryOperatorInPattern3()
-        {
-            UsingStatement(@"if (x is == != 5) ;",
-                // (1,10): error CS9344: The '==' operator is not supported in a pattern.
-                // if (x is == != 5) ;
-                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "==").WithLocation(1, 10),
-                // (1,13): error CS9345: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
-                // if (x is == != 5) ;
-                Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(1, 13));
-
-            N(SyntaxKind.IfStatement);
-            {
-                N(SyntaxKind.IfKeyword);
-                N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.IsPatternExpression);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
-                    N(SyntaxKind.IsKeyword);
-                    N(SyntaxKind.NotPattern);
-                    {
-                        M(SyntaxKind.NotKeyword);
-                        N(SyntaxKind.ConstantPattern);
-                        {
-                            N(SyntaxKind.NumericLiteralExpression);
-                            {
-                                N(SyntaxKind.NumericLiteralToken, "5");
-                            }
-                        }
-                    }
-                }
-                N(SyntaxKind.CloseParenToken);
-                N(SyntaxKind.EmptyStatement);
-                {
-                    N(SyntaxKind.SemicolonToken);
-                }
-            }
-            EOF();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58010")]
-        public void InvalidUnaryOperatorInPattern4()
-        {
-            UsingStatement(@"if (x is != not 5) ;",
-                // (1,10): error CS9345: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
-                // if (x is != not 5) ;
-                Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(1, 10));
-
-            N(SyntaxKind.IfStatement);
-            {
-                N(SyntaxKind.IfKeyword);
-                N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.IsPatternExpression);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
-                    N(SyntaxKind.IsKeyword);
-                    N(SyntaxKind.NotPattern);
-                    {
-                        M(SyntaxKind.NotKeyword);
-                        N(SyntaxKind.NotPattern);
-                        {
-                            N(SyntaxKind.NotKeyword);
-                            N(SyntaxKind.ConstantPattern);
-                            {
-                                N(SyntaxKind.NumericLiteralExpression);
-                                {
-                                    N(SyntaxKind.NumericLiteralToken, "5");
-                                }
-                            }
-                        }
-                    }
-                }
-                N(SyntaxKind.CloseParenToken);
-                N(SyntaxKind.EmptyStatement);
-                {
-                    N(SyntaxKind.SemicolonToken);
-                }
-            }
-            EOF();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58010")]
-        public void InvalidUnaryOperatorInPattern5()
-        {
-            UsingStatement(@"if (x is != == 5) ;",
-                // (1,10): error CS9345: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
-                // if (x is != == 5) ;
-                Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(1, 10),
-                // (1,13): error CS9344: The '==' operator is not supported in a pattern.
-                // if (x is != == 5) ;
-                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "==").WithLocation(1, 13));
-
-            N(SyntaxKind.IfStatement);
-            {
-                N(SyntaxKind.IfKeyword);
-                N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.IsPatternExpression);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
-                    N(SyntaxKind.IsKeyword);
-                    N(SyntaxKind.NotPattern);
-                    {
-                        M(SyntaxKind.NotKeyword);
-                        N(SyntaxKind.ConstantPattern);
-                        {
-                            N(SyntaxKind.NumericLiteralExpression);
-                            {
-                                N(SyntaxKind.NumericLiteralToken, "5");
-                            }
-                        }
-                    }
-                }
-                N(SyntaxKind.CloseParenToken);
-                N(SyntaxKind.EmptyStatement);
-                {
-                    N(SyntaxKind.SemicolonToken);
-                }
-            }
-            EOF();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58010")]
-        public void InvalidUnaryOperatorInPattern6()
-        {
-            UsingStatement(@"if (x is != != 5) ;",
-                // (1,10): error CS9345: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
-                // if (x is != != 5) ;
-                Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(1, 10),
-                // (1,13): error CS9345: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
-                // if (x is != != 5) ;
-                Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(1, 13));
-
-            N(SyntaxKind.IfStatement);
-            {
-                N(SyntaxKind.IfKeyword);
-                N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.IsPatternExpression);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
-                    N(SyntaxKind.IsKeyword);
-                    N(SyntaxKind.NotPattern);
-                    {
-                        M(SyntaxKind.NotKeyword);
-                        N(SyntaxKind.NotPattern);
-                        {
-                            M(SyntaxKind.NotKeyword);
-                            N(SyntaxKind.ConstantPattern);
-                            {
-                                N(SyntaxKind.NumericLiteralExpression);
-                                {
-                                    N(SyntaxKind.NumericLiteralToken, "5");
-                                }
-                            }
-                        }
-                    }
-                }
-                N(SyntaxKind.CloseParenToken);
-                N(SyntaxKind.EmptyStatement);
-                {
-                    N(SyntaxKind.SemicolonToken);
-                }
-            }
-            EOF();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58010")]
-        public void InvalidUnaryOperatorInPattern7()
-        {
-            UsingStatement(@"if (x is not not 5) ;");
-
-            N(SyntaxKind.IfStatement);
-            {
-                N(SyntaxKind.IfKeyword);
-                N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.IsPatternExpression);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
-                    N(SyntaxKind.IsKeyword);
-                    N(SyntaxKind.NotPattern);
-                    {
-                        N(SyntaxKind.NotKeyword);
-                        N(SyntaxKind.NotPattern);
-                        {
-                            N(SyntaxKind.NotKeyword);
-                            N(SyntaxKind.ConstantPattern);
-                            {
-                                N(SyntaxKind.NumericLiteralExpression);
-                                {
-                                    N(SyntaxKind.NumericLiteralToken, "5");
-                                }
-                            }
-                        }
-                    }
-                }
-                N(SyntaxKind.CloseParenToken);
-                N(SyntaxKind.EmptyStatement);
-                {
-                    N(SyntaxKind.SemicolonToken);
-                }
-            }
-            EOF();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58010")]
-        public void InvalidUnaryOperatorInPattern8()
-        {
-            UsingStatement(@"if (x is not == 5) ;",
-                // (1,14): error CS9344: The '==' operator is not supported in a pattern.
-                // if (x is not == 5) ;
-                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "==").WithLocation(1, 14));
-
-            N(SyntaxKind.IfStatement);
-            {
-                N(SyntaxKind.IfKeyword);
-                N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.IsPatternExpression);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
-                    N(SyntaxKind.IsKeyword);
-                    N(SyntaxKind.NotPattern);
-                    {
-                        N(SyntaxKind.NotKeyword);
-                        N(SyntaxKind.ConstantPattern);
-                        {
-                            N(SyntaxKind.NumericLiteralExpression);
-                            {
-                                N(SyntaxKind.NumericLiteralToken, "5");
-                            }
-                        }
-                    }
-                }
-                N(SyntaxKind.CloseParenToken);
-                N(SyntaxKind.EmptyStatement);
-                {
-                    N(SyntaxKind.SemicolonToken);
-                }
-            }
-            EOF();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58010")]
-        public void InvalidUnaryOperatorInPattern9()
-        {
-            UsingStatement(@"if (x is not != 5) ;",
-                // (1,14): error CS9345: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
-                // if (x is not != 5) ;
-                Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(1, 14));
-
-            N(SyntaxKind.IfStatement);
-            {
-                N(SyntaxKind.IfKeyword);
-                N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.IsPatternExpression);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
-                    N(SyntaxKind.IsKeyword);
-                    N(SyntaxKind.NotPattern);
-                    {
-                        N(SyntaxKind.NotKeyword);
-                        N(SyntaxKind.NotPattern);
-                        {
-                            M(SyntaxKind.NotKeyword);
-                            N(SyntaxKind.ConstantPattern);
-                            {
-                                N(SyntaxKind.NumericLiteralExpression);
-                                {
-                                    N(SyntaxKind.NumericLiteralToken, "5");
-                                }
-                            }
-                        }
-                    }
-                }
-                N(SyntaxKind.CloseParenToken);
-                N(SyntaxKind.EmptyStatement);
-                {
-                    N(SyntaxKind.SemicolonToken);
-                }
-            }
-            EOF();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58010")]
-        public void InvalidUnaryOperatorInPattern10()
-        {
-            UsingStatement(@"if (x is != 5 or == 6) ;",
-                // (1,10): error CS9345: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
-                // if (x is != 5 or == 6) ;
-                Diagnostic(ErrorCode.ERR_InequalityOperatorInPatternNotSupported, "!=").WithLocation(1, 10),
-                // (1,18): error CS9344: The '==' operator is not supported in a pattern.
-                // if (x is != 5 or == 6) ;
-                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "==").WithLocation(1, 18));
-
-            N(SyntaxKind.IfStatement);
-            {
-                N(SyntaxKind.IfKeyword);
-                N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.IsPatternExpression);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
-                    N(SyntaxKind.IsKeyword);
-                    N(SyntaxKind.OrPattern);
-                    {
-                        N(SyntaxKind.NotPattern);
-                        {
-                            M(SyntaxKind.NotKeyword);
-                            N(SyntaxKind.ConstantPattern);
-                            {
-                                N(SyntaxKind.NumericLiteralExpression);
-                                {
-                                    N(SyntaxKind.NumericLiteralToken, "5");
-                                }
-                            }
-                        }
-                        N(SyntaxKind.OrKeyword);
-                        N(SyntaxKind.ConstantPattern);
-                        {
-                            N(SyntaxKind.NumericLiteralExpression);
-                            {
-                                N(SyntaxKind.NumericLiteralToken, "6");
-                            }
-                        }
-                    }
-                }
-                N(SyntaxKind.CloseParenToken);
-                N(SyntaxKind.EmptyStatement);
-                {
-                    N(SyntaxKind.SemicolonToken);
-                }
-            }
-            EOF();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58010")]
-        public void InvalidUnaryOperatorInPattern11()
-        {
-            UsingStatement(@"if (x is == > 10 and < 15) ;",
-                // (1,10): error CS9344: The '==' operator is not supported in a pattern.
-                // if (x is == > 10 and < 15) ;
-                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "==").WithLocation(1, 10));
-
-            N(SyntaxKind.IfStatement);
-            {
-                N(SyntaxKind.IfKeyword);
-                N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.IsPatternExpression);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
-                    N(SyntaxKind.IsKeyword);
-                    N(SyntaxKind.AndPattern);
-                    {
-                        N(SyntaxKind.RelationalPattern);
-                        {
-                            N(SyntaxKind.GreaterThanToken);
-                            N(SyntaxKind.NumericLiteralExpression);
-                            {
-                                N(SyntaxKind.NumericLiteralToken, "10");
-                            }
-                        }
-                        N(SyntaxKind.AndKeyword);
-                        N(SyntaxKind.RelationalPattern);
-                        {
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.NumericLiteralExpression);
-                            {
-                                N(SyntaxKind.NumericLiteralToken, "15");
-                            }
-                        }
-                    }
-                }
-                N(SyntaxKind.CloseParenToken);
-                N(SyntaxKind.EmptyStatement);
-                {
-                    N(SyntaxKind.SemicolonToken);
-                }
-            }
-            EOF();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50220")]
-        public void DesignatorBeforePropertyPattern()
-        {
-            UsingExpression("o is string s { Length: 5 }",
-                // (1,13): error CS8525: A variable designator must come after a property pattern.
-                // o is string s { Length: 5 }
-                Diagnostic(ErrorCode.ERR_DesignatorBeforePropertyPattern, "s").WithLocation(1, 13));
-
-            N(SyntaxKind.IsPatternExpression);
-            {
-                N(SyntaxKind.IdentifierName);
-                {
-                    N(SyntaxKind.IdentifierToken, "o");
-                }
-                N(SyntaxKind.IsKeyword);
-                N(SyntaxKind.RecursivePattern);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.StringKeyword);
-                    }
-                    N(SyntaxKind.PropertyPatternClause);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.Subpattern);
-                        {
-                            N(SyntaxKind.NameColon);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "Length");
-                                }
-                                N(SyntaxKind.ColonToken);
-                            }
-                            N(SyntaxKind.ConstantPattern);
-                            {
-                                N(SyntaxKind.NumericLiteralExpression);
-                                {
-                                    N(SyntaxKind.NumericLiteralToken, "5");
-                                }
-                            }
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-            }
-            EOF();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50220")]
-        public void NotDesignatorBeforePropertyPattern1()
-        {
-            UsingExpression("o is string or { Length: 5 }");
-
-            N(SyntaxKind.IsPatternExpression);
-            {
-                N(SyntaxKind.IdentifierName);
-                {
-                    N(SyntaxKind.IdentifierToken, "o");
-                }
-                N(SyntaxKind.IsKeyword);
-                N(SyntaxKind.OrPattern);
-                {
-                    N(SyntaxKind.TypePattern);
-                    {
-                        N(SyntaxKind.PredefinedType);
-                        {
-                            N(SyntaxKind.StringKeyword);
-                        }
-                    }
-                    N(SyntaxKind.OrKeyword);
-                    N(SyntaxKind.RecursivePattern);
-                    {
-                        N(SyntaxKind.PropertyPatternClause);
-                        {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.Subpattern);
-                            {
-                                N(SyntaxKind.NameColon);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Length");
-                                    }
-                                    N(SyntaxKind.ColonToken);
-                                }
-                                N(SyntaxKind.ConstantPattern);
-                                {
-                                    N(SyntaxKind.NumericLiteralExpression);
-                                    {
-                                        N(SyntaxKind.NumericLiteralToken, "5");
-                                    }
-                                }
-                            }
-                            N(SyntaxKind.CloseBraceToken);
-                        }
-                    }
-                }
-            }
-            EOF();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50220")]
-        public void NotDesignatorBeforePropertyPattern2()
-        {
-            UsingExpression("o is string or { Length: 5 }");
-
-            N(SyntaxKind.IsPatternExpression);
-            {
-                N(SyntaxKind.IdentifierName);
-                {
-                    N(SyntaxKind.IdentifierToken, "o");
-                }
-                N(SyntaxKind.IsKeyword);
-                N(SyntaxKind.OrPattern);
-                {
-                    N(SyntaxKind.TypePattern);
-                    {
-                        N(SyntaxKind.PredefinedType);
-                        {
-                            N(SyntaxKind.StringKeyword);
-                        }
-                    }
-                    N(SyntaxKind.OrKeyword);
-                    N(SyntaxKind.RecursivePattern);
-                    {
-                        N(SyntaxKind.PropertyPatternClause);
-                        {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.Subpattern);
-                            {
-                                N(SyntaxKind.NameColon);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Length");
-                                    }
-                                    N(SyntaxKind.ColonToken);
-                                }
-                                N(SyntaxKind.ConstantPattern);
-                                {
-                                    N(SyntaxKind.NumericLiteralExpression);
-                                    {
-                                        N(SyntaxKind.NumericLiteralToken, "5");
-                                    }
-                                }
-                            }
-                            N(SyntaxKind.CloseBraceToken);
-                        }
-                    }
-                }
-            }
-            EOF();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50220")]
-        public void NotDesignatorBeforePropertyPattern3()
-        {
-            UsingExpression("o is string _ or { Length: 5 }");
-
-            N(SyntaxKind.IsPatternExpression);
-            {
-                N(SyntaxKind.IdentifierName);
-                {
-                    N(SyntaxKind.IdentifierToken, "o");
-                }
-                N(SyntaxKind.IsKeyword);
-                N(SyntaxKind.OrPattern);
-                {
-                    N(SyntaxKind.DeclarationPattern);
-                    {
-                        N(SyntaxKind.PredefinedType);
-                        {
-                            N(SyntaxKind.StringKeyword);
-                        }
-                        N(SyntaxKind.DiscardDesignation);
-                        {
-                            N(SyntaxKind.UnderscoreToken);
-                        }
-                    }
-                    N(SyntaxKind.OrKeyword);
-                    N(SyntaxKind.RecursivePattern);
-                    {
-                        N(SyntaxKind.PropertyPatternClause);
-                        {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.Subpattern);
-                            {
-                                N(SyntaxKind.NameColon);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Length");
-                                    }
-                                    N(SyntaxKind.ColonToken);
-                                }
-                                N(SyntaxKind.ConstantPattern);
-                                {
-                                    N(SyntaxKind.NumericLiteralExpression);
-                                    {
-                                        N(SyntaxKind.NumericLiteralToken, "5");
-                                    }
-                                }
-                            }
-                            N(SyntaxKind.CloseBraceToken);
-                        }
-                    }
-                }
-            }
-            EOF();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50220")]
-        public void DiscardBeforePropertyPattern2()
-        {
-            UsingExpression("o is string _ { Length: 5 }",
-                // (1,13): error CS8525: A variable designator must come after a property pattern.
-                // o is string _ { Length: 5 }
-                Diagnostic(ErrorCode.ERR_DesignatorBeforePropertyPattern, "_").WithLocation(1, 13));
-
-            N(SyntaxKind.IsPatternExpression);
-            {
-                N(SyntaxKind.IdentifierName);
-                {
-                    N(SyntaxKind.IdentifierToken, "o");
-                }
-                N(SyntaxKind.IsKeyword);
-                N(SyntaxKind.RecursivePattern);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.StringKeyword);
-                    }
-                    N(SyntaxKind.PropertyPatternClause);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.Subpattern);
-                        {
-                            N(SyntaxKind.NameColon);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "Length");
-                                }
-                                N(SyntaxKind.ColonToken);
-                            }
-                            N(SyntaxKind.ConstantPattern);
-                            {
-                                N(SyntaxKind.NumericLiteralExpression);
-                                {
-                                    N(SyntaxKind.NumericLiteralToken, "5");
-                                }
-                            }
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-            }
-            EOF();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50220")]
-        public void DesignatorBeforePropertyPatternInSwitchArm1()
-        {
-            UsingStatement("""
-                switch (x)
-                {
-                case M m { }:
-                    break;
-                }
-                """,
-                // (3,8): error CS8525: A variable designator must come after a property pattern.
-                // case M m { }:
-                Diagnostic(ErrorCode.ERR_DesignatorBeforePropertyPattern, "m").WithLocation(3, 8));
-
-            N(SyntaxKind.SwitchStatement);
-            {
-                N(SyntaxKind.SwitchKeyword);
-                N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.IdentifierName);
-                {
-                    N(SyntaxKind.IdentifierToken, "x");
-                }
-                N(SyntaxKind.CloseParenToken);
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.SwitchSection);
-                {
-                    N(SyntaxKind.CasePatternSwitchLabel);
-                    {
-                        N(SyntaxKind.CaseKeyword);
-                        N(SyntaxKind.RecursivePattern);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "M");
-                            }
-                            N(SyntaxKind.PropertyPatternClause);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
-                            }
-                        }
-                        N(SyntaxKind.ColonToken);
-                    }
-                    N(SyntaxKind.BreakStatement);
-                    {
-                        N(SyntaxKind.BreakKeyword);
-                        N(SyntaxKind.SemicolonToken);
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-            EOF();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50220")]
-        public void DesignatorBeforePropertyPatternInSwitchArm2()
-        {
-            // Here, it's more likely that 'when' starts a when clause than being the name of a pattern designator.
-            UsingStatement("""
-                switch (x)
-                {
-                    case M when
-                    {
-                        return;
-                    }
-                }
-                """,
-                // (3,16): error CS1525: Invalid expression term '{'
-                //     case M when
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("{").WithLocation(3, 16),
-                // (3,16): error CS1003: Syntax error, ':' expected
-                //     case M when
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(3, 16));
-
-            N(SyntaxKind.SwitchStatement);
-            {
-                N(SyntaxKind.SwitchKeyword);
-                N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.IdentifierName);
-                {
-                    N(SyntaxKind.IdentifierToken, "x");
-                }
-                N(SyntaxKind.CloseParenToken);
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.SwitchSection);
-                {
-                    N(SyntaxKind.CasePatternSwitchLabel);
-                    {
-                        N(SyntaxKind.CaseKeyword);
-                        N(SyntaxKind.ConstantPattern);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "M");
-                            }
-                        }
-                        N(SyntaxKind.WhenClause);
-                        {
-                            N(SyntaxKind.WhenKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                        M(SyntaxKind.ColonToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.ReturnStatement);
-                        {
-                            N(SyntaxKind.ReturnKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-            EOF();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50220")]
-        public void WhenAsIdentifierInPattern1()
-        {
-            UsingStatement("""
-                if (x is string when { Length: 5 }) ;
-                """,
-                // (1,17): error CS8525: A variable designator must come after a property pattern.
-                // if (x is string when { Length: 5 }) ;
-                Diagnostic(ErrorCode.ERR_DesignatorBeforePropertyPattern, "when").WithLocation(1, 17));
-
-            N(SyntaxKind.IfStatement);
-            {
-                N(SyntaxKind.IfKeyword);
-                N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.IsPatternExpression);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
-                    N(SyntaxKind.IsKeyword);
-                    N(SyntaxKind.RecursivePattern);
-                    {
-                        N(SyntaxKind.PredefinedType);
-                        {
-                            N(SyntaxKind.StringKeyword);
-                        }
-                        N(SyntaxKind.PropertyPatternClause);
-                        {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.Subpattern);
-                            {
-                                N(SyntaxKind.NameColon);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Length");
-                                    }
-                                    N(SyntaxKind.ColonToken);
-                                }
-                                N(SyntaxKind.ConstantPattern);
-                                {
-                                    N(SyntaxKind.NumericLiteralExpression);
-                                    {
-                                        N(SyntaxKind.NumericLiteralToken, "5");
-                                    }
-                                }
-                            }
-                            N(SyntaxKind.CloseBraceToken);
-                        }
-                    }
-                }
-                N(SyntaxKind.CloseParenToken);
-                N(SyntaxKind.EmptyStatement);
-                {
-                    N(SyntaxKind.SemicolonToken);
-                }
-            }
-            EOF();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50220")]
-        public void WhenAsIdentifierInPattern2()
-        {
-            UsingStatement("""
-                if (x is string { Length: 5 } when) ;
-                """);
-
-            N(SyntaxKind.IfStatement);
-            {
-                N(SyntaxKind.IfKeyword);
-                N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.IsPatternExpression);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
-                    N(SyntaxKind.IsKeyword);
-                    N(SyntaxKind.RecursivePattern);
-                    {
-                        N(SyntaxKind.PredefinedType);
-                        {
-                            N(SyntaxKind.StringKeyword);
-                        }
-                        N(SyntaxKind.PropertyPatternClause);
-                        {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.Subpattern);
-                            {
-                                N(SyntaxKind.NameColon);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Length");
-                                    }
-                                    N(SyntaxKind.ColonToken);
-                                }
-                                N(SyntaxKind.ConstantPattern);
-                                {
-                                    N(SyntaxKind.NumericLiteralExpression);
-                                    {
-                                        N(SyntaxKind.NumericLiteralToken, "5");
-                                    }
-                                }
-                            }
-                            N(SyntaxKind.CloseBraceToken);
-                        }
-                        N(SyntaxKind.SingleVariableDesignation);
-                        {
-                            N(SyntaxKind.IdentifierToken, "when");
-                        }
-                    }
-                }
-                N(SyntaxKind.CloseParenToken);
-                N(SyntaxKind.EmptyStatement);
-                {
-                    N(SyntaxKind.SemicolonToken);
                 }
             }
             EOF();

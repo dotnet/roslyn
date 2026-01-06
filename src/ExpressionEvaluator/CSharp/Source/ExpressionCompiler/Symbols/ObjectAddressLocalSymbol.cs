@@ -4,10 +4,8 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 
@@ -17,23 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     {
         private readonly ulong _address;
 
-        internal ObjectAddressLocalSymbol(MethodSymbol method, string name, TypeSymbol type) :
+        internal ObjectAddressLocalSymbol(MethodSymbol method, string name, TypeSymbol type, ulong address) :
             base(method, name, name, type)
         {
             Debug.Assert(type.SpecialType == SpecialType.System_Object);
-            if (name.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
-            {
-                var valueText = name.Substring(2);
-                if (!ulong.TryParse(valueText, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out _address))
-                {
-                    // Invalid value should have been caught by Lexer.
-                    throw ExceptionUtilities.UnexpectedValue(valueText);
-                }
-            }
-            else
-            {
-                throw ExceptionUtilities.UnexpectedValue(name);
-            }
+            _address = address;
         }
 
         internal override bool IsWritableVariable
@@ -57,16 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 arguments: ImmutableArray.Create<BoundExpression>(argument));
             Debug.Assert(TypeSymbol.Equals(call.Type, this.Type, TypeCompareKind.ConsiderEverything2));
             return call;
-        }
-
-        public override bool Equals(Symbol other, TypeCompareKind compareKind)
-        {
-            return other is ObjectAddressLocalSymbol otherLocal && ContainingSymbol == otherLocal.ContainingSymbol && Name == otherLocal.Name;
-        }
-
-        public override int GetHashCode()
-        {
-            return Name.GetHashCode();
         }
     }
 }

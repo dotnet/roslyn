@@ -1462,7 +1462,6 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
 
     private static readonly DeclarationModifiers s_constructorModifiers =
         DeclarationModifiers.Extern |
-        DeclarationModifiers.Partial |
         DeclarationModifiers.Static |
         DeclarationModifiers.Unsafe;
 
@@ -1472,7 +1471,6 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
         DeclarationModifiers.Extern |
         DeclarationModifiers.New |
         DeclarationModifiers.Override |
-        DeclarationModifiers.Partial |
         DeclarationModifiers.ReadOnly |
         DeclarationModifiers.Required |
         DeclarationModifiers.Sealed |
@@ -1485,7 +1483,6 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
         DeclarationModifiers.Extern |
         DeclarationModifiers.New |
         DeclarationModifiers.Override |
-        DeclarationModifiers.Partial |
         DeclarationModifiers.ReadOnly |
         DeclarationModifiers.Sealed |
         DeclarationModifiers.Static |
@@ -3433,9 +3430,7 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
         => CreateBinaryExpression(SyntaxKind.LogicalOrExpression, left, right);
 
     public override SyntaxNode LogicalNotExpression(SyntaxNode expression)
-        => SyntaxFactory.PrefixUnaryExpression(
-            SyntaxKind.LogicalNotExpression,
-            (ExpressionSyntax)ParenthesizeNonSimple(expression.WithoutLeadingTrivia())).WithLeadingTrivia(expression.GetLeadingTrivia());
+        => SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, (ExpressionSyntax)ParenthesizeNonSimple(expression));
 
     public override SyntaxNode ConditionalExpression(SyntaxNode condition, SyntaxNode whenTrue, SyntaxNode whenFalse)
         => SyntaxFactory.ConditionalExpression((ExpressionSyntax)ParenthesizeNonSimple(condition), (ExpressionSyntax)ParenthesizeNonSimple(whenTrue), (ExpressionSyntax)ParenthesizeNonSimple(whenFalse));

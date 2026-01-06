@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
         Public Sub Test()
             ' This test ensures that our perf benchmark code compiles without problems.
             ' Benchmark code can be found in the following file under the 
-            ' "CompilerTestResources" project that is part of Roslyn.slnx -
+            ' "CompilerTestResources" project that is part of Roslyn.sln -
             '      $/Roslyn/Main/Open/Compilers/Test/Resources/Core/PerfTests/VBPerfTest.vb
 
             ' You can also use VS's "Navigate To" feature to find the above file easily -

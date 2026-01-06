@@ -6,7 +6,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:utilities="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Utilities"
-             xmlns:langServiceUtils="clr-namespace:Microsoft.VisualStudio.LanguageServices.Utilities"
              xmlns:commoncontrols="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls"
              xmlns:platformimaging="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:vsutil="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Utilities"
@@ -71,7 +70,7 @@
             <DataGrid.Columns>
                 <DataGridTemplateColumn Width="Auto">
                     <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate DataType="{x:Type langServiceUtils:MemberSymbolViewModel}">
+                        <DataTemplate>
                             <Grid Background="{DynamicResource {x:Static vsui:HeaderColors.DefaultBrushKey}}">
                                 <CheckBox
                                     AutomationProperties.Name="{Binding SymbolAutomationText}"
@@ -82,7 +81,7 @@
                                     Focusable="True"
                                     ToolTipService.ShowOnDisabled="True"
                                     ToolTipService.IsEnabled="{Binding IsCheckable, Converter={StaticResource BooleanReverseConverter}, UpdateSourceTrigger=PropertyChanged}"
-                                    ToolTipService.ToolTip="{Binding TooltipText}"/>
+                                    ToolTipService.ToolTip="{Binding HelpText}"/>
                             </Grid>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>

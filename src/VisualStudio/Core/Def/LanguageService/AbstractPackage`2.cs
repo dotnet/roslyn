@@ -26,13 +26,12 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
 {
     private PackageInstallerService? _packageInstallerService;
     private VisualStudioSymbolSearchService? _symbolSearchService;
+    private IVsShell? _shell;
 
     /// <summary>
     /// Set to 1 if we've already preloaded project system components. Should be updated with <see cref="Interlocked.CompareExchange{T}(ref T, T, T)" />
     /// </summary>
     private int _projectSystemComponentsPreloaded;
-
-    private bool _objectBrowserLibraryManagerRegistered = false;
 
     protected AbstractPackage()
     {
@@ -48,14 +47,26 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
 
     private async Task PackageInitializationMainThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
     {
-        // We still need to ensure the RoslynPackage is loaded, since it's OnAfterPackageLoaded will hook up event handlers in RoslynPackage.LoadComponentsAsync.
-        // Once that method has been replaced, then this package load can be removed.
-        var shell = await GetServiceAsync<SVsShell, IVsShell7>(throwOnFailure: true, cancellationToken).ConfigureAwait(true);
+        // This code uses various main thread only services, so it must run completely on the main thread
+        // (thus the CA(true) usage throughout)
+        Contract.ThrowIfFalse(JoinableTaskFactory.Context.IsOnMainThread);
+
+        var shell = (IVsShell7?)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
         Assumes.Present(shell);
+
+        _shell = (IVsShell?)shell;
+        Assumes.Present(_shell);
+
+        foreach (var editorFactory in CreateEditorFactories())
+        {
+            RegisterEditorFactory(editorFactory);
+        }
+
+        // awaiting an IVsTask guarantees to return on the captured context
         await shell.LoadPackageAsync(Guids.RoslynPackageId);
     }
 
-    private async Task PackageInitializationBackgroundThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
+    private Task PackageInitializationBackgroundThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
     {
         AddService(typeof(TLanguageService), async (_, cancellationToken, _) =>
             {
@@ -92,10 +103,7 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
 
         RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
 
-        foreach (var editorFactory in CreateEditorFactories())
-        {
-            await RegisterEditorFactoryAsync(editorFactory, cancellationToken).ConfigureAwait(true);
-        }
+        return Task.CompletedTask;
     }
 
     protected override void RegisterOnAfterPackageLoadedAsyncWork(PackageLoadTasks afterPackageLoadedTasks)
@@ -104,18 +112,18 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
 
         afterPackageLoadedTasks.AddTask(
             isMainThreadTask: true,
-            task: async (packageLoadedTasks, cancellationToken) =>
+            task: (packageLoadedTasks, cancellationToken) =>
             {
-                if (!await CommandLineMode.IsInCommandLineModeAsync(AsyncServiceProvider.GlobalProvider, cancellationToken).ConfigureAwait(true))
+                if (_shell != null && !_shell.IsInCommandLineMode())
                 {
                     // not every derived package support object browser and for those languages
                     // this is a no op
                     RegisterObjectBrowserLibraryManager();
-
-                    _objectBrowserLibraryManagerRegistered = true;
                 }
 
                 LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
+
+                return Task.CompletedTask;
             });
     }
 
@@ -152,8 +160,7 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
         {
             // Per VS core team, Package.Dispose is called on the UI thread.
             Contract.ThrowIfFalse(JoinableTaskFactory.Context.IsOnMainThread);
-
-            if (_objectBrowserLibraryManagerRegistered)
+            if (_shell != null && !_shell.IsInCommandLineMode())
             {
                 UnregisterObjectBrowserLibraryManager();
             }

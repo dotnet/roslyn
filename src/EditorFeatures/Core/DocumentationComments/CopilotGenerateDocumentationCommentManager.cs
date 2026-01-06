@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Suggestions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -33,38 +32,6 @@ internal sealed class CopilotGenerateDocumentationCommentManager
         _suggestionServiceBase = suggestionServiceBase;
         _threadingContext = threadingContext;
         _asyncListener = listenerProvider.GetListener(FeatureAttribute.GenerateDocumentation);
-    }
-
-    public void StartSuggestionSession(ITextBuffer subjectBuffer, ITextView textView, CancellationToken cancellationToken)
-    {
-        if (_suggestionServiceBase is null)
-        {
-            return;
-        }
-
-        var token = _asyncListener.BeginAsyncOperation(nameof(StartSuggestionSessionAsync));
-        _ = StartSuggestionSessionAsync(subjectBuffer, textView, cancellationToken).CompletesAsyncOperation(token);
-    }
-
-    private static async Task StartSuggestionSessionAsync(ITextBuffer subjectBuffer, ITextView textView, CancellationToken cancellationToken)
-    {
-        var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-        if (document is null)
-        {
-            return;
-        }
-
-        if (await IsCopilotAvailableAsync(document, cancellationToken).ConfigureAwait(false) is null)
-        {
-            return;
-        }
-
-        if (textView.Properties.TryGetProperty<CopilotGenerateDocumentationCommentProvider>(
-            typeof(CopilotGenerateDocumentationCommentProvider), out var existingProvider))
-        {
-            // Start the suggestion session early to claim exclusive control
-            await existingProvider.StartSuggestionSessionAsync(cancellationToken).ConfigureAwait(false);
-        }
     }
 
     public void TriggerDocumentationCommentProposalGeneration(Document document,
@@ -105,7 +72,7 @@ internal sealed class CopilotGenerateDocumentationCommentManager
         return provider;
     }
 
-    private static async Task<ICopilotCodeAnalysisService?> IsCopilotAvailableAsync(Document document, CancellationToken cancellationToken)
+    private static async Task<ICopilotCodeAnalysisService?> IsGenerateDocumentationAvailableAsync(Document document, SyntaxNode? memberNode, CancellationToken cancellationToken)
     {
         // Bailing out if copilot is not available or the option is not enabled.
         if (document.GetLanguageService<ICopilotOptionsService>() is not { } copilotOptionService ||
@@ -116,17 +83,6 @@ internal sealed class CopilotGenerateDocumentationCommentManager
 
         if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
                 await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
-        {
-            return null;
-        }
-
-        return copilotService;
-    }
-
-    private static async Task<ICopilotCodeAnalysisService?> IsGenerateDocumentationAvailableAsync(Document document, SyntaxNode? memberNode, CancellationToken cancellationToken)
-    {
-        var copilotService = await IsCopilotAvailableAsync(document, cancellationToken).ConfigureAwait(false);
-        if (copilotService is null)
         {
             return null;
         }

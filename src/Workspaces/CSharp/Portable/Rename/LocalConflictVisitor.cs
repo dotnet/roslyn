@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 
 namespace Microsoft.CodeAnalysis.CSharp.Rename;
@@ -16,24 +15,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename;
 internal sealed class LocalConflictVisitor : CSharpSyntaxVisitor
 {
     private readonly ConflictingIdentifierTracker _tracker;
-    private readonly HashSet<SyntaxNode> _containingAnonymousMethodsAndLocalFunctions = new();
 
     public LocalConflictVisitor(SyntaxToken tokenBeingRenamed)
-    {
-        _tracker = new ConflictingIdentifierTracker(tokenBeingRenamed, StringComparer.Ordinal);
-
-        // We want to dive into the anonymous-functions/local-functions that surround the initial token being renamed
-        // (so that we can actually descend to the scope that it is defined at). However, we don't need to dive any
-        // deeper as more deeply nested functions can't be affected by this rename.  Specifically, inner functions 
-        // get their own name scope, which does not collide with the scope of this token.
-        _containingAnonymousMethodsAndLocalFunctions.AddRange(
-            tokenBeingRenamed.Parent.AncestorsAndSelf().Where(n => n is AnonymousFunctionExpressionSyntax or LocalFunctionStatementSyntax));
-    }
+        => _tracker = new ConflictingIdentifierTracker(tokenBeingRenamed, StringComparer.Ordinal);
 
     public override void DefaultVisit(SyntaxNode node)
     {
         foreach (var child in node.ChildNodes())
+        {
             Visit(child);
+        }
     }
 
     public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
@@ -49,7 +40,7 @@ internal sealed class LocalConflictVisitor : CSharpSyntaxVisitor
 
     private void VisitBlockStatements(SyntaxNode node, IEnumerable<SyntaxNode> statements)
     {
-        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
+        var tokens = new List<SyntaxToken>();
 
         // We want to collect any variable declarations that are in the block
         // before visiting nested statements
@@ -78,7 +69,7 @@ internal sealed class LocalConflictVisitor : CSharpSyntaxVisitor
 
     public override void VisitForStatement(ForStatementSyntax node)
     {
-        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
+        var tokens = new List<SyntaxToken>();
 
         if (node.Declaration != null)
         {
@@ -92,7 +83,7 @@ internal sealed class LocalConflictVisitor : CSharpSyntaxVisitor
 
     public override void VisitUsingStatement(UsingStatementSyntax node)
     {
-        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
+        var tokens = new List<SyntaxToken>();
 
         if (node.Declaration != null)
         {
@@ -106,7 +97,7 @@ internal sealed class LocalConflictVisitor : CSharpSyntaxVisitor
 
     public override void VisitCatchClause(CatchClauseSyntax node)
     {
-        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
+        var tokens = new List<SyntaxToken>();
 
         if (node.Declaration != null)
         {
@@ -120,29 +111,17 @@ internal sealed class LocalConflictVisitor : CSharpSyntaxVisitor
 
     public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
     {
-        if (_containingAnonymousMethodsAndLocalFunctions.Contains(node))
-            Visit(node.Body);
+        _tracker.AddIdentifier(node.Parameter.Identifier);
+        Visit(node.Body);
+        _tracker.RemoveIdentifier(node.Parameter.Identifier);
     }
 
     public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
     {
-        if (_containingAnonymousMethodsAndLocalFunctions.Contains(node))
-            Visit(node.Body);
-    }
-
-    public override void VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
-    {
-        if (_containingAnonymousMethodsAndLocalFunctions.Contains(node))
-            Visit(node.Body);
-    }
-
-    public override void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
-    {
-        if (_containingAnonymousMethodsAndLocalFunctions.Contains(node))
-        {
-            Visit(node.Body);
-            Visit(node.ExpressionBody);
-        }
+        var tokens = node.ParameterList.Parameters.Select(p => p.Identifier);
+        _tracker.AddIdentifiers(tokens);
+        Visit(node.Body);
+        _tracker.RemoveIdentifiers(tokens);
     }
 
     public override void VisitQueryExpression(QueryExpressionSyntax node)
@@ -152,7 +131,7 @@ internal sealed class LocalConflictVisitor : CSharpSyntaxVisitor
     {
         // This is somewhat ornery: we need to collect all the locals being introduced
         // since they're all in scope through all parts of the query.
-        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
+        var tokens = new List<SyntaxToken>();
 
         if (fromClause != null)
         {

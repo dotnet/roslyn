@@ -1653,8 +1653,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitTypeOrValueExpression(BoundTypeOrValueExpression node)
         {
-            Debug.Assert(node is not BoundTypeOrValueExpression, "The Binder is expected to resolve the member access in the most appropriate way, even in an error scenario.");
-            return null;
+            // If we're seeing a node of this kind, then we failed to resolve the member access
+            // as either a type or a property/field/event/local/parameter.  In such cases,
+            // the second interpretation applies so just visit the node for that.
+            return this.Visit(node.Data.ValueExpression);
         }
 
         public override BoundNode VisitLiteral(BoundLiteral node)

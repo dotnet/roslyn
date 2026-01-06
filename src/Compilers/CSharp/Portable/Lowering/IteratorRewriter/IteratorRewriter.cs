@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rewriter = new IteratorRewriter(body, method, isEnumerable, stateMachineType, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, compilationState, diagnostics);
             if (!rewriter.VerifyPresenceOfRequiredAPIs())
             {
-                return (BoundStatement)body.WithHasErrors();
+                return body;
             }
 
             return rewriter.Rewrite();

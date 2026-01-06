@@ -164,11 +164,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 Return Nothing
             End Function
 
-            Protected Overrides Sub AddCaptures(semanticModel As SemanticModel, symbol As ISymbol, typeDisplayInfo As StructuralTypeDisplayInfo)
+            Protected Overrides Sub AddCaptures(symbol As ISymbol)
                 Dim method = TryCast(symbol, IMethodSymbol)
                 If method IsNot Nothing AndAlso method.ContainingSymbol.IsKind(SymbolKind.Method) Then
-                    Dim syntax = method.DeclaringSyntaxReferences.FirstOrDefault(Function(r) r.SyntaxTree Is semanticModel.SyntaxTree)?.GetSyntax()
-                    AddCaptures(semanticModel, syntax, typeDisplayInfo)
+                    Dim syntax = method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax()
+                    AddCaptures(syntax)
                 End If
             End Sub
 

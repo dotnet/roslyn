@@ -78,7 +78,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
         public static string GetClientDirectory() =>
             // VBCSCompiler is installed in the same directory as csc.exe and vbc.exe which is also the 
             // location of the response files.
-            AppDomain.CurrentDomain.BaseDirectory;
+            //
+            // BaseDirectory was mistakenly marked as potentially null in 3.1
+            // https://github.com/dotnet/runtime/pull/32486
+            AppDomain.CurrentDomain.BaseDirectory!;
 
         /// <summary>
         /// Returns the directory that contains mscorlib, or null when running on CoreCLR.

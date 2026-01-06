@@ -205,8 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 // Avoid using dynamic conversions for pattern-matching.
                                 inputType = _factory.SpecialType(SpecialType.System_Object);
-                                Debug.Assert(_factory.ClassifyEmitConversion(input, inputType).IsIdentity);
-                                input = _factory.Convert(inputType, input, Conversion.Identity);
+                                input = _factory.Convert(inputType, input);
                             }
 
                             TypeSymbol type = t.Type;
@@ -229,8 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
-                                    conversion.MarkUnderlyingConversionsCheckedRecursive(); // Assuming that Binder.ExpressionOfTypeMatchesPatternType wouldn't let anything non-trivial through
-                                    evaluated = _localRewriter.MakeConversionNode(t.Syntax, input, conversion, type, @checked: false);
+                                    evaluated = _factory.Convert(type, input, conversion);
                                 }
                             }
                             else
@@ -381,8 +379,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return _localRewriter.MakeBinaryOperator(
                         syntax,
                         operatorKind,
-                        _factory.Convert(operandType, rewrittenExpr, Conversion.PointerToVoid),
-                        _factory.Convert(operandType, new BoundLiteral(syntax, ConstantValue.Null, objectType), Conversion.NullToPointer),
+                        _factory.Convert(operandType, rewrittenExpr),
+                        _factory.Convert(operandType, new BoundLiteral(syntax, ConstantValue.Null, objectType)),
                         _factory.SpecialType(SpecialType.System_Boolean),
                         method: null, constrainedToTypeOpt: null);
                 }
@@ -427,14 +425,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _ => false
                     });
                     comparisonType = _factory.SpecialType(SpecialType.System_Int32);
-
-                    Conversion c = _factory.ClassifyEmitConversion(input, comparisonType);
-                    Debug.Assert(c.IsNumeric || c.IsEnumeration);
-                    input = _factory.Convert(comparisonType, input, c);
-
-                    c = _factory.ClassifyEmitConversion(literal, comparisonType);
-                    Debug.Assert(c.IsNumeric || c.IsEnumeration);
-                    literal = _factory.Convert(comparisonType, literal, c);
+                    input = _factory.Convert(comparisonType, input);
+                    literal = _factory.Convert(comparisonType, literal);
                 }
 
                 return this._localRewriter.MakeBinaryOperator(_factory.Syntax, operatorKind, input, literal, _factory.SpecialType(SpecialType.System_Boolean), method: null, constrainedToTypeOpt: null);
@@ -500,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression input = _tempAllocator.GetTemp(test.Input);
                     var baseType = typeEvaluation2.Type;
                     BoundExpression output = _tempAllocator.GetTemp(new BoundDagTemp(evaluation.Syntax, baseType, evaluation));
-                    sideEffect = _factory.AssignmentExpression(output, _factory.Convert(baseType, input, conv));
+                    sideEffect = _factory.AssignmentExpression(output, _factory.Convert(baseType, input));
                     testExpression = _factory.ObjectNotEqual(output, _factory.Null(baseType));
                     _localRewriter._diagnostics.Add(test.Syntax, useSiteInfo);
                     return true;

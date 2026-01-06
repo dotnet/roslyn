@@ -1892,18 +1892,4 @@ Additional information: {1}</value>
   <data name="Prefer_simple_property_accessors" xml:space="preserve">
     <value>Prefer simple property accessors</value>
   </data>
-  <data name="Search_members" xml:space="preserve">
-    <value>Search members</value>
-  </data>
-  <data name="Code_preview" xml:space="preserve">
-    <value>Code preview</value>
-  </data>
-  <data name="Removed_0" xml:space="preserve">
-    <value>Removed {0}</value>
-    <comment>{0} is a modifier, type, and parameter name</comment>
-  </data>
-  <data name="Warning_0_does_not_bind_to_type" xml:space="preserve">
-    <value>Warning {0} does not bind to type</value>
-    <comment>{0} is a type name</comment>
-  </data>
 </root>

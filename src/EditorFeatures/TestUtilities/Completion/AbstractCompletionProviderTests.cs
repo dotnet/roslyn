@@ -104,7 +104,8 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
     {
         var completionService = project.Services.GetRequiredService<CompletionService>();
         var completionProviders = completionService.GetTestAccessor().GetImportedAndBuiltInProviders([]);
-        Assert.Contains(completionProviders, p => p.GetType() == GetCompletionProviderType());
+        var completionProvider = Assert.Single(completionProviders);
+        Assert.IsType(GetCompletionProviderType(), completionProvider);
 
         return completionService;
     }

@@ -165,7 +165,10 @@ internal partial class SerializerService
         switch (reader.ReadString())
         {
             case nameof(AnalyzerFileReference):
-                return GetOrCreateAnalyzerFileReference(reader.ReadRequiredString());
+                // Rehydrate the analyzer file reference with the simple shared shadow copy loader.  Note: we won't
+                // actually use this instance we create.  Instead, the caller will use create an IsolatedAssemblyReferenceSet
+                // from these to ensure that all the types can be safely loaded into their own ALC.
+                return new AnalyzerFileReference(reader.ReadRequiredString(), _analyzerLoaderProvider.SharedShadowCopyLoader);
 
             case nameof(AnalyzerImageReference):
                 var guid = reader.ReadGuid();
@@ -175,14 +178,6 @@ internal partial class SerializerService
             case var type:
                 throw ExceptionUtilities.UnexpectedValue(type);
         }
-    }
-
-    protected virtual AnalyzerFileReference GetOrCreateAnalyzerFileReference(string filePath)
-    {
-        // Rehydrate the analyzer file reference with the simple shared shadow copy loader.  Note: we won't
-        // actually use this instance we create.  Instead, the caller will use create an IsolatedAssemblyReferenceSet
-        // from these to ensure that all the types can be safely loaded into their own ALC.
-        return new AnalyzerFileReference(filePath, _analyzerLoaderProvider.SharedShadowCopyLoader);
     }
 
     protected static void WritePortableExecutableReferenceHeaderTo(

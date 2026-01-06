@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend Class GroupTypeInferenceLambda
 
-        Public Function InferLambdaReturnType(delegateParams As ImmutableArray(Of ParameterSymbol), diagnostics As BindingDiagnosticBag) As TypeSymbol
+        Public Function InferLambdaReturnType(delegateParams As ImmutableArray(Of ParameterSymbol)) As TypeSymbol
             ' Return type of the lambda must be an Anonymous Type corresponding to the following initializer:
             '   New With {key .$VB$ItAnonymous = <delegates's second parameter> }
             If delegateParams.Length <> 2 Then
@@ -25,8 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                        Syntax.QueryClauseKeywordOrRangeVariableIdentifier.GetLocation(),
                                                                        True)),
                                                 Syntax.QueryClauseKeywordOrRangeVariableIdentifier.GetLocation(),
-                                                True),
-                                            diagnostics)
+                                                True))
             End If
         End Function
 

@@ -5524,31 +5524,4 @@ class Program
                 }
             }
             """, new(TestOptions.Regular, index: CodeActionIndex));
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81789")]
-    public Task TestGenericNotCarried()
-        => TestAsync("""
-            public class Class1
-            {
-                public static List<T> CreateList<T>()
-                    where T : class
-                {
-                    return [|new List<T>()|];
-                }
-            }
-            """, """
-            public class Class1
-            {
-                public static List<T> CreateList<T>()
-                    where T : class
-                {
-                    return {|Rename:NewMethod|}();
-
-                    static List<T> NewMethod()
-                    {
-                        return new List<T>();
-                    }
-                }
-            }
-            """, new(TestOptions.Regular, index: CodeActionIndex));
 }

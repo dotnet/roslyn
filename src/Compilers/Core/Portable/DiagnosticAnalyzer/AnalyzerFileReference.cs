@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<string> result = [];
             foreach (CustomAttributeHandle customAttrHandle in typeDef.GetCustomAttributes())
             {
-                if (peModule.IsTargetAttribute(customAttrHandle, attributeType.Namespace, attributeType.Name, ctor: out _))
+                if (peModule.IsTargetAttribute(customAttrHandle, attributeType.Namespace!, attributeType.Name, ctor: out _))
                 {
                     if (languagesFunc(peModule, customAttrHandle) is { } attributeSupportedLanguages)
                     {

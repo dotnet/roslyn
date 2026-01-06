@@ -45,12 +45,11 @@ internal sealed class ProjectAppDirectiveCompletionProvider() : AbstractAppDirec
         // Suppose we have a directive '#:project path/to/pr$$'
         // In this case, 'contentPrefix' is 'path/to/pr'.
 
-        var documentDirectory = PathUtilities.GetDirectoryName(context.Document.FilePath);
         var fileSystemHelper = new FileSystemCompletionHelper(
             Glyph.OpenFolder,
             Glyph.CSharpProject,
             searchPaths: [],
-            baseDirectory: PathUtilities.IsAbsolute(documentDirectory) ? documentDirectory : null,
+            baseDirectory: PathUtilities.GetDirectoryName(context.Document.FilePath),
             [".csproj", ".vbproj"],
             CompletionItemRules.Default);
 

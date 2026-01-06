@@ -17,7 +17,7 @@ The build correctness job works by first building the Microsoft.Net.Compilers.To
 - Inserts a [ExitingTraceListener](https://github.com/dotnet/roslyn/blob/main/src/Compilers/Shared/ExitingTraceListener.cs) into the process trace listeners. This means any `Debug.Assert` failure will result in the compilation failing with an actionable stack trace.
 - Defines a [ValidateBootstrap](https://github.com/dotnet/roslyn/blob/main/src/Compilers/Core/MSBuildTask/ValidateBootstrap.cs). This lets us validate that the compiler used in the bootstrap build is actually the one we built vs. the default. This helps protect against build authoring changes which could inadvertently cause the default compiler to be used in a bootstrap build.
 
-The job then cleans out all of the artifacts from the build and starts a normal build of Roslyn.slnx but specifies `/p:BootstrapBuildPath=...`. This causes two files to be loaded:
+The job then cleans out all of the artifacts from the build and starts a normal build of Roslyn.sln but specifies `/p:BootstrapBuildPath=...`. This causes two files to be loaded:
 
 - [Bootstrap.props](https://github.com/dotnet/roslyn/blob/main/eng/targets/Bootstrap.props): loads the bootstrap compiler over the default one
 - [Bootstrap.targets](https://github.com/dotnet/roslyn/blob/main/eng/targets/Bootstrap.targets): verifies the bootstrap compiler was actually used

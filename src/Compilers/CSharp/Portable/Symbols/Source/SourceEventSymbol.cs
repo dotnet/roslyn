@@ -740,11 +740,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool ComputeIsWindowsRuntimeEvent()
         {
-            if (PartialDefinitionPart is { } partialDefinitionPart)
-            {
-                return partialDefinitionPart.IsWindowsRuntimeEvent;
-            }
-
             // If you explicitly implement an event, then you're a WinRT event if and only if it's a WinRT event.
             ImmutableArray<EventSymbol> explicitInterfaceImplementations = this.ExplicitInterfaceImplementations;
             if (!explicitInterfaceImplementations.IsEmpty)

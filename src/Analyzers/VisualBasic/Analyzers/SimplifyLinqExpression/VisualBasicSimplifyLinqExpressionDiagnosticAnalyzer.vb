@@ -12,11 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyLinqExpression
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend Class VisualBasicSimplifyLinqExpressionDiagnosticAnalyzer
-        Inherits AbstractSimplifyLinqExpressionDiagnosticAnalyzer(Of
-            ExpressionSyntax,
-            SimpleNameSyntax,
-            InvocationExpressionSyntax,
-            MemberAccessExpressionSyntax)
+        Inherits AbstractSimplifyLinqExpressionDiagnosticAnalyzer(Of InvocationExpressionSyntax, MemberAccessExpressionSyntax)
 
         Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
 

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -30,13 +29,6 @@ internal readonly struct EmbeddedLanguageClassificationContext
     public SyntaxToken SyntaxToken { get; }
 
     /// <summary>
-    /// The specific language identifier that triggered this embedded language classification.  For example, this is the
-    /// value of the language in <c>//lang=...</c> or a <see cref="StringSyntaxAttribute"/>.  It can be missing for legacy
-    /// embedded classifiers that activate on unannotated APIs.
-    /// </summary>
-    public string? LanguageIdentifier { get; }
-
-    /// <summary>
     /// SemanticModel that <see cref="SyntaxToken"/> is contained in.
     /// </summary>
     public SemanticModel SemanticModel { get; }
@@ -54,7 +46,6 @@ internal readonly struct EmbeddedLanguageClassificationContext
         TextSpan spanToClassify,
         ClassificationOptions options,
         IVirtualCharService virtualCharService,
-        string? languageIdentifier,
         SegmentedList<ClassifiedSpan> result,
         CancellationToken cancellationToken)
     {
@@ -65,7 +56,6 @@ internal readonly struct EmbeddedLanguageClassificationContext
         _spanToClassify = spanToClassify;
         Options = options;
         VirtualCharService = virtualCharService;
-        LanguageIdentifier = languageIdentifier;
         _result = result;
         CancellationToken = cancellationToken;
     }

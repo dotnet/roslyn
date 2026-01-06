@@ -721,7 +721,7 @@ void M(int a, int b, int c)
             {
                 void M(bool x, int a, object b)
                 {
-                    var c = !(a <= 10 || a is not== 20);
+                    var c = !(a <= 10 || a is not == 20);
                 }
             }
             """, new(parseOptions: CSharp9));

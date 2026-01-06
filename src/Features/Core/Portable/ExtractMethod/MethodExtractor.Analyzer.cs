@@ -859,10 +859,6 @@ internal abstract partial class AbstractExtractMethodService<
 
             private ImmutableArray<ITypeParameterSymbol> GetMethodTypeParametersInDeclaration(ITypeSymbol returnType, SortedDictionary<int, ITypeParameterSymbol> sortedMap)
             {
-                // No need to pass generic type args to a local function.  They are already implicitly referenceable.
-                if (this.LocalFunction)
-                    return [];
-
                 // add return type to the map
                 AddTypeParametersToMap(TypeParameterCollector.Collect(returnType), sortedMap);
 

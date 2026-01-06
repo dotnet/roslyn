@@ -47457,9 +47457,9 @@ class Test2 : I2
 
             var expected = new DiagnosticDescription[]
             {
-                // (7,17): error CS9342: Operator resolution is ambiguous between the following members: 'I1.operator -(I1)' and 'I3.operator -(I3)'
+                // (7,17): error CS0035: Operator '-' is ambiguous on an operand of type 'I2'
                 //         var y = -x;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("I1.operator -(I1)", "I3.operator -(I3)").WithLocation(7, 17)
+                Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-x").WithArguments("-", "I2").WithLocation(7, 17)
             };
 
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
@@ -47670,9 +47670,9 @@ class Test2 : I3
 
             var expected = new DiagnosticDescription[]
             {
-                // (7,26): error CS9342: Operator resolution is ambiguous between the following members: 'C1.operator +(C1, I2)' and 'C1.operator +(C1, I1)'
+                // (7,17): error CS0034: Operator '+' is ambiguous on operands of type 'C1' and 'I3'
                 //         var y = new C1() + x;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("C1.operator +(C1, I2)", "C1.operator +(C1, I1)").WithLocation(7, 26)
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new C1() + x").WithArguments("+", "C1", "I3").WithLocation(7, 17)
             };
 
             var compilation0 = CreateCompilation(source0 + source1 + source2, options: TestOptions.DebugDll,
@@ -47803,9 +47803,9 @@ class Test2 : I3
 
             var expected = new DiagnosticDescription[]
             {
-                // (7,19): error CS9342: Operator resolution is ambiguous between the following members: 'C1.operator +(I2, C1)' and 'C1.operator +(I1, C1)'
+                // (7,17): error CS0034: Operator '+' is ambiguous on operands of type 'I3' and 'C1'
                 //         var y = x + new C1();
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("C1.operator +(I2, C1)", "C1.operator +(I1, C1)").WithLocation(7, 19)
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x + new C1()").WithArguments("+", "I3", "C1").WithLocation(7, 17)
             };
 
             var compilation0 = CreateCompilation(source0 + source1 + source2, options: TestOptions.DebugDll,
@@ -47928,9 +47928,9 @@ class Test2: I1, I2
 
             var expected = new DiagnosticDescription[]
             {
-                // (8,19): error CS9342: Operator resolution is ambiguous between the following members: 'I1.operator +(I1, I2)' and 'I2.operator +(I1, I2)'
+                // (8,17): error CS0034: Operator '+' is ambiguous on operands of type 'I1' and 'I2'
                 //         var z = x + y;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("I1.operator +(I1, I2)", "I2.operator +(I1, I2)").WithLocation(8, 19),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x + y").WithArguments("+", "I1", "I2").WithLocation(8, 17),
                 // (9,13): error CS0019: Operator '+' cannot be applied to operands of type 'I2' and 'I1'
                 //         z = y + x;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "y + x").WithArguments("+", "I2", "I1").WithLocation(9, 13)
@@ -47995,9 +47995,9 @@ class Test2 : I2
 
             var expected = new DiagnosticDescription[]
             {
-                // (8,19): error CS9342: Operator resolution is ambiguous between the following members: 'I2.operator +(I2, I1)' and 'I1.operator +(I2, I1)'
+                // (8,17): error CS0034: Operator '+' is ambiguous on operands of type 'I2' and 'I1'
                 //         var z = y + x;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("I2.operator +(I2, I1)", "I1.operator +(I2, I1)").WithLocation(8, 19),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "y + x").WithArguments("+", "I2", "I1").WithLocation(8, 17),
                 // (9,13): error CS0019: Operator '+' cannot be applied to operands of type 'I1' and 'I2'
                 //         z = x + y;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + y").WithArguments("+", "I1", "I2").WithLocation(9, 13)
@@ -48649,9 +48649,9 @@ class Test2 : I3
 
             var expected = new DiagnosticDescription[]
             {
-                // (8,19): error CS9342: Operator resolution is ambiguous between the following members: 'I1.operator +(I1, I2)' and 'I2.operator +(I1, I2)'
+                // (8,17): error CS0034: Operator '+' is ambiguous on operands of type 'I1' and 'I3'
                 //         var z = x + y;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("I1.operator +(I1, I2)", "I2.operator +(I1, I2)").WithLocation(8, 19),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x + y").WithArguments("+", "I1", "I3").WithLocation(8, 17),
                 // (9,13): error CS0019: Operator '+' cannot be applied to operands of type 'I3' and 'I1'
                 //         z = y + x;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "y + x").WithArguments("+", "I3", "I1").WithLocation(9, 13)
@@ -48719,9 +48719,9 @@ class Test2 : I3
 
             var expected = new DiagnosticDescription[]
             {
-                // (8,19): error CS9342: Operator resolution is ambiguous between the following members: 'I2.operator +(I2, I1)' and 'I1.operator +(I2, I1)'
+                // (8,17): error CS0034: Operator '+' is ambiguous on operands of type 'I3' and 'I1'
                 //         var z = y + x;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("I2.operator +(I2, I1)", "I1.operator +(I2, I1)").WithLocation(8, 19),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "y + x").WithArguments("+", "I3", "I1").WithLocation(8, 17),
                 // (9,13): error CS0019: Operator '+' cannot be applied to operands of type 'I1' and 'I3'
                 //         z = x + y;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + y").WithArguments("+", "I1", "I3").WithLocation(9, 13)
@@ -48792,9 +48792,9 @@ class Test2 : I2
 
             var expected = new DiagnosticDescription[]
             {
-                // (7,19): error CS9342: Operator resolution is ambiguous between the following members: 'I1.operator -(I1, I1)' and 'I3.operator -(I3, I3)'
+                // (7,17): error CS0034: Operator '-' is ambiguous on operands of type 'I2' and 'I2'
                 //         var y = x - x;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("I1.operator -(I1, I1)", "I3.operator -(I3, I3)").WithLocation(7, 19)
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x - x").WithArguments("-", "I2", "I2").WithLocation(7, 17)
             };
 
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,

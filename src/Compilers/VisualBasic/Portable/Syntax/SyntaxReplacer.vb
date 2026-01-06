@@ -228,10 +228,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return New InvalidOperationException(CodeAnalysisResources.MissingListItem)
         End Function
 
-        Private Shared Function GetTokenNotListElementException() As InvalidOperationException
-            Return New InvalidOperationException(CodeAnalysisResources.MissingTokenListItem)
-        End Function
-
         Private Class BaseListEditor
             Inherits VisualBasicSyntaxRewriter
 
@@ -355,7 +351,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
             Public Overrides Function VisitToken(token As SyntaxToken) As SyntaxToken
                 If token = _originalToken Then
-                    Throw GetTokenNotListElementException()
+                    Throw GetItemNotListElementException()
                 End If
 
                 Return MyBase.VisitToken(token)

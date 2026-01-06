@@ -50,9 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public bool ReportMissingOrErroneousSymbolsForDelegates(BindingDiagnosticBag diagnostics)
         {
-            // If we start reporting errors for non-Special types or members here,
-            // we need to call this method from ConstructAnonymousDelegateSymbol to collect dependencies. 
-
             bool hasErrors = false;
 
             ReportErrorOnSymbol(System_Object, diagnostics, ref hasErrors);

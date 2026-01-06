@@ -25,6 +25,7 @@
     <PackageReference Include="Microsoft.Build.Framework" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Microsoft.VisualStudio.SolutionPersistence" />
+    <PackageReference Include="Newtonsoft.Json" />
     <!--
       Since System.Text.Json is part of the .NET BCL we do not want to add
       it as a package reference. Doing so will pin the version to what we use

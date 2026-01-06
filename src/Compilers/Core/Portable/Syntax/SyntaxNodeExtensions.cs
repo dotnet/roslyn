@@ -122,11 +122,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <typeparam name="TRoot">The type of the root node.</typeparam>
         /// <param name="root">The root of the tree of nodes.</param>
-        /// <param name="tokenInList">The token to be replaced. This must be a direct element of a <see cref="SyntaxTokenList"/> 
-        /// (such as a modifier in a list of modifiers), and a descendant of the root node. 
-        /// If the token is not part of a <see cref="SyntaxTokenList"/>, an <see cref="InvalidOperationException"/> will be thrown.</param>
+        /// <param name="tokenInList">The token to be replaced; a descendant of the root node and an element of a list member.</param>
         /// <param name="newTokens">A sequence of tokens to use in the tree in place of the specified token.</param>
-        /// <exception cref="InvalidOperationException">Thrown when <paramref name="tokenInList"/> is not an element of a <see cref="SyntaxTokenList"/>.</exception>
         public static TRoot ReplaceToken<TRoot>(this TRoot root, SyntaxToken tokenInList, IEnumerable<SyntaxToken> newTokens)
             where TRoot : SyntaxNode
         {
@@ -138,12 +135,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <typeparam name="TRoot">The type of the root node.</typeparam>
         /// <param name="root">The root of the tree of nodes.</param>
-        /// <param name="tokenInList">The token to insert before. This must be a direct element of a <see cref="SyntaxTokenList"/> 
-        /// (such as a modifier in a list of modifiers), and a descendant of the root node. The new tokens will be inserted 
-        /// before this token in that list. If the token is not part of a <see cref="SyntaxTokenList"/>, 
-        /// an <see cref="InvalidOperationException"/> will be thrown.</param>
+        /// <param name="tokenInList">The token to insert before; a descendant of the root node and an element of a list member.</param>
         /// <param name="newTokens">A sequence of tokens to insert into the tree immediately before the specified token.</param>
-        /// <exception cref="InvalidOperationException">Thrown when <paramref name="tokenInList"/> is not an element of a <see cref="SyntaxTokenList"/>.</exception>
         public static TRoot InsertTokensBefore<TRoot>(this TRoot root, SyntaxToken tokenInList, IEnumerable<SyntaxToken> newTokens)
             where TRoot : SyntaxNode
         {
@@ -155,12 +148,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <typeparam name="TRoot">The type of the root node.</typeparam>
         /// <param name="root">The root of the tree of nodes.</param>
-        /// <param name="tokenInList">The token to insert after. This must be a direct element of a <see cref="SyntaxTokenList"/> 
-        /// (such as a modifier in a list of modifiers), and a descendant of the root node. The new tokens will be inserted 
-        /// after this token in that list. If the token is not part of a <see cref="SyntaxTokenList"/>, 
-        /// an <see cref="InvalidOperationException"/> will be thrown.</param>
+        /// <param name="tokenInList">The token to insert after; a descendant of the root node and an element of a list member.</param>
         /// <param name="newTokens">A sequence of tokens to insert into the tree immediately after the specified token.</param>
-        /// <exception cref="InvalidOperationException">Thrown when <paramref name="tokenInList"/> is not an element of a <see cref="SyntaxTokenList"/>.</exception>
         public static TRoot InsertTokensAfter<TRoot>(this TRoot root, SyntaxToken tokenInList, IEnumerable<SyntaxToken> newTokens)
             where TRoot : SyntaxNode
         {

@@ -269,8 +269,10 @@ internal abstract partial class AbstractBreakpointResolver
         // has a body to set a breakpoint on.
         if ((methodOrProperty.Language == _language) && methodOrProperty.Locations.Any(static location => location.IsInSource))
         {
-            if (methodOrProperty is IMethodSymbol method)
-                return HasMethodBody(method, cancellationToken);
+            if (methodOrProperty.IsKind(SymbolKind.Method))
+            {
+                return HasMethodBody((IMethodSymbol)methodOrProperty, cancellationToken);
+            }
 
             // Non-abstract properties are always applicable, because you can set a breakpoint on the
             // accessor methods (get and/or set).

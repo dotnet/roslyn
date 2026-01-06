@@ -57,7 +57,8 @@ internal abstract class SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnu
                     CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration,
                     CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess,
                 ])
-            ])
+            ],
+            fadingOption: null)
     {
     }
 

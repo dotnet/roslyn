@@ -1288,51 +1288,6 @@ public sealed class SolutionTests : TestBase
     }
 
     [Fact]
-    public async Task WithProjectInfo_ChangingParseOptions()
-    {
-        using var workspace = CreateWorkspace();
-
-        var projectId = ProjectId.CreateNewId();
-
-        var documentId = DocumentId.CreateNewId(projectId);
-        var documentId2 = DocumentId.CreateNewId(projectId);
-
-        var compilationOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
-
-        var parseOptionsA = CSharpParseOptions.Default.WithFeatures([new("InterceptorsNamespaces", "A")]);
-        var parseOptionsB = CSharpParseOptions.Default.WithFeatures([new("InterceptorsNamespaces", "B")]);
-
-        var text = SourceText.From("class D;", Encoding.UTF8, SourceHashAlgorithms.Default);
-        var docPath = Path.Combine(s_projectDir, "d.cs");
-
-        var solution = workspace.CurrentSolution
-            .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, "P1", "P1", LanguageNames.CSharp, Path.Combine(s_projectDir, "P1.dll"), parseOptions: parseOptionsA, compilationOptions: compilationOptions))
-            .AddDocument(documentId, "d.cs", text, filePath: docPath);
-
-        var newDocumentInfo1 = DocumentInfo.Create(
-            documentId,
-            name: "d.cs",
-            loader: TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create(), filePath: docPath)),
-            filePath: docPath);
-
-        // change parse options:
-        var newInfo = ProjectInfo.Create(
-            projectId, VersionStamp.Default, "P2", "P2", LanguageNames.CSharp, Path.Combine(s_projectDir, "P2.dll"), parseOptions: parseOptionsB, compilationOptions: compilationOptions,
-            documents: [newDocumentInfo1]);
-
-        var newSolution = solution.WithProjectInfo(newInfo);
-
-        var newDocument = newSolution.GetRequiredDocument(documentId);
-        var tree = await newDocument.GetRequiredSyntaxTreeAsync(CancellationToken.None);
-        Assert.Equal("B", tree.Options.Features["InterceptorsNamespaces"]);
-
-        var newSolution2 = newSolution.AddDocument(documentId2, "e", TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create(), filePath: docPath)));
-
-        // does not throw (all syntax trees have the same parse options)
-        await newSolution2.GetRequiredProject(projectId).GetRequiredCompilationAsync(default);
-    }
-
-    [Fact]
     public void WithProjectInfo_Unsupported_RemovingCompilationOptions()
     {
         var projectId = ProjectId.CreateNewId();

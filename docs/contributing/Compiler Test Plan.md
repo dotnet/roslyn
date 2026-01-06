@@ -28,7 +28,7 @@ This document provides guidance for thinking about language interactions and tes
     - AnalyzeStatementDataFlow 
     - ClassifyConversion
     - GetOperation (`IOperation`)
-    - GetCFG (`ControlFlowGraph`), including a scenario with some nested conditional
+    - GetCFG (`ControlFlowGraph`)
     - DocumentationCommentId APIs
 - VB/F# interop
 - C++/CLI interop (particularly for metadata format changes, e.g. DIMs, static abstracts in interfaces, or generic attributes)
@@ -36,7 +36,6 @@ This document provides guidance for thinking about language interactions and tes
 - Can build VS
 - Check that `Obsolete` is honored for members used in binding/lowering
 - LangVersion
-- IL verification (file issue on `runtime` repo as needed and track [here](https://github.com/dotnet/roslyn/issues/22872))
 
 - Does the feature use cryptographic hashes in any way? (examples: metadata names of file-local types, extension types, assembly strong naming, PDB document table, etc.)
     - Consider using non-cryptographic hash such as `XxHash128` instead.

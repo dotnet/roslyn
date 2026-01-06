@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.LanguageService;
 /// fashion over the languages. Helpers in this type should only be one of the following forms:
 /// <list type="bullet">
 /// <item>
-/// 'IsXXX' where 'XXX' exactly matches one of the same named syntax (node, token, trivia, list, etc.) constructs that
-/// both C# and VB have. For example 'IsSimpleName' to correspond to C# and VB's SimpleNameSyntax node.  These
-/// 'checking' methods should never fail.  For non leaf node types this should be implemented as a type-check ('is' in
-/// C#, 'typeof ... is' in VB).  For leaf nodes, this should be implemented by deferring to <see cref="ISyntaxKinds"/>
-/// to check against the raw kind of the node.
+/// 'IsXXX' where 'XXX' exactly matches one of the same named syntax (node, token, trivia, list, etc.) constructs that 
+/// both C# and VB have. For example 'IsSimpleName' to correspond to C# and VB's SimpleNameSyntax node.  These 'checking' 
+/// methods should never fail.  For non leaf node types this should be implemented as a typecheck ('is' in C#, 'typeof ... is'
+/// in VB).  For leaf nodes, this should be implemented by deffering to <see cref="ISyntaxKinds"/> to check against the 
+/// raw kind of the node.
 /// </item>
 /// <item>
 /// 'GetPartsOfXXX(SyntaxNode node, out SyntaxNode/SyntaxToken part1, ...)' where 'XXX' one of the same named Syntax constructs
@@ -56,20 +56,20 @@ namespace Microsoft.CodeAnalysis.LanguageService;
 /// </item>
 /// <item>
 /// Functions which are effectively specific to a single feature are are just trying to find a place to place complex
-/// feature logic in a place such that it can run over VB or C#.  For example, a function to determine if a position is
-/// on the 'header' of a node.  a 'header' is a not a well defined syntax concept that can be trivially asked of nodes
-/// in either language.  It is an encapsulation of a feature (or set of features) level idea that should be in its own
-/// dedicated service.
+/// feature logic in a place such that it can run over VB or C#.  For example, a function to determine if a position
+/// is on the 'header' of a node.  a 'header' is a not a well defined syntax concept that can be trivially asked of
+/// nodes in either language.  It is an excapsulation of a feature (or set of features) level idea that should be in
+/// its own dedicated service.
 /// </item>
 /// <item>
 /// Functions that mutate or update syntax constructs for example 'WithXXX'.  These should be on SyntaxGenerator or
 /// some other feature specific service.
 /// </item>
 /// <item>
-/// Functions that a single item when one language may allow for multiple.  For example
-/// 'GetIdentifierOfVariableDeclarator'. In VB a VariableDeclarator can itself have several names, so calling code must
-/// be written to check for that and handle it appropriately.  Functions like this make it seem like that doesn't need
-/// to be considered, easily allowing for bugs to creep in.
+/// Functions that a single item when one language may allow for multiple.  For example 'GetIdentifierOfVariableDeclarator'.
+/// In VB a VariableDeclarator can itself have several names, so calling code must be written to check for that and handle
+/// it apropriately.  Functions like this make it seem like that doesn't need to be considered, easily allowing for bugs
+/// to creep in.
 /// </item>
 /// <item>
 /// Abbreviating or otherwise changing the names that C# and VB share here.  For example use 'ObjectCreationExpression'
@@ -237,7 +237,7 @@ internal interface ISyntaxFacts
     ///     1) new With { .a = 1, .b = .a      .a refers to the anonymous type
     ///     2) With obj : .m                   .m refers to the obj type
     ///     3) new T() With { .a = 1, .b = .a  'a refers to the T type
-    /// If `allowImplicitTarget` is set to true, the returned node will be set to appropriate node, otherwise, it will return null.
+    /// If `allowImplicitTarget` is set to true, the returned node will be set to approperiate node, otherwise, it will return null.
     /// This parameter has no affect on C# node.
     /// </param>
     SyntaxNode? GetLeftSideOfDot(SyntaxNode? node, bool allowImplicitTarget = false);
@@ -331,7 +331,6 @@ internal interface ISyntaxFacts
 
     bool IsAttributeNamedArgumentIdentifier([NotNullWhen(true)] SyntaxNode? node);
     bool IsMemberInitializerNamedAssignmentIdentifier([NotNullWhen(true)] SyntaxNode? node, [NotNullWhen(true)] out SyntaxNode? initializedInstance);
-    bool IsAnonymousObjectMemberDeclaratorNameIdentifier([NotNullWhen(true)] SyntaxNode? node);
     bool IsAnyInitializerExpression([NotNullWhen(true)] SyntaxNode? node, [NotNullWhen(true)] out SyntaxNode? creationExpression);
 
     bool IsDirective([NotNullWhen(true)] SyntaxNode? node);

@@ -13,8 +13,11 @@ internal abstract partial class AbstractSymbolDisplayService
 {
     protected abstract partial class AbstractSymbolDescriptionBuilder
     {
-        private StructuralTypeDisplayInfo GetStructuralTypeDisplayInfo(ISymbol firstSymbol)
+        private void FixAllStructuralTypes(ISymbol firstSymbol)
         {
+            // Now, replace all normal anonymous types and tuples with 'a, 'b, etc. and create a
+            // Structural Types: section to display their info.
+
             var directStructuralTypes =
                 from parts in _groupMap.Values
                 from part in parts
@@ -30,19 +33,11 @@ internal abstract partial class AbstractSymbolDisplayService
             var info = LanguageServices.GetRequiredService<IStructuralTypeDisplayService>().GetTypeDisplayInfo(
                 firstSymbol, directStructuralTypes.ToImmutableArrayOrEmpty(), _semanticModel, _position);
 
-            return info;
-        }
-
-        private void FixAllStructuralTypes(StructuralTypeDisplayInfo typeDisplayInfo)
-        {
-            // Now, replace all normal anonymous types and tuples with 'a, 'b, etc. and create a
-            // Structural Types: section to display their info.
-
-            if (typeDisplayInfo.TypesParts.Count > 0)
-                AddToGroup(SymbolDescriptionGroups.StructuralTypes, typeDisplayInfo.TypesParts);
+            if (info.TypesParts.Count > 0)
+                AddToGroup(SymbolDescriptionGroups.StructuralTypes, info.TypesParts);
 
             foreach (var (group, parts) in _groupMap.ToArray())
-                _groupMap[group] = typeDisplayInfo.ReplaceStructuralTypes(parts, _semanticModel, _position);
+                _groupMap[group] = info.ReplaceStructuralTypes(parts, _semanticModel, _position);
         }
     }
 }

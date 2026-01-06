@@ -42,7 +42,7 @@ internal partial class NavigateToItemProvider
             }
         }
 
-        public async Task AddResultsAsync(ImmutableArray<INavigateToSearchResult> results, Document? activeDocument, CancellationToken cancellationToken)
+        public Task AddResultsAsync(ImmutableArray<INavigateToSearchResult> results, Document? activeDocument, CancellationToken cancellationToken)
         {
             foreach (var result in results)
             {
@@ -76,6 +76,8 @@ internal partial class NavigateToItemProvider
                     // gets attention and is fixed.
                 }
             }
+
+            return Task.CompletedTask;
         }
 
         public void ReportProgress(int current, int maximum)

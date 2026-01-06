@@ -156,13 +156,13 @@ internal sealed partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefacto
 
     private static void GetExistingMemberInfo(INamedTypeSymbol containingType, out bool hasEquals, out bool hasGetHashCode)
     {
-        hasEquals = containingType
-            .GetMembers(EqualsName)
-            .Any(m => m is IMethodSymbol { Parameters.Length: 1, IsStatic: false, IsImplicitlyDeclared: false });
+        hasEquals = containingType.GetMembers(EqualsName)
+                                  .OfType<IMethodSymbol>()
+                                  .Any(m => m.Parameters.Length == 1 && !m.IsStatic);
 
-        hasGetHashCode = containingType
-            .GetMembers(GetHashCodeName)
-            .Any(m => m is IMethodSymbol { Parameters.Length: 0, IsStatic: false, IsImplicitlyDeclared: false });
+        hasGetHashCode = containingType.GetMembers(GetHashCodeName)
+                                       .OfType<IMethodSymbol>()
+                                       .Any(m => m.Parameters.Length == 0 && !m.IsStatic);
     }
 
     public async Task<ImmutableArray<CodeAction>> GenerateEqualsAndGetHashCodeFromMembersAsync(
@@ -206,7 +206,7 @@ internal sealed partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefacto
         {
             // if we don't have either Equals or GetHashCode then offer:
             //  "Generate Equals" and
-            //  "Generate Equals and GetHashCode"
+            //  "Generate Equals and GethashCode"
             //
             // Don't bother offering to just "Generate GetHashCode" as it's very unlikely
             // the user would need to bother just generating that member without also

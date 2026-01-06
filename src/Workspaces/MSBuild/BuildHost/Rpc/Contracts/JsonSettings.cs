@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Text;
-using System.Text.Encodings.Web;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Text.Unicode;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
@@ -14,19 +12,18 @@ internal static class JsonSettings
 {
     public static readonly Encoding StreamEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 
-    public static readonly JsonSerializerOptions SingleLineSerializerOptions = new()
+    public static readonly JsonSerializerSettings SingleLineSerializerSettings = new()
     {
-        // We use nulls for optional things, so doesn't matter
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        // Setting Formatting.None ensures each is serialized to it's own line, which we implicitly rely on
+        Formatting = Newtonsoft.Json.Formatting.None,
 
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        // We use nulls for optional things, so doesn't matter
+        NullValueHandling = NullValueHandling.Ignore,
+
+        ContractResolver = new CamelCasePropertyNamesContractResolver(),
 
         // We escape all non-ASCII characters. Because we're writing to stdin/stdout, on Windows codepages could be set that might interfere with Unicode, especially on build machines.
-        // By escaping all non-ASCII it means the JSON stream itself is ASCII and thus can't be impacted by codepage issues.
-        // JavaScriptEncoder.Create(UnicodeRanges.BasicLatin) only allows BasicLatin (ASCII 0x00-0x7F) to be unescaped.
-        Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin),
-
-        // Ensure WriteIndented is false (which is the default) so each message is serialized to its own line
-        WriteIndented = false
+        // By escaping all non-ASCII it means the JOSN stream itself is ASCII and thus can't be impacted by codepage issues.
+        StringEscapeHandling = StringEscapeHandling.EscapeNonAscii
     };
 }

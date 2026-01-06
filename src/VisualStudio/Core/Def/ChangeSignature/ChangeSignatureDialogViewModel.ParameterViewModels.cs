@@ -93,14 +93,6 @@ internal sealed partial class ChangeSignatureDialogViewModel
         }
 
         public virtual string CallSiteValue => string.Empty;
-
-        public string RemovedParameterAutomationText
-        {
-            get
-            {
-                return string.Format(ServicesVSResources.Removed_0, FullAutomationText);
-            }
-        }
     }
 
     public sealed class AddedParameterViewModel : ParameterViewModel
@@ -130,19 +122,8 @@ internal sealed partial class ChangeSignatureDialogViewModel
         {
             get
             {
-                var typeText = Type;
-                if (TypeWarningVisibility is Visibility.Visible)
-                {
-                    typeText = string.Format(ServicesVSResources.Warning_0_does_not_bind_to_type, Type);
-                }
-
-                var text = $"{Modifier} {typeText} {ParameterName}";
-                if (!string.IsNullOrWhiteSpace(Default))
-                {
-                    text += $" = {Default}";
-                }
-
-                return ServicesVSResources.Added_Parameter + text + string.Format(ServicesVSResources.Inserting_call_site_value_0, CallSite);
+                var baseText = base.FullAutomationText;
+                return ServicesVSResources.Added_Parameter + baseText + string.Format(ServicesVSResources.Inserting_call_site_value_0, CallSite);
             }
         }
 

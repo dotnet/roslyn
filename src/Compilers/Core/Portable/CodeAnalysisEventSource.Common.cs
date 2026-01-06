@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis
             public const EventTask AnalyzerAssemblyLoader = (EventTask)5;
         }
 
+        private CodeAnalysisEventSource() { }
+
         [Event(1, Keywords = Keywords.Performance, Level = EventLevel.Informational, Opcode = EventOpcode.Start, Task = Tasks.GeneratorDriverRunTime)]
         internal void StartGeneratorDriverRunTime(string id) => WriteEvent(1, id);
 
@@ -179,9 +181,6 @@ namespace Microsoft.CodeAnalysis
 
         [Event(19, Message = "ALC for directory '{0}': Failed to resolve assembly '{1}' ", Keywords = Keywords.AnalyzerLoading, Level = EventLevel.Informational)]
         internal unsafe void ResolveAssemblyFailed(string directory, string assemblyName) => WriteEvent(19, directory, assemblyName);
-
-        [Event(20, Message = "Project '{0}' created with file path '{1}'", Level = EventLevel.Informational)]
-        internal void ProjectCreated(string projectSystemName, string? filePath) => WriteEvent(20, projectSystemName, filePath ?? string.Empty);
 
         private static unsafe EventData GetEventDataForString(string value, char* ptr)
         {

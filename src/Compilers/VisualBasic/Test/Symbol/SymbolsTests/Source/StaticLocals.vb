@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Basic.Reference.Assemblies
-Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -646,7 +645,7 @@ End Class
   }
  -IL_0078:  ret
 }
-]]>, sequencePointDisplay:=SequencePointDisplayMode.Minimal)
+]]>, sequencePoints:="Test.TestProc1")
 
             verifier.VerifyIL("Test.TestProc2",
             <![CDATA[

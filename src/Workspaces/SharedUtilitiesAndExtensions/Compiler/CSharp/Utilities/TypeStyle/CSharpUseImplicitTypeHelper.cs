@@ -98,8 +98,10 @@ internal sealed class CSharpUseImplicitTypeHelper : CSharpTypeStyleHelper
 
         // If there exists a type named var, return.
         var conflict = semanticModel.GetSpeculativeSymbolInfo(typeName.SpanStart, candidateReplacementNode, SpeculativeBindingOption.BindAsTypeOrNamespace).Symbol;
-        if (conflict is INamedTypeSymbol)
+        if (conflict?.IsKind(SymbolKind.NamedType) == true)
+        {
             return false;
+        }
 
         if (typeName is { Parent: VariableDeclarationSyntax variableDeclaration, Parent.Parent: (kind: SyntaxKind.LocalDeclarationStatement or SyntaxKind.ForStatement or SyntaxKind.UsingStatement) })
         {

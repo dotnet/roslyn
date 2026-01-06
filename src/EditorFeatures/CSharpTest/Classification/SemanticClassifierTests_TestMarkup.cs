@@ -22,29 +22,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification;
 
 public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTests
 {
-    private static string GetMarkup(string language)
-    {
-        return $$"""
+    private const string s_testMarkup = """
 
         static class Test
         {
-            public static void M([System.Diagnostics.CodeAnalysis.StringSyntax("{{language}}")] string code) { }
+            public static void M([System.Diagnostics.CodeAnalysis.StringSyntax("C#-test")] string code) { }
         }
         """ + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp;
-    }
-
-    private Task TestEmbeddedCSharpAsync(
-       string code,
-       TestHost testHost,
-       params FormattedClassification[] expected)
-    {
-        return TestEmbeddedCSharpAsync(code, testHost, PredefinedEmbeddedLanguageNames.CSharpTest, expected);
-    }
 
     private async Task TestEmbeddedCSharpAsync(
        string code,
        TestHost testHost,
-       string language,
        params FormattedClassification[] expected)
     {
         var allCode = $$"""""
@@ -57,7 +45,7 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """");
                 }
             }
-            """"" + GetMarkup(language);
+            """"" + s_testMarkup;
 
         var start = allCode.IndexOf(code, StringComparison.Ordinal);
         var length = code.Length;
@@ -65,18 +53,9 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
         await TestEmbeddedCSharpWithMultipleSpansAsync(allCode, testHost, spans, expected);
     }
 
-    private Task TestSingleLineEmbeddedCSharpAsync(
-       string code,
-       TestHost testHost,
-       params FormattedClassification[] expected)
-    {
-        return TestSingleLineEmbeddedCSharpAsync(code, testHost, PredefinedEmbeddedLanguageNames.CSharpTest, expected);
-    }
-
     private async Task TestSingleLineEmbeddedCSharpAsync(
        string code,
        TestHost testHost,
-       string language,
        params FormattedClassification[] expected)
     {
         var allCode = $$"""""
@@ -87,7 +66,7 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
                     Test.M(""""{{code}}"""");
                 }
             }
-            """"" + GetMarkup(language);
+            """"" + s_testMarkup;
 
         var start = allCode.IndexOf(code, StringComparison.Ordinal);
         var length = code.Length;
@@ -156,7 +135,7 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """");
                 }
             }
-            """"" + GetMarkup(PredefinedEmbeddedLanguageNames.CSharpTest);
+            """"" + s_testMarkup;
 
         var spans = ImmutableArray.Create(
             new TextSpan(allCode.IndexOf(code1, StringComparison.Ordinal), code1.Length),
@@ -493,34 +472,4 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             testHost,
             TestCodeMarkdown("[|"),
             TestCodeMarkdown("|]"));
-
-    [Theory, CombinatorialData]
-    public Task TestRegularEmbeddedCSharp(TestHost testHost)
-        // This validates that $$ is treated as C#, and not as test markup.
-        => TestEmbeddedCSharpAsync(""""
-            class D
-            {
-                private string s = $$""" """;
-            }
-            """",
-            testHost,
-            LanguageNames.CSharp,
-            Keyword("class"),
-            TestCode(" "),
-            Class("D"),
-            Punctuation.OpenCurly,
-            TestCode("    "),
-            Keyword("private"),
-            TestCode(" "),
-            Keyword("string"),
-            TestCode(" "),
-            Field("s"),
-            TestCode(" "),
-            Operators.Equals,
-            TestCode(" "),
-            String("$$\"\"\""),
-            String(" "),
-            String("\"\"\""),
-            Punctuation.Semicolon,
-            Punctuation.CloseCurly);
 }

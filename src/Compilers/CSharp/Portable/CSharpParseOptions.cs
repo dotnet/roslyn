@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // e.g. [["System", "Threading"], ["System", "Collections"]]
-                ImmutableArray<ImmutableArray<string>> previewNamespaces = Features.TryGetValue(Feature.InterceptorsNamespaces, out var namespaces) && namespaces.Length > 0
+                ImmutableArray<ImmutableArray<string>> previewNamespaces = Features.TryGetValue("InterceptorsNamespaces", out var namespaces) && namespaces.Length > 0
                     ? makeNamespaces(namespaces)
                     : ImmutableArray<ImmutableArray<string>>.Empty;
 
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// In this mode, ignored directives <c>#:</c> are allowed.
         /// </remarks>
-        internal bool FileBasedProgram => HasFeature(Feature.FileBasedProgram);
+        internal bool FileBasedProgram => Features.ContainsKey("FileBasedProgram");
 
         internal override void ValidateOptions(ArrayBuilder<Diagnostic> builder)
         {
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string? featureFlag = feature.RequiredFeature();
             if (featureFlag != null)
             {
-                return HasFeature(featureFlag);
+                return Features.ContainsKey(featureFlag);
             }
             LanguageVersion availableVersion = LanguageVersion;
             LanguageVersion requiredVersion = feature.RequiredVersion();

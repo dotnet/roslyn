@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
 {
@@ -32,10 +32,13 @@ namespace Microsoft.CodeAnalysis.Text
                 return 0;
             }
 
-            // GetContentHash returns a 16-byte, well-distributed, xx-hash-128 value.
-            // So reading the first 4 bytes as an int is always safe, and will give a good hash code back for this instance.
-            var contentHash = obj.GetContentHash();
-            return MemoryMarshal.Read<int>(contentHash.AsSpan());
+            var checksum = obj.GetChecksum();
+            var contentsHash = !checksum.IsDefault ? Hash.CombineValues(checksum) : 0;
+            var encodingHash = obj.Encoding != null ? obj.Encoding.GetHashCode() : 0;
+
+            return Hash.Combine(obj.Length,
+                Hash.Combine(contentsHash,
+                Hash.Combine(encodingHash, ((int)obj.ChecksumAlgorithm).GetHashCode())));
         }
     }
 }

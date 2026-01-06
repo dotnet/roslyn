@@ -26,7 +26,7 @@
 
     <!-- Framework/Core (depending on the host) compiler assemblies. -->
     <RoslynAssembliesPath Condition="'$(RoslynAssembliesPath)' == '' and '$(MSBuildRuntimeType)' == 'Core'">$(RoslynCoreAssembliesPath)</RoslynAssembliesPath>
-    <RoslynAssembliesPath Condition="'$(RoslynAssembliesPath)' == '' and '$(MSBuildRuntimeType)' != 'Core'">$(_RoslynTargetsDirectory)</RoslynAssembliesPath>
+    <RoslynAssembliesPath Condition="'$(RoslynAssembliesPath)' == '' and '$(MSBuildRuntimeType)' != 'Core'">$(_RoslynTasksDirectory)</RoslynAssembliesPath>
 
     <RoslynTasksAssembly Condition="'$(_UseRoslynBridgeTask)' != 'true'">$(_RoslynTasksDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll</RoslynTasksAssembly>
     <RoslynTasksAssembly Condition="'$(_UseRoslynBridgeTask)' == 'true'">$(_RoslynTasksDirectory)Microsoft.Build.Tasks.CodeAnalysis.Sdk.dll</RoslynTasksAssembly>

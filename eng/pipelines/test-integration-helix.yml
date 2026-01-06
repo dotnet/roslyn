@@ -83,13 +83,6 @@ stages:
         env:
           HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
 
-      - task: BatchScript@1
-        displayName: Rehydrate Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
-        inputs:
-          filename: ./artifacts\bin\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests/${{ parameters.configuration }}/net472/rehydrate.cmd
-        env:
-          HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
-
       - task: UseDotNet@2
         displayName: 'Install .NET 9 Runtime'
         inputs:

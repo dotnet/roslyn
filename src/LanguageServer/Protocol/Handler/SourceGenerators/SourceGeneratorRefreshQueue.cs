@@ -120,25 +120,27 @@ internal sealed class SourceGeneratorRefreshQueue :
         }
     }
 
-    private async ValueTask RefreshSourceGeneratedDocumentsAsync(
+    private ValueTask RefreshSourceGeneratedDocumentsAsync(
         CancellationToken cancellationToken)
     {
         var hasOpenSourceGeneratedDocuments = _lspWorkspaceManager.GetTrackedLspText().Keys.Any(uri => uri.ParsedUri?.Scheme == SourceGeneratedDocumentUri.Scheme);
         if (!hasOpenSourceGeneratedDocuments)
         {
             // There are no opened source generated documents - we don't need to bother asking the client to refresh anything.
-            return;
+            return ValueTask.CompletedTask;
         }
 
         try
         {
-            await _notificationManager.SendNotificationAsync(RefreshSourceGeneratedDocumentName, cancellationToken).ConfigureAwait(false);
+            return _notificationManager.SendNotificationAsync(RefreshSourceGeneratedDocumentName, cancellationToken);
         }
         catch (Exception ex) when (ex is ObjectDisposedException or ConnectionLostException)
         {
             // It is entirely possible that we're shutting down and the connection is lost while we're trying to send a notification
             // as this runs outside of the guaranteed ordering in the queue. We can safely ignore this exception.
         }
+
+        return ValueTask.CompletedTask;
     }
 
     public void Dispose()

@@ -93,9 +93,9 @@ public sealed class LocaleTests(ITestOutputHelper? testOutputHelper) : AbstractL
         public bool MutatesSolutionState => true;
         public bool RequiresLSPSolution => true;
 
-        public async Task<Response> HandleRequestAsync(Request request, RequestContext context, CancellationToken cancellationToken)
+        public Task<Response> HandleRequestAsync(Request request, RequestContext context, CancellationToken cancellationToken)
         {
-            return new Response(CultureInfo.CurrentUICulture.Name);
+            return Task.FromResult(new Response(CultureInfo.CurrentUICulture.Name));
         }
     }
 

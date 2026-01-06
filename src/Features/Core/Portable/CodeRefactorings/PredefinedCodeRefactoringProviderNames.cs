@@ -10,7 +10,6 @@ internal static class PredefinedCodeRefactoringProviderNames
     public const string AddConstructorParametersFromMembers = "Add Parameters From Members Code Action Provider";
     public const string AddDebuggerDisplay = nameof(AddDebuggerDisplay);
     public const string AddFileBanner = "Add Banner To File Code Action Provider";
-    public const string AddImport = "Add Import Code Action Provider";
     public const string AddMissingImports = "Add Missing Imports On Paste Code Action Provider";
     public const string AddParameterCheck = nameof(AddParameterCheck);
     public const string ChangeSignature = "Change Signature Code Action Provider";

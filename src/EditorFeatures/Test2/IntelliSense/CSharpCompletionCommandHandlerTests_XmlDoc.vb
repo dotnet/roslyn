@@ -1416,31 +1416,5 @@ namespace Second.NestedB
                 Await state.AssertLineTextAroundCaret("        /// This is from <see cref=""MyClassLongDescription", """/>")
             End Using
         End Function
-
-        <WpfTheory, CombinatorialData>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/7424")>
-        Public Async Function TestKeywordsInCref(showCompletionInArgumentLists As Boolean) As Task
-            Using state = TestStateFactory.CreateTestStateFromWorkspace(
-                <Workspace>
-                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                        <Document>
-class OtherClass
-{
-    /// &lt;summary&gt;
-    /// This is from &lt;see cref="Goo($$)"/&gt;
-    /// &lt;/summary&gt;
-    public void Method()
-    {
-    }
-}
-                        </Document>
-                    </Project>
-                </Workspace>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
-
-                state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
-                Await state.AssertCompletionItemsContainAll("out", "ref")
-            End Using
-        End Function
     End Class
 End Namespace

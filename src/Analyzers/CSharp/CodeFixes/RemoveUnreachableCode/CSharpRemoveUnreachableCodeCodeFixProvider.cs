@@ -24,7 +24,7 @@ internal sealed class CSharpRemoveUnreachableCodeCodeFixProvider() : SyntaxEdito
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
         [IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId];
 
-    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var diagnostic = context.Diagnostics[0];
 
@@ -37,6 +37,8 @@ internal sealed class CSharpRemoveUnreachableCodeCodeFixProvider() : SyntaxEdito
             : CodeActionPriority.Default;
 
         RegisterCodeFix(context, CSharpCodeFixesResources.Remove_unreachable_code, nameof(CSharpCodeFixesResources.Remove_unreachable_code), priority);
+
+        return Task.CompletedTask;
     }
 
     protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
@@ -45,7 +47,7 @@ internal sealed class CSharpRemoveUnreachableCodeCodeFixProvider() : SyntaxEdito
     private static bool IsSubsequentSection(Diagnostic diagnostic)
         => diagnostic.Properties.ContainsKey(CSharpRemoveUnreachableCodeDiagnosticAnalyzer.IsSubsequentSection);
 
-    protected override async Task FixAllAsync(
+    protected override Task FixAllAsync(
         Document document,
         ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor,
@@ -72,7 +74,7 @@ internal sealed class CSharpRemoveUnreachableCodeCodeFixProvider() : SyntaxEdito
             }
         }
 
-        return;
+        return Task.CompletedTask;
 
         // Local function
         static void RemoveStatement(SyntaxEditor editor, SyntaxNode statement)

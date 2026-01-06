@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -59,12 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // For record structs:
                     //      return other is R && Equals((R)other)
-                    Debug.Assert(paramAccess.Type.IsObjectType());
-                    Conversion c = F.ClassifyEmitConversion(paramAccess, ContainingType);
-                    Debug.Assert(c.IsUnboxing);
                     expression = F.LogicalAnd(
                         F.Is(paramAccess, ContainingType),
-                        F.Call(F.This(), _typedRecordEquals, F.Convert(ContainingType, paramAccess, c)));
+                        F.Call(F.This(), _typedRecordEquals, F.Convert(ContainingType, paramAccess)));
                 }
                 else
                 {

@@ -69,8 +69,7 @@ internal sealed class RazorSourceGeneratedDocumentSpanMappingServiceWrapper(
         }
 
         var mappedSpans = await _implementation.MapSpansAsync(document, spans, cancellationToken).ConfigureAwait(false);
-        if (mappedSpans.IsDefault ||
-            mappedSpans.Length != spans.Length)
+        if (mappedSpans.Length != spans.Length)
         {
             return [];
         }

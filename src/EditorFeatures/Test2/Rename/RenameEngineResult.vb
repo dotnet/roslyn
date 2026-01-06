@@ -272,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                             From location In _unassertedRelatedLocations
                             Let document = _workspace.CurrentSolution.GetDocument(location.DocumentId)
                             Let spanText = document.GetTextSynchronously(CancellationToken.None).ToString(location.ConflictCheckSpan)
-                            Select $"{spanText} @{document.Name}[{location.ConflictCheckSpan.Start}..{location.ConflictCheckSpan.End})-{location.Type}"))
+                            Select $"{spanText} @{document.Name}[{location.ConflictCheckSpan.Start}..{location.ConflictCheckSpan.End})"))
                 End If
             End If
 

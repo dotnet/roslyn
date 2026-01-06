@@ -253,7 +253,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int ERR_InvalidDebugInfo => (int)ErrorCode.ERR_InvalidDebugInfo;
         public override int ERR_FunctionPointerTypesInAttributeNotSupported => (int)ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported;
         public override int ERR_DataSectionStringLiteralHashCollision => (int)ErrorCode.ERR_DataSectionStringLiteralHashCollision;
-        public override int ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime => (int)ErrorCode.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime;
 
         // Generators:
         public override int WRN_GeneratorFailedDuringInitialization => (int)ErrorCode.WRN_GeneratorFailedDuringInitialization;

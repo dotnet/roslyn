@@ -2749,7 +2749,7 @@ int AIProp { get ; set ; }
 ";
             DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(test,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NamespaceUnexpected, Line = 5, Column = 10 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CompilationUnitUnexpected, Line = 10, Column = 5 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_NamespaceUnexpected, Line = 10, Column = 5 });
         }
 
         [Fact]
@@ -24356,28 +24356,11 @@ class Program
 }
 
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll)
-                .VerifyDiagnostics()
-                .VerifyIL("Program.Main", """
-                {
-                  // Code size       34 (0x22)
-                  .maxstack  1
-                  .locals init (System.IntPtr? V_0, //intPtr
-                                System.IntPtr V_1)
-                  IL_0000:  ldloca.s   V_0
-                  IL_0002:  initobj    "System.IntPtr?"
-                  IL_0008:  ldloca.s   V_0
-                  IL_000a:  call       "bool System.IntPtr?.HasValue.get"
-                  IL_000f:  brfalse.s  IL_0021
-                  IL_0011:  ldloca.s   V_0
-                  IL_0013:  call       "System.IntPtr System.IntPtr?.GetValueOrDefault()"
-                  IL_0018:  stloc.1
-                  IL_0019:  ldloca.s   V_1
-                  IL_001b:  call       "void* System.IntPtr.ToPointer()"
-                  IL_0020:  pop
-                  IL_0021:  ret
-                }
-                """);
+            CreateCompilationWithMscorlib461(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (9,24): error CS8977: 'void*' cannot be made nullable.
+                //         var p = intPtr?.ToPointer();
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".ToPointer()").WithArguments("void*").WithLocation(9, 24)
+                );
         }
 
         [Fact]

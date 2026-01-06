@@ -44,5 +44,7 @@ internal partial interface ISemanticFactsService : ISemanticFacts, ILanguageServ
 
     SyntaxToken GenerateUniqueName(string baseName, IEnumerable<string> usedNames);
 
+    CommonConversion ClassifyConversion(SemanticModel semanticModel, SyntaxNode expression, ITypeSymbol destination);
+
     IMethodSymbol? TryGetDisposeMethod(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
 }

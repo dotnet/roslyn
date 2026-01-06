@@ -54,12 +54,6 @@ internal abstract class AbstractMoveStaticMembersRefactoringProvider : CodeRefac
             return;
         }
 
-        // Don't offer refactoring for enum members
-        if (containingType.TypeKind == TypeKind.Enum)
-        {
-            return;
-        }
-
         // we want to use a span which covers all the selected viable member nodes, so that more specific nodes have priority
         var memberSpan = TextSpan.FromBounds(
             memberNodeSymbolPairs.First().node.FullSpan.Start,

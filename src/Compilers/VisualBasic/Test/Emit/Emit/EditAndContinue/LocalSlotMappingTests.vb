@@ -67,7 +67,7 @@ End Class
   IL_0021:  ble.s      IL_0014
  -IL_0023:  ret
 }
-", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
+", sequencePoints:="C.M")
 
             v0.VerifyPdb("C.M",
 <symbols>
