@@ -31,16 +31,16 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
 
         var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
-        comp.VerifyDiagnostics(
+        comp.VerifyEmitDiagnostics(
             // (1,14): error CS8652: The feature 'closed classes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // closed class C { }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("closed classes").WithLocation(1, 14));
 
         comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics();
 
         comp = CreateCompilation(source);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -68,5 +68,70 @@ public sealed class ClosedClassesTests : CSharpTestBase
         comp1 = CreateCompilation(source1, options: TestOptions.ReleaseModule);
         comp2 = CreateCompilation(source2, references: [comp1.EmitToImageReference()]);
         comp2.VerifyEmitDiagnostics();
+    }
+
+    // PROTOTYPE(cc): NamedTypeSymbol.IsClosed API
+
+    [Fact]
+    public void Sealed_01()
+    {
+        var source = """
+            sealed closed class C { }
+            """;
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (1,21): error CS9366: 'C': a closed type cannot be sealed or static
+            // sealed closed class C { }
+            Diagnostic(ErrorCode.ERR_ClosedSealedStatic, "C").WithArguments("C").WithLocation(1, 21));
+
+        var classC = comp.GetMember<NamedTypeSymbol>("C");
+        Assert.True(classC.IsSealed);
+    }
+
+    [Fact]
+    public void Static_01()
+    {
+        var source = """
+            static closed class C { }
+            """;
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (1,21): error CS9366: 'C': a closed type cannot be sealed or static
+            // static closed class C { }
+            Diagnostic(ErrorCode.ERR_ClosedSealedStatic, "C").WithArguments("C").WithLocation(1, 21));
+
+        var classC = comp.GetMember<NamedTypeSymbol>("C");
+        Assert.True(classC.IsStatic);
+    }
+
+    [Fact]
+    public void Abstract_01()
+    {
+        var source = """
+            abstract closed class C { }
+            """;
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics();
+
+        var classC = comp.GetMember<NamedTypeSymbol>("C");
+        Assert.True(classC.IsAbstract);
+    }
+
+    [Fact]
+    public void ImplicitlyAbstract_01()
+    {
+        var source = """
+            closed class C { }
+            """;
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics();
+
+        var classC = comp.GetMember<NamedTypeSymbol>("C");
+        // PROTOTYPE(cc): Should closed types implicitly return true from IsAbstract, like interfaces do?
+        Assert.False(classC.IsAbstract);
     }
 }

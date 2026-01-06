@@ -8213,4 +8213,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ClosedTypeNameDisallowed" xml:space="preserve">
     <value>Types and aliases cannot be named 'closed'.</value>
   </data>
+  <data name="ERR_ClosedSealedStatic" xml:space="preserve">
+    <value>'{0}': a closed type cannot be sealed or static</value>
+  </data>
 </root>

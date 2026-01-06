@@ -370,6 +370,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (!modifierErrors &&
+                (mods & DeclarationModifiers.Closed) != 0 &&
+                (mods & (DeclarationModifiers.Sealed | DeclarationModifiers.Static)) != 0)
+            {
+                // PROTOTYPE(cc): Should the abstract modifier be permitted?
+                // It seems like permitting it could give an impression that it is making a difference.
+                diagnostics.Add(ErrorCode.ERR_ClosedSealedStatic, GetFirstLocation(), this);
+            }
+
+            if (!modifierErrors &&
                 (mods & (DeclarationModifiers.Sealed | DeclarationModifiers.Static)) == (DeclarationModifiers.Sealed | DeclarationModifiers.Static))
             {
                 diagnostics.Add(ErrorCode.ERR_SealedStaticClass, GetFirstLocation(), this);

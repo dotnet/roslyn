@@ -2452,6 +2452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidModifierAfterScoped = 9350,
 
         ERR_ClosedTypeNameDisallowed = 9365, // PROTOTYPE(cc): pack
+        ERR_ClosedSealedStatic = 9366,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
