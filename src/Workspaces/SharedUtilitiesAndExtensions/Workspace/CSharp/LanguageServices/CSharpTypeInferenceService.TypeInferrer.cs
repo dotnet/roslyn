@@ -1632,13 +1632,13 @@ internal partial class CSharpTypeInferenceService
 
         private IEnumerable<TypeInferenceInfo> InferTypeInMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax memberDeclarator, SyntaxToken? previousTokenOpt = null)
         {
-            if (memberDeclarator.NameEquals != null && memberDeclarator.Parent is AnonymousObjectCreationExpressionSyntax)
+            if (memberDeclarator is { NameEquals: not null, Parent: AnonymousObjectCreationExpressionSyntax anonymousObject })
             {
                 // If we're position based, then we have to be after the = 
                 if (previousTokenOpt.HasValue && previousTokenOpt.Value != memberDeclarator.NameEquals.EqualsToken)
                     return [];
 
-                var types = InferTypes((AnonymousObjectCreationExpressionSyntax)memberDeclarator.Parent);
+                var types = InferTypes(anonymousObject);
 
                 return types.Where(t => t.InferredType.IsAnonymousType())
                     .SelectMany(t => t.InferredType.GetValidAnonymousTypeProperties()

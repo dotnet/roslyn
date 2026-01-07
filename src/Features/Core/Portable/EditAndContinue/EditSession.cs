@@ -983,7 +983,7 @@ internal sealed class EditSession
                 newResolution = edit.Symbol.Resolve(newCompilation, cancellationToken: cancellationToken);
                 Contract.ThrowIfNull(newResolution.Symbol);
             }
-            else if (edit.Kind == SemanticEditKind.Delete && edit.DeletedSymbolContainer is not null)
+            else if (edit is { Kind: SemanticEditKind.Delete, DeletedSymbolContainer: not null })
             {
                 // For deletes, we use NewSymbol to reference the containing type of the deleted member
                 newResolution = edit.DeletedSymbolContainer.Value.Resolve(newCompilation, cancellationToken: cancellationToken);
