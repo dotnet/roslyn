@@ -20,14 +20,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 {
     /// <param name="expectedUnsafeSymbols">See <see cref="VerifyRequiresUnsafeAttribute"/>.</param>
     /// <param name="expectedSafeSymbols">See <see cref="VerifyRequiresUnsafeAttribute"/>.</param>
-    private void CompileAndVerify(
+    private void CompileAndVerifyUnsafe(
         string lib,
         string caller,
         object[] expectedUnsafeSymbols,
         object[] expectedSafeSymbols,
         DiagnosticDescription[] expectedDiagnostics,
         ReadOnlySpan<string> additionalSources = default,
-        Verification verify = default)
+        Verification verify = default,
+        CallerUnsafeMode expectedUnsafeMode = CallerUnsafeMode.Explicit)
     {
         CreateCompilation([lib, caller, .. additionalSources],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
@@ -43,14 +44,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         foreach (var libUpdatedRef in libUpdatedRefs)
         {
-            CreateCompilation([caller, .. additionalSources], [libUpdatedRef],
+            var libAssemblySymbol = CreateCompilation([caller, .. additionalSources], [libUpdatedRef],
                 options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-                .VerifyDiagnostics(expectedDiagnostics);
-
-            var libAssemblySymbol = CreateCompilation("", [libUpdatedRef],
-                options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
-                .VerifyDiagnostics()
+                .VerifyDiagnostics(expectedDiagnostics)
                 .GetReferencedAssemblySymbol(libUpdatedRef);
+
             symbolValidator(libAssemblySymbol.Modules.Single());
         }
 
@@ -78,12 +76,23 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             if (module is SourceModuleSymbol)
             {
                 VerifyMemorySafetyRulesAttribute(module, includesAttributeDefinition: false, includesAttributeUse: false);
-                VerifyRequiresUnsafeAttribute(module, includesAttributeDefinition: false, expectedUnsafeSymbols: expectedUnsafeSymbols, expectedSafeSymbols: expectedSafeSymbols);
+                VerifyRequiresUnsafeAttribute(
+                    module,
+                    includesAttributeDefinition: false,
+                    expectedUnsafeSymbols: expectedUnsafeSymbols,
+                    expectedSafeSymbols: expectedSafeSymbols,
+                    expectedUnsafeMode: expectedUnsafeMode);
             }
             else
             {
                 VerifyMemorySafetyRulesAttribute(module, includesAttributeDefinition: true, includesAttributeUse: true, isSynthesized: true);
-                VerifyRequiresUnsafeAttribute(module, includesAttributeDefinition: true, isSynthesized: true, expectedUnsafeSymbols: expectedUnsafeSymbols, expectedSafeSymbols: expectedSafeSymbols);
+                VerifyRequiresUnsafeAttribute(
+                    module,
+                    includesAttributeDefinition: true,
+                    isSynthesized: true,
+                    expectedUnsafeSymbols: expectedUnsafeSymbols,
+                    expectedSafeSymbols: expectedSafeSymbols,
+                    expectedUnsafeMode: expectedUnsafeMode);
             }
         }
     }
@@ -180,7 +189,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         ReadOnlySpan<object> expectedUnsafeSymbols,
         ReadOnlySpan<object> expectedSafeSymbols,
         bool? isSynthesized = null,
-        bool expectedAttributeInMetadata = true)
+        CallerUnsafeMode expectedUnsafeMode = CallerUnsafeMode.Explicit)
     {
         const string Name = "RequiresUnsafeAttribute";
         const string FullName = $"System.Runtime.CompilerServices.{Name}";
@@ -237,11 +246,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             var attribute = symbol.GetAttributes().SingleOrDefault(a => a.AttributeClass?.Name == Name);
             Assert.True(attribute is null, $"Attribute should not be exposed by '{symbol.ToTestDisplayString()}'");
 
+            var symbolExpectedUnsafeMode = shouldBeUnsafe ? expectedUnsafeMode : CallerUnsafeMode.None;
+
             if (symbol.ContainingModule is PEModuleSymbol peModuleSymbol)
             {
                 var unfilteredAttributes = peModuleSymbol.GetCustomAttributesForToken(MetadataTokens.EntityHandle(symbol.MetadataToken));
                 var unfilteredAttribute = unfilteredAttributes.SingleOrDefault(a => a.AttributeClass?.Name == Name);
-                var expectedUnfilteredAttribute = expectedAttributeInMetadata && shouldBeUnsafe;
+                var expectedUnfilteredAttribute = symbolExpectedUnsafeMode.NeedsRequiresUnsafeAttribute();
                 Assert.True((unfilteredAttribute != null) == expectedUnfilteredAttribute, $"Attribute should{(expectedUnfilteredAttribute ? "" : " not")} be in metadata for '{symbol.ToTestDisplayString()}'");
             }
             else
@@ -249,12 +260,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Assert.True(symbol.ContainingModule is SourceModuleSymbol or null);
             }
 
-            var expectedUnsafeMode = !shouldBeUnsafe
-                ? CallerUnsafeMode.None
-                : expectedAttributeInMetadata
-                ? CallerUnsafeMode.Explicit
-                : CallerUnsafeMode.Implicit;
-            Assert.True(expectedUnsafeMode == symbol.CallerUnsafeMode, $"Expected '{symbol.ToTestDisplayString()}' to have {nameof(CallerUnsafeMode)}.{expectedUnsafeMode} (got {symbol.CallerUnsafeMode})");
+            Assert.True(symbolExpectedUnsafeMode == symbol.CallerUnsafeMode, $"Expected '{symbol.ToTestDisplayString()}' to have {nameof(CallerUnsafeMode)}.{symbolExpectedUnsafeMode} (got {symbol.CallerUnsafeMode})");
 
             Assert.True(seenSymbols.Add(symbol), $"Symbol '{symbol.ToTestDisplayString()}' specified multiple times.");
         }
@@ -2715,7 +2721,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             if (callerLangVersion >= LanguageVersionFacts.CSharpNext)
             {
                 expectedDiagnostics.Add(
-                    // (2,1): error CS9502: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe'
+                    // (2,1): error CS9502: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                     // c.M();
                     Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.M()").WithArguments("C.M()").WithLocation(2, 1));
             }
@@ -2739,7 +2745,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Method_OverloadResolution()
     {
-        CompileAndVerify(
+        CompileAndVerifyUnsafe(
             lib: """
                 public class C
                 {
@@ -2757,7 +2763,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedSafeSymbols: ["C", Overload("C.M", 0)],
             expectedDiagnostics:
             [
-                // (2,1): error CS9502: 'C.M(int)' must be used in an unsafe context because it is marked as 'unsafe'
+                // (2,1): error CS9502: 'C.M(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // C.M(1);
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "C.M(1)").WithArguments("C.M(int)").WithLocation(2, 1),
             ]);
@@ -2766,7 +2772,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Method_SafeBoundary()
     {
-        CompileAndVerify(
+        CompileAndVerifyUnsafe(
             lib: """
                 public class C
                 {
@@ -2783,7 +2789,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedSafeSymbols: ["C.M1"],
             expectedDiagnostics:
             [
-                // (3,1): error CS9502: 'C.M2()' must be used in an unsafe context because it is marked as 'unsafe'
+                // (3,1): error CS9502: 'C.M2()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // c.M2();
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.M2()").WithArguments("C.M2()").WithLocation(3, 1),
             ]);
@@ -2792,7 +2798,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Method_NameOf()
     {
-        CompileAndVerify(
+        CompileAndVerifyUnsafe(
             lib: """
                 public class C
                 {
@@ -2810,7 +2816,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Method_Extension()
     {
-        CompileAndVerify(
+        CompileAndVerifyUnsafe(
             lib: """
                 public static class E
                 {
@@ -2830,10 +2836,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedSafeSymbols: [],
             expectedDiagnostics:
             [
-                // (1,1): error CS9502: 'E.M1(int)' must be used in an unsafe context because it is marked as 'unsafe'
+                // (1,1): error CS9502: 'E.M1(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // 123.M1();
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "123.M1()").WithArguments("E.M1(int)").WithLocation(1, 1),
-                // (2,1): error CS9502: 'E.extension(int).M2()' must be used in an unsafe context because it is marked as 'unsafe'
+                // (2,1): error CS9502: 'E.extension(int).M2()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // 123.M2();
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "123.M2()").WithArguments("E.extension(int).M2()").WithLocation(2, 1),
             ]);
@@ -2843,7 +2849,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     public void Member_Method_InUnsafeClass()
     {
         // PROTOTYPE: unsafe modifier on a class should result in a warning
-        CompileAndVerify(
+        CompileAndVerifyUnsafe(
             lib: """
                 using System.Collections.Generic;
                 public unsafe class C
@@ -2866,7 +2872,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedSafeSymbols: ["C.M1", "C.M2"],
             expectedDiagnostics:
             [
-                // (4,1): error CS9502: 'C.M3()' must be used in an unsafe context because it is marked as 'unsafe'
+                // (4,1): error CS9502: 'C.M3()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // c.M3();
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.M3()").WithArguments("C.M3()").WithLocation(4, 1),
             ]);
@@ -2875,7 +2881,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Method_ConvertToFunctionPointer()
     {
-        CompileAndVerify(
+        CompileAndVerifyUnsafe(
             lib: """
                 public static class C
                 {
@@ -2904,7 +2910,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (1,1): error CS9502: 'M1()' must be used in an unsafe context because it is marked as 'unsafe'
+            // (1,1): error CS9502: 'M1()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
             // M1();
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M1()").WithArguments("M1()").WithLocation(1, 1));
     }
@@ -2913,7 +2919,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Property()
     {
-        CompileAndVerify(
+        CompileAndVerifyUnsafe(
             lib: """
                 public class C
                 {
@@ -2930,10 +2936,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedSafeSymbols: ["C.P1", "C.get_P1", "C.set_P1"],
             expectedDiagnostics:
             [
-                // (3,1): error CS9502: 'C.P2' must be used in an unsafe context because it is marked as 'unsafe'
+                // (3,1): error CS9502: 'C.P2' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // c.P2 = c.P2 + 123;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2").WithLocation(3, 1),
-                // (3,8): error CS9502: 'C.P2' must be used in an unsafe context because it is marked as 'unsafe'
+                // (3,8): error CS9502: 'C.P2' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // c.P2 = c.P2 + 123;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2").WithLocation(3, 8),
             ]);
@@ -2942,7 +2948,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Property_Extension()
     {
-        CompileAndVerify(
+        CompileAndVerifyUnsafe(
             lib: """
                 public static class E
                 {
@@ -2962,10 +2968,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedSafeSymbols: [ExtensionMember("E", "P1"), "E.get_P1", ExtensionMember("E", "get_P1"), "E.set_P1", ExtensionMember("E", "set_P1")],
             expectedDiagnostics:
             [
-                // (3,1): error CS9502: 'E.extension(int).P2' must be used in an unsafe context because it is marked as 'unsafe'
+                // (3,1): error CS9502: 'E.extension(int).P2' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // x.P2 = x.P2 + 333;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "x.P2").WithArguments("E.extension(int).P2").WithLocation(3, 1),
-                // (3,8): error CS9502: 'E.extension(int).P2' must be used in an unsafe context because it is marked as 'unsafe'
+                // (3,8): error CS9502: 'E.extension(int).P2' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // x.P2 = x.P2 + 333;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "x.P2").WithArguments("E.extension(int).P2").WithLocation(3, 8),
             ]);
@@ -2974,7 +2980,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Property_Record()
     {
-        CompileAndVerify(
+        CompileAndVerifyUnsafe(
             lib: """
                 public record C(int P1, int P2)
                 {
@@ -2991,10 +2997,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedSafeSymbols: ["C.P1", "C.get_P1", "C.set_P1"],
             expectedDiagnostics:
             [
-                // (2,1): error CS9502: 'C.P2' must be used in an unsafe context because it is marked as 'unsafe'
+                // (2,1): error CS9502: 'C.P2' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // c.P2 = c.P1 + c.P2;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2").WithLocation(2, 1),
-                // (2,15): error CS9502: 'C.P2' must be used in an unsafe context because it is marked as 'unsafe'
+                // (2,15): error CS9502: 'C.P2' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // c.P2 = c.P1 + c.P2;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2").WithLocation(2, 15),
             ]);
@@ -3039,7 +3045,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 includesAttributeDefinition: false,
                 expectedUnsafeSymbols: [],
                 expectedSafeSymbols: ["C", "C.F", (object)getFunctionPointerType, (object)getFunctionPointerMethod],
-                expectedAttributeInMetadata: false))
+                expectedUnsafeMode: CallerUnsafeMode.Implicit))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -3107,7 +3113,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 includesAttributeDefinition: false,
                 expectedUnsafeSymbols: ["C.M2"],
                 expectedSafeSymbols: ["C", "C.M1"],
-                expectedAttributeInMetadata: false))
+                expectedUnsafeMode: CallerUnsafeMode.Implicit))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -3166,7 +3172,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 includesAttributeDefinition: false,
                 expectedUnsafeSymbols: ["C.M2"],
                 expectedSafeSymbols: ["C", "C.M1"],
-                expectedAttributeInMetadata: false))
+                expectedUnsafeMode: CallerUnsafeMode.Implicit))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -3218,7 +3224,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 includesAttributeDefinition: false,
                 expectedUnsafeSymbols: [],
                 expectedSafeSymbols: ["C", "I", "C.M", "D"],
-                expectedAttributeInMetadata: false);
+                expectedUnsafeMode: CallerUnsafeMode.Implicit);
         }
     }
 
@@ -3305,7 +3311,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 includesAttributeDefinition: false,
                 expectedUnsafeSymbols: ["E.M2"],
                 expectedSafeSymbols: ["E", "E.M1"],
-                expectedAttributeInMetadata: false))
+                expectedUnsafeMode: CallerUnsafeMode.Implicit))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -3371,7 +3377,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 includesAttributeDefinition: false,
                 expectedUnsafeSymbols: ["E.M2", ExtensionMember("E", "M2")],
                 expectedSafeSymbols: ["E", "E.M1", ExtensionMember("E", "M1")],
-                expectedAttributeInMetadata: false))
+                expectedUnsafeMode: CallerUnsafeMode.Implicit))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -3437,7 +3443,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 includesAttributeDefinition: false,
                 expectedUnsafeSymbols: ["C.P2", "C.get_P2", "C.set_P2"],
                 expectedSafeSymbols: ["C", "C.P1", "C.get_P1", "C.set_P1"],
-                expectedAttributeInMetadata: false))
+                expectedUnsafeMode: CallerUnsafeMode.Implicit))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -3508,7 +3514,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 includesAttributeDefinition: false,
                 expectedUnsafeSymbols: [ExtensionMember("E", "P2"), "E.get_P2", ExtensionMember("E", "get_P2"), "E.set_P2", ExtensionMember("E", "set_P2")],
                 expectedSafeSymbols: ["E", ExtensionMember("E", "P1"), "E.get_P1", ExtensionMember("E", "get_P1"), "E.set_P1", ExtensionMember("E", "set_P1")],
-                expectedAttributeInMetadata: false))
+                expectedUnsafeMode: CallerUnsafeMode.Implicit))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -3527,6 +3533,386 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (3,18): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             // new int*[0].P2 = new int*[0].P2;
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new int*[0]").WithLocation(3, 18));
+    }
+
+    [Fact]
+    public void Extern_Method()
+    {
+        var libSource = """
+            #pragma warning disable CS0626 // extern without attributes
+            using System.Runtime.CompilerServices;
+            using System.Runtime.InteropServices;
+
+            public class C
+            {
+                public void M1() { }
+                public extern void M2();
+                [DllImport("test")] public static extern void M3();
+                [MethodImpl(MethodImplOptions.InternalCall)] public extern void M4();
+            }
+            """;
+
+        var callerSource = """
+            var c = new C();
+            c.M1();
+            c.M2();
+            C.M3();
+            c.M4();
+            """;
+
+        CompileAndVerifyUnsafe(
+            libSource,
+            callerSource,
+            verify: Verification.Skipped,
+            expectedUnsafeSymbols: ["C.M2", "C.M3", "C.M4"],
+            expectedSafeSymbols: ["C", "C.M1"],
+            expectedDiagnostics:
+            [
+                // (3,1): error CS9502: 'C.M2()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // c.M2();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.M2()").WithArguments("C.M2()").WithLocation(3, 1),
+                // (4,1): error CS9502: 'C.M3()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // C.M3();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "C.M3()").WithArguments("C.M3()").WithLocation(4, 1),
+                // (5,1): error CS9502: 'C.M4()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // c.M4();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.M4()").WithArguments("C.M4()").WithLocation(5, 1),
+            ]);
+
+        // When compiling the lib under legacy rules, extern members are not unsafe.
+        var lib = CreateCompilation(libSource,
+            assemblyName: "lib")
+            .VerifyDiagnostics();
+
+        foreach (var useCompilationReference in new[] { false, true })
+        {
+            CompileAndVerify(callerSource,
+                [AsReference(lib, useCompilationReference)],
+                options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(),
+                verify: Verification.Skipped,
+                symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                    m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
+                    includesAttributeDefinition: false,
+                    expectedUnsafeSymbols: [],
+                    expectedSafeSymbols: ["C", "C.M1", "C.M2", "C.M3", "C.M4"]))
+                .VerifyDiagnostics();
+        }
+    }
+
+    [Fact]
+    public void Extern_Method_WithPointers()
+    {
+        static string getLibSource(string modifiers) => $$"""
+            #pragma warning disable CS0626 // extern without attributes
+            public class C
+            {
+                public {{modifiers}} int* M();
+            }
+            """;
+
+        var callerSource = """
+            var c = new C();
+            c.M();
+            """;
+
+        var libUpdated = CreateCompilation(
+            getLibSource("extern"),
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics();
+
+        foreach (var useCompilationReference in new[] { false, true })
+        {
+            var libUpdatedRef = AsReference(libUpdated, useCompilationReference);
+
+            var libAssemblySymbol = CreateCompilation(callerSource,
+                [libUpdatedRef],
+                options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+                .VerifyDiagnostics(
+                // (2,1): error CS9502: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // c.M();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.M()").WithArguments("C.M()").WithLocation(2, 1))
+                .GetReferencedAssemblySymbol(libUpdatedRef);
+
+            VerifyRequiresUnsafeAttribute(
+                libAssemblySymbol.Modules.Single(),
+                includesAttributeDefinition: !useCompilationReference,
+                isSynthesized: useCompilationReference ? null : true,
+                expectedUnsafeSymbols: ["C.M"],
+                expectedSafeSymbols: ["C"]);
+        }
+
+        CreateCompilation(getLibSource("extern")).VerifyDiagnostics(
+            // (4,19): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     public extern int* M();
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(4, 19));
+
+        // When compiling the lib under legacy rules, extern members are not unsafe, but members with pointers are.
+        var libLegacy = CreateCompilation(
+            getLibSource("unsafe extern"),
+            options: TestOptions.UnsafeReleaseDll)
+            .VerifyDiagnostics();
+
+        foreach (var useCompilationReference in new[] { false, true })
+        {
+            var libLegacyRef = AsReference(libLegacy, useCompilationReference);
+
+            var libAssemblySymbol = CreateCompilation(callerSource,
+                [libLegacyRef],
+                options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+                .VerifyDiagnostics(
+                // (2,1): error CS9503: 'C.M()' must be used in an unsafe context because it has pointers in its signature
+                // c.M();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.M()").WithArguments("C.M()").WithLocation(2, 1))
+                .GetReferencedAssemblySymbol(libLegacyRef);
+
+            VerifyRequiresUnsafeAttribute(
+                libAssemblySymbol.Modules.Single(),
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: ["C.M"],
+                expectedSafeSymbols: ["C"],
+                expectedUnsafeMode: CallerUnsafeMode.Implicit);
+        }
+    }
+
+    [Fact]
+    public void Extern_Method_Explicit()
+    {
+        var libSource = """
+            #pragma warning disable CS0626 // extern without attributes
+            public class C
+            {
+                public unsafe extern void M();
+            }
+            """;
+
+        var callerSource = """
+            var c = new C();
+            c.M();
+            """;
+
+        CompileAndVerifyUnsafe(
+            libSource,
+            callerSource,
+            verify: Verification.Skipped,
+            expectedUnsafeSymbols: ["C.M"],
+            expectedSafeSymbols: ["C"],
+            expectedDiagnostics:
+            [
+                // (2,1): error CS9502: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // c.M();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.M()").WithArguments("C.M()").WithLocation(2, 1),
+            ]);
+
+        // When compiling the lib under legacy rules, extern members are not unsafe.
+        var lib = CreateCompilation(
+            libSource,
+            options: TestOptions.UnsafeReleaseDll,
+            assemblyName: "lib")
+            .VerifyDiagnostics();
+
+        foreach (var useCompilationReference in new[] { false, true })
+        {
+            CompileAndVerify(callerSource,
+                [AsReference(lib, useCompilationReference)],
+                options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(),
+                verify: Verification.Skipped,
+                symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                    m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
+                    includesAttributeDefinition: false,
+                    expectedUnsafeSymbols: [],
+                    expectedSafeSymbols: ["C", "C.M"]))
+                .VerifyDiagnostics();
+        }
+    }
+
+    [Fact]
+    public void Extern_Property()
+    {
+        var libSource = """
+            #pragma warning disable CS0626 // extern without attributes
+            using System.Runtime.CompilerServices;
+            using System.Runtime.InteropServices;
+
+            public class C
+            {
+                public int P1 { set { } }
+                public extern int P2 { set; }
+                public static extern int P3 { [DllImport("test")] set; }
+                public extern int P4 { [MethodImpl(MethodImplOptions.InternalCall)] set; }
+            }
+            """;
+
+        var callerSource = """
+            var c = new C();
+            c.P1 = 0;
+            c.P2 = 0;
+            C.P3 = 0;
+            c.P4 = 0;
+            """;
+
+        CompileAndVerifyUnsafe(
+            libSource,
+            callerSource,
+            verify: Verification.Skipped,
+            expectedUnsafeSymbols: ["C.P2", "C.set_P2", "C.P3", "C.set_P3", "C.P4", "C.set_P4"],
+            expectedSafeSymbols: ["C", "C.P1", "C.set_P1"],
+            expectedDiagnostics:
+            [
+                // (3,1): error CS9502: 'C.P2' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // c.P2 = 0;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2").WithLocation(3, 1),
+                // (4,1): error CS9502: 'C.P3' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // C.P3 = 0;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "C.P3").WithArguments("C.P3").WithLocation(4, 1),
+                // (5,1): error CS9502: 'C.P4' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // c.P4 = 0;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P4").WithArguments("C.P4").WithLocation(5, 1),
+            ]);
+
+        // When compiling the lib under legacy rules, extern members are not unsafe.
+        var lib = CreateCompilation(libSource,
+            assemblyName: "lib")
+            .VerifyDiagnostics();
+
+        foreach (var useCompilationReference in new[] { false, true })
+        {
+            CompileAndVerify(callerSource,
+                [AsReference(lib, useCompilationReference)],
+                options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(),
+                verify: Verification.Skipped,
+                symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                    m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
+                    includesAttributeDefinition: false,
+                    expectedUnsafeSymbols: [],
+                    expectedSafeSymbols: ["C", "C.P1", "C.set_P1", "C.P2", "C.set_P2", "C.P3", "C.set_P3", "C.P4", "C.set_P4"]))
+                .VerifyDiagnostics();
+        }
+    }
+
+    [Fact]
+    public void Extern_Property_WithPointers()
+    {
+        static string getLibSource(string modifiers) => $$"""
+            #pragma warning disable CS0626 // extern without attributes
+            public class C
+            {
+                public {{modifiers}} int* P { set; }
+            }
+            """;
+
+        var callerSource = """
+            var c = new C();
+            c.P = null;
+            """;
+
+        var libUpdated = CreateCompilation(
+            getLibSource("extern"),
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics();
+
+        foreach (var useCompilationReference in new[] { false, true })
+        {
+            var libUpdatedRef = AsReference(libUpdated, useCompilationReference);
+
+            var libAssemblySymbol = CreateCompilation(callerSource,
+                [libUpdatedRef],
+                options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+                .VerifyDiagnostics(
+                // (2,1): error CS9502: 'C.P' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // c.P = null;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P").WithArguments("C.P").WithLocation(2, 1))
+                .GetReferencedAssemblySymbol(libUpdatedRef);
+
+            VerifyRequiresUnsafeAttribute(
+                libAssemblySymbol.Modules.Single(),
+                includesAttributeDefinition: !useCompilationReference,
+                isSynthesized: useCompilationReference ? null : true,
+                expectedUnsafeSymbols: ["C.P", "C.set_P"],
+                expectedSafeSymbols: ["C"]);
+        }
+
+        CreateCompilation(getLibSource("extern")).VerifyDiagnostics(
+            // (4,19): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     public extern int* P { set; }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(4, 19));
+
+        // When compiling the lib under legacy rules, extern members are not unsafe, but members with pointers are.
+        var libLegacy = CreateCompilation(
+            getLibSource("unsafe extern"),
+            options: TestOptions.UnsafeReleaseDll)
+            .VerifyDiagnostics();
+
+        foreach (var useCompilationReference in new[] { false, true })
+        {
+            var libLegacyRef = AsReference(libLegacy, useCompilationReference);
+
+            var libAssemblySymbol = CreateCompilation(callerSource,
+                [libLegacyRef],
+                options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+                .VerifyDiagnostics(
+                // (2,1): error CS9503: 'C.P' must be used in an unsafe context because it has pointers in its signature
+                // c.P = null;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.P").WithArguments("C.P").WithLocation(2, 1))
+                .GetReferencedAssemblySymbol(libLegacyRef);
+
+            VerifyRequiresUnsafeAttribute(
+                libAssemblySymbol.Modules.Single(),
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: ["C.P", "C.set_P"],
+                expectedSafeSymbols: ["C"],
+                expectedUnsafeMode: CallerUnsafeMode.Implicit);
+        }
+    }
+
+    [Fact]
+    public void Extern_Property_Explicit()
+    {
+        var libSource = """
+            #pragma warning disable CS0626 // extern without attributes
+            public class C
+            {
+                public unsafe extern int P { set; }
+            }
+            """;
+
+        var callerSource = """
+            var c = new C();
+            c.P = 0;
+            """;
+
+        CompileAndVerifyUnsafe(
+            libSource,
+            callerSource,
+            verify: Verification.Skipped,
+            expectedUnsafeSymbols: ["C.P", "C.set_P"],
+            expectedSafeSymbols: ["C"],
+            expectedDiagnostics:
+            [
+                // (2,1): error CS9502: 'C.P' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // c.P = 0;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P").WithArguments("C.P").WithLocation(2, 1),
+            ]);
+
+        // When compiling the lib under legacy rules, extern members are not unsafe.
+        var lib = CreateCompilation(
+            libSource,
+            options: TestOptions.UnsafeReleaseDll,
+            assemblyName: "lib")
+            .VerifyDiagnostics();
+
+        foreach (var useCompilationReference in new[] { false, true })
+        {
+            CompileAndVerify(callerSource,
+                [AsReference(lib, useCompilationReference)],
+                options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(),
+                verify: Verification.Skipped,
+                symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                    m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
+                    includesAttributeDefinition: false,
+                    expectedUnsafeSymbols: [],
+                    expectedSafeSymbols: ["C", "C.P", "C.set_P"]))
+                .VerifyDiagnostics();
+        }
     }
 
     [Fact]
@@ -4066,7 +4452,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(sourceB, [refA],
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (1,1): error CS9502: 'A.M()' must be used in an unsafe context because it is marked as 'unsafe'
+            // (1,1): error CS9502: 'A.M()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
             // A.M();
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "A.M()").WithArguments("A.M()").WithLocation(1, 1));
     }
@@ -4114,7 +4500,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(sourceB, [refA],
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (1,1): error CS9502: 'A.M()' must be used in an unsafe context because it is marked as 'unsafe'
+            // (1,1): error CS9502: 'A.M()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
             // A.M();
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "A.M()").WithArguments("A.M()").WithLocation(1, 1));
     }

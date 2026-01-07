@@ -105,7 +105,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (ContainingModule.UseUpdatedMemorySafetyRules)
                 {
-                    return IsUnsafe ? CallerUnsafeMode.Explicit : CallerUnsafeMode.None;
+                    return IsUnsafe || IsExtern
+                        ? CallerUnsafeMode.Explicit
+                        : CallerUnsafeMode.None;
                 }
 
                 return this.HasParameterContainingPointerType() || ReturnType.ContainsPointerOrFunctionPointer()
@@ -133,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(target));
             }
 
-            if (target.CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            if (target.CallerUnsafeMode.NeedsRequiresUnsafeAttribute())
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute(target));
             }
