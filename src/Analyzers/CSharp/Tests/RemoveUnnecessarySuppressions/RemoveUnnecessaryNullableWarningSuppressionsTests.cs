@@ -188,7 +188,7 @@ public sealed class RemoveUnnecessaryNullableWarningSuppressionsTests
                 """,
         }.RunAsync();
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81843")]
     public Task KeepWhenNeeded_PropertyInitializer_Net9()
         => new VerifyCS.Test
         {
