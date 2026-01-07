@@ -21,6 +21,7 @@ IDE0360 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-r
 IDE0370 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0370> | Remove unnecessary suppression |
 IDE0380 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0380> | Remove unnecessary 'unsafe' modifier |
 IDE0390 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0390> | Make method synchronous |
+IDE0391 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0391> | Make method synchronous |
 IDE1007 |  |  |
 IDE2000 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide2000> | Avoid multiple blank lines |
 IDE2001 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide2001> | Embedded statements must be on their own line |
