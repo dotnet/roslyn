@@ -196,6 +196,11 @@
         <target state="translated">Rendre le champ readonly</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_method_synchronous">
+        <source>Make method synchronous</source>
+        <target state="new">Make method synchronous</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Member_access_should_be_qualified">
         <source>Member access should be qualified.</source>
         <target state="translated">L'accès au membre doit être qualifié.</target>
@@ -209,6 +214,11 @@
       <trans-unit id="Member_name_can_be_simplified">
         <source>Member name can be simplified</source>
         <target state="translated">Le nom de membre peut être simplifié</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Method_can_be_made_synchronous">
+        <source>Method can be made synchronous</source>
+        <target state="new">Method can be made synchronous</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifiers_are_not_ordered">
