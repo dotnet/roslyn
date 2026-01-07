@@ -277,7 +277,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected static object KeyForConstant(ConstantValue constantValue)
         {
             Debug.Assert((object)constantValue != null);
-            return constantValue.IsNull ? s_nullKey : constantValue.Value;
+            switch (constantValue)
+            {
+                case { IsNull: true }:
+                    return s_nullKey;
+
+                case { Discriminator: ConstantValueTypeDiscriminator.NInt }:
+                    Debug.Assert(constantValue.Value is int);
+                    return new System.IntPtr(constantValue.Int32Value);
+
+                case { Discriminator: ConstantValueTypeDiscriminator.NUInt }:
+                    Debug.Assert(constantValue.Value is uint);
+                    return new System.UIntPtr(constantValue.UInt32Value);
+
+                default:
+                    return constantValue.Value;
+            }
         }
 
         protected SourceLabelSymbol FindMatchingSwitchCaseLabel(ConstantValue constantValue, CSharpSyntaxNode labelSyntax)

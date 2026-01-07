@@ -185,7 +185,7 @@ public partial class MSBuildProjectLoader
             return results;
         }
 
-        private Task<ProjectInfo> CreateProjectInfoAsync(ProjectFileInfo projectFileInfo, ProjectId projectId, bool addDiscriminator, CancellationToken cancellationToken)
+        private async Task<ProjectInfo> CreateProjectInfoAsync(ProjectFileInfo projectFileInfo, ProjectId projectId, bool addDiscriminator, CancellationToken cancellationToken)
         {
             var language = projectFileInfo.Language;
             var projectPath = projectFileInfo.FilePath;
@@ -208,8 +208,7 @@ public partial class MSBuildProjectLoader
                 var compilationOptions = GetLanguageService<ICompilationFactoryService>(language)
                     ?.GetDefaultCompilationOptions();
 
-                return Task.FromResult(
-                    ProjectInfo.Create(
+                return ProjectInfo.Create(
                         new ProjectInfo.ProjectAttributes(
                             projectId,
                             version,
@@ -222,10 +221,10 @@ public partial class MSBuildProjectLoader
                             outputRefFilePath: projectFileInfo.OutputRefFilePath,
                             filePath: projectPath),
                         compilationOptions: compilationOptions,
-                        parseOptions: parseOptions));
+                        parseOptions: parseOptions);
             }
 
-            return _progress.DoOperationAndReportProgressAsync(ProjectLoadOperation.Resolve, projectPath, projectFileInfo.TargetFramework, async () =>
+            return await _progress.DoOperationAndReportProgressAsync(ProjectLoadOperation.Resolve, projectPath, projectFileInfo.TargetFramework, async () =>
             {
                 var projectDirectory = Path.GetDirectoryName(projectPath);
 
@@ -302,7 +301,7 @@ public partial class MSBuildProjectLoader
                     hostObjectType: null)
                     .WithDefaultNamespace(projectFileInfo.DefaultNamespace)
                     .WithAnalyzerConfigDocuments(analyzerConfigDocuments);
-            });
+            }).ConfigureAwait(false);
         }
 
         private static string GetAssemblyNameFromProjectPath(string? projectFilePath)

@@ -18,8 +18,8 @@ jobs:
     environment: roslyn_perf
 
     steps:
-      - name: Check if user has write access
-        id: check-access
+      - name: Check if command invoker has write access
+        id: check-invoker-access
         uses: actions/github-script@v7
         with:
           script: |
@@ -28,15 +28,15 @@ jobs:
               repo: context.repo.repo,
               username: context.actor
             });
-            
+
             const hasWriteAccess = ['admin', 'write', 'maintain'].includes(permission.permission);
-            console.log(`User ${context.actor} has permission: ${permission.permission}`);
+            console.log(`Command invoker ${context.actor} has permission: ${permission.permission}`);
             core.setOutput('has-access', hasWriteAccess);
             return hasWriteAccess;
 
-      - name: Check Microsoft org membership
-        id: check-org
-        if: steps.check-access.outputs.has-access == 'true'
+      - name: Check if command invoker is Microsoft org member
+        id: check-invoker-org
+        if: steps.check-invoker-access.outputs.has-access == 'true'
         uses: actions/github-script@v7
         with:
           script: |
@@ -45,18 +45,81 @@ jobs:
                 org: 'microsoft',
                 username: context.actor
               });
-              console.log(`User ${context.actor} is a member of Microsoft org`);
+              console.log(`Command invoker ${context.actor} is a member of Microsoft org`);
               core.setOutput('is-member', 'true');
               return true;
             } catch (error) {
-              console.log(`User ${context.actor} is not a member of Microsoft org`);
+              console.log(`Command invoker ${context.actor} is not a member of Microsoft org`);
+              core.setOutput('is-member', 'false');
+              return false;
+            }
+
+      - name: Block unauthorized users
+        if: steps.check-invoker-access.outputs.has-access != 'true' || steps.check-invoker-org.outputs.is-member != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: 'You do not have permission to trigger this workflow. Only Microsoft employees who are contributors to the roslyn repository can run pipelines.'
+            });
+            core.setFailed('Unauthorized user');
+
+      - name: Get PR author details
+        id: pr-author
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+
+            const prAuthor = pr.user.login;
+            console.log(`PR author: ${prAuthor}`);
+            core.setOutput('username', prAuthor);
+
+            // Check if PR author has write access
+            try {
+              const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                username: prAuthor
+              });
+
+              const hasWriteAccess = ['admin', 'write', 'maintain'].includes(permission.permission);
+              console.log(`PR author ${prAuthor} has permission: ${permission.permission}`);
+              core.setOutput('has-access', hasWriteAccess);
+            } catch (error) {
+              console.log(`PR author ${prAuthor} does not have write access`);
+              core.setOutput('has-access', 'false');
+            }
+
+      - name: Check if PR author is Microsoft org member
+        id: pr-author-org
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prAuthor = '${{ steps.pr-author.outputs.username }}';
+            try {
+              await github.rest.orgs.checkMembershipForUser({
+                org: 'microsoft',
+                username: prAuthor
+              });
+              console.log(`PR author ${prAuthor} is a member of Microsoft org`);
+              core.setOutput('is-member', 'true');
+              return true;
+            } catch (error) {
+              console.log(`PR author ${prAuthor} is not a member of Microsoft org`);
               core.setOutput('is-member', 'false');
               return false;
             }
 
       - name: Parse commit hash from comment
         id: parse-commit
-        if: steps.check-access.outputs.has-access != 'true' || steps.check-org.outputs.is-member != 'true'
         uses: actions/github-script@v7
         with:
           script: |
@@ -76,9 +139,9 @@ jobs:
             core.setOutput('commit-hash', commitHash);
             return true;
 
-      - name: Comment on missing commit hash
+      - name: Require commit hash for external PR authors
         if: |
-          (steps.check-access.outputs.has-access != 'true' || steps.check-org.outputs.is-member != 'true') &&
+          (steps.pr-author.outputs.has-access != 'true' || steps.pr-author-org.outputs.is-member != 'true') &&
           steps.parse-commit.outputs.has-commit != 'true'
         uses: actions/github-script@v7
         with:
@@ -87,16 +150,11 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: 'You do not have permission to trigger this workflow without specifying a commit hash. Please use the format `/dart <commit-hash>` or `/pr-val <commit-hash>.'
+              body: 'This PR is from an external author. You must specify a commit hash to trigger this workflow. Please use the format `/dart <commit-hash>` or `/pr-val <commit-hash>`.'
             });
+            core.setFailed('Commit hash required for external PR author');
 
-      - name: Exit if unauthorized without commit hash
-        if: |
-          (steps.check-access.outputs.has-access != 'true' || steps.check-org.outputs.is-member != 'true') &&
-          steps.parse-commit.outputs.has-commit != 'true'
-        run: exit 1
-
-      - name: Get PR details
+      - name: Get PR branch details
         id: pr-details
         uses: actions/github-script@v7
         with:
@@ -109,6 +167,7 @@ jobs:
 
             core.setOutput('ref', pr.head.ref);
             core.setOutput('repo', pr.head.repo.full_name);
+            core.setOutput('sha', pr.head.sha);
             console.log(`PR #${context.issue.number}: ${pr.head.repo.full_name}@${pr.head.ref} (${pr.head.sha})`);
 
       - name: Determine commit SHA to use
@@ -118,6 +177,7 @@ jobs:
           script: |
             const parseCommitOutput = '${{ steps.parse-commit.outputs.has-commit }}';
             const providedCommit = '${{ steps.parse-commit.outputs.commit-hash }}';
+            const prHeadSha = '${{ steps.pr-details.outputs.sha }}';
 
             let commitSha;
             if (parseCommitOutput === 'true' && providedCommit) {
@@ -125,13 +185,8 @@ jobs:
               commitSha = providedCommit;
               console.log(`Using commit hash from comment: ${commitSha}`);
             } else {
-              // Use the PR head SHA for privileged users
-              const { data: pr } = await github.rest.pulls.get({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: context.issue.number
-              });
-              commitSha = pr.head.sha;
+              // Use the PR head SHA
+              commitSha = prHeadSha;
               console.log(`Using PR head SHA: ${commitSha}`);
             }
 
