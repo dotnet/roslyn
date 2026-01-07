@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(conversion.Method.IsUserDefinedConversion());
                         Debug.Assert(conversion.UserDefinedToConversion.IsIdentity);
                         Debug.Assert(resultantGoverningType.IsValidV6SwitchGoverningType(isTargetTypeOfUserDefinedOp: true));
-                        return binder.CreateConversion(node, switchGoverningExpression, conversion, isCast: false, conversionGroupOpt: null, inConversionGroupFlags: InConversionGroupFlags.Unspecified, resultantGoverningType, diagnostics);
+                        return binder.CreateConversion(node, switchGoverningExpression, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, resultantGoverningType, diagnostics);
                     }
                     else if (!switchGoverningType.IsVoidType())
                     {

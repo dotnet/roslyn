@@ -683,8 +683,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: conversion.Checked,
                     explicitCastInCode: true,
                     conversionGroupOpt: conversion.ConversionGroupOpt,
-                    constantValueOpt: conversion.ConstantValueOpt,
                     inConversionGroupFlags: conversion.InConversionGroupFlags,
+                    constantValueOpt: conversion.ConstantValueOpt,
                     type: conversion.Type);
             }
 

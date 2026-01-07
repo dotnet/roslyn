@@ -1033,7 +1033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         @checked: conversion.Checked,
                         explicitCastInCode: conversion.ExplicitCastInCode,
                         conversionGroupOpt: null,
-                        inConversionGroupFlags: InConversionGroupFlags.TupleBinaryOperatorPendingLowering,
+                        InConversionGroupFlags.TupleBinaryOperatorPendingLowering,
                         constantValueOpt: null,
                         type: conversion.Type.StrippedType(),
                         hasErrors: conversion.HasErrors);
@@ -1144,12 +1144,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var userDefinedConversion = new Conversion(conversionKind, method, false);
                 var result = new BoundConversion(
                     syntax, rewrittenOperand, userDefinedConversion, @checked, explicitCastInCode: explicitCastInCode,
-                    conversionGroupOpt: null, inConversionGroupFlags: InConversionGroupFlags.LoweredFormOfUserDefinedConversionForExpressionTree, constantValueOpt: null, rewrittenType);
+                    conversionGroupOpt: null, InConversionGroupFlags.LoweredFormOfUserDefinedConversionForExpressionTree, constantValueOpt: null, rewrittenType);
                 return result;
             }
             else
             {
-                return new BoundConversion(syntax, rewrittenOperand, conversion, @checked, explicitCastInCode: explicitCastInCode, conversionGroupOpt: null, inConversionGroupFlags: InConversionGroupFlags.Unspecified, constantValueOpt: null, rewrittenType);
+                return new BoundConversion(syntax, rewrittenOperand, conversion, @checked, explicitCastInCode: explicitCastInCode, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, constantValueOpt: null, rewrittenType);
             }
         }
 
@@ -1374,7 +1374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return BoundConversion.Synthesized(
                     syntax, rewrittenOperand, conversion, @checked: @checked, explicitCastInCode: true,
-                    conversionGroupOpt: null, inConversionGroupFlags: InConversionGroupFlags.LoweredFormOfUserDefinedConversionForExpressionTree, constantValueOpt: null, rewrittenType);
+                    conversionGroupOpt: null, InConversionGroupFlags.LoweredFormOfUserDefinedConversionForExpressionTree, constantValueOpt: null, rewrittenType);
             }
 
             if ((rewrittenOperand.Type.IsArray()) && _compilation.IsReadOnlySpanType(rewrittenType))
@@ -1418,7 +1418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Conversion conv = TryMakeConversion(syntax, conversion, rewrittenOperand.Type, rewrittenType, @checked: @checked);
                 return BoundConversion.Synthesized(
                     syntax, rewrittenOperand, conv, @checked: @checked, explicitCastInCode: true,
-                    conversionGroupOpt: null, inConversionGroupFlags: InConversionGroupFlags.LoweredFormOfUserDefinedConversionForExpressionTree, constantValueOpt: null, rewrittenType);
+                    conversionGroupOpt: null, InConversionGroupFlags.LoweredFormOfUserDefinedConversionForExpressionTree, constantValueOpt: null, rewrittenType);
             }
 
             // DELIBERATE SPEC VIOLATION:
@@ -1539,7 +1539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_inExpressionLambda)
             {
-                return BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, @checked, explicitCastInCode: explicitCastInCode, conversionGroupOpt: null, inConversionGroupFlags: InConversionGroupFlags.Unspecified, constantValueOpt, rewrittenType);
+                return BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, @checked, explicitCastInCode: explicitCastInCode, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, constantValueOpt, rewrittenType);
             }
 
             var rewrittenCall = MakeCall(
@@ -1758,7 +1758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new BoundConversion(
                     syntax, operand, conversion, @checked: false, explicitCastInCode: false,
-                    conversionGroupOpt: null, inConversionGroupFlags: InConversionGroupFlags.LoweredFormOfUserDefinedConversionForExpressionTree,
+                    conversionGroupOpt: null, InConversionGroupFlags.LoweredFormOfUserDefinedConversionForExpressionTree,
                     constantValueOpt: constantValueOpt, type: toType);
             }
             else

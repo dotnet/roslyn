@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (conversion.Kind != ConversionKind.Identity)
                 {
                     Debug.Assert(CurrentFunction.RefKind == RefKind.None);
-                    expression = BoundConversion.Synthesized(Syntax, expression, conversion, false, explicitCastInCode: false, conversionGroupOpt: null, inConversionGroupFlags: InConversionGroupFlags.Unspecified, ConstantValue.NotAvailable, CurrentFunction.ReturnType);
+                    expression = BoundConversion.Synthesized(Syntax, expression, conversion, false, explicitCastInCode: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, ConstantValue.NotAvailable, CurrentFunction.ReturnType);
                 }
             }
 
@@ -1527,7 +1527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(arg.Type is { });
-            return new BoundConversion(Syntax, arg, conversion, @checked: isChecked, explicitCastInCode: true, conversionGroupOpt: null, inConversionGroupFlags: InConversionGroupFlags.Unspecified, null, type) { WasCompilerGenerated = true };
+            return new BoundConversion(Syntax, arg, conversion, @checked: isChecked, explicitCastInCode: true, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, null, type) { WasCompilerGenerated = true };
         }
 
         public BoundExpression ArrayOrEmpty(TypeSymbol elementType, BoundExpression[] elements)

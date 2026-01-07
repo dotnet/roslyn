@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var conversion = Conversions.ClassifyConversionFromExpression(source, destination, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
 
             diagnostics.Add(source.Syntax, useSiteInfo);
-            return CreateConversion(source.Syntax, source, conversion, isCast: false, conversionGroupOpt: null, inConversionGroupFlags: InConversionGroupFlags.Unspecified, destination: destination, diagnostics: diagnostics);
+            return CreateConversion(source.Syntax, source, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, destination: destination, diagnostics: diagnostics);
         }
 
         internal BoundExpression CreateConversion(
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol destination,
             BindingDiagnosticBag diagnostics)
         {
-            return CreateConversion(source.Syntax, source, conversion, isCast: false, conversionGroupOpt: null, inConversionGroupFlags: InConversionGroupFlags.Unspecified, destination: destination, diagnostics: diagnostics);
+            return CreateConversion(source.Syntax, source, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, destination: destination, diagnostics: diagnostics);
         }
 
         internal BoundExpression CreateConversion(
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         conversion.UnderlyingConversions[0],
                                         isCast: false,
                                         conversionGroupOpt: null,
-                                        inConversionGroupFlags: InConversionGroupFlags.Unspecified,
+                                        InConversionGroupFlags.Unspecified,
                                         wasCompilerGenerated,
                                         destination.GetNullableUnderlyingType(),
                                         diagnostics);
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         conversion.UnderlyingConversions[0],
                                         isCast: false,
                                         conversionGroupOpt: null,
-                                        inConversionGroupFlags: InConversionGroupFlags.Unspecified,
+                                        InConversionGroupFlags.Unspecified,
                                         wasCompilerGenerated,
                                         destination.GetNullableUnderlyingType(),
                                         diagnostics);
@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 conversion.UnderlyingConversions[0],
                                 isCast: false,
                                 conversionGroupOpt: null,
-                                inConversionGroupFlags: InConversionGroupFlags.Unspecified,
+                                InConversionGroupFlags.Unspecified,
                                 wasCompilerGenerated,
                                 destination,
                                 diagnostics);
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     elementConversions[i],
                                     isCast: false,
                                     conversionGroupOpt: null,
-                                    inConversionGroupFlags: InConversionGroupFlags.Unspecified,
+                                    InConversionGroupFlags.Unspecified,
                                     wasCompilerGenerated,
                                     destTypes[i].Type,
                                     diagnostics);
@@ -2081,7 +2081,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversion: conversion.UserDefinedFromConversion,
                 isCast: false,
                 conversionGroupOpt: conversionGroup,
-                inConversionGroupFlags: InConversionGroupFlags.UserDefinedFromConversion,
+                InConversionGroupFlags.UserDefinedFromConversion,
                 wasCompilerGenerated: false,
                 destination: conversion.BestUserDefinedConversionAnalysis.FromType,
                 diagnostics: diagnostics);
@@ -2104,7 +2104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversion: toParameterTypeConversion,
                     isCast: false,
                     conversionGroupOpt: conversionGroup,
-                    inConversionGroupFlags: InConversionGroupFlags.UserDefinedFromConversionAdjustment,
+                    InConversionGroupFlags.UserDefinedFromConversionAdjustment,
                     wasCompilerGenerated: true,
                     destination: conversionParameterType,
                     diagnostics: diagnostics);
@@ -2128,7 +2128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: CheckOverflowAtRuntime,
                     explicitCastInCode: isCast,
                     conversionGroup,
-                    inConversionGroupFlags: InConversionGroupFlags.UserDefinedOperator,
+                    InConversionGroupFlags.UserDefinedOperator,
                     constantValueOpt: ConstantValue.NotAvailable,
                     type: conversionReturnType)
                 { WasCompilerGenerated = true };
@@ -2156,7 +2156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         conversion: fromReturnTypeConversion,
                         isCast: false,
                         conversionGroupOpt: conversionGroup,
-                        inConversionGroupFlags: InConversionGroupFlags.UserDefinedReturnTypeAdjustment,
+                        InConversionGroupFlags.UserDefinedReturnTypeAdjustment,
                         wasCompilerGenerated: true,
                         destination: conversionToType,
                         diagnostics: diagnostics);
@@ -2173,7 +2173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: CheckOverflowAtRuntime,
                     explicitCastInCode: isCast,
                     conversionGroup,
-                    inConversionGroupFlags: InConversionGroupFlags.UserDefinedOperator,
+                    InConversionGroupFlags.UserDefinedOperator,
                     constantValueOpt: ConstantValue.NotAvailable,
                     type: conversionToType)
                 { WasCompilerGenerated = true };
@@ -2188,7 +2188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversion: toConversion,
                 isCast: false,
                 conversionGroupOpt: conversionGroup,
-                inConversionGroupFlags: InConversionGroupFlags.UserDefinedFinal,
+                InConversionGroupFlags.UserDefinedFinal,
                 wasCompilerGenerated: true, // NOTE: doesn't necessarily set flag on resulting bound expression.
                 destination: destination,
                 diagnostics: diagnostics);
@@ -2554,7 +2554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var destType = targetElementTypes[i];
                 var elementConversion = underlyingConversions[i];
                 var elementConversionGroup = isCast ? new ConversionGroup(elementConversion, destType) : null;
-                convertedArguments.Add(CreateConversion(argument.Syntax, argument, elementConversion, isCast: isCast, elementConversionGroup, inConversionGroupFlags: InConversionGroupFlags.Unspecified, destType.Type, diagnostics));
+                convertedArguments.Add(CreateConversion(argument.Syntax, argument, elementConversion, isCast: isCast, elementConversionGroup, InConversionGroupFlags.Unspecified, destType.Type, diagnostics));
             }
 
             BoundExpression result = new BoundConvertedTupleLiteral(
@@ -2577,7 +2577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: false,
                     explicitCastInCode: isCast,
                     conversionGroup,
-                    inConversionGroupFlags: inConversionGroupFlags | InConversionGroupFlags.TupleLiteral,
+                    inConversionGroupFlags | InConversionGroupFlags.TupleLiteral,
                     constantValueOpt: ConstantValue.NotAvailable,
                     type: destination);
             }
@@ -2594,7 +2594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: false,
                     explicitCastInCode: isCast,
                     conversionGroup,
-                    inConversionGroupFlags: inConversionGroupFlags | InConversionGroupFlags.TupleLiteralExplicitIdentity,
+                    inConversionGroupFlags | InConversionGroupFlags.TupleLiteralExplicitIdentity,
                     constantValueOpt: ConstantValue.NotAvailable,
                     type: destination);
             }

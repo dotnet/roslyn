@@ -29082,7 +29082,7 @@ partial class Program
             var conversionOperation = (IConversionOperation)((IReturnOperation)operation).ReturnedValue;
             Conversion conversion = conversionOperation.GetConversion();
             Assert.Equal(ConversionKind.CollectionExpression, conversion.Kind);
-            AssertEx.SequenceEqual(ImmutableArray.Create(Conversion.Boxing, Conversion.Boxing), conversion.UnderlyingConversions);
+            AssertEx.SequenceEqual([Conversion.Boxing, Conversion.Boxing], conversion.UnderlyingConversions);
         }
 
         [Fact]
