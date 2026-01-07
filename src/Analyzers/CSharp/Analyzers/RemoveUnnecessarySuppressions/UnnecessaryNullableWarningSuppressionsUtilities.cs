@@ -142,6 +142,14 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
             }
         }
 
+        // Break checking into 3 phases.
+        //
+        // 1. Analysis of the top-level statements if any suppressions are in top level code.
+        // 2. Analysis of field/property initializers.  This is necessary as we (currently) cannot ask for diagnostics
+        //    for a field/property initializer directly.  The compiler will not return accurate nullable warnings for
+        //    these if they are impacted by a constructor in the type.  To workaround this, we ask for diagnostics for
+        //    the entire type, and filter to the spans of the field/property.
+        // 3. Any remaining nodes not covered by the above.
         CheckGlobalStatements();
         CheckFieldsAndProperties();
         CheckRemainder();
