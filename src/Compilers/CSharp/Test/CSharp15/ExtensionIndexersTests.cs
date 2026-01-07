@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 #nullable disable
 
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -2686,6 +2685,31 @@ public static class E
 """);
     }
 
+    [Fact]
+    public void ListPattern_04()
+    {
+        // optional parameter
+        var src = """
+_ = new S() is [.., 1];
+
+public struct S
+{
+    public int Length => 3;
+}
+
+public static class E
+{
+    extension(object o)
+    {
+        public int this[System.Index i, int i2 = 42] { get { System.Console.WriteLine((i, i2)); return 0; } }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("(^1, 42)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
     [Theory, CombinatorialData]
     public void SpreadPattern_01(bool useCompilationReference)
     {
@@ -4153,9 +4177,10 @@ public static class E
             model.LookupSymbols(position: 0, o, name: "this[]", includeReducedExtensionMethods: true).ToDisplayStrings());
     }
 
-    [Fact(Skip = "PROTOTYPE nullability")]
+    [Fact]
     public void Nullability_Indexing_01()
     {
+        // maybe-null receiver with generic indexer
         string source = """
 #nullable enable
 
@@ -4179,7 +4204,7 @@ static class E
         AssertEx.Equal("E.extension<object?>(object?).this[int]", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
     }
 
-    [Fact(Skip = "PROTOTYPE nullability")]
+    [Fact]
     public void Nullability_Indexing_02()
     {
         // string indexer
@@ -4187,20 +4212,31 @@ static class E
 #nullable enable
 
 string? o = null;
-_ = o[0];
+try
+{
+    _ = o[0];
+}
+catch (System.NullReferenceException)
+{
+    System.Console.Write("ran");
+}
 """;
         var comp = CreateCompilation(source);
-        CompileAndVerify(comp, expectedOutput: "True").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics(
+            // (6,9): warning CS8602: Dereference of a possibly null reference.
+            //     _ = o[0];
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(6, 9));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "o[0]");
-        AssertEx.Equal("PROTOTYPE", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
+        AssertEx.Equal("string.this[int]", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
     }
 
-    [Fact(Skip = "PROTOTYPE nullability")]
+    [Fact]
     public void Nullability_Indexing_03()
     {
+        // maybe-null argument with generic indexer
         string source = """
 #nullable enable
 
@@ -4224,7 +4260,7 @@ static class E
         AssertEx.Equal("E.extension<string?>(string?).this[string?]", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
     }
 
-    [Fact(Skip = "PROTOTYPE nullability")]
+    [Fact]
     public void Nullability_Indexing_04()
     {
         // with named arguments
@@ -4251,9 +4287,10 @@ static class E
         AssertEx.Equal("E.extension<string?>(string?).this[string?, string?]", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
     }
 
-    [Fact(Skip = "PROTOTYPE nullability")]
+    [Fact]
     public void Nullability_Indexing_05()
     {
+        // warning in receiver
         string source = """
 #nullable enable
 
@@ -4281,9 +4318,35 @@ static class E
         AssertEx.Equal("E.extension<object?>(object?).this[int]", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
     }
 
-    [Fact(Skip = "PROTOTYPE nullability")]
+    [Fact]
     public void Nullability_Indexing_06()
     {
+        // warning in argument
+        string source = """
+#nullable enable
+
+_ = new object()[M(null)];
+
+int M(object o) => 0;
+
+static class E
+{
+    extension(object o)
+    {
+        public int this[int i] { get { return 0; } }
+    }
+}
+""";
+        CreateCompilation(source).VerifyEmitDiagnostics(
+            // (3,20): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // _ = new object()[M(null)];
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 20));
+    }
+
+    [Fact]
+    public void Nullability_Indexing_07()
+    {
+        // chained
         string source = """
 #nullable enable
 
@@ -4309,13 +4372,1185 @@ static class E
         AssertEx.Equal("E.extension<object?>(object?).this[int]", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
     }
 
-    [Fact(Skip = "PROTOTYPE nullability")]
+    [Fact]
+    public void Nullability_Indexing_09()
+    {
+        // indexer parameter disallows null
+        string source = """
+#nullable enable
+
+object? oNull = null;
+_ = 42[oNull];
+
+object? oNotNull = new object();
+_ = 42[oNotNull];
+
+static class E
+{
+    extension(int i)
+    {
+        public int this[object o] { get { return 0; } }
+    }
+}
+""";
+        CreateCompilation(source).VerifyEmitDiagnostics(
+            // (4,8): warning CS8604: Possible null reference argument for parameter 'o' in 'int E.extension(int).this[object o]'.
+            // _ = 42[oNull];
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "int E.extension(int).this[object o]").WithLocation(4, 8));
+    }
+
+    [Fact]
+    public void Nullability_Indexing_10()
+    {
+        string source = """
+static class E
+{
+    extension(ref object o)
+    {
+    }
+}
+""";
+        CreateCompilation(source).VerifyEmitDiagnostics(
+            // (3,19): error CS9300: The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.
+            //     extension(ref object o)
+            Diagnostic(ErrorCode.ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne, "object").WithLocation(3, 19));
+    }
+
+    [Fact]
+    public void Nullability_Indexing_11()
+    {
+        // generic, check returned value
+        string source = """
+#nullable enable
+
+object? oNull = null;
+oNull[0].ToString(); // 1
+
+object? oNotNull = new object();
+oNotNull[0].ToString();
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public T this[int i] { get => throw null!; }
+    }
+}
+""";
+        CreateCompilation(source).VerifyEmitDiagnostics(
+            // (4,1): warning CS8602: Dereference of a possibly null reference.
+            // oNull[0].ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNull[0]").WithLocation(4, 1));
+    }
+
+    [Fact]
+    public void Nullability_Indexing_12()
+    {
+        // `ref` extension parameter
+        var src = """
+#nullable enable
+
+S1<object?> s1 = default;
+_ = s1[0];
+
+S1<object> s2 = default;
+_ = s2[0]; // 1
+
+S2<object?> s3 = default;
+_ = s3[0]; // 2
+
+S2<object> s4 = default;
+_ = s4[0];
+
+struct S1<T> { }
+struct S2<T> { }
+
+static class E
+{
+    extension(ref S1<object?> o)
+    {
+        public int this[int i] { get => throw null!; }
+    }
+    extension(ref S2<object> o)
+    {
+        public int this[int i] { get => throw null!; }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (7,5): warning CS8620: Argument of type 'S1<object>' cannot be used for parameter 'o' of type 'S1<object?>' in 'E.extension(ref S1<object?>)' due to differences in the nullability of reference types.
+            // _ = s2[0]; // 1
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "s2").WithArguments("S1<object>", "S1<object?>", "o", "E.extension(ref S1<object?>)").WithLocation(7, 5),
+            // (10,5): warning CS8620: Argument of type 'S2<object?>' cannot be used for parameter 'o' of type 'S2<object>' in 'E.extension(ref S2<object>)' due to differences in the nullability of reference types.
+            // _ = s3[0]; // 2
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "s3").WithArguments("S2<object?>", "S2<object>", "o", "E.extension(ref S2<object>)").WithLocation(10, 5));
+    }
+
+    [Fact]
+    public void Nullability_Indexing_13()
+    {
+        // `in` extension parameter
+        var src = """
+#nullable enable
+
+S1<object?> s1 = default;
+_ = s1[0];
+
+S1<object> s2 = default;
+_ = s2[0]; // 1
+
+S2<object?> s3 = default;
+_ = s3[0]; // 2
+
+S2<object> s4 = default;
+_ = s4[0];
+""";
+        var libSrc = """
+#nullable enable
+
+public struct S1<T> { }
+public struct S2<T> { }
+
+public static class E
+{
+    extension(in S1<object?> o)
+    {
+        public int this[int i] { get => throw null!; }
+    }
+    extension(in S2<object> o)
+    {
+        public int this[int i] { get => throw null!; }
+    }
+}
+""";
+        DiagnosticDescription[] expected = [
+            // (7,5): warning CS8620: Argument of type 'S1<object>' cannot be used for parameter 'o' of type 'S1<object?>' in 'E.extension(in S1<object?>)' due to differences in the nullability of reference types.
+            // _ = s2[0]; // 1
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "s2").WithArguments("S1<object>", "S1<object?>", "o", "E.extension(in S1<object?>)").WithLocation(7, 5),
+            // (10,5): warning CS8620: Argument of type 'S2<object?>' cannot be used for parameter 'o' of type 'S2<object>' in 'E.extension(in S2<object>)' due to differences in the nullability of reference types.
+            // _ = s3[0]; // 2
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "s3").WithArguments("S2<object?>", "S2<object>", "o", "E.extension(in S2<object>)").WithLocation(10, 5)
+            ];
+
+        var comp = CreateCompilation([src, libSrc]);
+        comp.VerifyEmitDiagnostics(expected);
+
+        var libComp = CreateCompilation(libSrc);
+        var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()]);
+        comp2.VerifyEmitDiagnostics(expected);
+    }
+
+    [Fact]
+    public void Nullability_Indexing_14()
+    {
+        // NotNullIfNotNull
+        var src = """
+#nullable enable
+
+object? oNull = null;
+oNull[0].ToString(); // 1
+
+object? oNull2 = null;
+E.get_Item(oNull2, 0).ToString(); // 2
+
+object oNotNull = new object();
+oNotNull[0].ToString();
+
+E.get_Item(oNotNull, 0).ToString();
+""";
+        var libSrc = """
+#nullable enable
+
+public static class E
+{
+    extension(object? o)
+    {
+        [property: System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(o))]
+        public object? this[int i] { get => throw null!; }
+    }
+}
+""";
+        DiagnosticDescription[] expected = [
+            // (4,1): warning CS8602: Dereference of a possibly null reference.
+            // oNull[0].ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNull[0]").WithLocation(4, 1),
+            // (7,1): warning CS8602: Dereference of a possibly null reference.
+            // E.get_Item(oNull2, 0).ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "E.get_Item(oNull2, 0)").WithLocation(7, 1),
+
+            // Tracked by https://github.com/dotnet/roslyn/issues/37238 : NotNullIfNotNull not yet supported on indexers. The last two warnings are spurious
+
+            // (10,1): warning CS8602: Dereference of a possibly null reference.
+            // oNotNull[0].ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNotNull[0]").WithLocation(10, 1),
+            // (12,1): warning CS8602: Dereference of a possibly null reference.
+            // E.get_Item(oNotNull, 0).ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "E.get_Item(oNotNull, 0)").WithLocation(12, 1)
+            ];
+
+        var comp = CreateCompilation([src, libSrc], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(expected);
+
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net100);
+        var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        comp2.VerifyEmitDiagnostics(expected);
+
+        src = """
+#nullable enable
+
+object? oNull = null;
+new C()[oNull].ToString(); // 1
+
+object oNotNull = new object();
+new C()[oNotNull].ToString();
+
+class C
+{
+    [property: System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(o))]
+    public object? this[object? o] { get => throw null!; }
+}
+""";
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        // Tracked by https://github.com/dotnet/roslyn/issues/37238 : NotNullIfNotNull not yet supported on indexers. 
+        comp.VerifyEmitDiagnostics(
+            // (4,1): warning CS8602: Dereference of a possibly null reference.
+            // new C()[oNull].ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "new C()[oNull]").WithLocation(4, 1),
+            // (7,1): warning CS8602: Dereference of a possibly null reference.
+            // new C()[oNotNull].ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "new C()[oNotNull]").WithLocation(7, 1));
+    }
+
+    [Fact]
+    public void Nullability_Indexing_15()
+    {
+        // NotNull
+        var src = """
+#nullable enable
+
+new object()[0].ToString();
+new object()[0] = null;
+
+E.get_Item(new object(), 0).ToString();
+E.set_Item(new object(), 0, null);
+""";
+        var libSrc = """
+#nullable enable
+
+public static class E
+{
+    extension(object o)
+    {
+        [property: System.Diagnostics.CodeAnalysis.NotNull]
+        public object? this[int i] { get => throw null!; set => throw null!; }
+    }
+}
+""";
+        var comp = CreateCompilation([src, libSrc], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net100);
+        var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        comp2.VerifyEmitDiagnostics();
+
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+
+        static void validate(ModuleSymbol m)
+        {
+            AssertEx.SetEqual(m is SourceModuleSymbol ? new string[] { } : ["System.Diagnostics.CodeAnalysis.NotNullAttribute", "System.Runtime.CompilerServices.NullableAttribute(2)"],
+                m.GlobalNamespace.GetMember<MethodSymbol>("E.get_Item").GetReturnTypeAttributes().ToStrings());
+
+            Assert.Empty(m.GlobalNamespace.GetMember<MethodSymbol>("E.set_Item").GetReturnTypeAttributes());
+            Assert.Empty(m.GlobalNamespace.GetMember<MethodSymbol>("E.set_Item").Parameters[0].GetAttributes());
+        }
+    }
+
+    [Fact]
+    public void Nullability_Indexing_16()
+    {
+        // MaybeNull
+        var src = """
+#nullable enable
+
+new object()[0].ToString(); // 1
+new object()[0] = null; // 2
+new object()[0] = "";
+
+E.get_Item(new object(), 0).ToString(); // 3
+E.set_Item(new object(), 0, null); // 4
+""";
+        var libSrc = """
+#nullable enable
+
+public static class E
+{
+    extension(object o)
+    {
+        [property: System.Diagnostics.CodeAnalysis.MaybeNull]
+        public object this[int i] { get => throw null!; set => throw null!; }
+    }
+}
+""";
+        DiagnosticDescription[] expected = [
+            // (3,1): warning CS8602: Dereference of a possibly null reference.
+            // new object()[0].ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "new object()[0]").WithLocation(3, 1),
+            // (4,19): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // new object()[0] = null; // 2
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 19),
+            // (7,1): warning CS8602: Dereference of a possibly null reference.
+            // E.get_Item(new object(), 0).ToString(); // 3
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "E.get_Item(new object(), 0)").WithLocation(7, 1),
+            // (8,29): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // E.set_Item(new object(), 0, null); // 4
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 29)
+            ];
+
+        var comp = CreateCompilation([src, libSrc], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(expected);
+
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net100);
+        var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        comp2.VerifyEmitDiagnostics(expected);
+
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+
+        static void validate(ModuleSymbol m)
+        {
+            AssertEx.SetEqual(m is SourceModuleSymbol ? new string[] { } : ["System.Diagnostics.CodeAnalysis.MaybeNullAttribute"],
+                m.GlobalNamespace.GetMember<MethodSymbol>("E.get_Item").GetReturnTypeAttributes().ToStrings());
+
+            Assert.Empty(m.GlobalNamespace.GetMember<MethodSymbol>("E.set_Item").GetReturnTypeAttributes());
+            Assert.Empty(m.GlobalNamespace.GetMember<MethodSymbol>("E.set_Item").Parameters[0].GetAttributes());
+        }
+    }
+
+    [Fact]
+    public void Nullability_Indexing_17()
+    {
+        // AllowNull
+        var src = """
+#nullable enable
+
+new object()[0].ToString();
+new object()[0] = null;
+
+E.get_Item(new object(), 0).ToString();
+E.set_Item(new object(), 0, null);
+""";
+        var libSrc = """
+public static class E
+{
+    extension(object o)
+    {
+        [property: System.Diagnostics.CodeAnalysis.AllowNull]
+        public object this[int i] { get => throw null!; set => throw null!; }
+    }
+}
+""";
+        var comp = CreateCompilation([src, libSrc], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net100);
+        var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        comp2.VerifyEmitDiagnostics();
+
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+
+        static void validate(ModuleSymbol m)
+        {
+            AssertEx.SetEqual(m is SourceModuleSymbol ? new string[] { } : ["System.Diagnostics.CodeAnalysis.AllowNullAttribute"],
+                m.GlobalNamespace.GetMember<MethodSymbol>("E.set_Item").Parameters[2].GetAttributes().ToStrings());
+
+            Assert.Empty(m.GlobalNamespace.GetMember<MethodSymbol>("E.set_Item").GetReturnTypeAttributes());
+        }
+    }
+
+    [Fact]
+    public void Nullability_Indexing_18()
+    {
+        // DisallowNull
+        var src = """
+#nullable enable
+
+new object()[0].ToString();
+new object()[0] = null;
+
+E.get_Item(new object(), 0).ToString();
+E.set_Item(new object(), 0, null);
+""";
+        var libSrc = """
+#nullable enable
+
+public static class E
+{
+    extension(object o)
+    {
+        [property: System.Diagnostics.CodeAnalysis.DisallowNull]
+        public object? this[int i] { get => throw null!; set => throw null!; }
+    }
+}
+""";
+        DiagnosticDescription[] expected = [
+            // (3,1): warning CS8602: Dereference of a possibly null reference.
+            // new object()[0].ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "new object()[0]").WithLocation(3, 1),
+            // (4,19): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // new object()[0] = null;
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 19),
+            // (6,1): warning CS8602: Dereference of a possibly null reference.
+            // E.get_Item(new object(), 0).ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "E.get_Item(new object(), 0)").WithLocation(6, 1),
+            // (7,29): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // E.set_Item(new object(), 0, null);
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 29)
+            ];
+
+        var comp = CreateCompilation([src, libSrc], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(expected);
+
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net100);
+        var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        comp2.VerifyEmitDiagnostics(expected);
+
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+
+        static void validate(ModuleSymbol m)
+        {
+            AssertEx.SetEqual(m is SourceModuleSymbol ? new string[] { } : ["System.Diagnostics.CodeAnalysis.DisallowNullAttribute", "System.Runtime.CompilerServices.NullableAttribute(2)"],
+                m.GlobalNamespace.GetMember<MethodSymbol>("E.set_Item").Parameters[2].GetAttributes().ToStrings());
+
+            Assert.Empty(m.GlobalNamespace.GetMember<MethodSymbol>("E.set_Item").GetReturnTypeAttributes());
+        }
+    }
+
+    [Fact]
+    public void Nullability_Indexing_19()
+    {
+        // DoesNotReturn
+        var src = """
+#nullable enable
+
+bool b = false;
+object? o = null;
+
+if (b)
+{
+    _ = new object()[0];
+    o.ToString(); // incorrect
+}
+
+if (b)
+{
+    new object()[0] = 0;
+    o.ToString(); // incorrect
+}
+
+if (b)
+{
+    E.get_Item(new object(), 0);
+    o.ToString();
+}
+
+if (b)
+{
+    E.set_Item(new object(), 0, 0);
+    o.ToString();
+}
+""";
+        var libSrc = """
+#nullable enable
+
+public static class E
+{
+    extension(object o)
+    {
+        public int this[int i]
+        {
+            [System.Diagnostics.CodeAnalysis.DoesNotReturn]
+            get => throw null!;
+            [System.Diagnostics.CodeAnalysis.DoesNotReturn]
+            set => throw null!;
+        }
+    }
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/50018 : DoesNotReturn not yet supported on indexers.
+        var comp = CreateCompilation([src, libSrc], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (9,5): warning CS8602: Dereference of a possibly null reference.
+            //     o.ToString(); // incorrect
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(9, 5),
+            // (15,5): warning CS8602: Dereference of a possibly null reference.
+            //     o.ToString(); // incorrect
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(15, 5));
+
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net100);
+        var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        comp2.VerifyEmitDiagnostics(
+            // (9,5): warning CS8602: Dereference of a possibly null reference.
+            //     o.ToString(); // incorrect
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(9, 5),
+            // (15,5): warning CS8602: Dereference of a possibly null reference.
+            //     o.ToString(); // incorrect
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(15, 5));
+    }
+
+    [Fact]
+    public void Nullability_Indexing_20()
+    {
+        // NotNullWhen
+        var src = """
+#nullable enable
+
+object? o = null;
+if (o[0])
+    o.ToString();
+else
+    o.ToString(); // 1
+
+object? o2 = null;
+if (E.get_Item(o2, 0))
+    o2.ToString();
+else
+    o2.ToString(); // 2
+""";
+        var libSrc = """
+#nullable enable
+
+public static class E
+{
+    extension([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] object? o)
+    {
+        public bool this[int i] => throw null!;
+    }
+}
+""";
+        DiagnosticDescription[] expected = [
+            // (7,5): warning CS8602: Dereference of a possibly null reference.
+            //     o.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(7, 5),
+            // (13,5): warning CS8602: Dereference of a possibly null reference.
+            //     o2.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o2").WithLocation(13, 5)
+            ];
+
+        var comp = CreateCompilation([src, libSrc], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(expected);
+
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net100);
+        var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        comp2.VerifyEmitDiagnostics(expected);
+    }
+
+    [Fact]
+    public void Nullability_Indexing_21()
+    {
+        // MaybeNullWhen
+        var src = """
+#nullable enable
+
+object o = new object();
+if (o[0])
+    o.ToString(); // 1
+else
+    o.ToString();
+
+object o2 = new object();
+if (E.get_Item(o2, 0))
+    o2.ToString(); // 2
+else
+    o2.ToString();
+""";
+        var libSrc = """
+#nullable enable
+
+public static class E
+{
+    extension([System.Diagnostics.CodeAnalysis.MaybeNullWhen(true)] object? o)
+    {
+        public bool this[int i] => throw null!;
+    }
+}
+""";
+        DiagnosticDescription[] expected = [
+            // (5,5): warning CS8602: Dereference of a possibly null reference.
+            //     o.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(5, 5),
+            // (11,5): warning CS8602: Dereference of a possibly null reference.
+            //     o2.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o2").WithLocation(11, 5)
+            ];
+
+        var comp = CreateCompilation([src, libSrc], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(expected);
+
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net100);
+        var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        comp2.VerifyEmitDiagnostics(expected);
+    }
+
+    [Fact]
+    public void Nullability_Indexing_22()
+    {
+        // MemberNotNull
+        var src = """
+#nullable enable
+
+if (new object()[0])
+    object.P2.ToString(); // 1
+else
+    object.P2.ToString();
+
+if (E.get_Item(new object(), 0))
+    E.get_P2().ToString(); // 2
+else
+    E.get_P2().ToString();
+
+""";
+        var libSrc = """
+#nullable enable
+
+public static class E
+{
+    extension(object o)
+    {
+        [System.Diagnostics.CodeAnalysis.MemberNotNull("P2")]
+        public bool this[int i] => throw null!;
+
+        public static object? P2 => throw null!;
+    }
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/78828 : nullability, should we extend member post-conditions to work with extension members?
+        DiagnosticDescription[] expected = [
+            // (4,5): warning CS8602: Dereference of a possibly null reference.
+            //     object.P2.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "object.P2").WithLocation(4, 5),
+            // (6,5): warning CS8602: Dereference of a possibly null reference.
+            //     object.P2.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "object.P2").WithLocation(6, 5),
+            // (9,5): warning CS8602: Dereference of a possibly null reference.
+            //     E.get_P2().ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "E.get_P2()").WithLocation(9, 5),
+            // (11,5): warning CS8602: Dereference of a possibly null reference.
+            //     E.get_P2().ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "E.get_P2()").WithLocation(11, 5)
+            ];
+
+        var comp = CreateCompilation([src, libSrc], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(expected);
+
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net100);
+        var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        comp2.VerifyEmitDiagnostics(expected);
+    }
+
+    [Fact]
+    public void Nullability_Indexing_23()
+    {
+        // value of type parameter as receiver
+        var src = """
+#nullable enable
+
+public static class E
+{
+    extension<T>(T t)
+    {
+        public int this[int i] { get { _ = t[0]; return 42; } }
+        public int M() { _ = t.M(); return 42; }
+    }
+}
+""";
+
+        CreateCompilation(src).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Indexing_24()
+    {
+        // nullability check on the receiver, un-annotated extension parameter
+        var src = """
+#nullable enable
+
+object? oNull = null;
+_ = oNull[0];
+
+object? oNull2 = null;
+E.get_Item(oNull2, 0);
+
+object? oNotNull = new object();
+_ = oNotNull[0];
+
+E.get_Item(oNotNull, 0);
+""";
+        var libSrc = """
+#nullable enable
+
+public static class E
+{
+    extension(object o)
+    {
+        public int this[int i] { get => throw null!; }
+    }
+}
+""";
+        DiagnosticDescription[] expected = [
+            // (4,5): warning CS8604: Possible null reference argument for parameter 'o' in 'E.extension(object)'.
+            // _ = oNull[0];
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "E.extension(object)").WithLocation(4, 5),
+            // (7,12): warning CS8604: Possible null reference argument for parameter 'o' in 'int E.get_Item(object o, int i)'.
+            // E.get_Item(oNull2, 0);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull2").WithArguments("o", "int E.get_Item(object o, int i)").WithLocation(7, 12)
+            ];
+
+        var comp = CreateCompilation([src, libSrc]);
+        comp.VerifyEmitDiagnostics(expected);
+
+        var libComp = CreateCompilation(libSrc);
+        var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()]);
+        comp2.VerifyEmitDiagnostics(expected);
+    }
+
+    [Fact]
+    public void Nullability_Indexing_25()
+    {
+        // nullability check on the receiver, annotated extension parameter
+        var src = """
+#nullable enable
+
+object? oNull = null;
+_ = oNull[0];
+
+object? oNull2 = null;
+E.get_Item(oNull2, 0);
+
+object? oNotNull = new object();
+_ = oNotNull[0];
+
+E.get_Item(oNotNull, 0);
+""";
+        var libSrc = """
+#nullable enable
+
+public static class E
+{
+    extension(object? o)
+    {
+        public int this[int i] { get => throw null!; }
+    }
+}
+""";
+        DiagnosticDescription[] expected = [];
+
+        var comp = CreateCompilation([src, libSrc]);
+        comp.VerifyEmitDiagnostics(expected);
+
+        var libComp = CreateCompilation(libSrc);
+        var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()]);
+        comp2.VerifyEmitDiagnostics(expected);
+    }
+
+    [Fact]
+    public void Nullability_Indexing_26()
+    {
+        // nullability check on the return value
+        var src = """
+#nullable enable
+
+object o1 = new C()[0]; // 1
+object? o2 = new C()[0];
+
+object o3 = E.get_Item(new C(), 0); // 2
+object? o4 = E.get_Item(new C(), 0);
+
+object o5 = new D()[0];
+object? o6 = new D()[0];
+
+object o7 = E.get_Item(new D(), 0);
+object? o8 = E.get_Item(new D(), 0);
+""";
+        var libSrc = """
+#nullable enable
+
+public class C { }
+public class D { }
+
+public static class E
+{
+    extension(C c)
+    {
+        public object? this[int i] { get => throw null!; }
+    }
+    extension(D d)
+    {
+        public object this[int i] { get => throw null!; }
+    }
+}
+""";
+        DiagnosticDescription[] expected = [
+            // (3,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+            // object o1 = new C()[0]; // 1
+            Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "new C()[0]").WithLocation(3, 13),
+            // (6,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+            // object o3 = E.get_Item(new C(), 0); // 2
+            Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "E.get_Item(new C(), 0)").WithLocation(6, 13)
+            ];
+
+        var comp = CreateCompilation([src, libSrc]);
+        comp.VerifyEmitDiagnostics(expected);
+
+        var libComp = CreateCompilation(libSrc);
+        var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()]);
+        comp2.VerifyEmitDiagnostics(expected);
+    }
+
+    [Fact]
+    public void Nullability_Indexing_27()
+    {
+        // nullability check on the set value
+        var src = """
+#nullable enable
+
+new C()[0] = null;
+new C()[0] = new object();
+
+E.set_Item(new C(), 0, null);
+E.set_Item(new C(), 0, new object());
+
+new D()[0] = null; // 1
+new D()[0] = new object();
+
+E.set_Item(new D(), 0, null); // 2
+E.set_Item(new D(), 0, new object());
+""";
+        var libSrc = """
+#nullable enable
+
+public class C { }
+public class D { }
+
+public static class E
+{
+    extension(C c)
+    {
+        public object? this[int i] { set => throw null!; }
+    }
+    extension(D d)
+    {
+        public object this[int i] { set => throw null!; }
+    }
+}
+""";
+        DiagnosticDescription[] expected = [
+            // (9,14): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // new D()[0] = null; // 1
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 14),
+            // (12,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // E.set_Item(new D(), 0, null); // 2
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(12, 24)
+            ];
+
+        var comp = CreateCompilation([src, libSrc]);
+        comp.VerifyEmitDiagnostics(expected);
+
+        var libComp = CreateCompilation(libSrc);
+        var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()]);
+        comp2.VerifyEmitDiagnostics(expected);
+    }
+
+    [Fact]
+    public void Nullability_Indexing_28()
+    {
+        // nullability check on compound assignment
+        var src = """
+#nullable enable
+
+new C()[0] ??= null;
+new C()[0] ??= new object();
+
+new D()[0] ??= null; // 1
+new D()[0] ??= new object();
+
+public class C { }
+public class D { }
+
+static class E
+{
+    extension(C c)
+    {
+        public object? this[int i] { get => throw null!; set => throw null!; }
+    }
+    extension(D d)
+    {
+        public object this[int i] { get => throw null!; set => throw null!; }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (6,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // new D()[0] ??= null; // 1
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 16));
+    }
+
+    [Fact]
+    public void Nullability_Indexing_29()
+    {
+        // generic extension parameter, property read access
+        var src = """
+#nullable enable
+
+object? oNull = null;
+oNull[0].ToString(); // 1
+
+object? oNotNull = new object();
+oNotNull[0].ToString();
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public T this[int i] { get => throw null!; }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,1): warning CS8602: Dereference of a possibly null reference.
+            // oNull[0].ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNull[0]").WithLocation(4, 1));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var elementAccess1 = GetSyntax<ElementAccessExpressionSyntax>(tree, "oNull[0]");
+        AssertEx.Equal("System.Object? E.extension<System.Object?>(System.Object?).this[System.Int32 i] { get; }",
+            model.GetSymbolInfo(elementAccess1).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+        var elementAccess2 = GetSyntax<ElementAccessExpressionSyntax>(tree, "oNotNull[0]");
+        AssertEx.Equal("System.Object! E.extension<System.Object!>(System.Object!).this[System.Int32 i] { get; }",
+            model.GetSymbolInfo(elementAccess2).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_Indexing_30()
+    {
+        // generic extension parameter, instance member, property write access
+        var src = """
+#nullable enable
+
+object? oNull = null;
+oNull[0] = null;
+
+object? oNull2 = null;
+oNull2[0] = new object();
+
+object? oNotNull = new object();
+oNotNull[0] = null; // 1
+E.set_Item(oNotNull, 0, null);
+
+oNotNull[0] = new object();
+
+oNotNull?[0] = null; // 2
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public T this[int i] { set => throw null!; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (10,15): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // oNotNull[0] = null; // 1
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 15),
+            // (15,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // oNotNull?[0] = null; // 2
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(15, 16));
+    }
+
+    [Fact]
+    public void Nullability_Indexing_31()
+    {
+        // notnull constraint
+        var src = """
+#nullable enable
+
+object? oNull = null;
+_ = oNull[0]; // 1
+
+object? oNull2 = null;
+_ = oNull2?[0];
+
+object? oNotNull = new object();
+_ = oNotNull[0];
+
+static class E
+{
+    extension<T>(T t) where T : notnull
+    {
+        public T this[int i] { get => throw null!; }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,5): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(T)'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+            // _ = oNull[0]; // 1
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "oNull[0]").WithArguments("E.extension<T>(T)", "T", "object?").WithLocation(4, 5));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var elementAccess1 = GetSyntax<ElementAccessExpressionSyntax>(tree, "oNull[0]");
+        AssertEx.Equal("System.Object? E.extension<System.Object?>(System.Object?).this[System.Int32 i] { get; }",
+            model.GetSymbolInfo(elementAccess1).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+        var elementAccess2 = GetSyntax<ElementAccessExpressionSyntax>(tree, "oNotNull[0]");
+        AssertEx.Equal("System.Object! E.extension<System.Object!>(System.Object!).this[System.Int32 i] { get; }",
+            model.GetSymbolInfo(elementAccess2).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_Indexing_32()
+    {
+        // notnull constraint, in tuple
+        var src = """
+#nullable enable
+
+object? oNull = null;
+_ = (1, oNull[0]);
+
+static class E
+{
+    extension<T>(T t) where T : notnull
+    {
+        public T this[int i] { get => throw null!; }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,9): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(T)'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+            // _ = (1, oNull[0]);
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "oNull[0]").WithArguments("E.extension<T>(T)", "T", "object?").WithLocation(4, 9));
+    }
+
+    [Fact]
+    public void Nullability_Indexing_34()
+    {
+        // implicit reference conversion on the receiver
+        var src = """
+#nullable enable
+
+C? cNull = null;
+_ = cNull[0];
+
+C? cNotNull = new C();
+_ = cNotNull[0];
+
+public class C { }
+
+static class E
+{
+    extension(object? o)
+    {
+        public int this[int i] { get => throw null!; }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Indexing_35()
+    {
+        // implicit reference conversion on the receiver
+        var src = """
+#nullable enable
+
+C? cNull = null;
+_ = cNull[0]; // 1
+
+C? cNotNull = new C();
+_ = cNotNull[0];
+
+public class C { }
+
+static class E
+{
+    extension(object o)
+    {
+        public int this[int i] { get => throw null!; }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,5): warning CS8604: Possible null reference argument for parameter 'o' in 'E.extension(object)'.
+            // _ = cNull[0]; // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "cNull").WithArguments("o", "E.extension(object)").WithLocation(4, 5));
+    }
+
+    [Fact]
+    public void Nullability_Indexing_36()
+    {
+        // optional parameter
+        var src = """
+#nullable enable
+
+object o = new object();
+_ = o[0];
+o[0] = 0;
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public int this[int i1, int i2 = 42] { get => throw null!; set => throw null!; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Indexing_37()
+    {
+        // optional parameter with nullability warning
+        var src = """
+#nullable enable
+
+object o = new object();
+_ = o[0];
+o[0] = 0;
+
+static class E
+{
+    extension(object o1)
+    {
+        public int this[int i1, object o2 = null] { get => throw null!; set => throw null!; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (11,45): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            //         public int this[int i1, object o2 = null] { get => throw null!; set => throw null!; }
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 45));
+    }
+
+    [Fact]
     public void Nullability_ObjectInitializer_01()
     {
         string source = """
 #nullable enable
 
-_ = new object() { [null] = 1 };
+_ = new object() { [null] = 1 }; // 1
+E.set_Item(new object(), null, 1);
+
+_ = new object() { [null!] = 1 };
 
 static class E
 {
@@ -4325,38 +5560,953 @@ static class E
     }
 }
 """;
-        var comp = CreateCompilation(source);
-        CompileAndVerify(comp, expectedOutput: "True").VerifyDiagnostics();
+        var comp = CreateCompilation(source).VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<ImplicitElementAccessSyntax>(tree, "[null]");
-        AssertEx.Equal("PROTOTYPE", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
+        AssertEx.Equal("E.extension<object?>(object?).this[object?]", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
     }
 
-    [Fact(Skip = "PROTOTYPE nullability")]
+    [Fact]
     public void Nullability_ObjectInitializer_02()
     {
         string source = """
 #nullable enable
 
-_ = new object() { [t2: (object?)null, t1: null] = 1 };
+_ = new object() { [t2: (object?)null, i1: 42] = "" };
 
 static class E
 {
     extension<T>(object o)
     {
-        public int this[T t1, T t2] { set { System.Console.Write((t1 is null, t2 is null)); } }
+        public string this[int i1, T t2] { set { System.Console.Write((i1, t2 is null)); } }
     }
 }
 """;
         var comp = CreateCompilation(source);
-        CompileAndVerify(comp, expectedOutput: "(True, True)").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "(42, True)").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
-        var memberAccess = GetSyntax<ImplicitElementAccessSyntax>(tree, "[t2: (object?)null, t1: null]");
-        AssertEx.Equal("PROTOTYPE", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
+        var memberAccess = GetSyntax<ImplicitElementAccessSyntax>(tree, "[t2: (object?)null, i1: 42]");
+        AssertEx.Equal("E.extension<object?>(object).this[int, object?]", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_03()
+    {
+        // nested initializer
+        string source = """
+#nullable enable
+
+_ = new object() { [null] = { [null] = new object() } };
+
+static class E
+{
+    extension(object o1)
+    {
+        public object this[object o2] { get => throw null!; set { } }
+    }
+}
+""";
+        var comp = CreateCompilation(source).VerifyEmitDiagnostics(
+            // (3,21): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // _ = new object() { [null] = { [null] = new object() } };
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 21),
+            // (3,32): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // _ = new object() { [null] = { [null] = new object() } };
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 32));
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_04()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = null;
+_ = new object() { [0] = oNull }; // 1
+
+object oNotNull = new object();
+_ = new object() { [0] = oNotNull };
+
+static class E
+{
+    extension(object o)
+    {
+        public object this[int i] { set { } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,26): warning CS8601: Possible null reference assignment.
+            // _ = new object() { [0] = oNull }; // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNull").WithLocation(4, 26));
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_05()
+    {
+        var src = """
+#nullable enable
+
+_ = new object() { [0] = 42 };
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public int this[int i] { set { } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "[0] = 42");
+        AssertEx.Equal("System.Int32 E.extension<System.Object!>(System.Object!).this[System.Int32 i] { set; }",
+            model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_06()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = null;
+_ = new object() { [0] = oNull }; // 1
+
+object oNotNull = new object();
+_ = new object() { [0] = oNotNull };
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public T this[int i] { set { } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,26): warning CS8601: Possible null reference assignment.
+            // _ = new object() { [0] = oNull }; // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNull").WithLocation(4, 26));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "[0] = oNull");
+
+        AssertEx.Equal("System.Object! E.extension<System.Object!>(System.Object!).this[System.Int32 i] { set; }",
+            model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+        assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "[0] = oNotNull");
+        AssertEx.Equal("System.Object! E.extension<System.Object!>(System.Object!).this[System.Int32 i] { set; }",
+            model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_07()
+    {
+        var src = """
+#nullable enable
+
+_ = new C<string>() { [0] = null }; // 1
+_ = new C<string>() { [0] = "a" };
+
+_ = new C<string?>() { [0] = null };
+_ = new C<string?>() { [0] = "a" };
+
+class C<T> { }
+
+static class E
+{
+    extension<T>(C<T> c)
+    {
+        public T this[int i] { set { } }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyTypes(comp.SyntaxTrees[0]);
+        comp.VerifyEmitDiagnostics(
+            // (3,29): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // _ = new C<string>() { [0] = null }; // 1
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 29));
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_08()
+    {
+        var src = """
+#nullable enable
+
+var s = "a";
+Use(s, (new(s) { [0] = null })/*T:C<string!>!*/); // 1
+Use(s, (new(s) { [0] = "a" })/*T:C<string!>!*/);
+
+Use("a", (new(s) { [0] = null })/*T:C<string!>!*/); // 2
+Use("a", (new(s) { [0] = "a" })/*T:C<string!>!*/);
+
+Use(s, (new("a") { [0] = null })/*T:C<string!>!*/); // 3
+Use(s, (new("a") { [0] = "a" })/*T:C<string!>!*/);
+
+Use("a", (new("a") { [0] = null })/*T:C<string!>!*/); // 4
+Use("a", (new("a") { [0] = "a" })/*T:C<string!>!*/);
+
+if (s != null) return;
+Use(s, (new(s) { [0] = null })/*T:C<string?>!*/);
+
+if (s != null) return;
+Use(s, (new(s) { [0] = "a" })/*T:C<string?>!*/);
+
+if (s != null) return;
+Use("a", (new(s) { [0] = null })/*T:C<string!>!*/); // 5
+
+if (s != null) return;
+Use("a", (new(s) { [0] = "a" })/*T:C<string!>!*/); // 6
+
+if (s != null) return;
+Use(s, (new("a") { [0] = null })/*T:C<string?>!*/);
+
+if (s != null) return;
+Use(s, (new("a") { [0] = "a" })/*T:C<string?>!*/);
+
+if (s != null) return;
+Use("a", (new("a") { [0] = null })/*T:C<string!>!*/); // 7
+
+if (s != null) return;
+Use("a", (new("a") { [0] = "a" })/*T:C<string!>!*/);
+
+void Use<T>(T value, C<T> c) => throw null!;
+
+record C<T>(T Value) { }
+
+static class E
+{
+    extension<T>(C<T> c)
+    {
+        public T this[int i] { set { } }
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, IsExternalInitTypeDefinition]);
+        comp.VerifyTypes(comp.SyntaxTrees[0]);
+        comp.VerifyEmitDiagnostics(
+            // (4,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // Use(s, (new(s) { [0] = null })/*T:C<string!>!*/); // 1
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 24),
+            // (7,26): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // Use("a", (new(s) { [0] = null })/*T:C<string!>!*/); // 2
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 26),
+            // (10,26): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // Use(s, (new("a") { [0] = null })/*T:C<string!>!*/); // 3
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 26),
+            // (13,28): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // Use("a", (new("a") { [0] = null })/*T:C<string!>!*/); // 4
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 28),
+            // (23,15): warning CS8604: Possible null reference argument for parameter 'Value' in 'C<string>.C(string Value)'.
+            // Use("a", (new(s) { [0] = null })/*T:C<string!>!*/); // 5
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("Value", "C<string>.C(string Value)").WithLocation(23, 15),
+            // (23,26): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // Use("a", (new(s) { [0] = null })/*T:C<string!>!*/); // 5
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(23, 26),
+            // (26,15): warning CS8604: Possible null reference argument for parameter 'Value' in 'C<string>.C(string Value)'.
+            // Use("a", (new(s) { [0] = "a" })/*T:C<string!>!*/); // 6
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("Value", "C<string>.C(string Value)").WithLocation(26, 15),
+            // (35,28): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // Use("a", (new("a") { [0] = null })/*T:C<string!>!*/); // 7
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(35, 28));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var assignment = GetSyntaxes<AssignmentExpressionSyntax>(tree, "[0] = null").First();
+
+        AssertEx.Equal("System.String! E.extension<System.String!>(C<System.String!>!).this[System.Int32 i] { set; }",
+            model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_09()
+    {
+        // notnull constraint
+        var src = """
+#nullable enable
+
+var s = "a";
+Use(s, (new(s) { [0] = null })/*T:C<string!>!*/); // 1
+Use(s, (new(s) { [0] = "a" })/*T:C<string!>!*/);
+
+Use("a", (new(s) { [0] = null })/*T:C<string!>!*/); // 2
+Use("a", (new(s) { [0] = "a" })/*T:C<string!>!*/);
+
+Use(s, (new("a") { [0] = null })/*T:C<string!>!*/); // 3
+Use(s, (new("a") { [0] = "a" })/*T:C<string!>!*/);
+
+Use("a", (new("a") { [0] = null })/*T:C<string!>!*/); // 4
+Use("a", (new("a") { [0] = "a" })/*T:C<string!>!*/);
+
+if (s != null) return;
+Use(s, (new(s) { [0] = null })/*T:C<string?>!*/); // 5
+
+if (s != null) return;
+Use(s, (new(s) { [0] = "a" })/*T:C<string?>!*/); // 6
+
+if (s != null) return;
+Use("a", (new(s) { [0] = null })/*T:C<string!>!*/); // 7
+
+if (s != null) return;
+Use("a", (new(s) { [0] = "a" })/*T:C<string!>!*/); // 8
+
+if (s != null) return;
+Use(s, (new("a") { [0] = null })/*T:C<string?>!*/); // 9
+
+if (s != null) return;
+Use(s, (new("a") { [0] = "a" })/*T:C<string?>!*/); // 10
+
+if (s != null) return;
+Use("a", (new("a") { [0] = null })/*T:C<string!>!*/); // 11
+
+if (s != null) return;
+Use("a", (new("a") { [0] = "a" })/*T:C<string!>!*/);
+
+void Use<T>(T value, C<T> c) => throw null!;
+
+record C<T>(T Value) { }
+
+static class E
+{
+    extension<T>(C<T> c) where T : notnull
+    {
+        public T this[int i] { set { } }
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, IsExternalInitTypeDefinition]);
+        comp.VerifyTypes(comp.SyntaxTrees[0]);
+        comp.VerifyEmitDiagnostics(
+            // (4,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // Use(s, (new(s) { [0] = null })/*T:C<string!>!*/); // 1
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 24),
+            // (7,26): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // Use("a", (new(s) { [0] = null })/*T:C<string!>!*/); // 2
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 26),
+            // (10,26): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // Use(s, (new("a") { [0] = null })/*T:C<string!>!*/); // 3
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 26),
+            // (13,28): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // Use("a", (new("a") { [0] = null })/*T:C<string!>!*/); // 4
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 28),
+            // (17,18): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(C<T>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+            // Use(s, (new(s) { [0] = null })/*T:C<string?>!*/); // 5
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "[0]").WithArguments("E.extension<T>(C<T>)", "T", "string?").WithLocation(17, 18),
+            // (20,18): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(C<T>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+            // Use(s, (new(s) { [0] = "a" })/*T:C<string?>!*/); // 6
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "[0]").WithArguments("E.extension<T>(C<T>)", "T", "string?").WithLocation(20, 18),
+            // (23,15): warning CS8604: Possible null reference argument for parameter 'Value' in 'C<string>.C(string Value)'.
+            // Use("a", (new(s) { [0] = null })/*T:C<string!>!*/); // 7
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("Value", "C<string>.C(string Value)").WithLocation(23, 15),
+            // (23,26): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // Use("a", (new(s) { [0] = null })/*T:C<string!>!*/); // 7
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(23, 26),
+            // (26,15): warning CS8604: Possible null reference argument for parameter 'Value' in 'C<string>.C(string Value)'.
+            // Use("a", (new(s) { [0] = "a" })/*T:C<string!>!*/); // 8
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("Value", "C<string>.C(string Value)").WithLocation(26, 15),
+            // (29,20): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(C<T>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+            // Use(s, (new("a") { [0] = null })/*T:C<string?>!*/); // 9
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "[0]").WithArguments("E.extension<T>(C<T>)", "T", "string?").WithLocation(29, 20),
+            // (32,20): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(C<T>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+            // Use(s, (new("a") { [0] = "a" })/*T:C<string?>!*/); // 10
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "[0]").WithArguments("E.extension<T>(C<T>)", "T", "string?").WithLocation(32, 20),
+            // (35,28): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // Use("a", (new("a") { [0] = null })/*T:C<string!>!*/); // 11
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(35, 28));
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_10()
+    {
+        var src = """
+#nullable enable
+
+var s = "a";
+
+Create(s).Use(new() { [0] = null });
+Create(s).Use(new() { [0] = "a" });
+
+if (s != null) return;
+Create(s).Use(new() { [0] = null });
+
+if (s != null) return;
+Create(s).Use(new() { [0] = "a" });
+
+Consumer<T> Create<T>(T value) => throw null!;
+
+class Consumer<T>
+{
+    public void Use(C<T> c) => throw null!;
+}
+
+record C<T> { }
+
+static class E
+{
+    extension<T>(C<T> c)
+    {
+        public T this[int i] { set { } }
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, IsExternalInitTypeDefinition]);
+        comp.VerifyEmitDiagnostics(
+            // (5,29): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // Create(s).Use(new() { [0] = null });
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 29));
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_11()
+    {
+        // nested
+        var src = """
+#nullable enable
+
+_ = new object() { [0] = { F = "" } };
+
+public static class E
+{
+    extension<T>(T t)
+    {
+        public C this[int i] { get => new C(); }
+    }
+}
+
+public class C
+{
+    public string? F;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, """[0] = { F = "" }""");
+
+        AssertEx.Equal("C! E.extension<System.Object!>(System.Object!).this[System.Int32 i] { get; }",
+            model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_12()
+    {
+        // nested
+        var src = """
+#nullable enable
+
+object o = new() { [0] = { F = "" } };
+
+public static class E
+{
+    extension<T>(T t)
+    {
+        public C this[int i] { get => new C(); }
+    }
+}
+
+public class C
+{
+    public string? F;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, """[0] = { F = "" }""");
+
+        AssertEx.Equal("C! E.extension<System.Object!>(System.Object!).this[System.Int32 i] { get; }",
+            model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_13()
+    {
+        // nested
+        var src = """
+#nullable enable
+
+_ = new C<string>() { [0] = { F = null } }; // 1
+
+public static class E
+{
+    extension<T>(C<T> c)
+    {
+        public C<T> this[int i] { get => c; }
+    }
+}
+
+public class C<T>
+{
+    public T F = default!;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,35): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // _ = new C<string>() { [0] = { F = null } }; // 1
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 35));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "[0] = { F = null }");
+
+        AssertEx.Equal("C<System.String!>! E.extension<System.String!>(C<System.String!>!).this[System.Int32 i] { get; }",
+            model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_14()
+    {
+        // nested, target-typed
+        var src = """
+#nullable enable
+
+C<string> c = new() { [0] = { F = null } }; // 1
+
+public static class E
+{
+    extension<T>(C<T> c)
+    {
+        public C<T> this[int i] { get => c; }
+    }
+}
+
+public class C<T>
+{
+    public T F = default!;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,35): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // C<string> c = new() { [0] = { F = null } }; // 1
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 35));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "[0] = { F = null }");
+
+        AssertEx.Equal("C<System.String!>! E.extension<System.String!>(C<System.String!>!).this[System.Int32 i] { get; }",
+            model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_15()
+    {
+        // nested, target-typed, no getter
+        var src = """
+#nullable enable
+
+C<string> c = new() { [0] = { F = null } };
+
+public static class E
+{
+    extension<T>(C<T> c)
+    {
+        public C<T> this[int i] { set { } } // no getter
+    }
+}
+
+public class C<T>
+{
+    public T F = default!;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,23): error CS0154: The property or indexer 'E.extension<string>(C<string>).this[int]' cannot be used in this context because it lacks the get accessor
+            // C<string> c = new() { [0] = { F = null } };
+            Diagnostic(ErrorCode.ERR_PropertyLacksGet, "[0]").WithArguments("E.extension<string>(C<string>).this[int]").WithLocation(3, 23),
+            // (3,35): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // C<string> c = new() { [0] = { F = null } };
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 35));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "[0] = { F = null }");
+        Assert.Null(model.GetSymbolInfo(assignment.Left).Symbol);
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_16()
+    {
+        // nested, no setter
+        var src = """
+#nullable enable
+
+_ = new C<string>() { P = { [0] = null } };
+
+public static class E
+{
+    extension<T>(C<T> c)
+    {
+        public T this[int i] => default!; // no setter
+    }
+}
+
+public class C<T>
+{
+    public C<T> P { get => this; }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,29): error CS0200: Property or indexer 'E.extension<string>(C<string>).this[int]' cannot be assigned to -- it is read only
+            // _ = new C<string>() { P = { [0] = null } };
+            Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "[0]").WithArguments("E.extension<string>(C<string>).this[int]").WithLocation(3, 29),
+            // (3,35): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // _ = new C<string>() { P = { [0] = null } };
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 35));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "[0] = null");
+        Assert.Null(model.GetSymbolInfo(assignment.Left).Symbol);
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_17()
+    {
+        // nested
+        var src = """
+#nullable enable
+
+_ = new C<string>() { P = { [0] = null } };
+
+public static class E
+{
+    extension<T>(C<T> c)
+    {
+        public T this[int i] { set { } }
+    }
+}
+
+public class C<T>
+{
+    public C<T> P { get => this; }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,35): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // _ = new C<string>() { P = { [0] = null } };
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 35));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "[0] = null");
+
+        AssertEx.Equal("System.String! E.extension<System.String!>(C<System.String!>!).this[System.Int32 i] { set; }",
+            model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_18()
+    {
+        string source = """
+#nullable enable
+
+_ = new object() { [null] = 1 }; // 1
+""";
+        var comp = CreateCompilation(source).VerifyEmitDiagnostics(
+            // (3,20): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
+            // _ = new object() { [null] = 1 }; // 1
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[null]").WithArguments("object").WithLocation(3, 20));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<ImplicitElementAccessSyntax>(tree, "[null]");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_19()
+    {
+        // optional parameter
+        var src = """
+#nullable enable
+
+_ = new C<string>() { P = { [0] = null } };
+
+public static class E
+{
+    extension<T>(C<T> c)
+    {
+        public T this[int i1, int i2 = 42] { set { } }
+    }
+}
+
+public class C<T>
+{
+    public C<T> P { get => this; }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (3,35): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // _ = new C<string>() { P = { [0] = null } };
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 35));
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_20()
+    {
+        // target-typed, warning in indexer arguments
+        var src = """
+#nullable enable
+
+object c = new() { [null, 0, null] = 10 }; // 1, 2
+
+public static class E
+{
+    extension(object o1)
+    {
+        public int this[object o2, int i, object o3] { set => throw null!; }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,21): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // object c = new() { [null, 0, null] = 10 }; // 1, 2
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 21),
+            // (3,30): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // object c = new() { [null, 0, null] = 10 }; // 1, 2
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 30));
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_21()
+    {
+        var src = """
+#nullable enable
+
+object c = new() { [0] = 10, [1] = 20 };
+
+public static class E
+{
+    extension(ref object? o)
+    {
+        public int this[int i] { set { o = null; } }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (3,20): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
+            // object c = new() { [0] = 10, [1] = 20 };
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[0]").WithArguments("object").WithLocation(3, 20),
+            // (3,30): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
+            // object c = new() { [0] = 10, [1] = 20 };
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[1]").WithArguments("object").WithLocation(3, 30),
+            // (7,19): error CS9300: The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.
+            //     extension(ref object? o)
+            Diagnostic(ErrorCode.ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne, "object?").WithLocation(7, 19));
+    }
+
+    [Fact]
+    public void Nullability_Increment_01()
+    {
+        string source = """
+#nullable enable
+
+new object()[0]++;
+
+public class C
+{
+    public static C? operator ++(C? c) => throw null!; 
+}
+
+public static class E
+{
+    extension(object o)
+    {
+        public C? this[int i]
+        {
+            get => throw null!;
+            set { }
+        }
+    }
+}
+""";
+        CreateCompilation(source).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Increment_02()
+    {
+        string source = """
+#nullable enable
+
+new object()[0]++;
+
+public class C
+{
+    public static C? operator ++(C? c) => throw null!; 
+}
+
+public static class E
+{
+    extension(object o)
+    {
+        [property: System.Diagnostics.CodeAnalysis.DisallowNull]
+        public C? this[int i]
+        {
+            get => throw null!;
+            set { }
+        }
+    }
+}
+""";
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Increment_03()
+    {
+        string source = """
+#nullable enable
+
+new object()[0]++;
+
+public class C
+{
+    public static C operator ++(C c) => throw null!; 
+}
+
+public static class E
+{
+    extension(object o)
+    {
+        public C this[int i]
+        {
+            get => throw null!;
+            set { }
+        }
+    }
+}
+""";
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Increment_04()
+    {
+        string source = """
+#nullable enable
+
+new object()[0]++;
+
+public class C
+{
+    public static C operator ++(C c) => throw null!; 
+}
+
+public static class E
+{
+    extension(object o)
+    {
+        [property: System.Diagnostics.CodeAnalysis.MaybeNull]
+        public C this[int i]
+        {
+            get => throw null!;
+            set { }
+        }
+    }
+}
+""";
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
+            // (3,1): warning CS8604: Possible null reference argument for parameter 'c' in 'C C.operator ++(C c)'.
+            // new object()[0]++;
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "new object()[0]").WithArguments("c", "C C.operator ++(C c)").WithLocation(3, 1));
+    }
+
+    [Fact]
+    public void Nullability_Increment_05()
+    {
+        // with supression
+        string source = """
+#nullable enable
+
+new object()[0]!++;
+
+public class C
+{
+    public static C operator ++(C c) => throw null!; 
+}
+
+public static class E
+{
+    extension(object o)
+    {
+        [property: System.Diagnostics.CodeAnalysis.MaybeNull]
+        public C this[int i]
+        {
+            get => throw null!;
+            set { }
+        }
+    }
+}
+""";
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics();
+    }
+
+    [Fact(Skip = "PROTOTYPE assertion in NullableWalker.DebugVerifier")]
+    public void Nullability_ListPattern_01()
+    {
+        string source = """
+#nullable enable
+
+if (new C<string?>() is [var x1])
+{
+    string y1 = x1;
+}
+
+if (new C<string>() is [var x2])
+{
+    string y2 = x2;
+}
+
+public class C<T>
+{
+    public int Length => throw null!;
+}
+
+public static class E
+{
+    extension<T>(C<T> c)
+    {
+        public T this[System.Index i] { get => throw null!; }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+#if RELEASE
+        // PROTOTYPE assertion in NullableWalker.DebugVerifier
+        comp.VerifyEmitDiagnostics(
+            // (5,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
+            //     string y1 = x1;
+            Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x1").WithLocation(5, 17));
+#endif
     }
 
     [Fact]
@@ -4717,7 +6867,7 @@ public static class E
         CompileAndVerify(comp, expectedOutput: "new object()=System.Object").VerifyDiagnostics();
     }
 
-    [Fact(Skip = "PROTOTYPE fix DefaultArguments handling in NullableWalker")]
+    [Fact]
     public void CallerArgumentExpression_19()
     {
         // in object initializer
@@ -6456,5 +8606,1462 @@ public static class E
             // (5,20): error CS0656: Missing compiler required member 'System.Reflection.DefaultMemberAttribute..ctor'
             //         public int this[int i]
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "this").WithArguments("System.Reflection.DefaultMemberAttribute", ".ctor").WithLocation(5, 20));
+    }
+
+    [Fact]
+    public void Nullability_ReceiverConversion_01()
+    {
+        var src = """
+#nullable enable
+
+(object, object)? o = (new object(), new object());
+_ = o[0];
+o[0] = 42;
+
+static class E
+{
+    extension((object?, object?)? o)
+    {
+        public int this[int i] { get => throw null!; set => throw null!; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (4,5): warning CS8620: Argument of type '(object, object)?' cannot be used for parameter 'o' of type '(object?, object?)?' in 'E.extension((object?, object?)?)' due to differences in the nullability of reference types.
+            // _ = o[0];
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "o").WithArguments("(object, object)?", "(object?, object?)?", "o", "E.extension((object?, object?)?)").WithLocation(4, 5),
+            // (5,1): warning CS8620: Argument of type '(object, object)?' cannot be used for parameter 'o' of type '(object?, object?)?' in 'E.extension((object?, object?)?)' due to differences in the nullability of reference types.
+            // o[0] = 42;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "o").WithArguments("(object, object)?", "(object?, object?)?", "o", "E.extension((object?, object?)?)").WithLocation(5, 1));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81851")]
+    public void Nullability_ReceiverConversion_02()
+    {
+        // initializer
+        var src = """
+#nullable enable
+
+_ = new System.Nullable<System.ValueTuple<object, object>>() { [0] = null };
+
+public static class E
+{
+    extension((object?, object?)? t)
+    {
+        public string? this[int i] { set { } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,64): warning CS8620: Argument of type '(object, object)?' cannot be used for parameter 't' of type '(object?, object?)?' in 'E.extension((object?, object?)?)' due to differences in the nullability of reference types.
+            // _ = new System.Nullable<System.ValueTuple<object, object>>() { [0] = null };
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "[0]").WithArguments("(object, object)?", "(object?, object?)?", "t", "E.extension((object?, object?)?)").WithLocation(3, 64));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81851")]
+    public void Nullability_ReceiverConversion_03()
+    {
+        // initializer, target-typed
+        var src = """
+#nullable enable
+
+System.Nullable<System.ValueTuple<object, object>> t = new() { [0] = null };
+
+public static class E
+{
+    extension((object?, object?)? t)
+    {
+        public string? this[int i] { set { } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,64): error CS0021: Cannot apply indexing with [] to an expression of type '(object, object)'
+            // System.Nullable<System.ValueTuple<object, object>> t = new() { [0] = null };
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[0]").WithArguments("(object, object)").WithLocation(3, 64));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81851")]
+    public void Nullability_ReceiverConversion_04()
+    {
+        // initializer, target-typed
+        var src = """
+#nullable enable
+
+System.Nullable<System.ValueTuple<object, object>> t = new() { [0] = null };
+
+public static class E
+{
+    extension((object?, object?) t)
+    {
+        public string? this[int i] { set { } }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81851")]
+    public void Nullability_ReceiverConversion_05()
+    {
+        // nested initializer
+        var src = """
+#nullable enable
+
+_ = new System.Nullable<System.ValueTuple<object, object>>() { [0] = { F = "" } };
+
+public static class E
+{
+    extension((object?, object?)? t)
+    {
+        public C this[int i] { get => new C(); }
+    }
+}
+
+public class C
+{
+    public string? F;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,64): warning CS8620: Argument of type '(object, object)?' cannot be used for parameter 't' of type '(object?, object?)?' in 'E.extension((object?, object?)?)' due to differences in the nullability of reference types.
+            // _ = new System.Nullable<System.ValueTuple<object, object>>() { [0] = { F = "" } };
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "[0]").WithArguments("(object, object)?", "(object?, object?)?", "t", "E.extension((object?, object?)?)").WithLocation(3, 64));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81851")]
+    public void Nullability_ReceiverConversion_06()
+    {
+        // list pattern
+        var src = """
+#nullable enable
+
+(object, object)? o = (new object(), new object());
+_ = o is [var x];
+
+static class E
+{
+    extension((object?, object?)? o)
+    {
+        public int this[System.Index i] { get => throw null!; }
+    }
+}
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 t1, T2 t2) { }
+        public int Length => throw null!;
+    }
+}
+""";
+        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
+            // (4,10): error CS0021: Cannot apply indexing with [] to an expression of type '(object, object)'
+            // _ = o is [var x];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[var x]").WithArguments("(object, object)").WithLocation(4, 10));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81851")]
+    public void Nullability_ReceiverConversion_07()
+    {
+        // list pattern
+        var src = """
+#nullable enable
+
+(object, object)? o = (new object(), new object());
+_ = o is [var x];
+
+static class E
+{
+    extension((object?, object?) o)
+    {
+        public int this[System.Index i] { get => throw null!; }
+    }
+
+    extension((object, object) o)
+    {
+        public int Length { get => throw null!; }
+    }
+}
+""";
+        // PROTOTYPE where should extension Length/Count count?
+        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
+            // (4,10): error CS8985: List patterns may not be used for a value of type '(object, object)'. No suitable 'Length' or 'Count' property was found.
+            // _ = o is [var x];
+            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[var x]").WithArguments("(object, object)").WithLocation(4, 10));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81851")]
+    public void Nullability_ReceiverConversion_08()
+    {
+        // 'with' expression
+        var src = """
+#nullable enable
+
+(object, object)? o = (new object(), new object());
+_ = o with { [0] = 42 };
+
+static class E
+{
+    extension((object?, object?)? o)
+    {
+        public int this[int i] { set { } }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (4,14): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            // _ = o with { [0] = 42 };
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[0]").WithLocation(4, 14),
+            // (4,14): error CS0747: Invalid initializer member declarator
+            // _ = o with { [0] = 42 };
+            Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "[0] = 42").WithLocation(4, 14));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81851")]
+    public void Nullability_ReceiverConversion_09()
+    {
+        // increment operator
+        var src = """
+#nullable enable
+
+(object, object)? o = (new object(), new object());
+o++;
+
+static class E
+{
+    extension((object?, object?)?)
+    {
+        public static (object?, object?)? operator++((object?, object?)? t) => t;
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (4,1): warning CS8619: Nullability of reference types in value of type '(object?, object?)?' doesn't match target type '(object, object)?'.
+            // o++;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "o++").WithArguments("(object?, object?)?", "(object, object)?").WithLocation(4, 1));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81851")]
+    public void Nullability_ReceiverConversion_10()
+    {
+        // compound assignment
+        var src = """
+#nullable enable
+
+(object, object)? o = (new object(), new object());
+o.P++;
+
+static class E
+{
+    extension((object?, object?)? o)
+    {
+        public int P { get => throw null!; set { } }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (4,1): warning CS8620: Argument of type '(object, object)?' cannot be used for parameter 'o' of type '(object?, object?)?' in 'E.extension((object?, object?)?)' due to differences in the nullability of reference types.
+            // o.P++;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "o").WithArguments("(object, object)?", "(object?, object?)?", "o", "E.extension((object?, object?)?)").WithLocation(4, 1));
+    }
+
+    [Fact]
+    public void Nullability_Setter_01()
+    {
+        // generic extension parameter, property write access, notnull constraint
+        var src = """
+#nullable enable
+
+object? oNull = null;
+oNull[0] = null; // 1
+
+object? oNull2 = null;
+oNull2[0] = new object(); // 2
+
+object? oNotNull = new object();
+oNotNull[0] = null; // 3
+E.set_Item(oNotNull, 0, null); // 4
+
+oNotNull[0] = new object();
+
+oNotNull?[0] = null; // 5
+
+static class E
+{
+    extension<T>(T t) where T : notnull
+    {
+        public T this[int i] { set => throw null!; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (4,1): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(T)'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+            // oNull[0] = null; // 1
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "oNull[0]").WithArguments("E.extension<T>(T)", "T", "object?").WithLocation(4, 1),
+            // (7,1): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(T)'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+            // oNull2[0] = new object(); // 2
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "oNull2[0]").WithArguments("E.extension<T>(T)", "T", "object?").WithLocation(7, 1),
+            // (10,15): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // oNotNull[0] = null; // 3
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 15),
+            // (11,1): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'E.set_Item<T>(T, int, T)'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+            // E.set_Item(oNotNull, 0, null); // 4
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "E.set_Item").WithArguments("E.set_Item<T>(T, int, T)", "T", "object?").WithLocation(11, 1),
+            // (15,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // oNotNull?[0] = null; // 5
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(15, 16));
+    }
+
+    [Fact]
+    public void Nullability_Setter_02()
+    {
+        // generic extension parameter, property write access
+        var src = """
+#nullable enable
+
+object? oNull = null;
+oNull[0] = null;
+
+object? oNull2 = null;
+oNull2[0] = new object();
+
+object? oNotNull = new object();
+oNotNull[0] = null; // 1
+E.set_Item(oNotNull, 0, null);
+
+oNotNull[0] = new object();
+
+oNotNull?[0] = null; // 2
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public T this[int i] { set => throw null!; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (10,15): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // oNotNull[0] = null; // 1
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 15),
+            // (15,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // oNotNull?[0] = null; // 2
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(15, 16));
+    }
+
+    [Fact]
+    public void Nullability_Setter_03()
+    {
+        // property write access, warning in receiver
+        var src = """
+#nullable enable
+
+object? oNull = null;
+M(oNull)[0] = null; // 1, 2
+
+object? oNull2 = null;
+M(oNull2)[0] = new object(); // 3
+
+object M(object o) => throw null!;
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public T this[int i] { set => throw null!; }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,3): warning CS8604: Possible null reference argument for parameter 'o' in 'object M(object o)'.
+            // M(oNull)[0] = null; // 1, 2
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "object M(object o)").WithLocation(4, 3),
+            // (4,15): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // M(oNull)[0] = null; // 1, 2
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 15),
+            // (7,3): warning CS8604: Possible null reference argument for parameter 'o' in 'object M(object o)'.
+            // M(oNull2)[0] = new object(); // 3
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull2").WithArguments("o", "object M(object o)").WithLocation(7, 3));
+    }
+
+    [Fact]
+    public void Nullability_Setter_04()
+    {
+        // generic extension parameter, check result of assignment
+        var src = """
+#nullable enable
+
+object? oNull = null;
+(oNull[0] = null).ToString(); // 1, 2
+
+object? oNull2 = null;
+(oNull2[0] = new object()).ToString();
+
+object? oNotNull = new object();
+(oNotNull[0] = null).ToString(); // 2
+
+(oNotNull[0] = new object()).ToString();
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public T this[int i] { set => throw null!; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (4,2): warning CS8602: Dereference of a possibly null reference.
+            // (oNull[0] = null).ToString(); // 1, 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNull[0] = null").WithLocation(4, 2),
+            // (10,2): warning CS8602: Dereference of a possibly null reference.
+            // (oNotNull[0] = null).ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNotNull[0] = null").WithLocation(10, 2),
+            // (10,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // (oNotNull[0] = null).ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 16));
+    }
+
+    [Fact]
+    public void Nullability_Setter_05()
+    {
+        // variance in receiver
+        var src = """
+#nullable enable
+
+I<object?> iNull = null!;
+iNull[0] = 42;
+_ = iNull[0];
+
+I<object> iNotNull = null!;
+iNotNull[0] = 42;
+_ = iNotNull[0];
+
+static class E
+{
+    extension(I<object?> t)
+    {
+        public int this[int i] { get => throw null!; set => throw null!; }
+    }
+}
+
+interface I<out T> { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Setter_06()
+    {
+        // variance in receiver
+        var src = """
+#nullable enable
+
+I<object?> iNull = null!;
+iNull[0] = 42;
+_ = iNull[0];
+
+I<object> iNotNull = null!;
+iNotNull[0] = 42;
+_ = iNotNull[0];
+
+static class E
+{
+    extension(I<object> t)
+    {
+        public int this[int i] { get => throw null!; set => throw null!; }
+    }
+}
+
+interface I<out T> { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,1): warning CS8620: Argument of type 'I<object?>' cannot be used for parameter 't' of type 'I<object>' in 'E.extension(I<object>)' due to differences in the nullability of reference types.
+            // iNull[0] = 42;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "iNull").WithArguments("I<object?>", "I<object>", "t", "E.extension(I<object>)").WithLocation(4, 1),
+            // (5,5): warning CS8620: Argument of type 'I<object?>' cannot be used for parameter 't' of type 'I<object>' in 'E.extension(I<object>)' due to differences in the nullability of reference types.
+            // _ = iNull[0];
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "iNull").WithArguments("I<object?>", "I<object>", "t", "E.extension(I<object>)").WithLocation(5, 5));
+    }
+
+    [Fact]
+    public void Nullability_Setter_08()
+    {
+        // ref-returning property
+        var src = """
+#nullable enable
+object? oNull3 = null;
+
+object? oNull = null;
+oNull[0] = oNull3;
+
+object? oNull2 = null;
+object? oNotNull = new object();
+oNull2[0] = oNotNull;
+
+oNotNull[0] = oNull3; // 1
+
+oNotNull[0] = oNotNull;
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public ref T this[int i] { get => throw null!; }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (11,15): warning CS8601: Possible null reference assignment.
+            // oNotNull[0] = oNull3; // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNull3").WithLocation(11, 15));
+    }
+
+    [Fact]
+    public void Nullability_Setter_09()
+    {
+        // indexer's state
+        var src = """
+#nullable enable
+
+object o = new object();
+o[0] = null;
+o[0].ToString(); // 1
+
+o[0] = new object();
+o[0].ToString(); // 2
+
+static class E
+{
+    extension(object o)
+    {
+        public object? this[int i] { get => throw null!; set => throw null!; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (5,1): warning CS8602: Dereference of a possibly null reference.
+            // o[0].ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o[0]").WithLocation(5, 1),
+            // (8,1): warning CS8602: Dereference of a possibly null reference.
+            // o[0].ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o[0]").WithLocation(8, 1));
+    }
+
+    [Fact]
+    public void Nullability_Setter_10()
+    {
+        // assignment resulting in maybe-null converted value
+        var src = """
+#nullable enable
+
+(new object()[0] = new D()).ToString(); // 1
+
+static class E
+{
+    extension(object o)
+    {
+        public C? this[int i] { get => throw null!; set => throw null!; }
+    }
+}
+
+class D
+{
+    public static implicit operator C?(D d) => throw null!;
+}
+
+class C { }
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (3,2): warning CS8602: Dereference of a possibly null reference.
+            // (new object()[0] = new D()).ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "new object()[0] = new D()").WithLocation(3, 2));
+    }
+
+    [Fact]
+    public void Nullability_Setter_11()
+    {
+        // assignment resulting in not-null converted value
+        var src = """
+#nullable enable
+
+D? dNull = null;
+(new object()[0] = dNull).ToString();
+
+static class E
+{
+    extension(object o)
+    {
+        public C? this[int i] { get => throw null!; set => throw null!; }
+    }
+}
+
+class D
+{
+    public static implicit operator C(D? d) => throw null!;
+}
+
+class C { }
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Setter_13()
+    {
+        // compound assignment
+        var src = """
+#nullable enable
+
+object? oNull = null;
+oNull[0] += (object?)null;
+
+object? oNull2 = null;
+oNull2[0] += new object();
+
+object? oNotNull = new object();
+oNotNull[0] += (object?)null; // 1
+oNotNull[0] += new object();
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public T this[int i] { get => throw null!; set => throw null!; }
+        public static T operator +(T t1, T t2) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src).VerifyEmitDiagnostics(
+            // (10,1): warning CS8601: Possible null reference assignment.
+            // oNotNull[0] += (object?)null; // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNotNull[0] += (object?)null").WithLocation(10, 1));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var elementAccess = GetSyntaxes<ElementAccessExpressionSyntax>(tree, "oNull[0]").First();
+        AssertEx.Equal("System.Object? E.extension<System.Object?>(System.Object?).this[System.Int32 i] { get; set; }",
+            model.GetSymbolInfo(elementAccess).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_Setter_14()
+    {
+        // compound assignment
+        var src = """
+#nullable enable
+
+object? oNull = null;
+oNull[0] += (object?)null; // 1
+
+object? oNull2 = null;
+oNull2[0] += new object(); // 2
+
+object? oNotNull = new object();
+oNotNull[0] += (object?)null; // 3
+oNotNull[0] += new object();
+
+static class E
+{
+    extension<T>(T t)
+    {
+        [property: System.Diagnostics.CodeAnalysis.DisallowNull]
+        public T this[int i] { get => throw null!; set => throw null!; }
+
+        public static T operator +(T t1, T t2) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (4,1): warning CS8601: Possible null reference assignment.
+            // oNull[0] += (object?)null; // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNull[0] += (object?)null").WithLocation(4, 1),
+            // (7,1): warning CS8601: Possible null reference assignment.
+            // oNull2[0] += new object(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNull2[0] += new object()").WithLocation(7, 1),
+            // (10,1): warning CS8601: Possible null reference assignment.
+            // oNotNull[0] += (object?)null; // 3
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNotNull[0] += (object?)null").WithLocation(10, 1));
+    }
+
+    [Fact]
+    public void Nullability_Setter_15()
+    {
+        // + returns nullable reference type
+        var src = """
+#nullable enable
+
+C? oNull = null;
+oNull[0] += null;
+
+C? oNull2 = null;
+oNull2[0] += new C();
+
+C? oNotNull = new C();
+oNotNull[0] += null; // 1
+
+var x = E.get_Item(oNotNull, 0);
+x += null;
+E.set_Item(oNotNull, 0, x);
+
+oNotNull[0] += new C(); // 2
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public T this[int i] { get => throw null!; set => throw null!; }
+    }
+}
+
+class C
+{
+    public static C? operator +(C? c1, C? c2) => throw null!;
+}
+""";
+        var comp = CreateCompilation(src).VerifyEmitDiagnostics(
+            // (10,1): warning CS8601: Possible null reference assignment.
+            // oNotNull[0] += null; // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNotNull[0] += null").WithLocation(10, 1),
+            // (16,1): warning CS8601: Possible null reference assignment.
+            // oNotNull[0] += new C(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNotNull[0] += new C()").WithLocation(16, 1));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var elementAccess = GetSyntaxes<ElementAccessExpressionSyntax>(tree, "oNull[0]").First();
+        AssertEx.Equal("C? E.extension<C?>(C?).this[System.Int32 i] { get; set; }",
+            model.GetSymbolInfo(elementAccess).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_Setter_16()
+    {
+        // + returns non-nullable reference type
+        var src = """
+#nullable enable
+
+C? oNull = null;
+oNull[0] += null;
+
+C? oNull2 = null;
+oNull2[0] += new C();
+
+C? oNotNull = new C();
+oNotNull[0] += null;
+oNotNull[0] += new C();
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public T this[int i] { get => throw null!; set => throw null!; }
+    }
+}
+
+class C
+{
+    public static C operator +(C? c1, C? c2) => throw null!;
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Setter_17()
+    {
+        // compound assignment, + returns nullable reference type, ref-returning property
+        var src = """
+#nullable enable
+
+C? oNull = null;
+oNull[0] += null;
+
+C? oNull2 = null;
+oNull2[0] += new C();
+
+C? oNotNull = new C();
+oNotNull[0] += null;
+oNotNull[0] += new C();
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public ref T this[int i] { get => throw null!; }
+    }
+}
+
+class C
+{
+    public static C? operator +(C? c1, C? c2) => throw null!;
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (10,1): warning CS8601: Possible null reference assignment.
+            // oNotNull[0] += null;
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNotNull[0] += null").WithLocation(10, 1),
+            // (11,1): warning CS8601: Possible null reference assignment.
+            // oNotNull[0] += new C();
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNotNull[0] += new C()").WithLocation(11, 1));
+    }
+
+    [Fact]
+    public void Nullability_Setter_18()
+    {
+        // compound assignment, + returns non-nullable reference type, ref-returning property
+        var src = """
+#nullable enable
+
+C? oNull = null;
+oNull[0] += null;
+
+C? oNull2 = null;
+oNull2[0] += new C();
+
+C? oNotNull = new C();
+oNotNull[0] += null;
+oNotNull[0] += new C();
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public ref T this[int i] { get => throw null!; }
+    }
+}
+
+class C
+{
+    public static C operator +(C? c1, C? c2) => throw null!;
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Setter_19()
+    {
+        // compound assignment, + returns nullable reference type, check result value
+        var src = """
+#nullable enable
+
+C? oNull = null;
+(oNull[0] += null).ToString(); // 1
+
+C? oNull2 = null;
+(oNull2[0] += new C()).ToString(); // 2
+
+C? oNotNull = new C();
+(oNotNull[0] += null).ToString(); // 3, 4
+
+(oNotNull[0] += new C()).ToString(); // 5, 6
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public T this[int i] { get => throw null!; set => throw null!; }
+    }
+}
+
+class C
+{
+    public static C? operator +(C? c1, C? c2) => throw null!;
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (4,2): warning CS8602: Dereference of a possibly null reference.
+            // (oNull[0] += null).ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNull[0] += null").WithLocation(4, 2),
+            // (7,2): warning CS8602: Dereference of a possibly null reference.
+            // (oNull2[0] += new C()).ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNull2[0] += new C()").WithLocation(7, 2),
+            // (10,2): warning CS8601: Possible null reference assignment.
+            // (oNotNull[0] += null).ToString(); // 3, 4
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNotNull[0] += null").WithLocation(10, 2),
+            // (10,2): warning CS8602: Dereference of a possibly null reference.
+            // (oNotNull[0] += null).ToString(); // 3, 4
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNotNull[0] += null").WithLocation(10, 2),
+            // (12,2): warning CS8601: Possible null reference assignment.
+            // (oNotNull[0] += new C()).ToString(); // 5, 6
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNotNull[0] += new C()").WithLocation(12, 2),
+            // (12,2): warning CS8602: Dereference of a possibly null reference.
+            // (oNotNull[0] += new C()).ToString(); // 5, 6
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNotNull[0] += new C()").WithLocation(12, 2));
+    }
+
+    [Fact]
+    public void Nullability_Setter_20()
+    {
+        // compound assignment, + returns non-nullable reference type, check result value
+        var src = """
+#nullable enable
+
+C? oNull = null;
+(oNull[0] += null).ToString();
+
+C? oNull2 = null;
+(oNull2[0] += new C()).ToString();
+
+C? oNotNull = new C();
+(oNotNull[0] += null).ToString();
+
+(oNotNull[0] += new C()).ToString();
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public T this[int i] { get => throw null!; set => throw null!; }
+    }
+}
+
+class C
+{
+    public static C operator +(C? c1, C? c2) => throw null!;
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Setter_21()
+    {
+        // compound assignment, warning in receiver
+        var src = """
+#nullable enable
+
+M(null)[0] += 0;
+
+object M(object o) => throw null!;
+
+static class E
+{
+    extension(object o)
+    {
+        public int this[int i] { get => throw null!; set => throw null!; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (3,3): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // M(null)[0] += 0;
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 3));
+    }
+
+    [Fact]
+    public void Nullability_Setter_22()
+    {
+        // compound assignment, warning in RHS
+        var src = """
+#nullable enable
+
+new object()[0] += M(null);
+
+int M(object o) => throw null!;
+
+static class E
+{
+    extension(object o)
+    {
+        public int this[int i] { get => throw null!; set => throw null!; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (3,22): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // new object()[0] += M(null);
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 22));
+    }
+
+    [Fact]
+    public void Nullability_Setter_23()
+    {
+        // compound assignment, warning in indexer argument
+        var src = """
+#nullable enable
+
+new object()[M(null)] += 0;
+
+int M(object o) => throw null!;
+
+static class E
+{
+    extension(object o)
+    {
+        public int this[int i] { get => throw null!; set => throw null!; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (3,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // new object()[M(null)] += 0;
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 16));
+    }
+
+    [Fact]
+    public void Nullability_Setter_24()
+    {
+        // compound assignment resulting in maybe-null converted value
+        var src = """
+#nullable enable
+
+(new object()[0] += new D()).ToString(); // 1
+
+static class E
+{
+    extension(object o)
+    {
+        public C? this[int i] { get => throw null!; set => throw null!; }
+    }
+}
+
+class D { }
+
+class C
+{
+    public static C? operator+(C? c1, D d2) => throw null!;
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (3,2): warning CS8602: Dereference of a possibly null reference.
+            // (new object()[0] += new D()).ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "new object()[0] += new D()").WithLocation(3, 2));
+    }
+
+    [Fact]
+    public void Nullability_Setter_25()
+    {
+        // compound assignment resulting in not-null converted value
+        var src = """
+#nullable enable
+
+(new object()[0] += new D()).ToString();
+
+static class E
+{
+    extension(object o)
+    {
+        public C? this[int i] { get => throw null!; set => throw null!; }
+    }
+}
+
+class D { }
+
+class C
+{
+    public static C operator+(C? c1, D d2) => throw null!;
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Setter_26()
+    {
+        // compound assignment, + returns nullable reference type, ref-returning property, with suppression
+        var src = """
+#nullable enable
+
+C? oNotNull = new C();
+oNotNull[0] += null!;
+oNotNull[0] += new C()!;
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public ref T this[int i] { get => throw null!; }
+    }
+}
+
+class C
+{
+    public static C? operator +(C? c1, C? c2) => throw null!;
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (4,1): warning CS8601: Possible null reference assignment.
+            // oNotNull[0] += null!;
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNotNull[0] += null!").WithLocation(4, 1),
+            // (5,1): warning CS8601: Possible null reference assignment.
+            // oNotNull[0] += new C()!;
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNotNull[0] += new C()!").WithLocation(5, 1));
+
+        src = """
+#nullable enable
+
+C? oNotNull = new C();
+oNotNull[0] += null!;
+oNotNull[0] += new C()!;
+
+class C
+{
+    public static C? operator +(C? c1, C? c2) => throw null!;
+    public ref C this[int i] { get => throw null!; }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (4,1): warning CS8601: Possible null reference assignment.
+            // oNotNull[0] += null!;
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNotNull[0] += null!").WithLocation(4, 1),
+            // (5,1): warning CS8601: Possible null reference assignment.
+            // oNotNull[0] += new C()!;
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNotNull[0] += new C()!").WithLocation(5, 1));
+    }
+
+    [Fact]
+    public void Nullability_Params_01()
+    {
+        // in indexing, null disallowed
+        var src = """
+#nullable enable
+
+var o = new object();
+_ = o[42, null, new object(), null]; // 1, 2
+
+o[42, null, new object(), null] = 0; // 3, 4
+
+o?[42, null, new object(), null] = 0; // 5, 6
+
+public static class E
+{
+    extension(object o)
+    {
+        public int this[int a, params object[] b] { get => throw null!; set => throw null!; }
+    }
+}
+""";
+
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (4,11): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // _ = o[42, null, new object(), null]; // 1, 2
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 11),
+            // (4,31): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // _ = o[42, null, new object(), null]; // 1, 2
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 31),
+            // (6,7): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // o[42, null, new object(), null] = 0; // 3, 4
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 7),
+            // (6,27): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // o[42, null, new object(), null] = 0; // 3, 4
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 27),
+            // (8,8): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // o?[42, null, new object(), null] = 0; // 5, 6
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 8),
+            // (8,28): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // o?[42, null, new object(), null] = 0; // 5, 6
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 28));
+    }
+
+    [Fact]
+    public void Nullability_Params_02()
+    {
+        // in indexing, null allowed
+        var src = """
+#nullable enable
+
+var o = new object();
+_ = o[42, null, new object(), null];
+
+o[42, null, new object(), null] = 0;
+
+o?[42, null, new object(), null] = 0;
+
+public static class E
+{
+    extension(object o)
+    {
+        public int this[int a, params object?[] b] { get => throw null!; set => throw null!; }
+    }
+}
+""";
+
+        CreateCompilation(src).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Params_03()
+    {
+        // in indexing, generic
+        var src = """
+#nullable enable
+
+var o = new object();
+_ = o[42, null, new object(), null];
+
+o[42, null, new object(), null] = 0;
+
+o?[42, null, new object(), null] = 0;
+
+public static class E
+{
+    extension<T>(object o)
+    {
+        public int this[int a, params T[] b] { get => throw null!; set => throw null!; }
+    }
+}
+""";
+
+        CreateCompilation(src).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Params_04()
+    {
+        // in indexing, params generic
+        var src = """
+#nullable enable
+
+var o = new object();
+o[42, new object()] = null; // 1
+o[42, new object()].ToString();
+
+public static class E
+{
+    extension<T>(object o)
+    {
+        public T this[int a, params T[] b] { get => throw null!; set => throw null!; }
+    }
+}
+""";
+
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (4,23): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // o[42, new object()] = null; // 1
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 23));
+    }
+
+    [Fact]
+    public void Nullability_Params_05()
+    {
+        // in indexing, params and return generic
+        var src = """
+#nullable enable
+
+var o = new object();
+o[42, new object(), null] = null;
+o[42, new object(), null].ToString(); // 1
+
+public static class E
+{
+    extension<T>(object o)
+    {
+        public T this[int a, params T[] b] { get => throw null!; set => throw null!; }
+    }
+}
+""";
+
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (5,1): warning CS8602: Dereference of a possibly null reference.
+            // o[42, new object(), null].ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o[42, new object(), null]").WithLocation(5, 1));
+    }
+
+    [Fact]
+    public void Nullability_Params_06()
+    {
+        // in object initializer, null disallowed
+        var src = """
+#nullable enable
+
+_ = new object() { [42, null, new object(), null] = 0 }; // 1, 2
+
+public static class E
+{
+    extension(object o)
+    {
+        public int this[int a, params object[] b] { get => throw null!; set => throw null!; }
+    }
+}
+""";
+
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (3,25): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // _ = new object() { [42, null, new object(), null] = 0 }; // 1, 2
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 25),
+            // (3,45): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // _ = new object() { [42, null, new object(), null] = 0 }; // 1, 2
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 45));
+    }
+
+    [Fact]
+    public void Nullability_Params_07()
+    {
+        // in object initializer, null allowed
+        var src = """
+#nullable enable
+
+_ = new object() { [42, null, new object(), null] = 0 };
+
+public static class E
+{
+    extension(object o)
+    {
+        public int this[int a, params object?[] b] { get => throw null!; set => throw null!; }
+    }
+}
+""";
+
+        CreateCompilation(src).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Params_08()
+    {
+        // in compound assignment, null disallowed
+        var src = """
+#nullable enable
+
+new object()[0, null, new object(), null] += 0; // 1, 2
+
+static class E
+{
+    extension(object o1)
+    {
+        public int this[int i, params object[] o2] { get => throw null!; set => throw null!; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (3,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // new object()[0, null, new object(), null] += 0; // 1, 2
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 17),
+            // (3,37): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // new object()[0, null, new object(), null] += 0; // 1, 2
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 37));
+    }
+
+    [Fact]
+    public void Nullability_Params_09()
+    {
+        // in compound assignment, null allowed
+        var src = """
+#nullable enable
+
+new object()[0, null, new object(), null] += 0;
+
+static class E
+{
+    extension(object o1)
+    {
+        public int this[int i, params object?[] o2] { get => throw null!; set => throw null!; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Params_10()
+    {
+        // disambiguation invocation
+        var src = """
+#nullable enable
+
+var o = new object();
+E.get_Item(o, 42, null, new object(), null); // 1, 2
+
+E.set_Item(o, 42, null, new object(), null, 0); // 3
+
+public static class E
+{
+    extension(object o)
+    {
+        public int this[int a, params object[] b] { get => throw null!; set => throw null!; }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src).VerifyEmitDiagnostics(
+            // (4,19): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // E.get_Item(o, 42, null, new object(), null); // 1, 2
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 19),
+            // (4,39): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // E.get_Item(o, 42, null, new object(), null); // 1, 2
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 39),
+            // (6,3): error CS1501: No overload for method 'set_Item' takes 6 arguments
+            // E.set_Item(o, 42, null, new object(), null, 0); // 3
+            Diagnostic(ErrorCode.ERR_BadArgCount, "set_Item").WithArguments("set_Item", "6").WithLocation(6, 3));
+
+        var bParameter = comp.GlobalNamespace.GetTypeMember("E").GetMethod("set_Item").Parameters[2];
+        Assert.Equal("b", bParameter.Name);
+        Assert.True(bParameter.IsParams); // PROTOTYPE params, should we disallow that or not emit it?
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81953")]
+    public void DynamicIndexerAccess_11()
+    {
+        var src = """
+#nullable enable
+
+class C
+{
+    public dynamic D = null!;
+
+    static void M()
+    {
+        var c = new C
+        {
+            D =
+            {
+                [0] = M3(null),
+                [M2(null)] = 0
+            }
+        };
+    }
+
+    static int M2(object o) => 0;
+    static int M3(object o) => 0;
+}
+""";
+        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
+            // (14,21): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            //                 [M2(null)] = 0
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(14, 21));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81953")]
+    public void DynamicIndexerAccess_12()
+    {
+        var src = """
+#nullable enable
+
+class C
+{
+    public dynamic D = null!;
+
+    static void M()
+    {
+        C c = new()
+        {
+            D =
+            {
+                [0] = M3(null),
+                [M2(null)] = 0
+            }
+        };
+    }
+
+    static int M2(object o) => 0;
+    static int M3(object o) => 0;
+}
+""";
+        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
+            // (14,21): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            //                 [M2(null)] = 0
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(14, 21));
     }
 }

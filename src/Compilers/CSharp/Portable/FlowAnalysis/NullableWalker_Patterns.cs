@@ -532,8 +532,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     {
                                         Debug.Assert(inputSlot > 0);
                                         var property = e.Property.IsExtensionBlockMember()
-                                            ? ReInferAndVisitExtensionPropertyAccess(e, e.Property, new BoundExpressionWithNullability(e.Syntax, expression, NullableAnnotation.NotAnnotated, inputType)).Member
+                                            ? ReInferAndVisitExtensionPropertyAccess(e, e.Property, receiver: new BoundExpressionWithNullability(e.Syntax, expression, NullableAnnotation.NotAnnotated, inputType)).Member
                                             : (PropertySymbol)AsMemberOfType(inputType, e.Property);
+
                                         var type = property.TypeWithAnnotations;
                                         var output = new BoundDagTemp(e.Syntax, type.Type, e);
                                         int outputSlot = GetOrCreateSlot(property, inputSlot, forceSlotEvenIfEmpty: true);
@@ -845,20 +846,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                 addToTempMap(output, outputSlot, type.Type);
             }
 
-            static TypeWithAnnotations getIndexerOutputType(TypeSymbol inputType, BoundExpression e, bool isSlice)
+            TypeWithAnnotations getIndexerOutputType(TypeSymbol inputType, BoundExpression e, bool isSlice)
             {
-                return e switch
+                switch (e)
                 {
-                    BoundIndexerAccess indexerAccess => AsMemberOfType(inputType, indexerAccess.Indexer).GetTypeOrReturnType(),
-                    BoundCall call => AsMemberOfType(inputType, call.Method).GetTypeOrReturnType(),
+                    case BoundIndexerAccess indexerAccess:
+                        var indexer = indexerAccess.Indexer;
 
-                    BoundArrayAccess arrayAccess => isSlice
-                        ? TypeWithAnnotations.Create(isNullableEnabled: true, inputType, isAnnotated: false)
-                        : ((ArrayTypeSymbol)inputType).ElementTypeWithAnnotations,
+                        PropertySymbol property;
+                        if (indexer.IsExtensionBlockMember())
+                        {
+                            var reinferrenceResult = ReInferAndVisitExtensionPropertyAccess(
+                                e,
+                                receiver: new BoundExpressionWithNullability(e.Syntax, expression, NullableAnnotation.NotAnnotated, inputType),
+                                indexer,
+                                indexer.Parameters,
+                                indexerAccess.Arguments,
+                                indexerAccess.ArgumentRefKindsOpt,
+                                indexerAccess.ArgsToParamsOpt,
+                                indexerAccess.DefaultArguments,
+                                indexerAccess.Expanded,
+                                delayCompletionForType: false,
+                                firstArgumentResult: null);
 
-                    BoundImplicitIndexerAccess implicitIndexerAccess => getIndexerOutputType(inputType, implicitIndexerAccess.IndexerOrSliceAccess, isSlice),
-                    _ => throw ExceptionUtilities.UnexpectedValue(e.Kind)
-                };
+                            property = reinferrenceResult.Member;
+                        }
+                        else
+                        {
+                            property = (PropertySymbol)AsMemberOfType(inputType, indexer);
+                        }
+
+                        return property.GetTypeOrReturnType();
+
+                    case BoundCall call:
+                        Debug.Assert(!call.Method.IsExtensionBlockMember());
+                        return AsMemberOfType(inputType, call.Method).GetTypeOrReturnType();
+
+                    case BoundArrayAccess arrayAccess:
+                        return isSlice
+                            ? TypeWithAnnotations.Create(isNullableEnabled: true, inputType, isAnnotated: false)
+                            : ((ArrayTypeSymbol)inputType).ElementTypeWithAnnotations;
+
+                    case BoundImplicitIndexerAccess implicitIndexerAccess:
+                        return getIndexerOutputType(inputType, implicitIndexerAccess.IndexerOrSliceAccess, isSlice);
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(e.Kind);
+                }
             }
         }
 
@@ -1064,6 +1098,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             var falseState = labelStateMap.TryGetValue(node.IsNegated ? node.WhenTrueLabel : node.WhenFalseLabel, out var s2) ? s2.state : UnreachableState();
             labelStateMap.Free();
             SetConditionalState(trueState, falseState);
+            SetNotNullResult(node);
+            return null;
+        }
+
+        public override BoundNode VisitListPatternIndexPlaceholder(BoundListPatternIndexPlaceholder node)
+        {
+            SetNotNullResult(node);
+            return null;
+        }
+
+        public override BoundNode VisitSlicePatternRangePlaceholder(BoundSlicePatternRangePlaceholder node)
+        {
             SetNotNullResult(node);
             return null;
         }
