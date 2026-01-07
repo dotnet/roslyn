@@ -2833,7 +2833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GenerateExplicitConversionErrors(diagnostics, node, conversion, operand, targetType);
             }
 
-            return CreateConversion(node, operand, conversion, isCast: true, conversionGroupOpt: conversionGroup, wasCompilerGenerated: wasCompilerGenerated, destination: targetType, diagnostics: diagnostics, hasErrors: hasErrors | suppressErrors);
+            return CreateConversion(node, operand, conversion, isCast: true, conversionGroupOpt: conversionGroup, InConversionGroupFlags.Unspecified, wasCompilerGenerated: wasCompilerGenerated, destination: targetType, diagnostics: diagnostics, hasErrors: hasErrors | suppressErrors);
         }
 
         private void GenerateExplicitConversionErrors(
@@ -3579,7 +3579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     reportUnsafeIfNeeded(methodResult, diagnostics, argument, parameterTypeWithAnnotations);
 
-                    coercedArgument = CreateConversion(argument.Syntax, argument, kind, isCast: false, conversionGroupOpt: null, parameterTypeWithAnnotations.Type, diagnostics);
+                    coercedArgument = CreateConversion(argument.Syntax, argument, kind, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, parameterTypeWithAnnotations.Type, diagnostics);
                 }
                 else if (argument.Kind == BoundKind.OutVariablePendingInference)
                 {
@@ -3600,7 +3600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (argument is BoundTupleLiteral)
                     {
                         // CreateConversion reports tuple literal name mismatches, and constructs the expected pattern of bound nodes.
-                        coercedArgument = CreateConversion(argument.Syntax, argument, kind, isCast: false, conversionGroupOpt: null, parameterTypeWithAnnotations.Type, diagnostics);
+                        coercedArgument = CreateConversion(argument.Syntax, argument, kind, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, parameterTypeWithAnnotations.Type, diagnostics);
                     }
                     else
                     {
@@ -3765,6 +3765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         interpolatedStringConversion,
                         isCast: false,
                         conversionGroupOpt: null,
+                        InConversionGroupFlags.Unspecified,
                         handlerType,
                         diagnostics);
                 }
@@ -3781,6 +3782,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         interpolatedStringConversion,
                         isCast: false,
                         conversionGroupOpt: null,
+                        InConversionGroupFlags.Unspecified,
                         wasCompilerGenerated: false,
                         handlerType,
                         diagnostics,
@@ -3796,6 +3798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         interpolatedStringConversion,
                         isCast: false,
                         conversionGroupOpt: null,
+                        InConversionGroupFlags.Unspecified,
                         handlerType,
                         diagnostics);
                 }
@@ -3963,6 +3966,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: CheckOverflowAtRuntime,
                     explicitCastInCode: false,
                     conversionGroupOpt: null,
+                    InConversionGroupFlags.Unspecified,
                     constantValueOpt: null,
                     handlerType,
                     hasErrors || interpolatedString.HasErrors);
@@ -9116,6 +9120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: true,
                     explicitCastInCode: false,
                     conversionGroupOpt: null,
+                    InConversionGroupFlags.Unspecified,
                     constantValueOpt: expr.ConstantValueOpt,
                     type: underlyingType);
             }
@@ -9953,7 +9958,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GenerateImplicitConversionError(diagnostics, node, failedConversion, index, int32);
 
                 // Suppress any additional diagnostics
-                return CreateConversion(node, index, failedConversion, isCast: false, conversionGroupOpt: null, destination: int32, diagnostics: BindingDiagnosticBag.Discarded);
+                return CreateConversion(node, index, failedConversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, destination: int32, diagnostics: BindingDiagnosticBag.Discarded);
             }
 
             return result;
@@ -10015,7 +10020,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversion = conversion.SetArrayIndexConversionForDynamic();
             }
 
-            BoundExpression result = CreateConversion(expr.Syntax, expr, conversion, isCast: false, conversionGroupOpt: null, destination: targetType, diagnostics); // UNDONE: was cast?
+            BoundExpression result = CreateConversion(expr.Syntax, expr, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, destination: targetType, diagnostics); // UNDONE: was cast?
             Debug.Assert(result != null); // If this ever fails (it shouldn't), then put a null-check around the diagnostics update.
 
             return result;
