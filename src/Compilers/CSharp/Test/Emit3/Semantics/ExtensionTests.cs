@@ -30799,21 +30799,12 @@ static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (27,13): error CS9282: This member is not allowed in an extension block
-            //         int this[int y]
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(27, 13),
             // (42,23): error CS9347: Static members cannot access the value of extension parameter 'M1'.
             //             short x = M1;
             Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "M1").WithArguments("M1").WithLocation(42, 23),
             // (53,17): error CS9347: Static members cannot access the value of extension parameter 'P1'.
             //                 P1 = "val";
-            Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "P1").WithArguments("P1").WithLocation(53, 17),
-            // (67,13): error CS9282: This member is not allowed in an extension block
-            //         int this[int x] => 0;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(67, 13),
-            // (72,13): error CS9282: This member is not allowed in an extension block
-            //         int this[int x] => 0;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(72, 13)
+            Diagnostic(ErrorCode.ERR_ExtensionParameterInStaticContext, "P1").WithArguments("P1").WithLocation(53, 17)
             );
     }
 
