@@ -175,13 +175,16 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
         }
 
         void AddNodesIfNoErrorsOrWarnings(
-            IEnumerable<(PostfixUnaryExpressionSyntax suppression, SyntaxNode rewrittenAncestor)> nodes,
-            IEnumerable<Diagnostic> intersectingDiagnostics)
+            IEnumerable<(PostfixUnaryExpressionSyntax suppression, SyntaxNode rewrittenAncestor)> group,
+            IEnumerable<Diagnostic> updatedDiagnostics)
         {
+            if (ContainsErrorOrWarning(updatedDiagnostics))
+                return;
+
             // If there were no errors in that span after removing all the suppressions, then we can offer all of these
             // nodes up for fixing.
-            if (!ContainsErrorOrWarning(intersectingDiagnostics))
-                result.AddRange(nodes.Select(t => t.suppression));
+            foreach (var (suppressionNode, _) in group)
+                result.Add(suppressionNode);
         }
     }
 
