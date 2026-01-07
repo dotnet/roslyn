@@ -359,7 +359,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `Pipeline triggered by @${context.actor}\n\n[${linkText}](${{ steps.trigger-pipeline.outputs.pipeline-url }})\n\n<details>\n<summary>Parameters</summary>\n\n- Validation Type: \`${{ steps.validation-type.outputs.type }}\`\n- Pipeline ID: \`${{ steps.validation-type.outputs.pipeline-id }}\`\n- Pipeline Version: \`${{ steps.target-branch.outputs.pipeline-version }}\`\n- PR Number: \`${{ github.event.issue.number }}\`\n- Commit SHA: \`${{ steps.commit-sha.outputs.sha }}\`\n- Source Branch: \`${{ steps.pr-details.outputs.ref }}\`\n- Target Branch: \`${{ steps.pr-details.outputs.base }}\`\n- Build ID: \`${{ steps.trigger-pipeline.outputs.build-id }}\`\n</details>`
+              body: `[${linkText}](${{ steps.trigger-pipeline.outputs.pipeline-url }}) triggered by @${context.actor}\n\n<details>\n<summary>Parameters</summary>\n\n- Validation Type: \`${{ steps.validation-type.outputs.type }}\`\n- Pipeline ID: \`${{ steps.validation-type.outputs.pipeline-id }}\`\n- Pipeline Version: \`${{ steps.target-branch.outputs.pipeline-version }}\`\n- PR Number: \`${{ github.event.issue.number }}\`\n- Commit SHA: \`${{ steps.commit-sha.outputs.sha }}\`\n- Source Branch: \`${{ steps.pr-details.outputs.ref }}\`\n- Target Branch: \`${{ steps.pr-details.outputs.base }}\`\n- Build ID: \`${{ steps.trigger-pipeline.outputs.build-id }}\`\n</details>`
             });
 
       - name: Comment on failure
