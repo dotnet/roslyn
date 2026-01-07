@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -25,8 +26,8 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
         if (node is not PostfixUnaryExpressionSyntax(SyntaxKind.SuppressNullableWarningExpression) postfixUnary)
             return false;
 
-        var spanToCheck = GetSpanToCheck(postfixUnary);
-        if (spanToCheck is null)
+        var nodeToCheck = GetNodeToCheck(postfixUnary);
+        if (nodeToCheck is null)
             return false;
 
         // If there are any syntax or semantic diagnostics already in this node, then ignore it.  We can't make a good
@@ -70,6 +71,33 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
         ForkSemanticModelAndCheckNodes(semanticModel, nodesToCheck, nodeToAnnotation, result, cancellationToken);
     }
 
+    private static SyntaxNode? GetNodeToCheck(SyntaxNode node)
+    {
+        var globalStatement = node.Ancestors().OfType<GlobalStatementSyntax>().FirstOrDefault();
+
+        if (globalStatement is not null)
+            return globalStatement;
+
+        // Otherwise, find our containing code-containing member (attributes, accessors, fields, methods, properties,
+        // anonymous methods), and check that entire member.  This means we only offer to remove the suppression if all
+        // the suppressions in the member are unnecessary.  We need this granularity as doing things on a
+        // per-suppression is just far too slow.
+        //
+        // We also check at this level because suppressions can have effects far outside of the containing statement (or
+        // even things like the containing block.  For example: a suppression inside a block like `a = b!` can affect
+        // the nullability of a variable which may be referenced far outside of the block.  So we really need to check
+        // the entire code region that the suppression is in to make an accurate determination.
+        var ancestor = node.Ancestors().FirstOrDefault(
+            n => n is AttributeSyntax
+                   or AccessorDeclarationSyntax
+                   or AnonymousMethodExpressionSyntax
+                   or BaseFieldDeclarationSyntax
+                   or BaseMethodDeclarationSyntax
+                   or BasePropertyDeclarationSyntax);
+
+        return ancestor;
+    }
+
     private static void ForkSemanticModelAndCheckNodes(
         SemanticModel semanticModel,
         ArrayBuilder<PostfixUnaryExpressionSyntax> nodesToCheck,
@@ -91,46 +119,26 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
             .WithOptions(semanticModel.Compilation.Options.WithSpecificDiagnosticOptions([]));
         var updatedSemanticModel = updatedCompilation.GetSemanticModel(updatedTree);
 
-        using var _1 = ArrayBuilder<PostfixUnaryExpressionSyntax>.GetInstance(out var inGlobalStatements);
+        using var _1 = ArrayBuilder<(PostfixUnaryExpressionSyntax suppression, SyntaxNode rewrittenAncestor)>.GetInstance(out var inGlobalStatements);
         using var _2 = ArrayBuilder<(PostfixUnaryExpressionSyntax suppression, SyntaxNode rewrittenAncestor)>.GetInstance(out var inFieldsOrProperties);
         using var _3 = ArrayBuilder<(PostfixUnaryExpressionSyntax suppression, SyntaxNode rewrittenAncestor)>.GetInstance(out var remainder);
 
         foreach (var (suppression, annotation) in nodeToAnnotation)
         {
             var rewritten = updateRoot.GetAnnotatedNodes(annotation).Single();
-            var globalStatement = rewritten.Ancestors().OfType<GlobalStatementSyntax>().FirstOrDefault();
+            var nodeToCheck = GetNodeToCheck(rewritten);
 
-            if (globalStatement is not null)
+            if (nodeToCheck is GlobalStatementSyntax globalStatement)
             {
-                inGlobalStatements.Add(suppression);
+                inGlobalStatements.Add((suppression, globalStatement));
             }
-            else
+            else if (nodeToCheck is BaseFieldDeclarationSyntax or BasePropertyDeclarationSyntax)
             {
-                // Otherwise, find our containing code-containing member (attributes, accessors, fields, methods, properties,
-                // anonymous methods), and check that entire member.  This means we only offer to remove the suppression if all
-                // the suppressions in the member are unnecessary.  We need this granularity as doing things on a
-                // per-suppression is just far too slow.
-                //
-                // We also check at this level because suppressions can have effects far outside of the containing statement (or
-                // even things like the containing block.  For example: a suppression inside a block like `a = b!` can affect
-                // the nullability of a variable which may be referenced far outside of the block.  So we really need to check
-                // the entire code region that the suppression is in to make an accurate determination.
-                var ancestor = rewritten.Ancestors().FirstOrDefault(
-                    n => n is AttributeSyntax
-                           or AccessorDeclarationSyntax
-                           or AnonymousMethodExpressionSyntax
-                           or BaseFieldDeclarationSyntax
-                           or BaseMethodDeclarationSyntax
-                           or BasePropertyDeclarationSyntax);
-
-                if (ancestor is BaseFieldDeclarationSyntax or BasePropertyDeclarationSyntax)
-                {
-                    inFieldsOrProperties.Add((suppression, ancestor));
-                }
-                else if (ancestor != null)
-                {
-                    remainder.Add((suppression, ancestor));
-                }
+                inFieldsOrProperties.Add((suppression, nodeToCheck));
+            }
+            else if (nodeToCheck != null)
+            {
+                remainder.Add((suppression, nodeToCheck));
             }
         }
 
@@ -147,13 +155,9 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
             var globalStatements = compilationUnit.Members.OfType<GlobalStatementSyntax>();
             var span = TextSpan.FromBounds(globalStatements.First().SpanStart, globalStatements.Last().Span.End);
 
-            var updatedDiagnostics = updatedSemanticModel.GetDiagnostics(span, cancellationToken);
-            if (ContainsErrorOrWarning(updatedDiagnostics))
-                return;
-
-            // If there were no errors in that span after removing all the suppressions, then we can offer all of these
-            // nodes up for fixing.
-            result.AddRange(inGlobalStatements);
+            AddNodesIfNoErrorsOrWarnings(
+                inGlobalStatements,
+                updatedSemanticModel.GetDiagnostics(span, cancellationToken));
         }
 
         void CheckFieldsAndProperties()
@@ -165,35 +169,36 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
                     continue;
 
                 var typeDeclarationDiagnostics = updatedSemanticModel.GetDiagnostics(typeDeclaration.Span, cancellationToken);
-
-                foreach (var ancestorGroup in typeDeclarationGroup.GroupBy(t => t.rewrittenAncestor))
-                {
-                    var rewrittenAncestor = ancestorGroup.Key;
-                    var updatedDiagnostics = typeDeclarationDiagnostics.Where(d => d.Location.SourceSpan.IntersectsWith(rewrittenAncestor.Span));
-                    if (ContainsErrorOrWarning(updatedDiagnostics))
-                        continue;
-
-                    // If there were no errors in that span after removing all the suppressions, then we can offer all of these
-                    // nodes up for fixing.
-                    result.AddRange(ancestorGroup.Select(t => t.suppression));
-                }
+                CheckDiagnostics(typeDeclarationGroup, _ => typeDeclarationDiagnostics);
             }
         }
 
         void CheckRemainder()
         {
-            foreach (var group in remainder.GroupBy(t => t.rewrittenAncestor))
-            {
-                var rewrittenAncestor = group.Key;
-                var updatedDiagnostics = updatedSemanticModel.GetDiagnostics(rewrittenAncestor.Span, cancellationToken);
-                if (ContainsErrorOrWarning(updatedDiagnostics))
-                    continue;
+            CheckDiagnostics(remainder, n => updatedSemanticModel.GetDiagnostics(n.Span, cancellationToken));
+        }
 
-                // If there were no errors in that span after removing all the suppressions, then we can offer all of these
-                // nodes up for fixing.
-                foreach (var (suppressionNode, _) in group)
-                    result.Add(suppressionNode);
+        void CheckDiagnostics(
+            IEnumerable<(PostfixUnaryExpressionSyntax suppression, SyntaxNode rewrittenAncestor)> nodes,
+            Func<SyntaxNode, ImmutableArray<Diagnostic>> computeDiagnostics)
+        {
+            foreach (var ancestorGroup in nodes.GroupBy(t => t.rewrittenAncestor))
+            {
+                var rewrittenAncestor = ancestorGroup.Key;
+                var diagnostics = computeDiagnostics(rewrittenAncestor);
+                var intersectingDiagnostics = diagnostics.Where(d => d.Location.SourceSpan.IntersectsWith(rewrittenAncestor.Span));
+                AddNodesIfNoErrorsOrWarnings(ancestorGroup, intersectingDiagnostics);
             }
+        }
+
+        void AddNodesIfNoErrorsOrWarnings(
+            IEnumerable<(PostfixUnaryExpressionSyntax suppression, SyntaxNode rewrittenAncestor)> nodes,
+            IEnumerable<Diagnostic> intersectingDiagnostics)
+        {
+            // If there were no errors in that span after removing all the suppressions, then we can offer all of these
+            // nodes up for fixing.
+            if (!ContainsErrorOrWarning(intersectingDiagnostics))
+                result.AddRange(nodes.Select(t => t.suppression));
         }
     }
 }
