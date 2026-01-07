@@ -59,8 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(inputUnionType.IsUnionTypeNoUseSiteDiagnostics);
             Debug.Assert(innerPattern.InputType.IsObjectType());
 
-            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            PropertySymbol? valueProperty = Binder.GetUnionTypeValueProperty(inputUnionType, ref discardedUseSiteInfo);
+            PropertySymbol? valueProperty = Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(inputUnionType);
 
             var member = new BoundPropertySubpatternMember(innerPattern.Syntax, receiver: null, valueProperty, type: innerPattern.InputType, hasErrors: valueProperty is null).MakeCompilerGenerated();
 
