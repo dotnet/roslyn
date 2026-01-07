@@ -34,8 +34,8 @@ internal sealed class DidChangeNotebookDocumentParams
     /// To mirror the content of a notebook using change events use the
     /// following approach:
     /// <list type="bullet">
-    /// <item>start with the same initial content</item>
-    /// <item>apply the <c>notebookDocument/didChange</c> notifications in the order you receive them.</item>
+    /// <item><description>Start with the same initial content.</description></item>
+    /// <item><description>Apply the <c>notebookDocument/didChange</c> notifications in the order you receive them.</description></item>
     /// </list>
     /// </para>
     /// </summary>

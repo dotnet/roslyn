@@ -24,15 +24,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// When runtime async is enabled for this await expression, this represents either:
         /// <list type="bullet">
         /// <item>
-        /// A call to <c>System.Runtime.CompilerServices.AsyncHelpers.Await</c>, if this is a
+        /// <description>A call to <c>System.Runtime.CompilerServices.AsyncHelpers.Await</c>, if this is a
         /// supported task type. In such cases, <see cref="GetAwaiterMethod" />,
         /// <see cref="IsCompletedProperty" />, and <see cref="GetResultMethod" /> will be
-        /// <see langword="null" />.
+        /// <see langword="null" />.</description>
         /// </item>
         /// <item>
-        /// A call to <c>System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter|UnsafeAwaitAwaiter</c>.
+        /// <description>A call to <c>System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter|UnsafeAwaitAwaiter</c>.
         /// In these cases, the other properties may be non-<see langword="null" /> if the
-        /// the rest of the await expression is successfully bound.
+        /// the rest of the await expression is successfully bound.</description>
         /// </item>
         /// </list>
         /// </summary>

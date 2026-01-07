@@ -108,8 +108,8 @@ partial class Methods
     /// <para>
     /// The call hierarchy request is sent from the client to the server to return a call hierarchy for the language element of given text document positions. The call hierarchy requests are executed in two steps:
     /// <list type="bullet">
-    /// <item>first a call hierarchy item is resolved for the given text document position</item>
-    /// <item>for a call hierarchy item the incoming or outgoing call hierarchy items are resolved.</item>
+    /// <item><description>First a call hierarchy item is resolved for the given text document position.</description></item>
+    /// <item><description>For a call hierarchy item the incoming or outgoing call hierarchy items are resolved.</description></item>
     /// </list>
     /// </para>
     /// <para>
@@ -169,8 +169,8 @@ partial class Methods
     /// </para>
     /// The type hierarchy requests are executed in two steps:
     /// <list type="bullet">
-    /// <item>first a type hierarchy item is prepared for the given text document position.</item>
-    /// <item>for a type hierarchy item the supertype or subtype type hierarchy items are resolved.</item>
+    /// <item><description>First a type hierarchy item is prepared for the given text document position.</description></item>
+    /// <item><description>For a type hierarchy item the supertype or subtype type hierarchy items are resolved.</description></item>
     /// </list>
     /// </para>
     /// <para>

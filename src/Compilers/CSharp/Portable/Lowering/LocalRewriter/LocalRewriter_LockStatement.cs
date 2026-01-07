@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Lowers a lock statement to a try-finally block that calls (before and after the body, respectively):
         /// <list type="bullet">
-        /// <item>Lock.EnterScope and Lock+Scope.Dispose if the argument is of type Lock, or</item>
-        /// <item>Monitor.Enter and Monitor.Exit.</item>
+        /// <item><description>Lock.EnterScope and Lock+Scope.Dispose if the argument is of type Lock, or</description></item>
+        /// <item><description>Monitor.Enter and Monitor.Exit.</description></item>
         /// </list>
         /// </summary>
         public override BoundNode VisitLockStatement(BoundLockStatement node)
@@ -122,20 +122,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol? enterMethod;
 
             if ((TryGetWellKnownTypeMember(lockSyntax, WellKnownMember.System_Threading_Monitor__Enter2, out enterMethod, isOptional: true) ||
-                 TryGetWellKnownTypeMember(lockSyntax, WellKnownMember.System_Threading_Monitor__Enter, out enterMethod)) && // If we didn't find the overload introduced in .NET 4.0, then use the older one. 
+                 TryGetWellKnownTypeMember(lockSyntax, WellKnownMember.System_Threading_Monitor__Enter, out enterMethod)) && // If we didn't find the overload introduced in .NET 4.0, then use the older one.
                 enterMethod.ParameterCount == 2)
             {
                 // C# 4.0+ version
                 // L $lock = `argument`;                      // sequence point
-                // bool $lockTaken = false;                   
+                // bool $lockTaken = false;
                 // try
                 // {
                 //     Monitor.Enter($lock, ref $lockTaken);
-                //     `body`                                 // sequence point  
+                //     `body`                                 // sequence point
                 // }
                 // finally
-                // {                                          // hidden sequence point   
-                //     if ($lockTaken) Monitor.Exit($lock);   
+                // {                                          // hidden sequence point
+                //     if ($lockTaken) Monitor.Exit($lock);
                 // }
 
                 TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
@@ -185,11 +185,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Pre-4.0 version
                 // L $lock = `argument`;           // sequence point
                 // Monitor.Enter($lock);           // NB: before try-finally so we don't Exit if an exception prevents us from acquiring the lock.
-                // try 
+                // try
                 // {
                 //     `body`                      // sequence point
-                // } 
-                // finally 
+                // }
+                // finally
                 // {
                 //     Monitor.Exit($lock);        // hidden sequence point
                 // }
