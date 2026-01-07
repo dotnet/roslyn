@@ -139,9 +139,9 @@
       <Uri>https://github.com/dotnet/arcade-services</Uri>
       <Sha>8b5a2ffee4f4097893b7fc670f7d86d84c8c841f</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.FileBasedPrograms" Version="10.0.200-preview.0.25556.104">
+    <Dependency Name="Microsoft.DotNet.FileBasedPrograms" Version="11.0.100-alpha.1.26055.109">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>cc979c006a27c251782bee45e8887213c24bf806</Sha>
+      <Sha>1f7265970fd1148d2aa27cfc179393d1dcfd789e</Sha>
     </Dependency>
     <Dependency Name="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.0-preview.25375.1">
       <Uri>https://github.com/dotnet/roslyn-analyzers</Uri>
