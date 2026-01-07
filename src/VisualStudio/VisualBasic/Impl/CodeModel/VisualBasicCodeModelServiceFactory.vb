@@ -4,12 +4,12 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel

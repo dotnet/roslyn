@@ -6,11 +6,14 @@ This file should be imported by eng/Versions.props
 <Project>
   <PropertyGroup>
     <!-- dotnet/roslyn dependencies -->
-    <MicrosoftCodeAnalysisPackageVersion>3.11.0</MicrosoftCodeAnalysisPackageVersion>
-    <MicrosoftNetCompilersToolsetPackageVersion>4.10.0-1.24061.4</MicrosoftNetCompilersToolsetPackageVersion>
+    <MicrosoftCodeAnalysisPackageVersion>5.3.0-2.25625.1</MicrosoftCodeAnalysisPackageVersion>
+    <MicrosoftCodeAnalysisAnalyzersPackageVersion>5.3.0-2.25625.1</MicrosoftCodeAnalysisAnalyzersPackageVersion>
+    <MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>5.3.0-2.25625.1</MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>
+    <MicrosoftNetCompilersToolsetPackageVersion>5.3.0-2.25625.1</MicrosoftNetCompilersToolsetPackageVersion>
     <!-- dotnet/dotnet dependencies -->
-    <MicrosoftDotNetFileBasedProgramsPackageVersion>10.0.200-preview.0.25556.104</MicrosoftDotNetFileBasedProgramsPackageVersion>
-    <SystemCommandLinePackageVersion>3.0.0-alpha.1.25570.101</SystemCommandLinePackageVersion>
+    <MicrosoftDotNetFileBasedProgramsPackageVersion>11.0.100-alpha.1.26055.109</MicrosoftDotNetFileBasedProgramsPackageVersion>
+    <RoslynDiagnosticsAnalyzersPackageVersion>5.3.0-2.26055.102</RoslynDiagnosticsAnalyzersPackageVersion>
+    <SystemCommandLinePackageVersion>3.0.0-alpha.1.26055.102</SystemCommandLinePackageVersion>
     <!-- dotnet/runtime dependencies -->
     <MicrosoftBclAsyncInterfacesPackageVersion>9.0.0</MicrosoftBclAsyncInterfacesPackageVersion>
     <MicrosoftExtensionsConfigurationPackageVersion>9.0.0</MicrosoftExtensionsConfigurationPackageVersion>
@@ -39,25 +42,26 @@ This file should be imported by eng/Versions.props
     <SystemThreadingTasksDataflowPackageVersion>9.0.0</SystemThreadingTasksDataflowPackageVersion>
     <SystemWindowsExtensionsPackageVersion>9.0.0</SystemWindowsExtensionsPackageVersion>
     <!-- dotnet/arcade dependencies -->
-    <MicrosoftDotNetArcadeSdkPackageVersion>11.0.0-beta.25603.2</MicrosoftDotNetArcadeSdkPackageVersion>
-    <MicrosoftDotNetHelixSdkPackageVersion>11.0.0-beta.25603.2</MicrosoftDotNetHelixSdkPackageVersion>
-    <MicrosoftDotNetXliffTasksPackageVersion>11.0.0-beta.25603.2</MicrosoftDotNetXliffTasksPackageVersion>
+    <MicrosoftDotNetArcadeSdkPackageVersion>11.0.0-beta.26055.1</MicrosoftDotNetArcadeSdkPackageVersion>
+    <MicrosoftDotNetHelixSdkPackageVersion>11.0.0-beta.26055.1</MicrosoftDotNetHelixSdkPackageVersion>
+    <MicrosoftDotNetXliffTasksPackageVersion>11.0.0-beta.26055.1</MicrosoftDotNetXliffTasksPackageVersion>
     <!-- dotnet/symreader dependencies -->
     <MicrosoftDiaSymReaderPackageVersion>2.0.0</MicrosoftDiaSymReaderPackageVersion>
     <!-- dotnet/arcade-services dependencies -->
     <MicrosoftDotNetDarcLibPackageVersion>1.1.0-beta.25161.2</MicrosoftDotNetDarcLibPackageVersion>
     <!-- dotnet/roslyn-analyzers dependencies -->
-    <MicrosoftCodeAnalysisAnalyzersPackageVersion>3.11.0</MicrosoftCodeAnalysisAnalyzersPackageVersion>
-    <MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>3.3.0</MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>
     <MicrosoftCodeAnalysisNetAnalyzersPackageVersion>10.0.0-preview.25375.1</MicrosoftCodeAnalysisNetAnalyzersPackageVersion>
   </PropertyGroup>
   <!--Property group for alternate package version names-->
   <PropertyGroup>
     <!-- dotnet/roslyn dependencies -->
     <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisPackageVersion)</MicrosoftCodeAnalysisVersion>
+    <MicrosoftCodeAnalysisAnalyzersVersion>$(MicrosoftCodeAnalysisAnalyzersPackageVersion)</MicrosoftCodeAnalysisAnalyzersVersion>
+    <MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>$(MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion)</MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>
     <MicrosoftNetCompilersToolsetVersion>$(MicrosoftNetCompilersToolsetPackageVersion)</MicrosoftNetCompilersToolsetVersion>
     <!-- dotnet/dotnet dependencies -->
     <MicrosoftDotNetFileBasedProgramsVersion>$(MicrosoftDotNetFileBasedProgramsPackageVersion)</MicrosoftDotNetFileBasedProgramsVersion>
+    <RoslynDiagnosticsAnalyzersVersion>$(RoslynDiagnosticsAnalyzersPackageVersion)</RoslynDiagnosticsAnalyzersVersion>
     <SystemCommandLineVersion>$(SystemCommandLinePackageVersion)</SystemCommandLineVersion>
     <!-- dotnet/runtime dependencies -->
     <MicrosoftBclAsyncInterfacesVersion>$(MicrosoftBclAsyncInterfacesPackageVersion)</MicrosoftBclAsyncInterfacesVersion>
@@ -95,8 +99,6 @@ This file should be imported by eng/Versions.props
     <!-- dotnet/arcade-services dependencies -->
     <MicrosoftDotNetDarcLibVersion>$(MicrosoftDotNetDarcLibPackageVersion)</MicrosoftDotNetDarcLibVersion>
     <!-- dotnet/roslyn-analyzers dependencies -->
-    <MicrosoftCodeAnalysisAnalyzersVersion>$(MicrosoftCodeAnalysisAnalyzersPackageVersion)</MicrosoftCodeAnalysisAnalyzersVersion>
-    <MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>$(MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion)</MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>
     <MicrosoftCodeAnalysisNetAnalyzersVersion>$(MicrosoftCodeAnalysisNetAnalyzersPackageVersion)</MicrosoftCodeAnalysisNetAnalyzersVersion>
   </PropertyGroup>
 </Project>

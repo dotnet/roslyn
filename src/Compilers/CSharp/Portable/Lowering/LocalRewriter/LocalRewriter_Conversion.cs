@@ -285,6 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: false,
                     explicitCastInCode: true,
                     conversionGroupOpt: null,
+                    inConversionGroupFlags: InConversionGroupFlags.Unspecified,
                     constantValueOpt: null,
                     type: result.Type);
             }
@@ -527,7 +528,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isBaseConversion: false,
                             @checked: false,
                             explicitCastInCode: explicitCastInCode,
-                            conversionGroupOpt: oldNodeOpt?.ConversionGroupOpt,
+                            conversionGroupOpt: null,
+                            inConversionGroupFlags: InConversionGroupFlags.Unspecified,
                             constantValueOpt: constantValueOpt,
                             type: rewrittenType);
                     }
@@ -733,7 +735,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isBaseConversion: oldNodeOpt.IsBaseConversion,
                     @checked: @checked,
                     explicitCastInCode: explicitCastInCode,
-                    conversionGroupOpt: oldNodeOpt.ConversionGroupOpt,
+                    conversionGroupOpt: null,
+                    inConversionGroupFlags: InConversionGroupFlags.Unspecified,
                     constantValueOpt: constantValueOpt,
                     type: rewrittenType) :
                 new BoundConversion(
@@ -744,6 +747,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: @checked,
                     explicitCastInCode: explicitCastInCode,
                     conversionGroupOpt: null, // BoundConversion.ConversionGroup is not used in lowered tree
+                    inConversionGroupFlags: InConversionGroupFlags.Unspecified,
                     constantValueOpt: constantValueOpt,
                     type: rewrittenType);
         }
@@ -1065,6 +1069,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         @checked: conversion.Checked,
                         explicitCastInCode: conversion.ExplicitCastInCode,
                         conversionGroupOpt: null,
+                        InConversionGroupFlags.TupleBinaryOperatorPendingLowering,
                         constantValueOpt: null,
                         type: conversion.Type.StrippedType(),
                         hasErrors: conversion.HasErrors);
@@ -1144,8 +1149,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol rewrittenOperandType = rewrittenOperand.Type;
             Debug.Assert(rewrittenType.IsNullableType() || rewrittenOperandType.IsNullableType());
 
-            ConversionGroup? conversionGroup = null; // BoundConversion.ConversionGroup is not used in lowered tree
-
             TypeSymbol typeFrom = rewrittenOperandType.StrippedType();
             TypeSymbol typeTo = rewrittenType.StrippedType();
             if (!TypeSymbol.Equals(typeFrom, typeTo, TypeCompareKind.ConsiderEverything2) && (typeFrom.SpecialType == SpecialType.System_Decimal || typeTo.SpecialType == SpecialType.System_Decimal))
@@ -1174,12 +1177,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var conversionKind = conversion.Kind.IsImplicitConversion() ? ConversionKind.ImplicitUserDefined : ConversionKind.ExplicitUserDefined;
-                var result = new BoundConversion(syntax, rewrittenOperand, new Conversion(conversionKind, method, false), @checked, explicitCastInCode: explicitCastInCode, conversionGroup, constantValueOpt: null, rewrittenType);
+                var userDefinedConversion = new Conversion(conversionKind, method, false);
+                var result = new BoundConversion(
+                    syntax, rewrittenOperand, userDefinedConversion, @checked, explicitCastInCode: explicitCastInCode,
+                    conversionGroupOpt: null, InConversionGroupFlags.LoweredFormOfUserDefinedConversionForExpressionTree, constantValueOpt: null, rewrittenType);
                 return result;
             }
             else
             {
-                return new BoundConversion(syntax, rewrittenOperand, conversion, @checked, explicitCastInCode: explicitCastInCode, conversionGroup, constantValueOpt: null, rewrittenType);
+                return new BoundConversion(syntax, rewrittenOperand, conversion, @checked, explicitCastInCode: explicitCastInCode, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, constantValueOpt: null, rewrittenType);
             }
         }
 
@@ -1402,7 +1408,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // do not rewrite user defined conversion in expression trees
             if (_inExpressionLambda)
             {
-                return BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, @checked: @checked, explicitCastInCode: true, conversionGroupOpt: null, constantValueOpt: null, rewrittenType);
+                return BoundConversion.Synthesized(
+                    syntax, rewrittenOperand, conversion, @checked: @checked, explicitCastInCode: true,
+                    conversionGroupOpt: null, InConversionGroupFlags.LoweredFormOfUserDefinedConversionForExpressionTree, constantValueOpt: null, rewrittenType);
             }
 
             if ((rewrittenOperand.Type.IsArray()) && _compilation.IsReadOnlySpanType(rewrittenType))
@@ -1444,7 +1452,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_inExpressionLambda)
             {
                 Conversion conv = TryMakeConversion(syntax, conversion, rewrittenOperand.Type, rewrittenType, @checked: @checked);
-                return BoundConversion.Synthesized(syntax, rewrittenOperand, conv, @checked: @checked, explicitCastInCode: true, conversionGroupOpt: null, constantValueOpt: null, rewrittenType);
+                return BoundConversion.Synthesized(
+                    syntax, rewrittenOperand, conv, @checked: @checked, explicitCastInCode: true,
+                    conversionGroupOpt: null, InConversionGroupFlags.LoweredFormOfUserDefinedConversionForExpressionTree, constantValueOpt: null, rewrittenType);
             }
 
             // DELIBERATE SPEC VIOLATION:
@@ -1590,7 +1600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_inExpressionLambda)
             {
-                return BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, @checked, explicitCastInCode: explicitCastInCode, conversionGroupOpt: null, constantValueOpt, rewrittenType);
+                return BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, @checked, explicitCastInCode: explicitCastInCode, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, constantValueOpt, rewrittenType);
             }
 
             var rewrittenCall = MakeCall(
@@ -1807,7 +1817,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ConversionKind conversionKind = isImplicit ? ConversionKind.ImplicitUserDefined : ConversionKind.ExplicitUserDefined;
                 var conversion = new Conversion(conversionKind, method, isExtensionMethod: false);
 
-                return new BoundConversion(syntax, operand, conversion, @checked: false, explicitCastInCode: false, conversionGroupOpt: null, constantValueOpt: constantValueOpt, type: toType);
+                return new BoundConversion(
+                    syntax, operand, conversion, @checked: false, explicitCastInCode: false,
+                    conversionGroupOpt: null, InConversionGroupFlags.LoweredFormOfUserDefinedConversionForExpressionTree,
+                    constantValueOpt: constantValueOpt, type: toType);
             }
             else
             {

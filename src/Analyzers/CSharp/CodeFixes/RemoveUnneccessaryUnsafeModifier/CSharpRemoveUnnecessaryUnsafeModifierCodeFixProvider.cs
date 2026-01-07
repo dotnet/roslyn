@@ -27,15 +27,13 @@ internal sealed class CSharpRemoveUnnecessaryUnsafeModifierCodeFixProvider() : C
 {
     public override ImmutableArray<string> FixableDiagnosticIds => [IDEDiagnosticIds.RemoveUnnecessaryUnsafeModifier];
 
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         context.RegisterCodeFix(CodeAction.Create(
             AnalyzersResources.Remove_unnecessary_unsafe_modifier,
             cancellationToken => FixAllAsync(context.Document, context.Diagnostics, cancellationToken),
             nameof(AnalyzersResources.Remove_unnecessary_unsafe_modifier)),
             context.Diagnostics);
-
-        return Task.CompletedTask;
     }
 
     private static async Task<Document> FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)

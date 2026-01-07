@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
@@ -19,7 +21,7 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
                                 MethodKind.ReducedExtension or
                                 MethodKind.LocalFunction;
 
-    protected override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+    protected override async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
         IMethodSymbol symbol,
         Solution solution,
         FindReferencesSearchOptions options,
@@ -27,9 +29,21 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
     {
         // If it's a delegate method, then cascade to the type as well.  These guys are
         // practically equivalent for users.
-        return symbol.ContainingType.TypeKind == TypeKind.Delegate
-            ? new(ImmutableArray.Create<ISymbol>(symbol.ContainingType))
-            : new(GetOtherPartsOfPartial(symbol));
+        if (symbol.ContainingType.TypeKind == TypeKind.Delegate)
+            return [symbol.ContainingType];
+
+        using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
+
+        result.AddRange(GetOtherPartsOfPartial(symbol));
+
+        // If the given symbol is an extension member, cascade to its implementation method
+        result.AddIfNotNull(symbol.AssociatedExtensionImplementation);
+
+        // If the given symbol is an implementation method of an extension member, cascade to the extension member itself
+        if (symbol.TryGetCorrespondingExtensionBlockMethod() is IMethodSymbol method)
+            result.Add(method);
+
+        return result.ToImmutableAndClear();
     }
 
     private static ImmutableArray<ISymbol> GetOtherPartsOfPartial(IMethodSymbol symbol)

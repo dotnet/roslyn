@@ -136,7 +136,7 @@ internal sealed class HotReloadService(SolutionServices services, Func<ValueTask
     private DebuggingSessionId _sessionId;
 
     public HotReloadService(HostWorkspaceServices services, ImmutableArray<string> capabilities)
-        : this(services.SolutionServices, () => ValueTask.FromResult(AddImplicitDotNetCapabilities(capabilities)))
+        : this(services.SolutionServices, () => ValueTask.FromResult(capabilities))
     {
     }
 
@@ -146,13 +146,6 @@ internal sealed class HotReloadService(SolutionServices services, Func<ValueTask
         Contract.ThrowIfFalse(sessionId != default, "Session has not started");
         return sessionId;
     }
-
-    /// <summary>
-    /// Adds capabilities that are available by default on runtimes supported by dotnet-watch: .NET and Mono
-    /// and not on .NET Framework (they are not in <see cref="EditAndContinueCapabilities.Baseline"/>.
-    /// </summary>
-    private static ImmutableArray<string> AddImplicitDotNetCapabilities(ImmutableArray<string> capabilities)
-        => capabilities.Add(nameof(EditAndContinueCapabilities.AddExplicitInterfaceImplementation));
 
     /// <summary>
     /// Starts the watcher.

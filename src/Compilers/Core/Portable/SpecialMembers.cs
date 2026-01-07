@@ -1348,6 +1348,15 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)InternalSpecialType.System_Threading_Tasks_Task_T,
                     1,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+
+                // System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)InternalSpecialType.System_Runtime_InteropServices_ExtendedLayoutAttribute,                           // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,                                      // Return Type
+                    (byte)SignatureTypeCode.TypeHandle,
+                    (byte)InternalSpecialType.System_Runtime_InteropServices_ExtendedLayoutKind
             };
 
             string[] allNames = new string[(int)SpecialMember.Count]
@@ -1513,6 +1522,7 @@ namespace Microsoft.CodeAnalysis
                 "UnsafeAwaitAwaiter",                       // System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter
                 "HandleAsyncEntryPoint",                    // System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task
                 "HandleAsyncEntryPoint",                    // System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_Int32
+                ".ctor",                                    // System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

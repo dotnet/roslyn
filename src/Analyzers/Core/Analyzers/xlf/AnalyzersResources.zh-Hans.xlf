@@ -196,6 +196,11 @@
         <target state="translated">将字段设置为只读</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_method_synchronous">
+        <source>Make method synchronous</source>
+        <target state="new">Make method synchronous</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Member_access_should_be_qualified">
         <source>Member access should be qualified.</source>
         <target state="translated">应限定成员访问。</target>
@@ -209,6 +214,11 @@
       <trans-unit id="Member_name_can_be_simplified">
         <source>Member name can be simplified</source>
         <target state="translated">可简化成员名称</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Method_can_be_made_synchronous">
+        <source>Method can be made synchronous</source>
+        <target state="new">Method can be made synchronous</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifiers_are_not_ordered">
