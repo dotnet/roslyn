@@ -85,11 +85,14 @@ class C
             var implicitSymbols = typeSymbol.GetMembers("op_Implicit").Cast<MethodSymbol>();
             var inSymbol = implicitSymbols.Where(sym => sym.ReturnType.SpecialType == SpecialType.System_Int32).Single();
             var outSymbol = implicitSymbols.Where(sym => sym != inSymbol).Single();
-            var inConversion = new Conversion(ConversionKind.ImplicitUserDefined, inSymbol, false);
-            var outConversion = new Conversion(ConversionKind.ImplicitUserDefined, outSymbol, false);
 
-            Assert.Equal(inConversion, compoundAssignment.GetInConversion());
-            Assert.Equal(outConversion, compoundAssignment.GetOutConversion());
+            var inConversion = compoundAssignment.GetInConversion();
+            Assert.Equal(ConversionKind.ImplicitUserDefined, inConversion.Kind);
+            Assert.Equal(inSymbol, inConversion.Method);
+
+            var outConversion = compoundAssignment.GetOutConversion();
+            Assert.Equal(ConversionKind.ImplicitUserDefined, outConversion.Kind);
+            Assert.Equal(outSymbol, outConversion.Method);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]

@@ -29080,8 +29080,9 @@ partial class Program
                 """);
 
             var conversionOperation = (IConversionOperation)((IReturnOperation)operation).ReturnedValue;
-            var expectedConversion = new Conversion(ConversionKind.CollectionExpression, nestedConversions: ImmutableArray.Create(Conversion.Identity, Conversion.Identity));
-            Assert.Equal(expectedConversion, conversionOperation.GetConversion());
+            Conversion conversion = conversionOperation.GetConversion();
+            Assert.Equal(ConversionKind.CollectionExpression, conversion.Kind);
+            AssertEx.SequenceEqual(ImmutableArray.Create(Conversion.Boxing, Conversion.Boxing), conversion.UnderlyingConversions);
         }
 
         [Fact]
@@ -29136,7 +29137,9 @@ partial class Program
 
             var conversionOperation = (IConversionOperation)((IReturnOperation)operation).ReturnedValue;
             var expectedConversion = new Conversion(ConversionKind.CollectionExpression, nestedConversions: ImmutableArray.Create(Conversion.Identity, Conversion.Identity));
-            Assert.Equal(expectedConversion, conversionOperation.GetConversion());
+            Conversion actual = conversionOperation.GetConversion();
+            Assert.Equal(ConversionKind.CollectionExpression, actual.Kind);
+            AssertEx.SequenceEqual(ImmutableArray.Create(Conversion.Identity, Conversion.Identity), actual.UnderlyingConversions);
         }
 
         [Fact]
@@ -29369,8 +29372,7 @@ partial class Program
 
             (IOperation operation, _) = GetOperationAndSyntaxForTest<SpreadElementSyntax>(comp);
             var spread = (ISpreadOperation)operation;
-            var expectedConversion = new Conversion(ConversionKind.Boxing, nestedConversions: default);
-            Assert.Equal(expectedConversion, spread.GetElementConversion());
+            Assert.Equal(Conversion.Boxing, spread.GetElementConversion());
         }
 
         [Fact]
@@ -29392,8 +29394,7 @@ partial class Program
 
             (IOperation operation, _) = GetOperationAndSyntaxForTest<SpreadElementSyntax>(comp);
             var spread = (ISpreadOperation)operation;
-            var expectedConversion = new Conversion(ConversionKind.ImplicitReference, nestedConversions: default);
-            Assert.Equal(expectedConversion, spread.GetElementConversion());
+            Assert.Equal(Conversion.ImplicitReference, spread.GetElementConversion());
         }
 
         [Fact]
@@ -30960,7 +30961,7 @@ partial class Program
 
             var conversion1 = model.GetConversion(collections[0]);
             Assert.False(conversion1.IsValid);
-            Assert.Equal(Conversion.NoConversion, conversion1);
+            Assert.False(conversion1.Exists);
 
             var conversion2 = model.GetConversion(collections[1]);
             Assert.True(conversion2.IsValid);
@@ -31004,7 +31005,7 @@ partial class Program
 
             var conversion1 = model.GetConversion(collections[0]);
             Assert.False(conversion1.IsValid);
-            Assert.Equal(Conversion.NoConversion, conversion1);
+            Assert.False(conversion1.Exists);
 
             var conversion2 = model.GetConversion(collections[1]);
             Assert.True(conversion2.IsValid);
@@ -31094,7 +31095,7 @@ partial class Program
 
             var conversion1 = model.GetConversion(collections[0]);
             Assert.False(conversion1.IsValid);
-            Assert.Equal(Conversion.NoConversion, conversion1);
+            Assert.False(conversion1.Exists);
 
             var conversion2 = model.GetConversion(collections[1]);
             Assert.True(conversion2.IsValid);
@@ -31137,7 +31138,7 @@ partial class Program
 
             var conversion1 = model.GetConversion(collections[0]);
             Assert.False(conversion1.IsValid);
-            Assert.Equal(Conversion.NoConversion, conversion1);
+            Assert.False(conversion1.Exists);
 
             var conversion2 = model.GetConversion(collections[1]);
             Assert.True(conversion2.IsValid);
@@ -31286,7 +31287,7 @@ partial class Program
 
             var conversion1 = model.GetConversion(collections[0]);
             Assert.False(conversion1.IsValid);
-            Assert.Equal(Conversion.NoConversion, conversion1);
+            Assert.False(conversion1.Exists);
 
             var conversion2 = model.GetConversion(collections[1]);
             Assert.True(conversion2.IsValid);
@@ -31306,7 +31307,7 @@ partial class Program
 
             var conversion4 = model.GetConversion(collections[3]);
             Assert.False(conversion4.IsValid);
-            Assert.Equal(Conversion.NoConversion, conversion4);
+            Assert.False(conversion4.Exists);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
@@ -31339,7 +31340,7 @@ partial class Program
 
             var conversion1 = model.GetConversion(collections[0]);
             Assert.False(conversion1.IsValid);
-            Assert.Equal(Conversion.NoConversion, conversion1);
+            Assert.False(conversion1.Exists);
 
             var conversion2 = model.GetConversion(collections[1]);
             Assert.True(conversion2.IsValid);
@@ -31359,7 +31360,7 @@ partial class Program
 
             var conversion4 = model.GetConversion(collections[3]);
             Assert.False(conversion4.IsValid);
-            Assert.Equal(Conversion.NoConversion, conversion4);
+            Assert.False(conversion4.Exists);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
@@ -31542,7 +31543,7 @@ partial class Program
             Assert.Equal("[]", collection.ToString());
             var conversion1 = model.GetConversion(collection);
             Assert.False(conversion1.IsValid);
-            Assert.Equal(Conversion.NoConversion, conversion1);
+            Assert.False(conversion1.Exists);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
@@ -31590,7 +31591,7 @@ partial class Program
             Assert.Equal("[]", collections[1].ToString());
             var conversion2 = model.GetConversion(collections[1]);
             Assert.False(conversion2.IsValid);
-            Assert.Equal(Conversion.NoConversion, conversion2);
+            Assert.False(conversion2.Exists);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]
@@ -31632,7 +31633,7 @@ partial class Program
             Assert.Equal("[1, 2, 3]", collection.ToString());
             var conversion = model.GetConversion(collection);
             Assert.False(conversion.IsValid);
-            Assert.Equal(Conversion.NoConversion, conversion);
+            Assert.False(conversion.Exists);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69521")]

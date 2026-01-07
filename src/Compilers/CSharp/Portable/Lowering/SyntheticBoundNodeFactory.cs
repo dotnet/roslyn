@@ -569,10 +569,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var conversion = Compilation.Conversions.ClassifyConversionFromType(expression.Type, CurrentFunction.ReturnType, isChecked: false, ref useSiteInfo);
                 Debug.Assert(useSiteInfo.Diagnostics.IsNullOrEmpty());
                 Debug.Assert(conversion.Kind != ConversionKind.NoConversion);
+                CodeGen.CodeGenerator.AssertIsEmitConversionKind(conversion.Kind);
                 if (conversion.Kind != ConversionKind.Identity)
                 {
                     Debug.Assert(CurrentFunction.RefKind == RefKind.None);
-                    expression = BoundConversion.Synthesized(Syntax, expression, conversion, false, explicitCastInCode: false, conversionGroupOpt: null, ConstantValue.NotAvailable, CurrentFunction.ReturnType);
+                    expression = BoundConversion.Synthesized(Syntax, expression, conversion, false, explicitCastInCode: false, conversionGroupOpt: null, inConversionGroupFlags: InConversionGroupFlags.Unspecified, ConstantValue.NotAvailable, CurrentFunction.ReturnType);
                 }
             }
 
@@ -1526,7 +1527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(arg.Type is { });
-            return new BoundConversion(Syntax, arg, conversion, @checked: isChecked, explicitCastInCode: true, conversionGroupOpt: null, null, type) { WasCompilerGenerated = true };
+            return new BoundConversion(Syntax, arg, conversion, @checked: isChecked, explicitCastInCode: true, conversionGroupOpt: null, inConversionGroupFlags: InConversionGroupFlags.Unspecified, null, type) { WasCompilerGenerated = true };
         }
 
         public BoundExpression ArrayOrEmpty(TypeSymbol elementType, BoundExpression[] elements)

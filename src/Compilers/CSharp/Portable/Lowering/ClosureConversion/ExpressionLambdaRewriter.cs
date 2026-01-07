@@ -684,6 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     explicitCastInCode: true,
                     conversionGroupOpt: conversion.ConversionGroupOpt,
                     constantValueOpt: conversion.ConstantValueOpt,
+                    inConversionGroupFlags: conversion.InConversionGroupFlags,
                     type: conversion.Type);
             }
 

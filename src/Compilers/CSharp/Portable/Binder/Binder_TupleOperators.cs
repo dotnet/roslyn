@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (conversion.IsImplicit)
             {
                 conversionForBoolPlaceholder = new BoundValuePlaceholder(node, type).MakeCompilerGenerated();
-                conversionForBool = CreateConversion(node, conversionForBoolPlaceholder, conversion, isCast: false, conversionGroupOpt: null, boolean, diagnostics);
+                conversionForBool = CreateConversion(node, conversionForBoolPlaceholder, conversion, isCast: false, conversionGroupOpt: null, inConversionGroupFlags: InConversionGroupFlags.Unspecified, boolean, diagnostics);
                 boolOperator = default;
                 return;
             }
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (best.HasValue)
             {
                 conversionForBoolPlaceholder = new BoundValuePlaceholder(node, type).MakeCompilerGenerated();
-                conversionForBool = CreateConversion(node, conversionForBoolPlaceholder, best.Conversion, isCast: false, conversionGroupOpt: null, best.Signature.OperandType, diagnostics);
+                conversionForBool = CreateConversion(node, conversionForBoolPlaceholder, best.Conversion, isCast: false, conversionGroupOpt: null, inConversionGroupFlags: InConversionGroupFlags.Unspecified, best.Signature.OperandType, diagnostics);
                 boolOperator = best.Signature;
                 return;
             }

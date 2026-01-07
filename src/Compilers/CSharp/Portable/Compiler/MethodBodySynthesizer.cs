@@ -129,6 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 false,
                                 explicitCastInCode: true,
                                 conversionGroupOpt: null,
+                                inConversionGroupFlags: InConversionGroupFlags.Unspecified,
                                 ConstantValue.NotAvailable,
                                 hostObjectField.Type
                             ),
@@ -158,6 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 false,
                                 explicitCastInCode: true,
                                 conversionGroupOpt: null,
+                                inConversionGroupFlags: InConversionGroupFlags.Unspecified,
                                 ConstantValue.NotAvailable,
                                 targetScriptType
                             ),
