@@ -2244,6 +2244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversion: analysis.SourceConversion,
                 isCast: false,
                 conversionGroupOpt: conversionGroup,
+                InConversionGroupFlags.Unspecified,
                 wasCompilerGenerated: false,
                 destination: analysis.FromType,
                 diagnostics: diagnostics);
@@ -2255,6 +2256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 @checked: CheckOverflowAtRuntime,
                 explicitCastInCode: isCast,
                 conversionGroup,
+                InConversionGroupFlags.Unspecified,
                 constantValueOpt: ConstantValue.NotAvailable,
                 type: destination);
         }
