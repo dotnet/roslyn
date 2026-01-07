@@ -132,6 +132,8 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
             if (inGlobalStatements.Count == 0)
                 return;
 
+            // If we're in a global statement, check all global statements from the start of the first one to the end of
+            // the last one.
             var compilationUnit = (CompilationUnitSyntax)updatedSemanticModel.SyntaxTree.GetRoot(cancellationToken);
             var globalStatements = compilationUnit.Members.OfType<GlobalStatementSyntax>();
             var span = TextSpan.FromBounds(globalStatements.First().SpanStart, globalStatements.Last().Span.End);
@@ -183,9 +185,9 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
         }
     }
 
-    private static SyntaxNode? GetNodeToCheck(SyntaxNode node)
+    private static SyntaxNode? GetNodeToCheck(SyntaxNode updatedNode)
     {
-        var globalStatement = node.Ancestors().OfType<GlobalStatementSyntax>().FirstOrDefault();
+        var globalStatement = updatedNode.Ancestors().OfType<GlobalStatementSyntax>().FirstOrDefault();
 
         if (globalStatement is not null)
             return globalStatement;
@@ -199,7 +201,7 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
         // even things like the containing block.  For example: a suppression inside a block like `a = b!` can affect
         // the nullability of a variable which may be referenced far outside of the block.  So we really need to check
         // the entire code region that the suppression is in to make an accurate determination.
-        var ancestor = node.Ancestors().FirstOrDefault(
+        var ancestor = updatedNode.Ancestors().FirstOrDefault(
             n => n is AttributeSyntax
                    or AccessorDeclarationSyntax
                    or AnonymousMethodExpressionSyntax
