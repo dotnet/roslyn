@@ -26,7 +26,7 @@ internal abstract class AbstractMakeMethodSynchronousCodeFixProvider : CodeFixPr
 
     public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var cancellationToken = context.CancellationToken;
         var diagnostic = context.Diagnostics.First();
@@ -42,8 +42,6 @@ internal abstract class AbstractMakeMethodSynchronousCodeFixProvider : CodeFixPr
                     nameof(CodeFixesResources.Make_method_synchronous)),
                 context.Diagnostics);
         }
-
-        return Task.CompletedTask;
     }
 
     private const string AsyncSuffix = "Async";

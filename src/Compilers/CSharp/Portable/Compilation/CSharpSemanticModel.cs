@@ -1419,8 +1419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string name = null,
             bool includeExtensions = false)
         {
-            var options = includeExtensions ? LookupOptions.IncludeExtensionMembers : LookupOptions.Default;
-            return LookupSymbolsInternal(position, container, name, options, useBaseReferenceAccessibility: false);
+            return LookupSymbolsInternal(position, container, name, LookupOptions.Default, includeExtensionMembers: includeExtensions, useBaseReferenceAccessibility: false);
         }
 
         /// <summary>
@@ -1462,7 +1461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int position,
             string name = null)
         {
-            return LookupSymbolsInternal(position, container: null, name: name, options: LookupOptions.Default, useBaseReferenceAccessibility: true);
+            return LookupSymbolsInternal(position, container: null, name: name, options: LookupOptions.Default, includeExtensionMembers: false, useBaseReferenceAccessibility: true);
         }
 
         /// <summary>
@@ -1488,7 +1487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamespaceOrTypeSymbol container = null,
             string name = null)
         {
-            return LookupSymbolsInternal(position, container, name, LookupOptions.MustNotBeInstance, useBaseReferenceAccessibility: false);
+            return LookupSymbolsInternal(position, container, name, LookupOptions.MustNotBeInstance, includeExtensionMembers: false, useBaseReferenceAccessibility: false);
         }
 
         /// <summary>
@@ -1514,7 +1513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamespaceOrTypeSymbol container = null,
             string name = null)
         {
-            return LookupSymbolsInternal(position, container, name, LookupOptions.NamespacesOrTypesOnly, useBaseReferenceAccessibility: false);
+            return LookupSymbolsInternal(position, container, name, LookupOptions.NamespacesOrTypesOnly, includeExtensionMembers: false, useBaseReferenceAccessibility: false);
         }
 
         /// <summary>
@@ -1535,7 +1534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int position,
             string name = null)
         {
-            return LookupSymbolsInternal(position, container: null, name: name, options: LookupOptions.LabelsOnly, useBaseReferenceAccessibility: false);
+            return LookupSymbolsInternal(position, container: null, name: name, options: LookupOptions.LabelsOnly, includeExtensionMembers: false, useBaseReferenceAccessibility: false);
         }
 
         /// <summary>
@@ -1563,6 +1562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamespaceOrTypeSymbol container,
             string name,
             LookupOptions options,
+            bool includeExtensionMembers,
             bool useBaseReferenceAccessibility)
         {
             Debug.Assert((options & LookupOptions.UseBaseReferenceAccessibility) == 0, "Use the useBaseReferenceAccessibility parameter.");
@@ -1579,7 +1579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)container == null || container.Kind == SymbolKind.Namespace)
             {
-                options &= ~LookupOptions.IncludeExtensionMembers;
+                includeExtensionMembers = false;
             }
 
             var binder = GetEnclosingBinder(position);
@@ -1655,7 +1655,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             info.Free();
 
-            if ((options & LookupOptions.IncludeExtensionMembers) != 0 && container is TypeSymbol receiverType)
+            if (includeExtensionMembers && container is TypeSymbol receiverType)
             {
                 var lookupResult = LookupResult.GetInstance();
 
@@ -1753,7 +1753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 name,
                 arity,
                 basesBeingResolved: null,
-                options: options & ~LookupOptions.IncludeExtensionMembers,
+                options: options,
                 diagnose: false,
                 useSiteInfo: ref discardedUseSiteInfo);
 
@@ -2035,10 +2035,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundExpr = lowestBoundNode as BoundExpression;
             var highestBoundExpr = highestBoundNode as BoundExpression;
 
-            if (boundExpr != null &&
-                !(boundNodeForSyntacticParent != null &&
-                  boundNodeForSyntacticParent.Syntax.Kind() == SyntaxKind.ObjectCreationExpression &&
-                  ((ObjectCreationExpressionSyntax)boundNodeForSyntacticParent.Syntax).Type == boundExpr.Syntax)) // Do not return any type information for a ObjectCreationExpressionSyntax.Type node.
+            if (boundExpr != null)
             {
                 // TODO: Should parenthesized expression really not have symbols? At least for C#, I'm not sure that 
                 // is right. For example, C# allows the assignment statement:

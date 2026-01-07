@@ -754,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void VisitArgumentsAndGetArgumentPlaceholders(BoundExpression? receiverOpt, ImmutableArray<BoundExpression> arguments, bool isNewExtensionMethod)
+        private void VisitArgumentsAndGetArgumentPlaceholders(BoundExpression? receiverOpt, ImmutableArray<BoundExpression> arguments, bool isExtensionBlockMethod)
         {
             for (int i = 0; i < arguments.Length; i++)
             {
@@ -763,7 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var interpolationData = conversion.Operand.GetInterpolatedStringHandlerData();
                     var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContextAndLocation)>.GetInstance();
-                    GetInterpolatedStringPlaceholders(placeholders, interpolationData, receiverOpt, i, arguments, isNewExtensionMethod);
+                    GetInterpolatedStringPlaceholders(placeholders, interpolationData, receiverOpt, i, arguments, isExtensionBlockMethod);
                     _ = new PlaceholderRegion(this, placeholders);
                 }
                 Visit(arg);
@@ -887,7 +887,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? receiver,
             int nArgumentsVisited,
             ImmutableArray<BoundExpression> arguments,
-            bool isNewExtensionMethod)
+            bool isExtensionBlockMethod)
         {
             Debug.Assert(interpolationData.ReceiverPlaceholder is not null);
             placeholders.Add((interpolationData.ReceiverPlaceholder, SafeContextAndLocation.Create(_localScopeDepth)));
@@ -898,7 +898,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int argIndex = placeholder.ArgumentIndex;
                 // In new extension form, the ref analysis visitor processes the arguments as if receiver is the first item in the argument list, like the old extension form. This means that all of
                 // our placeholders will be off-by-one, with the extension receiver in the first position.
-                var newExtensionFormOffset = isNewExtensionMethod ? 1 : 0;
+                var extensionBlockFormOffset = isExtensionBlockMethod ? 1 : 0;
                 switch (argIndex)
                 {
                     case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
@@ -920,14 +920,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Error condition, no need for additional ref safety errors.
                         continue;
                     case BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver:
-                        Debug.Assert(isNewExtensionMethod);
+                        Debug.Assert(isExtensionBlockMethod);
                         valEscapeScope = getArgumentEscapeScope(nArgumentsVisited, arguments, 0);
                         break;
                     case >= 0:
-                        valEscapeScope = getArgumentEscapeScope(nArgumentsVisited, arguments, argIndex + newExtensionFormOffset);
+                        valEscapeScope = getArgumentEscapeScope(nArgumentsVisited, arguments, argIndex + extensionBlockFormOffset);
                         break;
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(placeholder.ArgumentIndex + newExtensionFormOffset);
+                        throw ExceptionUtilities.UnexpectedValue(placeholder.ArgumentIndex + extensionBlockFormOffset);
                 }
                 placeholders.Add((placeholder, SafeContextAndLocation.Create(valEscapeScope)));
             }
@@ -977,14 +977,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.Constructor is null)
             {
-                VisitArgumentsAndGetArgumentPlaceholders(receiverOpt: null, node.Arguments, isNewExtensionMethod: false);
+                VisitArgumentsAndGetArgumentPlaceholders(receiverOpt: null, node.Arguments, isExtensionBlockMethod: false);
                 Visit(node.InitializerExpressionOpt);
                 return;
             }
 
             var methodInvocationInfo = MethodInvocationInfo.FromObjectCreation(node);
             methodInvocationInfo = ReplaceWithExtensionImplementationIfNeeded(in methodInvocationInfo);
-            VisitArgumentsAndGetArgumentPlaceholders(receiverOpt: null, methodInvocationInfo.ArgsOpt, isNewExtensionMethod: node.Constructor.IsExtensionBlockMember());
+            VisitArgumentsAndGetArgumentPlaceholders(receiverOpt: null, methodInvocationInfo.ArgsOpt, isExtensionBlockMethod: node.Constructor.IsExtensionBlockMember());
             Visit(node.InitializerExpressionOpt);
 
             if (node.HasErrors)
@@ -1060,7 +1060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.AccessorKind is AccessorKind.Set)
             {
                 Visit(node.ReceiverOpt);
-                VisitArgumentsAndGetArgumentPlaceholders(node.ReceiverOpt, node.Arguments, isNewExtensionMethod: false);
+                VisitArgumentsAndGetArgumentPlaceholders(node.ReceiverOpt, node.Arguments, isExtensionBlockMethod: false);
                 return null;
             }
 
@@ -1086,7 +1086,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
         {
-            VisitArgumentsAndGetArgumentPlaceholders(receiverOpt: null, node.Arguments, isNewExtensionMethod: false);
+            VisitArgumentsAndGetArgumentPlaceholders(receiverOpt: null, node.Arguments, isExtensionBlockMethod: false);
 
             if (!node.HasErrors)
             {

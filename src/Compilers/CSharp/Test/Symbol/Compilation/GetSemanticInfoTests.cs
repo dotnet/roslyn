@@ -1241,7 +1241,7 @@ class C
             var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
 
             var systemActionType = GetSystemActionType(comp);
-            Assert.Null(bindInfo.Type);
+            Assert.Equal("System.Action", bindInfo.Type.ToTestDisplayString());
             Assert.Equal(systemActionType, bindInfo.Symbol);
         }
 

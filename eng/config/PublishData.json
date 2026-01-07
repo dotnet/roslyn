@@ -12,6 +12,7 @@
     "Microsoft.CodeAnalysis.Scripting.Common": "arcade",
     "Microsoft.CodeAnalysis.Workspaces.Common": "vssdk",
     "Microsoft.CodeAnalysis.Workspaces.MSBuild": "arcade",
+    "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost": "arcade",
     "Microsoft.CodeAnalysis.Workspaces.Desktop": "arcade",
     "Microsoft.CodeAnalysis.Workspaces.Test.Utilities": "vs-impl",
     "Microsoft.CodeAnalysis.Compiler.Test.Resources": "vs-impl",
@@ -87,6 +88,8 @@
     "Microsoft.CodeAnalysis.PublicApiAnalyzers": "arcade",
     "Microsoft.CodeAnalysis.ResxSourceGenerator": "arcade",
     "Microsoft.CodeAnalysis.RulesetToEditorconfigConverter": "arcade",
+    "Microsoft.VisualStudio.Extensibility.Testing.Xunit": "vssdk",
+    "Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator": "vssdk",
     "Roslyn.Diagnostics.Analyzers": "arcade",
     "Text.Analyzers": "arcade"
   },
@@ -96,7 +99,7 @@
       "NonShipping"
     ],
     "vsBranch": "main",
-    "insertionCreateDraftPR": false,
+    "insertionCreateDraftPR": true,
     "insertionTitlePrefix": "[InsidersVNext]"
   }
 }
