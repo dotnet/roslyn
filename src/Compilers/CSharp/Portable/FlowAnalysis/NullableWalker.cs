@@ -4296,12 +4296,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 static bool isSuitableUnionConstruction(TypeSymbol type, [NotNullWhen(true)] MethodSymbol? constructor, [NotNullWhen(true)] out PropertySymbol? valueProperty)
                 {
+                    if (constructor is not null &&
+                        constructor.ContainingType.Equals(type, TypeCompareKind.AllIgnoreOptions) &&
+                        type is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true } unionType &&
+                        NamedTypeSymbol.IsSuitableUnionConstructor(constructor))
+                    {
+                        valueProperty = Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(unionType);
+                        return valueProperty is { };
+                    }
+
                     valueProperty = null;
-                    return constructor is not null &&
-                           constructor.ContainingType.Equals(type, TypeCompareKind.AllIgnoreOptions) &&
-                           type is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true } unionType &&
-                           NamedTypeSymbol.IsSuitableUnionConstructor(constructor) &&
-                           (valueProperty = Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(unionType)) is { };
+                    return false;
                 }
             }
 
