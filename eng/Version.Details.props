@@ -11,9 +11,9 @@ This file should be imported by eng/Versions.props
     <MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>5.3.0-2.25625.1</MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>
     <MicrosoftNetCompilersToolsetPackageVersion>5.3.0-2.25625.1</MicrosoftNetCompilersToolsetPackageVersion>
     <!-- dotnet/dotnet dependencies -->
-    <MicrosoftDotNetFileBasedProgramsPackageVersion>11.0.100-alpha.1.26055.114</MicrosoftDotNetFileBasedProgramsPackageVersion>
-    <RoslynDiagnosticsAnalyzersPackageVersion>5.3.0-2.26055.114</RoslynDiagnosticsAnalyzersPackageVersion>
-    <SystemCommandLinePackageVersion>3.0.0-alpha.1.26055.114</SystemCommandLinePackageVersion>
+    <MicrosoftDotNetFileBasedProgramsPackageVersion>11.0.100-alpha.1.26057.107</MicrosoftDotNetFileBasedProgramsPackageVersion>
+    <RoslynDiagnosticsAnalyzersPackageVersion>5.3.0-2.26057.107</RoslynDiagnosticsAnalyzersPackageVersion>
+    <SystemCommandLinePackageVersion>3.0.0-alpha.1.26057.107</SystemCommandLinePackageVersion>
     <!-- dotnet/runtime dependencies -->
     <MicrosoftBclAsyncInterfacesPackageVersion>9.0.0</MicrosoftBclAsyncInterfacesPackageVersion>
     <MicrosoftExtensionsConfigurationPackageVersion>9.0.0</MicrosoftExtensionsConfigurationPackageVersion>
