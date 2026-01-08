@@ -586,6 +586,13 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
 
         public override bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity)
         {
+            var state = DocumentState.GetDocumentIdForTree(tree);
+            if (state?.IsSourceGenerated == true)
+            {
+                severity = ReportDiagnostic.Default;
+                return false;
+            }
+
             var options = _lazyAnalyzerConfigSet.Lazy
                 .GetValue(cancellationToken).GetOptionsForSourcePath(tree.FilePath);
             return options.TreeOptions.TryGetValue(diagnosticId, out severity);
