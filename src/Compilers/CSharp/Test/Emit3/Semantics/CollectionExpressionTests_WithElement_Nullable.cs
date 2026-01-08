@@ -2,10 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-// #DEFINE DICTIONARY_EXPRESSIONS
-
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -140,6 +136,70 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             // (16,17): warning CS0219: The variable 's' is assigned but its value is never used
             //         string? s = null;
             Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s").WithArguments("s").WithLocation(16, 17));
+    }
+
+    [Fact]
+    public void ConstructorNonNullParameterPassedNull_Inference1()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public MyList(T arg)
+                {
+                }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    Goo([with(null), ""]);
+                }
+
+                static void Goo<T>(MyList<T> list)
+                {
+                    Console.WriteLine(list.Count);
+                }
+            }
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("1")).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ConstructorNonNullParameterPassedNull_Inference2()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public MyList(T? arg)
+                {
+                }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    Goo([with(null), ""]);
+                }
+
+                static void Goo<T>(MyList<T> list)
+                {
+                    Console.WriteLine(list.Count);
+                }
+            }
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("1")).VerifyDiagnostics();
     }
 
     [Fact]
