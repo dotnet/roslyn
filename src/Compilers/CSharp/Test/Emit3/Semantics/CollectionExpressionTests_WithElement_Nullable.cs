@@ -404,6 +404,8 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     [Fact]
     public void CollectionBuilderNonNullParameterPassedNull_Inference1()
     {
+        // PROTOTYPE: Currently, inference on Goo is producing `Goo<string>` even though it should be `Goo<string!>`.
+        // This is problematic as it then means T is oblivious and we don't properly report a warning on 'null'.
         string sourceA = """
             #nullable enable
             using System;
