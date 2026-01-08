@@ -195,3 +195,4 @@ $RECYCLE.BIN/
 
 # WPF temp projects
 *wpftmp.*
+/src/Compilers/CSharp/Portable/FlowAnalysis/NullableWalker.cs
