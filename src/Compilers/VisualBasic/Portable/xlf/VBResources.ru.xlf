@@ -381,174 +381,173 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="needs-review-translation">                  Параметры компилятора Visual Basic 
+        <target state="new">                  Visual Basic Compiler Options
 
-                                  - ВЫХОДНОЙ ФАЙЛ - 
--out:&lt;file&gt;                       Задает имя выходного файла. 
--target:exe                       Создать консольное приложение (по умолчанию).
-                                  (Краткая форма: -t) 
--target:winexe                    Создать приложение для Windows.
--target:library                   Создать библиотечную сборку.
--target:module                    Создать модуль, который может быть добавлен в 
-                                  сборку.
--target:appcontainerexe           Создать приложение для Windows, выполняемое в
-                                  AppContainer. 
--target:winmdobj                  Создать промежуточный файл метаданных Windows
--doc[+|-]                         Создает XML-файл документации.
--doc:&lt;файл&gt;                       Создает XML-файл документации &lt;file&gt;.
--refout:&lt;файл&gt;                    Указать выходные данные сборки для создания
+                                  - OUTPUT FILE -
+-out:&lt;file&gt;                       Specifies the output file name.
+-target:exe                       Create a console application (default).
+                                  (Short form: -t)
+-target:winexe                    Create a Windows application.
+-target:library                   Create a library assembly.
+-target:module                    Create a module that can be added to an
+                                  assembly.
+-target:appcontainerexe           Create a Windows application that runs in
+                                  AppContainer.
+-target:winmdobj                  Create a Windows Metadata intermediate file
+-doc[+|-]                         Generates XML documentation file.
+-doc:&lt;file&gt;                       Generates XML documentation file to &lt;file&gt;.
+-refout:&lt;file&gt;                    Reference assembly output to generate
 
-                                  - ВХОДНЫЕ ФАЙЛЫ - 
--addmodule:&lt;список_файлов&gt;           Указать метаданные из заданных модулей
--link:&lt;список_файлов&gt;                 Внедрять метаданные из указанной сборки 
-                                  взаимодействия. (Краткая форма: -l) 
--recurse:&lt;подстановочный знак&gt;               Включить все файлы в текущем каталоге
-                                  и подкаталогах в соответствии со
-                                  спецификациями подстановочных знаков.
--reference:&lt;список_файлов&gt;            Указать метаданные из указанной
-                                  сборки. (Краткая форма: -r) 
--analyzer:&lt;список_файлов&gt;             Запустить анализаторы из этой сборки
-                                  (Краткая форма: -а) 
--additionalfile:&lt;список_файлов&gt;      Дополнительные файлы, которые не влияют непосредственно на создание кода
-                                  но которые могут использоваться анализаторами для создания
-                                  ошибок и предупреждений.
+                                  - INPUT FILES -
+-addmodule:&lt;file_list&gt;            Reference metadata from the specified modules
+-link:&lt;file_list&gt;                 Embed metadata from the specified interop
+                                  assembly. (Short form: -l)
+-recurse:&lt;wildcard&gt;               Include all files in the current directory
+                                  and subdirectories according to the
+                                  wildcard specifications.
+-reference:&lt;file_list&gt;            Reference metadata from the specified
+                                  assembly. (Short form: -r)
+-analyzer:&lt;file_list&gt;             Run the analyzers from this assembly
+                                  (Short form: -a)
+-additionalfile:&lt;file list&gt;       Additional files that don't directly affect code
+                                  generation but may be used by analyzers for producing
+                                  errors or warnings.
 
-                                  - РЕСУРСЫ - 
--linkresource:&lt;resinfo&gt;           Связывает указанный файл как внешний
-                                  сборочный ресурс. 
-                                  resinfo: &lt;файл&gt;[,&lt;имя&gt;[,общедоступный|частный]]
-                                  (Краткая форма: -linkres) 
--nowin32manifest                  Манифест по умолчанию не должен быть внедрен
-                                  в раздел манифеста выходного PE.
--resource:&lt;resinfo&gt;               Добавляет указанный файл как внедренный
-                                  сборочный ресурс. 
-                                  resinfo: &lt;файл&gt;[,&lt;имя&gt;[,общедоступный|частный]]
-                                  (Краткая форма: -res) 
--win32icon:&lt;файл&gt;                  Задает файл значка win32icon (.ico) для
-                                  ресурсов Win32 по умолчанию.
--win32manifest:&lt;файл&gt;             Предоставленный файл внедрен в раздел
-                                  манифеста выходного PE. 
--win32resource:&lt;файл&gt;             Задает файл ресурсов Win32 (.res).
+                                  - RESOURCES -
+-linkresource:&lt;resinfo&gt;           Links the specified file as an external
+                                  assembly resource.
+                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
+                                  (Short form: -linkres)
+-nowin32manifest                  The default manifest should not be embedded
+                                  in the manifest section of the output PE.
+-resource:&lt;resinfo&gt;               Adds the specified file as an embedded
+                                  assembly resource.
+                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
+                                  (Short form: -res)
+-win32icon:&lt;file&gt;                 Specifies a Win32 icon file (.ico) for the
+                                  default Win32 resources.
+-win32manifest:&lt;file&gt;             The provided file is embedded in the manifest
+                                  section of the output PE.
+-win32resource:&lt;file&gt;             Specifies a Win32 resource file (.res).
 
-                                  - ГЕНЕРАЦИЯ КОДА - 
--optimize[+|-]                    Включить оптимизацию.
--removeintchecks[+|-]            Удалить целочисленные проверки. По умолчанию отключено.
--debug[+|-]                       Выдавать отладочные сведения.
--debug:full                       Выдавать полные отладочные сведения (по умолчанию).
--debug:pdbonly                    Выдавать полные отладочные сведения.
--debug:portable                   Выдавать кроссплатформенную информацию отладки.
--debug:embedded                    Выдавать кроссплатформенную информацию отладки в
-                                  целевой .dll или .exe. 
--deterministic                    Создать детерминированную сборку
-                                  (включая GUID версии модуля и метку времени) 
--refonly                          Создать базовую сборку в качестве основного вывода
--instrument:TestCoverage          Создать сборку, оснащенную для сбора
-                                  сведений об охвате
--sourcelink:&lt;файл&gt;                 Сведения об исходной ссылке для встраивания в PDB.
+                                  - CODE GENERATION -
+-optimize[+|-]                    Enable optimizations.
+-removeintchecks[+|-]             Remove integer checks. Default off.
+-debug[+|-]                       Emit debugging information.
+-debug:full                       Emit full debugging information (default).
+-debug:pdbonly                    Emit full debugging information.
+-debug:portable                   Emit cross-platform debugging information.
+-debug:embedded                   Emit cross-platform debugging information into
+                                  the target .dll or .exe.
+-deterministic                    Produce a deterministic assembly
+                                  (including module version GUID and timestamp)
+-refonly                          Produce a reference assembly in place of the main output
+-instrument:TestCoverage          Produce an assembly instrumented to collect
+                                  coverage information
+-sourcelink:&lt;file&gt;                Source link info to embed into PDB.
 
-                                  - ОШИБКИ И ПРЕДУПРЕЖДЕНИЯ - 
--nowarn                           Отключить все предупреждения.
--nowarn:&lt;список_чисел&gt;             Отключить список индивидуальных предупреждений.
--warnaserror[+|-]                 Обрабатывать все предупреждения как ошибки.
--warnaserror[+|-]:&lt;список_чисел&gt;   Обрабатывать все предупреждения как ошибки.
--ruleset:&lt;файл&gt;                   Указать файл набора правил, который отключает определенную
-                                  диагностику.
+                                  - ERRORS AND WARNINGS -
+-nowarn                           Disable all warnings.
+-nowarn:&lt;number_list&gt;             Disable a list of individual warnings.
+-warnaserror[+|-]                 Treat all warnings as errors.
+-warnaserror[+|-]:&lt;number_list&gt;   Treat a list of warnings as errors.
+-ruleset:&lt;file&gt;                   Specify a ruleset file that disables specific
+                                  diagnostics.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
-                                  Укажите файл для регистрации всего компилятора и анализатора 
-                                  диагностики в формате SARIF. 
-                                  sarif_version:{1|2|2.1} По умолчанию 1. 2 и 2.1 
-                                  оба означают SARIF версии 2.1.0. 
--reportanalyzer                   Сообщить дополнительные сведения об анализаторе, например
-                                  время выполнения.
--skipanalyzers[+|-]               Пропустить выполнение диагностических анализаторов.
+                                  Specify a file to log all compiler and analyzer
+                                  diagnostics in SARIF format.
+                                  sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                                  both mean SARIF version 2.1.0.
+-reportanalyzer                   Report additional analyzer information, such as
+                                  execution time.
+-skipanalyzers[+|-]               Skip execution of diagnostic analyzers.
 
-                                  - ЯЗЫК - 
--define:&lt;список_символов&gt;             Объявить глобальные символы условной компиляции.
-                                  символ(ы). список_символов:имя=значение,... 
-                                  (Краткая форма: -d) 
--imports:&lt;список_импорта&gt;            Объявить глобальные импорты для пространств имен в
-                                  указанных файлах метаданных.
+                                  - LANGUAGE -
+-define:&lt;symbol_list&gt;             Declare global conditional compilation
+                                  symbol(s). symbol_list:name=value,...
+                                  (Short form: -d)
+-imports:&lt;import_list&gt;            Declare global Imports for namespaces in
+                                  referenced metadata files.
                                   import_list:namespace,...
--langversion:?                    Показать допустимые значения для языковой версии 
--langversion:&lt;строка&gt;             Указать версию языка, например
-                                  `по умолчанию` (последняя основная версия) или 
-                                  `latest` (последняя версия, включая дополнительные версии), 
-                                  или специальные версии, такие как «14» или «15.3» 
--optionexplicit[+|-]              Требовать явного объявления переменных.
--optioninfer[+|-]                Разрешить определение типа переменных.
--rootnamespace:&lt;строка&gt;         Корневое пространство имен для всех типов
-                                  деклараций. 
-optionstrict[+|-]                Принудительное применение строгой семантики языка.
--optionstrict:custom              Предупреждать, если строгая семантика не
-                                  соблюдается. 
--optioncompare:binary             Задает сравнение строк в двоичном формате.
-                                  Это значение по умолчанию. 
--optioncompare:text               Задает сравнение строк в виде текста.
+-langversion:?                    Display the allowed values for language version
+-langversion:&lt;string&gt;             Specify language version such as
+                                  `default` (latest major version), or
+                                  `latest` (latest version, including minor versions),
+                                  or specific versions like `14` or `15.3`
+-optionexplicit[+|-]              Require explicit declaration of variables.
+-optioninfer[+|-]                 Allow type inference of variables.
+-rootnamespace:&lt;string&gt;           Specifies the root Namespace for all type
+                                  declarations.
+-optionstrict[+|-]                Enforce strict language semantics.
+-optionstrict:custom              Warn when strict language semantics are not
+                                  respected.
+-optioncompare:binary             Specifies binary-style string comparisons.
+                                  This is the default.
+-optioncompare:text               Specifies text-style string comparisons.
 
-                                  - РАЗНОЕ - 
--help                             Отображать сообщение об использовании. (Краткая форма: -?)
--noconfig                         Не включать в состав файл VBC.RSP автоматически.
--nologo                           Не отображать баннер компилятора со сведениями об авторских правах.
--quiet                            Режим вывода без сообщений.
--verbose                          Показать подробные сообщения.
--parallel[+|-]                    Параллельная сборка.
--version                         Показать номер версии компилятора и выйти.
+                                  - MISCELLANEOUS -
+-help                             Display this usage message. (Short form: -?)
+-noconfig                         Do not auto-include VBC.RSP file.
+-nologo                           Do not display compiler copyright banner.
+-quiet                            Quiet output mode.
+-verbose                          Display verbose messages.
+-parallel[+|-]                    Concurrent build.
+-version                          Display the compiler version number and exit.
 
-                                  - РАСШИРЕННЫЙ - 
--baseaddress:&lt;число&gt;             Базовый адрес библиотеки или модуля
-                                  (шестнадцатеричный). 
--checksumalgorithm:&lt;alg&gt;          Указать алгоритм вычисления контрольной суммы
-                                  исходного файла, хранящегося в PDB. Поддерживаемые значения: 
-                                  SHA1 или SHA256 (по умолчанию). 
--codepage:&lt;число&gt;                Указывает кодовую страницу, используемую при открытии
-                                  исходных файлов.
--delaysign[+|-]                    Отложенная подпись сборки с использованием только общедоступной
-                                  части ключа строгого имени.
--publicsign[+|-]                  Открытое подписание сборки с использованием только общедоступной
-                                  части ключа строгого имени.
--errorreport:&lt;строка&gt;             Указать порядок обработки внутренних ошибок
-                                  компилятора; допустимые значения: prompt, send, none или queue
-                                  (по умолчанию).
--generatedfilesout:&lt;dir&gt;          Разместить файлы, созданные во время компиляции, в
-                                  указанный каталог.
--filealign:&lt;число&gt;               Указать выравнивание для секций выходного
-                                  файла.
--highentropyva[+|-]               Включить ASLR с высокой энтропией.
--keycontainer:&lt;строка&gt;            Указывает контейнер ключа строгого имени.
--keyfile:&lt;файл&gt;                   Указывает файл ключа строгого имени.
--libpath:&lt;список_путей&gt;              Список каталогов для поиска ссылок
-                                  на метаданные. (Разделитель — точка с запятой.)
--main:&lt;класс&gt;                     Указывает класс или модуль, содержащий
-                                  Sub Main. Это также может быть класс, который 
-                                  наследуется от System.Windows.Forms.Form. 
-                                  (Краткая форма: -m)
--moduleassemblyname:&lt;строка&gt;      Имя сборки, частью которой будет
-                                  данный модуль.
--netcf                            Целевая среда — .NET Compact Framework.
--nostdlib                         Не ссылаться на стандартные библиотеки
-                                  (system.dll и файл VBC. RSP).
+                                  - ADVANCED -
+-baseaddress:&lt;number&gt;             The base address for a library or module
+                                  (hex).
+-checksumalgorithm:&lt;alg&gt;          Specify algorithm for calculating source file
+                                  checksum stored in PDB. Supported values are:
+                                  SHA1 or SHA256 (default).
+-codepage:&lt;number&gt;                Specifies the codepage to use when opening
+                                  source files.
+-delaysign[+|-]                   Delay-sign the assembly using only the public
+                                  portion of the strong name key.
+-publicsign[+|-]                  Public-sign the assembly using only the public
+                                  portion of the strong name key.
+-errorreport:&lt;string&gt;             Specifies how to handle internal compiler
+                                  errors; must be prompt, send, none, or queue
+                                  (default).
+-generatedfilesout:&lt;dir&gt;          Place files generated during compilation in the
+                                  specified directory.
+-filealign:&lt;number&gt;               Specify the alignment used for output file
+                                  sections.
+-highentropyva[+|-]               Enable high-entropy ASLR.
+-keycontainer:&lt;string&gt;            Specifies a strong name key container.
+-keyfile:&lt;file&gt;                   Specifies a strong name key file.
+-libpath:&lt;path_list&gt;              List of directories to search for metadata
+                                  references. (Semi-colon delimited.)
+-main:&lt;class&gt;                     Specifies the Class or Module that contains
+                                  Sub Main. It can also be a Class that
+                                  inherits from System.Windows.Forms.Form.
+                                  (Short form: -m)
+-moduleassemblyname:&lt;string&gt;      Name of the assembly which this module will
+                                  be a part of.
+-netcf                            Target the .NET Compact Framework.
+-nostdlib                         Do not reference standard libraries
+                                  (system.dll and VBC.RSP file).
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                                  Укажите сопоставление для имен исходных путей, выводимых с помощью 
-                                  компилятора. 
--platform:&lt;строка&gt;                Ограничить платформы, на которых может выполняться этот код;
-                                  допустимые значения: x86, x64, Itanium, arm, arm64
-                                  AnyCPU32BitPreferred или любой процессор (по умолчанию). 
--preferreduilang                   Указать предпочитаемое имя языка вывода.
--nosdkpath                        Отключить поиск стандартных сборок библиотек в пути SDK по умолчанию.
--reportivts[+|-]                  Вывести информацию обо всех IVT, предоставленных этой 
-                                  сборке по всем зависимостям и и аннотировать ошибки доступности сторонних сборок 
-                                  с указанием того, из какой сборки они произошли. 
--sdkpath:&lt;путь&gt;                   Местоположение каталога .NET Framework SDK
-                                  (mscorlib.dll). 
--subsystemversion:&lt;версия&gt;       Указать версию подсистемы выходного PE-файла.
-                                  версия:&lt;номер&gt;[.&lt;номер&gt;] 
--utf8output[+|-]                  Выдавать выходные данные компилятора в кодировке
-                                  символов UTF-8. 
-@&lt;файл&gt;                           Вставить параметры командной строки из текстового файла
--vbruntime[+|-|*]                 Компиляция с/без среды выполнения Visual Basic
-                                  по умолчанию. 
--vbruntime:&lt;файл&gt;                Компилировать с альтернативной средой выполнения Visual Basic
-                                  в &lt;файл&gt;. 
+                                  Specify a mapping for source path names output by
+                                  the compiler.
+-platform:&lt;string&gt;                Limit which platforms this code can run on;
+                                  must be x86, x64, Itanium, arm, arm64
+                                  AnyCPU32BitPreferred or anycpu (default).
+-preferreduilang                  Specify the preferred output language name.
+-nosdkpath                        Disable searching the default SDK path for standard library assemblies.
+-reportivts[+|-]                  Output information on all IVTs granted to this
+                                  assembly by all dependencies, and annotate foreign assembly
+                                  accessibility errors with what assembly they came from.
+-sdkpath:&lt;path&gt;             Path used to search for standard library assemblies.
+-subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
+                                  version:&lt;number&gt;[.&lt;number&gt;]
+-utf8output[+|-]                  Emit compiler output in UTF-8 character
+                                  encoding.
+@&lt;file&gt;                           Insert command-line settings from a text file
+-vbruntime[+|-|*]                 Compile with/without the default Visual Basic
+                                  runtime.
+-vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
+                                  runtime in &lt;file&gt;.
 </target>
         <note />
       </trans-unit>
@@ -644,12 +643,12 @@ optionstrict[+|-]                Принудительное применени
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
         <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="needs-review-translation">Сборка анализатора "{0}" ссылается на версию "{1}" компилятора, являющуюся более новой, чем версия "{2}".</target>
+        <target state="new">Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
         <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
-        <target state="needs-review-translation">Сборка анализатора ссылается на более новую версию компилятора, чем установленная сейчас.</target>
+        <target state="new">Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">

@@ -4,22 +4,22 @@
     <body>
       <trans-unit id="AnonymousNewObjectRuleTitleAndMessage">
         <source>Explicit new anonymous object allocation</source>
-        <target state="translated">明示的な新しい匿名オブジェクトの割り当て</target>
+        <target state="new">Explicit new anonymous object allocation</target>
         <note />
       </trans-unit>
       <trans-unit id="LetCauseRuleTitleAndMessage">
         <source>Let clause induced allocation</source>
-        <target state="translated">let 句が割り当てを発生させました</target>
+        <target state="new">Let clause induced allocation</target>
         <note />
       </trans-unit>
       <trans-unit id="NewArrayRuleTitleAndMessage">
         <source>Explicit new array type allocation</source>
-        <target state="translated">明示的な新しい配列型の割り当て</target>
+        <target state="new">Explicit new array type allocation</target>
         <note />
       </trans-unit>
       <trans-unit id="NewObjectRuleTitleAndMessage">
         <source>Explicit new reference type allocation</source>
-        <target state="translated">明示的な新しい参照型の割り当て</target>
+        <target state="new">Explicit new reference type allocation</target>
         <note />
       </trans-unit>
     </body>
