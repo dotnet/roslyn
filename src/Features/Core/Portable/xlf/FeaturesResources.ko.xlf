@@ -1282,7 +1282,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
         <source>Nested quantifier '{0}'</source>
-        <target state="needs-review-translation">중첩 수량자 {0}입니다.</target>
+        <target state="new">Nested quantifier '{0}'</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</note>
       </trans-unit>
       <trans-unit id="No_common_root_node_for_extraction">
@@ -1407,12 +1407,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group_name_0">
         <source>Reference to undefined group name '{0}'</source>
-        <target state="needs-review-translation">정의되지 않은 그룹 이름 {0}에 대한 참조입니다.</target>
+        <target state="new">Reference to undefined group name '{0}'</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \k&lt;a&gt;. Here, {0} will be the name of the undefined group ('a')</note>
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group_number_0">
         <source>Reference to undefined group number {0}</source>
-        <target state="new">Reference to undefined group number {0}</target>
+        <target state="translated">정의되지 않은 그룹 번호 {0}을(를) 참조합니다.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;-1&gt;). Here, {0} will be the number of the undefined group ('1')</note>
       </trans-unit>
       <trans-unit id="Regex_all_control_characters_long">
@@ -2632,12 +2632,12 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="SemanticSearch">
         <source>Semantic Search</source>
-        <target state="new">Semantic Search</target>
+        <target state="translated">의미 체계 검색</target>
         <note />
       </trans-unit>
       <trans-unit id="Semantic_search_only_supported_on_net_core">
         <source>Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</source>
-        <target state="new">Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</target>
+        <target state="translated">의미 체계 검색은 코드 분석이 최신 .NET에서 별도의 프로세스에서 실행되는 경우에만 지원됩니다(도구 &gt; 옵션 &gt; 텍스트 편집기 &gt; C# &gt; 고급 참조).</target>
         <note />
       </trans-unit>
       <trans-unit id="Silent">
@@ -2732,7 +2732,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="The_assembly_0_references_compiler_version_1_newer_than_2">
         <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="needs-review-translation">분석기 어셈블리 '{0}'은(는) 컴파일러의 '{1}' 버전을 참조하며, 이 버전은 현재 실행 중인 버전 '{2}'보다 최신 버전입니다.</target>
+        <target state="new">Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -4145,7 +4145,7 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="Change_signature">
         <source>Change signature...</source>
-        <target state="needs-review-translation">시그니처 변경...</target>
+        <target state="translated">시그니처 변경...</target>
         <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Generate_new_type">
@@ -4192,7 +4192,7 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="_0_1">
         <source>{0} - {1}</source>
-        <target state="needs-review-translation">    {0} - {1}</target>
+        <target state="new">{0} - {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source">
