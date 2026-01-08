@@ -7040,7 +7040,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadRetType">
         <source>'{1} {0}' has the wrong return type</source>
-        <target state="translated">'Der Rückgabetyp von "{1} {0}" ist falsch.</target>
+        <target state="translated">Rückgabetyp von "{1} {0}" ist falsch</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DelegateRefMismatch">
