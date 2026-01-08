@@ -233,13 +233,15 @@ namespace Microsoft.CodeAnalysis
         internal readonly AdditionalSourcesCollection Sources;
         internal readonly DiagnosticBag Diagnostics;
         internal readonly Compilation Compilation;
+        internal readonly SourceHashAlgorithm ChecksumAlgorithm;
 
-        internal SourceProductionContext(AdditionalSourcesCollection sources, DiagnosticBag diagnostics, Compilation compilation, CancellationToken cancellationToken)
+        internal SourceProductionContext(AdditionalSourcesCollection sources, DiagnosticBag diagnostics, Compilation compilation, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
         {
             CancellationToken = cancellationToken;
             Sources = sources;
             Diagnostics = diagnostics;
             Compilation = compilation;
+            ChecksumAlgorithm = checksumAlgorithm;
         }
 
         public CancellationToken CancellationToken { get; }
@@ -249,7 +251,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
         /// <param name="source">The source code to add to the compilation</param>
-        public void AddSource(string hintName, string source) => AddSource(hintName, SourceText.From(source, Encoding.UTF8));
+        public void AddSource(string hintName, string source) => AddSource(hintName, SourceText.From(source, Encoding.UTF8, checksumAlgorithm: ChecksumAlgorithm == SourceHashAlgorithm.None ? SourceHashAlgorithm.Sha1 : ChecksumAlgorithm));
 
         /// <summary>
         /// Adds a <see cref="SourceText"/> to the compilation
@@ -259,7 +261,11 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Directory separators "/" and "\" are allowed in <paramref name="hintName"/>, they are normalized to "/" regardless of host platform.
         /// </remarks>
-        public void AddSource(string hintName, SourceText sourceText) => Sources.Add(hintName, sourceText);
+        public void AddSource(string hintName, SourceText sourceText) => Sources.Add(
+            hintName,
+            ChecksumAlgorithm == SourceHashAlgorithm.None || ChecksumAlgorithm == sourceText.ChecksumAlgorithm
+                ? sourceText
+                : SourceText.From(sourceText.ToString(), encoding: sourceText.Encoding, checksumAlgorithm: ChecksumAlgorithm));
 
         /// <summary>
         /// Adds a <see cref="Diagnostic"/> to the users compilation
