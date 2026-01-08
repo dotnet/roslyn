@@ -232,11 +232,6 @@
         <target state="translated">Als statisch festlegen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_synchronous">
-        <source>Make method synchronous</source>
-        <target state="translated">Methode synchron ausführen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Make_type_partial">
         <source>Make type partial</source>
         <target state="translated">Typ als partiell festlegen</target>

@@ -136,23 +136,23 @@ internal abstract partial class AbstractCodeCleanUpFixer(
         return false;
     }
 
-    private async Task<bool> FixTextBufferAsync(TextBufferCodeCleanUpScope textBufferScope, ICodeCleanUpExecutionContext context)
+    private Task<bool> FixTextBufferAsync(TextBufferCodeCleanUpScope textBufferScope, ICodeCleanUpExecutionContext context)
     {
         var buffer = textBufferScope.SubjectBuffer;
 
         // Let LSP handle code cleanup in the cloud scenario
         if (buffer.IsInLspEditorContext())
-            return false;
+            return SpecializedTasks.False;
 
         var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
         if (document == null)
-            return false;
+            return SpecializedTasks.False;
 
         var workspace = buffer.GetWorkspace();
         if (workspace is not VisualStudioWorkspace visualStudioWorkspace)
-            return false;
+            return SpecializedTasks.False;
 
-        return await FixAsync(visualStudioWorkspace, ApplyFixAsync, context).ConfigureAwait(false);
+        return FixAsync(visualStudioWorkspace, ApplyFixAsync, context);
 
         // Local function
         async Task<Solution> ApplyFixAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)

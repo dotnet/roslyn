@@ -54,10 +54,10 @@ internal sealed class CSharpElseSnippetProvider() : AbstractElseSnippetProvider<
         return isAfterIfStatement && base.IsValidSnippetLocationCore(context, cancellationToken);
     }
 
-    protected override async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
+    protected override Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
     {
         var elseClause = SyntaxFactory.ElseClause(SyntaxFactory.Block());
-        return new TextChange(TextSpan.FromBounds(position, position), elseClause.ToFullString());
+        return Task.FromResult(new TextChange(TextSpan.FromBounds(position, position), elseClause.ToFullString()));
     }
 
     protected override int GetTargetCaretPosition(ElseClauseSyntax elseClause, SourceText sourceText)

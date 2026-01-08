@@ -232,11 +232,6 @@
         <target state="translated">정적으로 만들기</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_synchronous">
-        <source>Make method synchronous</source>
-        <target state="translated">메서드를 동기 메서드로 설정</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Make_type_partial">
         <source>Make type partial</source>
         <target state="translated">형식을 부분 형식으로 만들기</target>
