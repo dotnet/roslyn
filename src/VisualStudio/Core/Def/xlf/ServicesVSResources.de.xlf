@@ -424,7 +424,7 @@
       </trans-unit>
       <trans-unit id="Experimental_feature">
         <source>Experimental feature</source>
-        <target state="new">Experimental feature</target>
+        <target state="translated">Experimentelles Feature</target>
         <note>This is used by the settings UI to mark experimental features.</note>
       </trans-unit>
       <trans-unit id="External_sources">
