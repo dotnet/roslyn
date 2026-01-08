@@ -2915,7 +2915,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M1()").WithArguments("M1()").WithLocation(1, 1));
     }
 
-    // PROTOTYPE: Test unsafe on individual get/set/init accessors.
     [Fact]
     public void Member_Property()
     {
@@ -3003,6 +3002,35 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (2,15): error CS9502: 'C.P2' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // c.P2 = c.P1 + c.P2;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2").WithLocation(2, 15),
+            ]);
+    }
+
+    [Fact]
+    public void Member_Property_Accessors()
+    {
+        CompileAndVerifyUnsafe(
+            lib: """
+                public class C
+                {
+                    public int P1 { unsafe get; set; }
+                    public int P2 { get; unsafe set; }
+                }
+                """,
+            caller: """
+                var c = new C();
+                c.P1 = c.P1 + 123;
+                c.P2 = c.P2 + 123;
+                """,
+            expectedUnsafeSymbols: ["C.get_P1", "C.set_P2"],
+            expectedSafeSymbols: ["C.P1", "C.P2", "C.get_P2", "C.set_P1"],
+            expectedDiagnostics:
+            [
+                // (2,8): error CS9502: 'C.P1.get' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // c.P1 = c.P1 + 123;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P1").WithArguments("C.P1.get").WithLocation(2, 8),
+                // (3,1): error CS9502: 'C.P2.set' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // c.P2 = c.P2 + 123;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2.set").WithLocation(3, 1),
             ]);
     }
 
