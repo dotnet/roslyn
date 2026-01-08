@@ -3008,14 +3008,16 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Property_Accessors()
     {
+        var lib = """
+            public class C
+            {
+                public int P1 { unsafe get; set; }
+                public int P2 { get; unsafe set; }
+            }
+            """;
+
         CompileAndVerifyUnsafe(
-            lib: """
-                public class C
-                {
-                    public int P1 { unsafe get; set; }
-                    public int P2 { get; unsafe set; }
-                }
-                """,
+            lib: lib,
             caller: """
                 var c = new C();
                 c.P1 = c.P1 + 123;
@@ -3032,6 +3034,17 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // c.P2 = c.P2 + 123;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2.set").WithLocation(3, 1),
             ]);
+
+        CreateCompilation(lib, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            // (3,21): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     public int P1 { unsafe get; set; }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(3, 21),
+            // (4,26): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     public int P2 { get; unsafe set; }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(4, 26));
+
+        CreateCompilation(lib, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+        CreateCompilation(lib, parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics();
     }
 
     [Theory, CombinatorialData]

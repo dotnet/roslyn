@@ -521,6 +521,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,
                                                                         modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors, out _);
 
+            if ((mods & DeclarationModifiers.Unsafe) != 0)
+            {
+                var syntax = modifiers.FirstOrDefault(SyntaxKind.UnsafeKeyword);
+                modifierErrors |= !MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, syntax);
+            }
+
             ModifierUtils.ReportDefaultInterfaceImplementationModifiers(hasBody, mods,
                                                                         defaultInterfaceImplementationModifiers,
                                                                         location, diagnostics);
