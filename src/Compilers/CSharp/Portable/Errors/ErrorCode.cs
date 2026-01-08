@@ -2451,9 +2451,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ScopedAfterInOutRefReadonly = 9349,
         ERR_InvalidModifierAfterScoped = 9350,
 
-        WRN_UninitializedNonNullableField_Required = 9351,
-        WRN_UninitializedNonNullableBackingField_Required = 9352,
-
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  2) Add message to CSharpResources.resx

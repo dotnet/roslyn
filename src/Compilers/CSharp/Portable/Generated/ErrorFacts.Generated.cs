@@ -346,8 +346,6 @@
                 case ErrorCode.WRN_UnscopedRefAttributeOldRules:
                 case ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature:
                 case ErrorCode.WRN_RedundantPattern:
-                case ErrorCode.WRN_UninitializedNonNullableField_Required:
-                case ErrorCode.WRN_UninitializedNonNullableBackingField_Required:
                     return true;
                 default:
                     return false;

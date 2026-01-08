@@ -2762,6 +2762,16 @@
         <target state="new">collection expression</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_ConsiderAddingRequiredAndNullable">
+        <source>Consider adding the 'required' modifier or declaring</source>
+        <target state="new">Consider adding the 'required' modifier or declaring</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_ConsiderDeclaringAsNullable">
+        <source>Consider declaring</source>
+        <target state="new">Consider declaring</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureAllowsRefStructConstraint">
         <source>allows ref struct constraint</source>
         <target state="translated">ref 構造体制約を許可します</target>
@@ -5740,42 +5750,22 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField">
-        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
-        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</target>
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. {2} the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
+        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. {2} the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</target>
         <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
       </trans-unit>
-      <trans-unit id="WRN_UninitializedNonNullableBackingField_Required">
-        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
-        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UninitializedNonNullableBackingField_Required_Title">
-        <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
-        <target state="new">Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField_Title">
-        <source>Non-nullable property must contain a non-null value when exiting constructor. Consider declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
+        <source>Non-nullable property must contain a non-null value when exiting constructor.</source>
         <target state="needs-review-translation">null 非許容プロパティには、コンストラクターの終了時に null 以外の値が入っていなければなりません。'required' 修飾子を追加するか、プロパティを null 許容として宣言するか、'[field: MaybeNull, AllowNull]' 属性を追加することを検討してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
-        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</source>
-        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UninitializedNonNullableField_Required">
-        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the {0} as nullable.</source>
-        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the {0} as nullable.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UninitializedNonNullableField_Required_Title">
-        <source>Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.</source>
-        <target state="new">Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.</target>
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. {2} the {0} as nullable.</source>
+        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. {2} the {0} as nullable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
-        <source>Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.</source>
+        <source>Non-nullable field must contain a non-null value when exiting constructor.</source>
         <target state="needs-review-translation">null 非許容のフィールドには、コンストラクターの終了時に null 以外の値が入っていなければなりません。'required' 修飾子を追加するか、Null 許容として宣言することを検討してください。</target>
         <note />
       </trans-unit>

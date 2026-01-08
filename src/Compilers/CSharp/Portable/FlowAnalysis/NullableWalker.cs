@@ -839,28 +839,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         canBeRequired = false;
                     }
 
-                    ErrorCode identityCode = usesFieldKeyword ? ErrorCode.WRN_UninitializedNonNullableBackingField : ErrorCode.WRN_UninitializedNonNullableField;
-                    ErrorCode messageCode;
-                    if (usesFieldKeyword)
-                    {
-                        messageCode = canBeRequired ? ErrorCode.WRN_UninitializedNonNullableBackingField_Required : ErrorCode.WRN_UninitializedNonNullableBackingField;
-                    }
-                    else
-                    {
-                        messageCode = canBeRequired ? ErrorCode.WRN_UninitializedNonNullableField_Required : ErrorCode.WRN_UninitializedNonNullableField;
-                    }
+                    ErrorCode errorCode = usesFieldKeyword ? ErrorCode.WRN_UninitializedNonNullableBackingField : ErrorCode.WRN_UninitializedNonNullableField;
+                    MessageID suggestionId = canBeRequired ? MessageID.IDS_ConsiderAddingRequiredAndNullable : MessageID.IDS_ConsiderDeclaringAsNullable;
 
-                    DiagnosticInfo info;
-                    var args = new object[] { symbol.Kind.Localize(), symbol.Name };
-                    if (messageCode == identityCode)
-                    {
-                        info = new CSDiagnosticInfo(identityCode, args, ImmutableArray<Symbol>.Empty, additionalLocations: symbol.Locations);
-                    }
-                    else
-                    {
-                        info = new UninitializedNonNullableFieldDiagnosticInfo(messageCode, identityCode, args, additionalLocations: symbol.Locations);
-                    }
-
+                    var info = new CSDiagnosticInfo(errorCode, new object[] { symbol.Kind.Localize(), symbol.Name, suggestionId.Localize() }, ImmutableArray<Symbol>.Empty, additionalLocations: symbol.Locations);
                     Diagnostics.Add(info, exitLocation ?? symbol.GetFirstLocationOrNone());
                 }
             }
