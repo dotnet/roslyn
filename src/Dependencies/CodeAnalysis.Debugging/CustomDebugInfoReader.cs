@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Reflection.Metadata;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -865,6 +866,83 @@ RETRY:
 
             var block = builder.ToArrayAndFree();
             return Encoding.UTF8.GetString(block, 0, block.Length);
+        }
+
+        /// <summary>
+        /// Returns <see cref="CustomDebugInformation"/> of the specified kind associated with the given handle if there is a single such entry.
+        /// </summary>
+        /// <exception cref="BadImageFormatException">The PDB is malformed or there are multiple entries of the given <paramref name="kind"/>.</exception>
+        public static bool TryGetCustomDebugInformation(this MetadataReader reader, EntityHandle handle, Guid kind, out CustomDebugInformation customDebugInfo)
+        {
+            var foundAny = false;
+            customDebugInfo = default;
+            foreach (var infoHandle in reader.GetCustomDebugInformation(handle))
+            {
+                var info = reader.GetCustomDebugInformation(infoHandle);
+                var id = reader.GetGuid(info.Kind);
+                if (id == kind)
+                {
+                    if (foundAny)
+                    {
+                        throw new BadImageFormatException();
+                    }
+
+                    customDebugInfo = info;
+                    foundAny = true;
+                }
+            }
+
+            return foundAny;
+        }
+
+        /// <summary>
+        /// Reads compilation options custom debug information.
+        /// https://github.com/dotnet/runtime/blob/ef5b188467e37b28c952ea9f2fd423422365f90a/docs/design/specs/PortablePdb-Metadata.md#compilation-options-c-and-vb-compilers
+        /// </summary>
+        /// <exception cref="BadImageFormatException">The PDB is malformed.</exception>
+        public static ImmutableDictionary<string, string> GetCompilationOptions(this MetadataReader pdbReader)
+        {
+            if (!pdbReader.TryGetCustomDebugInformation(EntityHandle.ModuleDefinition, PortableCustomDebugInfoKinds.CompilationOptions, out var customDebugInformation))
+            {
+                return ImmutableDictionary<string, string>.Empty;
+            }
+
+            var result = PooledDictionary<string, string>.GetInstance();
+            try
+            {
+                var blobReader = pdbReader.GetBlobReader(customDebugInformation.Value);
+
+                var name = ReadNullTerminatedString(ref blobReader) ?? throw new BadImageFormatException();
+                var value = ReadNullTerminatedString(ref blobReader) ?? throw new BadImageFormatException();
+
+                // There shall be no two entries with the same name in the list.
+                if (result.ContainsKey(name))
+                {
+                    throw new BadImageFormatException();
+                }
+
+                // The spec allows an empty name.
+                result.Add(name, value);
+
+                static string? ReadNullTerminatedString(ref BlobReader reader)
+                {
+                    var nullIndex = reader.IndexOf(0);
+                    if (nullIndex == -1)
+                    {
+                        return null;
+                    }
+
+                    var value = reader.ReadUTF8(nullIndex);
+                    reader.ReadByte();
+                    return value;
+                }
+
+                return result.ToImmutableDictionary();
+            }
+            finally
+            {
+                result.Free();
+            }
         }
     }
 }

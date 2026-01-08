@@ -120,32 +120,9 @@ internal abstract class EditAndContinueDebugInfoReader
                 compressedStateMachineStateMap: GetCdiBytes(methodHandle, PortableCustomDebugInfoKinds.EncStateMachineStateMap));
 
         private ImmutableArray<byte> GetCdiBytes(MethodDefinitionHandle methodHandle, Guid kind)
-            => TryGetCustomDebugInformation(_pdbReader, methodHandle, kind, out var cdi) ?
-                _pdbReader.GetBlobContent(cdi.Value) : default;
-
-        /// <exception cref="BadImageFormatException">Invalid data format.</exception>
-        private static bool TryGetCustomDebugInformation(MetadataReader reader, EntityHandle handle, Guid kind, out CustomDebugInformation customDebugInfo)
-        {
-            var foundAny = false;
-            customDebugInfo = default;
-            foreach (var infoHandle in reader.GetCustomDebugInformation(handle))
-            {
-                var info = reader.GetCustomDebugInformation(infoHandle);
-                var id = reader.GetGuid(info.Kind);
-                if (id == kind)
-                {
-                    if (foundAny)
-                    {
-                        throw new BadImageFormatException();
-                    }
-
-                    customDebugInfo = info;
-                    foundAny = true;
-                }
-            }
-
-            return foundAny;
-        }
+            => _pdbReader.TryGetCustomDebugInformation(methodHandle, kind, out var cdi)
+                ? _pdbReader.GetBlobContent(cdi.Value)
+                : default;
 
         public override bool TryGetDocumentChecksum(string documentPath, out ImmutableArray<byte> checksum, out Guid algorithmId)
         {
