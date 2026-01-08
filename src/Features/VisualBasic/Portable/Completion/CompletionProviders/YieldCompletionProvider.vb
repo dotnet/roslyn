@@ -82,18 +82,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return SpecializedTasks.Default(Of TextChange?)()
         End Function
 
-        Protected Overrides Function ShouldAddModifiers(syntaxContext As SyntaxContext, declaration As SyntaxNode, cancellationToken As CancellationToken) As Boolean
-            Dim semanticModel = syntaxContext.SemanticModel
+        Protected Overrides Function IsValidContext(declaration As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
+            Dim methodSymbol = TryCast(semanticModel.GetDeclaredSymbol(declaration, cancellationToken), IMethodSymbol)
+            If methodSymbol Is Nothing Then Return False
+
+            Dim returnType = methodSymbol.ReturnType
+            If returnType Is Nothing Then Return False
+
+            Select Case returnType.Name
+                Case "IAsyncEnumerable", "IAsyncEnumerator", "IEnumerable", "IEnumerator"
+                    Return True
+            End Select
+
+            Return False
+        End Function
+
+        Protected Overrides Function ShouldAddModifiers(syntaxContext As SyntaxContext, declaration As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
             Dim methodSymbol = TryCast(semanticModel.GetDeclaredSymbol(declaration, cancellationToken), IMethodSymbol)
             If methodSymbol Is Nothing Then Return False
 
             If methodSymbol.IsIterator AndAlso (methodSymbol.IsAsync OrElse Not AllowsAsyncModifier(declaration)) Then Return False
 
             Dim returnType = methodSymbol.ReturnType
-            If returnType Is Nothing OrElse TypeOf returnType Is IErrorTypeSymbol Then Return False
+            If returnType Is Nothing Then Return False
 
             Select Case returnType.Name
                 Case "IAsyncEnumerable", "IAsyncEnumerator", "IEnumerable", "IEnumerator"
+                    If (returnType.Name = "IAsyncEnumerable" OrElse returnType.Name = "IAsyncEnumerator") AndAlso Not AllowsAsyncModifier(declaration) Then
+                        Return False
+                    End If
+
                     Dim taskLikeTypes = New KnownTaskTypes(semanticModel.Compilation)
                     If returnType.OriginalDefinition.Equals(taskLikeTypes.IAsyncEnumerableOfTType) OrElse
                        returnType.OriginalDefinition.Equals(taskLikeTypes.IAsyncEnumeratorOfTType) OrElse
@@ -103,6 +121,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                        returnType.Equals(semanticModel.Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerator)) Then
                         Return True
                     End If
+
+                    Return True
             End Select
 
             Return False
@@ -119,7 +139,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim returnType = methodSymbol.ReturnType
             Dim taskLikeTypes = New KnownTaskTypes(semanticModel.Compilation)
             Dim isAsyncIterator = returnType.OriginalDefinition.Equals(taskLikeTypes.IAsyncEnumerableOfTType) OrElse
-                                  returnType.OriginalDefinition.Equals(taskLikeTypes.IAsyncEnumeratorOfTType)
+                                  returnType.OriginalDefinition.Equals(taskLikeTypes.IAsyncEnumeratorOfTType) OrElse
+                                  returnType.Name = "IAsyncEnumerable" OrElse
+                                  returnType.Name = "IAsyncEnumerator"
 
             If isAsyncIterator AndAlso Not methodSymbol.IsAsync AndAlso AllowsAsyncModifier(declaration) Then
                 modifiersToAdd &= "Async "

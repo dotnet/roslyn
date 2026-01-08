@@ -34,12 +34,19 @@ internal abstract class AbstractYieldCompletionProvider(string yieldKeyword, str
         var leftToken = syntaxContext.LeftToken;
         var declaration = GetAsyncSupportingDeclaration(leftToken, position);
 
+        if (declaration == null)
+            return;
+
+        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        if (!IsValidContext(declaration, semanticModel, cancellationToken))
+            return;
+
         using var builder = TemporaryArray<KeyValuePair<string, string>>.Empty;
 
         builder.Add(KeyValuePair.Create(Position, position.ToString()));
         builder.Add(KeyValuePair.Create(LeftTokenPosition, leftToken.SpanStart.ToString()));
 
-        var addModifiers = declaration is not null && ShouldAddModifiers(syntaxContext, declaration, cancellationToken);
+        var addModifiers = declaration is not null && ShouldAddModifiers(syntaxContext, declaration, semanticModel, cancellationToken);
         if (addModifiers)
             builder.Add(KeyValuePair.Create(AddModifiers, string.Empty));
 
@@ -56,5 +63,8 @@ internal abstract class AbstractYieldCompletionProvider(string yieldKeyword, str
             properties: properties));
     }
 
-    protected abstract bool ShouldAddModifiers(SyntaxContext syntaxContext, SyntaxNode declaration, CancellationToken cancellationToken);
+    protected virtual bool IsValidContext(SyntaxNode declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+        => true;
+
+    protected abstract bool ShouldAddModifiers(SyntaxContext syntaxContext, SyntaxNode declaration, SemanticModel semanticModel, CancellationToken cancellationToken);
 }

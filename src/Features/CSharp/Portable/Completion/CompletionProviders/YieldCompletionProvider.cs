@@ -41,23 +41,20 @@ internal sealed class YieldCompletionProvider() : AbstractYieldCompletionProvide
 
     protected override SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken leftToken, int position)
     {
-        var parent = leftToken.Parent;
-        switch (parent)
+        var node = leftToken.Parent;
+        if (node == null)
+            return null;
+
+        var declaration = node.FirstAncestorOrSelf<SyntaxNode>(node =>
+            node is MethodDeclarationSyntax or LocalFunctionStatementSyntax or LambdaExpressionSyntax or AnonymousMethodExpressionSyntax or AccessorDeclarationSyntax);
+
+        if (declaration is MethodDeclarationSyntax or LocalFunctionStatementSyntax or AccessorDeclarationSyntax)
         {
-            case null:
-                return null;
-            case NameSyntax { Parent: LocalFunctionStatementSyntax localFunction } name when localFunction.ReturnType == name:
-                parent = localFunction.GetRequiredParent();
-                break;
+            var isMatch = position > leftToken.FullSpan.End ? declaration.Span.Contains(position) : declaration.Span.IntersectsWith(position);
+            return isMatch ? declaration : null;
         }
 
-        return parent.FirstAncestorOrSelf<SyntaxNode>(node =>
-        {
-            if (!node.IsAsyncSupportingFunctionSyntax())
-                return false;
-
-            return position > leftToken.FullSpan.End ? node.Span.Contains(position) : node.Span.IntersectsWith(position);
-        });
+        return null;
     }
 
     protected override int GetAsyncKeywordInsertionPosition(SyntaxNode declaration)
@@ -66,12 +63,6 @@ internal sealed class YieldCompletionProvider() : AbstractYieldCompletionProvide
         {
             MethodDeclarationSyntax method => method.ReturnType.SpanStart,
             LocalFunctionStatementSyntax local => local.ReturnType.SpanStart,
-            AnonymousMethodExpressionSyntax anonymous => anonymous.DelegateKeyword.SpanStart,
-            // If we have an explicit lambda return type, async should go just before it. Otherwise, it should go before parameter list.
-            // static [|async|] (a) => ....
-            // static [|async|] ExplicitReturnType (a) => ....
-            ParenthesizedLambdaExpressionSyntax parenthesizedLambda => (parenthesizedLambda.ReturnType as SyntaxNode ?? parenthesizedLambda.ParameterList).SpanStart,
-            SimpleLambdaExpressionSyntax simpleLambda => simpleLambda.Parameter.SpanStart,
             _ => throw ExceptionUtilities.UnexpectedValue(declaration.Kind())
         };
     }
@@ -81,12 +72,51 @@ internal sealed class YieldCompletionProvider() : AbstractYieldCompletionProvide
         return SpecializedTasks.Default<TextChange?>();
     }
 
-    protected override bool ShouldAddModifiers(SyntaxContext syntaxContext, SyntaxNode declaration, CancellationToken cancellationToken)
+    protected override bool IsValidContext(SyntaxNode declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
-        var semanticModel = syntaxContext.SemanticModel;
+        if (semanticModel.GetDeclaredSymbol(declaration, cancellationToken) is not IMethodSymbol methodSymbol)
+            return false;
 
+        if (methodSymbol.ReturnsVoid)
+            return false;
+
+        var returnType = methodSymbol.ReturnType;
+        if (returnType is null)
+            return false;
+
+        return CheckReturnType(returnType, semanticModel.Compilation);
+    }
+
+    private static bool CheckReturnType(ITypeSymbol returnType, Compilation compilation)
+    {
+        var taskLikeTypes = new KnownTaskTypes(compilation);
+
+        if (returnType.OriginalDefinition.Equals(taskLikeTypes.IAsyncEnumerableOfTType) ||
+            returnType.OriginalDefinition.Equals(taskLikeTypes.IAsyncEnumeratorOfTType))
+        {
+            return true;
+        }
+
+        var iEnumerableOfT = compilation.IEnumerableOfTType();
+        var iEnumeratorOfT = compilation.IEnumeratorOfTType();
+        var iEnumerable = compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
+        var iEnumerator = compilation.GetSpecialType(SpecialType.System_Collections_IEnumerator);
+
+        if (returnType.OriginalDefinition.Equals(iEnumerableOfT) ||
+            returnType.OriginalDefinition.Equals(iEnumeratorOfT) ||
+            returnType.Equals(iEnumerable) ||
+            returnType.Equals(iEnumerator))
+        {
+            return true;
+        }
+
+        return returnType.Name is "IEnumerable" or "IEnumerator" or "IAsyncEnumerable" or "IAsyncEnumerator";
+    }
+
+    protected override bool ShouldAddModifiers(SyntaxContext syntaxContext, SyntaxNode declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
         var methodSymbol = semanticModel.GetDeclaredSymbol(declaration, cancellationToken) as IMethodSymbol;
-        if (methodSymbol is null || methodSymbol.MethodKind is MethodKind.LambdaMethod or MethodKind.AnonymousFunction)
+        if (methodSymbol is null || methodSymbol.MethodKind is MethodKind.LambdaMethod or MethodKind.AnonymousFunction or MethodKind.PropertyGet)
             return false;
 
         if (methodSymbol.IsAsync)
@@ -94,13 +124,18 @@ internal sealed class YieldCompletionProvider() : AbstractYieldCompletionProvide
 
         var returnType = methodSymbol.ReturnType;
 
-        if (returnType is null or IErrorTypeSymbol)
+        if (returnType is null)
             return false;
 
-        if (returnType.Name is not ("IAsyncEnumerable" or "IAsyncEnumerator"))
-            return false;
+        if (CheckAsyncReturnType(returnType, semanticModel.Compilation))
+            return true;
 
-        var taskLikeTypes = new KnownTaskTypes(semanticModel.Compilation);
+        return returnType.Name is "IAsyncEnumerable" or "IAsyncEnumerator";
+    }
+
+    private static bool CheckAsyncReturnType(ITypeSymbol returnType, Compilation compilation)
+    {
+        var taskLikeTypes = new KnownTaskTypes(compilation);
         return returnType.OriginalDefinition.Equals(taskLikeTypes.IAsyncEnumerableOfTType) ||
                returnType.OriginalDefinition.Equals(taskLikeTypes.IAsyncEnumeratorOfTType);
     }
