@@ -589,6 +589,8 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
             var state = DocumentState.GetDocumentIdForTree(tree);
             if (state?.IsSourceGenerated == true)
             {
+                // While source generated files have file paths, they do not exist on disk
+                // and .editorconfig files should not apply to them based on that path.
                 severity = ReportDiagnostic.Default;
                 return false;
             }
