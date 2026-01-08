@@ -32,13 +32,13 @@ public sealed class EditAndContinueMethodDebugInfoReaderTests
     [Fact]
     public void Create_Errors()
     {
-        Assert.Throws<ArgumentNullException>(() => EditAndContinueMethodDebugInfoReader.Create((ISymUnmanagedReader5)null));
-        Assert.Throws<ArgumentNullException>(() => EditAndContinueMethodDebugInfoReader.Create((MetadataReader)null));
-        Assert.Throws<ArgumentNullException>(() => EditAndContinueMethodDebugInfoReader.Create(null, 1));
+        Assert.Throws<ArgumentNullException>(() => EditAndContinueDebugInfoReader.Create((ISymUnmanagedReader5)null));
+        Assert.Throws<ArgumentNullException>(() => EditAndContinueDebugInfoReader.Create((MetadataReader)null));
+        Assert.Throws<ArgumentNullException>(() => EditAndContinueDebugInfoReader.Create(null, 1));
 
         var mockSymReader = new Mock<ISymUnmanagedReader5>(MockBehavior.Strict).Object;
-        Assert.Throws<ArgumentOutOfRangeException>(() => EditAndContinueMethodDebugInfoReader.Create(mockSymReader, 0));
-        Assert.Throws<ArgumentOutOfRangeException>(() => EditAndContinueMethodDebugInfoReader.Create(mockSymReader, -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => EditAndContinueDebugInfoReader.Create(mockSymReader, 0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => EditAndContinueDebugInfoReader.Create(mockSymReader, -1));
     }
 
     [Theory]
@@ -70,14 +70,14 @@ public sealed class EditAndContinueMethodDebugInfoReaderTests
         pdbStream.Position = 0;
 
         DebugInformationReaderProvider provider;
-        EditAndContinueMethodDebugInfoReader reader;
+        EditAndContinueDebugInfoReader reader;
 
         if (format == DebugInformationFormat.PortablePdb && useSymReader)
         {
             var pdbStreamCom = SymUnmanagedStreamFactory.CreateStream(pdbStream);
             var metadataImportProvider = new DummyMetadataImportProvider();
             Assert.Equal(0, new SymBinder().GetReaderFromPdbStream(metadataImportProvider, pdbStreamCom, out var symReader));
-            reader = EditAndContinueMethodDebugInfoReader.Create((ISymUnmanagedReader5)symReader, version: 1);
+            reader = EditAndContinueDebugInfoReader.Create((ISymUnmanagedReader5)symReader, version: 1);
         }
         else
         {

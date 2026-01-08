@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -15,7 +13,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.DiaSymReader;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Debugging;
 
@@ -43,8 +40,8 @@ internal abstract class DebugInformationReaderProvider : IDisposable
     {
         private readonly MetadataReaderProvider _pdbReaderProvider = pdbReaderProvider;
 
-        public override EditAndContinueMethodDebugInfoReader CreateEditAndContinueMethodDebugInfoReader()
-            => EditAndContinueMethodDebugInfoReader.Create(_pdbReaderProvider.GetMetadataReader());
+        public override EditAndContinueDebugInfoReader CreateEditAndContinueMethodDebugInfoReader()
+            => EditAndContinueDebugInfoReader.Create(_pdbReaderProvider.GetMetadataReader());
 
         public override ValueTask CopyContentToAsync(Stream stream, CancellationToken cancellationToken)
         {
@@ -66,10 +63,10 @@ internal abstract class DebugInformationReaderProvider : IDisposable
     {
         private readonly Stream _stream = stream;
         private readonly int _version = version;
-        private ISymUnmanagedReader5 _symReader = symReader;
+        private ISymUnmanagedReader5? _symReader = symReader;
 
-        public override EditAndContinueMethodDebugInfoReader CreateEditAndContinueMethodDebugInfoReader()
-            => EditAndContinueMethodDebugInfoReader.Create(_symReader, _version);
+        public override EditAndContinueDebugInfoReader CreateEditAndContinueMethodDebugInfoReader()
+            => EditAndContinueDebugInfoReader.Create(_symReader ?? throw new ObjectDisposedException(GetType().FullName), _version);
 
         public override async ValueTask CopyContentToAsync(Stream stream, CancellationToken cancellationToken)
         {
@@ -105,7 +102,7 @@ internal abstract class DebugInformationReaderProvider : IDisposable
     /// <summary>
     /// Creates EnC debug information reader.
     /// </summary>
-    public abstract EditAndContinueMethodDebugInfoReader CreateEditAndContinueMethodDebugInfoReader();
+    public abstract EditAndContinueDebugInfoReader CreateEditAndContinueMethodDebugInfoReader();
 
     public abstract ValueTask CopyContentToAsync(Stream stream, CancellationToken cancellationToken);
 
