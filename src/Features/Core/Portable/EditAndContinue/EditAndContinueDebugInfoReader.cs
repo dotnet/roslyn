@@ -9,6 +9,7 @@ using System.IO;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -25,6 +26,13 @@ internal abstract class EditAndContinueDebugInfoReader
     public abstract bool IsPortable { get; }
     public abstract EditAndContinueMethodDebugInformation GetDebugInfo(MethodDefinitionHandle methodHandle);
     public abstract StandaloneSignatureHandle GetLocalSignature(MethodDefinitionHandle methodHandle);
+    public abstract ImmutableDictionary<string, string> GetCompilationOptions();
+
+    /// <summary>
+    /// Returns default source file encoding specified in the compilation options.
+    /// </summary>
+    /// <exception cref="NotSupportedException">The PDB does not support compilation options, the options do not include encoding, or the encoding is not supproted by the platform.</exception>
+    public abstract Encoding? GetDefaultSourceFileEncoding();
 
     /// <summary>
     /// Reads document checksum.
@@ -102,11 +110,26 @@ internal abstract class EditAndContinueDebugInfoReader
 
         public override bool TryGetDocumentChecksum(string documentPath, out ImmutableArray<byte> checksum, out Guid algorithmId)
             => TryGetDocumentChecksum(_symReader, documentPath, out checksum, out algorithmId);
+
+        public override ImmutableDictionary<string, string> GetCompilationOptions()
+            // Windows PDBs do not store compilation options.
+            => ImmutableDictionary<string, string>.Empty;
+
+        public override Encoding? GetDefaultSourceFileEncoding()
+            => throw new NotSupportedException("Windows PDB does not support compilation options.");
     }
 
-    private sealed class Portable(MetadataReader pdbReader) : EditAndContinueDebugInfoReader
+    private sealed class Portable : EditAndContinueDebugInfoReader
     {
-        private readonly MetadataReader _pdbReader = pdbReader;
+        private readonly MetadataReader _pdbReader;
+        private readonly Lazy<Encoding?> _lazyDefaultSourceFileEncoding;
+        private ImmutableDictionary<string, string>? _lazyCompilationOptions;
+
+        public Portable(MetadataReader pdbReader)
+        {
+            _pdbReader = pdbReader;
+            _lazyDefaultSourceFileEncoding = new(ReadDefaultSourceFileEncoding);
+        }
 
         public override bool IsPortable => true;
 
@@ -141,6 +164,32 @@ internal abstract class EditAndContinueDebugInfoReader
             checksum = default;
             algorithmId = default;
             return false;
+        }
+
+        public override ImmutableDictionary<string, string> GetCompilationOptions()
+            => _lazyCompilationOptions ??= _pdbReader.GetCompilationOptions();
+
+        public override Encoding? GetDefaultSourceFileEncoding()
+            => _lazyDefaultSourceFileEncoding.Value;
+
+        private Encoding? ReadDefaultSourceFileEncoding()
+        {
+            var options = GetCompilationOptions();
+
+            if (!options.TryGetValue(CompilationOptionNames.DefaultEncoding, out var encodingName) &&
+                !options.TryGetValue(CompilationOptionNames.FallbackEncoding, out encodingName))
+            {
+                return null;
+            }
+
+            try
+            {
+                return Encoding.GetEncoding(encodingName);
+            }
+            catch (Exception e)
+            {
+                throw new NotSupportedException($"Encoding '{encodingName}' not supported: {e.Message}");
+            }
         }
     }
 

@@ -425,6 +425,11 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     internal Guid EmitLibrary(ProjectId projectId, Compilation compilation, DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb)
     {
         var (peImage, pdbImage) = compilation.EmitToArrays(new EmitOptions(debugInformationFormat: pdbFormat));
+
+        var dir = Temp.CreateDirectory();
+        dir.CreateFile(compilation.AssemblyName + ".dll").WriteAllBytes(peImage.ToArray());
+        dir.CreateFile(compilation.AssemblyName + ".pdb").WriteAllBytes(pdbImage.ToArray());
+
         var symReader = SymReaderTestHelpers.OpenDummySymReader(pdbImage);
 
         var moduleMetadata = ModuleMetadata.CreateFromImage(peImage);

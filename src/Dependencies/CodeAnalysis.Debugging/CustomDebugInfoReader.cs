@@ -912,29 +912,19 @@ RETRY:
             {
                 var blobReader = pdbReader.GetBlobReader(customDebugInformation.Value);
 
-                var name = ReadNullTerminatedString(ref blobReader) ?? throw new BadImageFormatException();
-                var value = ReadNullTerminatedString(ref blobReader) ?? throw new BadImageFormatException();
-
-                // There shall be no two entries with the same name in the list.
-                if (result.ContainsKey(name))
+                while (blobReader.RemainingBytes > 0)
                 {
-                    throw new BadImageFormatException();
-                }
+                    var name = ReadNullTerminatedString(ref blobReader) ?? throw new BadImageFormatException();
+                    var value = ReadNullTerminatedString(ref blobReader) ?? throw new BadImageFormatException();
 
-                // The spec allows an empty name.
-                result.Add(name, value);
-
-                static string? ReadNullTerminatedString(ref BlobReader reader)
-                {
-                    var nullIndex = reader.IndexOf(0);
-                    if (nullIndex == -1)
+                    // There shall be no two entries with the same name in the list.
+                    if (result.ContainsKey(name))
                     {
-                        return null;
+                        throw new BadImageFormatException();
                     }
 
-                    var value = reader.ReadUTF8(nullIndex);
-                    reader.ReadByte();
-                    return value;
+                    // The spec allows an empty name.
+                    result.Add(name, value);
                 }
 
                 return result.ToImmutableDictionary();
@@ -942,6 +932,19 @@ RETRY:
             finally
             {
                 result.Free();
+            }
+
+            static string? ReadNullTerminatedString(ref BlobReader reader)
+            {
+                var nullIndex = reader.IndexOf(0);
+                if (nullIndex == -1)
+                {
+                    return null;
+                }
+
+                var value = reader.ReadUTF8(nullIndex);
+                reader.ReadByte();
+                return value;
             }
         }
     }
