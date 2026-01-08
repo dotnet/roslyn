@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             private void ProcessExitedHandler(object sender, EventArgs e)
             {
-                _ = ProcessExitedHandlerAsync();
+                ProcessExitedHandlerAsync().GetAwaiter().GetResult();
             }
 
             private async Task ProcessExitedHandlerAsync()
