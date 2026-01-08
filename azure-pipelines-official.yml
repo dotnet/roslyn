@@ -85,6 +85,9 @@ variables:
   - group: DotNet-Roslyn-Insertion-Variables
   - group: AzureDevOps-Artifact-Feeds-Pats
 
+  - name: BranchName
+    value: $[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]
+
   - name: BuildConfiguration
     value: release
   - name: Roslyn.GitHubEmail
@@ -143,11 +146,11 @@ extends:
       displayName: Build and Test
 
       jobs:
-      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev18.0') }}:
+      - ${{ if or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')) }}:
         - template: /eng/common/templates-official/job/onelocbuild.yml@self
           parameters:
             MirrorRepo: roslyn
-            MirrorBranch: release/dev18.0
+            MirrorBranch: $(BranchName)
             LclSource: lclFilesfromPackage
             LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
