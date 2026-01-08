@@ -3,14 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
@@ -20,58 +17,29 @@ internal static partial class EditAndContinueDiagnosticSource
     {
         public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
         {
-            var designTimeDocument = Document;
-            var designTimeSolution = designTimeDocument.Project.Solution;
-            var services = designTimeSolution.Services;
+            var document = Document;
+            var solution = document.Project.Solution;
+            var services = solution.Services;
 
             // Do not report EnC diagnostics for a non-host workspace, or if Hot Reload/EnC session is not active.
-            if (designTimeSolution.WorkspaceKind != WorkspaceKind.Host ||
+            if (solution.WorkspaceKind != WorkspaceKind.Host ||
                 services.GetService<IEditAndContinueWorkspaceService>()?.SessionTracker is not { IsSessionActive: true } sessionStateTracker)
             {
                 return [];
             }
 
-            var applyDiagnostics = sessionStateTracker.ApplyChangesDiagnostics.WhereAsArray(static (data, id) => data.DocumentId == id, designTimeDocument.Id);
-
-            // Only create and synchronize compile-time solution if we need it.
-            var compileTimeSolution = services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(designTimeSolution);
-
-            var compileTimeDocument = await CompileTimeSolutionProvider.TryGetCompileTimeDocumentAsync(designTimeDocument, compileTimeSolution, cancellationToken).ConfigureAwait(false);
-            if (compileTimeDocument == null)
-            {
-                return applyDiagnostics;
-            }
-
-            // EnC services should never be called on a design-time solution.
+            var applyDiagnostics = sessionStateTracker.ApplyChangesDiagnostics.WhereAsArray(static (data, id) => data.DocumentId == id, document.Id);
 
             var proxy = new RemoteEditAndContinueServiceProxy(services);
             var spanLocator = services.GetService<IActiveStatementSpanLocator>();
 
             var activeStatementSpanProvider = spanLocator != null
-                ? new ActiveStatementSpanProvider((documentId, filePath, cancellationToken) => spanLocator.GetSpansAsync(compileTimeSolution, documentId, filePath, cancellationToken))
+                ? new ActiveStatementSpanProvider((documentId, filePath, cancellationToken) => spanLocator.GetSpansAsync(solution, documentId, filePath, cancellationToken))
                 : static async (_, _, _) => ImmutableArray<ActiveStatementSpan>.Empty;
 
-            var rudeEditDiagnostics = await proxy.GetDocumentDiagnosticsAsync(compileTimeDocument, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
-
-            // TODO: remove
-            // We pretend the diagnostic is in the original document, but use the mapped line span.
-            // Razor will ignore the column (which will be off because #line directives can't currently map columns) and only use the line number.
-            rudeEditDiagnostics = rudeEditDiagnostics.SelectAsArray(data => (designTimeDocument != compileTimeDocument) ? RemapLocation(designTimeDocument, data) : data);
+            var rudeEditDiagnostics = await proxy.GetDocumentDiagnosticsAsync(document, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
             return applyDiagnostics.AddRange(rudeEditDiagnostics);
-        }
-
-        private static DiagnosticData RemapLocation(Document designTimeDocument, DiagnosticData data)
-        {
-            Debug.Assert(data.DataLocation != null);
-            Debug.Assert(designTimeDocument.FilePath != null);
-
-            // If the location in the generated document is in a scope of user-visible #line mapping use the mapped span,
-            // otherwise (if it's hidden) display the diagnostic at the start of the file.
-            var span = data.DataLocation.UnmappedFileSpan != data.DataLocation.MappedFileSpan ? data.DataLocation.MappedFileSpan.Span : default;
-            var location = new DiagnosticDataLocation(new FileLinePositionSpan(designTimeDocument.FilePath, span));
-
-            return data.WithLocations(location, additionalLocations: []);
         }
     }
 

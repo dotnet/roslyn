@@ -75,9 +75,6 @@ internal sealed class EditAndContinueLanguageService(
     private Solution GetCurrentDesignTimeSolution()
         => workspaceProvider.Value.Workspace.CurrentSolution;
 
-    private Solution GetCurrentCompileTimeSolution(Solution currentDesignTimeSolution)
-        => Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(currentDesignTimeSolution);
-
     private RemoteDebuggingSessionProxy GetDebuggingSession()
         => _debuggingSession ?? throw new NoSessionException();
 
@@ -116,14 +113,13 @@ internal sealed class EditAndContinueLanguageService(
 
             var currentSolution = GetCurrentDesignTimeSolution();
             _committedDesignTimeSolution = currentSolution;
-            var solution = GetCurrentCompileTimeSolution(currentSolution);
 
             sourceTextProvider.SetBaseline(currentSolution);
 
             var proxy = new RemoteEditAndContinueServiceProxy(Services);
 
             _debuggingSession = await proxy.StartDebuggingSessionAsync(
-                solution,
+                currentSolution,
                 new ManagedHotReloadServiceBridge(debuggerService.Value),
                 sourceTextProvider,
                 reportDiagnostics: true,
@@ -155,7 +151,7 @@ internal sealed class EditAndContinueLanguageService(
         try
         {
             var session = GetDebuggingSession();
-            var solution = (inBreakState == true) ? GetCurrentCompileTimeSolution(GetCurrentDesignTimeSolution()) : null;
+            var solution = (inBreakState == true) ? GetCurrentDesignTimeSolution() : null;
 
             await session.BreakStateOrCapabilitiesChangedAsync(inBreakState, cancellationToken).ConfigureAwait(false);
 
@@ -326,8 +322,7 @@ internal sealed class EditAndContinueLanguageService(
             return new ManagedHotReloadUpdates([], []);
         }
 
-        var designTimeSolution = GetCurrentDesignTimeSolution();
-        var solution = GetCurrentCompileTimeSolution(designTimeSolution);
+        var solution = GetCurrentDesignTimeSolution();
         var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
         var runningProjectOptions = runningProjects.ToRunningProjectOptions(solution, static info => (info.ProjectInstanceId.ProjectFilePath, info.ProjectInstanceId.TargetFramework, info.RestartAutomatically));
 
@@ -338,13 +333,13 @@ internal sealed class EditAndContinueLanguageService(
             case ModuleUpdateStatus.Ready:
                 // The debugger will call Commit/Discard on the solution
                 // based on whether the updates will be applied successfully or not.
-                _pendingUpdatedDesignTimeSolution = designTimeSolution;
+                _pendingUpdatedDesignTimeSolution = solution;
                 break;
 
             case ModuleUpdateStatus.None:
                 // No significant changes have been made.
                 // Commit the solution to apply any changes in comments that do not generate updates.
-                _committedDesignTimeSolution = designTimeSolution;
+                _committedDesignTimeSolution = solution;
                 break;
         }
 

@@ -102,7 +102,6 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
         private readonly Workspace _workspace;
         private readonly CancellationTokenSource _cancellationSource = new();
         private readonly IActiveStatementSpanFactory _spanProvider;
-        private readonly ICompileTimeSolutionProvider _compileTimeSolutionProvider;
         private readonly WorkspaceEventRegistration _documentOpenedHandlerDisposer;
         private readonly WorkspaceEventRegistration _documentClosedHandlerDisposer;
 
@@ -121,7 +120,6 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
         {
             _workspace = workspace;
             _spanProvider = spanProvider;
-            _compileTimeSolutionProvider = workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>();
 
             _documentOpenedHandlerDisposer = _workspace.RegisterDocumentOpenedHandler(DocumentOpened);
             _documentClosedHandlerDisposer = _workspace.RegisterDocumentClosedHandler(DocumentClosed);
@@ -169,15 +167,12 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
                     return;
                 }
 
-                var compileTimeSolution = _compileTimeSolutionProvider.GetCompileTimeSolution(designTimeDocument.Project.Solution);
-                var compileTimeDocument = await compileTimeSolution.GetDocumentAsync(designTimeDocument.Id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-
-                if (compileTimeDocument == null || !TryGetSnapshot(compileTimeDocument, out var snapshot))
+                if (!TryGetSnapshot(designTimeDocument, out var snapshot))
                 {
                     return;
                 }
 
-                _ = await GetAdjustedTrackingSpansAsync(compileTimeDocument, snapshot, cancellationToken).ConfigureAwait(false);
+                _ = await GetAdjustedTrackingSpansAsync(designTimeDocument, snapshot, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {

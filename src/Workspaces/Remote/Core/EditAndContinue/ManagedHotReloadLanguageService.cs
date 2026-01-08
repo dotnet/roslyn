@@ -69,9 +69,6 @@ internal sealed partial class ManagedHotReloadLanguageService(
         return solutionSnapshotRegistry.GetRegisteredSolutionSnapshot(id);
     }
 
-    private static Solution GetCurrentCompileTimeSolution(Solution currentDesignTimeSolution)
-        => currentDesignTimeSolution.Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(currentDesignTimeSolution);
-
     public async ValueTask StartSessionAsync(CancellationToken cancellationToken)
     {
         if (_disabled)
@@ -83,11 +80,10 @@ internal sealed partial class ManagedHotReloadLanguageService(
         {
             var currentDesignTimeSolution = await GetCurrentDesignTimeSolutionAsync(cancellationToken).ConfigureAwait(false);
             _committedDesignTimeSolution = currentDesignTimeSolution;
-            var compileTimeSolution = GetCurrentCompileTimeSolution(currentDesignTimeSolution);
 
             // TODO: use remote proxy once we transition to pull diagnostics
             _debuggingSession = encService.StartDebuggingSession(
-                compileTimeSolution,
+                currentDesignTimeSolution,
                 _debuggerService,
                 PdbMatchingSourceTextProvider.Instance,
                 reportDiagnostics: true);
@@ -252,8 +248,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
         {
             Contract.ThrowIfNull(_debuggingSession);
 
-            var designTimeSolution = await GetCurrentDesignTimeSolutionAsync(cancellationToken).ConfigureAwait(false);
-            var solution = GetCurrentCompileTimeSolution(designTimeSolution);
+            var solution = await GetCurrentDesignTimeSolutionAsync(cancellationToken).ConfigureAwait(false);
             var runningProjectOptions = runningProjects.ToRunningProjectOptions(solution, static info => (info.ProjectInstanceId.ProjectFilePath, info.ProjectInstanceId.TargetFramework, info.RestartAutomatically));
 
             EmitSolutionUpdateResults.Data results;
@@ -270,7 +265,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
             // Only store the solution if we have any changes to apply, otherwise CommitUpdatesAsync/DiscardUpdatesAsync won't be called.
             if (results.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
             {
-                _pendingUpdatedDesignTimeSolution = designTimeSolution;
+                _pendingUpdatedDesignTimeSolution = solution;
             }
 
             return new ManagedHotReloadUpdates(
