@@ -17,8 +17,7 @@ internal static partial class EditAndContinueDiagnosticSource
     {
         public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
         {
-            var document = Document;
-            var solution = document.Project.Solution;
+            var solution = Document.Project.Solution;
             var services = solution.Services;
 
             // Do not report EnC diagnostics for a non-host workspace, or if Hot Reload/EnC session is not active.
@@ -28,7 +27,7 @@ internal static partial class EditAndContinueDiagnosticSource
                 return [];
             }
 
-            var applyDiagnostics = sessionStateTracker.ApplyChangesDiagnostics.WhereAsArray(static (data, id) => data.DocumentId == id, document.Id);
+            var applyDiagnostics = sessionStateTracker.ApplyChangesDiagnostics.WhereAsArray(static (data, id) => data.DocumentId == id, Document.Id);
 
             var proxy = new RemoteEditAndContinueServiceProxy(services);
             var spanLocator = services.GetService<IActiveStatementSpanLocator>();
@@ -37,7 +36,7 @@ internal static partial class EditAndContinueDiagnosticSource
                 ? new ActiveStatementSpanProvider((documentId, filePath, cancellationToken) => spanLocator.GetSpansAsync(solution, documentId, filePath, cancellationToken))
                 : static async (_, _, _) => ImmutableArray<ActiveStatementSpan>.Empty;
 
-            var rudeEditDiagnostics = await proxy.GetDocumentDiagnosticsAsync(document, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+            var rudeEditDiagnostics = await proxy.GetDocumentDiagnosticsAsync(Document, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
             return applyDiagnostics.AddRange(rudeEditDiagnostics);
         }

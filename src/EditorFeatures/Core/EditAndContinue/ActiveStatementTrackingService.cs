@@ -156,23 +156,23 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
         private void DocumentOpened(DocumentEventArgs e)
             => _ = TrackActiveSpansAsync(e.Document);
 
-        private async Task TrackActiveSpansAsync(Document designTimeDocument)
+        private async Task TrackActiveSpansAsync(Document document)
         {
             try
             {
                 var cancellationToken = _cancellationSource.Token;
 
-                if (!designTimeDocument.DocumentState.SupportsEditAndContinue())
+                if (!document.DocumentState.SupportsEditAndContinue())
                 {
                     return;
                 }
 
-                if (!TryGetSnapshot(designTimeDocument, out var snapshot))
+                if (!TryGetSnapshot(document, out var snapshot))
                 {
                     return;
                 }
 
-                _ = await GetAdjustedTrackingSpansAsync(designTimeDocument, snapshot, cancellationToken).ConfigureAwait(false);
+                _ = await GetAdjustedTrackingSpansAsync(document, snapshot, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
