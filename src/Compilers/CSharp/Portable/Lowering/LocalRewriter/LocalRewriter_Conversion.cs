@@ -951,34 +951,51 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return userDefined;
             }
 
-            if (conversion.Kind.IsUnionConversion())
+            if (conversion.IsUnion)
             {
-                Debug.Assert(conversion.Method is { });
-                Debug.Assert(conversion.BestUnionConversionAnalysis is { });
-
                 UserDefinedConversionAnalysis analysis = conversion.BestUnionConversionAnalysis;
                 conversion.AssertUnderlyingConversionsCheckedRecursive();
+                Debug.Assert(analysis.Kind == UserDefinedConversionAnalysisKind.ApplicableInNormalForm);
+                Debug.Assert(analysis.Operator is { MethodKind: MethodKind.Constructor, ParameterCount: 1 });
+                Debug.Assert(TypeSymbol.Equals(analysis.FromType, analysis.Operator.GetParameterType(0), TypeCompareKind.AllIgnoreOptions));
+                Debug.Assert(TypeSymbol.Equals(rewrittenType.StrippedType(), analysis.Operator.ContainingType, TypeCompareKind.AllIgnoreOptions));
+                Debug.Assert(TypeSymbol.Equals(rewrittenType.StrippedType(), analysis.ToType, TypeCompareKind.AllIgnoreOptions));
+                Debug.Assert(analysis.TargetConversion is { IsIdentity: true } or { IsNullable: true, IsImplicit: true });
 
                 if (!TypeSymbol.Equals(rewrittenOperand.Type, analysis.FromType, TypeCompareKind.AllIgnoreOptions))
                 {
+                    Debug.Assert(!analysis.SourceConversion.IsIdentity);
                     rewrittenOperand = MakeConversionNode(
-                        syntax,
+                        rewrittenOperand.Syntax,
                         rewrittenOperand,
                         analysis.SourceConversion,
                         analysis.FromType,
                         @checked);
                 }
 
-                Debug.Assert(TypeSymbol.Equals(rewrittenOperand.Type, conversion.Method.GetParameterType(0), TypeCompareKind.AllIgnoreOptions));
+                Debug.Assert(TypeSymbol.Equals(rewrittenOperand.Type, analysis.Operator.GetParameterType(0), TypeCompareKind.AllIgnoreOptions));
 
-                BoundExpression unionConversion = RewriteUnionConversion(
+                rewrittenOperand = RewriteUnionConversion(
                     syntax,
                     rewrittenOperand,
                     conversion);
 
-                Debug.Assert(TypeSymbol.Equals(unionConversion.Type, analysis.ToType, TypeCompareKind.AllIgnoreOptions));
-                Debug.Assert(TypeSymbol.Equals(unionConversion.Type, rewrittenType, TypeCompareKind.AllIgnoreOptions));
-                return unionConversion;
+                Debug.Assert(TypeSymbol.Equals(rewrittenOperand.Type, analysis.ToType, TypeCompareKind.AllIgnoreOptions));
+
+                if (!TypeSymbol.Equals(rewrittenOperand.Type, rewrittenType, TypeCompareKind.AllIgnoreOptions))
+                {
+                    Debug.Assert(!analysis.TargetConversion.IsIdentity);
+                    rewrittenOperand = MakeConversionNode(
+                        rewrittenOperand.Syntax,
+                        rewrittenOperand,
+                        analysis.TargetConversion,
+                        rewrittenType,
+                        @checked);
+                }
+
+                Debug.Assert(TypeSymbol.Equals(rewrittenOperand.Type, rewrittenType, TypeCompareKind.AllIgnoreOptions));
+
+                return rewrittenOperand;
             }
 
             return MakeConversionNode(
@@ -1536,6 +1553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenOperand,
             Conversion conversion)
         {
+            Debug.Assert(conversion.IsUnion);
             Debug.Assert(conversion.Method is { MethodKind: MethodKind.Constructor, ParameterCount: 1 });
             Debug.Assert(rewrittenOperand.Type is { });
             Debug.Assert(!_inExpressionLambda);

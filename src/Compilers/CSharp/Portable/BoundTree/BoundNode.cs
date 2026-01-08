@@ -454,13 +454,69 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return boundConversion.Conversion;
                     }
 
-                    if (boundConversion.Conversion is not ({ IsUserDefined: true } or { IsUnion: true })) // PROTOTYPE: Add coverage
+                    ConversionGroup? conversionGroupOpt = boundConversion.ConversionGroupOpt;
+                    if (conversionGroupOpt?.Conversion.IsUserDefined == true)
+                    {
+                        BoundConversion? possiblyUserDefined = boundConversion;
+                        while (possiblyUserDefined?.Conversion.IsUserDefined == false)
+                        {
+                            possiblyUserDefined = possiblyUserDefined.Operand as BoundConversion;
+                        }
+
+                        Debug.Assert(possiblyUserDefined is null || possiblyUserDefined.Conversion.IsUserDefined);
+                        if (possiblyUserDefined is not null)
+                        {
+                            var operand = possiblyUserDefined.Operand;
+
+                            while (operand is BoundConversion operandAsConversion && operandAsConversion.ConversionGroupOpt == conversionGroupOpt)
+                            {
+                                operand = operandAsConversion.Operand;
+                            }
+
+                            if ((object)operand == placeholder)
+                            {
+                                return possiblyUserDefined.Conversion;
+                            }
+                        }
+
+                        throw ExceptionUtilities.UnexpectedValue(conversion);
+                    }
+
+                    if (conversionGroupOpt?.Conversion.IsUnion == true) // PROTOTYPE: Add coverage
+                    {
+                        BoundConversion? possiblyUnion = boundConversion;
+                        while (possiblyUnion?.Conversion.IsUnion == false)
+                        {
+                            possiblyUnion = possiblyUnion.Operand as BoundConversion;
+                        }
+
+                        Debug.Assert(possiblyUnion is null || possiblyUnion.Conversion.IsUnion);
+                        if (possiblyUnion is not null)
+                        {
+                            var operand = possiblyUnion.Operand;
+
+                            while (operand is BoundConversion operandAsConversion && operandAsConversion.ConversionGroupOpt == conversionGroupOpt)
+                            {
+                                operand = operandAsConversion.Operand;
+                            }
+
+                            if ((object)operand == placeholder)
+                            {
+                                return possiblyUnion.Conversion;
+                            }
+                        }
+
+                        throw ExceptionUtilities.UnexpectedValue(conversion);
+                    }
+
+                    if (!boundConversion.Conversion.IsUserDefined)
                     {
                         boundConversion = (BoundConversion)boundConversion.Operand;
                     }
 
-                    if (boundConversion.Conversion is { IsUserDefined: true } or { IsUnion: true }) // PROTOTYPE: Add coverage
+                    if (boundConversion.Conversion.IsUserDefined)
                     {
+                        Debug.Assert((boundConversion.InConversionGroupFlags & InConversionGroupFlags.LoweredFormOfUserDefinedConversionForExpressionTree) != 0);
                         BoundConversion next;
 
                         if ((object)boundConversion.Operand == placeholder ||

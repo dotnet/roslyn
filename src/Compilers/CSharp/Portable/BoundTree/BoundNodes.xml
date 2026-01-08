@@ -2647,10 +2647,15 @@
   </Node>
 
   <!-- Node only used during nullability flow analysis to represent an expression with an updated nullability -->
-  <Node Name="BoundExpressionWithNullability" Base="BoundExpression">
+  <Node Name="BoundExpressionWithNullability" Base="BoundExpression" DoesNotSurvive="InitialBinding">
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
     <Field Name="Type" Type="TypeSymbol?" Override="true"/> <!-- We use null Type for placeholders representing out vars -->
     <Field Name="NullableAnnotation" Type="NullableAnnotation"/>
+  </Node>
+
+  <!-- Node only used during nullability flow analysis. -->
+  <Node Name="BoundValueForNullableAnalysis" Base="BoundExpression" DoesNotSurvive="InitialBinding">
+    <Field Name="OriginalExpression" Type="BoundExpression?" Null="allow"/>
   </Node>
 
   <Node Name="BoundWithExpression" Base="BoundExpression">

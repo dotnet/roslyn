@@ -1015,8 +1015,24 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation CreateBoundConversionOperation(BoundConversion boundConversion, bool forceOperandImplicitLiteral = false)
         {
             Debug.Assert(!forceOperandImplicitLiteral || boundConversion.Operand is BoundLiteral);
-            bool isImplicit = boundConversion.WasCompilerGenerated || !boundConversion.ExplicitCastInCode || forceOperandImplicitLiteral;
             BoundExpression boundOperand = boundConversion.Operand;
+
+            bool isImplicit;
+
+            if (boundConversion.WasCompilerGenerated || forceOperandImplicitLiteral)
+            {
+                isImplicit = true;
+            }
+            else if (!boundConversion.Conversion.IsUnion && boundConversion.ConversionGroupOpt?.Conversion.IsUnion == true &&
+                     boundOperand is BoundConversion { Conversion.IsUnion: true } unionConversion &&
+                     boundConversion.ConversionGroupOpt == unionConversion.ConversionGroupOpt)
+            {
+                isImplicit = !unionConversion.ExplicitCastInCode;
+            }
+            else
+            {
+                isImplicit = !boundConversion.ExplicitCastInCode;
+            }
 
             if (boundConversion.ConversionKind == ConversionKind.InterpolatedStringHandler)
             {
@@ -1086,7 +1102,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         Debug.Assert(!forceOperandImplicitLiteral);
                         return Create(boundOperand);
                     }
-                    else
+                    else if (!boundOperand.WasCompilerGenerated)
                     {
                         // Make this conversion implicit
                         isImplicit = true;

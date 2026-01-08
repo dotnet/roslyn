@@ -636,6 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ExplicitUserDefined:
                 case ConversionKind.Union:
                 case ConversionKind.FunctionType:
+                case ConversionKind.CollectionExpression:
 
                 // Not implicit.
                 case ConversionKind.ExplicitNumeric:
@@ -992,14 +993,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // PROTOTYPE: It might make sense to block conversions from a base class or any interface. See comments in tests.
 
-            if (target is not NamedTypeSymbol namedTarget || !namedTarget.IsUnionTypeWithUseSiteDiagnostics(ref useSiteInfo))
+            if (target.StrippedType() is not NamedTypeSymbol namedTarget || !namedTarget.IsUnionTypeWithUseSiteDiagnostics(ref useSiteInfo))
             {
                 return Conversion.NoConversion;
             }
 
             // SPEC: Find the set of applicable constructors
             var ubuild = ArrayBuilder<UserDefinedConversionAnalysis>.GetInstance();
-            computeApplicableConstructorSet(sourceExpression, source, namedTarget, ubuild, ref useSiteInfo);
+            computeApplicableConstructorSet(sourceExpression, source, target, namedTarget, ubuild, ref useSiteInfo);
 
             if (ubuild.Count == 0)
             {
@@ -1014,7 +1015,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)sx == null || MostSpecificConversionOperator(sx, namedTarget, u) is not int best)
             {
                 // Ambiguous. The first applicable is good enough then.
-                return Conversion.CreateUnionConversion(UserDefinedConversionResult.Valid(u, best: 0));
+                best = 0;
             }
 
             return Conversion.CreateUnionConversion(UserDefinedConversionResult.Valid(u, best));
@@ -1022,6 +1023,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             void computeApplicableConstructorSet(
                 BoundExpression sourceExpression,
                 TypeSymbol source,
+                TypeSymbol target,
                 NamedTypeSymbol declaringType,
                 ArrayBuilder<UserDefinedConversionAnalysis> u,
                 ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -1035,10 +1037,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     TypeSymbol convertsFrom = ctor.GetParameterType(0);
                     Conversion fromConversion = EncompassingImplicitConversion(sourceExpression, source, convertsFrom, ref useSiteInfo);
+                    Conversion targetConversion = EncompassingImplicitConversion(declaringType, target, ref useSiteInfo);
 
-                    if (fromConversion.Exists)
+                    Debug.Assert(targetConversion.Exists && targetConversion.IsImplicit);
+                    Debug.Assert(targetConversion.IsIdentity || (targetConversion.IsNullable && targetConversion.UnderlyingConversions[0].IsIdentity));
+
+                    if (fromConversion.Exists && targetConversion.Exists)
                     {
-                        u.Add(UserDefinedConversionAnalysis.Normal(constrainedToTypeOpt: null, ctor, fromConversion, targetConversion: Conversion.Identity, convertsFrom, toType: declaringType));
+                        u.Add(UserDefinedConversionAnalysis.Normal(constrainedToTypeOpt: null, ctor, fromConversion, targetConversion, convertsFrom, toType: declaringType));
                     }
                 }
             }

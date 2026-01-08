@@ -687,4 +687,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
     }
+
+    internal partial class BoundValueForNullableAnalysis
+    {
+        public sealed override bool IsEquivalentToThisReference
+        {
+            get
+            {
+                Debug.Assert(false); // Getting here is unexpected.
+                return false;
+            }
+        }
+    }
 }
