@@ -397,4 +397,104 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         string? s = null;
             Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s").WithArguments("s").WithLocation(7, 17));
     }
+
+    [Fact]
+    public void CollectionBuilderNonNullParameterPassedNull_Inference1()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                private readonly List<T> _items;
+                public MyCollection(T value, ReadOnlySpan<T> items)
+                {
+                    _items = new();
+                    _items.AddRange(items.ToArray());
+                }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(T value, ReadOnlySpan<T> items) => new(value, items);
+            }
+            """;
+        string sourceB = """
+            #nullable enable
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    Goo([with(null), "goo"]);
+                }
+
+                static void Goo<T>(MyCollection<T> list)
+                {
+                    Console.WriteLine(string.Join(", ", list));
+                }
+            }
+            """;
+
+        CompileAndVerify(
+            [sourceA, sourceB],
+            expectedOutput: IncludeExpectedOutput("goo"),
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.Fails).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionBuilderNonNullParameterPassedNull_Inference2()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                private readonly List<T> _items;
+                public MyCollection(T? value, ReadOnlySpan<T> items)
+                {
+                    _items = new();
+                    _items.AddRange(items.ToArray());
+                }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(T? value, ReadOnlySpan<T> items) => new(value, items);
+            }
+            """;
+        string sourceB = """
+            #nullable enable
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    Goo([with(null), "goo"]);
+                }
+
+                static void Goo<T>(MyCollection<T> list)
+                {
+                    Console.WriteLine(string.Join(", ", list));
+                }
+            }
+            """;
+
+        CompileAndVerify(
+            [sourceA, sourceB],
+            expectedOutput: IncludeExpectedOutput("goo"),
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.Fails).VerifyDiagnostics();
+    }
 }
