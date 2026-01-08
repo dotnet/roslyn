@@ -1282,7 +1282,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
         <source>Nested quantifier '{0}'</source>
-        <target state="needs-review-translation">Vnořený kvantifikátor {0}</target>
+        <target state="new">Nested quantifier '{0}'</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</note>
       </trans-unit>
       <trans-unit id="No_common_root_node_for_extraction">
@@ -1407,12 +1407,12 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group_name_0">
         <source>Reference to undefined group name '{0}'</source>
-        <target state="needs-review-translation">Odkaz na nedefinovaný název skupiny {0}</target>
+        <target state="new">Reference to undefined group name '{0}'</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \k&lt;a&gt;. Here, {0} will be the name of the undefined group ('a')</note>
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group_number_0">
         <source>Reference to undefined group number {0}</source>
-        <target state="new">Reference to undefined group number {0}</target>
+        <target state="translated">Odkaz na nedefinované číslo skupiny {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;-1&gt;). Here, {0} will be the number of the undefined group ('1')</note>
       </trans-unit>
       <trans-unit id="Regex_all_control_characters_long">
@@ -2632,12 +2632,12 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       </trans-unit>
       <trans-unit id="SemanticSearch">
         <source>Semantic Search</source>
-        <target state="new">Semantic Search</target>
+        <target state="translated">Sémantické vyhledávání</target>
         <note />
       </trans-unit>
       <trans-unit id="Semantic_search_only_supported_on_net_core">
         <source>Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</source>
-        <target state="new">Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</target>
+        <target state="translated">Sémantické vyhledávání se podporuje jenom v případě, že se analýza kódu spouští v samostatném procesu na nejnovější verzi .NET (viz Nástroje &gt; Možnosti &gt; Textový editor &gt; C# &gt; Upřesnit).</target>
         <note />
       </trans-unit>
       <trans-unit id="Silent">
@@ -2732,7 +2732,7 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       </trans-unit>
       <trans-unit id="The_assembly_0_references_compiler_version_1_newer_than_2">
         <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="needs-review-translation">Sestavení analyzátoru {0} odkazuje na verzi {1} kompilátoru, která je novější než aktuálně spuštěná verze {2}.</target>
+        <target state="new">Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -4145,7 +4145,7 @@ Chcete pokračovat?</target>
       </trans-unit>
       <trans-unit id="Change_signature">
         <source>Change signature...</source>
-        <target state="needs-review-translation">Změnit signaturu...</target>
+        <target state="translated">Změnit signaturu...</target>
         <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Generate_new_type">
@@ -4192,7 +4192,7 @@ Chcete pokračovat?</target>
       </trans-unit>
       <trans-unit id="_0_1">
         <source>{0} - {1}</source>
-        <target state="needs-review-translation">    {0} – {1}</target>
+        <target state="new">{0} - {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source">

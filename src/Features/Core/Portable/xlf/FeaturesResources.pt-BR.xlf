@@ -1282,7 +1282,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
         <source>Nested quantifier '{0}'</source>
-        <target state="needs-review-translation">Quantificador aninhado {0}</target>
+        <target state="new">Nested quantifier '{0}'</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</note>
       </trans-unit>
       <trans-unit id="No_common_root_node_for_extraction">
@@ -1407,12 +1407,12 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group_name_0">
         <source>Reference to undefined group name '{0}'</source>
-        <target state="needs-review-translation">Referência ao nome do grupo indefinido {0}</target>
+        <target state="new">Reference to undefined group name '{0}'</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \k&lt;a&gt;. Here, {0} will be the name of the undefined group ('a')</note>
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group_number_0">
         <source>Reference to undefined group number {0}</source>
-        <target state="new">Reference to undefined group number {0}</target>
+        <target state="translated">Referência ao grupo número {0} indefinido</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;-1&gt;). Here, {0} will be the number of the undefined group ('1')</note>
       </trans-unit>
       <trans-unit id="Regex_all_control_characters_long">
@@ -2632,12 +2632,12 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       </trans-unit>
       <trans-unit id="SemanticSearch">
         <source>Semantic Search</source>
-        <target state="new">Semantic Search</target>
+        <target state="translated">Pesquisa Semântica</target>
         <note />
       </trans-unit>
       <trans-unit id="Semantic_search_only_supported_on_net_core">
         <source>Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</source>
-        <target state="new">Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</target>
+        <target state="translated">A pesquisa semântica só tem suporte quando a análise de código é executada em um processo separado no .NET mais recente (consulte Ferramentas &gt; Opções &gt; Editor de Texto &gt; C# &gt; Avançado).</target>
         <note />
       </trans-unit>
       <trans-unit id="Silent">
@@ -2732,7 +2732,7 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       </trans-unit>
       <trans-unit id="The_assembly_0_references_compiler_version_1_newer_than_2">
         <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="needs-review-translation">O assembly do analisador '{0}' referencia a versão '{1}' do compilador, que é mais recente que a versão em execução no momento '{2}'.</target>
+        <target state="new">Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -4145,7 +4145,7 @@ Deseja continuar?</target>
       </trans-unit>
       <trans-unit id="Change_signature">
         <source>Change signature...</source>
-        <target state="needs-review-translation">Alterar assinatura...</target>
+        <target state="translated">Alterar assinatura...</target>
         <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Generate_new_type">
@@ -4192,7 +4192,7 @@ Deseja continuar?</target>
       </trans-unit>
       <trans-unit id="_0_1">
         <source>{0} - {1}</source>
-        <target state="needs-review-translation">    {0} - {1}</target>
+        <target state="new">{0} - {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source">
