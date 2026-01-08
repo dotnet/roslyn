@@ -2054,7 +2054,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindNonMethod(SimpleNameSyntax node, Symbol symbol, BindingDiagnosticBag diagnostics, LookupResultKind resultKind, bool indexed, bool isError)
         {
-            // Events are handled later as we don't know yet if we are binding to the event or it's backing field.
+            // Events are handled later as we don't know yet if we are binding to the event or its backing field.
             if (symbol.Kind is not (SymbolKind.Event or SymbolKind.Property))
             {
                 ReportDiagnosticsIfObsolete(diagnostics, symbol, node, hasBaseReceiver: false);
@@ -8567,7 +8567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(symbol.Kind != SymbolKind.Method);
                 left = ReplaceTypeOrValueReceiver(left, symbol.IsStatic || symbol.Kind == SymbolKind.NamedType, diagnostics);
 
-                // Events are handled later as we don't know yet if we are binding to the event or it's backing field.
+                // Events are handled later as we don't know yet if we are binding to the event or its backing field.
                 // Properties are handled in BindPropertyAccess
                 if (symbol.Kind is not (SymbolKind.Event or SymbolKind.Property))
                 {
