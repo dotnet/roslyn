@@ -424,7 +424,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotMatchOnINumberBase">
         <source>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.</source>
-        <target state="needs-review-translation">Невозможно использовать числовую константу или реляционный шаблон для "{0}", поскольку он наследует от "INumberBase&lt;T&gt;" или расширяет его. Рассмотрите возможность использовать шаблон типа, чтобы указать конкретный числовой тип.</target>
+        <target state="new">Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -1774,7 +1774,7 @@
       </trans-unit>
       <trans-unit id="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName">
         <source>'{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.</source>
-        <target state="translated">Поскольку "{0}" не является методом экземпляра, получатель не может быть аргументом обработчика интерполированных строк.</target>
+        <target state="new">'{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotOverridableAPIInRecord">
@@ -2314,7 +2314,7 @@
       </trans-unit>
       <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
         <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
-        <target state="needs-review-translation">Тип "Microsoft.CodeAnalysis.EmbeddedAttribute" должен быть неуниверсанным, внутренним, запечатанным, нестатическим, иметь конструктор без параметров, наследовать от System.Attribute и иметь возможность применяться к любому типу.</target>
+        <target state="new">The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
@@ -3134,12 +3134,12 @@
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
         <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="needs-review-translation">Сборка анализатора "{0}" ссылается на версию "{1}" компилятора, являющуюся более новой, чем версия "{2}".</target>
+        <target state="new">Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
         <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
-        <target state="needs-review-translation">Сборка анализатора ссылается на более новую версию компилятора, чем установленная сейчас.</target>
+        <target state="new">Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedIn">
@@ -4078,165 +4078,165 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="needs-review-translation">
-                             Параметры компилятора Visual C#
+        <target state="new">
+                             Visual C# Compiler Options
 
-                       - ВЫХОДНЫЕ ФАЙЛЫ -
--out:&lt;file&gt;                   Укажите имя выходного файла (по умолчанию: базовое имя
-                              файл с основным классом или первый файл)
--target:exe                   Создать исполняемый файл консоли (по умолчанию) (сокращение
-                              форма: -t:exe)
--target:winexe                Создать исполняемый файл Windows (краткая форма:
+                       - OUTPUT FILES -
+-out:&lt;file&gt;                   Specify output file name (default: base name of
+                              file with main class or first file)
+-target:exe                   Build a console executable (default) (Short
+                              form: -t:exe)
+-target:winexe                Build a Windows executable (Short form:
                               -t:winexe)
--target:library               Создать библиотеку (краткая форма: -t:library)
--target:module                Создать модуль, который можно добавить к другому
-                              сборка (краткая форма: -t:модуль)
--target:appcontainerexe       Создать исполняемый файл Appcontainer (краткая форма:
+-target:library               Build a library (Short form: -t:library)
+-target:module                Build a module that can be added to another
+                              assembly (Short form: -t:module)
+-target:appcontainerexe       Build an Appcontainer executable (Short form:
                               -t:appcontainerexe)
--target:winmdobj              Создать промежуточный файл среды выполнения Windows, который
-                              потребляется WinMDExp (краткая форма: -t:winmdobj)
--doc:&lt;file&gt;                   Файл XML-документации для создания
--refout:&lt;file&gt;                Ссылка на выходные данные сборки для создания
--platform:&lt;string&gt;            Ограничить платформы, на которых может работать этот код: x86,
-                              Itanium, x64, arm, arm64, anycpu32bitpreferred или
-                              любой процессор. По умолчанию используется любой процессор.
+-target:winmdobj              Build a Windows Runtime intermediate file that
+                              is consumed by WinMDExp (Short form: -t:winmdobj)
+-doc:&lt;file&gt;                   XML Documentation file to generate
+-refout:&lt;file&gt;                Reference assembly output to generate
+-platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred, or
+                              anycpu. The default is anycpu.
 
-                       - ВХОДНЫЕ ФАЙЛЫ -
---recurse:&lt;wildcard&gt;           Включить все файлы в текущем каталоге и
-                              подкаталогах в соответствии с подстановочными
-                              знаками
--reference:&lt;alias&gt;=&lt;file&gt;     Ссылка на метаданные из указанного файла сборки
-                              с использованием заданного псевдонима (краткая форма: -r)
--reference:&lt;file list&gt;        Ссылочные метаданные из указанных файлов
-                              сборки (краткая форма: -r)
--addmodule:&lt;file list&gt;        Связать указанные модули с этой сборкой
--link:&lt;file list&gt;             Внедрить метаданные из указанных файлов
-                              сборки взаимодействия (краткая форма: -l)
--analyzer:&lt;file list&gt;         Запустить анализаторы из этой сборки
-                              (Краткая форма: -а)
--additionalfile:&lt;file list&gt; Дополнительные файлы, не влияющие напрямую на генерацию
-                              кода, но которые могут использоваться анализаторами для создания
-                              ошибок и предупреждений.
--embed                        Встроить все исходные файлы в PDB.
--embed:&lt;file list&gt;            Встроить определенные файлы в PDB.
+                       - INPUT FILES -
+-recurse:&lt;wildcard&gt;           Include all files in the current directory and
+                              subdirectories according to the wildcard
+                              specifications
+-reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly
+                              file using the given alias (Short form: -r)
+-reference:&lt;file list&gt;        Reference metadata from the specified assembly
+                              files (Short form: -r)
+-addmodule:&lt;file list&gt;        Link the specified modules into this assembly
+-link:&lt;file list&gt;             Embed metadata from the specified interop
+                              assembly files (Short form: -l)
+-analyzer:&lt;file list&gt;         Run the analyzers from this assembly
+                              (Short form: -a)
+-additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
+                              generation but may be used by analyzers for producing
+                              errors or warnings.
+-embed                        Embed all source files in the PDB.
+-embed:&lt;file list&gt;            Embed specific files in the PDB.
 
-                       - РЕСУРСЫ -
--win32res:&lt;file&gt;              Укажите файл ресурсов Win32 (.res)
--win32icon:&lt;file&gt;             Использовать этот значок для вывода
--win32manifest:&lt;file&gt;         Укажите файл манифеста Win32 (.xml)
--nowin32manifest              Не включать манифест Win32 по умолчанию
--resource:&lt;resinfo&gt;           Встроить указанный ресурс (краткая форма: -res)
--linkresource:&lt;resinfo&gt;       Связать указанный ресурс с этой сборкой
-                              (Короткая форма: -linkres) Где формат resinfo
-                              равен &lt;file&gt;[,&lt;string name&gt;[,public|private]]
+                       - RESOURCES -
+-win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
+-win32icon:&lt;file&gt;             Use this icon for the output
+-win32manifest:&lt;file&gt;         Specify a Win32 manifest file (.xml)
+-nowin32manifest              Do not include the default Win32 manifest
+-resource:&lt;resinfo&gt;           Embed the specified resource (Short form: -res)
+-linkresource:&lt;resinfo&gt;       Link the specified resource to this assembly
+                              (Short form: -linkres) Where the resinfo format
+                              is &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
-                       - ГЕНЕРАЦИЯ КОДА -
--debug[+|-]                   Выдать отладочную информацию
+                       - CODE GENERATION -
+-debug[+|-]                   Emit debugging information
 -debug:{full|pdbonly|portable|embedded}
-                              Укажите тип отладки («полный» по умолчанию,
-                              «портативный» — это кроссплатформенный формат,
-                              'встроенный' – это кроссплатформенный формат, встроенный в
-                              целевой файл .dll или .exe)
--optimize[+|-]                Включить оптимизацию (краткая форма: -o)
--optimize[+|-]                Производство детерминированной сборки
-                              (включая GUID версии модуля и метку времени)
--refonly                      Изготовить эталонную сборку вместо основной продукции
--instrument:TestCoverage      Создать сборку, предназначенную для сбора
-                              сведений об охвате
--sourcelink:&lt;file&gt;            Информация об исходной ссылке для встраивания в PDB.
+                              Specify debugging type ('full' is default,
+                              'portable' is a cross-platform format,
+                              'embedded' is a cross-platform format embedded into
+                              the target .dll or .exe)
+-optimize[+|-]                Enable optimizations (Short form: -o)
+-deterministic                Produce a deterministic assembly
+                              (including module version GUID and timestamp)
+-refonly                      Produce a reference assembly in place of the main output
+-instrument:TestCoverage      Produce an assembly instrumented to collect
+                              coverage information
+-sourcelink:&lt;file&gt;            Source link info to embed into PDB.
 
-                       - ОШИБКИ И ПРЕДУПРЕЖДЕНИЯ -
--warnaserror[+|-]             Сообщить обо всех предупреждениях как об ошибках
--warnaserror[+|-]:&lt;warn list&gt; Сообщать об определенных предупреждениях как об ошибках
-                              (используйте "nullable" для всех предупреждений об отсутствии значений)
--warn:&lt;n&gt;                     Установить уровень предупреждения (0 или выше) (краткая форма: -w)
--nowarn:&lt;warn list&gt;           Отключить определенные предупреждающие сообщения
-                              (используйте "nullable" для всех предупреждений об отсутствии значений)
--ruleset:&lt;file&gt;               Укажите файл набора правил, который отключает определенную
-                              диагностики.
+                       - ERRORS AND WARNINGS -
+-warnaserror[+|-]             Report all warnings as errors
+-warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
+                              (use "nullable" for all nullability warnings)
+-warn:&lt;n&gt;                     Set warning level (0 or higher) (Short form: -w)
+-nowarn:&lt;warn list&gt;           Disable specific warning messages
+                              (use "nullable" for all nullability warnings)
+-ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
+                              diagnostics.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
-                              Укажите файл для регистрации всего компилятора и анализатора
-                              диагностики.
-                              sarif_version:{1|2|2.1} По умолчанию 1. 2 и 2.1
-                              оба означают SARIF версии 2.1.0.
--reportanalyzer               Сообщать дополнительную информацию об анализаторе, такую как
-                              время выполнения.
--skipanalyzers[+|-]           Пропустить выполнение диагностических анализаторов.
+                              Specify a file to log all compiler and analyzer
+                              diagnostics.
+                              sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                              both mean SARIF version 2.1.0.
+-reportanalyzer               Report additional analyzer information, such as
+                              execution time.
+-skipanalyzers[+|-]           Skip execution of diagnostic analyzers.
 
-                       - ЯЗЫК -
--checked[+|-]                 Генерировать проверки переполнения
--unsafe[+|-]                  Разрешить «небезопасный» код
--define:&lt;symbol list&gt;         Определить символ(ы) условной компиляции (краткая
-                              форма: -d)
--langversion:?                Показать допустимые значения для языковой версии
--langversion:&lt;string&gt;         Укажите языковую версию, например
-                              `latest` (последняя версия, включая дополнительные версии),
-                              `default` (то же, что и `последняя`),
-                              `latestmajor` (последняя версия, исключая дополнительные версии),
-                              `preview` (последняя версия, включая функции в неподдерживаемой предварительной версии),
-                              или специальные версии, такие как «6» или «7.1»
--nullable[+|-]                Указать параметр контекста, допускающий значение null, enable|disable.
+                       - LANGUAGE -
+-checked[+|-]                 Generate overflow checks
+-unsafe[+|-]                  Allow 'unsafe' code
+-define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
+                              form: -d)
+-langversion:?                Display the allowed values for language version
+-langversion:&lt;string&gt;         Specify language version such as
+                              `latest` (latest version, including minor versions),
+                              `default` (same as `latest`),
+                              `latestmajor` (latest version, excluding minor versions),
+                              `preview` (latest version, including features in unsupported preview),
+                              or specific versions like `6` or `7.1`
+-nullable[+|-]                Specify nullable context option enable|disable.
 -nullable:{enable|disable|warnings|annotations}
-                              Укажите параметр контекста, допускающий значение NULL, enable|disable|warnings|annotations.
+                              Specify nullable context option enable|disable|warnings|annotations.
 
-                       - БЕЗОПАСНОСТЬ -
--delaysign[+|-]               Отложить подписание сборки, используя только открытый
-                              части ключа строгого имени
--publicsign[+|-]              Общедоступная подпись сборки с использованием только общедоступной
-                              части ключа строгого имени
--keyfile:&lt;file&gt;               Укажите файл ключа со строгим именем
--keycontainer:&lt;string&gt;        Укажите контейнер ключей строгого имени
--highentropyva[+|-]           Включить высокоэнтропийный ASLR
+                       - SECURITY -
+-delaysign[+|-]               Delay-sign the assembly using only the public
+                              portion of the strong name key
+-publicsign[+|-]              Public-sign the assembly using only the public
+                              portion of the strong name key
+-keyfile:&lt;file&gt;               Specify a strong name key file
+-keycontainer:&lt;string&gt;        Specify a strong name key container
+-highentropyva[+|-]           Enable high-entropy ASLR
 
-                       - РАЗНОЕ -
-@&lt;file&gt;                       Прочтите файл ответов, чтобы узнать о дополнительных параметрах
--help                         Показать это сообщение об использовании (краткая форма: -?)
--nologo                       Подавить сообщение об авторских правах компилятора
--nologo                       Не включать автоматически файл CSC.RSP
--parallel[+|-]                Параллельная сборка.
--version                      Показать номер версии компилятора и выйти.
+                       - MISCELLANEOUS -
+@&lt;file&gt;                       Read response file for more options
+-help                         Display this usage message (Short form: -?)
+-nologo                       Suppress compiler copyright message
+-noconfig                     Do not auto include CSC.RSP file
+-parallel[+|-]                Concurrent build.
+-version                      Display the compiler version number and exit.
 
-                       - РАСШИРЕННЫЙ -
--baseaddress:&lt;address&gt;        Базовый адрес для создаваемой библиотеки
--checksumalgorithm:&lt;alg&gt;      Указать алгоритм вычисления контрольной суммы исходного файла,
-                              хранящегося в PDB. Поддерживаемые значения:
-                              SHA1 или SHA256 (по умолчанию).
--codepage:&lt;n&gt;                 Укажите кодовую страницу для использования при открытии исходных
-                              файлов
--utf8output                   Выводить сообщения компилятора в кодировке UTF-8
--main:&lt;type&gt;                  Укажите тип, который содержит точку входа
-                              (игнорировать все другие возможные точки входа) (короткая
-                              форма: -m)
--fullpaths                    Компилятор создает полные пути
--filealign:&lt;n&gt;                Укажите выравнивание, используемое для разделов
-                              выходного файла
+                       - ADVANCED -
+-baseaddress:&lt;address&gt;        Base address for the library to be built
+-checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
+                              checksum stored in PDB. Supported values are:
+                              SHA1 or SHA256 (default).
+-codepage:&lt;n&gt;                 Specify the codepage to use when opening source
+                              files
+-utf8output                   Output compiler messages in UTF-8 encoding
+-main:&lt;type&gt;                  Specify the type that contains the entry point
+                              (ignore all other possible entry points) (Short
+                              form: -m)
+-fullpaths                    Compiler generates fully qualified paths
+-filealign:&lt;n&gt;                Specify the alignment used for output file
+                              sections
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                              Укажите сопоставление для имен исходных путей, выводимых с помощью
-.
-                              компилятора.
--pdb:&lt;file&gt;                   Указать имя файла отладочной информации (по умолчанию:
-                              имя выходного файла с расширением .pdb)
--errorendlocation             Строка вывода и столбец конечного местоположения
-                              каждой ошибки
--preferreduilang              Укажите предпочтительное имя языка вывода.
--nosdkpath                    Отключить поиск стандартных библиотечных сборок по пути SDK по умолчанию.
--nostdlib[+|-]                Не ссылаться на стандартную библиотеку (mscorlib.dll)
--subsystemversion:&lt;string&gt;    Укажите версию подсистемы этой сборки
--lib:&lt;file list&gt;              Указать дополнительные каталоги для поиска
-                              ссылок
--errorreport:&lt;string&gt;         Укажите, как обрабатывать внутренние ошибки компилятора:
-                              запросить, отправить, поставить в очередь или никаких действий. Значение по умолчанию
-                              очередь.
--appconfig:&lt;file&gt;             Указать файл конфигурации приложения
-                              содержащий параметры привязки сборки
--moduleassemblyname:&lt;string&gt; Название сборки, частью которой будет
-                              этот модуль
--modulename:&lt;string&gt;          Укажите имя исходного модуля
--generatedfilesout:&lt;dir&gt;      Поместить файлы, сгенерированные во время компиляции, в
-                              указанный каталог.
--reportivts[+|-]                    Вывести информацию обо всех IVT, предоставленных этой
-                              сборке по всем зависимостям и аннотировать ошибки доступности
-                              сторонних сборок с указанием того, из какой сборки они произошли..
+                              Specify a mapping for source path names output by
+                              the compiler.
+-pdb:&lt;file&gt;                   Specify debug information file name (default:
+                              output file name with .pdb extension)
+-errorendlocation             Output line and column of the end location of
+                              each error
+-preferreduilang              Specify the preferred output language name.
+-nosdkpath                    Disable searching the default SDK path for standard library assemblies.
+-sdkpath:&lt;path&gt;         Path used to search for standard library assemblies.
+-nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
+-subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
+-lib:&lt;file list&gt;              Specify additional directories to search in for
+                              references
+-errorreport:&lt;string&gt;         Specify how to handle internal compiler errors:
+                              prompt, send, queue, or none. The default is
+                              queue.
+-appconfig:&lt;file&gt;             Specify an application configuration file
+                              containing assembly binding settings
+-moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
+                              a part of
+-modulename:&lt;string&gt;          Specify the name of the source module
+-generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
+                              specified directory.
+-reportivts[+|-]                    Output information on all IVTs granted to this
+                              assembly by all dependencies, and annotate foreign assembly
+                              accessibility errors with what assembly they came from.
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -5742,12 +5742,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField">
         <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
-        <target state="translated">{0} "{1}", не допускающий значения NULL, должен содержать значение, отличное от NULL, при выходе из конструктора. Рассмотрите возможность добавить модификатор "required", объявить {0} как допускающее значение NULL или добавить атрибуты "[field: MaybeNull, AllowNull]".</target>
+        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</target>
         <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField_Title">
         <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
-        <target state="translated">Свойство, не допускающее значения NULL, должно содержать значение, отличное от NULL, при выходе из конструктора. Рассмотрите возможность добавить модификатор "required", объявить свойство как допускающее значение NULL или добавить атрибуты "[field: MaybeNull, AllowNull]".</target>
+        <target state="new">Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
@@ -6162,7 +6162,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadVisIndexerParam">
         <source>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</source>
-        <target state="needs-review-translation">Несогласованность по доступности: доступность типа параметра "{1}" ниже доступности индексатора "{0}"</target>
+        <target state="new">Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisOpReturn">
@@ -7087,7 +7087,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
         <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</source>
-        <target state="needs-review-translation">Модификатор "partial" может использоваться только перед ключевыми словами "class", "record", "struct" и "interface", а также перед возвращаемым типом метода или свойства.</target>
+        <target state="new">The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -7277,7 +7277,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadRetType">
         <source>'{1} {0}' has the wrong return type</source>
-        <target state="translated">'{1} {0}" имеет неправильный возвращаемый тип.</target>
+        <target state="translated">"{1} {0}" имеет неправильный возвращаемый тип</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DelegateRefMismatch">
@@ -7746,7 +7746,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_PredefinedTypeAmbiguous">
         <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
-        <target state="translated">Предопределенный тип "{0}" объявлен в нескольких сборках, на которые имеются ссылки: "{1}" и "{2}"</target>
+        <target state="new">Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructWithBaseConstructorCall">
@@ -8061,7 +8061,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_DllImportOnInvalidMethod">
         <source>The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member</source>
-        <target state="needs-review-translation">Атрибут DllImport должен быть указан для метода, который помечен как "static" и "extern".</target>
+        <target state="new">The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
@@ -9160,7 +9160,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_BadTypeforThis">
         <source>The receiver parameter of an extension cannot be of type '{0}'</source>
-        <target state="needs-review-translation">Первый параметр метода расширения не может иметь тип "{0}".</target>
+        <target state="new">The receiver parameter of an extension cannot be of type '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamModThis">
@@ -9190,7 +9190,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_ExtensionAttrNotFound">
         <source>Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
-        <target state="needs-review-translation">Не удается определить новый метод расширения, так как не найден требуемый компилятором тип "{0}". Возможно, отсутствует ссылка на System.Core.dll</target>
+        <target state="new">Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitExtension">
@@ -9285,7 +9285,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
         <source>Invalid token '{0}' in a member declaration</source>
-        <target state="needs-review-translation">Недопустимый токен "{0}" в объявлении класса, записи, структуры или элемента интерфейса</target>
+        <target state="new">Invalid token '{0}' in a member declaration</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">
@@ -11865,7 +11865,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_InvalidDynamicCondition">
         <source>Expression must be implicitly convertible to Boolean or its type '{0}' must not be an interface and must define operator '{1}'.</source>
-        <target state="needs-review-translation">Выражение должно быть неявно преобразуемым в логическое значение, или его тип "{0}" должен определять оператор "{1}".</target>
+        <target state="new">Expression must be implicitly convertible to Boolean or its type '{0}' must not be an interface and must define operator '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MixingWinRTEventWithRegular">
