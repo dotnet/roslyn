@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -22,11 +20,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// Reader of debug information needed for EnC.
 /// This object does not own the underlying memory (SymReader/MetadataReader).
 /// </summary>
-internal abstract class EditAndContinueMethodDebugInfoReader
+internal abstract class EditAndContinueDebugInfoReader
 {
-    // TODO: Remove, the path should match exactly. Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830914.
-    internal static bool IgnoreCaseWhenComparingDocumentNames;
-
     public abstract bool IsPortable { get; }
     public abstract EditAndContinueMethodDebugInformation GetDebugInfo(MethodDefinitionHandle methodHandle);
     public abstract StandaloneSignatureHandle GetLocalSignature(MethodDefinitionHandle methodHandle);
@@ -38,7 +33,7 @@ internal abstract class EditAndContinueMethodDebugInfoReader
     /// <exception cref="Exception">Error reading debug information from the PDB.</exception>
     public abstract bool TryGetDocumentChecksum(string documentPath, out ImmutableArray<byte> checksum, out Guid algorithmId);
 
-    private sealed class Native : EditAndContinueMethodDebugInfoReader
+    private sealed class Native : EditAndContinueDebugInfoReader
     {
         private readonly ISymUnmanagedReader5 _symReader;
         private readonly int _version;
@@ -66,7 +61,7 @@ internal abstract class EditAndContinueMethodDebugInfoReader
         {
             var methodToken = MetadataTokens.GetToken(methodHandle);
 
-            byte[] debugInfo;
+            byte[]? debugInfo;
             try
             {
                 debugInfo = _symReader.GetCustomDebugInfo(methodToken, _version);
@@ -109,7 +104,7 @@ internal abstract class EditAndContinueMethodDebugInfoReader
             => TryGetDocumentChecksum(_symReader, documentPath, out checksum, out algorithmId);
     }
 
-    private sealed class Portable(MetadataReader pdbReader) : EditAndContinueMethodDebugInfoReader
+    private sealed class Portable(MetadataReader pdbReader) : EditAndContinueDebugInfoReader
     {
         private readonly MetadataReader _pdbReader = pdbReader;
 
@@ -158,7 +153,7 @@ internal abstract class EditAndContinueMethodDebugInfoReader
             {
                 var document = _pdbReader.GetDocument(documentHandle);
 
-                if (_pdbReader.StringComparer.Equals(document.Name, documentPath, IgnoreCaseWhenComparingDocumentNames))
+                if (_pdbReader.StringComparer.Equals(document.Name, documentPath, ignoreCase: false))
                 {
                     checksum = _pdbReader.GetBlobContent(document.Hash);
                     algorithmId = _pdbReader.GetGuid(document.HashAlgorithm);
@@ -173,7 +168,7 @@ internal abstract class EditAndContinueMethodDebugInfoReader
     }
 
     /// <summary>
-    /// Creates <see cref="EditAndContinueMethodDebugInfoReader"/> backed by a given <see cref="ISymUnmanagedReader5"/>.
+    /// Creates <see cref="EditAndContinueDebugInfoReader"/> backed by a given <see cref="ISymUnmanagedReader5"/>.
     /// </summary>
     /// <param name="symReader">SymReader open on a Portable or Windows PDB.</param>
     /// <param name="version">The version of the PDB to read.</param>
@@ -186,7 +181,7 @@ internal abstract class EditAndContinueMethodDebugInfoReader
     /// <remarks>
     /// Automatically detects the underlying PDB format and returns the appropriate reader.
     /// </remarks>
-    public static unsafe EditAndContinueMethodDebugInfoReader Create(ISymUnmanagedReader5 symReader, int version = 1)
+    public static unsafe EditAndContinueDebugInfoReader Create(ISymUnmanagedReader5 symReader, int version = 1)
     {
         if (symReader == null)
         {
@@ -212,14 +207,14 @@ internal abstract class EditAndContinueMethodDebugInfoReader
     }
 
     /// <summary>
-    /// Creates <see cref="EditAndContinueMethodDebugInfoReader"/> back by a given <see cref="MetadataReader"/>.
+    /// Creates <see cref="EditAndContinueDebugInfoReader"/> back by a given <see cref="MetadataReader"/>.
     /// </summary>
     /// <param name="pdbReader"><see cref="MetadataReader"/> open on a Portable PDB.</param>
     /// <exception cref="ArgumentNullException"><paramref name="pdbReader"/> is null.</exception>
     /// <returns>
     /// The resulting reader does not take ownership of the <paramref name="pdbReader"/> or the memory it reads.
     /// </returns>
-    public static unsafe EditAndContinueMethodDebugInfoReader Create(MetadataReader pdbReader)
+    public static unsafe EditAndContinueDebugInfoReader Create(MetadataReader pdbReader)
        => new Portable(pdbReader ?? throw new ArgumentNullException(nameof(pdbReader)));
 
     internal static bool TryGetDocumentChecksum(ISymUnmanagedReader5 symReader, string documentPath, out ImmutableArray<byte> checksum, out Guid algorithmId)
