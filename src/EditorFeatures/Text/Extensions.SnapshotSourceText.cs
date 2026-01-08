@@ -306,8 +306,18 @@ public static partial class Extensions
             }
         }
 
+        [Obsolete("Use CopyTo with Span<char> destination instead.")]
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
-            => this.TextImage.CopyTo(sourceIndex, destination, destinationIndex, count);
+            => CopyTo(sourceIndex, destination.AsSpan(destinationIndex, count), count);
+
+        public override void CopyTo(int sourceIndex, Span<char> destination, int count)
+        {
+            // This can be made more efficient when ITextImage2.CopyTo is available.
+            for (var i = 0; i < count; i++)
+            {
+                destination[i] = this.TextImage[sourceIndex + i];
+            }
+        }
 
         public override void Write(TextWriter textWriter, TextSpan span, CancellationToken cancellationToken)
             => this.TextImage.Write(textWriter, span.ToSpan());

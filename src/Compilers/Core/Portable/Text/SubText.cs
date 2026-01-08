@@ -82,10 +82,16 @@ namespace Microsoft.CodeAnalysis.Text
             return new SubText(UnderlyingText, GetCompositeSpan(span.Start, span.Length));
         }
 
+        [Obsolete("Use CopyTo with Span<char> destination instead.")]
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
+            CopyTo(sourceIndex, destination.AsSpan(destinationIndex, count), count);
+        }
+
+        public override void CopyTo(int sourceIndex, Span<char> destination, int count)
+        {
             var span = GetCompositeSpan(sourceIndex, count);
-            UnderlyingText.CopyTo(span.Start, destination, destinationIndex, span.Length);
+            UnderlyingText.CopyTo(span.Start, destination, span.Length);
         }
 
         private TextSpan GetCompositeSpan(int start, int length)

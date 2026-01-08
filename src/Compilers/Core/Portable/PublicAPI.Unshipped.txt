@@ -1,4 +1,7 @@
+abstract Microsoft.CodeAnalysis.Text.SourceText.CopyTo(int sourceIndex, System.Span<char> destination, int count) -> void
 Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.MethodImplEntriesSupported.get -> bool
 Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.MethodImplEntriesSupported.init -> void
 Microsoft.CodeAnalysis.IMethodSymbol.ReduceExtensionMember(Microsoft.CodeAnalysis.ITypeSymbol! receiverType) -> Microsoft.CodeAnalysis.IMethodSymbol?
 Microsoft.CodeAnalysis.IPropertySymbol.ReduceExtensionMember(Microsoft.CodeAnalysis.ITypeSymbol! receiverType) -> Microsoft.CodeAnalysis.IPropertySymbol?
+Microsoft.CodeAnalysis.Text.SourceText.ToStringOld() -> string!
+virtual Microsoft.CodeAnalysis.Text.SourceText.ToStringOld(Microsoft.CodeAnalysis.Text.TextSpan span) -> string!

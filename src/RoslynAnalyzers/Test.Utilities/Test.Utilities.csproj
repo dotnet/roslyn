@@ -6,7 +6,7 @@
     <IsShipping>false</IsShipping>
     <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
-    <DefineConstants>$(DefineConstants),TEST_UTILITIES</DefineConstants>
+    <DefineConstants>$(DefineConstants),TEST_UTILITIES;MICROSOFT_CODEANALYSIS_USEOLDSOURCETEXT</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualBasic" />

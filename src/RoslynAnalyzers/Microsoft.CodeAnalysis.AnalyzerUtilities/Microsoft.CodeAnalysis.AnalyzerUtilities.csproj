@@ -15,6 +15,8 @@
 
     <!-- RS0026: Avoid public API overloads with differences in optional parameters -->
     <NoWarn>$(NoWarn);RS0026</NoWarn>
+
+    <DefineConstants>$(DefineConstants);MICROSOFT_CODEANALYSIS_USEOLDSOURCETEXT</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.Threading.Channels" />

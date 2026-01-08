@@ -153,7 +153,13 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override int Length => _length;
 
+        [Obsolete("Use CopyTo with Span<char> destination instead.")]
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
+        {
+            CopyTo(sourceIndex, destination.AsSpan(destinationIndex, count), count);
+        }
+
+        public override void CopyTo(int sourceIndex, Span<char> destination, int count)
         {
             if (count == 0)
             {
@@ -166,14 +172,14 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 var chunk = _chunks[chunkIndex];
                 int charsToCopy = Math.Min(chunk.Length - chunkStartOffset, count);
-                Array.Copy(chunk, chunkStartOffset, destination, destinationIndex, charsToCopy);
+                chunk.AsSpan(chunkStartOffset, charsToCopy).CopyTo(destination);
                 count -= charsToCopy;
                 if (count <= 0)
                 {
                     break;
                 }
 
-                destinationIndex += charsToCopy;
+                destination = destination[charsToCopy..];
                 chunkStartOffset = 0;
                 chunkIndex++;
             }
