@@ -4090,7 +4090,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol? constructor = getConstructor(node, node.Type);
             var arguments = node.Arguments;
 
-            ReinferrenceResult<MethodSymbol> reinferenceResult = VisitArgumentsCore(
+            ReinferenceResult<MethodSymbol> reinferenceResult = VisitArgumentsCore(
                 node, arguments, node.ArgumentRefKindsOpt, constructor?.Parameters ?? default,
                 node.ArgsToParamsOpt, node.DefaultArguments, node.Expanded, usesExtensionReceiver: false,
                 constructor, delayCompletionForTargetMember: isTargetTyped);
@@ -4361,7 +4361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var extensionParameter = property.ContainingType.ExtensionParameter;
                     Debug.Assert(extensionParameter is not null);
 
-                    ReinferrenceResult<Symbol> reinferrenceResult = VisitArgumentsCore<Symbol>(
+                    ReinferenceResult<Symbol> reinferrenceResult = VisitArgumentsCore<Symbol>(
                         objectInitializer, [receiver], refKindsOpt: default,
                         parametersOpt: [extensionParameter], argsToParamsOpt: default,
                         defaultArguments: default, expanded: false,
@@ -4379,7 +4379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // It is an error for an interpolated string to use the receiver of an object initializer indexer here, so we just use
                         // a default visit result
-                        ReinferrenceResult<Symbol> reinferrenceResult = VisitArgumentsCore(
+                        ReinferenceResult<Symbol> reinferrenceResult = VisitArgumentsCore(
                             objectInitializer, objectInitializer.Arguments, objectInitializer.ArgumentRefKindsOpt,
                             ((PropertySymbol?)symbol)?.Parameters ?? default, objectInitializer.ArgsToParamsOpt,
                             objectInitializer.DefaultArguments, objectInitializer.Expanded,
@@ -4445,7 +4445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // It is an error for an interpolated string to use the receiver of an object initializer indexer here, so we just use
                     // a default visit result
-                    ReinferrenceResult<Symbol> reinferrenceResult = VisitArgumentsCore(
+                    ReinferenceResult<Symbol> reinferrenceResult = VisitArgumentsCore(
                         objectInitializer, objectInitializer.Arguments, objectInitializer.ArgumentRefKindsOpt,
                         ((PropertySymbol?)symbol)?.Parameters ?? default, objectInitializer.ArgsToParamsOpt,
                         objectInitializer.DefaultArguments, objectInitializer.Expanded,
@@ -4604,7 +4604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 ImmutableArray<ParameterSymbol> parameters = AdjustParametersIfNeeded(setter.Parameters, isExtensionBlockMethod: true, setter);
 
-                ReinferrenceResult<MethodSymbol> reinferrenceResult = VisitArgumentsCore(
+                ReinferenceResult<MethodSymbol> reinferrenceResult = VisitArgumentsCore(
                     objectInitializer,
                     arguments: arguments,
                     refKindsOpt: refKindsOpt,
@@ -4664,18 +4664,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             var extensionParameter = setter.ContainingType.ExtensionParameter;
             Debug.Assert(extensionParameter is not null);
 
-            ReinferrenceResult<MethodSymbol> reinferrenceResult = ReInferMethodAndVisitArguments(left, receiver,
+            ReinferenceResult<MethodSymbol> reinferenceResult = ReInferMethodAndVisitArguments(left, receiver,
                 receiverType: receiverResult.RValueType, setter, arguments: [right], refKindsOpt: default,
                 argsToParamsOpt: default, defaultArguments: default, expanded: false,
                 invokedAsExtensionMethod: true,
                 firstArgumentResult: receiverResult);
 
-            Debug.Assert(reinferrenceResult.Member is not null);
-            MethodSymbol? updatedSetter = reinferrenceResult.Member;
-            VisitResult rhsConversionResult = reinferrenceResult.ConversionResults[1];
+            Debug.Assert(reinferenceResult.Member is not null);
+            MethodSymbol? updatedSetter = reinferenceResult.Member;
+            VisitResult rhsConversionResult = reinferenceResult.ConversionResults[1];
 
-            TypeWithAnnotations updatedPropertyType = updatedSetter.AssociatedSymbol.GetTypeOrReturnType();
-            SetResultType(left, TypeWithState.Create(updatedPropertyType));
+            var updatedProperty = updatedSetter.AssociatedSymbol;
+            TypeWithAnnotations updatedPropertyType = GetTypeOrReturnTypeWithAnnotations(updatedProperty);
+            FlowAnalysisAnnotations memberAnnotations = GetRValueAnnotations(updatedProperty);
+            TypeWithState typeWithState = ApplyUnconditionalAnnotations(updatedPropertyType.ToTypeWithState(), memberAnnotations);
+            SetResult(left, typeWithState, updatedPropertyType);
 
             TypeWithAnnotations leftLValueType = ApplyLValueAnnotations(updatedPropertyType, GetLValueAnnotations(left));
             SetResult(node, rhsConversionResult.RValueType, leftLValueType);
@@ -4697,7 +4700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol addMethod = addMethodAsMemberOfContainingType(node, containingType, ref argumentResults);
 
             // Note: we analyze even omitted calls
-            ReinferrenceResult<MethodSymbol> reinferrenceResult = VisitArgumentsCore(
+            ReinferenceResult<MethodSymbol> reinferenceResult = VisitArgumentsCore(
                 node,
                 node.Arguments,
                 refKindsOpt: default,
@@ -4709,7 +4712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 addMethod,
                 delayCompletionForTargetMember: delayCompletionForType);
 
-            return setUpdatedSymbol(node, containingType, reinferrenceResult.Member, reinferrenceResult.Results, reinferrenceResult.Completion, delayCompletionForType);
+            return setUpdatedSymbol(node, containingType, reinferenceResult.Member, reinferenceResult.Results, reinferenceResult.Completion, delayCompletionForType);
 
             InitializerCompletionAfterTargetType? setUpdatedSymbol(
                 BoundCollectionElementInitializer node,
@@ -6764,7 +6767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                ReinferrenceResult<MethodSymbol> reinferrenceResult = ReInferMethodAndVisitArguments(
+                ReinferenceResult<MethodSymbol> reinferenceResult = ReInferMethodAndVisitArguments(
                     node,
                     node.ReceiverOpt,
                     receiverType,
@@ -6777,13 +6780,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     invokedAsExtensionMethod: node.InvokedAsExtensionMethod,
                     firstArgumentResult);
 
-                Debug.Assert(reinferrenceResult.Member is not null);
-                MethodSymbol method = reinferrenceResult.Member;
+                Debug.Assert(reinferenceResult.Member is not null);
+                MethodSymbol method = reinferenceResult.Member;
 
-                LearnFromEqualsMethod(method, node, receiverType, reinferrenceResult.Results);
+                LearnFromEqualsMethod(method, node, receiverType, reinferenceResult.Results);
 
                 var returnState = GetReturnTypeWithState(method);
-                if (reinferrenceResult.ReturnNotNull)
+                if (reinferenceResult.ReturnNotNull)
                 {
                     returnState = returnState.WithNotNullState();
                 }
@@ -6807,7 +6810,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return receiverType;
         }
 
-        private ReinferrenceResult<MethodSymbol> ReInferMethodAndVisitArguments(
+        private ReinferenceResult<MethodSymbol> ReInferMethodAndVisitArguments(
             BoundNode node,
             BoundExpression? receiverOpt,
             TypeWithState receiverType,
@@ -6835,16 +6838,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<ParameterSymbol> parameters = AdjustParametersIfNeeded(method.Parameters, adjustForExtensionBlockMember, method);
             argsToParamsOpt = AdjustArgsToParamsOptIfNeeded(argsToParamsOpt, adjustForExtensionBlockMember);
 
-            ReinferrenceResult<MethodSymbol> reinferrenceResult = VisitArgumentsCore(node, arguments, refKindsOpt, parameters, argsToParamsOpt, defaultArguments,
+            ReinferenceResult<MethodSymbol> reinferenceResult = VisitArgumentsCore(node, arguments, refKindsOpt, parameters, argsToParamsOpt, defaultArguments,
                 expanded, usesExtensionReceiver, method, delayCompletionForTargetMember: false, firstArgumentResult: firstArgumentResult);
 
-            Debug.Assert(reinferrenceResult.Completion is null);
-            var newMethod = reinferrenceResult.Member;
+            Debug.Assert(reinferenceResult.Completion is null);
+            var newMethod = reinferenceResult.Member;
             Debug.Assert(newMethod is not null);
 
             ApplyMemberPostConditions(receiverOpt, newMethod);
 
-            return reinferrenceResult;
+            return reinferenceResult;
         }
 
         private static ImmutableArray<BoundExpression> AdjustArgumentsIfNeeded(ImmutableArray<BoundExpression> arguments, bool isExtensionBlockMethod, BoundExpression? receiver)
@@ -7354,8 +7357,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool expanded,
             bool invokedAsExtensionMethod)
         {
-            var reinferrenceResult = VisitArgumentsCore(node, arguments, refKindsOpt, method is null ? default : method.Parameters, argsToParamsOpt, defaultArguments, expanded, invokedAsExtensionMethod, method, delayCompletionForTargetMember: false);
-            Debug.Assert(reinferrenceResult.Completion is null);
+            var reinferenceResult = VisitArgumentsCore(node, arguments, refKindsOpt, method is null ? default : method.Parameters, argsToParamsOpt, defaultArguments, expanded, invokedAsExtensionMethod, method, delayCompletionForTargetMember: false);
+            Debug.Assert(reinferenceResult.Completion is null);
         }
 
         private void VisitArguments(
@@ -7367,8 +7370,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BitVector defaultArguments,
             bool expanded)
         {
-            var reinferrenceResult = VisitArgumentsCore(node, arguments, refKindsOpt, parametersOpt: property is null ? default : property.Parameters, argsToParamsOpt, defaultArguments, expanded, usesExtensionReceiver: false, member: property, delayCompletionForTargetMember: false);
-            Debug.Assert(reinferrenceResult.Completion is null);
+            var reinferenceResult = VisitArgumentsCore(node, arguments, refKindsOpt, parametersOpt: property is null ? default : property.Parameters, argsToParamsOpt, defaultArguments, expanded, usesExtensionReceiver: false, member: property, delayCompletionForTargetMember: false);
+            Debug.Assert(reinferenceResult.Completion is null);
         }
 
         private delegate (TMember? member, bool returnNotNull) ArgumentsCompletionDelegate<TMember>(ImmutableArray<VisitResult> argumentResults, ImmutableArray<ParameterSymbol> parametersOpt, TMember? member) where TMember : Symbol;
@@ -7376,7 +7379,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private delegate void InitializerCompletionAfterTargetType(int containingSlot, TypeSymbol containingType);
         private delegate void InitializerCompletionAfterUpdatedSymbol(int containingSlot, Symbol updatedSymbol);
 
-        private struct ReinferrenceResult<TMember>(TMember? member, ImmutableArray<VisitResult> results, ImmutableArray<VisitResult> conversionResults, bool returnNotNull, ArgumentsCompletionDelegate<TMember>? completion)
+        private readonly struct ReinferenceResult<TMember>(TMember? member, ImmutableArray<VisitResult> results, ImmutableArray<VisitResult> conversionResults,
+            bool returnNotNull, ArgumentsCompletionDelegate<TMember>? completion)
             where TMember : Symbol
         {
             public readonly TMember? Member = member;
@@ -7386,7 +7390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly ArgumentsCompletionDelegate<TMember>? Completion = completion;
         }
 
-        private ReinferrenceResult<TMember> VisitArgumentsCore<TMember>(
+        private ReinferenceResult<TMember> VisitArgumentsCore<TMember>(
             BoundNode node,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKindsOpt,
@@ -7424,7 +7428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parametersOpt, argsToParamsOpt, defaultArguments, expanded, usesExtensionReceiver,
                 member, delayCompletionForTargetMember);
 
-            ReinferrenceResult<TMember> visitArgumentsCore(
+            ReinferenceResult<TMember> visitArgumentsCore(
                 BoundNode node,
                 ImmutableArray<BoundExpression> arguments,
                 ImmutableArray<BoundExpression> argumentsNoConversions,
@@ -7443,7 +7447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (delayCompletionForTargetMember)
                 {
-                    return new ReinferrenceResult<TMember>(member, results, conversionResults: default, shouldReturnNotNull, visitArgumentsCoreAsContinuation(
+                    return new ReinferenceResult<TMember>(member, results, conversionResults: default, shouldReturnNotNull, visitArgumentsCoreAsContinuation(
                                                                       node, arguments, argumentsNoConversions, conversions, refKindsOpt,
                                                                       argsToParamsOpt, defaultArguments, expanded, usesExtensionReceiver));
                 }
@@ -7609,7 +7613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 notNullParametersBuilder?.Free();
-                return new ReinferrenceResult<TMember>(member, results, conversionResultsBuilder.ToImmutableAndFree(), shouldReturnNotNull, completion: null);
+                return new ReinferenceResult<TMember>(member, results, conversionResultsBuilder.ToImmutableAndFree(), shouldReturnNotNull, completion: null);
             }
 
             ArgumentsCompletionDelegate<TMember> visitArgumentsCoreAsContinuation(
@@ -10779,7 +10783,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeWithAnnotations leftLValueType = ApplyLValueAnnotations(LvalueResultType, leftAnnotations);
                 TypeWithState rightState = VisitRefExpression(right, destinationType: leftLValueType);
 
-                AdjustSetValue(left, ref rightState);
                 TrackNullableStateForAssignment(right, leftLValueType, MakeSlot(left), rightState, MakeSlot(right));
                 return null;
             }
@@ -11228,7 +11231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     TypeWithState receiverType = VisitAndCheckReceiver(node.Operand, instanceMethod);
-                    ReinferrenceResult<MethodSymbol> reinferrenceResult = ReInferMethodAndVisitArguments(
+                    ReinferenceResult<MethodSymbol> reinferenceResult = ReInferMethodAndVisitArguments(
                         node,
                         node.Operand,
                         receiverType,
@@ -11240,9 +11243,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         expanded: false,
                         invokedAsExtensionMethod: false);
 
-                    Debug.Assert(reinferrenceResult.Member is not null);
-                    instanceMethod = reinferrenceResult.Member;
-                    ImmutableArray<VisitResult> results = reinferrenceResult.Results;
+                    Debug.Assert(reinferenceResult.Member is not null);
+                    instanceMethod = reinferenceResult.Member;
+                    ImmutableArray<VisitResult> results = reinferenceResult.Results;
 
                     if (node.Type.IsVoidType())
                     {
@@ -11409,7 +11412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     TypeWithState receiverType = VisitAndCheckReceiver(node.Left, instanceMethod);
-                    ReinferrenceResult<MethodSymbol> reinferrenceResult = ReInferMethodAndVisitArguments(
+                    ReinferenceResult<MethodSymbol> reinferrenceResult = ReInferMethodAndVisitArguments(
                         node,
                         node.Left,
                         receiverType,
@@ -11641,7 +11644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private ReinferrenceResult<PropertySymbol> ReInferAndVisitExtensionPropertyAccess(BoundNode node, PropertySymbol property, BoundExpression receiver)
+        private ReinferenceResult<PropertySymbol> ReInferAndVisitExtensionPropertyAccess(BoundNode node, PropertySymbol property, BoundExpression receiver)
         {
             Debug.Assert(property.IsExtensionBlockMember());
             ImmutableArray<BoundExpression> arguments = [receiver];
@@ -11668,7 +11671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (property.IsExtensionBlockMember())
             {
                 Debug.Assert(node.ReceiverOpt is not null);
-                ReinferrenceResult<PropertySymbol> reinferrenceResult = ReInferAndVisitExtensionPropertyAccess(node, property, node.ReceiverOpt);
+                ReinferenceResult<PropertySymbol> reinferrenceResult = ReInferAndVisitExtensionPropertyAccess(node, property, node.ReceiverOpt);
                 Debug.Assert(reinferrenceResult.Member is not null);
                 updatedProperty = reinferrenceResult.Member;
 
@@ -11918,7 +11921,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We do not need to do this same analysis for non-extension methods because they do not have generic parameters that
                 // can be inferred from usage like extension methods can. We don't warn about default arguments at the call site, so
                 // there's nothing that can be learned from the non-extension case.
-                ReinferrenceResult<MethodSymbol> reinferrenceResult = ReInferMethodAndVisitArguments(
+                ReinferenceResult<MethodSymbol> reinferrenceResult = ReInferMethodAndVisitArguments(
                     node: node,
                     receiverOpt: expr,
                     receiverType: resultTypeWithState,

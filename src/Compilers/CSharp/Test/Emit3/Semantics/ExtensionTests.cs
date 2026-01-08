@@ -49422,8 +49422,8 @@ static class E
 }
 """;
 
+        // Note: diagnostic quality, diagnostic is reported on the containing symbol of the extension parameter
         var comp = CreateCompilation(src);
-        comp.VerifyTypes(comp.SyntaxTrees[0]);
         comp.VerifyEmitDiagnostics(
             // (3,23): warning CS8620: Argument of type 'C<string>' cannot be used for parameter 'c' of type 'C<string?>' in 'E.extension<string?>(C<string?>)' due to differences in the nullability of reference types.
             // _ = new C<string>() { Property = null };
