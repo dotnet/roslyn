@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
+using ILVerify;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -441,11 +444,18 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             }
             """;
 
-        CompileAndVerify(
+        var verifier = CompileAndVerify(
             [sourceA, sourceB],
             expectedOutput: IncludeExpectedOutput("goo"),
             targetFramework: TargetFramework.Net80,
             verify: Verification.Fails).VerifyDiagnostics();
+
+        var compilation = verifier.Compilation;
+        var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees.Last());
+
+        var invocation = compilation.SyntaxTrees.Last().GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+        var symbolInfo = semanticModel.GetSymbolInfo(invocation);
+        AssertEx.Equal("void Program.Goo<System.String>(MyCollection<System.String> list)", symbolInfo.Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -491,10 +501,17 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             }
             """;
 
-        CompileAndVerify(
+        var verifier = CompileAndVerify(
             [sourceA, sourceB],
             expectedOutput: IncludeExpectedOutput("goo"),
             targetFramework: TargetFramework.Net80,
             verify: Verification.Fails).VerifyDiagnostics();
+
+        var compilation = verifier.Compilation;
+        var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees.Last());
+
+        var invocation = compilation.SyntaxTrees.Last().GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+        var symbolInfo = semanticModel.GetSymbolInfo(invocation);
+        AssertEx.Equal("void Program.Goo<System.String>(MyCollection<System.String> list)", symbolInfo.Symbol.ToTestDisplayString());
     }
 }
