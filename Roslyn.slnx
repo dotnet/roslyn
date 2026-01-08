@@ -363,6 +363,14 @@
     <Project Path="src/Setup/DevDivInsertionFiles/DevDivInsertionFiles.csproj" />
   </Folder>
   <Folder Name="/VisualStudio/IntegrationTest/">
+    <Project Path="src/VisualStudio/IntegrationTest/Harness/SourceGeneratorUnitTests/Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests.csproj" />
+    <Project Path="src/VisualStudio/IntegrationTest/Harness/SourceGenerator/Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.csproj" />
+    <Project Path="src/VisualStudio/IntegrationTest/Harness/IntegrationTestsShared/Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared.shproj" Id="9b5759ad-4eff-4e2d-921b-d617bb8cfa22" />
+    <Project Path="src/VisualStudio/IntegrationTest/Harness/XUnitIntegrationTests/Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.csproj" />
+    <Project Path="src/VisualStudio/IntegrationTest/Harness/XUnitShared/Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared.shproj" Id="d7647395-129b-4f45-8c78-10e6f92fc8ad" />
+    <Project Path="src/VisualStudio/IntegrationTest/Harness/XUnit/Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj" />
+    <Project Path="src/VisualStudio/IntegrationTest/Harness/IntegrationTestServiceDev18/Microsoft.VisualStudio.IntegrationTestService.Dev18.csproj" />
+    <Project Path="src/VisualStudio/IntegrationTest/Harness/IntegrationTestServiceShared/Microsoft.VisualStudio.IntegrationTestService.Shared.shproj" Id="629938e1-1c2c-4f01-8038-90a34a940ac8" />
     <Project Path="src/VisualStudio/IntegrationTest/New.IntegrationTests/Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.csproj">
       <BuildDependency Project="src/VisualStudio/Setup/Roslyn.VisualStudio.Setup.csproj" />
     </Project>

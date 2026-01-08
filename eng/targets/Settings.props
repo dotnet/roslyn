@@ -151,9 +151,11 @@
   <!--
     Analyzers
   -->
+  <ItemGroup>
+    <PackageReference Include="Roslyn.Diagnostics.Analyzers" PrivateAssets="all" />
+  </ItemGroup>
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" PrivateAssets="all" />
-    <PackageReference Include="Roslyn.Diagnostics.Analyzers" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" PrivateAssets="all" />
   </ItemGroup>

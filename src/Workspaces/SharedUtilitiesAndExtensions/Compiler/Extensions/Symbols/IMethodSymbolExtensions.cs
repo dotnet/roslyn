@@ -15,6 +15,34 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class IMethodSymbolExtensions
 {
+#if !ROSLYN_4_12_OR_LOWER
+    internal static IMethodSymbol? TryGetCorrespondingExtensionBlockMethod(this IMethodSymbol methodSymbol)
+    {
+        if (methodSymbol is { IsStatic: true, IsImplicitlyDeclared: true, ContainingType.MightContainExtensionMethods: true })
+        {
+            // Having a compiler API to go from implementation method back to its corresponding extension member would be useful
+            // Tracked by https://github.com/dotnet/roslyn/issues/81686
+
+            foreach (var nestedType in methodSymbol.ContainingType.GetTypeMembers())
+            {
+                if (!nestedType.IsExtension || nestedType.ExtensionParameter is null)
+                    continue;
+
+                foreach (var member in nestedType.GetMembers())
+                {
+                    if (member is IMethodSymbol method &&
+                        Equals(method.AssociatedExtensionImplementation, methodSymbol))
+                    {
+                        return method;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+#endif
+
     /// <summary>
     /// Returns the methodSymbol and any partial parts.
     /// </summary>

@@ -243,7 +243,7 @@ internal sealed partial class AutomaticLineEnderCommandHandler
         //     $$
         // }
         // Print();
-        if (ifStatementNode.Else == null && ifStatementNode.Parent is BlockSyntax)
+        if (ifStatementNode is { Else: null, Parent: BlockSyntax })
         {
             return ReplaceStatementOwnerAndInsertStatement(
                 services,

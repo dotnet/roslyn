@@ -65,9 +65,9 @@ record Point(int x, int y);
                 // (2,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
                 // record Point { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(2, 1),
-                // (2,8): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,8): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                 // record Point { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Point").WithLocation(2, 8),
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "Point").WithLocation(2, 8),
                 // (2,8): error CS0548: '<invalid-global-code>.Point': property or indexer must have at least one accessor
                 // record Point { }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "Point").WithArguments("<invalid-global-code>.Point").WithLocation(2, 8)
@@ -30578,7 +30578,7 @@ record R1(int x);
                 class Attr : System.Attribute {}
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"), targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature(Feature.RunNullableAnalysis, "never"), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -30602,7 +30602,7 @@ record R1(int x);
                 class Attr : System.Attribute {}
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"), targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature(Feature.RunNullableAnalysis, "never"), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];

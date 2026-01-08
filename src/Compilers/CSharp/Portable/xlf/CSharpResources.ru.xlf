@@ -567,6 +567,11 @@
         <target state="translated">Инициализатор коллекции приводит к созданию бесконечной цепочки экземпляров коллекции "{0}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CompilationUnitUnexpected">
+        <source>A compilation unit cannot directly contain members such as fields, methods or properties</source>
+        <target state="new">A compilation unit cannot directly contain members such as fields, methods or properties</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
         <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
         <target state="translated">Параметр типа "{1}" имеет ограничение "unmanaged", поэтому "{1}" не может использоваться в качестве ограничения для "{0}".</target>
@@ -880,6 +885,11 @@
       <trans-unit id="ERR_ExtensionParameterDisallowsDefaultValue">
         <source>The receiver parameter of an extension cannot have a default value</source>
         <target state="new">The receiver parameter of an extension cannot have a default value</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExtensionParameterInStaticContext">
+        <source>Static members cannot access the value of extension parameter '{0}'.</source>
+        <target state="new">Static members cannot access the value of extension parameter '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionResolutionFailed">
@@ -1412,6 +1422,11 @@
         <target state="translated">Аргумент diagnosticId атрибута "Experimental" должен быть допустимым идентификатором</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
+        <source>The target runtime does not support extended layout types.</source>
+        <target state="new">The target runtime does not support extended layout types.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidExtensionParameterReference">
         <source>Cannot use extension parameter '{0}' in this context.</source>
         <target state="new">Cannot use extension parameter '{0}' in this context.</target>
@@ -1450,6 +1465,11 @@
       <trans-unit id="ERR_InvalidInterpolatedStringHandlerArgumentName">
         <source>'{0}' is not a valid parameter name from '{1}'.</source>
         <target state="translated">"{0}" не является допустимым именем параметра из "{1}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidModifierAfterScoped">
+        <source>The '{0}' modifier cannot immediately follow the 'scoped' modifier.</source>
+        <target state="new">The '{0}' modifier cannot immediately follow the 'scoped' modifier.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidModifierForLanguageVersion">
@@ -2352,6 +2372,11 @@
         <target state="translated">Целевая среда выполнения не поддерживает расширяемые или принадлежащие среде выполнения соглашения о вызовах по умолчанию.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
+        <source>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</source>
+        <target state="new">The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ScopedDiscard">
         <source>The 'scoped' modifier cannot be used with discard.</source>
         <target state="translated">Модификатор "scoped" нельзя использовать с отменой.</target>
@@ -2475,6 +2500,11 @@
       <trans-unit id="ERR_StructHasInitializersAndNoDeclaredConstructor">
         <source>A 'struct' with field initializers must include an explicitly declared constructor.</source>
         <target state="translated">Параметр struct с инициализаторами полей должен включать явно объявленный конструктор.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StructLayoutAndExtendedLayout">
+        <source>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</source>
+        <target state="new">Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructLayoutCyclePrimaryConstructorParameter">

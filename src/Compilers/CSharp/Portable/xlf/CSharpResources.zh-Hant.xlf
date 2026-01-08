@@ -567,6 +567,11 @@
         <target state="translated">集合初始設定式會導致集合 '{0}' 的無限具現化鏈結。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CompilationUnitUnexpected">
+        <source>A compilation unit cannot directly contain members such as fields, methods or properties</source>
+        <target state="new">A compilation unit cannot directly contain members such as fields, methods or properties</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
         <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
         <target state="translated">類型參數 '{1}' 有 'unmanaged' 條件約束，因此 '{1}' 不可作為 '{0}' 的條件約束</target>
@@ -880,6 +885,11 @@
       <trans-unit id="ERR_ExtensionParameterDisallowsDefaultValue">
         <source>The receiver parameter of an extension cannot have a default value</source>
         <target state="new">The receiver parameter of an extension cannot have a default value</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExtensionParameterInStaticContext">
+        <source>Static members cannot access the value of extension parameter '{0}'.</source>
+        <target state="new">Static members cannot access the value of extension parameter '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionResolutionFailed">
@@ -1412,6 +1422,11 @@
         <target state="translated">'Experimental' 屬性的 diagnosticId 引數必須是有效的識別碼</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
+        <source>The target runtime does not support extended layout types.</source>
+        <target state="new">The target runtime does not support extended layout types.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidExtensionParameterReference">
         <source>Cannot use extension parameter '{0}' in this context.</source>
         <target state="new">Cannot use extension parameter '{0}' in this context.</target>
@@ -1450,6 +1465,11 @@
       <trans-unit id="ERR_InvalidInterpolatedStringHandlerArgumentName">
         <source>'{0}' is not a valid parameter name from '{1}'.</source>
         <target state="translated">'{0}' 不是來自 '{1}' 的有效參數名稱。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidModifierAfterScoped">
+        <source>The '{0}' modifier cannot immediately follow the 'scoped' modifier.</source>
+        <target state="new">The '{0}' modifier cannot immediately follow the 'scoped' modifier.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidModifierForLanguageVersion">
@@ -2352,6 +2372,11 @@
         <target state="translated">目標執行階段不支援可延伸或執行階段環境的預設呼叫慣例。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
+        <source>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</source>
+        <target state="new">The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ScopedDiscard">
         <source>The 'scoped' modifier cannot be used with discard.</source>
         <target state="translated">'scoped' 修飾元不能與捨棄一起使用。</target>
@@ -2475,6 +2500,11 @@
       <trans-unit id="ERR_StructHasInitializersAndNoDeclaredConstructor">
         <source>A 'struct' with field initializers must include an explicitly declared constructor.</source>
         <target state="translated">具有欄位初始設定式的 'struct' 必須包含明確宣告的建構函式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StructLayoutAndExtendedLayout">
+        <source>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</source>
+        <target state="new">Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructLayoutCyclePrimaryConstructorParameter">

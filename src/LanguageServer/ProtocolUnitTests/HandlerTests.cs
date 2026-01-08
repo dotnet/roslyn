@@ -316,9 +316,9 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
             return request.TextDocumentIdentifier;
         }
 
-        public Task<string> HandleRequestAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<string> HandleRequestAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
         {
-            return Task.FromResult(this.GetType().Name);
+            return this.GetType().Name;
         }
     }
 
@@ -338,9 +338,9 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
             return request.TextDocumentIdentifier;
         }
 
-        public Task<string> HandleRequestAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<string> HandleRequestAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
         {
-            return Task.FromResult(this.GetType().Name);
+            return this.GetType().Name;
         }
     }
 
@@ -355,9 +355,9 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         public bool MutatesSolutionState => true;
         public bool RequiresLSPSolution => true;
 
-        public Task<string> HandleRequestAsync(RequestContext context, CancellationToken cancellationToken)
+        public async Task<string> HandleRequestAsync(RequestContext context, CancellationToken cancellationToken)
         {
-            return Task.FromResult(this.GetType().Name);
+            return this.GetType().Name;
         }
     }
 
@@ -370,10 +370,9 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         public bool MutatesSolutionState => true;
         public bool RequiresLSPSolution => true;
 
-        public Task HandleNotificationAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
+        public async Task HandleNotificationAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
         {
             ResultSource.SetResult(this.GetType().Name);
-            return Task.CompletedTask;
         }
     }
 
@@ -400,10 +399,9 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         public bool MutatesSolutionState => true;
         public bool RequiresLSPSolution => true;
 
-        public Task HandleNotificationAsync(RequestContext context, CancellationToken cancellationToken)
+        public async Task HandleNotificationAsync(RequestContext context, CancellationToken cancellationToken)
         {
             ResultSource.SetResult(this.GetType().Name);
-            return Task.CompletedTask;
         }
     }
 
@@ -438,9 +436,9 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
             return request.TextDocumentIdentifier;
         }
 
-        public Task<string> HandleRequestAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<string> HandleRequestAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
         {
-            return Task.FromResult(this.GetType().Name);
+            return this.GetType().Name;
         }
     }
 
@@ -462,9 +460,9 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
             return request.TextDocumentIdentifier;
         }
 
-        public Task<string> HandleRequestAsync(TestRequestTypeTwo request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<string> HandleRequestAsync(TestRequestTypeTwo request, RequestContext context, CancellationToken cancellationToken)
         {
-            return Task.FromResult(this.GetType().Name);
+            return this.GetType().Name;
         }
     }
 
@@ -481,9 +479,9 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         public bool MutatesSolutionState => true;
         public bool RequiresLSPSolution => true;
 
-        public Task<string> HandleRequestAsync(RequestContext context, CancellationToken cancellationToken)
+        public async Task<string> HandleRequestAsync(RequestContext context, CancellationToken cancellationToken)
         {
-            return Task.FromResult(this.GetType().Name);
+            return this.GetType().Name;
         }
     }
 }

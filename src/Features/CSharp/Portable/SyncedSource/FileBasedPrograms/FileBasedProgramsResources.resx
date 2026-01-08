@@ -169,4 +169,7 @@
     <value>Unrecognized directive '{0}'.</value>
     <comment>{0} is the directive name like 'package' or 'sdk'.</comment>
   </data>
+  <data name="EmptyTempPath" xml:space="preserve">
+    <value>Unable to determine a temporary directory path. Consider configuring the TEMP environment variable on Windows or local app data folder on Unix.</value>
+  </data>
 </root>

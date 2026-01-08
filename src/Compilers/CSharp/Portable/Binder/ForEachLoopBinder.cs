@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 createConversionDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
             }
 
-            BoundExpression elementConversion = CreateConversion(_syntax, elementPlaceholder, elementConversionClassification, isCast: false, conversionGroupOpt: null, iterationVariableType.Type, createConversionDiagnostics);
+            BoundExpression elementConversion = CreateConversion(_syntax, elementPlaceholder, elementConversionClassification, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, iterationVariableType.Type, createConversionDiagnostics);
 
             if (createConversionDiagnostics.AccumulatesDiagnostics && !createConversionDiagnostics.DiagnosticBag.IsEmptyWithoutResolution)
             {
@@ -567,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (currentConversionClassification.IsValid)
             {
                 builder.CurrentPlaceholder = new BoundValuePlaceholder(_syntax, builder.CurrentPropertyGetter.ReturnType).MakeCompilerGenerated();
-                builder.CurrentConversion = CreateConversion(_syntax, builder.CurrentPlaceholder, currentConversionClassification, isCast: false, conversionGroupOpt: null, builder.ElementType, diagnostics);
+                builder.CurrentConversion = CreateConversion(_syntax, builder.CurrentPlaceholder, currentConversionClassification, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, builder.ElementType, diagnostics);
             }
 
             if (IsAsync)
@@ -652,6 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionConversionClassification,
                 isCast: false,
                 conversionGroupOpt: null,
+                InConversionGroupFlags.Unspecified,
                 collectionType,
                 diagnostics);
 
@@ -668,6 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: CheckOverflowAtRuntime,
                     explicitCastInCode: false,
                     conversionGroupOpt: null,
+                    InConversionGroupFlags.Unspecified,
                     ConstantValue.NotAvailable,
                     collectionType);
             }
@@ -1563,6 +1565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         @checked: CheckOverflowAtRuntime,
                         explicitCastInCode: false,
                         conversionGroupOpt: null,
+                        InConversionGroupFlags.Unspecified,
                         ConstantValue.NotAvailable,
                         result.Parameters[0].Type);
 
