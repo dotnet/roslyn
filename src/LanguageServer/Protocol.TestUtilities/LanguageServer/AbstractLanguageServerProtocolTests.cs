@@ -354,7 +354,12 @@ public abstract partial class AbstractLanguageServerProtocolTests
         var workspace = await CreateWorkspaceAsync(lspOptions, workspaceKind, mutatingLspWorkspace);
 
         workspace.InitializeDocuments(XElement.Parse(xmlContent), openDocuments: false);
-        workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([CreateTestAnalyzersReference()]));
+        var analyzerReferences = CreateTestAnalyzersReference();
+
+        if (lspOptions.AdditionalAnalyzers != null)
+            analyzerReferences = analyzerReferences.WithAdditionalAnalyzers(LanguageNames.CSharp, lspOptions.AdditionalAnalyzers);
+
+        workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReferences]));
 
         return await TestLspServer.CreateAsync(workspace, lspOptions, TestOutputLspLogger);
     }
