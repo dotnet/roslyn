@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -1492,11 +1493,34 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         ], _telemetryLog);
     }
 
+    public static TheoryData<bool, Encoding> EncodingsTestCases()
+    {
+        var data = new TheoryData<bool, Encoding>();
+        foreach (var encoding in new[]
+        {
+            new UTF8Encoding(encoderShouldEmitUTF8Identifier: true),
+            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
+            Encoding.Unicode,
+            Encoding.BigEndianUnicode,
+
+            // TODO: https://github.com/dotnet/roslyn/issues/81930
+            // We do not currently account for CodePage property value and thus an encoding such as Shift-JIS that can't be detected
+            // from the file content does not work.
+            // Encoding.GetEncoding("SJIS");
+        })
+        {
+            data.Add(true, encoding);
+            data.Add(false, encoding);
+        }
+
+        return data;
+    }
+
     [Theory]
-    [CombinatorialData]
+    [MemberData(nameof(EncodingsTestCases))]
     [WorkItem("https://github.com/dotnet/roslyn/issues/81930")]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2067885")]
-    public async Task Encodings(bool matchingContent)
+    public async Task Encodings(bool matchingContent, Encoding compilerEncoding)
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
@@ -1508,12 +1532,6 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         // The actual encoding used by the compiler is either detected from the file content itself (e.g. Unicode encodings)
         // or it can also be set in the project via CodePage property.
-
-        // TODO: https://github.com/dotnet/roslyn/issues/81930
-        // We do not currently account for CodePage property value and thus an encoding such as Shift-JIS that can't be detected
-        // from the file content does not work.
-        // var compilerEncoding = Encoding.GetEncoding("SJIS");
-        var compilerEncoding = Encoding.Unicode;
 
         var dir = Temp.CreateDirectory();
         var sourceFile = dir.CreateFile("test.cs").WriteAllText(fileSource, compilerEncoding);
