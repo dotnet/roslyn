@@ -10,34 +10,3 @@ using System.Text;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Text;
-
-internal sealed class SourceTextWithAlgorithm : SourceText
-{
-    private readonly SourceText _underlying;
-
-    private SourceTextWithAlgorithm(SourceText underlying, SourceHashAlgorithm checksumAlgorithm) : base(checksumAlgorithm: checksumAlgorithm)
-    {
-        Debug.Assert(checksumAlgorithm != SourceHashAlgorithm.None);
-        Debug.Assert(checksumAlgorithm != underlying.ChecksumAlgorithm);
-        _underlying = underlying;
-    }
-
-    public static SourceText Create(SourceText underlying, SourceHashAlgorithm checksumAlgorithm)
-    {
-        if (checksumAlgorithm == SourceHashAlgorithm.None || checksumAlgorithm == underlying.ChecksumAlgorithm)
-            return underlying;
-
-        return new SourceTextWithAlgorithm(underlying, checksumAlgorithm);
-    }
-
-    public override char this[int position] => _underlying[position];
-
-    public override Encoding? Encoding => _underlying.Encoding;
-
-    public override int Length => _underlying.Length;
-
-    public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
-    {
-        _underlying.CopyTo(sourceIndex, destination, destinationIndex, count);
-    }
-}
