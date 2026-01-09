@@ -1127,11 +1127,13 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
         this.AnalyzerConfigDocumentStates.AddDocumentIdsWithFilePath(ref temporaryArray, filePath);
     }
 
-    public DocumentId? GetFirstDocumentIdWithFilePath(string filePath)
+    /// <summary>
+    /// Returns the first <see cref="DocumentId"/> from this project that matches this path. This only checks for regular documents,
+    /// and does not check for additional documents or .editorconfig documents.
+    /// </summary>
+    public DocumentId? GetFirstSourceDocumentIdWithFilePath(string filePath)
     {
-        return this.DocumentStates.GetFirstDocumentIdWithFilePath(filePath) ??
-            this.AdditionalDocumentStates.GetFirstDocumentIdWithFilePath(filePath) ??
-            this.AnalyzerConfigDocumentStates.GetFirstDocumentIdWithFilePath(filePath);
+        return this.DocumentStates.GetFirstDocumentIdWithFilePath(filePath);
     }
 
     public int CompareTo(ProjectState? other)
