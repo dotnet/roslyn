@@ -376,6 +376,39 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
         return GetAnalyzerOptionsForPath(sourceFilePath, CancellationToken.None);
     }
 
+    private static string? GetEffectiveFilePath(DocumentState documentState, ProjectState projectState)
+    {
+        if (documentState.Id.IsSourceGenerated)
+        {
+            // Source generated document file paths should not be used to lookup
+            // analyzer config options as they do not actually exist on disk.
+            return null;
+        }
+
+        if (!string.IsNullOrEmpty(documentState.FilePath))
+        {
+            return documentState.FilePath;
+        }
+
+        // We need to work out path to this document. Documents may not have a "real" file path if they're something created
+        // as a part of a code action, but haven't been written to disk yet.
+
+        var projectFilePath = projectState.FilePath;
+
+        if (documentState.Name != null && projectFilePath != null)
+        {
+            var projectPath = PathUtilities.GetDirectoryName(projectFilePath);
+
+            if (!RoslynString.IsNullOrEmpty(projectPath) &&
+                PathUtilities.GetDirectoryName(projectFilePath) is string directory)
+            {
+                return PathUtilities.CombinePathsUnchecked(directory, documentState.Name);
+            }
+        }
+
+        return null;
+    }
+
     internal sealed class ProjectAnalyzerConfigOptionsProvider(ProjectState projectState) : AnalyzerConfigOptionsProvider
     {
         private AnalyzerConfigOptionsCache.Value GetCache()
@@ -404,7 +437,7 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
 
         private StructuredAnalyzerConfigOptions GetOptions(in AnalyzerConfigOptionsCache.Value cache, DocumentState documentState)
         {
-            var filePath = GetEffectiveFilePath(documentState);
+            var filePath = GetEffectiveFilePath(documentState, projectState);
             return filePath == null
                 ? StructuredAnalyzerConfigOptions.Empty
                 : GetOptionsForSourcePath(cache, filePath);
@@ -418,32 +451,6 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
 
         private static StructuredAnalyzerConfigOptions GetOptionsForSourcePath(in AnalyzerConfigOptionsCache.Value cache, string path)
             => cache.GetOptionsForSourcePath(path).ConfigOptionsWithoutFallback;
-
-        private string? GetEffectiveFilePath(DocumentState documentState)
-        {
-            if (!string.IsNullOrEmpty(documentState.FilePath))
-            {
-                return documentState.FilePath;
-            }
-
-            // We need to work out path to this document. Documents may not have a "real" file path if they're something created
-            // as a part of a code action, but haven't been written to disk yet.
-
-            var projectFilePath = projectState.FilePath;
-
-            if (documentState.Name != null && projectFilePath != null)
-            {
-                var projectPath = PathUtilities.GetDirectoryName(projectFilePath);
-
-                if (!RoslynString.IsNullOrEmpty(projectPath) &&
-                    PathUtilities.GetDirectoryName(projectFilePath) is string directory)
-                {
-                    return PathUtilities.CombinePathsUnchecked(directory, documentState.Name);
-                }
-            }
-
-            return null;
-        }
     }
 
     internal sealed class ProjectHostAnalyzerConfigOptionsProvider(ProjectState projectState) : AnalyzerConfigOptionsProvider
@@ -483,7 +490,7 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
                 return _lazyRazorDesignTimeOptions ??= new RazorDesignTimeAnalyzerConfigOptions(services);
             }
 
-            var filePath = GetEffectiveFilePath(documentState);
+            var filePath = GetEffectiveFilePath(documentState, projectState);
             return filePath == null
                 ? StructuredAnalyzerConfigOptions.Empty
                 : GetOptionsForSourcePath(cache, filePath);
@@ -497,32 +504,6 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
 
         private static StructuredAnalyzerConfigOptions GetOptionsForSourcePath(in AnalyzerConfigOptionsCache.Value cache, string path)
             => cache.GetOptionsForSourcePath(path).ConfigOptionsWithFallback;
-
-        private string? GetEffectiveFilePath(DocumentState documentState)
-        {
-            if (!string.IsNullOrEmpty(documentState.FilePath))
-            {
-                return documentState.FilePath;
-            }
-
-            // We need to work out path to this document. Documents may not have a "real" file path if they're something created
-            // as a part of a code action, but haven't been written to disk yet.
-
-            var projectFilePath = projectState.FilePath;
-
-            if (documentState.Name != null && projectFilePath != null)
-            {
-                var projectPath = PathUtilities.GetDirectoryName(projectFilePath);
-
-                if (!RoslynString.IsNullOrEmpty(projectPath) &&
-                    PathUtilities.GetDirectoryName(projectFilePath) is string directory)
-                {
-                    return PathUtilities.CombinePathsUnchecked(directory, documentState.Name);
-                }
-            }
-
-            return null;
-        }
     }
 
     /// <summary>
