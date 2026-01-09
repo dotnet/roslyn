@@ -96,8 +96,8 @@ internal sealed partial class SolutionState
                     }
 
                     length -= 4;
-                    hash1 = (RuntimeBitOperations.RotateLeft(hash1, 5) + hash1) ^ (p0 | NormalizeToLowercase);
-                    hash2 = (RuntimeBitOperations.RotateLeft(hash2, 5) + hash2) ^ (p1 | NormalizeToLowercase);
+                    hash1 = (RotateLeft(hash1, 5) + hash1) ^ (p0 | NormalizeToLowercase);
+                    hash2 = (RotateLeft(hash2, 5) + hash2) ^ (p1 | NormalizeToLowercase);
                     ptr += 2;
                 }
 
@@ -109,7 +109,7 @@ internal sealed partial class SolutionState
                         goto NotAscii;
                     }
 
-                    hash2 = (RuntimeBitOperations.RotateLeft(hash2, 5) + hash2) ^ (p0 | NormalizeToLowercase);
+                    hash2 = (RotateLeft(hash2, 5) + hash2) ^ (p0 | NormalizeToLowercase);
                 }
             }
 
@@ -117,6 +117,16 @@ internal sealed partial class SolutionState
 
 NotAscii:
             return s_comparer.GetHashCode(obj);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            static uint RotateLeft(uint value, int offset)
+            {
+#if NET
+                return BitOperations.RotateLeft(value, offset);
+#else
+                return (value << offset) | (value >> (32 - offset));
+#endif
+            }
         }
 
         // From https://github.com/dotnet/runtime/blob/5aa9687e110faa19d1165ba680e52585a822464d/src/libraries/System.Private.CoreLib/src/System/Text/Unicode/Utf16Utility.cs#L16.
