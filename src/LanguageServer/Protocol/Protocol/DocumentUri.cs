@@ -27,7 +27,7 @@ internal sealed class DocumentUri : IEquatable<DocumentUri>
     public DocumentUri(string uriString)
     {
         UriString = uriString;
-        _parsedUriLazy = new(() => ParseUri(uriString));
+        _parsedUriLazy = new(() => ParseUri(UriString));
     }
 
     public DocumentUri(Uri parsedUri)
