@@ -21,6 +21,11 @@ internal static class VSMethods
     public const string GetProjectContextsName = "textDocument/_vs_getProjectContexts";
 
     /// <summary>
+    /// This is called when the active project context for a document has changed.
+    /// </summary>
+    public const string ProjectContextChangedName = "textDocument/_vs_projectContextChanged";
+
+    /// <summary>
     /// Strongly typed request object for 'textDocument/_vs_getProjectContexts'.
     /// </summary>
     public static readonly LspRequest<VSGetProjectContextsParams, VSProjectContextList> GetProjectContexts = new(GetProjectContextsName);
