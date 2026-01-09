@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Text
         private void FillBuffer()
         {
             int charsToRead = Math.Min(_charBuffer.Length, _source.Length - _sourceOffset);
-            _source.CopyTo(_sourceOffset, _charBuffer, 0, charsToRead);
+            _source.CopyTo(_sourceOffset, _charBuffer, charsToRead);
             _sourceOffset += charsToRead;
             _bufferOffset = 0;
             _bufferUnreadChars = charsToRead;

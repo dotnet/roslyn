@@ -144,9 +144,15 @@ namespace Microsoft.CodeAnalysis.Text
             return _newText.GetSubText(span);
         }
 
+        [Obsolete("Use CopyTo with Span<char> destination instead.")]
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
-            _newText.CopyTo(sourceIndex, destination, destinationIndex, count);
+            CopyTo(sourceIndex, destination.AsSpan(destinationIndex, count), count);
+        }
+
+        public override void CopyTo(int sourceIndex, Span<char> destination, int count)
+        {
+            _newText.CopyTo(sourceIndex, destination, count);
         }
 
         public override SourceText WithChanges(IEnumerable<TextChange> changes)

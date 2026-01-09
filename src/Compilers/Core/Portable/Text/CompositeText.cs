@@ -123,10 +123,9 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Validates the arguments passed to <see cref="CopyTo"/> against the published contract.
+        /// Validates the arguments passed to <see cref="CopyTo(int, Span{char}, int)"/> against the published contract.
         /// </summary>
-        /// <returns>True if should bother to proceed with copying.</returns>
-        private bool CheckCopyToArguments(int sourceIndex, char[] destination, int destinationIndex, int count)
+        private void CheckCopyToArguments(int sourceIndex, Span<char> destination, int count)
         {
             if (destination == null)
                 throw new ArgumentNullException(nameof(destination));
@@ -134,19 +133,19 @@ namespace Microsoft.CodeAnalysis.Text
             if (sourceIndex < 0)
                 throw new ArgumentOutOfRangeException(nameof(sourceIndex));
 
-            if (destinationIndex < 0)
-                throw new ArgumentOutOfRangeException(nameof(destinationIndex));
-
-            if (count < 0 || count > this.Length - sourceIndex || count > destination.Length - destinationIndex)
+            if (count < 0 || count > this.Length - sourceIndex || count > destination.Length)
                 throw new ArgumentOutOfRangeException(nameof(count));
-
-            return count > 0;
         }
 
+        [Obsolete("Use CopyTo with Span<char> destination instead.")]
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
-            if (!CheckCopyToArguments(sourceIndex, destination, destinationIndex, count))
-                return;
+            CopyTo(sourceIndex, destination.AsSpan(destinationIndex, count), count);
+        }
+
+        public override void CopyTo(int sourceIndex, Span<char> destination, int count)
+        {
+            CheckCopyToArguments(sourceIndex, destination, count);
 
             int segIndex;
             int segOffset;
@@ -157,10 +156,10 @@ namespace Microsoft.CodeAnalysis.Text
                 var segment = _segments[segIndex];
                 var copyLength = Math.Min(count, segment.Length - segOffset);
 
-                segment.CopyTo(segOffset, destination, destinationIndex, copyLength);
+                segment.CopyTo(segOffset, destination, copyLength);
 
                 count -= copyLength;
-                destinationIndex += copyLength;
+                destination = destination[copyLength..];
                 segIndex++;
                 segOffset = 0;
             }

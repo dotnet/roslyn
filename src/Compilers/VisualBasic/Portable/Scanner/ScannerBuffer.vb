@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             If p._pageStart <> pageStart Then
-                _buffer.CopyTo(pageStart, p._arr, 0, Math.Min(_bufferLen - pageStart, s_PAGE_SIZE))
+                _buffer.CopyTo(pageStart, p._arr, Math.Min(_bufferLen - pageStart, s_PAGE_SIZE))
                 p._pageStart = pageStart
             End If
 
