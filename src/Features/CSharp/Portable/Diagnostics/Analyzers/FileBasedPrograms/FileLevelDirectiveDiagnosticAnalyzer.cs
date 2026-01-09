@@ -49,11 +49,11 @@ internal sealed class FileLevelDirectiveDiagnosticAnalyzer()
             // Therefore, the analyzer only deals with the directives on the first token.
             //     Console.WriteLine("Hello World!");
             //     #:property foo=bar // error CS9297: '#:' directives cannot be after first token in file
-            var diagnosticBag = DiagnosticBag.Collect(out var diagnosticsBuilder);
+            var errorReporter = ErrorReporters.CreateCollectingReporter(out var diagnosticsBuilder);
             FileLevelDirectiveHelpers.FindLeadingDirectives(
                 new SourceFile(tree.FilePath, tree.GetText(cancellationToken)),
                 root.GetLeadingTrivia(),
-                diagnosticBag,
+                errorReporter,
                 builder: null);
 
             foreach (var simpleDiagnostic in diagnosticsBuilder)

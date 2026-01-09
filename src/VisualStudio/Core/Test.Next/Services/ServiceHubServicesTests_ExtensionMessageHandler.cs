@@ -787,8 +787,8 @@ public sealed partial class ServiceHubServicesTests
         string name,
         Func<object?, TArgument, CancellationToken, object?>? executeCallback = null) : IExtensionMessageHandlerWrapper<TArgument>
     {
-        public async Task<object?> ExecuteAsync(object? message, TArgument argument, CancellationToken cancellationToken)
-            => executeCallback!(message, argument, cancellationToken);
+        public Task<object?> ExecuteAsync(object? message, TArgument argument, CancellationToken cancellationToken)
+            => Task.FromResult(executeCallback!(message, argument, cancellationToken));
 
         public Type MessageType => typeof(int);
 

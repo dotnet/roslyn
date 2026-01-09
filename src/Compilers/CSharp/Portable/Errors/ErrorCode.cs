@@ -2448,6 +2448,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExtensionParameterInStaticContext = 9347,
         ERR_CompilationUnitUnexpected = 9348,
 
+        ERR_ScopedAfterInOutRefReadonly = 9349,
+        ERR_InvalidModifierAfterScoped = 9350,
+
+        ERR_StructLayoutAndExtendedLayout = 9351,
+        ERR_RuntimeDoesNotSupportExtendedLayoutTypes = 9352,
+
         // PROTOTYPE: Renumber accordingly.
         ERR_CollectionArgumentsMustBeFirst = 9400,
         ERR_CollectionArgumentsNotSupportedForType = 9401,

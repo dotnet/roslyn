@@ -52,11 +52,11 @@ internal sealed partial class ConfigureCodeStyleOptionCodeFixProvider : IConfigu
     public FixAllProvider? GetFixAllProvider()
         => null;
 
-    public async Task<ImmutableArray<CodeFix>> GetFixesAsync(TextDocument document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
-        => GetConfigurations(document.Project, diagnostics);
+    public Task<ImmutableArray<CodeFix>> GetFixesAsync(TextDocument document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        => Task.FromResult(GetConfigurations(document.Project, diagnostics));
 
-    public async Task<ImmutableArray<CodeFix>> GetFixesAsync(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
-        => GetConfigurations(project, diagnostics);
+    public Task<ImmutableArray<CodeFix>> GetFixesAsync(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        => Task.FromResult(GetConfigurations(project, diagnostics));
 
     private static ImmutableArray<CodeFix> GetConfigurations(Project project, IEnumerable<Diagnostic> diagnostics)
     {

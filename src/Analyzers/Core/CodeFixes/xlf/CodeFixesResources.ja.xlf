@@ -232,11 +232,6 @@
         <target state="translated">静的にする</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_synchronous">
-        <source>Make method synchronous</source>
-        <target state="translated">同期メソッドに変更します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Make_type_partial">
         <source>Make type partial</source>
         <target state="translated">型を部分的にする</target>

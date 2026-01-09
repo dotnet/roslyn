@@ -175,7 +175,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 Debug.Assert(method.IsExtensionMethod);
                                 receiver = _factory.Type(method.ContainingType);
-                                addArg(method.ParameterRefKinds[0], input);
+                                // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, Consider preserving the BoundConversion from initial binding instead of using markAsChecked here
+                                addArg(method.ParameterRefKinds[0], _localRewriter.ConvertReceiverForExtensionIfNeeded(input, markAsChecked: true, method.Parameters[0]));
                                 extensionExtra = 1;
                             }
                             else

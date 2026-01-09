@@ -27,6 +27,11 @@
         <target state="new">Duplicate directives are not supported: {0}</target>
         <note>{0} is the directive type and name.</note>
       </trans-unit>
+      <trans-unit id="EmptyTempPath">
+        <source>Unable to determine a temporary directory path. Consider configuring the TEMP environment variable on Windows or local app data folder on Unix.</source>
+        <target state="new">Unable to determine a temporary directory path. Consider configuring the TEMP environment variable on Windows or local app data folder on Unix.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidDirectiveName">
         <source>The directive should contain a name without special characters and an optional value separated by '{1}' like '#:{0} Name{1}Value'.</source>
         <target state="new">The directive should contain a name without special characters and an optional value separated by '{1}' like '#:{0} Name{1}Value'.</target>

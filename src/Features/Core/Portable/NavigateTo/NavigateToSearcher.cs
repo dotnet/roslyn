@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -195,22 +196,22 @@ internal sealed class NavigateToSearcher
             cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task SearchCurrentProjectAsync(
+    private Task SearchCurrentProjectAsync(
         NavigateToDocumentSupport documentSupport,
         CancellationToken cancellationToken)
     {
         if (_activeDocument == null)
-            return;
+            return Task.CompletedTask;
 
         var activeProject = _activeDocument.Project;
-        await SearchSpecificProjectsAsync(
+        return SearchSpecificProjectsAsync(
             // Because we're only searching the current project, it's fine to bring that project fully up to date before
             // searching it.  We only do the work to search cached files when doing the initial load of something huge
             // (the full solution).
             isFullyLoaded: true,
             documentSupport,
             [[activeProject]],
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
     }
 
     private INavigateToSearchService GetNavigateToSearchService(Project project)

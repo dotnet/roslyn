@@ -33,7 +33,7 @@ internal sealed class WorkspaceDebugConfigurationHandler : ILspServiceRequestHan
         Contract.ThrowIfNull(context.Solution, nameof(context.Solution));
 
         var projects = context.Solution.Projects
-            .Where(p => p.FilePath != null && p.OutputFilePath != null)
+            .Where(p => p is { FilePath: not null, OutputFilePath: not null })
             .Where(p => IsProjectInWorkspace(request.WorkspacePath, p))
             .Select(GetProjectDebugConfiguration).ToArray();
         return projects;
