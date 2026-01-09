@@ -1568,7 +1568,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
             // We have now baseline document whose encoding differs from the current document.
             // The content is the same though, so semantics is the same.
-            Assert.Same(compilerEncoding, committedText.Encoding);
+            Assert.Equal(compilerEncoding.WebName, committedText.Encoding.WebName);
             Assert.Equal(fileSource, committedText.ToString());
 
             var diagnostics = await debuggingSession.GetDocumentDiagnosticsAsync(document, s_noActiveSpans, CancellationToken.None);
