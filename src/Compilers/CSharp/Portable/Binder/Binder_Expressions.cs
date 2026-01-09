@@ -6900,6 +6900,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node);
             // NOTE: Use-site diagnostics were reported during overload resolution.
 
             ConstantValue constantValueOpt = (initializerSyntaxOpt == null && method.IsDefaultValueTypeConstructor()) ?
