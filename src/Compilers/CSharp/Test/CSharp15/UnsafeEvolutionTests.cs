@@ -4069,7 +4069,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     public void CompatMode_Constructor(bool useCompilationReference)
     {
         var lib = CreateCompilation("""
-            #pragma warning disable CS0067 // unused event
             public class C
             {
                 public unsafe C() { }
