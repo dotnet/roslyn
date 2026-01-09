@@ -345,20 +345,22 @@ internal sealed class HelixTestRunner
             //
             // This is still necessary even with us setting DOTNET_DbgMiniDumpName because the system can create 
             // non .NET Core dump files that aren't controlled by that value.
-            string command;
+            var command = new StringBuilder();
 
             if (isUnix)
             {
                 // Write out this command into a separate file; unfortunately the use of single quotes and ; that is required
                 // for the command to work causes too much escaping issues in MSBuild.
-                command = "find . -name '*.dmp' -exec cp {} $HELIX_DUMP_FOLDER \\;";
+                command.AppendLine("find . -name '*.dmp' -exec cp {} $HELIX_DUMP_FOLDER \\;");
+                command.AppendLine("find . -name 'diag_log*' -exec cp {} $HELIX_WORKITEM_UPLOAD_ROOT \\;");
             }
             else
             {
-                command = "for /r %%f in (*.dmp) do copy %%f %HELIX_DUMP_FOLDER%";
+                command.AppendLine("for /r %%f in (*.dmp) do copy %%f %HELIX_DUMP_FOLDER%");
+                command.AppendLine("for %%f in (diag_log*) do copy %%f %HELIX_WORKITEM_UPLOAD_ROOT%");
             }
 
-            return (isUnix ? "post-command.sh" : "post-command.cmd", command);
+            return (isUnix ? "post-command.sh" : "post-command.cmd", command.ToString());
         }
     }
 
@@ -436,6 +438,8 @@ internal sealed class HelixTestRunner
 
         // Specifies the results directory - this is where dumps from the blame options will get published. 
         builder.AppendLine($"/ResultsDirectory:.");
+
+        builder.AppendLine(@$"/Diag:diag_log.txt;tracelevel=verbose");
 
         var blameOption = "CollectDump;CollectHangDump";
         builder.AppendLine($"/Blame:{blameOption};TestTimeout=15minutes;DumpType=full");
