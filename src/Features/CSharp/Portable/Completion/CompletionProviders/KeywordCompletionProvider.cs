@@ -167,7 +167,6 @@ internal sealed class KeywordCompletionProvider() : AbstractKeywordCompletionPro
         new WhereKeywordRecommender(),
         new WhileKeywordRecommender(),
         new WithKeywordRecommender(),
-        new YieldKeywordRecommender(),
     ])
 {
     internal override string Language => LanguageNames.CSharp;
