@@ -99,7 +99,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return IsDirectlyInIterator; // Sic: indirectly iff directly
+                // For the method itself, being indirectly in an iterator is the same as being directly in one.
+                // However, for nested local functions, we need to check if we're inside an iterator.
+                return IsDirectlyInIterator || Next.IsIndirectlyInIterator;
             }
         }
 
