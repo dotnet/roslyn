@@ -1555,6 +1555,11 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         if (matchingContent)
         {
             // The file text content matches the document text, hence we reuse the existing document:
+            var documentText = await document.GetTextAsync(CancellationToken.None);
+            var committedText = await committedDocument.GetTextAsync(CancellationToken.None);
+
+            Assert.Equal(committedText.ToString(), documentText.ToString());
+            Assert.True(committedText.ContentEquals(documentText));
             Assert.Same(document, committedDocument);
         }
         else
