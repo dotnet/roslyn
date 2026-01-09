@@ -9272,6 +9272,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isUsableAsField = eventSymbol.HasAssociatedField && this.IsAccessible(eventSymbol.AssociatedField, ref useSiteInfo, (receiver != null) ? receiver.Type : null);
             diagnostics.Add(node, useSiteInfo);
 
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, eventSymbol, node);
+
             bool hasError = this.CheckInstanceOrStatic(node, receiver, eventSymbol, ref lookupResult, diagnostics);
 
             if (!eventSymbol.IsStatic)
