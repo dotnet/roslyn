@@ -4,292 +4,292 @@
     <body>
       <trans-unit id="AddAllItemsInDocumentToTheApiTitle">
         <source>Add all items in document '{0}' to the API</source>
-        <target state="translated">Přidat všechny položky v dokumentu {0} do rozhraní API</target>
+        <target state="new">Add all items in document '{0}' to the API</target>
         <note />
       </trans-unit>
       <trans-unit id="AddAllItemsInProjectToTheApiTitle">
         <source>Add all items in project '{0}' to the API</source>
-        <target state="translated">Přidat všechny položky v projektu {0} do rozhraní API</target>
+        <target state="new">Add all items in project '{0}' to the API</target>
         <note />
       </trans-unit>
       <trans-unit id="AddAllItemsInTheSolutionToTheApiTitle">
         <source>Add all items in the solution to the API</source>
-        <target state="translated">Přidat všechny položky v řešení do rozhraní API</target>
+        <target state="new">Add all items in the solution to the API</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotateInternalApiDescription">
         <source>All internal types and members should be declared with nullability annotations in InternalAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="translated">Všechny interní typy a členy by se měly deklarovat s anotacemi o možnosti použití hodnoty null v souboru InternalAPI.txt. To přitáhne pozornost ke změnám možnosti použití hodnoty null u rozhraní API při revizích a v historii správy zdrojového kódu a pomůže předejít změnám způsobujícím chybu.</target>
+        <target state="new">All internal types and members should be declared with nullability annotations in InternalAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotateInternalApiMessage">
         <source>Symbol '{0}' is missing nullability annotations in the declared API</source>
-        <target state="translated">U symbolu {0} chybí v deklarovaném rozhraní API anotace o možnosti použití hodnoty null.</target>
+        <target state="new">Symbol '{0}' is missing nullability annotations in the declared API</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotateInternalApiTitle">
         <source>Annotate nullability of internal types and members in the declared API</source>
-        <target state="translated">Přidat anotace o možnosti použití hodnoty null u interních typů a členů v deklarovaném rozhraní API</target>
+        <target state="new">Annotate nullability of internal types and members in the declared API</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiDescription">
         <source>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="translated">Všechny veřejné typy a členy by se měly deklarovat s anotacemi o možnosti použití hodnoty null v souboru PublicAPI.txt. To přitáhne pozornost ke změnám možnosti použití hodnoty null u rozhraní API při revizích a v historii správy zdrojového kódu a pomůže předejít změnám způsobujícím chybu.</target>
+        <target state="new">All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiMessage">
         <source>Symbol '{0}' is missing nullability annotations in the declared API</source>
-        <target state="translated">U symbolu {0} chybí v deklarovaném rozhraní API anotace o možnosti použití hodnoty null.</target>
+        <target state="new">Symbol '{0}' is missing nullability annotations in the declared API</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiTitle">
         <source>Annotate nullability of public types and members in the declared API</source>
-        <target state="translated">Přidat anotace o možnosti použití hodnoty null u veřejných typů a členů v deklarovaném rozhraní API</target>
+        <target state="new">Annotate nullability of public types and members in the declared API</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersMessage">
         <source>Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.</source>
-        <target state="translated">Symbol {0} porušuje požadavek na zpětnou kompatibilitu: Nepřidávat více přetížení s nepovinnými parametry. Podrobnosti najdete tady: {1}</target>
+        <target state="new">Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersTitle">
         <source>Do not add multiple public overloads with optional parameters</source>
-        <target state="translated">Nepřidávat více přetížení s nepovinnými parametry</target>
+        <target state="new">Do not add multiple public overloads with optional parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclareInternalApiDescription">
         <source>All internal types and members should be declared in InternalAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="translated">Všechny interní typy a členy by se měly deklarovat v souboru InternalAPI.txt. To přivádí pozornost ke změnám rozhraní API v revizích a historii správy zdrojového kódu a pomáhá předcházet změnám způsobujícím chybu.</target>
+        <target state="new">All internal types and members should be declared in InternalAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclareInternalApiMessage">
         <source>Symbol '{0}' is not part of the declared API</source>
-        <target state="translated">Symbol {0} není součástí deklarovaného rozhraní API.</target>
+        <target state="new">Symbol '{0}' is not part of the declared API</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclareInternalApiTitle">
         <source>Add internal types and members to the declared API</source>
-        <target state="translated">Přidat interní typy a členy do deklarovaného rozhraní API</target>
+        <target state="new">Add internal types and members to the declared API</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiDescription">
         <source>All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="translated">Všechny veřejné typy a členy by se měly deklarovat v souboru PublicAPI.txt. To přivádí pozornost ke změnám rozhraní API v revizích a historii správy zdrojového kódu a pomáhá předcházet změnám způsobujícím chybu.</target>
+        <target state="new">All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiMessage">
         <source>Symbol '{0}' is not part of the declared public API</source>
-        <target state="translated">Symbol {0} není součástí deklarovaného veřejné rozhraní API.</target>
+        <target state="new">Symbol '{0}' is not part of the declared public API</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiTitle">
         <source>Add public types and members to the declared API</source>
-        <target state="translated">Přidat veřejné typy a členy do deklarovaného rozhraní API</target>
+        <target state="new">Add public types and members to the declared API</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInInternalApiFilesMessage">
         <source>The symbol '{0}' appears more than once in the internal API files</source>
-        <target state="translated">Symbol {0} se v souborech interního rozhraní API vyskytuje více než jednou.</target>
+        <target state="new">The symbol '{0}' appears more than once in the internal API files</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInInternalApiFilesTitle">
         <source>Do not duplicate symbols in internal API files</source>
-        <target state="translated">Neduplikovat symboly v souborech interního rozhraní API</target>
+        <target state="new">Do not duplicate symbols in internal API files</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesMessage">
         <source>The symbol '{0}' appears more than once in the public API files</source>
-        <target state="translated">Symbol {0} se v souborech veřejného rozhraní API vyskytuje více než jednou.</target>
+        <target state="new">The symbol '{0}' appears more than once in the public API files</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesTitle">
         <source>Do not duplicate symbols in public API files</source>
-        <target state="translated">Neduplikovat symboly v souborech veřejných rozhraní API</target>
+        <target state="new">Do not duplicate symbols in public API files</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableNullableInProjectToTheApiTitle">
         <source>Enable nullability annotations in the API for project '{0}'</source>
-        <target state="translated">Povolit anotace o možnosti použití hodnoty null v rozhraní API pro projekt {0}</target>
+        <target state="new">Enable nullability annotations in the API for project '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableNullableInTheSolutionToTheApiTitle">
         <source>Enable nullability annotations in the API for the solution</source>
-        <target state="translated">Povolit anotace o možnosti použití hodnoty null v rozhraní API pro řešení</target>
+        <target state="new">Enable nullability annotations in the API for the solution</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeMessage">
         <source>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members</source>
-        <target state="translated">Konstruktor nastavuje základní třídu, ze které se nedá dědit, na třídu, ze které se dědit dá, čímž zpřístupňuje své chráněné členy.</target>
+        <target state="new">Constructor makes its noninheritable base class inheritable, thereby exposing its protected members</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeTitle">
         <source>Constructor make noninheritable base class inheritable</source>
-        <target state="translated">Konstruktor činí z nedědičné základní třídy dědičnou.</target>
+        <target state="new">Constructor make noninheritable base class inheritable</target>
         <note />
       </trans-unit>
       <trans-unit id="ImplicitConstructorErrorMessageName">
         <source>implicit constructor for '{0}'</source>
-        <target state="translated">implicitní konstruktor pro {0}</target>
+        <target state="new">implicit constructor for '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ImplicitGetAccessor">
         <source>implicit get-accessor for '{0}'</source>
-        <target state="translated">implicitní přístupový objekt get pro {0}</target>
+        <target state="new">implicit get-accessor for '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ImplicitSetAccessor">
         <source>implicit set-accessor for '{0}'</source>
-        <target state="translated">implicitní přístupový objekt set pro {0}</target>
+        <target state="new">implicit set-accessor for '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalApiFileMissingMessage">
         <source>Internal API file '{0}' is missing or not marked as an additional analyzer file</source>
-        <target state="translated">Soubor interního rozhraní API {0} chybí nebo není označený jako doplňkový soubor analyzátoru.</target>
+        <target state="new">Internal API file '{0}' is missing or not marked as an additional analyzer file</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalApiFileMissingTitle">
         <source>Missing shipped or unshipped internal API file</source>
-        <target state="translated">Chybí vydaný nebo nevydaný soubor interního rozhraní API</target>
+        <target state="new">Missing shipped or unshipped internal API file</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalApiFilesInvalidMessage">
         <source>The contents of the internal API files are invalid: {0}</source>
-        <target state="translated">Obsah souborů interních rozhraní API není platný: {0}</target>
+        <target state="new">The contents of the internal API files are invalid: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalApiFilesInvalidTitle">
         <source>The contents of the internal API files are invalid</source>
-        <target state="translated">Obsah souborů interních rozhraní API není platný</target>
+        <target state="new">The contents of the internal API files are invalid</target>
         <note />
       </trans-unit>
       <trans-unit id="ObliviousInternalApiDescription">
         <source>All internal members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
-        <target state="translated">Všechny interní členové by měly používat odkazové typy s možnou hodnotou null, nebo bez ní, ale ne odkazové typy bez určení možnosti použití hodnoty null.</target>
+        <target state="new">All internal members should use either nullable or non-nullable reference types, but no oblivious reference types.</target>
         <note />
       </trans-unit>
       <trans-unit id="ObliviousInternalApiMessage">
         <source>Symbol '{0}' uses some oblivious reference types</source>
-        <target state="translated">Symbol {0} používá některé odkazové typy bez určení možnosti použití hodnoty null.</target>
+        <target state="new">Symbol '{0}' uses some oblivious reference types</target>
         <note />
       </trans-unit>
       <trans-unit id="ObliviousInternalApiTitle">
         <source>Internal members should not use oblivious types</source>
-        <target state="translated">Interní členové by neměly používat typy bez určení možnosti použití hodnoty null</target>
+        <target state="new">Internal members should not use oblivious types</target>
         <note />
       </trans-unit>
       <trans-unit id="ObliviousPublicApiDescription">
         <source>All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
-        <target state="translated">Všechny veřejné členy by měly používat odkazové typy s možnou hodnotou null, nebo bez ní, ale ne odkazové typy bez určení možnosti použití hodnoty null.</target>
+        <target state="new">All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</target>
         <note />
       </trans-unit>
       <trans-unit id="ObliviousPublicApiMessage">
         <source>Symbol '{0}' uses some oblivious reference types</source>
-        <target state="translated">Symbol {0} používá některé odkazové typy bez určení možnosti použití hodnoty null.</target>
+        <target state="new">Symbol '{0}' uses some oblivious reference types</target>
         <note />
       </trans-unit>
       <trans-unit id="ObliviousPublicApiTitle">
         <source>Public members should not use oblivious types</source>
-        <target state="translated">Veřejné členy by neměly používat typy bez určení možnosti použití hodnoty null</target>
+        <target state="new">Public members should not use oblivious types</target>
         <note />
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersMessage">
         <source>'{0}' violates the backcompat requirement: 'API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</source>
-        <target state="translated">{0} porušuje požadavek na zpětnou kompatibilitu: Rozhraní API s nepovinnými parametry by mělo mít ze všech veřejných přetížení nejvíce parametrů. Podrobnosti najdete tady: {1}</target>
+        <target state="new">'{0}' violates the backcompat requirement: 'API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersTitle">
         <source>API with optional parameter(s) should have the most parameters amongst its public overloads</source>
-        <target state="translated">Rozhraní API s nepovinnými parametry by mělo mít ze všech veřejných přetížení nejvíce parametrů</target>
+        <target state="new">API with optional parameter(s) should have the most parameters amongst its public overloads</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFileMissingMessage">
         <source>Public API file '{0}' is missing or not marked as an additional analyzer file</source>
-        <target state="translated">Soubor veřejného rozhraní API {0} chybí nebo není označený jako doplňkový soubor analyzátoru.</target>
+        <target state="new">Public API file '{0}' is missing or not marked as an additional analyzer file</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFileMissingTitle">
         <source>Missing shipped or unshipped public API file</source>
-        <target state="translated">Chybí vydaný nebo nevydaný soubor veřejného rozhraní API</target>
+        <target state="new">Missing shipped or unshipped public API file</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFilesInvalidMessage">
         <source>The contents of the public API files are invalid: {0}</source>
-        <target state="translated">Obsah souborů veřejných rozhraní API není platný: {0}</target>
+        <target state="new">The contents of the public API files are invalid: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFilesInvalidTitle">
         <source>The contents of the public API files are invalid</source>
-        <target state="translated">Obsah souborů veřejných rozhraní API není platný</target>
+        <target state="new">The contents of the public API files are invalid</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedInternalApiDescription">
         <source>When removing a internal type or member, put that entry in InternalAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="translated">Když se odebírá interní typ nebo člen, vložte tuto položku do souboru InternalAPI.Unshipped.txt s předponou *REMOVED*. To upozorňuje na změny rozhraní API v revizích kódu a historii správy zdrojového kódu a pomáhá předcházet změnám způsobujícím chybu.</target>
+        <target state="new">When removing a internal type or member, put that entry in InternalAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</target>
         <note>{Locked="*REMOVED*"}</note>
       </trans-unit>
       <trans-unit id="RemoveDeletedInternalApiMessage">
         <source>Symbol '{0}' is part of the declared internal API, but is either not internal or could not be found</source>
-        <target state="translated">Symbol {0} je součástí deklarovaného interního rozhraní API, ale buď není vnitřní, nebo se ho nepovedlo najít.</target>
+        <target state="new">Symbol '{0}' is part of the declared internal API, but is either not internal or could not be found</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedInternalApiTitle">
         <source>Remove deleted types and members from the declared internal API</source>
-        <target state="translated">Odebrat odstraněné typy a členy z deklarovaného interního rozhraní API</target>
+        <target state="new">Remove deleted types and members from the declared internal API</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedPublicApiDescription">
         <source>When removing a public type or member, put that entry in PublicAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="translated">Když se odebírá veřejný typ nebo člen, vložte tuto položku do souboru PublicAPI.Unshipped.txt s předponou *REMOVED*. To upozorňuje na změny rozhraní API v revizích kódu a historii správy zdrojového kódu a pomáhá předcházet změnám způsobujícím chybu.</target>
+        <target state="new">When removing a public type or member, put that entry in PublicAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</target>
         <note>{Locked="*REMOVED*"}</note>
       </trans-unit>
       <trans-unit id="RemoveDeletedPublicApiMessage">
         <source>Symbol '{0}' is part of the declared API, but is either not public or could not be found</source>
-        <target state="translated">Symbol {0} je součástí deklarovaného rozhraní API, ale buď není veřejný, nebo se ho nepovedlo najít.</target>
+        <target state="new">Symbol '{0}' is part of the declared API, but is either not public or could not be found</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedPublicApiTitle">
         <source>Remove deleted types and members from the declared API</source>
-        <target state="translated">Odebrat odstraněné typy a členy z deklarovaného rozhraní API</target>
+        <target state="new">Remove deleted types and members from the declared API</target>
         <note />
       </trans-unit>
       <trans-unit id="RemovedApiIsNotActuallyRemovedMessage">
         <source>Symbol '{0}' is marked as removed but it isn't deleted in source code</source>
-        <target state="translated">Symbol {0} se označil jako odebraný, ale neodstranil se ze zdrojového kódu.</target>
+        <target state="new">Symbol '{0}' is marked as removed but it isn't deleted in source code</target>
         <note />
       </trans-unit>
       <trans-unit id="RemovedApiIsNotActuallyRemovedTitle">
         <source>API is marked as removed but it exists in source code</source>
-        <target state="translated">Rozhraní API se označilo jako odebrané, ale existuje ve zdrojovém kódu.</target>
+        <target state="new">API is marked as removed but it exists in source code</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateInternalApiFilesDescription">
         <source>InternalAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, InternalAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="translated">Soubory InternalAPI.txt by měly mít #nullable enable, aby se sledovala informace o možné hodnotě null, nebo by se tato diagnostika měla potlačit. Když se možnost nastavit hodnotu null povolí, InternalAPI.txt bude uchovávat informace o tom, které typy bude možné nastavit na null (přípona typu ?) a které ne (přípona !). Kromě toho sleduje všechna rozhraní API, která stále používá typ odkazu, který se nepoužívá (předpona ~na řádku).</target>
+        <target state="new">InternalAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, InternalAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateInternalApiFilesMessage">
         <source>InternalAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</source>
-        <target state="translated">V souboru InternalAPI.txt chybí #nullable enable, takže se nezaznamenají anotace o možnosti použití hodnoty null u rozhraní API. Doporučuje se toto sledování povolit.</target>
+        <target state="new">InternalAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateInternalApiFilesTitle">
         <source>Enable tracking of nullability of reference types in the declared API</source>
-        <target state="translated">Povolit sledování možnosti použití hodnoty null pro typy odkazů v deklarovaném rozhraní API</target>
+        <target state="new">Enable tracking of nullability of reference types in the declared API</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotatePublicApiFilesDescription">
         <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="translated">Soubory PublicAPI.txt by měly mít #nullable enable, aby se sledovala informace o možné hodnotě null, nebo by se tato diagnostika měla potlačit. Když se možnost nastavit hodnotu null povolí, PublicAPI.txt bude uchovávat informace o tom, které typy bude možné nastavit na null (přípona typu ?) a které ne (přípona !). Kromě toho sleduje všechna rozhraní API, která stále používají typy bez určení možnosti použití hodnoty null (předpona ~ na řádku).</target>
+        <target state="new">PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotatePublicApiFilesMessage">
         <source>PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</source>
-        <target state="translated">V souboru PublicAPI.txt chybí #nullable enable, takže se nezaznamenají anotace o možnosti použití hodnoty null u rozhraní API. Doporučuje se toto sledování povolit.</target>
+        <target state="new">PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotatePublicApiFilesTitle">
         <source>Enable tracking of nullability of reference types in the declared API</source>
-        <target state="translated">Povolit sledování možnosti použití hodnoty null pro typy odkazů v deklarovaném rozhraní API</target>
+        <target state="new">Enable tracking of nullability of reference types in the declared API</target>
         <note />
       </trans-unit>
     </body>

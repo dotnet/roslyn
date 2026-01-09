@@ -1074,7 +1074,7 @@
       </trans-unit>
       <trans-unit id="Change_Signature">
         <source>Change Signature</source>
-        <target state="needs-review-translation">署名の変更</target>
+        <target state="translated">署名の変更</target>
         <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Preview_Changes_0">
@@ -1109,7 +1109,7 @@
       </trans-unit>
       <trans-unit id="Change_Signature_colon">
         <source>Change Signature:</source>
-        <target state="needs-review-translation">署名の変更:</target>
+        <target state="translated">署名の変更:</target>
         <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Rename_0_to_1_colon">

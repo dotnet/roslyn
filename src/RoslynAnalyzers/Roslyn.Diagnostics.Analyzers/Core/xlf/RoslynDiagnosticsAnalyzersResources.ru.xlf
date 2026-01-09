@@ -4,187 +4,187 @@
     <body>
       <trans-unit id="AddSharedAttribute">
         <source>Add 'Shared' attribute</source>
-        <target state="translated">Добавить атрибут "Shared"</target>
+        <target state="new">Add 'Shared' attribute</target>
         <note>{Locked="Shared"}</note>
       </trans-unit>
       <trans-unit id="ApplyTraitToContainingType">
         <source>Apply trait to containing type</source>
-        <target state="translated">Применить признак к содержащему типу</target>
+        <target state="new">Apply trait to containing type</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeCodeFixTitle">
         <source>Remove the 'Opt' suffix</source>
-        <target state="translated">Удалите суффикс "Opt"</target>
+        <target state="new">Remove the 'Opt' suffix</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeDescription">
         <source>Avoid the 'Opt' suffix in a nullable-enabled code.</source>
-        <target state="translated">Не используйте суффикс "Opt" в коде, допускающем значения null.</target>
+        <target state="new">Avoid the 'Opt' suffix in a nullable-enabled code.</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeMessage">
         <source>Avoid the 'Opt' suffix in a nullable-enabled code</source>
-        <target state="translated">Не используйте суффикс "Opt" в коде, допускающем значения null.</target>
+        <target state="new">Avoid the 'Opt' suffix in a nullable-enabled code</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeTitle">
         <source>Avoid the 'Opt' suffix</source>
-        <target state="translated">Не используйте суффикс "Opt"</target>
+        <target state="new">Avoid the 'Opt' suffix</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateTestAccessorDescription">
         <source>This is a refactoring which simplifies the process of creating test accessors using the 'TestAccessor' pattern.</source>
-        <target state="translated">Это рефакторинг, который упрощает процесс создания методов доступа к тесту с помощью шаблона TestAccessor.</target>
+        <target state="new">This is a refactoring which simplifies the process of creating test accessors using the 'TestAccessor' pattern.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateTestAccessorMessage">
         <source>Create test accessor</source>
-        <target state="translated">Создать метод доступа к тесту</target>
+        <target state="new">Create test accessor</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateTestAccessorTitle">
         <source>Create test accessor</source>
-        <target state="translated">Создать метод доступа к тесту</target>
+        <target state="new">Create test accessor</target>
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsDescription">
         <source>Defaultable types should have defaultable fields.</source>
-        <target state="translated">Типы, для которых имеются значения по умолчанию, должны иметь соответствующие поля.</target>
+        <target state="new">Defaultable types should have defaultable fields.</target>
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsMessage">
         <source>Defaultable type '{0}' has a non-defaultable field or auto-property '{1}'</source>
-        <target state="translated">Тип "{0}", допускающий значения по умолчанию, имеет поле, не допускающее значений по умолчанию, или автоматическое свойство "{1}".</target>
+        <target state="new">Defaultable type '{0}' has a non-defaultable field or auto-property '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsTitle">
         <source>Defaultable types should have defaultable fields</source>
-        <target state="translated">Типы, допускающие значения по умолчанию, должны иметь соответствующие поля</target>
+        <target state="new">Defaultable types should have defaultable fields</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCallGetTestAccessorDescription">
         <source>'GetTestAccessor()' is a helper method reserved for testing. Production code must not call this member.</source>
-        <target state="translated">GetTestAccessor() — это вспомогательный метод, используемый только для тестирования. Не вызывайте этот метод из рабочего кода.</target>
+        <target state="new">'GetTestAccessor()' is a helper method reserved for testing. Production code must not call this member.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCallGetTestAccessorMessage">
         <source>Do not call 'GetTestAccessor()' from production code</source>
-        <target state="translated">Не вызывайте метод GetTestAccessor() из рабочего кода</target>
+        <target state="new">Do not call 'GetTestAccessor()' from production code</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCallGetTestAccessorTitle">
         <source>Do not call 'GetTestAccessor()'</source>
-        <target state="translated">Не вызывайте метод GetTestAccessor()</target>
+        <target state="new">Do not call 'GetTestAccessor()'</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCapturePrimaryConstructorParametersDescription">
         <source>Primary constructor parameters should not be implicitly captured. Manually assign them to fields at the start of the type.</source>
-        <target state="translated">Параметры первичного конструктора не должны записываться неявным образом. Вручную назначьте их полям в начале типа.</target>
+        <target state="new">Primary constructor parameters should not be implicitly captured. Manually assign them to fields at the start of the type.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCapturePrimaryConstructorParametersMessage">
         <source>Primary constructor parameter '{0}' should not be implicitly captured</source>
-        <target state="translated">Параметр первичного конструктора "{0}" не должен записываться неявным образом</target>
+        <target state="new">Primary constructor parameter '{0}' should not be implicitly captured</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCapturePrimaryConstructorParametersTitle">
         <source>Do not capture primary constructor parameters</source>
-        <target state="translated">Не записывать параметры первичного конструктора</target>
+        <target state="new">Do not capture primary constructor parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueAvoidNullableWrapperDescription">
         <source>Avoid nullable wrapper.</source>
-        <target state="translated">Избегайте программы-оболочки, допускающей значение NULL.</target>
+        <target state="new">Avoid nullable wrapper.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueAvoidNullableWrapperMessage">
         <source>Do not wrap non-copyable type '{0}' in '{1}' operation</source>
-        <target state="translated">Не переносите в операцию "{1}" тип "{0}", не допускающий копирование.</target>
+        <target state="new">Do not wrap non-copyable type '{0}' in '{1}' operation</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueDescription">
         <source>Do not copy value.</source>
-        <target state="translated">Не копируйте значение.</target>
+        <target state="new">Do not copy value.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueMessage">
         <source>Do not copy value</source>
-        <target state="translated">Не копировать значение</target>
+        <target state="new">Do not copy value</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoAssignValueFromReferenceDescription">
         <source>Cannot assign a value from a reference to a non-copyable type.</source>
-        <target state="translated">Невозможно присвоить значение из ссылки типу, который не может быть скопирован.</target>
+        <target state="new">Cannot assign a value from a reference to a non-copyable type.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoAssignValueFromReferenceMessage">
         <source>Cannot assign a value from a reference to non-copyable type '{0}'</source>
-        <target state="translated">Невозможно присвоить значение из ссылки типу "{0}", который не может быть скопирован</target>
+        <target state="new">Cannot assign a value from a reference to non-copyable type '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoAutoPropertyDescription">
         <source>Auto-properties always copy values, so they cannot be declared with non-copyable types.</source>
-        <target state="translated">Автоматические свойства всегда копируют значения, поэтому их нельзя объявлять с типами, не допускающими копирование.</target>
+        <target state="new">Auto-properties always copy values, so they cannot be declared with non-copyable types.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoAutoPropertyMessage">
         <source>Auto-property '{1}' cannot have non-copyable type '{0}'</source>
-        <target state="translated">Автоматическое свойство "{1}" не может иметь тип "{0}", не допускающий копирование.</target>
+        <target state="new">Auto-property '{1}' cannot have non-copyable type '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoBoxingDescription">
         <source>Do not box non-copyable value types.</source>
-        <target state="translated">Не упаковывайте типы значений, не допускающие копирование.</target>
+        <target state="new">Do not box non-copyable value types.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoBoxingMessage">
         <source>Do not box non-copyable type '{0}'</source>
-        <target state="translated">Не следует упаковывать тип "{0}", не допускающий копирование.</target>
+        <target state="new">Do not box non-copyable type '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoFieldOfCopyableTypeDescription">
         <source>A field with a non-copyable type cannot be a member of a copyable type. The containing type can be made non-copyable or converted to a reference type, or the field can be removed or converted to a copyable type.</source>
-        <target state="translated">Поле с типом, не допускающим копирование, не может быть элементом типа, допускающего копирование. Содержащий тип можно сделать не допускающим копирование или преобразовать в ссылочный тип, либо можно удалить поле или преобразовать поле в тип, допускающий копирование.</target>
+        <target state="new">A field with a non-copyable type cannot be a member of a copyable type. The containing type can be made non-copyable or converted to a reference type, or the field can be removed or converted to a copyable type.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoFieldOfCopyableTypeMessage">
         <source>Copyable field '{1}' cannot have non-copyable type '{0}'</source>
-        <target state="translated">Поле "{1}", допускающее копирование, не может иметь тип "{0}", не допускающий копирование.</target>
+        <target state="new">Copyable field '{1}' cannot have non-copyable type '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceDescription">
         <source>Cannot return a value from a reference to a non-copyable type.</source>
-        <target state="translated">Невозможно вернуть значение из ссылки в тип, который не может быть скопирован.</target>
+        <target state="new">Cannot return a value from a reference to a non-copyable type.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceMessage">
         <source>Cannot return a value from a reference to non-copyable type '{0}'</source>
-        <target state="translated">Невозможно вернуть значение из ссылки в тип "{0}", который не может быть скопирован</target>
+        <target state="new">Cannot return a value from a reference to non-copyable type '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoUnboxingDescription">
         <source>Do not unbox non-copyable value types.</source>
-        <target state="translated">Не распаковывайте типы значений, не допускающие копирование.</target>
+        <target state="new">Do not unbox non-copyable value types.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoUnboxingMessage">
         <source>Do not unbox non-copyable type '{0}'</source>
-        <target state="translated">Не следует распаковывать тип "{0}", не допускающий копирование.</target>
+        <target state="new">Do not unbox non-copyable type '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueTitle">
         <source>Do not copy value</source>
-        <target state="translated">Не копировать значение</target>
+        <target state="new">Do not copy value</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueUnsupportedUseDescription">
         <source>Unsupported use of non-copyable type.</source>
-        <target state="translated">Неподдерживаемое использование типа, не допускающего копирование.</target>
+        <target state="new">Unsupported use of non-copyable type.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueUnsupportedUseMessage">
         <source>Unsupported use of non-copyable type '{0}' in '{1}' operation</source>
-        <target state="translated">Неподдерживаемое использование типа "{0}", не допускающего копирование, в операции "{1}"</target>
+        <target state="new">Unsupported use of non-copyable type '{0}' in '{1}' operation</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertCodeFix">
@@ -209,287 +209,287 @@
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_ImplicitConstructor">
         <source>Explicitly define the importing constructor</source>
-        <target state="translated">Явно определите конструктор импорта.</target>
+        <target state="new">Explicitly define the importing constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_MissingAttribute">
         <source>Add 'ImportingConstructor' attribute</source>
-        <target state="translated">Добавить атрибут "ImportingConstructor"</target>
+        <target state="new">Add 'ImportingConstructor' attribute</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_NonPublicConstructor">
         <source>Make constructor public</source>
-        <target state="translated">Сделать конструктор открытым</target>
+        <target state="new">Make constructor public</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorDescription">
         <source>Exported parts should be marked with 'ImportingConstructorAttribute'.</source>
-        <target state="translated">Экспортированные части должны быть помечены как ImportingConstructorAttribute.</target>
+        <target state="new">Exported parts should be marked with 'ImportingConstructorAttribute'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorMessage">
         <source>'{0}' is MEF-exported and should have a single, public importing constructor of the correct form</source>
-        <target state="translated">"{0}" экспортируется в MEF и должен содержать единственный общедоступный конструктор импорта правильной формы.</target>
+        <target state="new">'{0}' is MEF-exported and should have a single, public importing constructor of the correct form</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorTitle">
         <source>Exported parts should have a public constructor marked with 'ImportingConstructorAttribute'</source>
-        <target state="translated">Экспортированные части должны содержать общедоступный конструктор, помеченный как "ImportingConstructorAttribute"</target>
+        <target state="new">Exported parts should have a public constructor marked with 'ImportingConstructorAttribute'</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposeMemberForTestingDescription">
         <source>Expose member for testing.</source>
-        <target state="translated">Предоставьте элемент для тестирования</target>
+        <target state="new">Expose member for testing.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposeMemberForTestingMessage">
         <source>Expose member for testing</source>
-        <target state="translated">Предоставить элемент для тестирования</target>
+        <target state="new">Expose member for testing</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposeMemberForTestingTitle">
         <source>Expose member for testing</source>
-        <target state="translated">Предоставление элемента для тестирования</target>
+        <target state="new">Expose member for testing</target>
         <note />
       </trans-unit>
       <trans-unit id="FixNumberedComments">
         <source>Fix numbered comments</source>
-        <target state="translated">Исправление нумерованных комментариев</target>
+        <target state="new">Fix numbered comments</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_ErrorSetToFalse">
         <source>Set 'ObsoleteAttribute.Error' to 'true'</source>
-        <target state="translated">Присвойте ObsoleteAttribute.Error значение true</target>
+        <target state="new">Set 'ObsoleteAttribute.Error' to 'true'</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_IncorrectDescription">
         <source>Use correct 'ObsoleteAttribute' message.</source>
-        <target state="translated">Используйте правильное сообщение ObsoleteAttribute.</target>
+        <target state="new">Use correct 'ObsoleteAttribute' message.</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingAttribute">
         <source>Add 'ObsoleteAttribute'</source>
-        <target state="translated">Добавьте ObsoleteAttribute</target>
+        <target state="new">Add 'ObsoleteAttribute'</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingDescription">
         <source>Configure 'ObsoleteAttribute' for importing constructor.</source>
-        <target state="translated">Настройте ObsoleteAttribute для конструктора импорта.</target>
+        <target state="new">Configure 'ObsoleteAttribute' for importing constructor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingError">
         <source>Set 'ObsoleteAttribute.Error' to 'true'</source>
-        <target state="translated">Присвойте ObsoleteAttribute.Error значение true</target>
+        <target state="new">Set 'ObsoleteAttribute.Error' to 'true'</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteDescription">
         <source>Importing constructor should be marked with 'ObsoleteAttribute'.</source>
-        <target state="translated">Конструктор импорта должен быть помечен как ObsoleteAttribute.</target>
+        <target state="new">Importing constructor should be marked with 'ObsoleteAttribute'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteMessage">
         <source>Importing constructor should be marked with 'ObsoleteAttribute'</source>
-        <target state="translated">Конструктор импорта должен быть помечен как ObsoleteAttribute</target>
+        <target state="new">Importing constructor should be marked with 'ObsoleteAttribute'</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteTitle">
         <source>Importing constructor should be marked with 'ObsoleteAttribute'</source>
-        <target state="translated">Конструктор импорта должен быть помечен как ObsoleteAttribute</target>
+        <target state="new">Importing constructor should be marked with 'ObsoleteAttribute'</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_statement_on_following_line">
         <source>Place statement on following line</source>
-        <target state="translated">Размещайте оператор на отдельной строке</target>
+        <target state="new">Place statement on following line</target>
         <note />
       </trans-unit>
       <trans-unit id="NamedTypeFullNameNotNullSuppressorJustification">
         <source>The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</source>
-        <target state="translated">Свойство "Type.FullName" не может иметь значение null при использовании синтаксиса "typeof(T).FullName".</target>
+        <target state="new">The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">
         <source>Use 'null' instead of 'default'</source>
-        <target state="translated">Используйте "null" вместо "default".</target>
+        <target state="new">Use 'null' instead of 'default'</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralDescription">
         <source>Use 'null' instead of 'default' for nullable types.</source>
-        <target state="translated">Используйте "null" вместо "default" для типов, допускающих значение NULL.</target>
+        <target state="new">Use 'null' instead of 'default' for nullable types.</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralMessage">
         <source>Use 'null' instead of 'default' for nullable types</source>
-        <target state="translated">Используйте "null" вместо "default" для типов, допускающих значение NULL.</target>
+        <target state="new">Use 'null' instead of 'default' for nullable types</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralTitle">
         <source>Prefer null literal</source>
-        <target state="translated">Используйте литерал null</target>
+        <target state="new">Prefer null literal</target>
         <note />
       </trans-unit>
       <trans-unit id="RelaxTestNamingSuppressorJustification">
         <source>Asynchronous test methods do not require the 'Async' suffix</source>
-        <target state="translated">Асинхронные методы теста не требуют суффикса Async</target>
+        <target state="new">Asynchronous test methods do not require the 'Async' suffix</target>
         <note />
       </trans-unit>
       <trans-unit id="Run iterations">
         <source>Run iterations</source>
-        <target state="translated">Выполнить итерации</target>
+        <target state="new">Run iterations</target>
         <note />
       </trans-unit>
       <trans-unit id="TemporaryArrayAsRefDescription">
         <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</source>
-        <target state="translated">Экземпляр TemporaryArray&lt;T&gt;.AsRef() должен представлять собой переменную "using".</target>
+        <target state="new">Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</target>
         <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="TemporaryArrayAsRefMessage">
         <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</source>
-        <target state="translated">Экземпляр TemporaryArray&lt;T&gt;.AsRef() должен представлять собой переменную "using".</target>
+        <target state="new">Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</target>
         <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="TemporaryArrayAsRefTitle">
         <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</source>
-        <target state="translated">Экземпляр TemporaryArray&lt;T&gt;.AsRef() должен представлять собой переменную "using".</target>
+        <target state="new">Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</target>
         <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">
         <source>Apply 'PartNotDiscoverableAttribute'</source>
-        <target state="translated">Применить PartNotDiscoverableAttribute</target>
+        <target state="new">Apply 'PartNotDiscoverableAttribute'</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableDescription">
         <source>Test exports should not be discoverable.</source>
-        <target state="translated">Тестовые экспорты не должны быть доступными для обнаружения.</target>
+        <target state="new">Test exports should not be discoverable.</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableMessage">
         <source>'{0}' is exported for test purposes and should be marked with 'PartNotDiscoverableAttribute'</source>
-        <target state="translated">"{0}" экспортируется в целях тестирования и должен быть помечен как PartNotDiscoverableAttribute</target>
+        <target state="new">'{0}' is exported for test purposes and should be marked with 'PartNotDiscoverableAttribute'</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableTitle">
         <source>Test exports should not be discoverable</source>
-        <target state="translated">Тестовые экспорты не должны быть доступными для обнаружения</target>
+        <target state="new">Test exports should not be discoverable</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableTitle">
         <source>Use 'SpecializedCollections.EmptyEnumerable()'</source>
-        <target state="translated">Используйте SpecializedCollections.EmptyEnumerable()</target>
+        <target state="new">Use 'SpecializedCollections.EmptyEnumerable()'</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableDescription">
         <source>#N/A</source>
-        <target state="translated">#Н/Д</target>
+        <target state="new">#N/A</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableMessage">
         <source>Use 'SpecializedCollections.EmptyEnumerable()'</source>
-        <target state="translated">Используйте SpecializedCollections.EmptyEnumerable()</target>
+        <target state="new">Use 'SpecializedCollections.EmptyEnumerable()'</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsSingletonEnumerableTitle">
         <source>Use 'SpecializedCollections.SingletonEnumerable()'</source>
-        <target state="translated">Используйте SpecializedCollections.SingletonEnumerable()</target>
+        <target state="new">Use 'SpecializedCollections.SingletonEnumerable()'</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsSingletonEnumerableDescription">
         <source>#N/A</source>
-        <target state="translated">#Н/Д</target>
+        <target state="new">#N/A</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsSingletonEnumerableMessage">
         <source>Use 'SpecializedCollections.SingletonEnumerable()'</source>
-        <target state="translated">Используйте SpecializedCollections.SingletonEnumerable()</target>
+        <target state="new">Use 'SpecializedCollections.SingletonEnumerable()'</target>
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTitle">
         <source>Invoke the correct property to ensure correct use site diagnostics</source>
-        <target state="translated">Вызовите подходящее свойство, чтобы обеспечить правильное использование диагностики сайта</target>
+        <target state="new">Invoke the correct property to ensure correct use site diagnostics</target>
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsDescription">
         <source>#N/A</source>
-        <target state="translated">#Н/Д</target>
+        <target state="new">#N/A</target>
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsMessage">
         <source>Invoke the correct property to ensure correct use site diagnostics</source>
-        <target state="translated">Вызовите подходящее свойство, чтобы обеспечить правильное использование диагностики сайта</target>
+        <target state="new">Invoke the correct property to ensure correct use site diagnostics</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionTitle">
         <source>Do not use generic 'CodeAction.Create' to create 'CodeAction'</source>
-        <target state="translated">Не используйте универсальный метод CodeAction.Create для создания CodeAction</target>
+        <target state="new">Do not use generic 'CodeAction.Create' to create 'CodeAction'</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionDescription">
         <source>#N/A</source>
-        <target state="translated">#Н/Д</target>
+        <target state="new">#N/A</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionMessage">
         <source>Do not use generic 'CodeAction.Create' to create 'CodeAction'</source>
-        <target state="translated">Не используйте универсальный метод CodeAction.Create для создания CodeAction</target>
+        <target state="new">Do not use generic 'CodeAction.Create' to create 'CodeAction'</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableTitle">
         <source>Override 'Object.Equals(object)' when implementing 'IEquatable'</source>
-        <target state="translated">Переопределите Object.Equals(object) при реализации IEquatable</target>
+        <target state="new">Override 'Object.Equals(object)' when implementing 'IEquatable'</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableDescription">
         <source>#N/A</source>
-        <target state="translated">#Н/Д</target>
+        <target state="new">#N/A</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableMessage">
         <source>Override 'Object.Equals(object)' when implementing 'IEquatable'</source>
-        <target state="translated">Переопределите Object.Equals(object) при реализации IEquatable</target>
+        <target state="new">Override 'Object.Equals(object)' when implementing 'IEquatable'</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle">
         <source>'SymbolDeclaredEvent' must be generated for source symbols</source>
-        <target state="translated">Для исходных символов необходимо создать SymbolDeclaredEvent</target>
+        <target state="new">'SymbolDeclaredEvent' must be generated for source symbols</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsDescription">
         <source>Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event.</source>
-        <target state="translated">Чтобы создать объявляемые символом события для всех объявленных исходных символов, нужна очередь событий компиляции. Поэтому каждый тип исходных символов или один из его базовых типов должны создавать объявляемое символом событие.</target>
+        <target state="new">Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event.</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsMessage">
         <source>'SymbolDeclaredEvent' must be generated for source symbols</source>
-        <target state="translated">Для исходных символов необходимо создать SymbolDeclaredEvent</target>
+        <target state="new">'SymbolDeclaredEvent' must be generated for source symbols</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFTitle">
         <source>Do not mix attributes from different versions of MEF</source>
-        <target state="translated">Не смешивайте атрибуты из разных версий MEF</target>
+        <target state="new">Do not mix attributes from different versions of MEF</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFDescription">
         <source>Do not mix attributes from different versions of MEF.</source>
-        <target state="translated">Не смешивайте атрибуты из разных версий MEF.</target>
+        <target state="new">Do not mix attributes from different versions of MEF.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFMessage">
         <source>Attribute '{0}' comes from a different version of MEF than the export attribute on '{1}'</source>
-        <target state="translated">Атрибут "{0}" отличается версией MEF от атрибута экспорта в "{1}"</target>
+        <target state="new">Attribute '{0}' comes from a different version of MEF than the export attribute on '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedTitle">
         <source>Parts exported with MEFv2 must be marked with 'SharedAttribute'</source>
-        <target state="translated">Части, экспортированные с помощью MEF версии 2, должны быть помечены как SharedAttribute</target>
+        <target state="new">Parts exported with MEFv2 must be marked with 'SharedAttribute'</target>
         <note />
       </trans-unit>
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedDescription">
         <source>Part exported with MEFv2 must be marked with the 'SharedAttribute'.</source>
-        <target state="translated">Часть, экспортированная с помощью MEF версии 2, должна быть помечена как SharedAttribute.</target>
+        <target state="new">Part exported with MEFv2 must be marked with the 'SharedAttribute'.</target>
         <note />
       </trans-unit>
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
         <source>'{0}' is exported with MEFv2 and hence must be marked with 'SharedAttribute'</source>
-        <target state="translated">Часть "{0}" экспортирована с помощью MEF версии 2 и поэтому должна быть помечена как SharedAttribute</target>
+        <target state="new">'{0}' is exported with MEFv2 and hence must be marked with 'SharedAttribute'</target>
         <note />
       </trans-unit>
     </body>
