@@ -32,7 +32,7 @@ internal interface IFeatureProviderRefresher
 [Export(typeof(IFeatureProviderRefresher)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class DefaultProjectContextRefresher() : IFeatureProviderRefresher
+internal sealed class DefaultFeatureProviderRefresher() : IFeatureProviderRefresher
 {
     /// <summary>
     /// Incremented every time a refresh is requested.
