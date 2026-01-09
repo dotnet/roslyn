@@ -2948,12 +2948,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedSafeSymbols: ["C.P1", "C.get_P1", "C.set_P1"],
             expectedDiagnostics:
             [
-                // (3,1): error CS9502: 'C.P2' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // (3,1): error CS9502: 'C.P2.set' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // c.P2 = c.P2 + 123;
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2").WithLocation(3, 1),
-                // (3,8): error CS9502: 'C.P2' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2.set").WithLocation(3, 1),
+                // (3,8): error CS9502: 'C.P2.get' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // c.P2 = c.P2 + 123;
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2").WithLocation(3, 8),
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2.get").WithLocation(3, 8)
             ]);
 
         CreateCompilation([lib, MemorySafetyRulesAttributeDefinition],
@@ -2993,12 +2993,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedSafeSymbols: [ExtensionMember("E", "P1"), "E.get_P1", ExtensionMember("E", "get_P1"), "E.set_P1", ExtensionMember("E", "set_P1")],
             expectedDiagnostics:
             [
-                // (3,1): error CS9502: 'E.extension(int).P2' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // (3,1): error CS9502: 'E.extension(int).P2.set' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // x.P2 = x.P2 + 333;
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "x.P2").WithArguments("E.extension(int).P2").WithLocation(3, 1),
-                // (3,8): error CS9502: 'E.extension(int).P2' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "x.P2").WithArguments("E.extension(int).P2.set").WithLocation(3, 1),
+                // (3,8): error CS9502: 'E.extension(int).P2.get' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // x.P2 = x.P2 + 333;
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "x.P2").WithArguments("E.extension(int).P2").WithLocation(3, 8),
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "x.P2").WithArguments("E.extension(int).P2.get").WithLocation(3, 8),
             ]);
     }
 
@@ -3022,12 +3022,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedSafeSymbols: ["C.P1", "C.get_P1", "C.set_P1"],
             expectedDiagnostics:
             [
-                // (2,1): error CS9502: 'C.P2' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // (2,1): error CS9502: 'C.P2.set' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // c.P2 = c.P1 + c.P2;
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2").WithLocation(2, 1),
-                // (2,15): error CS9502: 'C.P2' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2.set").WithLocation(2, 1),
+                // (2,15): error CS9502: 'C.P2.get' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // c.P2 = c.P1 + c.P2;
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2.get").WithLocation(2, 15),
             ]);
     }
 
@@ -3612,12 +3612,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             [libRef],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (3,1): error CS9503: 'C.P2' must be used in an unsafe context because it has pointers in its signature
+            // (3,1): error CS9503: 'C.P2.set' must be used in an unsafe context because it has pointers in its signature
             // c.P2 = c.P2;
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.P2").WithArguments("C.P2").WithLocation(3, 1),
-            // (3,8): error CS9503: 'C.P2' must be used in an unsafe context because it has pointers in its signature
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.P2").WithArguments("C.P2.set").WithLocation(3, 1),
+            // (3,8): error CS9503: 'C.P2.get' must be used in an unsafe context because it has pointers in its signature
             // c.P2 = c.P2;
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.P2").WithArguments("C.P2").WithLocation(3, 8));
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.P2").WithArguments("C.P2.get").WithLocation(3, 8));
 
         CompileAndVerify("""
             var c = new C();
@@ -3683,12 +3683,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             [libRef],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (3,1): error CS9503: 'E.extension(int*[]).P2' must be used in an unsafe context because it has pointers in its signature
+            // (3,1): error CS9503: 'E.extension(int*[]).P2.set' must be used in an unsafe context because it has pointers in its signature
             // new int*[0].P2 = new int*[0].P2;
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "new int*[0].P2").WithArguments("E.extension(int*[]).P2").WithLocation(3, 1),
-            // (3,18): error CS9503: 'E.extension(int*[]).P2' must be used in an unsafe context because it has pointers in its signature
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "new int*[0].P2").WithArguments("E.extension(int*[]).P2.set").WithLocation(3, 1),
+            // (3,18): error CS9503: 'E.extension(int*[]).P2.get' must be used in an unsafe context because it has pointers in its signature
             // new int*[0].P2 = new int*[0].P2;
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "new int*[0].P2").WithArguments("E.extension(int*[]).P2").WithLocation(3, 18));
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "new int*[0].P2").WithArguments("E.extension(int*[]).P2.get").WithLocation(3, 18));
 
         CompileAndVerify("""
             var x = 123;
@@ -4003,15 +4003,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedSafeSymbols: ["C", "C.P1", "C.set_P1"],
             expectedDiagnostics:
             [
-                // (3,1): error CS9502: 'C.P2' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // (3,1): error CS9502: 'C.P2.set' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // c.P2 = 0;
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2").WithLocation(3, 1),
-                // (4,1): error CS9502: 'C.P3' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2.set").WithLocation(3, 1),
+                // (4,1): error CS9502: 'C.P3.set' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // C.P3 = 0;
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "C.P3").WithArguments("C.P3").WithLocation(4, 1),
-                // (5,1): error CS9502: 'C.P4' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "C.P3").WithArguments("C.P3.set").WithLocation(4, 1),
+                // (5,1): error CS9502: 'C.P4.set' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // c.P4 = 0;
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P4").WithArguments("C.P4").WithLocation(5, 1),
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P4").WithArguments("C.P4.set").WithLocation(5, 1),
             ]);
 
         // When compiling the lib under legacy rules, extern members are not unsafe.
@@ -4063,9 +4063,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 [libUpdatedRef],
                 options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
                 .VerifyDiagnostics(
-                // (2,1): error CS9502: 'C.P' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // (2,1): error CS9502: 'C.P.set' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // c.P = null;
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P").WithArguments("C.P").WithLocation(2, 1))
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P").WithArguments("C.P.set").WithLocation(2, 1))
                 .GetReferencedAssemblySymbol(libUpdatedRef);
 
             VerifyRequiresUnsafeAttribute(
@@ -4095,9 +4095,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 [libLegacyRef],
                 options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
                 .VerifyDiagnostics(
-                // (2,1): error CS9503: 'C.P' must be used in an unsafe context because it has pointers in its signature
+                // (2,1): error CS9503: 'C.P.set' must be used in an unsafe context because it has pointers in its signature
                 // c.P = null;
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.P").WithArguments("C.P").WithLocation(2, 1))
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.P").WithArguments("C.P.set").WithLocation(2, 1))
                 .GetReferencedAssemblySymbol(libLegacyRef);
 
             VerifyRequiresUnsafeAttribute(
@@ -4133,9 +4133,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedSafeSymbols: ["C"],
             expectedDiagnostics:
             [
-                // (2,1): error CS9502: 'C.P' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // (2,1): error CS9502: 'C.P.set' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // c.P = 0;
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P").WithArguments("C.P").WithLocation(2, 1),
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P").WithArguments("C.P.set").WithLocation(2, 1),
             ]);
 
         // When compiling the lib under legacy rules, extern members are not unsafe.
