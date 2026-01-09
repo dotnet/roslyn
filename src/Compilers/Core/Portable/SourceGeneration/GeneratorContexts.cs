@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
         /// <param name="source">The source code to add to the compilation</param>
-        public void AddSource(string hintName, string source) => AddSource(hintName, SourceText.From(source, Encoding.UTF8, checksumAlgorithm: _checksumAlgorithm == SourceHashAlgorithm.None ? SourceHashAlgorithm.Sha1 : _checksumAlgorithm));
+        public void AddSource(string hintName, string source) => AddSource(hintName, SourceText.From(source, Encoding.UTF8, checksumAlgorithm: _checksumAlgorithm == SourceHashAlgorithm.None ? SourceHashAlgorithms.Default : _checksumAlgorithm));
 
         /// <summary>
         /// Adds a <see cref="SourceText"/> to the compilation
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Directory separators "/" and "\" are allowed in <paramref name="hintName"/>, they are normalized to "/" regardless of host platform.
         /// </remarks>
-        public void AddSource(string hintName, SourceText sourceText) => _additionalSources.Add(hintName, SourceTextWithAlgorithm.Create(sourceText, _checksumAlgorithm));
+        public void AddSource(string hintName, SourceText sourceText) => _additionalSources.Add(hintName, sourceText.WithChecksumAlgorithm(_checksumAlgorithm));
 
         /// <summary>
         /// Adds a <see cref="Diagnostic"/> to the users compilation 
