@@ -5,7 +5,6 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.ProjectContext;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.ProjectContext;
@@ -15,18 +14,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.ProjectContext;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class ProjectContextRefreshQueueFactory(
     IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
-    LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-    IProjectContextRefresher refresher) : ILspServiceFactory
+    LspWorkspaceRegistrationService lspWorkspaceRegistrationService) : ILspServiceFactory
 {
     private readonly IAsynchronousOperationListenerProvider _asynchronousOperationListenerProvider = asynchronousOperationListenerProvider;
     private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
-    private readonly IProjectContextRefresher _refresher = refresher;
 
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
         var notificationManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
         var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
 
-        return new ProjectContextRefreshQueue(_asynchronousOperationListenerProvider, _lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, _refresher);
+        return new ProjectContextRefreshQueue(_asynchronousOperationListenerProvider, _lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager);
     }
 }
