@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Class:
                     case TypeKind.Submission:
                         allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Abstract
-                            | DeclarationModifiers.Unsafe;
+                            | DeclarationModifiers.Unsafe | DeclarationModifiers.Closed;
 
                         if (!this.IsRecord)
                         {
@@ -367,6 +367,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 (mods & (DeclarationModifiers.Sealed | DeclarationModifiers.Static)) != 0)
             {
                 diagnostics.Add(ErrorCode.ERR_AbstractSealedStatic, GetFirstLocation(), this);
+            }
+
+            if (!modifierErrors &&
+                (mods & DeclarationModifiers.Closed) != 0 &&
+                (mods & (DeclarationModifiers.Sealed | DeclarationModifiers.Static)) != 0)
+            {
+                // PROTOTYPE(cc): Should the abstract modifier be permitted?
+                // It seems like permitting it could give an impression that it is making a difference.
+                diagnostics.Add(ErrorCode.ERR_ClosedSealedStatic, GetFirstLocation(), this);
             }
 
             if (!modifierErrors &&
@@ -508,6 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (reportIfContextual(SyntaxKind.RecordKeyword, MessageID.IDS_FeatureRecords, ErrorCode.WRN_RecordNamedDisallowed)
                 || reportIfContextual(SyntaxKind.RequiredKeyword, MessageID.IDS_FeatureRequiredMembers, ErrorCode.ERR_RequiredNameDisallowed)
                 || reportIfContextual(SyntaxKind.FileKeyword, MessageID.IDS_FeatureFileTypes, ErrorCode.ERR_FileTypeNameDisallowed)
+                || reportIfContextual(SyntaxKind.ClosedKeyword, MessageID.IDS_FeatureClosedClasses, ErrorCode.ERR_ClosedTypeNameDisallowed)
                 || reportIfContextual(SyntaxKind.ScopedKeyword, MessageID.IDS_FeatureRefFields, ErrorCode.ERR_ScopedTypeNameDisallowed)
                 || reportIfContextual(SyntaxKind.ExtensionKeyword, MessageID.IDS_FeatureExtensions, ErrorCode.ERR_ExtensionTypeNameDisallowed))
             {
