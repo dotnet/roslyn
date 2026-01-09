@@ -18,9 +18,6 @@ internal sealed class ProjectContextRefreshQueue : AbstractRefreshQueue
     {
     }
 
-    private void WorkspaceRefreshRequested()
-        => EnqueueRefreshNotification(documentUri: null);
-
     protected override string GetFeatureAttribute()
         => FeatureAttribute.LanguageServer;
 
