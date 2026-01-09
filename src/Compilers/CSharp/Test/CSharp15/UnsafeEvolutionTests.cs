@@ -2589,6 +2589,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 unsafe event System.Action E { add { } remove { } }
                 unsafe int this[int i] { get => i; set { } }
                 unsafe C() { }
+                unsafe ~C() { }
             }
             """;
 
@@ -2601,6 +2602,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             "C.E", "C.add_E", "C.remove_E",
             "C.this[]", "C.get_Item", "C.set_Item",
             "C..ctor",
+            "C.Finalize",
         ];
 
         CompileAndVerify(source,
@@ -2671,7 +2673,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("updated memory safety rules").WithLocation(9, 40),
             // (10,12): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     unsafe C() { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("updated memory safety rules").WithLocation(10, 12));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("updated memory safety rules").WithLocation(10, 12),
+            // (11,13): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     unsafe ~C() { }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("updated memory safety rules").WithLocation(11, 13));
     }
 
     // PROTOTYPE: Test also implicit methods used in patterns like GetEnumerator in foreach.
@@ -3355,6 +3360,53 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (4,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresUnsafeAttribute' is not defined or imported
             //     public unsafe C() { }
             Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(4, 19));
+    }
+
+    [Fact]
+    public void Member_Destructor()
+    {
+        var lib = """
+            public class C
+            {
+                unsafe ~C() { }
+            }
+            """;
+
+        CompileAndVerifyUnsafe(
+            lib: lib,
+            caller: """
+                _ = new C();
+                """,
+            expectedUnsafeSymbols: ["C.Finalize"],
+            expectedSafeSymbols: [],
+            expectedDiagnostics: []);
+
+        CreateCompilation([lib, MemorySafetyRulesAttributeDefinition],
+            options: TestOptions.ReleaseModule.WithAllowUnsafe(true).WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics(
+            // (3,13): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresUnsafeAttribute' is not defined or imported
+            //     unsafe ~C() { }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(3, 13));
+
+        CreateCompilation("""
+            class C
+            {
+                unsafe ~C() { }
+                void M() { Finalize(); }
+            }
+            class D : C
+            {
+                ~D() { } // implicitly calls base finalizer
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (4,16): error CS9502: 'C.~C()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+            //     void M() { Finalize(); }
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "Finalize()").WithArguments("C.~C()").WithLocation(4, 16),
+            // (4,16): error CS0245: Destructors and object.Finalize cannot be called directly. Consider calling IDisposable.Dispose if available.
+            //     void M() { Finalize(); }
+            Diagnostic(ErrorCode.ERR_CallingFinalizeDeprecated, "Finalize()").WithLocation(4, 16));
     }
 
     [Theory, CombinatorialData]
@@ -5437,6 +5489,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 event System.Action E2 { [RequiresUnsafeAttribute] add { } [RequiresUnsafeAttribute] remove { } }
                 [RequiresUnsafeAttribute] int this[int i] { get => i; set { } }
                 [RequiresUnsafeAttribute] C() { }
+                [RequiresUnsafeAttribute] ~C() { }
             }
             """;
 
@@ -5468,6 +5521,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresUnsafeAttribute").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(10, 6),
             // (11,6): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresUnsafeAttribute'. This is reserved for compiler usage.
             //     [RequiresUnsafeAttribute] C() { }
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresUnsafeAttribute").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(11, 6));
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresUnsafeAttribute").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(11, 6),
+            // (12,6): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresUnsafeAttribute'. This is reserved for compiler usage.
+            //     [RequiresUnsafeAttribute] ~C() { }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresUnsafeAttribute").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(12, 6));
     }
 }
