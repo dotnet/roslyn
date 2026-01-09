@@ -4362,15 +4362,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (isExtensionBlockMember)
                     {
                         Debug.Assert(symbol is not null);
-                        refKindsOpt = AdjustArgumentRefKindsIfNeeded(refKindsOpt, isExtensionBlockMember, symbol, objectInitializer.Arguments.Length);
+                        refKindsOpt = AdjustArgumentRefKindsIfNeeded(refKindsOpt, adjustForExtensionBlockMethod: true, symbol, objectInitializer.Arguments.Length);
 
                         arguments = AdjustArgumentsIfNeeded(
                             arguments,
                             isExtensionBlockMember,
                             receiver: new BoundExpressionWithNullability(objectInitializer.Syntax, objectInitializer, NullableAnnotation.NotAnnotated, containingType));
 
-                        parameters = AdjustParametersIfNeeded(parameters, isExtensionBlockMember, symbol);
-                        argsToParamsOpt = AdjustArgsToParamsOptIfNeeded(argsToParamsOpt, isExtensionBlockMember);
+                        parameters = AdjustParametersIfNeeded(parameters, isExtensionBlockMember: true, symbol);
+                        argsToParamsOpt = AdjustArgsToParamsOptIfNeeded(argsToParamsOpt, isExtensionBlockMethod: true);
 
                         Debug.Assert(objectInitializer.DefaultArguments.IsNull);
                     }
