@@ -2918,14 +2918,16 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Property()
     {
-        CompileAndVerifyUnsafe(
-            lib: """
+        var lib = """
                 public class C
                 {
                     public int P1 { get; set; }
                     public unsafe int P2 { get; set; }
                 }
-                """,
+            """;
+
+        CompileAndVerifyUnsafe(
+            lib: lib,
             caller: """
                 var c = new C();
                 c.P1 = c.P1 + 123;
@@ -2942,6 +2944,19 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // c.P2 = c.P2 + 123;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2").WithLocation(3, 8),
             ]);
+
+        CreateCompilation([lib, MemorySafetyRulesAttributeDefinition],
+            options: TestOptions.ReleaseModule.WithAllowUnsafe(true).WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics(
+            // (4,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresUnsafeAttribute' is not defined or imported
+            //     public unsafe int P2 { get; set; }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(4, 19),
+            // (4,28): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresUnsafeAttribute' is not defined or imported
+            //     public unsafe int P2 { get; set; }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "get").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(4, 28),
+            // (4,33): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresUnsafeAttribute' is not defined or imported
+            //     public unsafe int P2 { get; set; }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "set").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(4, 33));
     }
 
     [Fact]
@@ -3045,6 +3060,16 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation(lib, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
         CreateCompilation(lib, parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics();
+
+        CreateCompilation([lib, MemorySafetyRulesAttributeDefinition],
+            options: TestOptions.ReleaseModule.WithAllowUnsafe(true).WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics(
+            // (3,28): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresUnsafeAttribute' is not defined or imported
+            //     public int P1 { unsafe get; set; }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "get").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(3, 28),
+            // (4,33): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresUnsafeAttribute' is not defined or imported
+            //     public int P2 { get; unsafe set; }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "set").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(4, 33));
     }
 
     [Theory, CombinatorialData]
@@ -4561,6 +4586,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             {
                 [RequiresUnsafeAttribute] void M() { }
                 [RequiresUnsafeAttribute] int P { get; set; }
+                int P2 { [RequiresUnsafeAttribute] get; [RequiresUnsafeAttribute] set; }
             }
             """;
 
@@ -4571,6 +4597,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresUnsafeAttribute").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(4, 6),
             // (5,6): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresUnsafeAttribute'. This is reserved for compiler usage.
             //     [RequiresUnsafeAttribute] int P { get; set; }
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresUnsafeAttribute").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(5, 6));
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresUnsafeAttribute").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(5, 6),
+            // (6,15): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresUnsafeAttribute'. This is reserved for compiler usage.
+            //     int P2 { [RequiresUnsafeAttribute] get; [RequiresUnsafeAttribute] set; }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresUnsafeAttribute").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(6, 15),
+            // (6,46): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresUnsafeAttribute'. This is reserved for compiler usage.
+            //     int P2 { [RequiresUnsafeAttribute] get; [RequiresUnsafeAttribute] set; }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresUnsafeAttribute").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(6, 46));
     }
 }
