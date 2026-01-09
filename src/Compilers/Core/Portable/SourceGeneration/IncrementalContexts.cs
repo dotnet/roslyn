@@ -261,11 +261,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Directory separators "/" and "\" are allowed in <paramref name="hintName"/>, they are normalized to "/" regardless of host platform.
         /// </remarks>
-        public void AddSource(string hintName, SourceText sourceText) => Sources.Add(
-            hintName,
-            ChecksumAlgorithm == SourceHashAlgorithm.None || ChecksumAlgorithm == sourceText.ChecksumAlgorithm
-                ? sourceText
-                : new SourceTextWithAlgorithm(sourceText, ChecksumAlgorithm));
+        public void AddSource(string hintName, SourceText sourceText) => Sources.Add(hintName, SourceTextWithAlgorithm.Create(sourceText, ChecksumAlgorithm));
 
         /// <summary>
         /// Adds a <see cref="Diagnostic"/> to the users compilation
