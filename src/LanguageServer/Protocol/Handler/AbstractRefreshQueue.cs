@@ -30,6 +30,8 @@ internal abstract class AbstractRefreshQueue :
     private readonly CancellationTokenSource _disposalTokenSource;
     private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
 
+    protected virtual bool ListenForProviderRefresh => true;
+
     protected abstract string GetFeatureAttribute();
     protected abstract bool? GetRefreshSupport(ClientCapabilities clientCapabilities);
     protected abstract string GetWorkspaceRefreshName();
@@ -38,13 +40,22 @@ internal abstract class AbstractRefreshQueue :
         IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
         LspWorkspaceManager lspWorkspaceManager,
-        IClientLanguageServerManager notificationManager)
+        IClientLanguageServerManager notificationManager,
+        IFeatureProviderRefresher refresher)
     {
         _asyncListener = asynchronousOperationListenerProvider.GetListener(GetFeatureAttribute());
         _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
         _disposalTokenSource = new();
         _lspWorkspaceManager = lspWorkspaceManager;
         _notificationManager = notificationManager;
+
+        if (ListenForProviderRefresh)
+        {
+            refresher.ProviderRefreshRequested += documentUri =>
+            {
+                EnqueueRefreshNotification(documentUri);
+            };
+        }
     }
 
     public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)

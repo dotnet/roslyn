@@ -36,8 +36,9 @@ internal sealed class DiagnosticsRefreshQueue : AbstractRefreshQueue
         {
             var notificationManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
             var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
+            var providerRefresher = lspServices.GetRequiredService<IFeatureProviderRefresher>();
 
-            return new DiagnosticsRefreshQueue(_asyncListenerProvider, _lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, _refresher);
+            return new DiagnosticsRefreshQueue(_asyncListenerProvider, _lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, providerRefresher, _refresher);
         }
     }
 
@@ -48,8 +49,9 @@ internal sealed class DiagnosticsRefreshQueue : AbstractRefreshQueue
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
         LspWorkspaceManager lspWorkspaceManager,
         IClientLanguageServerManager notificationManager,
+        IFeatureProviderRefresher providerRefresher,
         IDiagnosticsRefresher refresher)
-        : base(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager)
+        : base(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, providerRefresher)
     {
         _refresher = refresher;
 

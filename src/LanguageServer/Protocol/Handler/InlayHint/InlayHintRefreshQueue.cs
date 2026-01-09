@@ -18,8 +18,9 @@ internal sealed class InlayHintRefreshQueue : AbstractRefreshQueue
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
         IGlobalOptionService globalOptionService,
         LspWorkspaceManager lspWorkspaceManager,
-        IClientLanguageServerManager notificationManager)
-        : base(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager)
+        IClientLanguageServerManager notificationManager,
+        IFeatureProviderRefresher refresher)
+        : base(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, refresher)
     {
         _globalOptionService = globalOptionService;
         _globalOptionService.AddOptionChangedHandler(this, OnOptionChanged);

@@ -33,7 +33,8 @@ internal sealed class CodeLensRefreshQueueFactory : ILspServiceFactory
     {
         var notificationManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
         var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
+        var refresher = lspServices.GetRequiredService<IFeatureProviderRefresher>();
 
-        return new CodeLensRefreshQueue(_asyncListenerProvider, _lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, _globalOptionService);
+        return new CodeLensRefreshQueue(_asyncListenerProvider, _lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, refresher, _globalOptionService);
     }
 }
