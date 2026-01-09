@@ -348,6 +348,19 @@ internal class RenameFlyoutViewModel : INotifyPropertyChanged, IDisposable
     private void OnReplacementTextChanged(object sender, EventArgs e)
     {
         NotifyPropertyChanged(nameof(IdentifierText));
+
+        // Check for simple declaration conflicts immediately as the user types
+        if (Session.RenameInfo.CheckDeclarationConflict(IdentifierText, out var conflictMessage))
+        {
+            StatusText = conflictMessage;
+            StatusSeverity = Severity.Warning;
+        }
+        else
+        {
+            // Clear any previous conflict message
+            StatusText = null;
+            StatusSeverity = Severity.None;
+        }
     }
 
     private void OnReplacementsComputed(object sender, IInlineRenameReplacementInfo result)
