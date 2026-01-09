@@ -33,9 +33,9 @@ To reference prerelease packages, add a **NuGet.Config** file to your solution d
 ### Obsolete Packages
 
 This collection of packages previously included a number of packages for testing with specific test frameworks, such as
-MSTest, NUnit, and xUnit. These packages have been marked obsolete, and users are encouraged to migrate to the generic
-test packages. The migration process shown here is specific to MSTest; other frameworks can substitute `NUnit` or `XUnit`
-as appropriate.
+MSTest, NUnit, and xUnit. These packages have been marked obsolete (see [issue #1175](https://github.com/dotnet/roslyn-sdk/issues/1175)),
+and users are encouraged to migrate to the generic test packages. The migration process shown here is specific to MSTest;
+other frameworks can substitute `NUnit` or `XUnit` as appropriate.
 
 * Remove the **.MSTest** suffix from all referenced packages. For example:
 
@@ -49,7 +49,7 @@ as appropriate.
     ```
 
 * Use `CSharpAnalyzerVerifier<TAnalyzer, DefaultVerifier>` instead of `AnalyzerVerifier<TAnalyzer>`. A similar change
-  should be applied for each of the other types impacted by this change (remove the language prefix, and add the
+  should be applied for each of the other types impacted by this change (add the language prefix, and add the
   `DefaultVerifier` generic argument).
 
 ## Verifier overview
