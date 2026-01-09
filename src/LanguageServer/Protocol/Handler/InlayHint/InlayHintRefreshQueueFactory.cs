@@ -33,7 +33,8 @@ internal sealed class InlayHintRefreshQueueFactory : ILspServiceFactory
     {
         var notificationManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
         var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
+        var refresher = lspServices.GetRequiredService<IFeatureProviderRefresher>();
 
-        return new InlayHintRefreshQueue(_asyncListenerProvider, _lspWorkspaceRegistrationService, _globalOptionService, lspWorkspaceManager, notificationManager);
+        return new InlayHintRefreshQueue(_asyncListenerProvider, _lspWorkspaceRegistrationService, _globalOptionService, lspWorkspaceManager, notificationManager, refresher);
     }
 }

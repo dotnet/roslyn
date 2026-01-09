@@ -34,7 +34,8 @@ internal sealed class SemanticTokensRefreshQueue : AbstractRefreshQueue
         IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
         LspWorkspaceManager lspWorkspaceManager,
-        IClientLanguageServerManager notificationManager) : base(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager)
+        IClientLanguageServerManager notificationManager,
+        IFeatureProviderRefresher refresher) : base(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, refresher)
     {
     }
 
