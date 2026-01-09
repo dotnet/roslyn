@@ -12,7 +12,7 @@ using Roslyn.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(ProjectContextChangedHandler)), Shared]
-[Method(VSMethods.GetProjectContextsName)]
+[Method(VSMethods.ProjectContextChangedName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal class ProjectContextChangedHandler() : ILspServiceNotificationHandler<TextDocumentIdentifier?>
