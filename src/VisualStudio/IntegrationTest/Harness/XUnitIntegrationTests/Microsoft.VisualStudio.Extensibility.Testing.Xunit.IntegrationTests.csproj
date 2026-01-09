@@ -26,7 +26,7 @@
     <ProjectReference Include="..\..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\TestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.csproj" />
     <ProjectReference Include="..\XUnit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj" />
-    <ProjectReference Include="..\SourceGenerator\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" SetTargetFramework="TargetFramework=netstandard2.0" SkipGetTargetFrameworkProperties="true" />
+    <ProjectReference Include="..\SourceGenerator\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
