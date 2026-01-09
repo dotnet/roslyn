@@ -15,11 +15,19 @@ internal sealed class SourceTextWithAlgorithm : SourceText
 {
     private readonly SourceText _underlying;
 
-    public SourceTextWithAlgorithm(SourceText underlying, SourceHashAlgorithm checksumAlgorithm) : base(checksumAlgorithm: checksumAlgorithm)
+    private SourceTextWithAlgorithm(SourceText underlying, SourceHashAlgorithm checksumAlgorithm) : base(checksumAlgorithm: checksumAlgorithm)
     {
         Debug.Assert(checksumAlgorithm != SourceHashAlgorithm.None);
         Debug.Assert(checksumAlgorithm != underlying.ChecksumAlgorithm);
         _underlying = underlying;
+    }
+
+    public static SourceText Create(SourceText underlying, SourceHashAlgorithm checksumAlgorithm)
+    {
+        if (checksumAlgorithm == SourceHashAlgorithm.None || checksumAlgorithm == underlying.ChecksumAlgorithm)
+            return underlying;
+
+        return new SourceTextWithAlgorithm(underlying, checksumAlgorithm);
     }
 
     public override char this[int position] => _underlying[position];
