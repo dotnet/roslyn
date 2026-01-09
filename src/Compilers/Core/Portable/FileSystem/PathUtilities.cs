@@ -873,6 +873,30 @@ namespace Roslyn.Utilities
             return expandedPath;
         }
 
+        /// <summary>
+        /// Normalizes a path for use in EditorConfig matching and comparison.
+        /// This method applies the same normalization used when comparing source paths
+        /// against EditorConfig section names and file paths.
+        /// </summary>
+        /// <remarks>
+        /// This method performs the following operations in order:
+        /// 1. Collapses directory separators to forward slashes
+        /// 2. Expands relative path parts (.. and .)
+        /// 3. Normalizes the drive letter to uppercase on Windows
+        /// 
+        /// This method is used to ensure consistent path normalization across:
+        /// - EditorConfig section names during parsing
+        /// - EditorConfig file paths during parsing  
+        /// - Source paths when calling GetOptionsForSourcePath
+        /// </remarks>
+        public static string NormalizePathForEditorConfig(string path)
+        {
+            var normalizedPath = CollapseWithForwardSlash(path.AsSpan());
+            normalizedPath = ExpandAbsolutePathWithRelativeParts(normalizedPath);
+            normalizedPath = NormalizeDriveLetter(normalizedPath);
+            return normalizedPath;
+        }
+
         public static readonly IEqualityComparer<string> Comparer = new PathComparer();
 
         private class PathComparer : IEqualityComparer<string?>
