@@ -26,6 +26,7 @@ internal sealed record class DocumentUri(string UriString)
 
     public DocumentUri(Uri parsedUri) : this(parsedUri.AbsoluteUri)
     {
+        _parsedUri = parsedUri;
     }
 
     /// <summary>
