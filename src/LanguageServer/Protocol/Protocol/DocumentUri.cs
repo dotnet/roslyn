@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 
 namespace Roslyn.LanguageServer.Protocol;
 
@@ -20,23 +20,13 @@ namespace Roslyn.LanguageServer.Protocol;
 /// In order to gracefully handle these issues, we defer the parsing of the URI until someone
 /// actually asks for it (and can handle the failure).
 /// </remarks>
-internal sealed class DocumentUri : IEquatable<DocumentUri>
+internal sealed record class DocumentUri(string UriString)
 {
-    private readonly Lazy<Uri?> _parsedUriLazy;
+    private Optional<Uri> _parsedUri;
 
-    public DocumentUri(string uriString)
+    public DocumentUri(Uri parsedUri) : this(parsedUri.AbsoluteUri)
     {
-        UriString = uriString;
-        _parsedUriLazy = new(() => ParseUri(UriString));
     }
-
-    public DocumentUri(Uri parsedUri)
-    {
-        UriString = parsedUri.AbsoluteUri;
-        _parsedUriLazy = new(() => parsedUri);
-    }
-
-    public string UriString { get; }
 
     /// <summary>
     /// Gets the parsed System.Uri for the URI string.
@@ -51,7 +41,14 @@ internal sealed class DocumentUri : IEquatable<DocumentUri>
     /// For example, any URI containing a 'sub-delims' character in the host name
     /// is a valid RFC spec URI, but will fail with System.Uri
     /// </remarks>
-    public Uri? ParsedUri => _parsedUriLazy.Value;
+    public Uri? ParsedUri
+    {
+        get
+        {
+            _parsedUri = _parsedUri.HasValue ? _parsedUri : ParseUri(UriString);
+            return _parsedUri.Value;
+        }
+    }
 
     private static Uri? ParseUri(string uriString)
     {
@@ -67,8 +64,6 @@ internal sealed class DocumentUri : IEquatable<DocumentUri>
     }
 
     public override string ToString() => UriString;
-
-    public override bool Equals([NotNullWhen(true)] object? obj) => obj is DocumentUri other && this.Equals(other);
 
     public bool Equals(DocumentUri otherUri)
     {
@@ -100,14 +95,8 @@ internal sealed class DocumentUri : IEquatable<DocumentUri>
         // the URI untouched, even if they generally send unencoded URIs.  In such cases we need to consider the encoded and unencoded URI equivalent.
         //
         // To handle that, we first compare the AbsoluteUri properties on both, which are always percent encoded.
-        if (this.ParsedUri.IsAbsoluteUri && otherUri.ParsedUri.IsAbsoluteUri && this.ParsedUri.AbsoluteUri == otherUri.ParsedUri.AbsoluteUri)
-        {
-            return true;
-        }
-        else
-        {
-            return Uri.Equals(this.ParsedUri, otherUri.ParsedUri);
-        }
+        return (this.ParsedUri.IsAbsoluteUri && otherUri.ParsedUri.IsAbsoluteUri && this.ParsedUri.AbsoluteUri == otherUri.ParsedUri.AbsoluteUri) ||
+            Equals(this.ParsedUri, otherUri.ParsedUri);
     }
 
     public override int GetHashCode()
@@ -118,33 +107,17 @@ internal sealed class DocumentUri : IEquatable<DocumentUri>
             return this.UriString.GetHashCode();
         }
 
-        if (this.ParsedUri.IsAbsoluteUri)
-        {
-            // Since the Uri type does not consider an encoded Uri equal to an unencoded Uri, we need to handle this ourselves.
-            // The AbsoluteUri property is always encoded, so we can use this to compare the URIs (see Equals above).
-            //
-            // However, depending on the kind of URI, case sensitivity in AbsoluteUri should be ignored.
-            // Uri.GetHashCode normally handles this internally, but the parameters it uses to determine which comparison to use are not exposed.
-            //
-            // Instead, we will always create the hash code ignoring case, and will rely on the Equals implementation
-            // to handle collisions (between two Uris with different casing).  This should be very rare in practice.
-            // Collisions can happen for non UNC URIs (e.g. `git:/blah` vs `git:/Blah`).
-            return StringComparer.OrdinalIgnoreCase.GetHashCode(this.ParsedUri.AbsoluteUri);
-        }
-        else
-        {
-            return this.ParsedUri.GetHashCode();
-        }
+        // Since the Uri type does not consider an encoded Uri equal to an unencoded Uri, we need to handle this ourselves.
+        // The AbsoluteUri property is always encoded, so we can use this to compare the URIs (see Equals above).
+        //
+        // However, depending on the kind of URI, case sensitivity in AbsoluteUri should be ignored.
+        // Uri.GetHashCode normally handles this internally, but the parameters it uses to determine which comparison to use are not exposed.
+        //
+        // Instead, we will always create the hash code ignoring case, and will rely on the Equals implementation
+        // to handle collisions (between two Uris with different casing).  This should be very rare in practice.
+        // Collisions can happen for non UNC URIs (e.g. `git:/blah` vs `git:/Blah`).
+        return this.ParsedUri.IsAbsoluteUri
+            ? StringComparer.OrdinalIgnoreCase.GetHashCode(this.ParsedUri.AbsoluteUri)
+            : this.ParsedUri.GetHashCode();
     }
-
-    public static bool operator ==(DocumentUri? uri1, DocumentUri? uri2)
-        => (uri1, uri2) switch
-        {
-            (null, null) => true,
-            (null, _) or (_, null) => false,
-            _ => uri1.Equals(uri2)
-        };
-
-    public static bool operator !=(DocumentUri? uri1, DocumentUri? uri2)
-        => !(uri1 == uri2);
 }
