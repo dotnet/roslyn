@@ -1023,11 +1023,55 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 isImplicit = true;
             }
-            else if (!boundConversion.Conversion.IsUnion && boundConversion.ConversionGroupOpt?.Conversion.IsUnion == true &&
-                     boundOperand is BoundConversion { Conversion.IsUnion: true } unionConversion &&
-                     boundConversion.ConversionGroupOpt == unionConversion.ConversionGroupOpt)
+            else if (boundConversion.ConversionGroupOpt?.Conversion.IsUnion == true &&
+                (boundConversion.InConversionGroupFlags & InConversionGroupFlags.UnionSourceConversion) == 0)
             {
-                isImplicit = !unionConversion.ExplicitCastInCode;
+                // PROTOTYPE: Consider extracting a common helper that takes union conversion tree apart.
+                BoundConversion? unionConversion;
+
+                if (boundConversion.Conversion.IsUnion)
+                {
+                    unionConversion = boundConversion;
+                }
+                else if (boundOperand is BoundConversion { Conversion.IsUnion: true } next &&
+                         boundConversion.ConversionGroupOpt == next.ConversionGroupOpt)
+                {
+                    unionConversion = next;
+                }
+                else
+                {
+                    unionConversion = null;
+                }
+
+                if (unionConversion is not null)
+                {
+                    isImplicit = !unionConversion.ExplicitCastInCode;
+
+                    if (!isImplicit)
+                    {
+                        BoundExpression ultimateOperand;
+
+                        if (unionConversion.Operand is BoundConversion next && boundConversion.ConversionGroupOpt == next.ConversionGroupOpt)
+                        {
+                            Debug.Assert((next.InConversionGroupFlags & InConversionGroupFlags.UnionSourceConversion) != 0);
+                            ultimateOperand = next.Operand;
+                        }
+                        else
+                        {
+                            ultimateOperand = unionConversion.Operand;
+                        }
+
+                        if (boundConversion.Syntax == ultimateOperand.Syntax)
+                        {
+                            isImplicit = true;
+                        }
+                    }
+                }
+                else
+                {
+                    ExceptionUtilities.UnexpectedValue(boundConversion); // Unexpected tree shape
+                    isImplicit = !boundConversion.ExplicitCastInCode;
+                }
             }
             else
             {
