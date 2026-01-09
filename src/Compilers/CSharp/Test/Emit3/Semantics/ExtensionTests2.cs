@@ -38227,5 +38227,57 @@ static class E
             // o.P++;
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "o").WithArguments("(object, object)?", "(object?, object?)?", "o", "E.extension((object?, object?)?)").WithLocation(4, 1));
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81851")]
+    public void Nullability_ReceiverConversion_10()
+    {
+        // static method
+        var src = """
+#nullable enable
+
+System.Nullable<System.ValueTuple<object, object>>.M();
+
+public static class E
+{
+    extension((object?, object?)? t)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,1): warning CS8620: Argument of type '(object, object)?' cannot be used for parameter 't' of type '(object?, object?)?' in 'E.extension((object?, object?)?)' due to differences in the nullability of reference types.
+            // System.Nullable<System.ValueTuple<object, object>>.M();;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "System.Nullable<System.ValueTuple<object, object>>").WithArguments("(object, object)?", "(object?, object?)?", "t", "E.extension((object?, object?)?)").WithLocation(3, 1));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81851")]
+    public void Nullability_ReceiverConversion_11()
+    {
+        // static property
+        var src = """
+#nullable enable
+
+_ = System.Nullable<System.ValueTuple<object, object>>.P;
+System.Nullable<System.ValueTuple<object, object>>.P = 0;
+
+public static class E
+{
+    extension((object?, object?)? t)
+    {
+        public static int P { get => throw null!; set { } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,5): warning CS8620: Argument of type '(object, object)?' cannot be used for parameter 't' of type '(object?, object?)?' in 'E.extension((object?, object?)?)' due to differences in the nullability of reference types.
+            // _ = System.Nullable<System.ValueTuple<object, object>>.P;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "System.Nullable<System.ValueTuple<object, object>>").WithArguments("(object, object)?", "(object?, object?)?", "t", "E.extension((object?, object?)?)").WithLocation(3, 5),
+            // (4,1): warning CS8620: Argument of type '(object, object)?' cannot be used for parameter 't' of type '(object?, object?)?' in 'E.extension((object?, object?)?)' due to differences in the nullability of reference types.
+            // System.Nullable<System.ValueTuple<object, object>>.P = 0;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "System.Nullable<System.ValueTuple<object, object>>").WithArguments("(object, object)?", "(object?, object?)?", "t", "E.extension((object?, object?)?)").WithLocation(4, 1));
+    }
 }
 
