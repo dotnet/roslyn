@@ -88,6 +88,7 @@ namespace Xunit.Harness
             "devenv.exe",
             "csc.exe",
             "csi.exe",
+            "DevHub.exe",
             "git.exe",
             "Microsoft.ServiceHub.Controller.exe",
             "msbuild.exe",
