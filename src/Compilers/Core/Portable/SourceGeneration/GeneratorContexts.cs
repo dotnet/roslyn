@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis
             hintName,
             _checksumAlgorithm == SourceHashAlgorithm.None || _checksumAlgorithm == sourceText.ChecksumAlgorithm
                 ? sourceText
-                : SourceText.From(sourceText.ToString(), encoding: sourceText.Encoding, checksumAlgorithm: _checksumAlgorithm));
+                : new SourceTextWithAlgorithm(sourceText, _checksumAlgorithm));
 
         /// <summary>
         /// Adds a <see cref="Diagnostic"/> to the users compilation 
