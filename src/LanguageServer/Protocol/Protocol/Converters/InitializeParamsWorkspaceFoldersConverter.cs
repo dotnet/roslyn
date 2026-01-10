@@ -14,10 +14,10 @@ namespace Roslyn.LanguageServer.Protocol;
 /// Per <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#initialize">the LSP Spec</see>:
 /// <list type="bullet">
 /// <item>
-///  If the property is NOT present, the client does not support workspace folders.
+/// <description>If the property is NOT present, the client does not support workspace folders.</description>
 /// </item>
 /// <item>
-/// If the property is present but null, or an empty array, the client supports workspace folders but none are open.
+/// <description>If the property is present but null, or an empty array, the client supports workspace folders but none are open.</description>
 /// </item>
 /// </list>
 /// </para>

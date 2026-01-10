@@ -58,10 +58,10 @@ internal sealed class CancellationSeries : IDisposable
     /// <returns>
     /// A cancellation token that will be cancelled when either:
     /// <list type="bullet">
-    /// <item><see cref="CreateNext"/> is called again</item>
-    /// <item>The token passed to this method (if any) is cancelled</item>
-    /// <item>The token passed to the constructor (if any) is cancelled</item>
-    /// <item><see cref="Dispose"/> is called</item>
+    /// <item><description><see cref="CreateNext"/> is called again</description></item>
+    /// <item><description>The token passed to this method (if any) is cancelled</description></item>
+    /// <item><description>The token passed to the constructor (if any) is cancelled</description></item>
+    /// <item><description><see cref="Dispose"/> is called</description></item>
     /// </list>
     /// </returns>
     /// <exception cref="ObjectDisposedException">This object has been disposed.</exception>

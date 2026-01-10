@@ -127,10 +127,10 @@ partial class Methods
     /// The returned result is either:
     /// <list type="bullet">
     /// <item>
-    /// An array of <see cref="SymbolInformation"/>, which is a flat list of all symbols found in a given text document. Neither the symbol’s location range nor the symbol’s container name should be used to infer a hierarchy.
+    /// <description>An array of <see cref="SymbolInformation"/>, which is a flat list of all symbols found in a given text document. Neither the symbol’s location range nor the symbol’s container name should be used to infer a hierarchy.</description>
     /// </item>
     /// <item>
-    /// An array of <see cref="DocumentSymbol"/>, which is a hierarchy of symbols found in a given text document.
+    /// <description>An array of <see cref="DocumentSymbol"/>, which is a hierarchy of symbols found in a given text document.</description>
     /// </item>
     /// </list>
     /// Servers should whenever possible return <see cref="DocumentSymbol"/> since it is the richer data structure.
@@ -372,7 +372,7 @@ partial class Methods
     /// </para>
     /// <para>
     /// If computing full completion items is expensive, servers can additionally provide a handler for the completion
-    /// item resolve request (‘completionItem/resolve’), which is sent when a completion item is selected in the user interface. 
+    /// item resolve request (‘completionItem/resolve’), which is sent when a completion item is selected in the user interface.
     /// </para>
     /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_completion">Language Server Protocol specification</see> for additional information.
@@ -466,10 +466,10 @@ partial class Methods
     /// Clients can use the result to decorate color references in an editor. For example:
     /// <list type="bullet">
     /// <item>
-    /// Color boxes showing the actual color next to the reference
+    /// <description>Color boxes showing the actual color next to the reference</description>
     /// </item>
     /// <item>
-    /// Show a color picker when a color reference is edited
+    /// <description>Show a color picker when a color reference is edited</description>
     /// </item>
     /// </list>
     /// </para>
@@ -495,10 +495,10 @@ partial class Methods
     /// Clients can use the result to:
     /// <list type="bullet">
     /// <item>
-    /// modify a color reference.
+    /// <description>Modify a color reference</description>
     /// </item>
     /// <item>
-    /// show in a color picker and let users pick one of the presentations
+    /// <description>Show in a color picker and let users pick one of the presentations</description>
     /// </item>
     /// </list>
     /// </para>

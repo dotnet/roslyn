@@ -37,9 +37,9 @@ internal sealed class DidChangeTextDocumentParams : ITextDocumentParams
     /// To mirror the content of a document using change events use the following
     /// approach:
     /// <list type="bullet">
-    /// <item>Start with the same initial content</item>
-    /// <item>Apply the 'textDocument/didChange' notifications in the order you receive them.</item>
-    /// <item>Apply the `TextDocumentContentChangeEvent`s in a single notification in the order you receive them.</item>
+    /// <item><description>Start with the same initial content</description></item>
+    /// <item><description>Apply the 'textDocument/didChange' notifications in the order you receive them.</description></item>
+    /// <item><description>Apply the `TextDocumentContentChangeEvent`s in a single notification in the order you receive them.</description></item>
     /// </list>
     /// </para>
     /// </summary>

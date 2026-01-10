@@ -18,25 +18,25 @@ namespace Microsoft.CodeAnalysis;
 /// </summary>
 /// <remarks>
 /// <list type="bullet">
-/// <item>Scopes returned will always have at least one non-empty property value in them.</item>
-/// <item>Symbols may be imported, but may not necessarily be available at that location (for example, an alias
-/// symbol hidden by another symbol).</item>
+/// <item><description>Scopes returned will always have at least one non-empty property value in them.</description></item>
+/// <item><description>Symbols may be imported, but may not necessarily be available at that location (for example, an alias
+/// symbol hidden by another symbol).</description></item>
 /// <item>
-/// In C# there will be an <see cref="IImportScope"/> for every containing namespace-declarations that include any
+/// <description>In C# there will be an <see cref="IImportScope"/> for every containing namespace-declarations that include any
 /// import directives.  There will also be an <see cref="IImportScope"/> for the containing compilation-unit if it
-/// includes any import directives or if there are global import directives pulled in from other files.
+/// includes any import directives or if there are global import directives pulled in from other files.</description>
 /// </item>
 /// <item>
-/// In Visual Basic there will commonly be one or two <see cref="IImportScope"/>s returned for any position.  This will
+/// <description>In Visual Basic there will commonly be one or two <see cref="IImportScope"/>s returned for any position.  This will
 /// commonly be a scope for the containing compilation unit if it includes any import directives.  As well as a scope
-/// representing any imports specified at the project level.
+/// representing any imports specified at the project level.</description>
 /// </item>
 /// <item>
-/// Elements of any property have no defined order.  Even if they represent items from a single document, they are
-/// not guaranteed to be returned in any specific file-oriented order.
+/// <description>Elements of any property have no defined order.  Even if they represent items from a single document, they are
+/// not guaranteed to be returned in any specific file-oriented order.</description>
 /// </item>
-/// <item>There is no guarantee that the same scope instances will be returned from successive calls to <see
-/// cref="SemanticModel.GetImportScopes"/>.</item> 
+/// <item><description>There is no guarantee that the same scope instances will be returned from successive calls to <see
+/// cref="SemanticModel.GetImportScopes"/>.</description></item>
 /// </list>
 /// </remarks>
 public interface IImportScope

@@ -70,18 +70,18 @@ internal class CodeAction
     /// actions:
     /// <list type="bullet">
     /// <item>
-    /// Disabled code actions are not shown in automatic lightbulbs code
-    /// action menus.
+    /// <description>Disabled code actions are not shown in automatic lightbulbs code
+    /// action menus.</description>
     /// </item>
     /// <item>
-    /// Disabled actions are shown as faded out in the code action menu when
+    /// <description>Disabled actions are shown as faded out in the code action menu when
     /// the user request a more specific type of code action, such as
-    /// refactorings.
+    /// refactorings.</description>
     /// </item>
     /// <item>
-    /// If the user has a keybinding that auto applies a code action and only
+    /// <description>If the user has a keybinding that auto applies a code action and only
     /// a disabled code actions are returned, the client should show the user
-    /// an error message with <see cref="CodeActionDisabledReason.Reason"/> in the editor.
+    /// an error message with <see cref="CodeActionDisabledReason.Reason"/> in the editor.</description>
     /// </item>
     /// </list>
     /// </para>

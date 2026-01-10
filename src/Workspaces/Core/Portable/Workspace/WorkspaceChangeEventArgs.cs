@@ -40,10 +40,10 @@ public class WorkspaceChangeEventArgs : EventArgs
     /// to a project (for example <see cref="WorkspaceChangeKind.SolutionReloaded"/>.  Should be non-<see
     /// langword="null"/> for:
     /// <list type="bullet">
-    /// <item><see cref="WorkspaceChangeKind.ProjectAdded"/></item>
-    /// <item><see cref="WorkspaceChangeKind.ProjectChanged"/></item>
-    /// <item><see cref="WorkspaceChangeKind.ProjectReloaded"/></item>
-    /// <item><see cref="WorkspaceChangeKind.ProjectRemoved"/></item>
+    /// <item><description><see cref="WorkspaceChangeKind.ProjectAdded"/></description></item>
+    /// <item><description><see cref="WorkspaceChangeKind.ProjectChanged"/></description></item>
+    /// <item><description><see cref="WorkspaceChangeKind.ProjectReloaded"/></description></item>
+    /// <item><description><see cref="WorkspaceChangeKind.ProjectRemoved"/></description></item>
     /// </list>
     /// </summary>
     public ProjectId? ProjectId { get; }
@@ -53,11 +53,11 @@ public class WorkspaceChangeEventArgs : EventArgs
     /// to a document (for example <see cref="WorkspaceChangeKind.ProjectAdded"/>. Should be non-<see
     /// langword="null"/> for:
     /// <list type="bullet">
-    /// <item><see cref="WorkspaceChangeKind.DocumentAdded"/></item>
-    /// <item><see cref="WorkspaceChangeKind.DocumentChanged"/></item>
-    /// <item><see cref="WorkspaceChangeKind.DocumentInfoChanged"/></item>
-    /// <item><see cref="WorkspaceChangeKind.DocumentReloaded"/></item>
-    /// <item><see cref="WorkspaceChangeKind.DocumentRemoved"/></item>
+    /// <item><description><see cref="WorkspaceChangeKind.DocumentAdded"/></description></item>
+    /// <item><description><see cref="WorkspaceChangeKind.DocumentChanged"/></description></item>
+    /// <item><description><see cref="WorkspaceChangeKind.DocumentInfoChanged"/></description></item>
+    /// <item><description><see cref="WorkspaceChangeKind.DocumentReloaded"/></description></item>
+    /// <item><description><see cref="WorkspaceChangeKind.DocumentRemoved"/></description></item>
     /// </list>
     /// </summary>
     public DocumentId? DocumentId { get; }

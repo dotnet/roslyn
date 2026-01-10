@@ -19,15 +19,15 @@ internal sealed class FileOperationPattern
     /// <summary>
     /// The glob pattern to match. Glob patterns can have the following syntax:
     /// <list type="bullet">
-    /// <item><c>*</c> to match one or more characters in a path segment</item>
-    /// <item><c>?</c> to match on one character in a path segment</item>
-    /// <item><c>**</c> to match any number of path segments, including none</item>
-    /// <item><c>{}</c> to group sub patterns into an OR expression.
-    /// (e.g. <c>**​/*.{ts,js}</c>matches all TypeScript and JavaScript files)</item>
-    /// <item><c>[]</c>to declare a range of characters to match in a path segment
-    /// (e.g., <c>example.[0-9]</c> to match on <c>example.0</c>, <c>example.1</c>, …)</item>
-    /// <item><c>[!...]</c> to negate a range of characters to match in a path segment
-    /// (e.g., <c>example.[!0-9]</c> to match on <c>example.a</c>, <c>example.b</c>, but not <c>example.0</c>)</item>
+    /// <item><description><c>*</c> to match one or more characters in a path segment</description></item>
+    /// <item><description><c>?</c> to match on one character in a path segment</description></item>
+    /// <item><description><c>**</c> to match any number of path segments, including none</description></item>
+    /// <item><description><c>{}</c> to group sub patterns into an OR expression.
+    /// (e.g. <c>**​/*.{ts,js}</c>matches all TypeScript and JavaScript files)</description></item>
+    /// <item><description><c>[]</c>to declare a range of characters to match in a path segment
+    /// (e.g., <c>example.[0-9]</c> to match on <c>example.0</c>, <c>example.1</c>, …)</description></item>
+    /// <item><description><c>[!...]</c> to negate a range of characters to match in a path segment
+    /// (e.g., <c>example.[!0-9]</c> to match on <c>example.a</c>, <c>example.b</c>, but not <c>example.0</c>)</description></item>
     /// </list>
     /// </summary>
     [JsonPropertyName("glob")]

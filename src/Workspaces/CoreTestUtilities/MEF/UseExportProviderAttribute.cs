@@ -31,15 +31,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities;
 /// <para>This attribute serves several important functions for tests that use state variables which are otherwise
 /// shared at runtime:</para>
 /// <list type="bullet">
-/// <item>Ensures <see cref="HostServices"/> implementations all use the same <see cref="ExportProvider"/>, which is
-/// the one created by the test.</item>
-/// <item>Clears static cached values in production code holding instances of <see cref="HostServices"/>, or any
-/// object obtained from it or one of its related interfaces such as <see cref="HostLanguageServices"/>.</item>
-/// <item>Isolates tests by waiting for asynchronous operations to complete before a test is considered
-/// complete.</item>
-/// <item>When required, provides a separate <see cref="ExportProvider"/> for the <see cref="RemoteWorkspace"/>
+/// <item><description>Ensures <see cref="HostServices"/> implementations all use the same <see cref="ExportProvider"/>, which is
+/// the one created by the test.</description></item>
+/// <item><description>Clears static cached values in production code holding instances of <see cref="HostServices"/>, or any
+/// object obtained from it or one of its related interfaces such as <see cref="HostLanguageServices"/>.</description></item>
+/// <item><description>Isolates tests by waiting for asynchronous operations to complete before a test is considered
+/// complete.</description></item>
+/// <item><description>When required, provides a separate <see cref="ExportProvider"/> for the <see cref="RemoteWorkspace"/>
 /// executing in the test process. If this provider is created during testing, it is cleaned up with the primary
-/// export provider during test teardown.</item>
+/// export provider during test teardown.</description></item>
 /// </list>
 /// </remarks>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
