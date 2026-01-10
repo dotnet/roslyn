@@ -8419,9 +8419,15 @@ select t";
                 // (1,18): error CS1026: ) expected
                 // var v = (a, b, 0 0);
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "0").WithLocation(1, 18),
-                // (1,18): error CS1003: Syntax error, ',' expected
+                // (1,18): error CS1002: ; expected
                 // var v = (a, b, 0 0);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "0").WithArguments(",").WithLocation(1, 18));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "0").WithLocation(1, 18),
+                // (1,19): error CS1002: ; expected
+                // var v = (a, b, 0 0);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 19),
+                // (1,19): error CS1022: Type or namespace definition, or end-of-file expected
+                // var v = (a, b, 0 0);
+                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(1, 19));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -8472,6 +8478,24 @@ select t";
                                 }
                             }
                         }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.EmptyStatement);
+                    {
                         N(SyntaxKind.SemicolonToken);
                     }
                 }

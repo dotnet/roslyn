@@ -13566,5 +13566,20 @@ class Program
                 Await state.AssertCompletionItemsDoNotContainAny("ExtProp1")
             End Using
         End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/72077")>
+        Public Async Function ShowTopLevelLocalFunctionRightBeforeDeclaration(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+$$
+void MyMethod() { }
+            ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("M")
+                Await state.AssertCompletionItemsContainAll("MyMethod")
+            End Using
+        End Function
     End Class
 End Namespace

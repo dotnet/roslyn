@@ -1230,10 +1230,10 @@ class C
     int x = 0 with { };
 }";
             UsingTree(text,
-                // (4,10): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
+                // (4,10): error CS1519: Invalid token '{' in a member declaration
                 //     with { };
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(4, 10),
-                // (4,10): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
+                // (4,10): error CS1519: Invalid token '{' in a member declaration
                 //     with { };
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(4, 10),
                 // (5,15): error CS1597: Semicolon after method or accessor block is not valid
@@ -1241,20 +1241,13 @@ class C
                 Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(5, 15),
                 // (6,5): error CS8803: Top-level statements must precede namespace and type declarations.
                 //     int x = with { };
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "int x = with { ").WithLocation(6, 5),
-                // (6,18): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "int x = with ").WithLocation(6, 5),
+                // (6,18): error CS1002: ; expected
                 //     int x = with { };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(6, 18),
-                // (6,20): error CS1002: ; expected
-                //     int x = with { };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(6, 20),
-                // (6,20): error CS1022: Type or namespace definition, or end-of-file expected
-                //     int x = with { };
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(6, 20),
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(6, 18),
                 // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1)
-            );
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1311,6 +1304,14 @@ class C
                             }
                         }
                         M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.GlobalStatement);
