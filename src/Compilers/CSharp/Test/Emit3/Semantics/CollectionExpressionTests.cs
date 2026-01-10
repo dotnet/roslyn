@@ -47651,5 +47651,50 @@ class Program
 
             CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition]).VerifyEmitDiagnostics();
         }
+
+        [Fact]
+        public void CollectionBuilderFileLocalType()
+        {
+            string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            file class MyCollection<T> : IEnumerable<T>
+            {
+                private readonly List<T> _items;
+                public MyCollection(string value, ReadOnlySpan<T> items)
+                {
+                    _items = new();
+                    _items.AddRange(items.ToArray());
+                }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+
+            file class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(string value, ReadOnlySpan<T> items) => new(value, items);
+            }
+
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<int> c = [with(""), 1, 2];
+                    Console.WriteLine(string.Join(", ", c));
+                }
+            }
+            """;
+
+            CompileAndVerify(
+                sourceA,
+                expectedOutput: IncludeExpectedOutput("1, 2"),
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
     }
 }

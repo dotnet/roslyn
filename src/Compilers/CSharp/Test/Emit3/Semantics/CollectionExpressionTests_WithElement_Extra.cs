@@ -2172,7 +2172,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                     public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
                     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
                 }
-                static partial class MyBuilder
+                partial class MyBuilder
                 {
                     protected static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(default, items);
                     protected static MyCollection<T> Create<T>(T arg, ReadOnlySpan<T> items) => new(arg, items);
@@ -2180,7 +2180,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         string sourceB = """
                 using System;
-                static partial class MyBuilder
+                partial class MyBuilder
                 {
                     static void Main()
                     {
@@ -2199,10 +2199,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
 
         CreateCompilation(
             [sourceA, sourceB, s_collectionExtensions],
-            targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-                // (15,53): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
-                //     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
-                Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(t)").WithArguments("Create", "1"));
+            targetFramework: TargetFramework.Net80).VerifyDiagnostics();
     }
 
     [Fact]
