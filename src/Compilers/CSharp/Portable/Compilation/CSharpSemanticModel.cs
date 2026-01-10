@@ -1134,6 +1134,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : ImmutableArray<ISymbol>.Empty;
         }
 
+        internal ImmutableArray<ISymbol> GetMemberGroup(WithElementSyntax withElement, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckSyntaxNode(withElement);
+
+            return CanGetSemanticInfo(withElement)
+                ? this.GetMemberGroupWorker(withElement, SymbolInfoOptions.PreferMemberGroupForWithElement, cancellationToken).GetPublicSymbols()
+                : [];
+        }
+
         #endregion GetMemberGroup
 
         #region GetIndexerGroup
@@ -3462,6 +3471,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             symbols = CreateReducedAndFilteredSymbolsFromOriginals(call, Compilation);
                             resultKind = call.ResultKind;
                         }
+
+                        // If we have a `with(...)` element, get all the original methods as the member group if that's
+                        // what are being asked for.
+                        if (options.HasFlag(SymbolInfoOptions.PreferMemberGroupForWithElement))
+                        {
+                            memberGroup = symbols.ToImmutable();
+                            resultKind = call.ResultKind;
+                        }
                     }
                     break;
 
@@ -4940,6 +4957,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             PreserveAliases = 0x8,
 
+            /// <summary>
+            /// When binding a <see cref="WithElementSyntax"/>, return the member group members bound to, not the final
+            /// symbol that was resolved.
+            /// </summary>
+            PreferMemberGroupForWithElement = 0x10,
+
             // Default Options.
             DefaultOptions = PreferConstructorsToType | ResolveAliases
         }
@@ -5061,6 +5084,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetMemberGroup(initializer, cancellationToken);
                 case AttributeSyntax attribute:
                     return this.GetMemberGroup(attribute, cancellationToken);
+                case WithElementSyntax withElement:
+                    return this.GetMemberGroup(withElement, cancellationToken);
             }
 
             return ImmutableArray<ISymbol>.Empty;

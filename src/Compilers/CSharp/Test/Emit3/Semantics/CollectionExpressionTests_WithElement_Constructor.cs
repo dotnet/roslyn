@@ -2836,5 +2836,50 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
                 """);
     }
 
+    [Fact]
+    public void GetMemberGroup()
+    {
+        string sourceA = """
+            using System.Collections.Generic;
+
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection(string s)
+                {
+                }
+
+                public MyCollection(int i)
+                {
+                }
+            }
+            """;
+        string sourceB = """
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<string> c = [with(""), ""];
+                }
+            }
+            """;
+        var comp = CreateCompilation(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+
+        var syntaxTree = comp.SyntaxTrees[1];
+        var semanticModel = comp.GetSemanticModel(syntaxTree);
+
+        var root = syntaxTree.GetRoot();
+        var withElement = root.DescendantNodes().OfType<WithElementSyntax>().Single();
+
+        var memberGroup = semanticModel.GetMemberGroup(withElement);
+        Assert.Equal(2, memberGroup.Length);
+
+        var myCollectionType = ((Compilation)comp).GetTypeByMetadataName("MyCollection`1");
+        Assert.NotNull(myCollectionType);
+        var myCollectionOfStringType = myCollectionType.Construct(comp.GetSpecialType(SpecialType.System_String));
+        AssertEx.SetEqual(myCollectionOfStringType.InstanceConstructors, memberGroup);
+    }
+
     #endregion
 }

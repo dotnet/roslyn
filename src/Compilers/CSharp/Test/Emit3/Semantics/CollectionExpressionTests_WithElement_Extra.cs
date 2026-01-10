@@ -8649,4 +8649,55 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             //     public static MyCollection<T> Create<T>(__arglist, ReadOnlySpan<T> items) => new(__arglist, items);
             Diagnostic(ErrorCode.ERR_BadArgType, "items").WithArguments("2", "System.ReadOnlySpan<T>", "__arglist").WithLocation(16, 97));
     }
+
+    [Fact]
+    public void GetMemberGroup()
+    {
+        string sourceA = """
+            using System;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection()
+                {
+                }
+            }
+            
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(int i, ReadOnlySpan<T> items) => new();
+                public static MyCollection<T> Create<T>(string s, ReadOnlySpan<T> items) => new();
+            }
+            """;
+        string sourceB = """
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<string> c = [with(""), ""];
+                }
+            }
+            """;
+        var comp = CreateCompilation(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+
+        var syntaxTree = comp.SyntaxTrees[1];
+        var semanticModel = comp.GetSemanticModel(syntaxTree);
+
+        var root = syntaxTree.GetRoot();
+        var withElement = root.DescendantNodes().OfType<WithElementSyntax>().Single();
+
+        var memberGroup = semanticModel.GetMemberGroup(withElement);
+        Assert.Equal(2, memberGroup.Length);
+
+        var myCollectionType = ((Compilation)comp).GetTypeByMetadataName("MyBuilder");
+        Assert.NotNull(myCollectionType);
+        var createMethods = myCollectionType.GetMembers("Create").SelectAsArray(m => (IMethodSymbol)m);
+        var constructedCreateMethods = createMethods.SelectAsArray(m => m.Construct(((Compilation)comp).GetSpecialType(SpecialType.System_String)));
+        AssertEx.SetEqual(constructedCreateMethods, memberGroup);
+    }
 }

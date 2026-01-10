@@ -1391,6 +1391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argsToParamsOpt: argsToParams,
                         defaultArguments: projectionCall.DefaultArguments,
                         resultKind: projectionCall.ResultKind,
+                        originalMethodsOpt: collectionBuilderMethods,
                         type: collectionBuilderMethod.ReturnType,
                         hasErrors: projectionCall.HasErrors)
                     {
