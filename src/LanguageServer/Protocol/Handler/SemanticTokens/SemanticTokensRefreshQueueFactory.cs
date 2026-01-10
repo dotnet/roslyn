@@ -29,7 +29,8 @@ internal sealed class SemanticTokensRefreshQueueFactory : ILspServiceFactory
     {
         var notificationManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
         var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
+        var refresher = lspServices.GetRequiredService<IFeatureProviderRefresher>();
 
-        return new SemanticTokensRefreshQueue(_asyncListenerProvider, _lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager);
+        return new SemanticTokensRefreshQueue(_asyncListenerProvider, _lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, refresher);
     }
 }
