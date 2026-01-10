@@ -2012,7 +2012,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
     }
 
     [Fact]
-    public void CollectionBuilder_PrivateMethod()
+    public void CollectionBuilder_PrivateMethod1()
     {
         string sourceA = """
                 using System;
@@ -2037,6 +2037,150 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         string sourceB = """
                 using System;
                 class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> c;
+                        c = EmptyArgs(1);
+                        Console.Write("{0}, ", c.Arg);
+                        c.Report();
+                        c = NonEmptyArgs<int>(2);
+                        Console.Write("{0}, ", c.Arg);
+                        c.Report();
+                    }
+                    static MyCollection<T> EmptyArgs<T>(T t) => [with(), t];
+                    static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
+                }
+                """;
+
+        CreateCompilation(
+            [sourceA, sourceB, s_collectionExtensions],
+            targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (15,53): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
+                //     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
+                Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(t)").WithArguments("Create", "1"));
+    }
+
+    [Fact]
+    public void CollectionBuilder_PrivateMethod2()
+    {
+        string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    public readonly T Arg;
+                    private readonly List<T> _items;
+                    public MyCollection(T arg, ReadOnlySpan<T> items) { Arg = arg; _items = new(items.ToArray()); }
+                    public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                static partial class MyBuilder
+                {
+                    private static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(default, items);
+                    private static MyCollection<T> Create<T>(T arg, ReadOnlySpan<T> items) => new(arg, items);
+                }
+                """;
+        string sourceB = """
+                using System;
+                static partial class MyBuilder
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> c;
+                        c = EmptyArgs(1);
+                        Console.Write("{0}, ", c.Arg);
+                        c.Report();
+                        c = NonEmptyArgs<int>(2);
+                        Console.Write("{0}, ", c.Arg);
+                        c.Report();
+                    }
+                    static MyCollection<T> EmptyArgs<T>(T t) => [with(), t];
+                    static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
+                }
+                """;
+
+        CreateCompilation(
+            [sourceA, sourceB, s_collectionExtensions],
+            targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionBuilder_InternalMethod()
+    {
+        string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    public readonly T Arg;
+                    private readonly List<T> _items;
+                    public MyCollection(T arg, ReadOnlySpan<T> items) { Arg = arg; _items = new(items.ToArray()); }
+                    public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                class MyBuilder
+                {
+                    internal static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(default, items);
+                    internal static MyCollection<T> Create<T>(T arg, ReadOnlySpan<T> items) => new(arg, items);
+                }
+                """;
+        string sourceB = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> c;
+                        c = EmptyArgs(1);
+                        Console.Write("{0}, ", c.Arg);
+                        c.Report();
+                        c = NonEmptyArgs<int>(2);
+                        Console.Write("{0}, ", c.Arg);
+                        c.Report();
+                    }
+                    static MyCollection<T> EmptyArgs<T>(T t) => [with(), t];
+                    static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
+                }
+                """;
+
+        CreateCompilation(
+            [sourceA, sourceB, s_collectionExtensions],
+            targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionBuilder_ProtectedMethod()
+    {
+        string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    public readonly T Arg;
+                    private readonly List<T> _items;
+                    public MyCollection(T arg, ReadOnlySpan<T> items) { Arg = arg; _items = new(items.ToArray()); }
+                    public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                static partial class MyBuilder
+                {
+                    protected static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(default, items);
+                    protected static MyCollection<T> Create<T>(T arg, ReadOnlySpan<T> items) => new(arg, items);
+                }
+                """;
+        string sourceB = """
+                using System;
+                static partial class MyBuilder
                 {
                     static void Main()
                     {
