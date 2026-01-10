@@ -252,6 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         NonConstructorMethodBody,
         ConstructorMethodBody,
         ExpressionWithNullability,
+        ValueForNullableAnalysis,
         WithExpression,
     }
 
@@ -8930,6 +8931,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal sealed partial class BoundValueForNullableAnalysis : BoundExpression
+    {
+        public BoundValueForNullableAnalysis(SyntaxNode syntax, BoundExpression? originalExpression, TypeSymbol? type, bool hasErrors = false)
+            : base(BoundKind.ValueForNullableAnalysis, syntax, type, hasErrors || originalExpression.HasErrors())
+        {
+            this.OriginalExpression = originalExpression;
+        }
+
+        public BoundExpression? OriginalExpression { get; }
+
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitValueForNullableAnalysis(this);
+
+        public BoundValueForNullableAnalysis Update(BoundExpression? originalExpression, TypeSymbol? type)
+        {
+            if (originalExpression != this.OriginalExpression || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundValueForNullableAnalysis(this.Syntax, originalExpression, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
     internal sealed partial class BoundWithExpression : BoundExpression
     {
         public BoundWithExpression(SyntaxNode syntax, BoundExpression receiver, MethodSymbol? cloneMethod, BoundObjectInitializerExpressionBase initializerExpression, TypeSymbol type, bool hasErrors = false)
@@ -9437,6 +9463,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitConstructorMethodBody((BoundConstructorMethodBody)node, arg);
                 case BoundKind.ExpressionWithNullability:
                     return VisitExpressionWithNullability((BoundExpressionWithNullability)node, arg);
+                case BoundKind.ValueForNullableAnalysis:
+                    return VisitValueForNullableAnalysis((BoundValueForNullableAnalysis)node, arg);
                 case BoundKind.WithExpression:
                     return VisitWithExpression((BoundWithExpression)node, arg);
             }
@@ -9679,6 +9707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitNonConstructorMethodBody(BoundNonConstructorMethodBody node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitConstructorMethodBody(BoundConstructorMethodBody node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitExpressionWithNullability(BoundExpressionWithNullability node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitValueForNullableAnalysis(BoundValueForNullableAnalysis node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitWithExpression(BoundWithExpression node, A arg) => this.DefaultVisit(node, arg);
     }
 
@@ -9916,6 +9945,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitNonConstructorMethodBody(BoundNonConstructorMethodBody node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitConstructorMethodBody(BoundConstructorMethodBody node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitExpressionWithNullability(BoundExpressionWithNullability node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitValueForNullableAnalysis(BoundValueForNullableAnalysis node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitWithExpression(BoundWithExpression node) => this.DefaultVisit(node);
     }
 
@@ -10940,6 +10970,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitExpressionWithNullability(BoundExpressionWithNullability node)
         {
             this.Visit(node.Expression);
+            return null;
+        }
+        public override BoundNode? VisitValueForNullableAnalysis(BoundValueForNullableAnalysis node)
+        {
+            this.Visit(node.OriginalExpression);
             return null;
         }
         public override BoundNode? VisitWithExpression(BoundWithExpression node)
@@ -12518,6 +12553,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(expression, node.NullableAnnotation, type);
+        }
+        public override BoundNode? VisitValueForNullableAnalysis(BoundValueForNullableAnalysis node)
+        {
+            BoundExpression? originalExpression = (BoundExpression?)this.Visit(node.OriginalExpression);
+            TypeSymbol? type = this.VisitType(node.Type);
+            return node.Update(originalExpression, type);
         }
         public override BoundNode? VisitWithExpression(BoundWithExpression node)
         {
@@ -15244,6 +15285,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return updatedNode;
         }
 
+        public override BoundNode? VisitValueForNullableAnalysis(BoundValueForNullableAnalysis node)
+        {
+            BoundExpression? originalExpression = (BoundExpression?)this.Visit(node.OriginalExpression);
+            BoundValueForNullableAnalysis updatedNode;
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                updatedNode = node.Update(originalExpression, infoAndType.Type);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(originalExpression, node.Type);
+            }
+            return updatedNode;
+        }
+
         public override BoundNode? VisitWithExpression(BoundWithExpression node)
         {
             MethodSymbol? cloneMethod = GetUpdatedSymbol(node, node.CloneMethod);
@@ -17445,6 +17503,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
+        public override TreeDumperNode VisitValueForNullableAnalysis(BoundValueForNullableAnalysis node, object? arg) => new TreeDumperNode("valueForNullableAnalysis", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("originalExpression", null, new TreeDumperNode[] { Visit(node.OriginalExpression, null) }),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
         public override TreeDumperNode VisitWithExpression(BoundWithExpression node, object? arg) => new TreeDumperNode("withExpression", null, new TreeDumperNode[]
         {
             new TreeDumperNode("receiver", null, new TreeDumperNode[] { Visit(node.Receiver, null) }),
@@ -17496,6 +17562,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundKind.InterpolatedStringArgumentPlaceholder => PipelinePhase.LocalRewriting,
                 BoundKind.PatternWithUnionMatching => PipelinePhase.InitialBinding,
                 BoundKind.DeconstructionVariablePendingInference => PipelinePhase.LocalRewriting,
+                BoundKind.ExpressionWithNullability => PipelinePhase.InitialBinding,
+                BoundKind.ValueForNullableAnalysis => PipelinePhase.InitialBinding,
                 _ => PipelinePhase.Emit
             };
         }
