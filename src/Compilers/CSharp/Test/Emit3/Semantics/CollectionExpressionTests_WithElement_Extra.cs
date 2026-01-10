@@ -8378,4 +8378,133 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             //         N(with(capacity: 0), 1, 2, 3);
             Diagnostic(ErrorCode.ERR_NameNotInContext, "with").WithArguments("with").WithLocation(6, 11));
     }
+
+    [Theory]
+    [InlineData("object")]
+    [InlineData("dynamic")]
+    public void WithElement_CollectionBuilder_DynamicArguments(string parameterType)
+    {
+        var source = $$"""
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                public {{parameterType}} Value;
+
+                private readonly List<T> _items;
+                public MyCollection({{parameterType}} value, ReadOnlySpan<T> items)
+                {
+                    Value = value;
+                    _items = new();
+                    _items.AddRange(items.ToArray());
+                }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>({{parameterType}} value, ReadOnlySpan<T> items) => new(value, items);
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    dynamic d = 42;
+                    MyCollection<int> list = [with(d), 1];
+                    Console.WriteLine(list.Value);
+                }
+            }
+            """;
+
+        if (parameterType == "dynamic")
+        {
+            CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(
+                // (23,97): error CS1978: Cannot use an expression of type 'ReadOnlySpan<T>' as an argument to a dynamically dispatched operation.
+                //     public static MyCollection<T> Create<T>(dynamic value, ReadOnlySpan<T> items) => new(value, items);
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "items").WithArguments("System.ReadOnlySpan<T>").WithLocation(23, 97),
+                // (31,40): error CS9402: 'with(...)' element arguments cannot be dynamic
+                //         MyCollection<int> list = [with(d), 1];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "d").WithLocation(31, 40));
+        }
+        else
+        {
+            CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(
+                // (31,40): error CS9402: 'with(...)' element arguments cannot be dynamic
+                //         MyCollection<int> list = [with(d), 1];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "d").WithLocation(31, 40));
+        }
+    }
+
+    [Theory]
+    [InlineData("object")]
+    [InlineData("dynamic")]
+    public void WithElement_CollectionBuilder_DynamicParameters(string argumentType)
+    {
+        var source = $$"""
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                public object Value;
+            
+                private readonly List<T> _items;
+                public MyCollection(object value, ReadOnlySpan<T> items)
+                {
+                    Value = value;
+                    _items = new();
+                    _items.AddRange(items.ToArray());
+                }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+            
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(object value, ReadOnlySpan<T> items) => new(value, items);
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    {{argumentType}} d = 42;
+                    MyCollection<int> list = [with(d), 1];
+                    Console.WriteLine(list.Value);
+                }
+            }
+            """;
+
+        if (argumentType == "dynamic")
+        {
+            CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(
+                // (31,40): error CS9402: 'with(...)' element arguments cannot be dynamic
+                //         MyCollection<int> list = [with(d), 1];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "d").WithLocation(31, 40));
+        }
+        else
+        {
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyIL("C.Main", """
+                {
+                  // Code size       33 (0x21)
+                  .maxstack  2
+                  IL_0000:  ldc.i4.s   42
+                  IL_0002:  box        "int"
+                  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=4_Align=4 <PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA4504"
+                  IL_000c:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+                  IL_0011:  call       "MyCollection<int> MyBuilder.Create<int>(object, System.ReadOnlySpan<int>)"
+                  IL_0016:  ldfld      "object MyCollection<int>.Value"
+                  IL_001b:  call       "void System.Console.WriteLine(object)"
+                  IL_0020:  ret
+                }
+                """);
+        }
+    }
 }
