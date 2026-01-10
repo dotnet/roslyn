@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -26,7 +27,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
@@ -1493,31 +1493,60 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         ], _telemetryLog);
     }
 
-    [Fact]
-    public async Task Encodings()
+    public static TheoryData<bool, Encoding> EncodingsTestCases()
+    {
+        var data = new TheoryData<bool, Encoding>();
+        foreach (var encoding in new[]
+        {
+            new UTF8Encoding(encoderShouldEmitUTF8Identifier: true),
+            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
+            Encoding.Unicode,
+            Encoding.BigEndianUnicode,
+
+            // TODO: https://github.com/dotnet/roslyn/issues/81930
+            // We do not currently account for CodePage property value and thus an encoding such as Shift-JIS that can't be detected
+            // from the file content does not work.
+            // Encoding.GetEncoding("SJIS");
+        })
+        {
+            data.Add(true, encoding);
+            data.Add(false, encoding);
+        }
+
+        return data;
+    }
+
+    [Theory]
+    [MemberData(nameof(EncodingsTestCases))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/81930")]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2067885")]
+    public async Task Encodings(bool matchingContent, Encoding compilerEncoding)
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-        var source1 = "class C1 { void M() { System.Console.WriteLine(\"ã\"); } }";
+        var editorSource = "class C1 { public void こんにちは() {} }";
+        var fileSource = matchingContent ? editorSource : "class C1 { public virtual void こんにちは() {} }";
 
-        var encoding = Encoding.GetEncoding(1252);
+        // encoding from the editor (e.g selected by the user in the IDE, or used implicitly by LSP):
+        var editorEncoding = Encoding.UTF8;
+
+        // The actual encoding used by the compiler is either detected from the file content itself (e.g. Unicode encodings)
+        // or it can also be set in the project via CodePage property.
 
         var dir = Temp.CreateDirectory();
-        var sourceFile = dir.CreateFile("test.cs").WriteAllText(source1, encoding);
+        var sourceFile = dir.CreateFile("test.cs").WriteAllText(fileSource, compilerEncoding);
 
         using var workspace = CreateWorkspace(out var solution, out var service);
 
-        var projectId = ProjectId.CreateNewId();
-        var documentId = DocumentId.CreateNewId(projectId);
+        DocumentId documentId;
 
         solution = solution.
-            AddProject(projectId, "test", "test", LanguageNames.CSharp).
+            AddTestProject("test", out var projectId).Solution.
             WithProjectChecksumAlgorithm(projectId, SourceHashAlgorithm.Sha1).
-            AddMetadataReferences(projectId, TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40)).
-            AddDocument(documentId, "test.cs", SourceText.From(source1, encoding, SourceHashAlgorithm.Sha1), filePath: sourceFile.Path);
+            AddDocument(documentId = DocumentId.CreateNewId(projectId), "test.cs", SourceText.From(editorSource, editorEncoding, SourceHashAlgorithm.Sha1), filePath: sourceFile.Path);
 
         // use different checksum alg to trigger PdbMatchingSourceTextProvider call:
-        var moduleId = EmitAndLoadLibraryToDebuggee(projectId, source1, sourceFilePath: sourceFile.Path, encoding: encoding, checksumAlgorithm: SourceHashAlgorithm.Sha256);
+        var moduleId = EmitAndLoadLibraryToDebuggee(projectId, fileSource, sourceFilePath: sourceFile.Path, encoding: compilerEncoding, checksumAlgorithm: SourceHashAlgorithm.Sha256);
 
         var sourceTextProviderCalled = false;
         var sourceTextProvider = new MockPdbMatchingSourceTextProvider()
@@ -1535,12 +1564,36 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         EnterBreakState(debuggingSession);
 
-        var (document, state) = await debuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(solution.GetRequiredDocument(documentId), CancellationToken.None);
-        var text = await document.GetTextAsync();
-        Assert.Same(encoding, text.Encoding);
-        Assert.Equal(CommittedSolution.DocumentState.MatchesBuildOutput, state);
+        var document = solution.GetRequiredDocument(documentId);
+        var (committedDocument, state) = await debuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(document, CancellationToken.None);
 
         Assert.True(sourceTextProviderCalled);
+        Assert.Equal(CommittedSolution.DocumentState.MatchesBuildOutput, state);
+
+        if (matchingContent)
+        {
+            // The file text content matches the document text, hence we reuse the existing document:
+            var documentText = await document.GetTextAsync(CancellationToken.None);
+            var committedText = await committedDocument.GetTextAsync(CancellationToken.None);
+
+            Assert.Equal(committedText.ToString(), documentText.ToString());
+            Assert.True(committedText.ContentEquals(documentText));
+            Assert.Same(document, committedDocument);
+        }
+        else
+        {
+            var committedText = await committedDocument.GetTextAsync(CancellationToken.None);
+
+            // We have now baseline document whose encoding differs from the current document.
+            // The content is the same though, so semantics is the same.
+            Assert.Equal(compilerEncoding.WebName, committedText.Encoding.WebName);
+            Assert.Equal(fileSource, committedText.ToString());
+
+            var diagnostics = await debuggingSession.GetDocumentDiagnosticsAsync(document, s_noActiveSpans, CancellationToken.None);
+            AssertEx.Equal(
+                [$"{document.FilePath}: (0,11)-(0,30): Error ENC0004: {string.Format(FeaturesResources.Updating_the_modifiers_of_0_requires_restarting_the_application, FeaturesResources.method)}"],
+                InspectDiagnostics(diagnostics));
+        }
 
         EndDebuggingSession(debuggingSession);
     }
