@@ -4,172 +4,172 @@
     <body>
       <trans-unit id="AddCompilationEndCustomTagDescription">
         <source>'DiagnosticDescriptor' assigned to field is used to report a compilation end diagnostic, but the 'DiagnosticDescriptor' constructor used to initialize it does not pass in the required custom tag "CompilationEnd". See documentation for 'WellKnownDiagnosticTags.CompilationEnd' for details.</source>
-        <target state="new">'DiagnosticDescriptor' assigned to field is used to report a compilation end diagnostic, but the 'DiagnosticDescriptor' constructor used to initialize it does not pass in the required custom tag "CompilationEnd". See documentation for 'WellKnownDiagnosticTags.CompilationEnd' for details.</target>
+        <target state="translated">'DiagnosticDescriptor' assegnato al campo viene usato per segnalare una diagnostica di fine compilazione, ma il costruttore 'DiagnosticDescriptor' utilizzato per inizializzarlo non passa il tag personalizzato richiesto "CompilationEnd". Per informazioni dettagliate, vedere la documentazione di 'WellKnownDiagnosticTags.CompilationEnd'.</target>
         <note />
       </trans-unit>
       <trans-unit id="AddCompilationEndCustomTagMessage">
         <source>Add "CompilationEnd" custom tag to the diagnostic descriptor used to initialize field '{0}' as it is used to report a compilation end diagnostic</source>
-        <target state="new">Add "CompilationEnd" custom tag to the diagnostic descriptor used to initialize field '{0}' as it is used to report a compilation end diagnostic</target>
+        <target state="translated">Aggiungere il tag personalizzato "CompilationEnd" al descrittore di diagnostica usato per inizializzare il campo '{0}' in quanto viene usato per segnalare una diagnostica di fine compilazione</target>
         <note />
       </trans-unit>
       <trans-unit id="AddCompilationEndCustomTagTitle">
         <source>Add "CompilationEnd" custom tag to compilation end diagnostic descriptor</source>
-        <target state="new">Add "CompilationEnd" custom tag to compilation end diagnostic descriptor</target>
+        <target state="translated">Aggiungere il tag personalizzato "CompilationEnd" al descrittore di diagnostica di fine della compilazione</target>
         <note />
       </trans-unit>
       <trans-unit id="AddEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle">
         <source>Add rule entry to unshipped release file</source>
-        <target state="new">Add rule entry to unshipped release file</target>
+        <target state="translated">Aggiungere la voce della regola per il file di versione non distribuito</target>
         <note />
       </trans-unit>
       <trans-unit id="ClassIsNotDiagnosticAnalyzerMessage">
         <source>Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s)</source>
-        <target state="new">Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s)</target>
+        <target state="translated">Ereditare il tipo '{0}' da DiagnosticAnalyzer o rimuovere gli attributi DiagnosticAnalyzerAttribute</target>
         <note />
       </trans-unit>
       <trans-unit id="ClassIsNotDiagnosticAnalyzerTitle">
         <source>Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer</source>
-        <target state="new">Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer</target>
+        <target state="translated">I tipi contrassegnati con attributi DiagnosticAnalyzerAttribute devono ereditare da DiagnosticAnalyzer</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyCodeFix">
         <source>Use a 'SymbolEqualityComparer' for symbol comparison</source>
-        <target state="new">Use a 'SymbolEqualityComparer' for symbol comparison</target>
+        <target state="translated">Usa un 'SymbolEqualityComparer' per il confronto dei simboli</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyDescription">
         <source>Symbols should be compared for equality, not identity. Use an overload accepting an 'IEqualityComparer' and pass 'SymbolEqualityComparer'.</source>
-        <target state="new">Symbols should be compared for equality, not identity. Use an overload accepting an 'IEqualityComparer' and pass 'SymbolEqualityComparer'.</target>
+        <target state="translated">I simboli devono essere confrontati per verificarne l'uguaglianza, non l'identità. Usare un overload che accetta un elemento 'IEqualityComparer' e passare 'SymbolEqualityComparer'.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyDescriptionGetHashCode">
         <source>Symbols should be compared for equality, not identity. An explicit call to 'GetHashCode' will likely result in the wrong behavior.</source>
-        <target state="new">Symbols should be compared for equality, not identity. An explicit call to 'GetHashCode' will likely result in the wrong behavior.</target>
+        <target state="translated">I simboli devono essere confrontati per verificarne l'uguaglianza, non l'identità. Una chiamata esplicita a 'GetHashCode' probabilmente causerà un comportamento errato.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyMessage">
         <source>Use 'SymbolEqualityComparer' when comparing symbols</source>
-        <target state="new">Use 'SymbolEqualityComparer' when comparing symbols</target>
+        <target state="translated">Usa 'SymbolEqualityComparer' quando si confrontano i simboli</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyTitle">
         <source>Symbols should be compared for equality</source>
-        <target state="new">Symbols should be compared for equality</target>
+        <target state="translated">È necessario confrontare i simboli per verificarne l'uguaglianza.</target>
         <note />
       </trans-unit>
       <trans-unit id="ConfigureGeneratedCodeAnalysisFix">
         <source>Configure generated code analysis</source>
-        <target state="new">Configure generated code analysis</target>
+        <target state="translated">Configura Code Analysis per file generati</target>
         <note />
       </trans-unit>
       <trans-unit id="ConfigureGeneratedCodeAnalysisMessage">
         <source>Configure generated code analysis</source>
-        <target state="new">Configure generated code analysis</target>
+        <target state="translated">Configura Code Analysis per file generati</target>
         <note />
       </trans-unit>
       <trans-unit id="ConfigureGeneratedCodeAnalysisTitle">
         <source>Configure generated code analysis</source>
-        <target state="new">Configure generated code analysis</target>
+        <target state="translated">Configura Code Analysis per file generati</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseDescription">
         <source>All supported analyzer diagnostic IDs should be part of an analyzer release.</source>
-        <target state="new">All supported analyzer diagnostic IDs should be part of an analyzer release.</target>
+        <target state="translated">Tutti gli ID diagnostica dell'analizzatore supportati devono far parte di una versione dell'analizzatore.</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseMessage">
         <source>Rule '{0}' is not part of any analyzer release</source>
-        <target state="new">Rule '{0}' is not part of any analyzer release</target>
+        <target state="translated">La regola '{0}' non fa parte di alcuna versione dell'analizzatore</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseTitle">
         <source>Add analyzer diagnostic IDs to analyzer release</source>
-        <target state="new">Add analyzer diagnostic IDs to analyzer release</target>
+        <target state="translated">Aggiungere gli ID diagnostica dell'analizzatore alla versione dell'analizzatore</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticDescriptionCorrectlyMessage">
         <source>The diagnostic description should be one or multiple sentences ending with a punctuation sign and should not have any leading or trailing whitespaces</source>
-        <target state="new">The diagnostic description should be one or multiple sentences ending with a punctuation sign and should not have any leading or trailing whitespaces</target>
+        <target state="translated">La descrizione della diagnostica deve essere costituita da una o più frasi che terminano con un segno di punteggiatura e non deve includere spazi vuoti iniziali o finali</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticDescriptionCorrectlyTitle">
         <source>Define diagnostic description correctly</source>
-        <target state="new">Define diagnostic description correctly</target>
+        <target state="translated">Definisci correttamente la descrizione della diagnostica</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticMessageCorrectlyMessage">
         <source>The diagnostic message should not contain any line return character nor any leading or trailing whitespaces and should either be a single sentence without a trailing period or a multi-sentences with a trailing period</source>
-        <target state="new">The diagnostic message should not contain any line return character nor any leading or trailing whitespaces and should either be a single sentence without a trailing period or a multi-sentences with a trailing period</target>
+        <target state="translated">Il messaggio della diagnostica non deve contenere caratteri di ritorno a capo oppure spazi vuoti iniziali o finali e deve essere costituito da una singola frase senza punto finale oppure da più frasi con un punto finale</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticMessageCorrectlyTitle">
         <source>Define diagnostic message correctly</source>
-        <target state="new">Define diagnostic message correctly</target>
+        <target state="translated">Definisci correttamente il messaggio della diagnostica</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyMessage">
         <source>The diagnostic title should not contain a period, nor any line return character, nor any leading or trailing whitespaces</source>
-        <target state="new">The diagnostic title should not contain a period, nor any line return character, nor any leading or trailing whitespaces</target>
+        <target state="translated">Il titolo della diagnostica non deve contenere un punto, né un carattere di ritorno a capo oppure spazi vuoti iniziali o finali</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyTitle">
         <source>Define diagnostic title correctly</source>
-        <target state="new">Define diagnostic title correctly</target>
+        <target state="translated">Definisci correttamente il titolo della diagnostica</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareCSharpCompilerFeatureInAssemblyWithVisualBasicReferenceMessage">
         <source>This C# compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.VisualBasic. The Microsoft.CodeAnalysis.VisualBasic assembly is not always provided during C# compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</source>
-        <target state="new">This C# compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.VisualBasic. The Microsoft.CodeAnalysis.VisualBasic assembly is not always provided during C# compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</target>
+        <target state="translated">Questa estensione del compilatore C# non deve essere implementata in un assembly contenente un riferimento a Microsoft.CodeAnalysis.VisualBasic. L'assembly Microsoft.CodeAnalysis.VisualBasic non viene sempre fornito durante gli scenari di compilazione di C#, pertanto i riferimenti ad esso potrebbero causare un comportamento imprevisto dell'estensione del compilatore.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkMessage">
         <source>This compiler extension should not be implemented in an assembly with target framework '{0}'. References to other target frameworks will cause the compiler to behave unpredictably.</source>
-        <target state="new">This compiler extension should not be implemented in an assembly with target framework '{0}'. References to other target frameworks will cause the compiler to behave unpredictably.</target>
+        <target state="translated">Questa estensione del compilatore non deve essere implementata in un assembly con framework di destinazione '{0}'. I riferimenti ad altri framework di destinazione determineranno un comportamento imprevisto del compilatore.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkRuleDescription">
         <source>Types which implement compiler extension points should only be declared in assemblies targeting netstandard2.0. More specific target frameworks are only available in a subset of supported compilation scenarios, so targeting them may cause the feature to behave unpredictably.</source>
-        <target state="new">Types which implement compiler extension points should only be declared in assemblies targeting netstandard2.0. More specific target frameworks are only available in a subset of supported compilation scenarios, so targeting them may cause the feature to behave unpredictably.</target>
+        <target state="translated">I tipi che implementano punti di estensione del compilatore devono essere dichiarati solo in assembly destinati a netstandard2.0. I framework di destinazione più specifici sono disponibili solo in un subset di scenari di compilazione supportati, di conseguenza la destinazione potrebbe causare un comportamento imprevisto della funzionalità.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkRuleTitle">
         <source>Compiler extensions should be implemented in assemblies targeting netstandard2.0</source>
-        <target state="new">Compiler extensions should be implemented in assemblies targeting netstandard2.0</target>
+        <target state="translated">Le estensioni del compilatore devono essere implementate negli assembly destinati a netstandard2.0</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithWorkspacesReferenceMessage">
         <source>This compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.Workspaces. The Microsoft.CodeAnalysis.Workspaces assembly is not provided during command line compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</source>
-        <target state="new">This compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.Workspaces. The Microsoft.CodeAnalysis.Workspaces assembly is not provided during command line compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</target>
+        <target state="translated">Questa estensione del compilatore non deve essere implementata in un assembly contenente un riferimento a Microsoft.CodeAnalysis.Workspaces. L'assembly Microsoft.CodeAnalysis.Workspaces non viene fornito durante gli scenari di compilazione da riga di comando, pertanto i riferimenti ad esso potrebbero causare un comportamento imprevisto dell'estensione del compilatore.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareVisualBasicCompilerFeatureInAssemblyWithCSharpReferenceMessage">
         <source>This Visual Basic compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.CSharp. The Microsoft.CodeAnalysis.CSharp assembly is not always provided during Visual Basic compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</source>
-        <target state="new">This Visual Basic compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.CSharp. The Microsoft.CodeAnalysis.CSharp assembly is not always provided during Visual Basic compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</target>
+        <target state="translated">Questa estensione del compilatore di Visual Basic non deve essere implementata in un assembly contenente un riferimento a Microsoft.CodeAnalysis.CSharp. L'assembly Microsoft.CodeAnalysis.CSharp non viene sempre fornito durante gli scenari di compilazione di Visual Basic, pertanto i riferimenti ad esso potrebbero causare un comportamento imprevisto dell'estensione del compilatore.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleDescription">
         <source>Types which implement compiler extension points should not be declared in assemblies that contain references to assemblies which are not provided by all compilation scenarios. Doing so may cause the feature to behave unpredictably.</source>
-        <target state="new">Types which implement compiler extension points should not be declared in assemblies that contain references to assemblies which are not provided by all compilation scenarios. Doing so may cause the feature to behave unpredictably.</target>
+        <target state="translated">I tipi che implementano i punti di estensione del compilatore non devono essere dichiarati in assembly che contengono riferimenti ad assembly non forniti da tutti gli scenari di compilazione. Ciò potrebbe causare un comportamento imprevisto della funzionalità.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleTitle">
         <source>Compiler extensions should be implemented in assemblies with compiler-provided references</source>
-        <target state="new">Compiler extensions should be implemented in assemblies with compiler-provided references</target>
+        <target state="translated">Le estensioni del compilatore devono essere implementate negli assembly con riferimenti forniti dal compilatore.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
         <source>'GetSemanticModel' is an expensive method to invoke within a diagnostic analyzer because it creates a completely new semantic model, which does not share compilation data with the compiler or other analyzers. This incurs an additional performance cost during semantic analysis. Instead, consider registering a different analyzer action which allows used of a shared 'SemanticModel', such as 'RegisterOperationAction', 'RegisterSyntaxNodeAction', or 'RegisterSemanticModelAction'.</source>
-        <target state="new">'GetSemanticModel' is an expensive method to invoke within a diagnostic analyzer because it creates a completely new semantic model, which does not share compilation data with the compiler or other analyzers. This incurs an additional performance cost during semantic analysis. Instead, consider registering a different analyzer action which allows used of a shared 'SemanticModel', such as 'RegisterOperationAction', 'RegisterSyntaxNodeAction', or 'RegisterSemanticModelAction'.</target>
+        <target state="translated">'GetSemanticModel' è un metodo dispendioso da richiamare in un analizzatore diagnostico perché crea un modello semantico completamente nuovo, che non condivide i dati di compilazione con il compilatore o con altri analizzatori, comportando un ulteriore costo in termini di prestazioni durante l'analisi semantica. Provare invece a registrare un'azione diversa dell'analizzatore che consenta l'uso di un elemento 'SemanticModel' condiviso, come 'RegisterOperationAction', 'RegisterSyntaxNodeAction' o 'RegisterSemanticModelAction'.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseCompilationGetSemanticModelMessage">
         <source>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</source>
-        <target state="new">Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</target>
+        <target state="translated">Non richiamare il metodo Compilation.GetSemanticModel() in un analizzatore diagnostico</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseCompilationGetSemanticModelTitle">
         <source>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</source>
-        <target state="new">Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</target>
+        <target state="translated">Non richiamare il metodo Compilation.GetSemanticModel() in un analizzatore diagnostico</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseFileTypesForAnalyzersOrGeneratorsDescription">
@@ -189,17 +189,17 @@
       </trans-unit>
       <trans-unit id="DoNotUseReservedDiagnosticIdDescription">
         <source>DiagnosticId for analyzers should not use reserved IDs.</source>
-        <target state="new">DiagnosticId for analyzers should not use reserved IDs.</target>
+        <target state="translated">L'ID diagnostica per gli analizzatori non deve usare ID riservati.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseReservedDiagnosticIdMessage">
         <source>'{0}' is a reserved diagnostic ID</source>
-        <target state="new">'{0}' is a reserved diagnostic ID</target>
+        <target state="translated">'{0}' è un ID diagnostica riservato</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseReservedDiagnosticIdTitle">
         <source>Do not use reserved diagnostic IDs</source>
-        <target state="new">Do not use reserved diagnostic IDs</target>
+        <target state="translated">Non usare ID diagnostica riservati</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableAnalyzerReleaseTrackingRuleDescription">
@@ -209,27 +209,27 @@
       </trans-unit>
       <trans-unit id="EnableAnalyzerReleaseTrackingRuleMessage">
         <source>Enable analyzer release tracking for the analyzer project containing rule '{0}'</source>
-        <target state="new">Enable analyzer release tracking for the analyzer project containing rule '{0}'</target>
+        <target state="translated">Abilita il rilevamento delle versioni dell'analizzatore per il progetto dell'analizzatore che contiene la regola '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableAnalyzerReleaseTrackingRuleTitle">
         <source>Enable analyzer release tracking</source>
-        <target state="new">Enable analyzer release tracking</target>
+        <target state="translated">Abilita il rilevamento delle versioni dell'analizzatore</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableConcurrentExecutionFix">
         <source>Enable concurrent execution</source>
-        <target state="new">Enable concurrent execution</target>
+        <target state="translated">Abilita l'esecuzione simultanea</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableConcurrentExecutionMessage">
         <source>Enable concurrent execution</source>
-        <target state="new">Enable concurrent execution</target>
+        <target state="translated">Abilitare l'esecuzione simultanea</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableConcurrentExecutionTitle">
         <source>Enable concurrent execution</source>
-        <target state="new">Enable concurrent execution</target>
+        <target state="translated">Abilita l'esecuzione simultanea</target>
         <note />
       </trans-unit>
       <trans-unit id="ImplementationIsObsoleteDescription">
@@ -249,322 +249,322 @@
       </trans-unit>
       <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleDescription">
         <source>Invalid entry in analyzer release file.</source>
-        <target state="new">Invalid entry in analyzer release file.</target>
+        <target state="translated">Voce non valida nel file di versione dell'analizzatore.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleMessage">
         <source>Analyzer release file '{0}' has an invalid entry '{1}'</source>
-        <target state="new">Analyzer release file '{0}' has an invalid entry '{1}'</target>
+        <target state="translated">Il file di versione dell'analizzatore '{0}' contiene la voce non valida '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleTitle">
         <source>Invalid entry in analyzer release file</source>
-        <target state="new">Invalid entry in analyzer release file</target>
+        <target state="translated">Voce non valida nel file di versione dell'analizzatore</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidHeaderInAnalyzerReleasesFileRuleMessage">
         <source>Analyzer release file '{0}' has a missing or invalid release header '{1}'</source>
-        <target state="new">Analyzer release file '{0}' has a missing or invalid release header '{1}'</target>
+        <target state="translated">Il file di versione dell'analizzatore '{0}' contiene un'intestazione di versione '{1}' mancante o non valida</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRuleMessageMessage">
         <source>Analyzer release file '{0}' has an invalid '{1}' entry without a prior shipped release for the rule '{2}'. Instead, add a separate '{1}' entry for the rule in unshipped release file.</source>
-        <target state="new">Analyzer release file '{0}' has an invalid '{1}' entry without a prior shipped release for the rule '{2}'. Instead, add a separate '{1}' entry for the rule in unshipped release file.</target>
+        <target state="translated">Il file di versione dell'analizzatore '{0}' contiene una voce '{1}' non valida senza una versione distribuita in precedenza per la regola '{2}'. Aggiungere invece una voce '{1}' distinta per la regola nel file di versione non distribuito.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidUndetectedEntryInAnalyzerReleasesFileRuleMessage">
         <source>Analyzer release file '{0}' has an entry with one or more 'Undetected' fields that need to be manually filled in '{1}'</source>
-        <target state="new">Analyzer release file '{0}' has an entry with one or more 'Undetected' fields that need to be manually filled in '{1}'</target>
+        <target state="translated">Il file di versione dell'analizzatore '{0}' contiene una voce con uno o più campi 'Non rilevato' che devono essere compilati manualmente in '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingAttributeMessage">
         <source>Missing '{0}' attribute</source>
-        <target state="new">Missing '{0}' attribute</target>
+        <target state="translated">Manca l'attributo '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingDiagnosticAnalyzerAttributeTitle">
         <source>Missing diagnostic analyzer attribute</source>
-        <target state="new">Missing diagnostic analyzer attribute</target>
+        <target state="translated">Manca l'attributo dell'analizzatore diagnostico</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingDiagnosticAnalyzerAttributeDescription">
         <source>Non-abstract sub-types of DiagnosticAnalyzer should be marked with DiagnosticAnalyzerAttribute(s). The argument to this attribute(s), if any, determine the supported languages for the analyzer. Analyzer types without this attribute will be ignored by the analysis engine.</source>
-        <target state="new">Non-abstract sub-types of DiagnosticAnalyzer should be marked with DiagnosticAnalyzerAttribute(s). The argument to this attribute(s), if any, determine the supported languages for the analyzer. Analyzer types without this attribute will be ignored by the analysis engine.</target>
+        <target state="translated">I sottotipi non astratti di dell'analizzatore DiagnosticAnalyzer devono essere contrassegnati con uno o più elementi DiagnosticAnalyzerAttribute. L'eventuale argomento di questi attributi determina le lingue supportate per l'analizzatore. I tipi di analizzatore senza questo attributo verranno ignorati dal motore di analisi.</target>
         <note />
       </trans-unit>
       <trans-unit id="AddLanguageSupportToAnalyzerMessage">
         <source>Diagnostic analyzer '{0}' may be able to support both C# and Visual Basic. Consider adding an argument to DiagnosticAnalyzerAttribute for '{1}' language support.</source>
-        <target state="new">Diagnostic analyzer '{0}' may be able to support both C# and Visual Basic. Consider adding an argument to DiagnosticAnalyzerAttribute for '{1}' language support.</target>
+        <target state="translated">L'analizzatore diagnostico '{0}' potrebbe riuscire a supportare sia C# che Visual Basic. Provare ad aggiungere a DiagnosticAnalyzerAttribute un argomento per includere il supporto per la lingua '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="AddLanguageSupportToAnalyzerTitle">
         <source>Recommend adding language support to diagnostic analyzer</source>
-        <target state="new">Recommend adding language support to diagnostic analyzer</target>
+        <target state="translated">Consigliata l'aggiunta del supporto per la lingua all'analizzatore diagnostico</target>
         <note />
       </trans-unit>
       <trans-unit id="AddLanguageSupportToAnalyzerDescription">
         <source>Diagnostic analyzer is marked as supporting only one language, but the analyzer assembly doesn't seem to refer to any language specific CodeAnalysis assemblies, and so is likely to work for more than one language. Consider adding an additional language argument to DiagnosticAnalyzerAttribute.</source>
-        <target state="new">Diagnostic analyzer is marked as supporting only one language, but the analyzer assembly doesn't seem to refer to any language specific CodeAnalysis assemblies, and so is likely to work for more than one language. Consider adding an additional language argument to DiagnosticAnalyzerAttribute.</target>
+        <target state="translated">L'analizzatore diagnostico è contrassegnato in modo da supportare una sola lingua, ma l'assembly dell'analizzatore non sembra fare riferimento ad alcun assembly CodeAnalysis specifico della lingua, di conseguenza è probabile che funziono per più lingue. Provare ad aggiungere a DiagnosticAnalyzerAttribute un argomento per una lingua aggiuntiva.</target>
         <note />
       </trans-unit>
       <trans-unit id="ApplyDiagnosticAnalyzerAttribute_1">
         <source>Apply DiagnosticAnalyzer attribute for '{0}'.</source>
-        <target state="new">Apply DiagnosticAnalyzer attribute for '{0}'.</target>
+        <target state="translated">Applicare l'attributo DiagnosticAnalyzer per '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ApplyDiagnosticAnalyzerAttribute_2">
         <source>Apply DiagnosticAnalyzer attribute for both '{0}' and '{1}'.</source>
-        <target state="new">Apply DiagnosticAnalyzer attribute for both '{0}' and '{1}'.</target>
+        <target state="translated">Applicare l'attributo DiagnosticAnalyzer sia per '{0}' che per '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingSymbolKindArgumentToRegisterActionMessage">
         <source>Specify at least one SymbolKind of interest when registering a symbol analyzer action</source>
-        <target state="new">Specify at least one SymbolKind of interest when registering a symbol analyzer action</target>
+        <target state="translated">Specificare almeno un elemento SymbolKind di interesse durante la registrazione di un'azione dell'analizzatore di simboli</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingSyntaxKindArgumentToRegisterActionMessage">
         <source>Specify at least one SyntaxKind of interest when registering a syntax node analyzer action</source>
-        <target state="new">Specify at least one SyntaxKind of interest when registering a syntax node analyzer action</target>
+        <target state="translated">Specificare almeno un elemento SyntaxKind di interesse durante la registrazione di un'azione dell'analizzatore di nodi della sintassi</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingOperationKindArgumentToRegisterActionMessage">
         <source>Specify at least one OperationKind of interest when registering an operation analyzer action</source>
-        <target state="new">Specify at least one OperationKind of interest when registering an operation analyzer action</target>
+        <target state="translated">Specificare almeno un elemento OperationKind di interesse durante la registrazione di un'azione dell'analizzatore di operazioni</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingKindArgumentToRegisterActionTitle">
         <source>Missing kind argument when registering an analyzer action</source>
-        <target state="new">Missing kind argument when registering an analyzer action</target>
+        <target state="translated">Durante la registrazione di un'azione dell'analizzatore manca un argomento di tipo</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingKindArgumentToRegisterActionDescription">
         <source>You must specify at least one syntax, symbol or operation kind when registering a syntax, symbol, or operation analyzer action respectively. Otherwise, the registered action will never be invoked during analysis.</source>
-        <target state="new">You must specify at least one syntax, symbol or operation kind when registering a syntax, symbol, or operation analyzer action respectively. Otherwise, the registered action will never be invoked during analysis.</target>
+        <target state="translated">Quando si registra un'azione dell'analizzatore di sintassi, operazioni o simboli, è necessario specificare rispettivamente almeno un tipo di sintassi, operazione o simbolo. In caso contrario, l'azione registrata non verrà mai richiamata durante l'analisi.</target>
         <note />
       </trans-unit>
       <trans-unit id="NoSettingSpecifiedSymbolIsBannedInAnalyzersDescription">
         <source>A project containing analyzers or source generators should specify the property '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'.</source>
-        <target state="new">A project containing analyzers or source generators should specify the property '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'.</target>
+        <target state="translated">Un progetto contenente analizzatori o generatori di origine deve specificare la proprietà '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'.</target>
         <note />
       </trans-unit>
       <trans-unit id="NoSettingSpecifiedSymbolIsBannedInAnalyzersMessage">
         <source>'{0}': A project containing analyzers or source generators should specify the property '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'</source>
-        <target state="new">'{0}': A project containing analyzers or source generators should specify the property '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'</target>
+        <target state="translated">'{0}': un progetto contenente analizzatori o generatori di origine deve specificare la proprietà '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'</target>
         <note />
       </trans-unit>
       <trans-unit id="NoSettingSpecifiedSymbolIsBannedInAnalyzersTitle">
         <source>Specify analyzer banned API enforcement setting</source>
-        <target state="new">Specify analyzer banned API enforcement setting</target>
+        <target state="translated">Specificare l'impostazione di imposizione dell'API esclusa dell'analizzatore</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferIsKindDescription">
         <source>Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.</source>
-        <target state="new">Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.</target>
+        <target state="translated">Preferire 'syntax.IsKind(kind)' a 'syntax.Kind() == kind' durante la verifica dei tipi di sintassi. Il codice che usa 'IsKind' è leggermente più efficiente in fase di runtime, di conseguenza l'uso coerente di questo formato dove possibile contribuisce a migliorare le prestazioni in scenari di analisi complessi.</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferIsKindFix">
         <source>Use 'IsKind' instead of 'Kind'</source>
-        <target state="new">Use 'IsKind' instead of 'Kind'</target>
+        <target state="translated">Usare 'IsKind' invece di 'Kind'</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferIsKindMessage">
         <source>Prefer 'IsKind' for checking syntax kinds</source>
-        <target state="new">Prefer 'IsKind' for checking syntax kinds</target>
+        <target state="translated">Preferire 'IsKind' per la verifica dei tipi di sintassi</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferIsKindTitle">
         <source>Prefer 'IsKind' for checking syntax kinds</source>
-        <target state="new">Prefer 'IsKind' for checking syntax kinds</target>
+        <target state="translated">Preferire 'IsKind' per la verifica dei tipi di sintassi</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorDescription">
         <source>The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</source>
-        <target state="new">The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</target>
+        <target state="translated">Il valore 'customTags' viene usato per abilitare azioni e filtri specifici per i descrittori di diagnostica in base a valori specifici dei tag. Ogni analizzatore Roslyn deve includere almeno un tag della classe 'WellKnownDiagnosticTags'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorMessage">
         <source>Consider providing a non-null 'customTags' to diagnostic descriptor constructor to enable metatada filtering of diagnostic descriptors</source>
-        <target state="new">Consider providing a non-null 'customTags' to diagnostic descriptor constructor to enable metatada filtering of diagnostic descriptors</target>
+        <target state="translated">Provare a fornire un valore 'customTags' non Null al costruttore del descrittore di diagnostica per abilitare il filtro dei metadati dei descrittori di diagnostica</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorTitle">
         <source>Provide non-null 'customTags' value to diagnostic descriptor constructor</source>
-        <target state="new">Provide non-null 'customTags' value to diagnostic descriptor constructor</target>
+        <target state="translated">Fornire un valore 'customTags' non Null al costruttore del descrittore di diagnostica</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleDescription">
         <source>Remove duplicate entries for diagnostic ID between analyzer releases.</source>
-        <target state="new">Remove duplicate entries for diagnostic ID between analyzer releases.</target>
+        <target state="translated">Rimuovere le voci duplicate per l'ID diagnostica tra le versioni dell'analizzatore.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleMessage">
         <source>Rule '{0}' has duplicate entry between release '{1}' and release '{2}'</source>
-        <target state="new">Rule '{0}' has duplicate entry between release '{1}' and release '{2}'</target>
+        <target state="translated">La regola '{0}' contiene una voce duplicata tra la versione '{1}' e la versione '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleTitle">
         <source>Remove duplicate entries for diagnostic ID between analyzer releases</source>
-        <target state="new">Remove duplicate entries for diagnostic ID between analyzer releases</target>
+        <target state="translated">Rimuovere le voci duplicate per l'ID diagnostica tra le versioni dell'analizzatore</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleDescription">
         <source>Remove duplicate entries for diagnostic ID in the same analyzer release.</source>
-        <target state="new">Remove duplicate entries for diagnostic ID in the same analyzer release.</target>
+        <target state="translated">Rimuovere le voci duplicate per gli ID diagnostica nella stessa versione dell'analizzatore.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleMessage">
         <source>Rule '{0}' has more then one entry for release '{1}' in analyzer release file '{2}'</source>
-        <target state="new">Rule '{0}' has more then one entry for release '{1}' in analyzer release file '{2}'</target>
+        <target state="translated">La regola '{0}' contiene più di una voce per la versione '{1}' nel file di versione dell'analizzatore '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleTitle">
         <source>Remove duplicate entries for diagnostic ID in the same analyzer release</source>
-        <target state="new">Remove duplicate entries for diagnostic ID in the same analyzer release</target>
+        <target state="translated">Rimuovere le voci duplicate per gli ID diagnostica nella stessa versione dell'analizzatore</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveShippedDeletedDiagnosticIdDescription">
         <source>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.</source>
-        <target state="new">Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.</target>
+        <target state="translated">Per gli ID diagnostica distribuiti che non sono più segnalati deve essere inclusa una voce nella tabella 'Regole rimosse' nel file non distribuito.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveShippedDeletedDiagnosticIdMessage">
         <source>Rule '{0}' was shipped in analyzer release '{1}', but is no longer a supported diagnostic for any analyzer. Add an entry for this rule in a 'Removed Rules' table to unshipped file.</source>
-        <target state="new">Rule '{0}' was shipped in analyzer release '{1}', but is no longer a supported diagnostic for any analyzer. Add an entry for this rule in a 'Removed Rules' table to unshipped file.</target>
+        <target state="translated">La regola '{0}' è stata distribuita nella versione dell'analizzatore '{1}', ma non è più una diagnostica supportata per qualsiasi analizzatore. Aggiungere una voce per questa regola in una tabella 'Regole rimosse' in un file non distribuito.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveShippedDeletedDiagnosticIdTitle">
         <source>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file</source>
-        <target state="new">Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file</target>
+        <target state="translated">Per gli ID diagnostica distribuiti che non sono più segnalati deve essere inclusa una voce nella tabella 'Regole rimosse' nel file non distribuito</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveUnshippedDeletedDiagnosticIdDescription">
         <source>Entries for analyzer diagnostic IDs that are no longer reported and never shipped can be removed from unshipped analyzer release.</source>
-        <target state="new">Entries for analyzer diagnostic IDs that are no longer reported and never shipped can be removed from unshipped analyzer release.</target>
+        <target state="translated">Le voci per gli ID diagnostica dell'analizzatore che non sono più segnalate e non vengono più distribuite possono essere rimosse dalla versione dell'analizzatore non distribuita.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveUnshippedDeletedDiagnosticIdMessage">
         <source>Rule '{0}' is part of the next unshipped analyzer release, but is not a supported diagnostic for any analyzer</source>
-        <target state="new">Rule '{0}' is part of the next unshipped analyzer release, but is not a supported diagnostic for any analyzer</target>
+        <target state="translated">La regola '{0}' fa parte della successiva versione dell'analizzatore non distribuita, ma non è una diagnostica supportata per qualsiasi analizzatore</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveUnshippedDeletedDiagnosticIdTitle">
         <source>Do not add removed analyzer diagnostic IDs to unshipped analyzer release</source>
-        <target state="new">Do not add removed analyzer diagnostic IDs to unshipped analyzer release</target>
+        <target state="translated">Non aggiungere gli ID diagnostica dell'analizzatore rimossi alla versione dell'analizzatore non distribuita</target>
         <note />
       </trans-unit>
       <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullDescription">
         <source>Calling 'SemanticModel.GetDeclaredSymbol' with on certain types inheriting from 'SyntaxNode', for example 'GlobalStatementSyntax' and 'IncompleteMemberSyntax' will always return 'null'.</source>
-        <target state="new">Calling 'SemanticModel.GetDeclaredSymbol' with on certain types inheriting from 'SyntaxNode', for example 'GlobalStatementSyntax' and 'IncompleteMemberSyntax' will always return 'null'.</target>
+        <target state="translated">La chiamata a 'SemanticModel.GetDeclaredSymbol' con determinati tipi che ereditano da 'SyntaxNode', ad esempio 'GlobalStatementSyntax' e 'IncompleteMemberSyntax', restituirà sempre 'null'.</target>
         <note />
       </trans-unit>
       <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullForFieldDescription">
         <source>Calling 'SemanticModel.GetDeclaredSymbol' with an argument of type 'FieldDeclarationSyntax' or 'EventFieldDeclarationSyntax' will always return 'null'. Call 'GetDeclaredSymbol' with the variable declarators from the field instead.</source>
-        <target state="new">Calling 'SemanticModel.GetDeclaredSymbol' with an argument of type 'FieldDeclarationSyntax' or 'EventFieldDeclarationSyntax' will always return 'null'. Call 'GetDeclaredSymbol' with the variable declarators from the field instead.</target>
+        <target state="translated">La chiamata a 'SemanticModel.GetDeclaredSymbol' con un argomento di tipo 'FieldDeclarationSyntax' o 'EventFieldDeclarationSyntax' restituirà sempre 'null'. Chiamare 'GetDeclaredSymbol' con i dichiaratori di variabili dal campo.</target>
         <note />
       </trans-unit>
       <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullForFieldMessage">
         <source>A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</source>
-        <target state="new">A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</target>
+        <target state="translated">Una chiamata a 'SemanticModel.GetDeclaredSymbol({0})' restituirà sempre 'null'</target>
         <note />
       </trans-unit>
       <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullMessage">
         <source>A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</source>
-        <target state="new">A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</target>
+        <target state="translated">Una chiamata a 'SemanticModel.GetDeclaredSymbol({0})' restituirà sempre 'null'</target>
         <note />
       </trans-unit>
       <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullTitle">
         <source>This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'</source>
-        <target state="new">This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'</target>
+        <target state="translated">Questa chiamata a 'SemanticModel.GetDeclaredSymbol()' restituirà sempre 'null'</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedInAnalyzersDescription">
         <source>The symbol has been marked as banned for use in analyzers, and an alternate should be used instead.</source>
-        <target state="new">The symbol has been marked as banned for use in analyzers, and an alternate should be used instead.</target>
+        <target state="translated">Il simbolo è stato contrassegnato come escluso dall'uso negli analizzatori e al suo posto deve esserne usato uno alternativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedInAnalyzersMessage">
         <source>The symbol '{0}' is banned for use by analyzers{1}</source>
-        <target state="new">The symbol '{0}' is banned for use by analyzers{1}</target>
+        <target state="translated">Il simbolo '{0}' è stato escluso per l'uso da parte degli analizzatori{1}</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedInAnalyzersTitle">
         <source>Do not use APIs banned for analyzers</source>
-        <target state="new">Do not use APIs banned for analyzers</target>
+        <target state="translated">Non usare API escluse per gli analizzatori</target>
         <note />
       </trans-unit>
       <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdDescription">
         <source>Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.</source>
-        <target state="new">Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.</target>
+        <target state="translated">Gli ID diagnostica contrassegnati come rimossi nel file di versione dell'analizzatore non devono essere segnalati dagli analizzatori.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdMessage">
         <source>Rule '{0}' is marked as removed in the latest analyzer release, but is still being reported</source>
-        <target state="new">Rule '{0}' is marked as removed in the latest analyzer release, but is still being reported</target>
+        <target state="translated">La regola '{0}' è contrassegnata come rimossa nell'ultima versione dell'analizzatore, ma viene ancora segnalata</target>
         <note />
       </trans-unit>
       <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdTitle">
         <source>Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers</source>
-        <target state="new">Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers</target>
+        <target state="translated">Gli ID diagnostica contrassegnati come rimossi nel file di versione dell'analizzatore non devono essere segnalati dagli analizzatori</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionMessage">
         <source>SymbolKind '{0}' is not supported for symbol analyzer actions</source>
-        <target state="new">SymbolKind '{0}' is not supported for symbol analyzer actions</target>
+        <target state="translated">L'elemento SymbolKind '{0}' non è supportato per le azioni dell'analizzatore di simboli</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionTitle">
         <source>Unsupported SymbolKind argument when registering a symbol analyzer action</source>
-        <target state="new">Unsupported SymbolKind argument when registering a symbol analyzer action</target>
+        <target state="translated">L'argomento SymbolKind non è supportato durante la registrazione di un'azione dell'analizzatore di simboli</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidReportDiagnosticMessage">
         <source>ReportDiagnostic invoked with an unsupported DiagnosticDescriptor '{0}'</source>
-        <target state="new">ReportDiagnostic invoked with an unsupported DiagnosticDescriptor '{0}'</target>
+        <target state="translated">ReportDiagnostic è stato richiamato con un elemento DiagnosticDescriptor '{0}' non supportato</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidReportDiagnosticTitle">
         <source>ReportDiagnostic invoked with an unsupported DiagnosticDescriptor</source>
-        <target state="new">ReportDiagnostic invoked with an unsupported DiagnosticDescriptor</target>
+        <target state="translated">ReportDiagnostic è stato richiamato con un elemento DiagnosticDescriptor non supportato</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidReportDiagnosticDescription">
         <source>ReportDiagnostic should only be invoked with supported DiagnosticDescriptors that are returned from DiagnosticAnalyzer.SupportedDiagnostics property. Otherwise, the reported diagnostic will be filtered out by the analysis engine.</source>
-        <target state="new">ReportDiagnostic should only be invoked with supported DiagnosticDescriptors that are returned from DiagnosticAnalyzer.SupportedDiagnostics property. Otherwise, the reported diagnostic will be filtered out by the analysis engine.</target>
+        <target state="translated">ReportDiagnostic deve essere richiamato solo con elementi DiagnosticDescriptor supportati restituiti dalla proprietà DiagnosticAnalyzer.SupportedDiagnostics. In caso contrario, la diagnostica restituita verrà filtrata dal motore di analisi.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidSyntaxKindTypeArgumentMessage">
         <source>Type argument '{0}' for type parameter '{1}' of method '{2}' is not a SyntaxKind enum</source>
-        <target state="new">Type argument '{0}' for type parameter '{1}' of method '{2}' is not a SyntaxKind enum</target>
+        <target state="translated">L'argomento tipo '{0}' per il parametro di tipo '{1}' del metodo '{2}' non è un'enumerazione SyntaxKind</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidSyntaxKindTypeArgumentTitle">
         <source>Invalid type argument for DiagnosticAnalyzer's Register method</source>
-        <target state="new">Invalid type argument for DiagnosticAnalyzer's Register method</target>
+        <target state="translated">L'argomento tipo per il metodo Register di DiagnosticAnalyzer non è valido</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidSyntaxKindTypeArgumentDescription">
         <source>DiagnosticAnalyzer's language-specific Register methods, such as RegisterSyntaxNodeAction, RegisterCodeBlockStartAction and RegisterCodeBlockEndAction, expect a language-specific 'SyntaxKind' type argument for it's '{0}' type parameter. Otherwise, the registered analyzer action can never be invoked during analysis.</source>
-        <target state="new">DiagnosticAnalyzer's language-specific Register methods, such as RegisterSyntaxNodeAction, RegisterCodeBlockStartAction and RegisterCodeBlockEndAction, expect a language-specific 'SyntaxKind' type argument for it's '{0}' type parameter. Otherwise, the registered analyzer action can never be invoked during analysis.</target>
+        <target state="translated">Con i metodi Register specifici della lingua di DiagnosticAnalyzer, come RegisterSyntaxNodeAction, RegisterCodeBlockStartAction e RegisterCodeBlockEndAction, è previsto un argomento tipo 'SyntaxKind' specifico della lingua per il parametro di tipo '{0}'. In caso contrario, l'azione registrata dell'analizzatore non può essere mai richiamata durante l'analisi.</target>
         <note />
       </trans-unit>
       <trans-unit id="StartActionWithOnlyEndActionTitle">
         <source>Start action has no registered non-end actions</source>
-        <target state="new">Start action has no registered non-end actions</target>
+        <target state="translated">Per l'azione di avvio non esistono azioni non di fine registrate</target>
         <note />
       </trans-unit>
       <trans-unit id="StartActionWithNoRegisteredActionsMessage">
         <source>'{0}' does not register any analyzer actions. Consider moving actions registered in '{1}' that depend on this start action to '{0}'.</source>
-        <target state="new">'{0}' does not register any analyzer actions. Consider moving actions registered in '{1}' that depend on this start action to '{0}'.</target>
+        <target state="translated">'{0}' non registra alcuna azione dell'analizzatore. Provare a spostare in '{0}' le azioni registrate in '{1}' che dipendono da questa azione di avvio.</target>
         <note />
       </trans-unit>
       <trans-unit id="StartActionWithNoRegisteredActionsTitle">
         <source>Start action has no registered actions</source>
-        <target state="new">Start action has no registered actions</target>
+        <target state="translated">Per l'azione di avvio non esistono azioni registrate</target>
         <note />
       </trans-unit>
       <trans-unit id="StartActionWithOnlyEndActionMessage">
         <source>'{0}' does not register any analyzer actions, except for a '{1}'. Consider replacing this start/end action pair with a '{2}' or moving actions registered in '{3}' that depend on this start action to '{0}'.</source>
-        <target state="new">'{0}' does not register any analyzer actions, except for a '{1}'. Consider replacing this start/end action pair with a '{2}' or moving actions registered in '{3}' that depend on this start action to '{0}'.</target>
+        <target state="translated">'{0}' non registra alcuna azione dell'analizzatore, ad eccezione di '{1}'. Provare a sostituire questa coppia di azioni di avvio/fine con un elemento '{2}' o a spostare in '{0}' le azioni registrate in '{3}' che dipendono da questa azione di avvio.</target>
         <note />
       </trans-unit>
       <trans-unit id="StatefulAnalyzerRegisterActionsDescription">
@@ -573,261 +573,261 @@
 2. If required, define and initialize state in the start action.
 3. Register at least one non-end action that refers to this state in the start action. If no such action is necessary, consider replacing the start action with a non-start action. For example, a CodeBlockStartAction with no registered actions or only a registered CodeBlockEndAction should be replaced with a CodeBlockAction.
 4. If required, register an end action to report diagnostics based on the final state.</source>
-        <target state="new">An analyzer start action enables performing stateful analysis over a given code unit, such as a code block, compilation, etc. Careful design is necessary to achieve efficient analyzer execution without memory leaks. Use the following guidelines for writing such analyzers:
-1. Define a new scope for the registered start action, possibly with a private nested type for analyzing each code unit.
-2. If required, define and initialize state in the start action.
-3. Register at least one non-end action that refers to this state in the start action. If no such action is necessary, consider replacing the start action with a non-start action. For example, a CodeBlockStartAction with no registered actions or only a registered CodeBlockEndAction should be replaced with a CodeBlockAction.
-4. If required, register an end action to report diagnostics based on the final state.</target>
+        <target state="translated">Un'azione di avvio dell'analizzatore consente di eseguire un'analisi con stato su una data unità di codice, ad esempio un blocco di codice, una compilazione e così via. Per rendere più efficiente l'esecuzione degli analizzatori ed evitare perdite di memoria, è necessaria un'attenta progettazione. Per scrivere tali analizzatori, attenersi alle linea guida seguenti:
+1. Definire un nuovo ambito per l'azione di avvio registrata, possibilmente con un tipo nidificato privato per l'analisi delle singole unità di codice.
+2. Se necessario, definire e inizializzare lo stato nell'azione di avvio.
+3. Registrare almeno un'azione non di fine che fa riferimento a questo stato nell'azione di avvio. Se una tale azione non è necessaria, provare a sostituire l'azione di avvio con un'azione non di avvio. Ad esempio un elemento CodeBlockStartAction senza azioni registrate o un solo elemento CodeBlockEndAction registrato deve essere sostituito da un elemento CodeBlockAction.
+4. Se necessario, registrare un'azione di fine per restituire i dati di diagnostica in base allo stato finale.</target>
         <note />
       </trans-unit>
       <trans-unit id="UpdateDiagnosticIdInAnalyzerReleaseDescription">
         <source>Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release.</source>
-        <target state="new">Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release.</target>
+        <target state="translated">Assicurarsi che la voce aggiornata per gli ID diagnostica dell'analizzatore vengano aggiunti alla versione dell'analizzatore.</target>
         <note />
       </trans-unit>
       <trans-unit id="UpdateDiagnosticIdInAnalyzerReleaseMessage">
         <source>Rule '{0}' has a changed 'Category' or 'Severity' from the last release. Either revert the update(s) in source or add a new up-to-date entry to unshipped release file.</source>
-        <target state="new">Rule '{0}' has a changed 'Category' or 'Severity' from the last release. Either revert the update(s) in source or add a new up-to-date entry to unshipped release file.</target>
+        <target state="translated">L'attributo 'Categoria' o 'Gravità' della regola '{0}' è stato modificato rispetto all'ultima versione. Ripristinare gli aggiornamenti nell'origine oppure aggiungere una nuova voce aggiornata al file di versione non distribuito.</target>
         <note />
       </trans-unit>
       <trans-unit id="UpdateDiagnosticIdInAnalyzerReleaseTitle">
         <source>Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release</source>
-        <target state="new">Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release</target>
+        <target state="translated">Assicurarsi che la voce aggiornata per gli ID diagnostica dell'analizzatore vengano aggiunti alla versione dell'analizzatore</target>
         <note />
       </trans-unit>
       <trans-unit id="UpdateEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle">
         <source>Update rule entry in unshipped release file</source>
-        <target state="new">Update rule entry in unshipped release file</target>
+        <target state="translated">Aggiornare la voce della regola nel file di versione non distribuito</target>
         <note />
       </trans-unit>
       <trans-unit id="UseLocalizableStringsInDescriptorMessage">
         <source>Consider providing localizable arguments of type '{0}' to diagnostic descriptor constructor to ensure the descriptor is localizable</source>
-        <target state="new">Consider providing localizable arguments of type '{0}' to diagnostic descriptor constructor to ensure the descriptor is localizable</target>
+        <target state="translated">Provare a fornire argomenti localizzabili di tipo '{0}' al costruttore del descrittore di diagnostica per garantire che sia localizzabile</target>
         <note />
       </trans-unit>
       <trans-unit id="UseLocalizableStringsInDescriptorTitle">
         <source>Provide localizable arguments to diagnostic descriptor constructor</source>
-        <target state="new">Provide localizable arguments to diagnostic descriptor constructor</target>
+        <target state="translated">Fornire argomenti localizzabili al costruttore del descrittore di diagnostica</target>
         <note />
       </trans-unit>
       <trans-unit id="UseLocalizableStringsInDescriptorDescription">
         <source>If your diagnostic analyzer and it's reported diagnostics need to be localizable, then the supported DiagnosticDescriptors used for constructing the diagnostics must also be localizable. If so, then localizable argument(s) must be provided for parameter 'title' (and optionally 'description') to the diagnostic descriptor constructor to ensure that the descriptor is localizable.</source>
-        <target state="new">If your diagnostic analyzer and it's reported diagnostics need to be localizable, then the supported DiagnosticDescriptors used for constructing the diagnostics must also be localizable. If so, then localizable argument(s) must be provided for parameter 'title' (and optionally 'description') to the diagnostic descriptor constructor to ensure that the descriptor is localizable.</target>
+        <target state="translated">Se l'analizzatore diagnostico e i relativi dati di diagnostica restituiti devono essere localizzabili, devono essere localizzabili anche gli elementi DiagnosticDescriptor supportati usati per costruire i dati di diagnostica. In tal caso, è necessario fornire argomenti localizzabili per il parametro 'title' (e facoltativamente per 'description') al costruttore del descrittore di diagnostica per garantire che il descrittore sia localizzabile.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotStorePerCompilationDataOntoFieldsMessage">
         <source>Avoid storing per-compilation data of type '{0}' into the fields of a diagnostic analyzer</source>
-        <target state="new">Avoid storing per-compilation data of type '{0}' into the fields of a diagnostic analyzer</target>
+        <target state="translated">Evitare di archiviare dati per compilazione di tipo '{0}' nei campi di un analizzatore diagnostico</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotStorePerCompilationDataOntoFieldsTitle">
         <source>Avoid storing per-compilation data into the fields of a diagnostic analyzer</source>
-        <target state="new">Avoid storing per-compilation data into the fields of a diagnostic analyzer</target>
+        <target state="translated">Evitare di archiviare dati per compilazione nei campi di un analizzatore diagnostico</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotStorePerCompilationDataOntoFieldsDescription">
         <source>Instance of a diagnostic analyzer might outlive the lifetime of compilation. Hence, storing per-compilation data, such as symbols, into the fields of a diagnostic analyzer might cause stale compilations to stay alive and cause memory leaks.  Instead, you should store this data on a separate type instantiated in a compilation start action, registered using '{0}.{1}' API. An instance of this type will be created per-compilation and it won't outlive compilation's lifetime, hence avoiding memory leaks.</source>
-        <target state="new">Instance of a diagnostic analyzer might outlive the lifetime of compilation. Hence, storing per-compilation data, such as symbols, into the fields of a diagnostic analyzer might cause stale compilations to stay alive and cause memory leaks.  Instead, you should store this data on a separate type instantiated in a compilation start action, registered using '{0}.{1}' API. An instance of this type will be created per-compilation and it won't outlive compilation's lifetime, hence avoiding memory leaks.</target>
+        <target state="translated">L'istanza di un analizzatore diagnostico potrebbe sopravvivere alla durata della compilazione. Di conseguenza, se si archiviano i dati per compilazione, ad esempio i simboli, nei campi di un analizzatore diagnostico, compilazioni obsolete potrebbero continuare a esistere e causare perdite di memoria. È invece consigliabile archiviare questi dati in un tipo separato di cui viene creata un'istanza in un'azione di avvio della compilazione, registrata con l'API '{0}.{1}'. Un'istanza di questo tipo verrà creata per compilazione e non sopravviverà alla durata della compilazione, evitando in tal modo perdite di memoria.</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalImplementationOnlyDescription">
         <source>The author of this interface did not intend to have third party implementations of this interface and reserves the right to change it. Implementing this interface could therefore result in a source or binary compatibility issue with a future version of this interface.</source>
-        <target state="new">The author of this interface did not intend to have third party implementations of this interface and reserves the right to change it. Implementing this interface could therefore result in a source or binary compatibility issue with a future version of this interface.</target>
+        <target state="translated">L'autore di questa interfaccia non intendeva includere implementazioni dell'interfaccia di terze parti e si riserva il diritto di modificarla. L'implementazione di questa interfaccia potrebbe quindi generare un problema di compatibilità del codice sorgente o dei binari con una versione futura di questa interfaccia.</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalImplementationOnlyMessage">
         <source>Type {0} cannot implement interface {1} because {1} is not available for public implementation</source>
-        <target state="new">Type {0} cannot implement interface {1} because {1} is not available for public implementation</target>
+        <target state="translated">Il tipo {0} non può implementare l'interfaccia {1} perché {1} non è disponibile per l'implementazione pubblica</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalImplementationOnlyTitle">
         <source>Only internal implementations of this interface are allowed</source>
-        <target state="new">Only internal implementations of this interface are allowed</target>
+        <target state="translated">Sono consentite solo implementazioni interne di questa interfaccia</target>
         <note />
       </trans-unit>
       <trans-unit id="CodeActionNeedsEquivalenceKeyDescription">
         <source>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique for each kind of code action created by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</source>
-        <target state="new">A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique for each kind of code action created by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</target>
+        <target state="translated">Un elemento CodeFixProvider che intende supportare la correzione di tutte le occorrenze deve classificare le azioni codice registrate nelle classi di equivalenza assegnando una chiave di equivalenza non Null che sia univoca per ogni tipo di azione codice creata da questa utilità di correzione. In questo modo FixAllProvider potrà correggere tutte le diagnostiche nell'ambito richiesto applicando codici azioni di questa utilità di correzione che sono inclusi nella classe di equivalenza dell'azione codice di attivazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyMessage">
         <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer</source>
-        <target state="new">Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer</target>
+        <target state="translated">Fornire un argomento esplicito per il parametro facoltativo '{0}', che sia non Null e univoco per ogni tipo di azione codice creata da questa correzione</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyTitle">
         <source>Create code actions should have a unique EquivalenceKey for FixAll occurrences support</source>
-        <target state="new">Create code actions should have a unique EquivalenceKey for FixAll occurrences support</target>
+        <target state="translated">Le azioni di creazione codice devono includere un elemento EquivalenceKey univoco per il supporto delle occorrenze di FixAll</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideCodeActionEquivalenceKeyMessage">
         <source>'{0}' has the default value of 'null' for property '{1}'. Either override this property on '{0}' to return a non-null and unique value across all code actions per-fixer or use such an existing code action.</source>
-        <target state="new">'{0}' has the default value of 'null' for property '{1}'. Either override this property on '{0}' to return a non-null and unique value across all code actions per-fixer or use such an existing code action.</target>
+        <target state="translated">Il valore predefinito di '{0}' è 'null' per la proprietà '{1}'. Eseguire l'override di questa proprietà su '{0}' in modo da restituire un valore non Null e univoco in tutte le azioni codice per utilità di correzione oppure usare tale azione codice esistente.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideCodeActionEquivalenceKeyTitle">
         <source>Use code actions that have a unique EquivalenceKey for FixAll occurrences support</source>
-        <target state="new">Use code actions that have a unique EquivalenceKey for FixAll occurrences support</target>
+        <target state="translated">Usare azioni codice con un elemento EquivalenceKey univoco per il supporto delle occorrenze di FixAll</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationDescription">
         <source>Many objects exposed by Roslyn are immutable. The return value from a method invocation on these objects should not be ignored.</source>
-        <target state="new">Many objects exposed by Roslyn are immutable. The return value from a method invocation on these objects should not be ignored.</target>
+        <target state="translated">Molti oggetti esposti da Roslyn non sono modificabili. Il valore restituito da una chiamata di metodo su questi oggetti non deve essere ignorato.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationMessage">
         <source>'{0}' is immutable and '{1}' will not have any effect on it. Consider using the return value from '{1}'.</source>
-        <target state="new">'{0}' is immutable and '{1}' will not have any effect on it. Consider using the return value from '{1}'.</target>
+        <target state="translated">'{0}' non è modificabile e '{1}' non avrà alcun effetto su di esso. Provare a usare il valore restituito da '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationTitle">
         <source>Do not ignore values returned by methods on immutable objects</source>
-        <target state="new">Do not ignore values returned by methods on immutable objects</target>
+        <target state="translated">Non ignorare i valori restituiti dai metodi su oggetti non modificabili</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderTitle">
         <source>Code fix providers should provide FixAll support</source>
-        <target state="new">Code fix providers should provide FixAll support</target>
+        <target state="translated">I provider di correzione del codice devono fornire il supporto per FixAll</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderMessage">
         <source>'{0}' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.</source>
-        <target state="new">'{0}' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.</target>
+        <target state="translated">'{0}' registra una o più correzioni del codice, ma non esegue l'override del metodo 'CodeFixProvider.GetFixAllProvider'. Eseguire l'override di questo metodo e fornire un elemento FixAllProvider non Null per il supporto per FixAll, possibilmente 'WellKnownFixAllProviders.BatchFixer', oppure 'null' per disabilitare in modo esplicito il supporto per FixAll.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderDescription">
         <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md for further details.</source>
-        <target state="new">A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md for further details.</target>
+        <target state="translated">Un elemento CodeFixProvider deve fornire il supporto per FixAll per consentire agli utenti di correggere più istanze della diagnostica sottostante con un'unica correzione del codice. Per maggiori dettagli, vedere la documentazione all'indirizzo https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderCodeFixTitle">
         <source>Override GetFixAllProvider.</source>
-        <target state="new">Override GetFixAllProvider.</target>
+        <target state="translated">Eseguire l'override di GetFixAllProvider.</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideHelpUriInDescriptorMessage">
         <source>Consider providing a non-null 'helpLinkUri' to diagnostic descriptor constructor to show information when this diagnostic appears in the error list</source>
-        <target state="new">Consider providing a non-null 'helpLinkUri' to diagnostic descriptor constructor to show information when this diagnostic appears in the error list</target>
+        <target state="translated">Provare a fornire un valore 'helpLinkUri' non Null al costruttore del descrittore di diagnostica in modo da visualizzare le informazioni quando questa diagnostica è presente nell'elenco errori</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideHelpUriInDescriptorTitle">
         <source>Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor</source>
-        <target state="new">Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor</target>
+        <target state="translated">Fornire un valore 'helpLinkUri' non Null al costruttore del descrittore di diagnostica</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideHelpUriInDescriptorDescription">
         <source>The 'helpLinkUri' value is used to show information when this diagnostic in the error list. Every analyzer should have a helpLinkUri specified which points to a help page that does not change over time.</source>
-        <target state="new">The 'helpLinkUri' value is used to show information when this diagnostic in the error list. Every analyzer should have a helpLinkUri specified which points to a help page that does not change over time.</target>
+        <target state="translated">Il valore 'helpLinkUri' viene usato per visualizzare le informazioni quando questa diagnostica è presente nell'elenco errori. È necessario specificare per ogni analizzatore un elemento helpLinkUri che punta a una pagina che non cambia nel tempo.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatTitle">
         <source>DiagnosticId for analyzers must be in specified format</source>
-        <target state="new">DiagnosticId for analyzers must be in specified format</target>
+        <target state="translated">Gli ID diagnostica per gli analizzatori devono essere nel formato specificato</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatMessage">
         <source>Diagnostic Id '{0}' belonging to category '{1}' is not in the required range and/or format '{2}' specified in the file '{3}'</source>
-        <target state="new">Diagnostic Id '{0}' belonging to category '{1}' is not in the required range and/or format '{2}' specified in the file '{3}'</target>
+        <target state="translated">L'ID diagnostica '{0}' appartenente alla categoria '{1}' non è incluso nell'intervallo e/o nel formato '{2}' richiesto specificato nel file '{3}'</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatDescription">
         <source>DiagnosticId for analyzers must be in specified format.</source>
-        <target state="new">DiagnosticId for analyzers must be in specified format.</target>
+        <target state="translated">Gli ID diagnostica per gli analizzatori devono essere nel formato specificato.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseUniqueDiagnosticIdTitle">
         <source>DiagnosticId must be unique across analyzers</source>
-        <target state="new">DiagnosticId must be unique across analyzers</target>
+        <target state="translated">L'ID diagnostica deve essere univoco tra gli analizzatori</target>
         <note />
       </trans-unit>
       <trans-unit id="UseUniqueDiagnosticIdMessage">
         <source>Diagnostic Id '{0}' is already used by analyzer '{1}'. Please use a different diagnostic ID.</source>
-        <target state="new">Diagnostic Id '{0}' is already used by analyzer '{1}'. Please use a different diagnostic ID.</target>
+        <target state="translated">L'ID diagnostica '{0}' è già usato dall'analizzatore '{1}'. Usarne uno diverso.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseUniqueDiagnosticIdDescription">
         <source>DiagnosticId must be unique across analyzers.</source>
-        <target state="new">DiagnosticId must be unique across analyzers.</target>
+        <target state="translated">L'ID diagnostica deve essere univoco tra gli analizzatori.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseCategoriesFromSpecifiedRangeTitle">
         <source>Category for analyzers must be from the specified values</source>
-        <target state="new">Category for analyzers must be from the specified values</target>
+        <target state="translated">La categoria per gli analizzatori deve essere inclusa nei valori specificati</target>
         <note />
       </trans-unit>
       <trans-unit id="UseCategoriesFromSpecifiedRangeMessage">
         <source>Category '{0}' is not from the allowed categories specified in the file '{1}'</source>
-        <target state="new">Category '{0}' is not from the allowed categories specified in the file '{1}'</target>
+        <target state="translated">La categoria '{0}' non è inclusa nelle categorie consentite specificate nel file '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="UseCategoriesFromSpecifiedRangeDescription">
         <source>Category for analyzers must be from the specified values.</source>
-        <target state="new">Category for analyzers must be from the specified values.</target>
+        <target state="translated">La categoria per gli analizzatori deve essere inclusa nei valori specificati.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidTitle">
         <source>Invalid entry in analyzer category and diagnostic ID range specification file</source>
-        <target state="new">Invalid entry in analyzer category and diagnostic ID range specification file</target>
+        <target state="translated">La voce nella categoria dell'analizzatore e nel file di specifica dell'intervallo degli ID diagnostica non è valida</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidMessage">
         <source>Invalid entry '{0}' in analyzer category and diagnostic ID range specification file '{1}'</source>
-        <target state="new">Invalid entry '{0}' in analyzer category and diagnostic ID range specification file '{1}'</target>
+        <target state="translated">La voce '{0}' nella categoria dell'analizzatore e nel file '{1}' di specifica dell'intervallo degli ID diagnostica non è valida</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidDescription">
         <source>Invalid entry in analyzer category and diagnostic ID range specification file.</source>
-        <target state="new">Invalid entry in analyzer category and diagnostic ID range specification file.</target>
+        <target state="translated">La voce nella categoria dell'analizzatore e nel file di specifica dell'intervallo degli ID diagnostica non è valida.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeAConstantTitle">
         <source>DiagnosticId for analyzers must be a non-null constant</source>
-        <target state="new">DiagnosticId for analyzers must be a non-null constant</target>
+        <target state="translated">Gli ID diagnostica per gli analizzatori devono essere una costante non Null</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeAConstantMessage">
         <source>Diagnostic Id for rule '{0}' must be a non-null constant</source>
-        <target state="new">Diagnostic Id for rule '{0}' must be a non-null constant</target>
+        <target state="translated">L'ID diagnostica per la regola '{0}' deve essere una costante non Null</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeAConstantDescription">
         <source>DiagnosticId for analyzers must be a non-null constant.</source>
-        <target state="new">DiagnosticId for analyzers must be a non-null constant.</target>
+        <target state="translated">Gli ID diagnostica per gli analizzatori devono essere una costante non Null.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseTypesFromAssemblyRuleDescription">
         <source>Diagnostic analyzer types should not use types from Workspaces assemblies. Workspaces assemblies are only available when the analyzer executes in Visual Studio IDE live analysis, but are not available during command line build. Referencing types from Workspaces assemblies will lead to runtime exception during analyzer execution in command line build.</source>
-        <target state="new">Diagnostic analyzer types should not use types from Workspaces assemblies. Workspaces assemblies are only available when the analyzer executes in Visual Studio IDE live analysis, but are not available during command line build. Referencing types from Workspaces assemblies will lead to runtime exception during analyzer execution in command line build.</target>
+        <target state="translated">I tipi di analizzatore diagnostico non devono usare tipi degli assembly di aree di lavoro. Gli assembly di aree di lavoro sono disponibili solo quando l'analizzatore viene eseguito nell'analisi in tempo reale dell'IDE di Visual Studio, ma non sono disponibili durante la compilazione dalla riga di comando. Se si fa riferimento a tipi di assembly di aree di lavoro, si verificherà un'eccezione di runtime durante l'esecuzione dell'analizzatore nella compilazione dalla riga di comando.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseTypesFromAssemblyRuleTitle">
         <source>Do not use types from Workspaces assembly in an analyzer</source>
-        <target state="new">Do not use types from Workspaces assembly in an analyzer</target>
+        <target state="translated">Non usare tipi di assembly di aree di lavoro in un analizzatore</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseTypesFromAssemblyRuleIndirectMessage">
         <source>Change diagnostic analyzer type '{0}' to remove all direct and/or indirect accesses to type(s) '{1}', which access type(s) '{2}'</source>
-        <target state="new">Change diagnostic analyzer type '{0}' to remove all direct and/or indirect accesses to type(s) '{1}', which access type(s) '{2}'</target>
+        <target state="translated">Modificare il tipo di analizzatore diagnostico '{0}' in modo da rimuovere tutti gli accessi diretti e/o indiretti al tipo o ai tipi '{1}', che accedono al tipo o ai tipi '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseTypesFromAssemblyRuleDirectMessage">
         <source>Change diagnostic analyzer type '{0}' to remove all direct accesses to type(s) '{1}'</source>
-        <target state="new">Change diagnostic analyzer type '{0}' to remove all direct accesses to type(s) '{1}'</target>
+        <target state="translated">Modificare il tipo di analizzatore diagnostico '{0}' in modo da rimuovere tutti gli accessi diretti al tipo o ai tipi '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="UpgradeMSBuildWorkspaceDescription">
         <source>MSBuildWorkspace has moved to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package and there are breaking API changes.</source>
-        <target state="new">MSBuildWorkspace has moved to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package and there are breaking API changes.</target>
+        <target state="translated">MSBuildWorkspace è stato spostato nel pacchetto NuGet Microsoft.CodeAnalysis.Workspaces.MSBuild e sono presenti importanti novità relative alle API.</target>
         <note />
       </trans-unit>
       <trans-unit id="UpgradeMSBuildWorkspaceMessage">
         <source>Please upgrade MSBuildWorkspace by adding a package reference to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package. See https://go.microsoft.com/fwlink/?linkid=874285 for details on using MSBuildWorkspace successfully.</source>
-        <target state="new">Please upgrade MSBuildWorkspace by adding a package reference to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package. See https://go.microsoft.com/fwlink/?linkid=874285 for details on using MSBuildWorkspace successfully.</target>
+        <target state="translated">Aggiornare MSBuildWorkspace aggiungendo un riferimento al pacchetto NuGet Microsoft.CodeAnalysis.Workspaces.MSBuild. Per dettagli sull'uso corretto di MSBuildWorkspace, vedere https://go.microsoft.com/fwlink/?linkid=874285.</target>
         <note />
       </trans-unit>
       <trans-unit id="UpgradeMSBuildWorkspaceTitle">
         <source>Upgrade MSBuildWorkspace</source>
-        <target state="new">Upgrade MSBuildWorkspace</target>
+        <target state="translated">Aggiorna MSBuildWorkspace</target>
         <note />
       </trans-unit>
     </body>
