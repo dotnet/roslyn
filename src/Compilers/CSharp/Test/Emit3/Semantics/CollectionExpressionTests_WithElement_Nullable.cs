@@ -248,7 +248,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             [sourceA, sourceB],
             expectedOutput: IncludeExpectedOutput("1, 2"),
             targetFramework: TargetFramework.Net80,
-            verify: Verification.Fails).VerifyDiagnostics(
+            verify: Verification.FailsPEVerify).VerifyDiagnostics(
             // (7,37): warning CS8625: Cannot convert null literal to non-nullable reference type.
             //         MyCollection<int> c = [with(null), 1, 2];
             Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 37));
@@ -298,7 +298,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             [sourceA, sourceB],
             expectedOutput: IncludeExpectedOutput("1, 2"),
             targetFramework: TargetFramework.Net80,
-            verify: Verification.Fails).VerifyDiagnostics(
+            verify: Verification.FailsPEVerify).VerifyDiagnostics(
             // (8,37): warning CS8604: Possible null reference argument for parameter 'value' in 'MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)'.
             //         MyCollection<int> c = [with(s), 1, 2];
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("value", "MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)").WithLocation(8, 37));
@@ -348,7 +348,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             [sourceA, sourceB],
             expectedOutput: IncludeExpectedOutput("1, 2"),
             targetFramework: TargetFramework.Net80,
-            verify: Verification.Fails).VerifyDiagnostics();
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -395,7 +395,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             [sourceA, sourceB],
             expectedOutput: IncludeExpectedOutput("1, 2"),
             targetFramework: TargetFramework.Net80,
-            verify: Verification.Fails).VerifyDiagnostics(
+            verify: Verification.FailsPEVerify).VerifyDiagnostics(
             // (7,17): warning CS0219: The variable 's' is assigned but its value is never used
             //         string? s = null;
             Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s").WithArguments("s").WithLocation(7, 17));
@@ -450,7 +450,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             [sourceA, sourceB],
             expectedOutput: IncludeExpectedOutput("goo"),
             targetFramework: TargetFramework.Net80,
-            verify: Verification.Fails).VerifyDiagnostics();
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var compilation = verifier.Compilation;
         var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees.Last());
@@ -507,7 +507,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             [sourceA, sourceB],
             expectedOutput: IncludeExpectedOutput("goo"),
             targetFramework: TargetFramework.Net80,
-            verify: Verification.Fails).VerifyDiagnostics();
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var compilation = verifier.Compilation;
         var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees.Last());
