@@ -2,10 +2,73 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Threading
+Imports Microsoft.CodeAnalysis.InlineHints
+Imports Microsoft.CodeAnalysis.LanguageService
+Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Text
+
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
     <Trait(Traits.Feature, Traits.Features.InlineHints)>
     Public NotInheritable Class CSharpInlineTypeHintsTests
         Inherits AbstractInlineHintsTests
+
+        Private Async Function VerifyTypeHintsWithOptions(test As XElement, output As XElement, options As InlineTypeHintsOptions) As Task
+            Using workspace = EditorTestWorkspace.Create(test)
+                WpfTestRunner.RequireWpfFact($"{NameOf(CSharpInlineTypeHintsTests)}.{NameOf(Me.VerifyTypeHintsWithOptions)} creates asynchronous taggers")
+
+                Dim displayOptions = New SymbolDescriptionOptions()
+
+                Dim hostDocument = workspace.Documents.Single()
+                Dim snapshot = hostDocument.GetTextBuffer().CurrentSnapshot
+                Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
+                Dim tagService = document.GetRequiredLanguageService(Of IInlineTypeHintsService)
+
+                Dim span = If(hostDocument.SelectedSpans.Any(), hostDocument.SelectedSpans.Single(), New TextSpan(0, snapshot.Length))
+                Dim typeHints = ArrayBuilder(Of InlineHint).GetInstance()
+
+                Await tagService.AddInlineHintsAsync(
+                    document, span, options, displayOptions, displayAllOverride:=False, typeHints, CancellationToken.None)
+
+                Dim producedTags = From hint In typeHints
+                                   Select hint.DisplayParts.GetFullText() + ":" + hint.Span.ToString()
+
+                ValidateSpans(hostDocument, producedTags)
+
+                Dim outWorkspace = EditorTestWorkspace.Create(output)
+                Dim expectedDocument = outWorkspace.CurrentSolution.GetDocument(outWorkspace.Documents.Single().Id)
+                Await ValidateDoubleClick(document, expectedDocument, typeHints)
+            End Using
+        End Function
+
+        Private Shared Sub ValidateSpans(hostDocument As TestHostDocument, producedTags As IEnumerable(Of String))
+            Dim expectedTags As New List(Of String)
+
+            Dim nameAndSpansList = hostDocument.AnnotatedSpans.SelectMany(
+                Function(name) name.Value,
+                Function(name, span) New With {.Name = name.Key, span})
+
+            For Each nameAndSpan In nameAndSpansList.OrderBy(Function(x) x.span.Start)
+                expectedTags.Add(nameAndSpan.Name + ":" + nameAndSpan.span.ToString())
+            Next
+
+            AssertEx.Equal(expectedTags, producedTags)
+        End Sub
+
+        Private Shared Async Function ValidateDoubleClick(document As Document, expectedDocument As Document, typeHints As ArrayBuilder(Of InlineHint)) As Task
+            Dim textChanges = New List(Of TextChange)
+            For Each inlineHint In typeHints
+                If inlineHint.ReplacementTextChange IsNot Nothing Then
+                    textChanges.Add(inlineHint.ReplacementTextChange.Value)
+                End If
+            Next
+
+            Dim value = Await document.GetTextAsync().ConfigureAwait(False)
+            Dim newText = value.WithChanges(textChanges).ToString()
+            Dim expectedText = Await expectedDocument.GetTextAsync().ConfigureAwait(False)
+
+            AssertEx.Equal(expectedText.ToString(), newText)
+        End Function
 
         <WpfFact>
         Public Async Function TestNotOnLocalVariableWithType() As Task
@@ -964,6 +1027,114 @@ class A
             </Workspace>
 
             Await VerifyTypeHints(input, output)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestSuppressForTargetTypedNew() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class Vector2
+{
+}
+
+class A
+{
+    void Main()
+    {
+        Vector2 foo = new();
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim options = New InlineTypeHintsOptions() With
+            {
+                .EnabledForTypes = True,
+                .ForImplicitObjectCreation = True,
+                .SuppressForTargetTypedNew = True
+            }
+
+            Await VerifyTypeHintsWithOptions(input, input, options)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestSuppressForTargetTypedCollectionExpression() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferencesNet6="true">
+                    <Document>
+class A
+{
+    void Main()
+    {
+        int[] arr = [1, 2, 3];
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim options = New InlineTypeHintsOptions() With
+            {
+                .EnabledForTypes = True,
+                .ForCollectionExpressions = True,
+                .SuppressForTargetTypedCollectionExpressions = True
+            }
+
+            Await VerifyTypeHintsWithOptions(input, input, options)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestShowForNonTargetTypedNew() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class Vector2
+{
+}
+
+class A
+{
+    void Main()
+    {
+        var foo = {|Vector2 :|}new();
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class Vector2
+{
+}
+
+class A
+{
+    void Main()
+    {
+        var foo = new Vector2();
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim options = New InlineTypeHintsOptions() With
+            {
+                .EnabledForTypes = True,
+                .ForImplicitObjectCreation = True,
+                .SuppressForTargetTypedNew = True
+            }
+
+            Await VerifyTypeHintsWithOptions(input, output, options)
         End Function
     End Class
 End Namespace
