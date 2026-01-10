@@ -4188,5 +4188,225 @@ public class C
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(delegate* managed<object?, long>)false").WithArguments("bool", "delegate*<object?, long>").WithLocation(9, 58)
                 );
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81113")]
+        public void TestGetSymbolInfo_Direct()
+        {
+            var source = """
+                unsafe class C
+                {
+                    static void M2()
+                    {
+                        var d = (delegate*<void>)&C.M2;
+                        d();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilationWithFunctionPointers(source);
+            comp.VerifyEmitDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees.Single();
+            var semanticModel = comp.GetSemanticModel(syntaxTree);
+            var root = syntaxTree.GetRoot();
+
+            var addressOf = root.DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            var symbolInfo = semanticModel.GetSymbolInfo(addressOf);
+            AssertEx.Equal("void C.M2()", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Empty(symbolInfo.CandidateSymbols);
+
+            var memberAccess = (MemberAccessExpressionSyntax)addressOf.Operand;
+            symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
+            AssertEx.Equal("void C.M2()", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Empty(symbolInfo.CandidateSymbols);
+
+            symbolInfo = semanticModel.GetSymbolInfo(memberAccess.Name);
+            AssertEx.Equal("void C.M2()", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Empty(symbolInfo.CandidateSymbols);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81113")]
+        public void TestGetSymbolInfo_Parenthesized()
+        {
+            var source = """
+                unsafe class C
+                {
+                    static void M2()
+                    {
+                        var d = (delegate*<void>)(&C.M2);
+                        d();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilationWithFunctionPointers(source);
+            comp.VerifyEmitDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees.Single();
+            var semanticModel = comp.GetSemanticModel(syntaxTree);
+            var root = syntaxTree.GetRoot();
+
+            var addressOf = root.DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            var symbolInfo = semanticModel.GetSymbolInfo(addressOf);
+            AssertEx.Equal("void C.M2()", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Empty(symbolInfo.CandidateSymbols);
+
+            var memberAccess = (MemberAccessExpressionSyntax)addressOf.Operand;
+            symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
+            AssertEx.Equal("void C.M2()", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Empty(symbolInfo.CandidateSymbols);
+
+            symbolInfo = semanticModel.GetSymbolInfo(memberAccess.Name);
+            AssertEx.Equal("void C.M2()", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Empty(symbolInfo.CandidateSymbols);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81113")]
+        public void TestGetSymbolInfo_TargetType()
+        {
+            var source = """
+                unsafe class C
+                {
+                    static void M2()
+                    {
+                        delegate*<void> d = &C.M2;
+                        d();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilationWithFunctionPointers(source);
+            comp.VerifyEmitDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees.Single();
+            var semanticModel = comp.GetSemanticModel(syntaxTree);
+            var root = syntaxTree.GetRoot();
+
+            var addressOf = root.DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            var symbolInfo = semanticModel.GetSymbolInfo(addressOf);
+            AssertEx.Equal("void C.M2()", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Empty(symbolInfo.CandidateSymbols);
+
+            var memberAccess = (MemberAccessExpressionSyntax)addressOf.Operand;
+            symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
+            AssertEx.Equal("void C.M2()", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Empty(symbolInfo.CandidateSymbols);
+
+            symbolInfo = semanticModel.GetSymbolInfo(memberAccess.Name);
+            AssertEx.Equal("void C.M2()", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Empty(symbolInfo.CandidateSymbols);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81113")]
+        public void TestGetSymbolInfo_TargetType_ThroughSwitch()
+        {
+            var source = """
+                #pragma warning disable CS8509 // switch is not exhaustive
+                unsafe class C
+                {
+                    static void M2()
+                    {
+                        var d = (delegate*<void>)(true switch { true => &C.M2 });
+                        d();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilationWithFunctionPointers(source);
+            comp.VerifyEmitDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees.Single();
+            var semanticModel = comp.GetSemanticModel(syntaxTree);
+            var root = syntaxTree.GetRoot();
+
+            var addressOf = root.DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            var symbolInfo = semanticModel.GetSymbolInfo(addressOf);
+            AssertEx.Equal("void C.M2()", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Empty(symbolInfo.CandidateSymbols);
+
+            var memberAccess = (MemberAccessExpressionSyntax)addressOf.Operand;
+            symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
+            AssertEx.Equal("void C.M2()", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Empty(symbolInfo.CandidateSymbols);
+
+            symbolInfo = semanticModel.GetSymbolInfo(memberAccess.Name);
+            AssertEx.Equal("void C.M2()", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Empty(symbolInfo.CandidateSymbols);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81113")]
+        public void TestGetSymbolInfo_TargetType_ThroughTernary()
+        {
+            var source = """
+                unsafe class C
+                {
+                    static void M2()
+                    {
+                        var d = (delegate*<void>)(true ? &C.M2 : null);
+                        d();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilationWithFunctionPointers(source);
+            comp.VerifyEmitDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees.Single();
+            var semanticModel = comp.GetSemanticModel(syntaxTree);
+            var root = syntaxTree.GetRoot();
+
+            var addressOf = root.DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            var symbolInfo = semanticModel.GetSymbolInfo(addressOf);
+            AssertEx.Equal("void C.M2()", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Empty(symbolInfo.CandidateSymbols);
+
+            var memberAccess = (MemberAccessExpressionSyntax)addressOf.Operand;
+            symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
+            AssertEx.Equal("void C.M2()", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Empty(symbolInfo.CandidateSymbols);
+
+            symbolInfo = semanticModel.GetSymbolInfo(memberAccess.Name);
+            AssertEx.Equal("void C.M2()", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Empty(symbolInfo.CandidateSymbols);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81113")]
+        public void TestGetSymbolInfo_TargetType_AsArgument()
+        {
+            var source = """
+                unsafe class C
+                {
+                    static void M2()
+                    {
+                        M3(&C.M2);
+                    }
+
+                    static void M3(delegate*<void> ptr)
+                    {
+                    }
+                }
+                """;
+
+            var comp = CreateCompilationWithFunctionPointers(source);
+            comp.VerifyEmitDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees.Single();
+            var semanticModel = comp.GetSemanticModel(syntaxTree);
+            var root = syntaxTree.GetRoot();
+
+            var addressOf = root.DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            var symbolInfo = semanticModel.GetSymbolInfo(addressOf);
+            AssertEx.Equal("void C.M2()", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Empty(symbolInfo.CandidateSymbols);
+
+            var memberAccess = (MemberAccessExpressionSyntax)addressOf.Operand;
+            symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
+            AssertEx.Equal("void C.M2()", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Empty(symbolInfo.CandidateSymbols);
+
+            symbolInfo = semanticModel.GetSymbolInfo(memberAccess.Name);
+            AssertEx.Equal("void C.M2()", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Empty(symbolInfo.CandidateSymbols);
+        }
     }
 }
