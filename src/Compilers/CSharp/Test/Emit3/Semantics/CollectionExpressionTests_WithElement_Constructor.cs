@@ -2816,11 +2816,11 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             """;
         var comp = CompileAndVerify(
             [sourceA, sourceB, OverloadResolutionPriorityAttributeDefinition],
-            targetFramework: TargetFramework.Net80,
+            // targetFramework: TargetFramework.Net100,
             expectedOutput: IncludeExpectedOutput(
                 """
                 Called second overload
-                """), verify: Verification.FailsPEVerify).VerifyIL("Program.Main", """
+                """)).VerifyIL("Program.Main", """
                 {
                   // Code size       28 (0x1c)
                   .maxstack  3
