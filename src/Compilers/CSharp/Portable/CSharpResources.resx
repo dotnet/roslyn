@@ -8114,6 +8114,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PPShebangInProjectBasedProgram" xml:space="preserve">
     <value>'#!' directives can be only used in scripts or file-based programs</value>
   </data>
+  <data name="ERR_StructLayoutAndExtendedLayout" xml:space="preserve">
+    <value>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</value>
+  </data>`
+  <data name="ERR_RuntimeDoesNotSupportExtendedLayoutTypes" xml:space="preserve">
+    <value>The target runtime does not support extended layout types.</value>
+  </data>
   <data name="ERR_MisplacedExtension" xml:space="preserve">
     <value>An extension member syntax is disallowed in nested position within an extension member syntax</value>
   </data>

@@ -232,11 +232,6 @@
         <target state="translated">Nastavit jako statickou</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_synchronous">
-        <source>Make method synchronous</source>
-        <target state="translated">Nastavit metodu jako synchronní</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Make_type_partial">
         <source>Make type partial</source>
         <target state="translated">Nastavit typ jako částečný</target>

@@ -124,17 +124,17 @@
       </trans-unit>
       <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkMessage">
         <source>This compiler extension should not be implemented in an assembly with target framework '{0}'. References to other target frameworks will cause the compiler to behave unpredictably.</source>
-        <target state="translated">Bu derleyici uzantısı, '{0}' hedef çerçevesine sahip bir derlemede uygulanmamalıdır. Diğer hedef çerçevelere yapılan başvurular derleyicinin öngörülemeyen şekilde davranmasına neden olur.</target>
+        <target state="new">This compiler extension should not be implemented in an assembly with target framework '{0}'. References to other target frameworks will cause the compiler to behave unpredictably.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkRuleDescription">
         <source>Types which implement compiler extension points should only be declared in assemblies targeting netstandard2.0. More specific target frameworks are only available in a subset of supported compilation scenarios, so targeting them may cause the feature to behave unpredictably.</source>
-        <target state="translated">Derleyici uzantı noktalarını uygulayan türler yalnızca netstandard2.0'ı hedefleyen derlemelerde tanımlanabilir. Daha belirli hedef çerçeveler yalnızca desteklenen derleme senaryolarının bir alt kümesinde kullanılabilir, bu nedenle bunları hedeflemek özelliğin öngörülemeyen şekilde davranmasına neden olabilir.</target>
+        <target state="new">Types which implement compiler extension points should only be declared in assemblies targeting netstandard2.0. More specific target frameworks are only available in a subset of supported compilation scenarios, so targeting them may cause the feature to behave unpredictably.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkRuleTitle">
         <source>Compiler extensions should be implemented in assemblies targeting netstandard2.0</source>
-        <target state="translated">Derleyici uzantıları, netstandard2.0’ı hedefleyen derlemelerde uygulanmalıdır.</target>
+        <target state="new">Compiler extensions should be implemented in assemblies targeting netstandard2.0</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithWorkspacesReferenceMessage">
@@ -204,7 +204,7 @@
       </trans-unit>
       <trans-unit id="EnableAnalyzerReleaseTrackingRuleDescription">
         <source>Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</source>
-        <target state="translated">Çözümleyici paketleri için yayın izlemeyi etkinleştirme, her çözümleyici yayınıyla birlikte gelen ve/veya değişen çözümleyici tanılamalarını izlemeye ve belgelemeye yardımcı olur. https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md adresindeki ayrıntılara bakın.</target>
+        <target state="new">Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableAnalyzerReleaseTrackingRuleMessage">

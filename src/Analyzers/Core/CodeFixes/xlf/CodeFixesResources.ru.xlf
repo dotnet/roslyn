@@ -232,11 +232,6 @@
         <target state="translated">Сделать статическим</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_synchronous">
-        <source>Make method synchronous</source>
-        <target state="translated">Преобразовать метод в синхронный</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Make_type_partial">
         <source>Make type partial</source>
         <target state="translated">Сделать тип частичным</target>

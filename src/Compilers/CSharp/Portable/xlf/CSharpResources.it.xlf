@@ -424,7 +424,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotMatchOnINumberBase">
         <source>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.</source>
-        <target state="needs-review-translation">Non è possibile usare una costante numerica o un modello relazionale su '{0}' perché eredita da o estende 'INumberBase&lt;T&gt;'. Provare a usare un modello di tipo per limitare a un tipo numerico specifico.</target>
+        <target state="new">Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -1417,6 +1417,11 @@
         <target state="translated">L'argomento diagnosticId dell'attributo 'Experimental' deve essere un identificatore valido</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
+        <source>The target runtime does not support extended layout types.</source>
+        <target state="new">The target runtime does not support extended layout types.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidExtensionParameterReference">
         <source>Cannot use extension parameter '{0}' in this context.</source>
         <target state="new">Cannot use extension parameter '{0}' in this context.</target>
@@ -1774,7 +1779,7 @@
       </trans-unit>
       <trans-unit id="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName">
         <source>'{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.</source>
-        <target state="translated">'{0}' non è un metodo di istanza. Il ricevitore non può essere un argomento del gestore di stringhe interpolate.</target>
+        <target state="new">'{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotOverridableAPIInRecord">
@@ -2314,7 +2319,7 @@
       </trans-unit>
       <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
         <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
-        <target state="needs-review-translation">Il tipo 'Microsoft.CodeAnalysis.EmbeddedAttribute' deve essere non generico, interno, sealed, non statico, avere un costruttore senza parametri, ereditare da System.Attribute e poter essere applicato a qualsiasi tipo.</target>
+        <target state="new">The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
@@ -2490,6 +2495,11 @@
       <trans-unit id="ERR_StructHasInitializersAndNoDeclaredConstructor">
         <source>A 'struct' with field initializers must include an explicitly declared constructor.</source>
         <target state="translated">Un elemento 'struct' con inizializzatori di campo deve includere un costruttore dichiarato in modo esplicito.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StructLayoutAndExtendedLayout">
+        <source>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</source>
+        <target state="new">Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructLayoutCyclePrimaryConstructorParameter">
@@ -2760,16 +2770,6 @@
       <trans-unit id="IDS_CollectionExpression">
         <source>collection expression</source>
         <target state="new">collection expression</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_ConsiderAddingRequiredAndNullable">
-        <source>Consider adding the 'required' modifier or declaring</source>
-        <target state="new">Consider adding the 'required' modifier or declaring</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_ConsiderDeclaringAsNullable">
-        <source>Consider declaring</source>
-        <target state="new">Consider declaring</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAllowsRefStructConstraint">
@@ -3144,12 +3144,12 @@
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
         <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="needs-review-translation">L'assembly dell'analizzatore '{0}' fa riferimento alla versione '{1}' del compilatore, che è più recente della versione attualmente in esecuzione '{2}'.</target>
+        <target state="new">Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
         <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
-        <target state="needs-review-translation">L'assembly dell'analizzatore fa riferimento alla versione del compilatore, che è più recente della versione attualmente in esecuzione.</target>
+        <target state="new">Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedIn">
@@ -4088,164 +4088,165 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="needs-review-translation">
-                             Opzioni del Compilatore Visual C#
+        <target state="new">
+                             Visual C# Compiler Options
 
-                       - FILE DI OUTPUT -
--out:&lt;file&gt;                    Specifica il nome del file di output (impostazione predefinita: nome di base di
-                              file con classe principale o primo file)
--target:exe                     Consente di compilare un eseguibile della console (impostazione predefinita) (forma
-                              breve: -t:exe)
--target:winexe               Crea un eseguibile di Windows (forma breve:
+                       - OUTPUT FILES -
+-out:&lt;file&gt;                   Specify output file name (default: base name of
+                              file with main class or first file)
+-target:exe                   Build a console executable (default) (Short
+                              form: -t:exe)
+-target:winexe                Build a Windows executable (Short form:
                               -t:winexe)
--target:library                Consente di compilare una libreria (forma breve: -t:library)
-target:module               Compila un modulo che può essere aggiunto ad altro
-                              assembly (forma breve: -t:module)
--target:appcontainerexe        Consente di creare un eseguibile di Appcontainer (forma breve:
+-target:library               Build a library (Short form: -t:library)
+-target:module                Build a module that can be added to another
+                              assembly (Short form: -t:module)
+-target:appcontainerexe       Build an Appcontainer executable (Short form:
                               -t:appcontainerexe)
--target:winmdobj               Consente di compilare un file intermedio Windows Runtime che
-                              viene utilizzato da WinMDExp (forma breve: -t:winmdobj)
--doc:&lt;file&gt;                       Genera un file di documentazione XML per generare
--refout:&lt;file&gt;                    Output dell'assembly di riferimento da generare
--platform:&lt;string&gt;                Limita le piattaforme in cui è possibile eseguire questo codice su x86,
-                              Itanium, x64, arm, arm64, anycpu32bitpreferred o
-                              anycpu. Il valore predefinito è anycpu.
+-target:winmdobj              Build a Windows Runtime intermediate file that
+                              is consumed by WinMDExp (Short form: -t:winmdobj)
+-doc:&lt;file&gt;                   XML Documentation file to generate
+-refout:&lt;file&gt;                Reference assembly output to generate
+-platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred, or
+                              anycpu. The default is anycpu.
 
-                       - FILE DI INPUT -
--recurse:&lt;wildcard&gt;               Include tutti i file presenti nella directory corrente e
-                              nelle relative sottodirectory in base alle specifiche dei
-                              caratteri jolly
--reference:&lt;alias&gt;=&lt;file&gt;      Metadati di riferimento dai file di assembly specificati
-                              usando l'alias specificato (forma breve: -r)
-/reference:&lt;file list&gt;      Metadati di riferimento dai file di assembly
-                              specificati. (Forma breve: -r)
--addmodule:&lt; list&gt;         Collega i moduli specificati in questo assembly
--link:&lt;file_list&gt;                 Incorpora metadati dai file dell'assembly di interoperabilità
-                              specificato. (Forma breve: -r)
--analyzer:&lt;file_list&gt;             Esegue gli analizzatori dall'assembly
-                              Forma breve: -a
--additionalfile:&lt;file list&gt;       File aggiuntivi che non influiscono direttamente sulla generazione
-                              del codice ma possono essere usati dagli analizzatori per produrre
-                              errori o avvisi.
--embed                        Incorpora tutti i file di origine nel file PDB portabile.
--embed:&lt;file list&gt;             Incorporare file specifici nel PDB.
+                       - INPUT FILES -
+-recurse:&lt;wildcard&gt;           Include all files in the current directory and
+                              subdirectories according to the wildcard
+                              specifications
+-reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly
+                              file using the given alias (Short form: -r)
+-reference:&lt;file list&gt;        Reference metadata from the specified assembly
+                              files (Short form: -r)
+-addmodule:&lt;file list&gt;        Link the specified modules into this assembly
+-link:&lt;file list&gt;             Embed metadata from the specified interop
+                              assembly files (Short form: -l)
+-analyzer:&lt;file list&gt;         Run the analyzers from this assembly
+                              (Short form: -a)
+-additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
+                              generation but may be used by analyzers for producing
+                              errors or warnings.
+-embed                        Embed all source files in the PDB.
+-embed:&lt;file list&gt;            Embed specific files in the PDB.
 
-                       - RISORSE -
--win32res:&lt;file&gt;              Specifica un file di risorse Win32 (.res)
--win32icon:&lt;file&gt;             Usa questa icona per l'output
--win32manifest:&lt;file&gt;          Specifica un file manifesto Win32 (con estensione xml)
--nowin32manifest             Non include il manifesto Win32 predefinito
-/resource:&lt;resinfo&gt;         Incorpora la risorsa specificata. (Forma breve: -res)
--linkresource:&lt;resinfo&gt;       Collega la risorsa specificata a questo assembly
-                              (Forma breve: -linkres) Dove il formato resinfo
-                              è &lt;file&gt;[,&lt;string name&gt;[,public|private]]
+                       - RESOURCES -
+-win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
+-win32icon:&lt;file&gt;             Use this icon for the output
+-win32manifest:&lt;file&gt;         Specify a Win32 manifest file (.xml)
+-nowin32manifest              Do not include the default Win32 manifest
+-resource:&lt;resinfo&gt;           Embed the specified resource (Short form: -res)
+-linkresource:&lt;resinfo&gt;       Link the specified resource to this assembly
+                              (Short form: -linkres) Where the resinfo format
+                              is &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
-                       - GENERAZIONE DEL CODICE -
--debug[+|-]                       Crea le informazioni di debug.
+                       - CODE GENERATION -
+-debug[+|-]                   Emit debugging information
 -debug:{full|pdbonly|portable|embedded}
-                              Specificare il tipo di debug ('full' è l'impostazione predefinita,
-                              'portable' è un formato multipiattaforma,
-                              'embedded' è un formato multipiattaforma incorporato in
-                              DLL o EXE di destinazione.
--optimize[+|-]                Abilita le ottimizzazioni (forma breve: -o)
--deterministic                    Produce un assembly deterministico
-                              (che include GUID e timestamp della versione del modulo)
--refonly                          Produce un assembly di riferimento al posto dell'output principale
--instrument:TestCoverage          Produce un assembly instrumentato per raccogliere
-                              informazioni sulla copertura
--sourcelink:&lt;file&gt;                Informazioni sul collegamento all'origine da incorporare nel file PDB.
+                              Specify debugging type ('full' is default,
+                              'portable' is a cross-platform format,
+                              'embedded' is a cross-platform format embedded into
+                              the target .dll or .exe)
+-optimize[+|-]                Enable optimizations (Short form: -o)
+-deterministic                Produce a deterministic assembly
+                              (including module version GUID and timestamp)
+-refonly                      Produce a reference assembly in place of the main output
+-instrument:TestCoverage      Produce an assembly instrumented to collect
+                              coverage information
+-sourcelink:&lt;file&gt;            Source link info to embed into PDB.
 
-                       - ERRORI E AVVISI -
--warnaserror[+|-]                 Segnala tutti gli avvisi come errori.
--warnaserror[+|-]:&lt;warn list&gt;Segnala determinati avvisi come errori
-                              (usare "nullable" per tutti gli avvisi del supporto dei valori null)
--warn:&lt;n&gt;                    Imposta il livello di avviso (0 o superiore) (forma breve: -w)
--nowarn:&lt;warn list&gt;           Disabilita messaggi di avviso specifici
-                              (usare "nullable" per tutti gli avvisi del supporto dei valori null)
--ruleset:&lt;file&gt;                   Consente di specificare un file di set di regole che disabilita
-                              diagnostica specifica.
+                       - ERRORS AND WARNINGS -
+-warnaserror[+|-]             Report all warnings as errors
+-warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
+                              (use "nullable" for all nullability warnings)
+-warn:&lt;n&gt;                     Set warning level (0 or higher) (Short form: -w)
+-nowarn:&lt;warn list&gt;           Disable specific warning messages
+                              (use "nullable" for all nullability warnings)
+-ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
+                              diagnostics.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
-                              Consente di specificare un file in cui registrare la diagnostica
-                              del compilatore e dell'analizzatore
-                              sarif_version:{1|2|2.1} L'impostazione predefinita è 1. 2 e 2.1
-                              si riferiscono entrambi a SARIF versione 2.1.0.
--reportanalyzer                   Restituisce informazioni aggiuntive dell'analizzatore, ad
-                              esempio il tempo di esecuzione.
--skipanalyzers[+|-]               Ignora l'esecuzione degli analizzatori diagnostici.
+                              Specify a file to log all compiler and analyzer
+                              diagnostics.
+                              sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                              both mean SARIF version 2.1.0.
+-reportanalyzer               Report additional analyzer information, such as
+                              execution time.
+-skipanalyzers[+|-]           Skip execution of diagnostic analyzers.
 
-                       - LINGUAGGIO -
--checked[+|-]                 Generare controlli dell'overflow
--unsafe[+|-]                 Consenti codice 'non sicuro'
--define:&lt;symbol_list&gt;             Dichiara simboli di compilazione (forma
-                              breve: -d)
--langversion:?                Visualizza i valori consentiti per la versione del linguaggio
--langversion:&lt;string&gt;             Consente di specificare la versione del linguaggio, ad esempio
-                              `latest` (ultima versione che include versioni secondarie)
-                              `default` (uguale a `latest`),
-                              `latestmajor` (ultima versione che include versioni secondarie)
-                              `preview` (versione più recente, incluse le funzionalità nell'anteprima non supportata),
-                              o versioni specifiche come `6` o `7.1`
--nullable[+|-]                 Specificare l'opzione di contesto che ammette i valori Null enable|disable.
+                       - LANGUAGE -
+-checked[+|-]                 Generate overflow checks
+-unsafe[+|-]                  Allow 'unsafe' code
+-define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
+                              form: -d)
+-langversion:?                Display the allowed values for language version
+-langversion:&lt;string&gt;         Specify language version such as
+                              `latest` (latest version, including minor versions),
+                              `default` (same as `latest`),
+                              `latestmajor` (latest version, excluding minor versions),
+                              `preview` (latest version, including features in unsupported preview),
+                              or specific versions like `6` or `7.1`
+-nullable[+|-]                Specify nullable context option enable|disable.
 -nullable:{enable|disable|warnings|annotations}
-                              Specifica l'opzione di contesto che ammette i valori Null enable|disable|warnings|annotations.
+                              Specify nullable context option enable|disable|warnings|annotations.
 
-                       - SICUREZZA -
--delaysign[+|-]                   Ritarda la firma dell'assembly usando solo la parte pubblica della
-                              della chiave con nome sicuro.
--publicsign[+|-]                  Firma pubblicamente l'assembly usando solo la parte pubblica
-                              della chiave con nome sicuro.
--keyfile:&lt;file&gt;                   Consente di specificare un file di chiave con nome sicuro.
--keycontainer:&lt;string&gt;            Consente di specificare un contenitore di chiavi con nome sicuro.
--highentropyva[+|-]               Abilita ASLR a entropia elevata.
+                       - SECURITY -
+-delaysign[+|-]               Delay-sign the assembly using only the public
+                              portion of the strong name key
+-publicsign[+|-]              Public-sign the assembly using only the public
+                              portion of the strong name key
+-keyfile:&lt;file&gt;               Specify a strong name key file
+-keycontainer:&lt;string&gt;        Specify a strong name key container
+-highentropyva[+|-]           Enable high-entropy ASLR
 
-                       - VARIE -
-@&lt;file&gt;                       Legge il file di risposta per ulteriori opzioni
-/help                       Visualizza questo messaggio relativo all'uso. La forma breve è ?
--nologo                       Non visualizza il messaggio di copyright del compilatore
--noconfig                         Non include automaticamente il file CSC.RSP.
--parallel[+|-]                    Compilazione simultanea.
--version                          Visualizza il numero di versione del compilatore ed esce.
+                       - MISCELLANEOUS -
+@&lt;file&gt;                       Read response file for more options
+-help                         Display this usage message (Short form: -?)
+-nologo                       Suppress compiler copyright message
+-noconfig                     Do not auto include CSC.RSP file
+-parallel[+|-]                Concurrent build.
+-version                      Display the compiler version number and exit.
 
-                       - AVANZATE -
--baseaddress:&lt;address&gt;        Indirizzo di base della libreria da compilare
--checksumalgorithm:&lt;alg&gt;          Consente di specificare l'algoritmo per calcolare il checksum
-                              del file di origine archiviato nel file PDB. I valori supportati sono:
-                              SHA1 o SHA256 (impostazione predefinita).
--codepage:&lt;n&gt;                 Specifica la tabella codici da utilizzare per l'apertura dei file
-                              di origine
--utf8output                   Messaggi del compilatore di output nella codifica UTF-8
--main:&lt;type&gt;                  Specifica il tipo contenente il punto di ingresso
-                              (ignora tutti gli altri possibili punti di ingresso) (forma
-                              breve: -m)
--fullpaths                     Il compilatore genera percorsi completi
--filealign:&lt;n&gt;                Consente di specificare l'allineamento usato per le sezioni del
-                              file di output.
+                       - ADVANCED -
+-baseaddress:&lt;address&gt;        Base address for the library to be built
+-checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
+                              checksum stored in PDB. Supported values are:
+                              SHA1 or SHA256 (default).
+-codepage:&lt;n&gt;                 Specify the codepage to use when opening source
+                              files
+-utf8output                   Output compiler messages in UTF-8 encoding
+-main:&lt;type&gt;                  Specify the type that contains the entry point
+                              (ignore all other possible entry points) (Short
+                              form: -m)
+-fullpaths                    Compiler generates fully qualified paths
+-filealign:&lt;n&gt;                Specify the alignment used for output file
+                              sections
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                              Consente di specificare un mapping per i nomi di percorso di origine
-                              visualizzati dal compilatore.
---pdb:&lt;file&gt;                   Specifica il nome del file di informazioni di debug (impostazione predefinita:
-                              nome del file di output con estensione pdb)
---errorendlocation             Riga di output e colonna della posizione finale di
-                              ogni di errore
--preferreduilang                  Consente di specificare il nome del linguaggio di output preferito.
--nosdkpath                        Disabilita la ricerca di assembly di librerie standard nel percorso predefinito dell'SDK.
--nostdlib[+|-]                 Omette i riferimenti alle librerie standard (mscorlib.dll)
--subsystemversion:&lt;string&gt;    Consente di specificare la versione dell'assembly
--lib:&lt;file list&gt;               Specifica directory aggiuntive in cui cercare
-                              riferimenti
--errorreport:&lt;string&gt;         Consente di specificare come gestire gli errori interni del compilatore:
-                              prompt, invio, coda o nessuno. L'impostazione predefinita è
-                              coda.
--appconfig:&lt;file&gt;             Specifica un file di configurazione dell'applicazione
-                              contenente le impostazioni di associazione dell'assembly
--moduleassemblyname:&lt;string&gt;  Nome dell'assembly di cui farà parte questo
-                              modulo
--modulename:&lt;string&gt;           Specifica il nome del modulo di origine
--generatedfilesout:&lt;dir&gt;          Inserisce i file generati durante la compilazione nella
-                              directory specificata.
--reportivts[+|-]                  Restituisce informazioni su tutti i tipi di I/O concessi a questo
-                              assembly da tutte le dipendenze e annota gli errori di accessibilità dell'assembly esterno
-                              da cui provengono.
+                              Specify a mapping for source path names output by
+                              the compiler.
+-pdb:&lt;file&gt;                   Specify debug information file name (default:
+                              output file name with .pdb extension)
+-errorendlocation             Output line and column of the end location of
+                              each error
+-preferreduilang              Specify the preferred output language name.
+-nosdkpath                    Disable searching the default SDK path for standard library assemblies.
+-sdkpath:&lt;path&gt;         Path used to search for standard library assemblies.
+-nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
+-subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
+-lib:&lt;file list&gt;              Specify additional directories to search in for
+                              references
+-errorreport:&lt;string&gt;         Specify how to handle internal compiler errors:
+                              prompt, send, queue, or none. The default is
+                              queue.
+-appconfig:&lt;file&gt;             Specify an application configuration file
+                              containing assembly binding settings
+-moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
+                              a part of
+-modulename:&lt;string&gt;          Specify the name of the source module
+-generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
+                              specified directory.
+-reportivts[+|-]                    Output information on all IVTs granted to this
+                              assembly by all dependencies, and annotate foreign assembly
+                              accessibility errors with what assembly they came from.
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -5750,23 +5751,23 @@ target:module               Compila un modulo che può essere aggiunto ad altro
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField">
-        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. {2} the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
-        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. {2} the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</target>
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
+        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</target>
         <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField_Title">
-        <source>Non-nullable property must contain a non-null value when exiting constructor.</source>
-        <target state="needs-review-translation">La proprietà che non ammette i valori Null deve contenere un valore non Null all'uscita dal costruttore. Provare ad aggiungere il modificatore 'required', a dichiarare la proprietà come che ammette i valori Null, oppure ad aggiungere gli attributi '[field: MaybeNull, AllowNull]'.</target>
+        <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
+        <target state="new">Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
-        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. {2} the {0} as nullable.</source>
-        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. {2} the {0} as nullable.</target>
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the {0} as nullable.</source>
+        <target state="translated">L'elemento {0} '{1}' non nullable deve contenere un valore non Null all'uscita dal costruttore. Prendere in considerazione l'aggiunta del modificatore 'required' o la dichiarazione di {0} come nullable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
-        <source>Non-nullable field must contain a non-null value when exiting constructor.</source>
-        <target state="needs-review-translation">Il campo non nullable deve contenere un valore non Null all'uscita dal costruttore. Prendere in considerazione l'aggiunta del modificatore 'required' o la dichiarazione come nullable.</target>
+        <source>Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.</source>
+        <target state="translated">Il campo non nullable deve contenere un valore non Null all'uscita dal costruttore. Prendere in considerazione l'aggiunta del modificatore 'required' o la dichiarazione come nullable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreadPrimaryConstructorParameter">
@@ -6171,7 +6172,7 @@ target:module               Compila un modulo che può essere aggiunto ad altro
       </trans-unit>
       <trans-unit id="ERR_BadVisIndexerParam">
         <source>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</source>
-        <target state="needs-review-translation">Accessibilità incoerente: il tipo parametro '{1}' è meno accessibile dell'indicizzatore '{0}'</target>
+        <target state="new">Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisOpReturn">
@@ -7096,7 +7097,7 @@ target:module               Compila un modulo che può essere aggiunto ad altro
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
         <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</source>
-        <target state="needs-review-translation">Il modificatore 'partial' può trovarsi solo immediatamente prima di 'class', 'record', 'struct', 'interface' o del tipo restituito di un metodo o di una proprietà.</target>
+        <target state="new">The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -7286,7 +7287,7 @@ target:module               Compila un modulo che può essere aggiunto ad altro
       </trans-unit>
       <trans-unit id="ERR_BadRetType">
         <source>'{1} {0}' has the wrong return type</source>
-        <target state="translated">'Il tipo restituito di '{1} {0}' è errato</target>
+        <target state="translated">Il tipo restituito di '{1} {0}' è errato</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DelegateRefMismatch">
@@ -7755,7 +7756,7 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       </trans-unit>
       <trans-unit id="ERR_PredefinedTypeAmbiguous">
         <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
-        <target state="translated">Il tipo predefinito '{0}' è dichiarato in più assembly di riferimento: '{1}' e '{2}'</target>
+        <target state="new">Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructWithBaseConstructorCall">
@@ -8070,7 +8071,7 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       </trans-unit>
       <trans-unit id="ERR_DllImportOnInvalidMethod">
         <source>The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member</source>
-        <target state="needs-review-translation">L'attributo DllImport deve essere specificato in un metodo contrassegnato come 'static' ed 'extern'</target>
+        <target state="new">The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
@@ -9169,7 +9170,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) può rilevare eccezi
       </trans-unit>
       <trans-unit id="ERR_BadTypeforThis">
         <source>The receiver parameter of an extension cannot be of type '{0}'</source>
-        <target state="needs-review-translation">Il primo parametro di un metodo di estensione non può essere di tipo '{0}'</target>
+        <target state="new">The receiver parameter of an extension cannot be of type '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamModThis">
@@ -9199,7 +9200,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) può rilevare eccezi
       </trans-unit>
       <trans-unit id="ERR_ExtensionAttrNotFound">
         <source>Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
-        <target state="needs-review-translation">Non è possibile definire un nuovo metodo di estensione perché non è stato trovato il tipo '{0}' richiesto dal compilatore. Probabilmente manca un riferimento.</target>
+        <target state="new">Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitExtension">
@@ -9294,7 +9295,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) può rilevare eccezi
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
         <source>Invalid token '{0}' in a member declaration</source>
-        <target state="needs-review-translation">Il token '{0}' nella dichiarazione del membro di classe, record, struct o interfaccia non è valido</target>
+        <target state="new">Invalid token '{0}' in a member declaration</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">
@@ -11874,7 +11875,7 @@ Come procedura consigliata, è consigliabile attendere sempre la chiamata.
       </trans-unit>
       <trans-unit id="ERR_InvalidDynamicCondition">
         <source>Expression must be implicitly convertible to Boolean or its type '{0}' must not be an interface and must define operator '{1}'.</source>
-        <target state="needs-review-translation">L'espressione deve essere convertibile in modo implicito in un valore booleano oppure il relativo tipo '{0}' deve definire l'operatore '{1}'.</target>
+        <target state="new">Expression must be implicitly convertible to Boolean or its type '{0}' must not be an interface and must define operator '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MixingWinRTEventWithRegular">

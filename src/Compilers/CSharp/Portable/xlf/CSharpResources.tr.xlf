@@ -424,7 +424,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotMatchOnINumberBase">
         <source>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.</source>
-        <target state="needs-review-translation">'INumberBase&lt;T&gt;' öğesinden devraldığı veya genişlediği için '{0}' öğesinde sayısal bir sabit veya ilişkisel desen kullanılamaz. Belirli bir sayısal türe daraltmak için bir tür deseni kullanmayı düşünün.</target>
+        <target state="new">Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -1417,6 +1417,11 @@
         <target state="translated">'Experimental' özniteliğinin diagnosticId bağımsız değişkeni geçerli bir tanımlayıcı olmalıdır</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
+        <source>The target runtime does not support extended layout types.</source>
+        <target state="new">The target runtime does not support extended layout types.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidExtensionParameterReference">
         <source>Cannot use extension parameter '{0}' in this context.</source>
         <target state="new">Cannot use extension parameter '{0}' in this context.</target>
@@ -1774,7 +1779,7 @@
       </trans-unit>
       <trans-unit id="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName">
         <source>'{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.</source>
-        <target state="translated">'{0}' bir örnek metodu değil; alıcı, düz metin arasına kod eklenmiş dize işleyici bağımsız değişkeni olamaz.</target>
+        <target state="new">'{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotOverridableAPIInRecord">
@@ -2314,7 +2319,7 @@
       </trans-unit>
       <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
         <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
-        <target state="needs-review-translation">'Microsoft.CodeAnalysis.EmbeddedAttribute' türü genel olmayan, iç, korumalı, statik olmayan, parametresiz bir oluşturucuya sahip, System.Attribute'tan devralınmalıdır ve herhangi bir türe uygulanmalıdır.</target>
+        <target state="new">The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
@@ -2490,6 +2495,11 @@
       <trans-unit id="ERR_StructHasInitializersAndNoDeclaredConstructor">
         <source>A 'struct' with field initializers must include an explicitly declared constructor.</source>
         <target state="translated">Alan başlatıcılarına sahip bir 'struct' açıkça bildirilen bir oluşturucu içermelidir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StructLayoutAndExtendedLayout">
+        <source>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</source>
+        <target state="new">Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructLayoutCyclePrimaryConstructorParameter">
@@ -2760,16 +2770,6 @@
       <trans-unit id="IDS_CollectionExpression">
         <source>collection expression</source>
         <target state="new">collection expression</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_ConsiderAddingRequiredAndNullable">
-        <source>Consider adding the 'required' modifier or declaring</source>
-        <target state="new">Consider adding the 'required' modifier or declaring</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_ConsiderDeclaringAsNullable">
-        <source>Consider declaring</source>
-        <target state="new">Consider declaring</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAllowsRefStructConstraint">
@@ -3144,12 +3144,12 @@
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
         <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="needs-review-translation">'{0}' çözümleyici bütünleştirilmiş kodu, derleyicinin şu anda çalışan '{2}' sürümünden daha yeni olan '{1}' sürümüne başvurur.</target>
+        <target state="new">Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
         <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
-        <target state="needs-review-translation">Çözümleyici bütünleştirilmiş kodu, derleyicinin şu anda çalışandan daha yeni bir sürümüne başvurur.</target>
+        <target state="new">Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedIn">
@@ -4088,164 +4088,165 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="needs-review-translation">
-                             Visual C# Derleyicisi Seçenekleri
+        <target state="new">
+                             Visual C# Compiler Options
 
-                       - ÇIKIŞ DOSYALARI -
--out:&lt;file&gt;                   Çıkış dosyası adını belirtir (varsayılan: ana sınıf veya
-                              ilk dosyayla birlikte dosyanın temel adı)
--target:exe                   Konsol yürütülebilir dosyası oluşturur (varsayılan) (Kısa
+                       - OUTPUT FILES -
+-out:&lt;file&gt;                   Specify output file name (default: base name of
+                              file with main class or first file)
+-target:exe                   Build a console executable (default) (Short
                               form: -t:exe)
--target:winexe                Windows yürütülebilir dosyası oluşturur (Kısa biçimi:
+-target:winexe                Build a Windows executable (Short form:
                               -t:winexe)
--target:library               Kitaplık oluşturur (Kısa biçimi: -t:library)
--target:module                Başka bir derlemeye eklenebilir
-                              bir modül oluşturur (Kısa biçimi: -t:module)
--target:appcontainerexe       Appcontainer yürütülebilir dosyası oluşturur (Kısa biçimi:
+-target:library               Build a library (Short form: -t:library)
+-target:module                Build a module that can be added to another
+                              assembly (Short form: -t:module)
+-target:appcontainerexe       Build an Appcontainer executable (Short form:
                               -t:appcontainerexe)
--target:winmdobj              WinMDExp kullanan Windows Çalışma Zamanı
-                              ara dosyası oluşturur (Kısa biçimi: -t:winmdobj) tarafından
--doc:&lt;file&gt;                   oluşturulacak XML belgeleri dosyası
--refout:&lt;file&gt;                    Oluşturulacak başvuru derlemesi çıkışı
--platform:&lt;string&gt;                Bu kodun çalışabileceği platformları sınırlar: x86,
-                              Itanium, x64, arm, arm64, anycpu32bitpreferred veya
-                              anycpu. Varsayılan: anycpu.
+-target:winmdobj              Build a Windows Runtime intermediate file that
+                              is consumed by WinMDExp (Short form: -t:winmdobj)
+-doc:&lt;file&gt;                   XML Documentation file to generate
+-refout:&lt;file&gt;                Reference assembly output to generate
+-platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred, or
+                              anycpu. The default is anycpu.
 
-                       - GİRİŞ DOSYALARI -
--recurse:&lt;wildcard&gt;               Joker karakter belirtimlerine göre
-                              geçerli dizindeki ve alt dizinlerdeki tüm
-                              dosyaları ekler
--reference:&lt;alias&gt;=&lt;file&gt;     Verilen diğer adı kullanan belirtilen derleme dosyasından
-                              meta verilerine başvurur (Kısa biçimi: -r)
--reference:&lt;file list&gt;        Belirtilen derleme dosyasından
-                              başvuru meta verileri (Kısa biçimi: -r)
--addmodule:&lt;file list&gt;        Belirtilen modülleri bu derlemeye bağlar
--link:&lt;file_list&gt;                 Belirtilen birlikte çalışma derleme dosyalarından
-                              meta verileri ekler (Kısa biçimi: -l)
--analyzer:&lt;file list&gt;             Bu derlemedeki çözümleyicileri çalıştırır
-                              (Kısa biçimi: -a)
--additionalfile:&lt;file list&gt;       Kod oluşturmayı doğrudan etkilemeyen ancak
-                              hata veya uyarı üretimi için çözümleyiciler tarafından kullanılabilen
-                              ek dosyalar.
--embed                        Tüm kaynak dosyaları PDB’ye ekler.
--embed:&lt;file list&gt;            Belirli dosyaları PDB'ye ekler.
+                       - INPUT FILES -
+-recurse:&lt;wildcard&gt;           Include all files in the current directory and
+                              subdirectories according to the wildcard
+                              specifications
+-reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly
+                              file using the given alias (Short form: -r)
+-reference:&lt;file list&gt;        Reference metadata from the specified assembly
+                              files (Short form: -r)
+-addmodule:&lt;file list&gt;        Link the specified modules into this assembly
+-link:&lt;file list&gt;             Embed metadata from the specified interop
+                              assembly files (Short form: -l)
+-analyzer:&lt;file list&gt;         Run the analyzers from this assembly
+                              (Short form: -a)
+-additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
+                              generation but may be used by analyzers for producing
+                              errors or warnings.
+-embed                        Embed all source files in the PDB.
+-embed:&lt;file list&gt;            Embed specific files in the PDB.
 
-                       - KAYNAKLAR -
--win32res:&lt;file&gt;              Win32 kaynak dosyası (.res) belirtir
--win32icon:&lt;file&gt;             Çıkış dosyası için bu simgeyi kullanır
--win32manifest:&lt;file&gt;         Win32 bildirim dosyası (.xml) belirtir
--nowin32manifest              Varsayılan Win32 bildirimini ekler
--resource:&lt;resinfo&gt;           Belirtilen kaynağı ekler (Kısa biçimi: -res)
--linkresource:&lt;resinfo&gt;       Belirtilen kaynağı bu derlemeye bağlar
-                              (Kısa biçimi: -linkres) Resinfo biçimi
-                              &lt;file&gt;[,&lt;string name&gt;[,public|private]]
+                       - RESOURCES -
+-win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
+-win32icon:&lt;file&gt;             Use this icon for the output
+-win32manifest:&lt;file&gt;         Specify a Win32 manifest file (.xml)
+-nowin32manifest              Do not include the default Win32 manifest
+-resource:&lt;resinfo&gt;           Embed the specified resource (Short form: -res)
+-linkresource:&lt;resinfo&gt;       Link the specified resource to this assembly
+                              (Short form: -linkres) Where the resinfo format
+                              is &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
-                       - KOD OLUŞTURMA -
--debug[+|-]                       Hata ayıklama bilgilerini gösterir
+                       - CODE GENERATION -
+-debug[+|-]                   Emit debugging information
 -debug:{full|pdbonly|portable|embedded}
-                              Hata ayıklama türünü belirtir ('full' varsayılandır,
-                              'portable' platformlar arası biçimdir,
-                              'embedded', platformlar arası biçimdir ve hedef
-                              .dll veya .exe dosyasına eklenir.
--optimize[+|-]                İyileştirmeleri etkinleştirir (Kısa biçimi: -O)
--deterministic                    Belirlenimci bir derleme üretir
-                              (modül sürümü GUID'si ve zaman damgası dahil)
--refonly                          Ana çıkış yerine bir başvuru derlemesi üretir
--instrument:TestCoverage          Kapsam bilgilerini toplamak için işaretlenmiş
-                              bir derleme üretir
--sourcelink:&lt;file&gt;                PDB dosyasına eklenecek kaynak bağlantısı bilgileri.
+                              Specify debugging type ('full' is default,
+                              'portable' is a cross-platform format,
+                              'embedded' is a cross-platform format embedded into
+                              the target .dll or .exe)
+-optimize[+|-]                Enable optimizations (Short form: -o)
+-deterministic                Produce a deterministic assembly
+                              (including module version GUID and timestamp)
+-refonly                      Produce a reference assembly in place of the main output
+-instrument:TestCoverage      Produce an assembly instrumented to collect
+                              coverage information
+-sourcelink:&lt;file&gt;            Source link info to embed into PDB.
 
-                       - HATALAR VE UYARILAR -
--warnaserror[+|-]                 Tüm uyarıları hata olarak bildirir.
--warnaserror[+|-]:&lt;warn list&gt; Belirli uyarıları hata olarak bildirir
-                              (tüm null atanabilirlik uyarıları için "nullable" kullanın)
--warn:&lt;n&gt;                     Uyarı düzeyini ayarlar (0 veya üzeri) (Kısa biçimi: -w)
--nowarn:&lt;warn list&gt;           Belirli uyarı iletilerini devre dışı bırakır
-                              (tüm null atanabilirlik uyarıları için "nullable" kullanın)
--ruleset:&lt;file&gt;                   Belirli tanılamaları devre dışı bırakan bir
-                              kural kümesi dosyası belirtir.
+                       - ERRORS AND WARNINGS -
+-warnaserror[+|-]             Report all warnings as errors
+-warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
+                              (use "nullable" for all nullability warnings)
+-warn:&lt;n&gt;                     Set warning level (0 or higher) (Short form: -w)
+-nowarn:&lt;warn list&gt;           Disable specific warning messages
+                              (use "nullable" for all nullability warnings)
+-ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
+                              diagnostics.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
-                              Tüm derleyici ve çözümleyici tanılamalarının SARIF
-                              kural kümesi dosyası belirtir.
-                              sarif_version:{1|2|2.1} Varsayılan olarak 1. 2 ve 2.1
-                              Her ikisi ise 2.1.0 SARIF sürümünü ifade eder.
--reportanalyzer                   Yürütme zamanı gibi ek çözümleyici bilgilerini
-                              raporlar.
--skipanalyzers[+|-]               Tanılama çözümleyicilerinin yürütülmesini atlar.
+                              Specify a file to log all compiler and analyzer
+                              diagnostics.
+                              sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                              both mean SARIF version 2.1.0.
+-reportanalyzer               Report additional analyzer information, such as
+                              execution time.
+-skipanalyzers[+|-]           Skip execution of diagnostic analyzers.
 
-                       - DİL -
--checked[+|-]                 Taşma denetimleri oluştur
--unsafe[+|-]                  'Güvenli olmayan' koda izin ver
--define:&lt;symbol list&gt;         Koşullu derleme sembollerini tanımlar (Kısa
-                              biçimi: -d)
--langversion:?                Dil sürümü için izin verilen değerleri görüntüler
--langversion:&lt;string&gt;             `default` (en son birincil sürüm) veya
-                              `14` veya `15.3` gibi belirli sürümler gibi
-                              'default' ('latest' ile aynı),
-                              `latestmajor` (alt sürümler hariç en son sürüm),
-                              'preview' (desteklenmeyen önizlemedeki özellikler dahil olmak üzere en son sürüm)
-                              veya `6` ya da `7.1` gibi belirli sürümler.
--nullable[+|-]                Null atanabilir bağlam seçeneğini (etkin|devre dışı) belirtir.
+                       - LANGUAGE -
+-checked[+|-]                 Generate overflow checks
+-unsafe[+|-]                  Allow 'unsafe' code
+-define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
+                              form: -d)
+-langversion:?                Display the allowed values for language version
+-langversion:&lt;string&gt;         Specify language version such as
+                              `latest` (latest version, including minor versions),
+                              `default` (same as `latest`),
+                              `latestmajor` (latest version, excluding minor versions),
+                              `preview` (latest version, including features in unsupported preview),
+                              or specific versions like `6` or `7.1`
+-nullable[+|-]                Specify nullable context option enable|disable.
 -nullable:{enable|disable|warnings|annotations}
-                              Null atanabilir bağlam seçeneğini (etkin|devre dışı|uyarılar|ek açıklamalar) belirtir.
+                              Specify nullable context option enable|disable|warnings|annotations.
 
-                       - GÜVENLİK -
--delaysign[+|-]                   Tanımlayıcı ad anahtarının ortak bölümünü kullanarak
-                              derlemeyi genel imzalar.
--publicsign[+|-]                   Tanımlayıcı ad anahtarının ortak bölümünü kullanarak
-                              derlemeyi genel imzalar.
--keyfile:&lt;file&gt;                   Tanımlayıcı ad anahtarı dosyasını belirtir.
--keycontainer:&lt;string&gt;            Tanımlayıcı ad anahtarı kapsayıcısını belirtir.
--highentropyva[+|-]               Yüksek entropili ASLR’yi etkinleştirir.
+                       - SECURITY -
+-delaysign[+|-]               Delay-sign the assembly using only the public
+                              portion of the strong name key
+-publicsign[+|-]              Public-sign the assembly using only the public
+                              portion of the strong name key
+-keyfile:&lt;file&gt;               Specify a strong name key file
+-keycontainer:&lt;string&gt;        Specify a strong name key container
+-highentropyva[+|-]           Enable high-entropy ASLR
 
-                       - DİĞER -
-@&lt;file&gt;                       Daha fazla seçenek için yanıt dosyasını okur
--help                         Bu kullanım iletisini görüntüler (Kısa biçimi: -?)
--nologo                       Derleyici telif hakkı iletisini gizler
--noconfig                         VBC.RSP dosyasını otomatik olarak eklemez.
--parallel[+|-]                    Eş zamanlı derleme.
--version                          Derleyici sürüm numarasını görüntüler ve çıkar.
+                       - MISCELLANEOUS -
+@&lt;file&gt;                       Read response file for more options
+-help                         Display this usage message (Short form: -?)
+-nologo                       Suppress compiler copyright message
+-noconfig                     Do not auto include CSC.RSP file
+-parallel[+|-]                Concurrent build.
+-version                      Display the compiler version number and exit.
 
-                       - GELİŞMİŞ -
--baseaddress:&lt;address&gt;        Oluşturulacak kitaplığın temel adresi
--checksumalgorithm:&lt;alg&gt;          PDB’de depolanan sağlama toplamı kaynak dosyasını hesaplamak için
-                              kullanılan algoritmayı belirtir. Desteklenen değerler şunlardır:
-                              SHA1 veya SHA256 (varsayılan).
--codepage:&lt;n&gt;                 Kaynak açılırken kullanılacak kod sayfasını belirtir
-                              Dosyalar
--utf8output                   UTF-8 kodlama kümesinde -utf8output Çıkış derleyicisi
--main:&lt;type&gt;                  Giriş noktası türünü içeren türü
-                              (diğer tüm olası giriş noktalarını yoksay) (Kısa
-                              biçimi: -m)
--fullpaths                    Derleyici mutlak yollar oluşturur
--filealign:&lt;n&gt;               Çıkış dosyası bölümleri için kullanılan hizalamayı
-                              belirtir.
+                       - ADVANCED -
+-baseaddress:&lt;address&gt;        Base address for the library to be built
+-checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
+                              checksum stored in PDB. Supported values are:
+                              SHA1 or SHA256 (default).
+-codepage:&lt;n&gt;                 Specify the codepage to use when opening source
+                              files
+-utf8output                   Output compiler messages in UTF-8 encoding
+-main:&lt;type&gt;                  Specify the type that contains the entry point
+                              (ignore all other possible entry points) (Short
+                              form: -m)
+-fullpaths                    Compiler generates fully qualified paths
+-filealign:&lt;n&gt;                Specify the alignment used for output file
+                              sections
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                              Derleyicinin oluşturduğu kaynak yol adları için
-                              eşleştirme belirtir.
--pdb:&lt;file&gt;                   Hata ayıklama bilgileri dosya adını belirtir (varsayılan:
-                              .pdb uzantılı çıkış dosyası adı)
--errorendlocation             Her hatanın çıkış satırı ve
-                              bitiş konumu sütunu
--preferreduilang                  Tercih edilen çıkış dili adını belirtir.
--nosdkpath                        Standart kitaplık derlemeleri için varsayılan SDK yolunu aramayı devre dışı bırakır.
--nostdlib[+|-]                Standart kitaplıklara başvurmaz (mscorlib.dll)
--subsystemversion:&lt;string&gt;       Bu derlemenin alt sistem sürümünü belirtir
--lib:&lt;file list&gt;              Başvurular için aranacak ek dizinleri
-                              belirtir
--errorreport:&lt;string&gt;             İç derleyici hatalarının nasıl işleneceğini belirtir;
-                              istem, gönderme, kuyruğa alma veya hiçbiri. Varsayılan:
-                              kuyruğa alma.
--appconfig:&lt;file&gt;             Derleme bağlama ayarlarını içeren
-                              uygulama yapılandırma dosyasını belirtir
--moduleassemblyname:&lt;string&gt;  Bu modülün bir parçası olacağı derlemenin
-                              adı
--modulename:&lt;string&gt;          Kaynak modülün adını belirtir
--generatedfilesout:&lt;dir&gt;      Derleme sırasında oluşturulan dosyaları
-                              belirtilen dizine yerleştirir.
--reportivts[+|-]                  Bu derlemeye tüm bağımlılıklar tarafından verilen tüm IVT'ler hakkında çıkış bilgisi
-                              ve hangi derlemeden geldikleri dahil olmak üzere
-                              yabancı derleme erişilebilirlik hataları hakkında ek açıklamalar.
+                              Specify a mapping for source path names output by
+                              the compiler.
+-pdb:&lt;file&gt;                   Specify debug information file name (default:
+                              output file name with .pdb extension)
+-errorendlocation             Output line and column of the end location of
+                              each error
+-preferreduilang              Specify the preferred output language name.
+-nosdkpath                    Disable searching the default SDK path for standard library assemblies.
+-sdkpath:&lt;path&gt;         Path used to search for standard library assemblies.
+-nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
+-subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
+-lib:&lt;file list&gt;              Specify additional directories to search in for
+                              references
+-errorreport:&lt;string&gt;         Specify how to handle internal compiler errors:
+                              prompt, send, queue, or none. The default is
+                              queue.
+-appconfig:&lt;file&gt;             Specify an application configuration file
+                              containing assembly binding settings
+-moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
+                              a part of
+-modulename:&lt;string&gt;          Specify the name of the source module
+-generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
+                              specified directory.
+-reportivts[+|-]                    Output information on all IVTs granted to this
+                              assembly by all dependencies, and annotate foreign assembly
+                              accessibility errors with what assembly they came from.
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -5750,23 +5751,23 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField">
-        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. {2} the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
-        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. {2} the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</target>
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
+        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</target>
         <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField_Title">
-        <source>Non-nullable property must contain a non-null value when exiting constructor.</source>
-        <target state="needs-review-translation">Null atanamaz özelliği, oluşturucudan çıkış yaparken null olmayan bir değer içermelidir. 'required' tanımlayıcısını eklemeyi, özelliği null atanabilir olarak bildirmeyi veya '[field: MaybeNull, AllowNull]' özniteliklerini eklemeyi düşünün.</target>
+        <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
+        <target state="new">Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
-        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. {2} the {0} as nullable.</source>
-        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. {2} the {0} as nullable.</target>
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the {0} as nullable.</source>
+        <target state="translated">Null atanamaz {0} '{1}', oluşturucudan çıkış yaparken null olmayan bir değer içermelidir. 'Gerekli' değiştiricisini ekleyin veya {0} değerini null atanabilir olarak bildirmeyi göz önünde bulundurun.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
-        <source>Non-nullable field must contain a non-null value when exiting constructor.</source>
-        <target state="needs-review-translation">Null atanamaz alan, oluşturucudan çıkış yaparken null olmayan bir değer içermelidir. 'Gerekli' değiştiricisini ekleyin veya null atanabilir olarak bildirmeyi göz önünde bulundurun.</target>
+        <source>Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.</source>
+        <target state="translated">Null atanamaz alan, oluşturucudan çıkış yaparken null olmayan bir değer içermelidir. 'Gerekli' değiştiricisini ekleyin veya null atanabilir olarak bildirmeyi göz önünde bulundurun.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreadPrimaryConstructorParameter">
@@ -6171,7 +6172,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadVisIndexerParam">
         <source>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</source>
-        <target state="needs-review-translation">Tutarsız erişilebilirlik: '{1}' parametre türü, '{0}' dizin oluşturucusundan daha az erişilebilir</target>
+        <target state="new">Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisOpReturn">
@@ -7096,7 +7097,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
         <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</source>
-        <target state="needs-review-translation">'partial' değiştiricisi yalnızca 'class', 'record', 'struct', 'interface' ifadelerinden veya metot ya da özellik dönüş türünden hemen önce gelebilir.</target>
+        <target state="new">The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -7755,7 +7756,7 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_PredefinedTypeAmbiguous">
         <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
-        <target state="translated">Önceden tanımlı '{0}' türü birden çok başvurulan bütünleştirilmiş kodda bildirildi: '{1}' ve '{2}'</target>
+        <target state="new">Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructWithBaseConstructorCall">
@@ -8070,7 +8071,7 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_DllImportOnInvalidMethod">
         <source>The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member</source>
-        <target state="needs-review-translation">DllImport özniteliği 'static' ve 'extern' olarak işaretlenmiş bir yöntem üzerinde belirtilmelidir</target>
+        <target state="new">The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
@@ -9169,7 +9170,7 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_BadTypeforThis">
         <source>The receiver parameter of an extension cannot be of type '{0}'</source>
-        <target state="needs-review-translation">Genişletme yönteminin ilk parametresi '{0}' türünde olamaz</target>
+        <target state="new">The receiver parameter of an extension cannot be of type '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamModThis">
@@ -9199,7 +9200,7 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_ExtensionAttrNotFound">
         <source>Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
-        <target state="needs-review-translation">Derleyicinin gerektirdiği '{0}' türü bulunamadığından yeni bir genişletme yöntemi tanımlanamıyor. Bir System.Core.dll başvurusu eksik olabilir mi?</target>
+        <target state="new">Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitExtension">
@@ -9294,7 +9295,7 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
         <source>Invalid token '{0}' in a member declaration</source>
-        <target state="needs-review-translation">Sınıf, kayıt, yapı veya arabirim üye bildiriminde '{0}' belirteci geçersiz</target>
+        <target state="new">Invalid token '{0}' in a member declaration</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">
@@ -11874,7 +11875,7 @@ Yalnızca asenkron çağrının tamamlanmasını beklemek istemediğinizden ve �
       </trans-unit>
       <trans-unit id="ERR_InvalidDynamicCondition">
         <source>Expression must be implicitly convertible to Boolean or its type '{0}' must not be an interface and must define operator '{1}'.</source>
-        <target state="needs-review-translation">İfade açıkça Boolean öğesine dönüştürülebilir olmalı ya da '{0}' türü '{1}' işlecini tanımlamalıdır.</target>
+        <target state="new">Expression must be implicitly convertible to Boolean or its type '{0}' must not be an interface and must define operator '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MixingWinRTEventWithRegular">

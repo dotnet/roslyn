@@ -424,7 +424,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotMatchOnINumberBase">
         <source>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.</source>
-        <target state="needs-review-translation">無法在 '{0}' 上使用數值常數或關聯式模式，因為它繼承自或延伸 'INumberBase&lt;T&gt;'。請考慮使用類型模式來縮小為特定數數值型別。</target>
+        <target state="new">Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -1417,6 +1417,11 @@
         <target state="translated">'Experimental' 屬性的 diagnosticId 引數必須是有效的識別碼</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
+        <source>The target runtime does not support extended layout types.</source>
+        <target state="new">The target runtime does not support extended layout types.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidExtensionParameterReference">
         <source>Cannot use extension parameter '{0}' in this context.</source>
         <target state="new">Cannot use extension parameter '{0}' in this context.</target>
@@ -1774,7 +1779,7 @@
       </trans-unit>
       <trans-unit id="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName">
         <source>'{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.</source>
-        <target state="translated">'{0}' 不是執行個體方法，接收器不可為差補字串處理常式引數。</target>
+        <target state="new">'{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotOverridableAPIInRecord">
@@ -2314,7 +2319,7 @@
       </trans-unit>
       <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
         <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
-        <target state="needs-review-translation">類型 'Microsoft.CodeAnalysis.EmbeddedAttribute' 必須是非泛型、內部、密封、非靜態、具有無參數建構函式、繼承自 System.Attribute，而且可以套用到任何類型。</target>
+        <target state="new">The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
@@ -2490,6 +2495,11 @@
       <trans-unit id="ERR_StructHasInitializersAndNoDeclaredConstructor">
         <source>A 'struct' with field initializers must include an explicitly declared constructor.</source>
         <target state="translated">具有欄位初始設定式的 'struct' 必須包含明確宣告的建構函式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StructLayoutAndExtendedLayout">
+        <source>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</source>
+        <target state="new">Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructLayoutCyclePrimaryConstructorParameter">
@@ -2760,16 +2770,6 @@
       <trans-unit id="IDS_CollectionExpression">
         <source>collection expression</source>
         <target state="new">collection expression</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_ConsiderAddingRequiredAndNullable">
-        <source>Consider adding the 'required' modifier or declaring</source>
-        <target state="new">Consider adding the 'required' modifier or declaring</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_ConsiderDeclaringAsNullable">
-        <source>Consider declaring</source>
-        <target state="new">Consider declaring</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAllowsRefStructConstraint">
@@ -3144,12 +3144,12 @@
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
         <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="needs-review-translation">分析程式組件 '{0}' 參考編譯器的版本 '{1}' ，比目前執行的版本 '{2}' 還要新。</target>
+        <target state="new">Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
         <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
-        <target state="needs-review-translation">分析程式組件參考的編譯器版本比目前執行的版本新。</target>
+        <target state="new">Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedIn">
@@ -4088,164 +4088,165 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="needs-review-translation">
-                            Visual C# 編譯器選項
+        <target state="new">
+                             Visual C# Compiler Options
 
-                      - OUTPUT FILES -
--out:&lt;file&gt;                   指定輸出檔案名稱 (預設:
-                             具有主要類別或第一個檔案的檔案基礎名稱)
--target:exe                   建置主控台可執行檔 (預設) (簡短
-                             形式: -t:exe)
--target:winexe                建置 Windows 可執行檔 (簡短形式:
-                             -t:winexe)
--target:library               建置程式庫 (簡短形式: -t:library)
--target:module                建置可以新增至其他
-                             組件的模組 (簡短形式: -t:module)
--target:appcontainerexe       建置 Appcontainer 可執行檔 (簡短形式:
-                             -t:appcontainerexe)
--target:winmdobj              建置由 WinMDExp 取用
-                             的 Windows 執行階段中繼檔案 (簡短形式: -t:winmdobj)
--doc:&lt;file&gt;                   要產生的 XML 文件檔案
--refout:&lt;file&gt;                要產生的參考組件輸出
--platform:&lt;string&gt;             限制此程式碼可在哪些平台上執行: x86、
-                             Itanium、x64、arm、arm64、anycpu32bitpreferred 或
-                             anycpu。預設為 anycpu。
+                       - OUTPUT FILES -
+-out:&lt;file&gt;                   Specify output file name (default: base name of
+                              file with main class or first file)
+-target:exe                   Build a console executable (default) (Short
+                              form: -t:exe)
+-target:winexe                Build a Windows executable (Short form:
+                              -t:winexe)
+-target:library               Build a library (Short form: -t:library)
+-target:module                Build a module that can be added to another
+                              assembly (Short form: -t:module)
+-target:appcontainerexe       Build an Appcontainer executable (Short form:
+                              -t:appcontainerexe)
+-target:winmdobj              Build a Windows Runtime intermediate file that
+                              is consumed by WinMDExp (Short form: -t:winmdobj)
+-doc:&lt;file&gt;                   XML Documentation file to generate
+-refout:&lt;file&gt;                Reference assembly output to generate
+-platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred, or
+                              anycpu. The default is anycpu.
 
-                      - INPUT FILES -
--recurse:&lt;wildcard&gt;               根據萬用字元
-                             規格
-                             包含目前目錄和子目錄中的所有檔案
--reference:&lt;alias&gt;=&lt;file&gt;     從指定的組件
-                             檔使用指定的別名來參考中繼資料 (簡短形式: -r)
--reference:&lt;file list&gt;        從指定的組件檔
-                             來參考中繼資料 (簡短形式: -r)
--addmodule:&lt;file list&gt;        將指定的模組連結至此組件中
--link:&lt;file list&gt;             從指定的 Interop
-                             組件檔來內嵌中繼資料 (簡短形式: -l)
--analyzer:&lt;file list&gt;         從此組件執行分析器
-                             (簡短形式: -a)
--additionalfile:&lt;file list&gt;   不會直接影響程式碼
-                             產生但可由分析器用來產生錯誤或警告
-                             的其他檔案。
--embed                        在 PDB 中内嵌所有來源檔案。
--embed:&lt;file list&gt;            在 PDB 中内嵌特定檔案。
+                       - INPUT FILES -
+-recurse:&lt;wildcard&gt;           Include all files in the current directory and
+                              subdirectories according to the wildcard
+                              specifications
+-reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly
+                              file using the given alias (Short form: -r)
+-reference:&lt;file list&gt;        Reference metadata from the specified assembly
+                              files (Short form: -r)
+-addmodule:&lt;file list&gt;        Link the specified modules into this assembly
+-link:&lt;file list&gt;             Embed metadata from the specified interop
+                              assembly files (Short form: -l)
+-analyzer:&lt;file list&gt;         Run the analyzers from this assembly
+                              (Short form: -a)
+-additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
+                              generation but may be used by analyzers for producing
+                              errors or warnings.
+-embed                        Embed all source files in the PDB.
+-embed:&lt;file list&gt;            Embed specific files in the PDB.
 
-                      - RESOURCES -
--win32res:&lt;file&gt;              指定 Win32 資源檔 (.res)
--win32icon:&lt;file&gt;             使用此圖示來進行輸出
--win32manifest:&lt;file&gt;         指定 Win32 資訊清單檔 (.xml)
--nowin32manifest              不要包含預設的 Win32 資訊清單
--resource:&lt;resinfo&gt;           嵌入指定的資源 (簡短形式: -res)
--linkresource:&lt;resinfo&gt;       將指定的資源連結到此組件
-                             (簡短形式: -linkres) 其中 resinfo 格式
-                             為 &lt;file&gt;[,&lt;string name&gt;[,public|private]]
+                       - RESOURCES -
+-win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
+-win32icon:&lt;file&gt;             Use this icon for the output
+-win32manifest:&lt;file&gt;         Specify a Win32 manifest file (.xml)
+-nowin32manifest              Do not include the default Win32 manifest
+-resource:&lt;resinfo&gt;           Embed the specified resource (Short form: -res)
+-linkresource:&lt;resinfo&gt;       Link the specified resource to this assembly
+                              (Short form: -linkres) Where the resinfo format
+                              is &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
-                      - CODE GENERATION -
--debug[+|-]                   發出偵錯資訊
+                       - CODE GENERATION -
+-debug[+|-]                   Emit debugging information
 -debug:{full|pdbonly|portable|embedded}
-                             指定偵錯類型 ('full' 為預設，
-                             'portable' 是跨平台格式，
-                             'embedded' 是內嵌至
-                             目標 .dll 或 .exe 中的跨平台格式)
--optimize[+|-]                啟用最佳化 (簡短形式: -o)
--deterministic                產生具決定性組件
-                             (包括模組版本 GUID 和時間戳記)
--refonly                      產生參考組件，以取代主要輸出
-strument:TestCoverage      產生檢測要收集
-                             涵蓋範圍資訊的組件
--sourcelink:&lt;file&gt;            要內嵌至 PDB 中的來源連結資訊。
+                              Specify debugging type ('full' is default,
+                              'portable' is a cross-platform format,
+                              'embedded' is a cross-platform format embedded into
+                              the target .dll or .exe)
+-optimize[+|-]                Enable optimizations (Short form: -o)
+-deterministic                Produce a deterministic assembly
+                              (including module version GUID and timestamp)
+-refonly                      Produce a reference assembly in place of the main output
+-instrument:TestCoverage      Produce an assembly instrumented to collect
+                              coverage information
+-sourcelink:&lt;file&gt;            Source link info to embed into PDB.
 
-                      - ERRORS AND WARNINGS -
--warnaserror[+|-]             將所有警告回報為錯誤
--warnaserror[+|-]:&lt;warn list&gt; 將特定的警告回報為錯誤
-                             (針對所有可為 Null 的警告使用 "nullable")
--warn:&lt;n&gt;                     設定警告層級 (0 或更高) (簡短形式: -w)
--nowarn:&lt;warn list&gt;           停用特定的警告訊息
-                             (針對所有可為 Null 的警告使用 "nullable")
--ruleset:&lt;file&gt;               指定會停用特定
-                             診斷的規則集檔案。
+                       - ERRORS AND WARNINGS -
+-warnaserror[+|-]             Report all warnings as errors
+-warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
+                              (use "nullable" for all nullability warnings)
+-warn:&lt;n&gt;                     Set warning level (0 or higher) (Short form: -w)
+-nowarn:&lt;warn list&gt;           Disable specific warning messages
+                              (use "nullable" for all nullability warnings)
+-ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
+                              diagnostics.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
-                             指定用來記錄所有編譯器和分析器
-                             診斷的檔案。
-                             sarif_version:{1|2|2.1} 預設為1. 2 和 2.1，
-                             都表示 SARIF 版本 2.1.0。
--reportanalyzer               回報其他分析器資訊，例如
-                             執行時間。
--skipanalyzers[+|-]           略過診斷分析器的執行。
+                              Specify a file to log all compiler and analyzer
+                              diagnostics.
+                              sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                              both mean SARIF version 2.1.0.
+-reportanalyzer               Report additional analyzer information, such as
+                              execution time.
+-skipanalyzers[+|-]           Skip execution of diagnostic analyzers.
 
-                      - LANGUAGE -
--checked[+|-]                 產生溢位檢查
--unsafe[+|-]                  允許 'unsafe' 程式碼
--define:&lt;symbol list&gt;         定義條件式編譯符號 (簡短
-                             形式: -d)
--langversion:?              顯示語言版本的允許值
--langversion:&lt;string&gt;         指定語言版本，例如
-                             `latest` (最新版本，包括次要版本)，
-                             'default' (與 'latest' 相同)，
-                             `latestmajor` (最新版本，排除次要版本)，
-                             'preview' (最新版本，包括不支援預覽中的功能)，
-                             或特定版本，例如 `6` 或 `7.1`
--nullable[+|-]                指定可為 Null 內容選項啟用|停用。
+                       - LANGUAGE -
+-checked[+|-]                 Generate overflow checks
+-unsafe[+|-]                  Allow 'unsafe' code
+-define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
+                              form: -d)
+-langversion:?                Display the allowed values for language version
+-langversion:&lt;string&gt;         Specify language version such as
+                              `latest` (latest version, including minor versions),
+                              `default` (same as `latest`),
+                              `latestmajor` (latest version, excluding minor versions),
+                              `preview` (latest version, including features in unsupported preview),
+                              or specific versions like `6` or `7.1`
+-nullable[+|-]                Specify nullable context option enable|disable.
 -nullable:{enable|disable|warnings|annotations}
-                             指定可為 Null 內容選項啟用|停用|警告|註釋。
+                              Specify nullable context option enable|disable|warnings|annotations.
 
-                      - SECURITY -
--delaysign[+|-]               只使用強式名稱金鑰的公開
-                             部分對組件進行延遲簽屬
--publicsign[+|-]              只使用強式名稱金鑰的公開
-                             部分對組件進行公開簽屬
--keyfile:&lt;file&gt;               指定強式名稱金鑰檔案
--keycontainer:&lt;string&gt;        指定強式名稱金鑰容器
--highentropyva[+|-]           啟用高熵 ASLR
+                       - SECURITY -
+-delaysign[+|-]               Delay-sign the assembly using only the public
+                              portion of the strong name key
+-publicsign[+|-]              Public-sign the assembly using only the public
+                              portion of the strong name key
+-keyfile:&lt;file&gt;               Specify a strong name key file
+-keycontainer:&lt;string&gt;        Specify a strong name key container
+-highentropyva[+|-]           Enable high-entropy ASLR
 
-                      - MISCELLANEOUS -
-@&lt;file&gt;                       讀取回應檔以取得更多選項
--help                         顯示此使用方式訊息 (簡短形式 form: -?)
--nologo                       隱藏編譯器著作權訊息
--noconfig                     不要自動包括 CSC.RSP 檔案
--parallel[+|-]                同時建置。
--version                      顯示編譯器版本號碼並結束。
+                       - MISCELLANEOUS -
+@&lt;file&gt;                       Read response file for more options
+-help                         Display this usage message (Short form: -?)
+-nologo                       Suppress compiler copyright message
+-noconfig                     Do not auto include CSC.RSP file
+-parallel[+|-]                Concurrent build.
+-version                      Display the compiler version number and exit.
 
-                      - ADVANCED -
--baseaddress:&lt;address&gt;        要建置程式庫的基底位址
--checksumalgorithm:&lt;alg&gt;      指定計算儲存在 PDB 中
-                             來源檔案總和檢查碼的演算法。支援的值為:
-                             SHA1 或 SHA256 (預設)。
--codepage:&lt;n&gt;                 指定開啟來源
-                             檔案時所要使用的字碼頁
--utf8output                   輸出編譯器訊息 (以 UTF-8 編碼)
--main:&lt;type&gt;                  指定包含進入點的類型
-                             (略過所有其他可能的進入點) (簡短
-                             形式: -m)
--fullpaths                    編譯器會產生完整路徑
--filealign:&lt;n&gt;                指定用於輸出檔案
-                             區段的對齊
+                       - ADVANCED -
+-baseaddress:&lt;address&gt;        Base address for the library to be built
+-checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
+                              checksum stored in PDB. Supported values are:
+                              SHA1 or SHA256 (default).
+-codepage:&lt;n&gt;                 Specify the codepage to use when opening source
+                              files
+-utf8output                   Output compiler messages in UTF-8 encoding
+-main:&lt;type&gt;                  Specify the type that contains the entry point
+                              (ignore all other possible entry points) (Short
+                              form: -m)
+-fullpaths                    Compiler generates fully qualified paths
+-filealign:&lt;n&gt;                Specify the alignment used for output file
+                              sections
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                             指定編譯器的來源路徑名稱輸出的對應
-                             。
--pdb:&lt;file&gt;                   指定偵錯資訊檔案名稱 (預設:
-                             具有 .pdb 副檔名的輸出檔案名稱)
--errorendlocation             輸出每個錯誤
-                             行與資料行的結束位置
--preferreduilang              指定喜好的輸出語言名稱。
--nosdkpath                    停用搜尋標準程式庫組件的預設 SDK 路徑。
--nostdlib[+|-]                不參考標準程式庫 (mscorlib.dll)
--subsystemversion:&lt;string&gt;    指定此組件的子系統版本
--lib:&lt;file list&gt;              指定要在其中搜尋的其他目錄以作為
-                             參考
--errorreport:&lt;string&gt;         指定如何處理內部編譯器錯誤:
-                             提示、傳送、佇列或無。預設為
-                             佇列。
--appconfig:&lt;file&gt;             指定包含組件繫結設定的
-                             應用程式設定檔
--moduleassemblyname:&lt;string&gt;  此模組將成為其一部分
-                             的組件名稱
--modulename:&lt;string&gt;          指定來源模組的名稱
--generatedfilesout:&lt;dir&gt;      將編譯期間產生的檔案放在
-                             指定的目錄。
--reportivts[+|-]                    輸出有關所有相依項授與至此
-                             組件的所有 IVT 的資訊，並使用它們來自的組件
-                             標註外部組件的可存取性錯誤。
+                              Specify a mapping for source path names output by
+                              the compiler.
+-pdb:&lt;file&gt;                   Specify debug information file name (default:
+                              output file name with .pdb extension)
+-errorendlocation             Output line and column of the end location of
+                              each error
+-preferreduilang              Specify the preferred output language name.
+-nosdkpath                    Disable searching the default SDK path for standard library assemblies.
+-sdkpath:&lt;path&gt;         Path used to search for standard library assemblies.
+-nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
+-subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
+-lib:&lt;file list&gt;              Specify additional directories to search in for
+                              references
+-errorreport:&lt;string&gt;         Specify how to handle internal compiler errors:
+                              prompt, send, queue, or none. The default is
+                              queue.
+-appconfig:&lt;file&gt;             Specify an application configuration file
+                              containing assembly binding settings
+-moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
+                              a part of
+-modulename:&lt;string&gt;          Specify the name of the source module
+-generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
+                              specified directory.
+-reportivts[+|-]                    Output information on all IVTs granted to this
+                              assembly by all dependencies, and annotate foreign assembly
+                              accessibility errors with what assembly they came from.
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -5750,23 +5751,23 @@ strument:TestCoverage      產生檢測要收集
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField">
-        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. {2} the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
-        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. {2} the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</target>
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
+        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</target>
         <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField_Title">
-        <source>Non-nullable property must contain a non-null value when exiting constructor.</source>
-        <target state="needs-review-translation">退出建構函式時，不可為 Null 屬性必須包含不可為 Null 值。請考慮新增 'required' 修飾元，或將屬性宣告為可為 Null，或新增 '[field: MaybeNull, AllowNull]' 屬性。</target>
+        <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
+        <target state="new">Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
-        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. {2} the {0} as nullable.</source>
-        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. {2} the {0} as nullable.</target>
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the {0} as nullable.</source>
+        <target state="translated">退出建構函式時，不可為 Null 的 {0} '{1}' 必須包含非 Null 值。請考慮新增 'required' 修飾元，或將 {0} 宣告為可以為 Null。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
-        <source>Non-nullable field must contain a non-null value when exiting constructor.</source>
-        <target state="needs-review-translation">退出建構函式時，不可為 Null 的欄位必須包含非 Null 值。請考慮新增 'required' 修飾元，或將欄位宣告為可以為 Null。</target>
+        <source>Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.</source>
+        <target state="translated">退出建構函式時，不可為 Null 的欄位必須包含非 Null 值。請考慮新增 'required' 修飾元，或將欄位宣告為可以為 Null。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreadPrimaryConstructorParameter">
@@ -6171,7 +6172,7 @@ strument:TestCoverage      產生檢測要收集
       </trans-unit>
       <trans-unit id="ERR_BadVisIndexerParam">
         <source>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</source>
-        <target state="needs-review-translation">不一致的存取範圍: 參數類型 '{1}' 比索引子 '{0}' 的存取範圍小</target>
+        <target state="new">Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisOpReturn">
@@ -7096,7 +7097,7 @@ strument:TestCoverage      產生檢測要收集
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
         <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</source>
-        <target state="needs-review-translation">'partial' 修飾元只能直接出現在 'class'、'record'、'struct'、'interface' 或方法或屬性傳回型別之前。</target>
+        <target state="new">The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -7755,7 +7756,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_PredefinedTypeAmbiguous">
         <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
-        <target state="translated">在多個參考組件中宣告了預先定義的類型 '{0}': '{1}' 與 '{2}'</target>
+        <target state="new">Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructWithBaseConstructorCall">
@@ -8070,7 +8071,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_DllImportOnInvalidMethod">
         <source>The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member</source>
-        <target state="needs-review-translation">DllImport 屬性必須指定在標記為 'static' 和 'extern' 的方法上</target>
+        <target state="new">The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
@@ -9169,7 +9170,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_BadTypeforThis">
         <source>The receiver parameter of an extension cannot be of type '{0}'</source>
-        <target state="needs-review-translation">擴充方法的第一個參數不可為類型 '{0}'</target>
+        <target state="new">The receiver parameter of an extension cannot be of type '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamModThis">
@@ -9199,7 +9200,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_ExtensionAttrNotFound">
         <source>Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
-        <target state="needs-review-translation">無法定義新的擴充方法，因為找不到編譯器的必要類型 '{0}'。是否遺漏了 System.Core.dll 的參考?</target>
+        <target state="new">Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitExtension">
@@ -9294,7 +9295,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
         <source>Invalid token '{0}' in a member declaration</source>
-        <target state="needs-review-translation">類別、記錄、結構或介面成員宣告中的語彙基元 '{0}' 無效</target>
+        <target state="new">Invalid token '{0}' in a member declaration</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">
@@ -11874,7 +11875,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_InvalidDynamicCondition">
         <source>Expression must be implicitly convertible to Boolean or its type '{0}' must not be an interface and must define operator '{1}'.</source>
-        <target state="needs-review-translation">運算式必須可隱含轉換成布林值，或是其類型 '{0}' 必須定義運算子 '{1}'。</target>
+        <target state="new">Expression must be implicitly convertible to Boolean or its type '{0}' must not be an interface and must define operator '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MixingWinRTEventWithRegular">
