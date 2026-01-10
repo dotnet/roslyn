@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using ILVerify;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -203,6 +202,72 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             """;
 
         CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("1")).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ConstructorNullParameterNotNullAttribute1()
+    {
+        var source = """
+            #nullable enable
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            
+            class MyList<T> : List<T>
+            {
+                public MyList([NotNull] string? arg)
+                {
+                    arg = "";
+                }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    MyList<int> list = [with(s), 1, 2];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ConstructorNullParameterMaybeNullAttribute1()
+    {
+        var source = """
+            #nullable enable
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            
+            class MyList<T> : List<T>
+            {
+                public MyList([MaybeNull] string arg)
+                {
+                }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    string? s = "";
+                    MyList<int> list = [with(s), 1, 2];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (18,13): warning CS8604: Possible null reference argument for parameter 's' in 'void C.Goo(string s)'.
+            //         Goo(s);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void C.Goo(string s)").WithLocation(18, 13));
     }
 
     [Fact]
