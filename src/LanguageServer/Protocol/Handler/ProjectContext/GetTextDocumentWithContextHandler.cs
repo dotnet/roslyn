@@ -59,8 +59,8 @@ internal class GetTextDocumentWithContextHandler() : ILspServiceDocumentRequestH
         var openDocumentId = documentIds.First();
         var currentContextDocumentId = context.Workspace.GetDocumentIdInCurrentContext(openDocumentId);
 
-        // Create a key that uniquely identifies this set of contexts. We use this to track the user's preferred context
-        // on the client side.
+        // Create a key that uniquely identifies this set of contexts. The client side stores the preferred context
+        // against this key on the client side so we can restore the active context across different documents.
         var keyString = string.Join(";", contexts.Select(c => c.Label).OrderBy(l => l));
         var keyHash = XxHash128.Hash(Encoding.Unicode.GetBytes(keyString));
         var key = Convert.ToBase64String(keyHash);
