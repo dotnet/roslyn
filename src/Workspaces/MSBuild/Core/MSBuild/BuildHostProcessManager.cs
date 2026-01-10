@@ -412,13 +412,6 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 #endif
     }
 
-    public enum BuildHostProcessKind
-    {
-        NetCore,
-        NetFramework,
-        Mono
-    }
-
     private sealed class BuildHostProcess : IAsyncDisposable
     {
         private readonly ILogger? _logger;
