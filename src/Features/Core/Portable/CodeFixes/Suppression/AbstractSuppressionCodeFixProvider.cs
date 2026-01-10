@@ -138,13 +138,13 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
         return token;
     }
 
-    public async Task<ImmutableArray<CodeFix>> GetFixesAsync(
+    public Task<ImmutableArray<CodeFix>> GetFixesAsync(
         TextDocument textDocument, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
     {
         if (textDocument is not Document document)
-            return ImmutableArray<CodeFix>.Empty;
+            return Task.FromResult(ImmutableArray<CodeFix>.Empty);
 
-        return await GetSuppressionsAsync(document, span, diagnostics, skipSuppressMessage: false, skipUnsuppress: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+        return GetSuppressionsAsync(document, span, diagnostics, skipSuppressMessage: false, skipUnsuppress: false, cancellationToken: cancellationToken);
     }
 
     internal async Task<ImmutableArray<PragmaWarningCodeAction>> GetPragmaSuppressionsAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)

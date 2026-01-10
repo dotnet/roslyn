@@ -30,14 +30,14 @@ internal interface IDocumentNavigationService : IWorkspaceService
 
 internal abstract class AbstractDocumentNavigationService : IDocumentNavigationService
 {
-    public virtual async Task<bool> CanNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken)
-        => false;
+    public virtual Task<bool> CanNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken)
+        => SpecializedTasks.False;
 
     public virtual Task<bool> CanNavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, bool allowInvalidPosition, CancellationToken cancellationToken)
         => CanNavigateToSpanAsync(workspace, documentId, new TextSpan(position, 0), allowInvalidSpan: allowInvalidPosition, cancellationToken);
 
-    public virtual async Task<INavigableLocation?> GetLocationForSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken)
-        => null;
+    public virtual Task<INavigableLocation?> GetLocationForSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken)
+        => SpecializedTasks.Null<INavigableLocation>();
 
     public virtual Task<INavigableLocation?> GetLocationForPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, bool allowInvalidPosition, CancellationToken cancellationToken)
         => GetLocationForSpanAsync(workspace, documentId, new TextSpan(position, 0), allowInvalidSpan: allowInvalidPosition, cancellationToken);

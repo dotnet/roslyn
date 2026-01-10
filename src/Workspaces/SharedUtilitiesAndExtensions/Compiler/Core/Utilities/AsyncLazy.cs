@@ -21,7 +21,7 @@ internal static class AsyncLazy
 
     public static AsyncLazy<T> Create<T, TArg>(Func<TArg, CancellationToken, T> synchronousComputeFunction, TArg arg)
         => Create(
-            asynchronousComputeFunction: static async (outerArg, cancellationToken) => outerArg.synchronousComputeFunction(outerArg.arg, cancellationToken),
+            asynchronousComputeFunction: static (outerArg, cancellationToken) => Task.FromResult(outerArg.synchronousComputeFunction(outerArg.arg, cancellationToken)),
             synchronousComputeFunction: static (outerArg, cancellationToken) => outerArg.synchronousComputeFunction(outerArg.arg, cancellationToken),
             (synchronousComputeFunction, arg));
 

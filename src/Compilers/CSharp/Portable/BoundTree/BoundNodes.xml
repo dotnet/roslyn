@@ -39,6 +39,7 @@
   <ValueType Name="CollectionExpressionTypeKind"/>
   <ValueType Name="AccessorKind" />
   <ValueType Name="SafeContext" />
+  <ValueType Name="InConversionGroupFlags" />
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
@@ -913,6 +914,7 @@
          Conversion is represented by a single BoundConversion.
          -->
     <Field Name="ConversionGroupOpt" Type="ConversionGroup?"/>
+    <Field Name="InConversionGroupFlags" Type="InConversionGroupFlags"/>
   </Node>
 
   <!--
