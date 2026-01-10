@@ -612,7 +612,7 @@ public class C
                 new[] { 
                     // (8,20): warning CS8618: Non-nullable event 'D1' is uninitialized. Consider declaring the event as nullable.
                     //     public event D D1;
-                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "D1").WithArguments("event", "D1").WithLocation(8, 20),
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "D1").WithArguments("event", "D1", "Consider declaring").WithLocation(8, 20),
                     // (13,19): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                     //     public event D? D4;
                     Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 19)
@@ -1558,9 +1558,9 @@ class C
 
             var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
-                // (5,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                // (5,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
                 //     public C()
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Prop").WithLocation(5, 12));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Prop", "Consider declaring").WithLocation(5, 12));
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
@@ -1614,7 +1614,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,27): warning CS8618: Non-nullable field 's_data' is uninitialized. Consider declaring the field as nullable.
                 //     private static string s_data;
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "s_data").WithArguments("field", "s_data").WithLocation(6, 27),
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "s_data").WithArguments("field", "s_data", "Consider declaring").WithLocation(6, 27),
                 // (6,27): warning CS0649: Field 'C.s_data' is never assigned to, and will always have its default value null
                 //     private static string s_data;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "s_data").WithArguments("C.s_data", "null").WithLocation(6, 27));
@@ -1652,9 +1652,9 @@ class C
 
             var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
-                // (6,27): warning CS8618: Non-nullable field 's_data' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
+                // (6,27): warning CS8618: Non-nullable field 's_data' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     private static string s_data;
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "s_data").WithArguments("field", "s_data").WithLocation(6, 27),
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "s_data").WithArguments("field", "s_data", "Consider declaring").WithLocation(6, 27),
                 // (6,27): warning CS0649: Field 'C.s_data' is never assigned to, and will always have its default value null
                 //     private static string s_data;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "s_data").WithArguments("C.s_data", "null").WithLocation(6, 27),
@@ -1697,7 +1697,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,27): warning CS8618: Non-nullable field 's_data' is uninitialized. Consider declaring the field as nullable.
                 //     private static string s_data;
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "s_data").WithArguments("field", "s_data").WithLocation(6, 27),
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "s_data").WithArguments("field", "s_data", "Consider declaring").WithLocation(6, 27),
                 // (6,27): warning CS0649: Field 'C.s_data' is never assigned to, and will always have its default value null
                 //     private static string s_data;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "s_data").WithArguments("C.s_data", "null").WithLocation(6, 27),
@@ -2728,7 +2728,7 @@ class C<T>
             comp.VerifyDiagnostics(
                     // (4,14): warning CS8618: Non-nullable property 'GetT' is uninitialized. Consider declaring the property as nullable.
                     //     public T GetT { get; }
-                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "GetT").WithArguments("property", "GetT").WithLocation(4, 14));
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "GetT").WithArguments("property", "GetT", "Consider declaring").WithLocation(4, 14));
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
@@ -2771,7 +2771,7 @@ class C<T>
             comp.VerifyDiagnostics(
                     // (4,14): warning CS8618: Non-nullable field 'GetT' is uninitialized. Consider declaring the field as nullable.
                     //     public T GetT;
-                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "GetT").WithArguments("field", "GetT").WithLocation(4, 14),
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "GetT").WithArguments("field", "GetT", "Consider declaring").WithLocation(4, 14),
                     // (4,14): warning CS0649: Field 'C<T>.GetT' is never assigned to, and will always have its default value 
                     //     public T GetT;
                     Diagnostic(ErrorCode.WRN_UnassignedInternalField, "GetT").WithArguments("C<T>.GetT", "").WithLocation(4, 14));

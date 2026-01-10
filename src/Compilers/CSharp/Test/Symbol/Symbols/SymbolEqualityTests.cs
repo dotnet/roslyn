@@ -879,7 +879,7 @@ public class A<T>
             comp.VerifyDiagnostics(
                 // (6,41): warning CS8618: Non-nullable event 'MyEvent' is uninitialized. Consider declaring the event as nullable.
                 //     public event System.EventHandler<T> MyEvent;
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "MyEvent").WithArguments("event", "MyEvent").WithLocation(6, 41)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "MyEvent").WithArguments("event", "MyEvent", "Consider declaring").WithLocation(6, 41)
                 );
 
             var syntaxTree = comp.SyntaxTrees[0];

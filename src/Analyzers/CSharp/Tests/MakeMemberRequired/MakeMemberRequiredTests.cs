@@ -422,7 +422,7 @@ public sealed class MakeMemberRequiredTests
         }.RunAsync();
 
     [Fact]
-    public Task NotOnConstructorDeclaration()
+    public Task OnConstructorDeclaration()
         => new VerifyCS.Test
         {
             TestCode = """
@@ -432,6 +432,69 @@ public sealed class MakeMemberRequiredTests
             {
                 public string MyProperty { get; set; }
                 public {|CS8618:MyClass|}() { }
+            }
+            """,
+            FixedCode = """
+            #nullable enable
+            
+            class MyClass
+            {
+                public required string MyProperty { get; set; }
+                public MyClass() { }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+        }.RunAsync();
+
+    [Fact]
+    public Task OnConstructorDeclarationField()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            #nullable enable
+            
+            class MyClass
+            {
+                public string _myField;
+                public {|CS8618:MyClass|}() { }
+            }
+            """,
+            FixedCode = """
+            #nullable enable
+            
+            class MyClass
+            {
+                public required string _myField;
+                public MyClass() { }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+        }.RunAsync();
+
+    [Fact]
+    public Task OnConstructorDeclarationMultipleMembers()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            #nullable enable
+            
+            class MyClass
+            {
+                public string MyProperty { get; set; }
+                public string _myField;
+                public {|CS8618:{|CS8618:MyClass|}|}() { }
+            }
+            """,
+            FixedCode = """
+            #nullable enable
+            
+            class MyClass
+            {
+                public required string MyProperty { get; set; }
+                public required string _myField;
+                public MyClass() { }
             }
             """,
             LanguageVersion = LanguageVersion.CSharp11,
@@ -586,6 +649,118 @@ public sealed class MakeMemberRequiredTests
                 class MyClass
                 {
                     public required string _myField, _myField1 = "";
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+        }.RunAsync();
+
+    [Fact]
+    public Task TestStaticProperty()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+                public class C
+                {
+                    public static string {|CS8618:MyProperty|} { get; set; }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+        }.RunAsync();
+
+    [Fact]
+    public Task TestReadonlyField()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+                public class C
+                {
+                    public readonly string {|CS8618:MyField|};
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+        }.RunAsync();
+
+    [Fact]
+    public Task TestEvent()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+                public class C
+                {
+                    public event System.Action {|CS8618:MyEvent|};
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+        }.RunAsync();
+
+    [Fact]
+    public Task TestOverrideProperty()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+                public abstract class Base
+                {
+                    public abstract string Text { get; set; }
+                }
+                public class Derived : Base
+                {
+                    public override string {|CS8618:Text|} { get; set; }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+        }.RunAsync();
+
+    [Fact]
+    public Task TestRequiredOverrideProperty()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+                public abstract class Base
+                {
+                    public required abstract string Text { get; set; }
+                }
+                public class Derived : Base
+                {
+                    public override string {|CS8618:{|CS9030:Text|}|} { get; set; }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+                public abstract class Base
+                {
+                    public required abstract string Text { get; set; }
+                }
+                public class Derived : Base
+                {
+                    public override required string Text { get; set; }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+        }.RunAsync();
+
+    [Fact]
+    public Task TestPrivateMemberInPrivateNestedClass()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+                public class Outer
+                {
+                    private class Inner
+                    {
+                        private string {|CS8618:Text|} { get; set; }
+                    }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp11,

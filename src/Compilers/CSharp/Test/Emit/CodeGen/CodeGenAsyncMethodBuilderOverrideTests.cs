@@ -232,9 +232,9 @@ class C
                 // (20,16): warning CS8603: Possible null reference return.
                 //         return await G((string?)null); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "await G((string?)null)").WithLocation(20, 16),
-                // (44,16): warning CS8618: Non-nullable field '_result' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
+                // (44,16): warning CS8618: Non-nullable field '_result' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     internal T _result;
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "_result").WithArguments("field", "_result").WithLocation(44, 16)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "_result").WithArguments("field", "_result", "Consider declaring").WithLocation(44, 16)
                 );
         }
 

@@ -962,9 +962,9 @@ struct S
     S(object obj) : this() { }
 }";
             verify(source, expectedAnalyzedKeys: new[] { ".ctor" },
-                // (6,5): warning CS8618: Non-nullable field 'F1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
+                // (6,5): warning CS8618: Non-nullable field 'F1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     S(object obj) : this() { }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "F1").WithLocation(6, 5)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "F1", "Consider declaring").WithLocation(6, 5)
                 );
 
             source =
@@ -1083,9 +1083,9 @@ partial class Program
     static object P2 { get; set; }
 }";
             verify(source, expectedAnalyzedKeys: new[] { ".cctor" },
-                // (6,19): warning CS8618: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                // (6,19): warning CS8618: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
                 //     static object P2 { get; set; }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P2").WithArguments("property", "P2").WithLocation(6, 19));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P2").WithArguments("property", "P2", "Consider declaring").WithLocation(6, 19));
 
             source =
 @"class Program
@@ -1096,9 +1096,9 @@ partial class Program
     static object P2 { get; set; }
 }";
             verify(source, expectedAnalyzedKeys: new[] { ".ctor" },
-                // (4,12): warning CS8618: Non-nullable property 'P1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                // (4,12): warning CS8618: Non-nullable property 'P1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
                 //     object P1 { get; set; }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P1").WithArguments("property", "P1").WithLocation(4, 12));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P1").WithArguments("property", "P1", "Consider declaring").WithLocation(4, 12));
 
             source =
 @"class Program
@@ -1109,9 +1109,9 @@ partial class Program
     object P3 => 3;
 }";
             verify(source, expectedAnalyzedKeys: new[] { ".ctor", "get_P2", "get_P3", "set_P2" },
-                // (4,12): warning CS8618: Non-nullable property 'P1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                // (4,12): warning CS8618: Non-nullable property 'P1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
                 //     object P1 { get; }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P1").WithArguments("property", "P1").WithLocation(4, 12));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P1").WithArguments("property", "P1", "Consider declaring").WithLocation(4, 12));
 
             source =
 @"#pragma warning disable 67
@@ -1124,9 +1124,9 @@ class Program
     static event D E2;
 }";
             verify(source, expectedAnalyzedKeys: new[] { ".cctor" },
-                // (8,20): warning CS8618: Non-nullable event 'E2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the event as nullable.
+                // (8,20): warning CS8618: Non-nullable event 'E2' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //     static event D E2;
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E2").WithArguments("event", "E2").WithLocation(8, 20));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E2").WithArguments("event", "E2", "Consider declaring").WithLocation(8, 20));
 
             source =
 @"#pragma warning disable 67
@@ -1139,9 +1139,9 @@ class Program
     static event D E2;
 }";
             verify(source, expectedAnalyzedKeys: new[] { ".ctor" },
-                // (6,13): warning CS8618: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the event as nullable.
+                // (6,13): warning CS8618: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //     event D E1;
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E1").WithArguments("event", "E1").WithLocation(6, 13));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E1").WithArguments("event", "E1", "Consider declaring").WithLocation(6, 13));
 
             static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {

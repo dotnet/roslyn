@@ -3275,36 +3275,36 @@ struct S3
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (10,12): warning CS8618: Non-nullable field 'F1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
+                // (10,12): warning CS8618: Non-nullable field 'F1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     public S1() { }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("field", "F1").WithLocation(10, 12),
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("field", "F1", "Consider declaring").WithLocation(10, 12),
                 // (10,12): error CS0171: Field 'S1.F1' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                 //     public S1() { }
                 Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S1").WithArguments("S1.F1", "11.0").WithLocation(10, 12),
-                // (16,5): warning CS8618: Non-nullable field 'F2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
+                // (16,5): warning CS8618: Non-nullable field 'F2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     S2(object? obj) { }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S2").WithArguments("field", "F2").WithLocation(16, 5),
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S2").WithArguments("field", "F2", "Consider declaring").WithLocation(16, 5),
                 // (16,5): error CS0171: Field 'S2.F2' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                 //     S2(object? obj) { }
                 Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S2").WithArguments("S2.F2", "11.0").WithLocation(16, 5),
-                // (21,12): warning CS8618: Non-nullable field 'F3' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
+                // (21,12): warning CS8618: Non-nullable field 'F3' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     public S3() { F3 = GetValue(); }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S3").WithArguments("field", "F3").WithLocation(21, 12),
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S3").WithArguments("field", "F3", "Consider declaring").WithLocation(21, 12),
                 // (21,24): warning CS8601: Possible null reference assignment.
                 //     public S3() { F3 = GetValue(); }
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "GetValue()").WithLocation(21, 24));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
-                // (10,12): warning CS8618: Non-nullable field 'F1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
+                // (10,12): warning CS8618: Non-nullable field 'F1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     public S1() { }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("field", "F1").WithLocation(10, 12),
-                // (16,5): warning CS8618: Non-nullable field 'F2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("field", "F1", "Consider declaring").WithLocation(10, 12),
+                // (16,5): warning CS8618: Non-nullable field 'F2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     S2(object? obj) { }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S2").WithArguments("field", "F2").WithLocation(16, 5),
-                // (21,12): warning CS8618: Non-nullable field 'F3' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S2").WithArguments("field", "F2", "Consider declaring").WithLocation(16, 5),
+                // (21,12): warning CS8618: Non-nullable field 'F3' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     public S3() { F3 = GetValue(); }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S3").WithArguments("field", "F3").WithLocation(21, 12),
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S3").WithArguments("field", "F3", "Consider declaring").WithLocation(21, 12),
                 // (21,24): warning CS8601: Possible null reference assignment.
                 //     public S3() { F3 = GetValue(); }
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "GetValue()").WithLocation(21, 24));
@@ -4588,24 +4588,24 @@ public struct S<T>
 }";
             var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
             verifier.VerifyDiagnostics(
-                // (21,12): warning CS8618: Non-nullable field 'TField' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
+                // (21,12): warning CS8618: Non-nullable field 'TField' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     public S()
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "TField").WithLocation(21, 12),
-                // (21,12): warning CS8618: Non-nullable property 'AutoProp' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "TField", "Consider declaring").WithLocation(21, 12),
+                // (21,12): warning CS8618: Non-nullable property 'AutoProp' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
                 //     public S()
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("property", "AutoProp").WithLocation(21, 12),
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("property", "AutoProp", "Consider declaring").WithLocation(21, 12),
                 // (23,20): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //         AutoProp = default;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(23, 20),
                 // (24,18): warning CS8601: Possible null reference assignment.
                 //         TField = default;
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(24, 18),
-                // (29,12): warning CS8618: Non-nullable field 'TField' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
+                // (29,12): warning CS8618: Non-nullable field 'TField' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     public S(bool unused)
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "TField").WithLocation(29, 12),
-                // (29,12): warning CS8618: Non-nullable property 'AutoProp' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "TField", "Consider declaring").WithLocation(29, 12),
+                // (29,12): warning CS8618: Non-nullable property 'AutoProp' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
                 //     public S(bool unused)
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("property", "AutoProp").WithLocation(29, 12),
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("property", "AutoProp", "Consider declaring").WithLocation(29, 12),
                 // (29,12): warning CS9022: Control is returned to caller before field 'S<T>.TField' is explicitly assigned, causing a preceding implicit assignment of 'default'.
                 //     public S(bool unused)
                 Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "S").WithArguments("S<T>.TField").WithLocation(29, 12),
@@ -4619,24 +4619,24 @@ public struct S<T>
 
             verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
             verifier.VerifyDiagnostics(
-                // (21,12): warning CS8618: Non-nullable field 'TField' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
+                // (21,12): warning CS8618: Non-nullable field 'TField' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     public S()
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "TField").WithLocation(21, 12),
-                // (21,12): warning CS8618: Non-nullable property 'AutoProp' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "TField", "Consider declaring").WithLocation(21, 12),
+                // (21,12): warning CS8618: Non-nullable property 'AutoProp' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
                 //     public S()
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("property", "AutoProp").WithLocation(21, 12),
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("property", "AutoProp", "Consider declaring").WithLocation(21, 12),
                 // (23,20): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //         AutoProp = default;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(23, 20),
                 // (24,18): warning CS8601: Possible null reference assignment.
                 //         TField = default;
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(24, 18),
-                // (29,12): warning CS8618: Non-nullable field 'TField' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
+                // (29,12): warning CS8618: Non-nullable field 'TField' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     public S(bool unused)
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "TField").WithLocation(29, 12),
-                // (29,12): warning CS8618: Non-nullable property 'AutoProp' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "TField", "Consider declaring").WithLocation(29, 12),
+                // (29,12): warning CS8618: Non-nullable property 'AutoProp' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
                 //     public S(bool unused)
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("property", "AutoProp").WithLocation(29, 12));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("property", "AutoProp", "Consider declaring").WithLocation(29, 12));
             verifyIL();
 
             void verifyIL()
@@ -4696,9 +4696,9 @@ public struct S<T>
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (4,12): warning CS8618: Non-nullable field 'Item' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
+                // (4,12): warning CS8618: Non-nullable field 'Item' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     public S(bool unused)
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "Item").WithLocation(4, 12),
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "Item", "Consider declaring").WithLocation(4, 12),
                 // (4,12): error CS0171: Field 'S.Item' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                 //     public S(bool unused)
                 Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S.Item", "11.0").WithLocation(4, 12)
@@ -4706,9 +4706,9 @@ public struct S<T>
 
             var verifier = CompileAndVerify(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular11);
             verifier.VerifyDiagnostics(
-                // (4,12): warning CS8618: Non-nullable field 'Item' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
+                // (4,12): warning CS8618: Non-nullable field 'Item' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     public S(bool unused)
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "Item").WithLocation(4, 12));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "Item", "Consider declaring").WithLocation(4, 12));
             verifier.VerifyIL("S..ctor", @"
 {
   // Code size        8 (0x8)
@@ -4736,9 +4736,9 @@ public struct S<T>
 }";
             var verifier = CompileAndVerify(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             verifier.VerifyDiagnostics(
-                // (4,12): warning CS8618: Non-nullable field 'Item' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
+                // (4,12): warning CS8618: Non-nullable field 'Item' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     public S(bool unused)
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "Item").WithLocation(4, 12)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "Item", "Consider declaring").WithLocation(4, 12)
                 );
 
             verifier.VerifyIL("S..ctor", @"

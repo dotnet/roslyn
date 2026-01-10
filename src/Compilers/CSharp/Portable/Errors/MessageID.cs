@@ -28,6 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_SK_LABEL = MessageBase + 2012,
         IDS_SK_CONSTRUCTOR = MessageBase + 2013,
 
+        IDS_ConsiderDeclaringAsNullable = MessageBase + 2014,
+        IDS_ConsiderAddingRequiredAndNullable = MessageBase + 2015,
+
         IDS_NULL = MessageBase + 10001,
         //IDS_RELATEDERROR = MessageBase + 10002,
         //IDS_RELATEDWARNING = MessageBase + 10003,
