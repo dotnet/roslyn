@@ -8507,4 +8507,51 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """);
         }
     }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_ArgList()
+    {
+        var source = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection(__arglist, ReadOnlySpan<T> items) : base(span.ToArray())
+                {
+                }
+            }
+            
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(__arglist, ReadOnlySpan<T> items) => new(__arglist, items);
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
+            // (9,12): error CS0224: A method with vararg cannot be generic, be in a generic type, or have a params parameter
+            //     public MyCollection(__arglist, ReadOnlySpan<T> items) : base(span.ToArray())
+            Diagnostic(ErrorCode.ERR_BadVarargs, "MyCollection").WithLocation(9, 12),
+            // (9,25): error CS0257: An __arglist parameter must be the last parameter in a parameter list
+            //     public MyCollection(__arglist, ReadOnlySpan<T> items) : base(span.ToArray())
+            Diagnostic(ErrorCode.ERR_VarargsLast, "__arglist").WithLocation(9, 25),
+            // (9,66): error CS0103: The name 'span' does not exist in the current context
+            //     public MyCollection(__arglist, ReadOnlySpan<T> items) : base(span.ToArray())
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "span").WithArguments("span").WithLocation(9, 66),
+            // (16,35): error CS0224: A method with vararg cannot be generic, be in a generic type, or have a params parameter
+            //     public static MyCollection<T> Create<T>(__arglist, ReadOnlySpan<T> items) => new(__arglist, items);
+            Diagnostic(ErrorCode.ERR_BadVarargs, "Create").WithLocation(16, 35),
+            // (16,45): error CS0257: An __arglist parameter must be the last parameter in a parameter list
+            //     public static MyCollection<T> Create<T>(__arglist, ReadOnlySpan<T> items) => new(__arglist, items);
+            Diagnostic(ErrorCode.ERR_VarargsLast, "__arglist").WithLocation(16, 45),
+            // (16,86): error CS1503: Argument 1: cannot convert from 'System.RuntimeArgumentHandle' to 'System.ReadOnlySpan<T>'
+            //     public static MyCollection<T> Create<T>(__arglist, ReadOnlySpan<T> items) => new(__arglist, items);
+            Diagnostic(ErrorCode.ERR_BadArgType, "__arglist").WithArguments("1", "System.RuntimeArgumentHandle", "System.ReadOnlySpan<T>").WithLocation(16, 86),
+            // (16,97): error CS1503: Argument 2: cannot convert from 'ReadOnlySpan<T>' to '__arglist'
+            //     public static MyCollection<T> Create<T>(__arglist, ReadOnlySpan<T> items) => new(__arglist, items);
+            Diagnostic(ErrorCode.ERR_BadArgType, "items").WithArguments("2", "System.ReadOnlySpan<T>", "__arglist").WithLocation(16, 97));
+    }
 }
