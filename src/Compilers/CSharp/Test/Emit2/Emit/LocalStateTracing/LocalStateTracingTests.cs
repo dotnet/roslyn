@@ -191,13 +191,22 @@ namespace Microsoft.CodeAnalysis.Runtime
         };
 
         private CompilationVerifier CompileAndVerify(string source, string? ilVerifyMessage = null, string? expectedOutput = null, TargetFramework targetFramework = s_targetFramework)
-            => CompileAndVerify(
-                source,
-                options: (expectedOutput != null) ? TestOptions.UnsafeDebugExe : TestOptions.UnsafeDebugDll,
-                emitOptions: s_emitOptions,
-                verify: s_verification with { ILVerifyMessage = ilVerifyMessage + Environment.NewLine + s_verification.ILVerifyMessage },
-                targetFramework: targetFramework,
-                expectedOutput: expectedOutput);
+        {
+            string fullIlVerifyMessage = ilVerifyMessage + Environment.NewLine + s_verification.ILVerifyMessage;
+
+            if (targetFramework >= TargetFramework.Net90)
+            {
+                fullIlVerifyMessage += Environment.NewLine + "[InlineArrayAsReadOnlySpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x11 }";
+            }
+
+            return CompileAndVerify(
+                        source,
+                        options: (expectedOutput != null) ? TestOptions.UnsafeDebugExe : TestOptions.UnsafeDebugDll,
+                        emitOptions: s_emitOptions,
+                        verify: s_verification with { ILVerifyMessage = fullIlVerifyMessage },
+                        targetFramework: targetFramework,
+                        expectedOutput: expectedOutput);
+        }
 
         // Only used to diagnose test verification failures (rename CompileAndVerify to CompileAndVerifyFails and rerun).
         public CompilationVerifier CompileAndVerifyFails(string source, string? ilVerifyMessage = null, string? expectedOutput = null)
