@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> arguments = original.Arguments;
             MethodSymbol method = original.Method;
             bool adjustForExtensionBlockMethod = method.IsExtensionBlockMember() && !method.IsStatic;
-            ImmutableArray<RefKind> argumentRefKindsOpt = NullableWalker.GetArgumentRefKinds(original.ArgumentRefKindsOpt, adjustForExtensionBlockMethod, method, arguments.Length);
+            ImmutableArray<RefKind> argumentRefKindsOpt = NullableWalker.AdjustArgumentRefKindsIfNeeded(original.ArgumentRefKindsOpt, adjustForExtensionBlockMethod, method, arguments.Length);
 
             if (adjustForExtensionBlockMethod)
             {
