@@ -865,6 +865,50 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
     }
 
     [Theory]
+    [InlineData("ref ")]
+    [InlineData("")]
+    public void WithElement_RefReadonlyParameter(string modifier)
+    {
+        var source = $$"""
+            using System;
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public MyList(ref readonly int value) : base()
+                {
+                }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    int x = 10;
+                    MyList<int> list = [with({{modifier}}x)];
+                    Console.WriteLine(x);
+                }
+            }
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("10")).VerifyIL("C.Main", """
+            {
+              // Code size       18 (0x12)
+              .maxstack  1
+              .locals init (int V_0) //x
+              IL_0000:  ldc.i4.s   10
+              IL_0002:  stloc.0
+              IL_0003:  ldloca.s   V_0
+              IL_0005:  newobj     "MyList<int>..ctor(ref readonly int)"
+              IL_000a:  pop
+              IL_000b:  ldloc.0
+              IL_000c:  call       "void System.Console.WriteLine(int)"
+              IL_0011:  ret
+            }
+            """);
+    }
+
+    [Theory]
     [InlineData("in ")]
     [InlineData("")]
     public void WithElement_InParameters(string modifier)
