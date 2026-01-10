@@ -204,5 +204,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
+
+        public void TryGetUnionConversionParts(out BoundConversion? sourceConversion, out BoundConversion? constructor, out BoundConversion? final)
+        {
+            Debug.Assert(ConversionGroupOpt?.Conversion.IsUnion == true);
+
+            sourceConversion = null;
+            constructor = null;
+            final = null;
+
+            if (ConversionGroupOpt?.Conversion.IsUnion != true)
+            {
+                return;
+            }
+
+            BoundConversion? current = this;
+            if ((current.InConversionGroupFlags & InConversionGroupFlags.UnionFinal) != 0)
+            {
+                final = current;
+                current = current.Operand as BoundConversion;
+            }
+
+            if (current?.ConversionGroupOpt == ConversionGroupOpt && current.Conversion.IsUnion)
+            {
+                Debug.Assert(current.InConversionGroupFlags == InConversionGroupFlags.UnionConstructor);
+                constructor = current;
+                current = current.Operand as BoundConversion;
+            }
+
+            if (current?.ConversionGroupOpt == ConversionGroupOpt && (current.InConversionGroupFlags & InConversionGroupFlags.UnionSourceConversion) != 0)
+            {
+                sourceConversion = current;
+            }
+        }
     }
 }

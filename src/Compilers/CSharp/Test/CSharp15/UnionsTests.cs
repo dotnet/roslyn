@@ -7331,6 +7331,146 @@ class Program
             CompileAndVerify(comp, expectedOutput: "(int, object) {(10, )}").VerifyDiagnostics();
         }
 
+        [Fact]
+        public void UnionConversion_44_From_TupleLiteral()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1((int, object) x)
+    {
+        System.Console.Write(""(int, object) {"");
+        System.Console.Write(x);
+        System.Console.Write(""} "");
+        _value = x;
+    }
+    public S1(string x)
+    {
+        System.Console.Write(""string {"");
+        System.Console.Write(x);
+        System.Console.Write(""} "");
+        _value = x;
+    }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static S1 Test1()
+    {
+        return ((byte)10, null);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var tuple = GetSyntax<TupleExpressionSyntax>(tree, "((byte)10, null)");
+
+            var symbolInfo = model.GetSymbolInfo(tuple);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+
+            var typeInfo = model.GetTypeInfo(tuple);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("S1", typeInfo.ConvertedType.ToTestDisplayString());
+
+            Conversion conversion = model.GetConversion(tuple);
+            Assert.Equal(ConversionKind.Union, conversion.Kind);
+            Assert.Equal(LookupResultKind.Viable, conversion.ResultKind);
+            Assert.True(conversion.IsUnion);
+            AssertEx.Equal("S1..ctor((System.Int32, System.Object) x)", conversion.Method.ToTestDisplayString());
+            AssertEx.Equal("S1..ctor((System.Int32, System.Object) x)", conversion.MethodSymbol.ToTestDisplayString());
+
+            CommonConversion commonConversion = conversion.ToCommonConversion();
+
+            Assert.True(commonConversion.Exists);
+            Assert.True(commonConversion.IsImplicit);
+            Assert.True(commonConversion.IsUnion);
+            Assert.False(commonConversion.IsUserDefined);
+            AssertEx.Equal("S1..ctor((System.Int32, System.Object) x)", commonConversion.MethodSymbol.ToTestDisplayString());
+
+            CompileAndVerify(comp, expectedOutput: "(int, object) {(10, )}").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionConversion_45_From_TupleLiteral_ToNullableOfUnion()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1((int, object) x)
+    {
+        System.Console.Write(""(int, object) {"");
+        System.Console.Write(x);
+        System.Console.Write(""} "");
+        _value = x;
+    }
+    public S1(string x)
+    {
+        System.Console.Write(""string {"");
+        System.Console.Write(x);
+        System.Console.Write(""} "");
+        _value = x;
+    }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static S1? Test1()
+    {
+        return ((byte)10, null);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var tuple = GetSyntax<TupleExpressionSyntax>(tree, "((byte)10, null)");
+
+            var symbolInfo = model.GetSymbolInfo(tuple);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+
+            var typeInfo = model.GetTypeInfo(tuple);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("S1?", typeInfo.ConvertedType.ToTestDisplayString());
+
+            Conversion conversion = model.GetConversion(tuple);
+            Assert.Equal(ConversionKind.Union, conversion.Kind);
+            Assert.Equal(LookupResultKind.Viable, conversion.ResultKind);
+            Assert.True(conversion.IsUnion);
+            AssertEx.Equal("S1..ctor((System.Int32, System.Object) x)", conversion.Method.ToTestDisplayString());
+            AssertEx.Equal("S1..ctor((System.Int32, System.Object) x)", conversion.MethodSymbol.ToTestDisplayString());
+
+            CommonConversion commonConversion = conversion.ToCommonConversion();
+
+            Assert.True(commonConversion.Exists);
+            Assert.True(commonConversion.IsImplicit);
+            Assert.True(commonConversion.IsUnion);
+            Assert.False(commonConversion.IsUserDefined);
+            AssertEx.Equal("S1..ctor((System.Int32, System.Object) x)", commonConversion.MethodSymbol.ToTestDisplayString());
+
+            CompileAndVerify(comp, expectedOutput: "(int, object) {(10, )}").VerifyDiagnostics();
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
         public void UserDefinedCast_RefStruct_Explicit()
         {

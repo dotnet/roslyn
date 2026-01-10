@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                Debug.Assert(false); // Getting here is unexpected.
+                Debug.Fail("Getting here is unexpected.");
                 return false;
             }
         }
@@ -694,7 +694,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                Debug.Assert(false); // Getting here is unexpected.
+                Debug.Fail("Getting here is unexpected.");
                 return false;
             }
         }

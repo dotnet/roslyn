@@ -463,9 +463,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             possiblyUserDefined = possiblyUserDefined.Operand as BoundConversion;
                         }
 
-                        Debug.Assert(possiblyUserDefined is null || possiblyUserDefined.Conversion.IsUserDefined);
                         if (possiblyUserDefined is not null)
                         {
+                            Debug.Assert(possiblyUserDefined.Conversion.IsUserDefined);
                             var operand = possiblyUserDefined.Operand;
 
                             while (operand is BoundConversion operandAsConversion && operandAsConversion.ConversionGroupOpt == conversionGroupOpt)
@@ -490,9 +490,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             possiblyUnion = possiblyUnion.Operand as BoundConversion;
                         }
 
-                        Debug.Assert(possiblyUnion is null || possiblyUnion.Conversion.IsUnion);
                         if (possiblyUnion is not null)
                         {
+                            Debug.Assert(possiblyUnion.Conversion.IsUnion);
                             var operand = possiblyUnion.Operand;
 
                             while (operand is BoundConversion operandAsConversion && operandAsConversion.ConversionGroupOpt == conversionGroupOpt)

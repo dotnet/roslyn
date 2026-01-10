@@ -10336,30 +10336,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversionOpt is { ConversionGroupOpt.Conversion.IsUnion: true })
             {
-                BoundConversion? current = conversionOpt;
-
-                do
-                {
-                    if (current.Conversion.IsUnion)
-                    {
-                        Debug.Assert(current.InConversionGroupFlags == InConversionGroupFlags.UnionConstructor);
-                        unionConstructionConversion = current;
-                    }
-                    else if ((current.InConversionGroupFlags & InConversionGroupFlags.UnionSourceConversion) != 0)
-                    {
-                        sourceToParameterConversion = current;
-                        break;
-                    }
-                    else
-                    {
-                        Debug.Assert(current.InConversionGroupFlags == InConversionGroupFlags.UnionFinal);
-                        Debug.Assert(current == conversionOpt);
-                    }
-
-                    current = current.Operand as BoundConversion;
-                }
-                while (current?.ConversionGroupOpt == conversionOpt.ConversionGroupOpt);
-
+                conversionOpt.TryGetUnionConversionParts(out sourceToParameterConversion, out unionConstructionConversion, out _);
                 Debug.Assert(unionConstructionConversion is not null, "Unexpected conversion group structure for union conversion.");
                 Debug.Assert(sourceToParameterConversion is not null || analysis.SourceConversion.IsIdentity);
             }

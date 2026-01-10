@@ -83,16 +83,49 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool filterConversion(Conversion conversion, BoundExpression result)
             {
-                return !conversion.IsInterpolatedString &&
-                       !conversion.IsInterpolatedStringHandler &&
-                       !conversion.IsSwitchExpression &&
-                       !conversion.IsCollectionExpression &&
-                       !(conversion.IsTupleLiteralConversion || (conversion.IsNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion)) &&
-                       (!conversion.IsUserDefined || filterConversion(conversion.UserDefinedFromConversion, result)) &&
-                       (!conversion.IsUnion || filterConversion(conversion.BestUnionConversionAnalysis.SourceConversion, result)) &&
-                       ((result as BoundConversion)?.ConversionGroupOpt?.Conversion.IsUnion != true ||
-                         conversion.IsUnion ||
-                         conversion == ((BoundConversion)result).ConversionGroupOpt!.Conversion.BestUnionConversionAnalysis!.SourceConversion);
+                if (conversion.IsInterpolatedString)
+                {
+                    return false;
+                }
+
+                if (conversion.IsInterpolatedStringHandler)
+                {
+                    return false;
+                }
+
+                if (conversion.IsSwitchExpression)
+                {
+                    return false;
+                }
+
+                if (conversion.IsCollectionExpression)
+                {
+                    return false;
+                }
+
+                if ((conversion.IsTupleLiteralConversion || (conversion.IsNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion)))
+                {
+                    return false;
+                }
+
+                if (conversion.IsUserDefined && !filterConversion(conversion.UserDefinedFromConversion, result))
+                {
+                    return false;
+                }
+
+                if (conversion.IsUnion && !filterConversion(conversion.BestUnionConversionAnalysis.SourceConversion, result))
+                {
+                    return false;
+                }
+
+                if ((result as BoundConversion)?.ConversionGroupOpt?.Conversion.IsUnion == true &&
+                    !conversion.IsUnion &&
+                    conversion != ((BoundConversion)result).ConversionGroupOpt!.Conversion.BestUnionConversionAnalysis!.SourceConversion)
+                {
+                    return false;
+                }
+
+                return true;
             }
 #endif
 

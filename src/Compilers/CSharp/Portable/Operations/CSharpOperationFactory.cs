@@ -1026,46 +1026,11 @@ namespace Microsoft.CodeAnalysis.Operations
             else if (boundConversion.ConversionGroupOpt?.Conversion.IsUnion == true &&
                 (boundConversion.InConversionGroupFlags & InConversionGroupFlags.UnionSourceConversion) == 0)
             {
-                // PROTOTYPE: Consider extracting a common helper that takes union conversion tree apart.
-                BoundConversion? unionConversion;
-
-                if (boundConversion.Conversion.IsUnion)
-                {
-                    unionConversion = boundConversion;
-                }
-                else if (boundOperand is BoundConversion { Conversion.IsUnion: true } next &&
-                         boundConversion.ConversionGroupOpt == next.ConversionGroupOpt)
-                {
-                    unionConversion = next;
-                }
-                else
-                {
-                    unionConversion = null;
-                }
+                boundConversion.TryGetUnionConversionParts(out BoundConversion? sourceConversion, out BoundConversion? unionConversion, out _);
 
                 if (unionConversion is not null)
                 {
-                    isImplicit = !unionConversion.ExplicitCastInCode;
-
-                    if (!isImplicit)
-                    {
-                        BoundExpression ultimateOperand;
-
-                        if (unionConversion.Operand is BoundConversion next && boundConversion.ConversionGroupOpt == next.ConversionGroupOpt)
-                        {
-                            Debug.Assert((next.InConversionGroupFlags & InConversionGroupFlags.UnionSourceConversion) != 0);
-                            ultimateOperand = next.Operand;
-                        }
-                        else
-                        {
-                            ultimateOperand = unionConversion.Operand;
-                        }
-
-                        if (boundConversion.Syntax == ultimateOperand.Syntax)
-                        {
-                            isImplicit = true;
-                        }
-                    }
+                    isImplicit = !unionConversion.ExplicitCastInCode || boundConversion.Syntax == (sourceConversion ?? unionConversion).Operand.Syntax;
                 }
                 else
                 {
