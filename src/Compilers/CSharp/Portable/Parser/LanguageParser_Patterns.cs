@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             bool looksLikeCast()
             {
                 using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
-                return this.ScanCast(forPattern: true);
+                return this.ScanCast(forPattern: true, inSwitchArmPattern);
             }
         }
 
@@ -404,14 +404,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 : null;
         }
 
-        private bool IsValidPatternDesignation(bool whenIsKeyword)
+        private bool IsValidPatternDesignation(bool inSwitchArmPattern)
         {
             if (CurrentToken.Kind == SyntaxKind.IdentifierToken)
             {
                 switch (CurrentToken.ContextualKind)
                 {
                     case SyntaxKind.WhenKeyword:
-                        return !whenIsKeyword;
+                        // When directly in a switch arm, we *always* treat 'when' as a keyword starting the 'when
+                        // clause'.  In other patterns, we allow 'when' to be a normal designator.
+                        return !inSwitchArmPattern;
                     case SyntaxKind.AndKeyword:
                     case SyntaxKind.OrKeyword:
                         var tk = PeekToken(1).Kind;
