@@ -465,7 +465,13 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Copy a range of characters from this SourceText to a destination array.
         /// </summary>
+        [Obsolete("Use CopyTo with Span<char> destination instead.")]
         public abstract void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count);
+
+        /// <summary>
+        /// Copy a range of characters from this SourceText to a destination span.
+        /// </summary>
+        public abstract void CopyTo(int sourceIndex, Span<char> destination, int count);
 
         /// <summary>
         /// The container of this <see cref="SourceText"/>.
@@ -560,7 +566,7 @@ namespace Microsoft.CodeAnalysis.Text
                     cancellationToken.ThrowIfCancellationRequested();
 
                     int count = Math.Min(buffer.Length, end - offset);
-                    this.CopyTo(offset, buffer, 0, count);
+                    this.CopyTo(offset, buffer, count);
                     writer.Write(buffer, 0, count);
                     offset += count;
                 }
@@ -640,7 +646,7 @@ namespace Microsoft.CodeAnalysis.Text
                         var charsToCopy = Math.Min(CharBufferSize, length - index);
                         this.CopyTo(
                             sourceIndex: index, destination: charBuffer,
-                            destinationIndex: 0, count: charsToCopy);
+                            count: charsToCopy);
 
                         var charSpan = charBuffer.AsSpan(0, charsToCopy);
 
@@ -721,46 +727,31 @@ namespace Microsoft.CodeAnalysis.Text
             CheckSubSpan(span);
 
             // default implementation constructs text using CopyTo
-            var tempBuffer = s_charArrayPool.Allocate();
-            string result;
-
-            int position = Math.Max(Math.Min(span.Start, this.Length), 0);
+            int position = Math.Min(span.Start, this.Length);
             int length = Math.Min(span.End, this.Length) - position;
 
 #if NET
-            result = string.Create(length, (this, position, length, tempBuffer), static (buffer, arg) =>
+            return string.Create(length, (this, position, length), static (buffer, arg) =>
             {
-                var (sourceText, position, length, tempBuffer) = arg;
+                var (sourceText, position, length) = arg;
 
-                while (buffer.Length > 0)
-                {
-                    int copyLength = Math.Min(tempBuffer.Length, length);
-                    sourceText.CopyTo(position, tempBuffer, 0, copyLength);
-                    tempBuffer.AsSpan(0, copyLength).CopyTo(buffer);
-
-                    buffer = buffer[copyLength..];
-                    length -= copyLength;
-                    position += copyLength;
-                }
+                sourceText.CopyTo(position, buffer, length);
             });
 #else
-            var builder = PooledStringBuilder.GetInstance();
-            builder.Builder.EnsureCapacity(length);
+            var usePooledArray = length <= CharBufferSize;
+            var buffer = usePooledArray ? s_charArrayPool.Allocate() : new char[length];
 
-            while (position < this.Length && length > 0)
+            this.CopyTo(position, buffer, length);
+
+            var result = new string(buffer, 0, length);
+
+            if (usePooledArray)
             {
-                int copyLength = Math.Min(tempBuffer.Length, length);
-                this.CopyTo(position, tempBuffer, 0, copyLength);
-                builder.Builder.Append(tempBuffer, 0, copyLength);
-                length -= copyLength;
-                position += copyLength;
+                s_charArrayPool.Free(buffer);
             }
 
-            result = builder.ToStringAndFree();
-#endif
-
-            s_charArrayPool.Free(tempBuffer);
             return result;
+#endif
         }
 
         #region Changes
@@ -1072,7 +1063,7 @@ namespace Microsoft.CodeAnalysis.Text
             while (position < length)
             {
                 var contentLength = Math.Min(length - position, buffer.Length);
-                this.CopyTo(position, buffer, 0, contentLength);
+                this.CopyTo(position, buffer, contentLength);
                 action(position, buffer, contentLength);
                 position += contentLength;
             }
@@ -1215,8 +1206,8 @@ namespace Microsoft.CodeAnalysis.Text
                 for (int position = 0, length = this.Length; position < length; position += CharBufferSize)
                 {
                     var count = Math.Min(this.Length - position, CharBufferSize);
-                    this.CopyTo(sourceIndex: position, buffer1, destinationIndex: 0, count);
-                    other.CopyTo(sourceIndex: position, buffer2, destinationIndex: 0, count);
+                    this.CopyTo(sourceIndex: position, buffer1, count);
+                    other.CopyTo(sourceIndex: position, buffer2, count);
 
                     if (!buffer1.AsSpan(0, count).SequenceEqual(buffer2.AsSpan(0, count)))
                         return false;
