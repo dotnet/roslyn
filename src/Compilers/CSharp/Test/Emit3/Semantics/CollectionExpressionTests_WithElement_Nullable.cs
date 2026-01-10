@@ -201,7 +201,14 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             }
             """;
 
-        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("1")).VerifyDiagnostics();
+        var verifier = CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("1")).VerifyDiagnostics();
+
+        var compilation = verifier.Compilation;
+        var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees.Last());
+
+        var invocation = compilation.SyntaxTrees.Last().GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+        var symbolInfo = semanticModel.GetSymbolInfo(invocation);
+        AssertEx.Equal("void C.Goo<System.String!>(MyList<System.String!>! list)", symbolInfo.Symbol.ToTestDisplayString(true));
     }
 
     [Fact]
@@ -579,7 +586,8 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
 
         var invocation = compilation.SyntaxTrees.Last().GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
         var symbolInfo = semanticModel.GetSymbolInfo(invocation);
-        AssertEx.Equal("void Program.Goo<System.String!>(MyCollection<System.String!>! list)", symbolInfo.Symbol.ToTestDisplayString(true));
+        AssertEx.Equal("void Program.Goo<System.String!>(MyCollection<System.String!>!" +
+            " list)", symbolInfo.Symbol.ToTestDisplayString(true));
     }
 
     [Fact]
