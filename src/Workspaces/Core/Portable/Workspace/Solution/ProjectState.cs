@@ -45,6 +45,8 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
     /// </summary>
     public readonly TextDocumentStates<AnalyzerConfigDocumentState> AnalyzerConfigDocumentStates;
 
+    public readonly SolutionCompilationState.GeneratorDriverInitializationCache GeneratorDriverCache;
+
     private readonly AsyncLazy<VersionStamp> _lazyLatestDocumentVersion;
     private readonly AsyncLazy<VersionStamp> _lazyLatestDocumentTopLevelChangeVersion;
 
@@ -61,7 +63,8 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
         TextDocumentStates<AnalyzerConfigDocumentState> analyzerConfigDocumentStates,
         AsyncLazy<VersionStamp> lazyLatestDocumentVersion,
         AsyncLazy<VersionStamp> lazyLatestDocumentTopLevelChangeVersion,
-        AnalyzerConfigOptionsCache analyzerConfigOptionsCache)
+        AnalyzerConfigOptionsCache analyzerConfigOptionsCache,
+        SolutionCompilationState.GeneratorDriverInitializationCache generatorDriverCache)
     {
         LanguageServices = languageServices;
         DocumentStates = documentStates;
@@ -70,6 +73,7 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
         _lazyLatestDocumentVersion = lazyLatestDocumentVersion;
         _lazyLatestDocumentTopLevelChangeVersion = lazyLatestDocumentTopLevelChangeVersion;
         _analyzerConfigOptionsCache = analyzerConfigOptionsCache;
+        GeneratorDriverCache = generatorDriverCache;
 
         // ownership of information on document has moved to project state. clear out documentInfo the state is
         // holding on. otherwise, these information will be held onto unnecessarily by projectInfo even after
@@ -113,6 +117,8 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
         // the info has changed by DocumentState.
         // we hold onto the info so that we don't need to duplicate all information info already has in the state
         ProjectInfo = ClearAllDocumentsFromProjectInfo(projectInfoFixed);
+
+        GeneratorDriverCache = new();
     }
 
     public TextDocumentStates<TDocumentState> GetDocumentStates<TDocumentState>()
@@ -712,7 +718,8 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
             analyzerConfigDocumentStates ?? AnalyzerConfigDocumentStates,
             latestDocumentVersion ?? _lazyLatestDocumentVersion,
             latestDocumentTopLevelChangeVersion ?? _lazyLatestDocumentTopLevelChangeVersion,
-            analyzerConfigOptionsCache ?? _analyzerConfigOptionsCache);
+            analyzerConfigOptionsCache ?? _analyzerConfigOptionsCache,
+            GeneratorDriverCache);
     }
 
     internal ProjectInfo.ProjectAttributes Attributes
