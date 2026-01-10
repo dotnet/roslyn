@@ -8282,7 +8282,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
     }
 
     [Fact]
-    public void InterpolatedStringHandler()
+    public void InterpolatedStringHandler_Constructor()
     {
         var code = """
             using System;
@@ -8354,6 +8354,101 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                   IL_0026:  newobj     "C..ctor(int, string, CustomHandler)"
                   IL_002b:  pop
                   IL_002c:  ret
+                }
+                """);
+    }
+
+    [Fact]
+    public void InterpolatedStringHandler_CollectionBuilder()
+    {
+        var code = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Collections.Generic;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection(
+                    int i, string s, CustomHandler c,
+                    ReadOnlySpan<T> items)
+                {
+                    Console.WriteLine(c);
+
+                    foreach (var item in items)
+                        this.Add(item);
+                }
+            }
+
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(int i, string s, [InterpolatedStringHandlerArgumentAttribute("i", "s")] CustomHandler c, ReadOnlySpan<T> items) => new(i, s, c, items);
+            }
+
+            public partial struct CustomHandler
+            {
+                public CustomHandler(int literalLength, int formattedCount, int i, string s) : this(literalLength, formattedCount)
+                {
+                    _builder.AppendLine("i:" + i.ToString());
+                    _builder.AppendLine("s:" + s);
+                }
+            }
+            """;
+
+        var executableCode = """
+            class Program
+            {
+                static void Main()
+                {
+                    int i = 10;
+                    string s = "arg";
+                    MyCollection<string> c = [with(i, s, $"" + $"literal"), "goo"];
+                }
+            }
+            """;
+
+        var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+
+        CompileAndVerify([code, executableCode, handler], targetFramework: TargetFramework.Net90)
+            .VerifyDiagnostics(
+                // (4,34): warning CS0436: The type 'InterpolatedStringHandlerAttribute' in '' conflicts with the imported type 'InterpolatedStringHandlerAttribute' in 'System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
+                // [System.Runtime.CompilerServices.InterpolatedStringHandler]
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "InterpolatedStringHandler").WithArguments("", "System.Runtime.CompilerServices.InterpolatedStringHandlerAttribute", "System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Runtime.CompilerServices.InterpolatedStringHandlerAttribute").WithLocation(4, 34))
+            .VerifyIL("Program.Main", """
+                {
+                  // Code size       59 (0x3b)
+                  .maxstack  7
+                  .locals init (string V_0, //s
+                                string V_1,
+                                int V_2,
+                                string V_3,
+                                CustomHandler V_4)
+                  IL_0000:  ldc.i4.s   10
+                  IL_0002:  ldstr      "arg"
+                  IL_0007:  stloc.0
+                  IL_0008:  stloc.2
+                  IL_0009:  ldloc.2
+                  IL_000a:  ldloc.0
+                  IL_000b:  stloc.3
+                  IL_000c:  ldloc.3
+                  IL_000d:  ldloca.s   V_4
+                  IL_000f:  ldc.i4.7
+                  IL_0010:  ldc.i4.0
+                  IL_0011:  ldloc.2
+                  IL_0012:  ldloc.3
+                  IL_0013:  call       "CustomHandler..ctor(int, int, int, string)"
+                  IL_0018:  ldloca.s   V_4
+                  IL_001a:  ldstr      "literal"
+                  IL_001f:  call       "bool CustomHandler.AppendLiteral(string)"
+                  IL_0024:  pop
+                  IL_0025:  ldloc.s    V_4
+                  IL_0027:  ldstr      "goo"
+                  IL_002c:  stloc.1
+                  IL_002d:  ldloca.s   V_1
+                  IL_002f:  newobj     "System.ReadOnlySpan<string>..ctor(ref readonly string)"
+                  IL_0034:  call       "MyCollection<string> MyBuilder.Create<string>(int, string, CustomHandler, System.ReadOnlySpan<string>)"
+                  IL_0039:  pop
+                  IL_003a:  ret
                 }
                 """);
     }
