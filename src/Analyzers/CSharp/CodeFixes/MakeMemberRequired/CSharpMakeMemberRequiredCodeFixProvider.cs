@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -6,8 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -31,23 +33,12 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider() : SyntaxEditorBa
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var document = context.Document;
-        var span = context.Span;
         var cancellationToken = context.CancellationToken;
 
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         // Required members are available in C# 11 or higher
         if (root.GetLanguageVersion() < LanguageVersion.CSharp11)
-            return;
-
-        var node = root.FindNode(span);
-
-        // Supported cases:
-        // public string [|MyProperty|] { get; set; }
-        // public string [|_myField|];
-        // public string [|_myField1|], [|_myField2|];
-        // public [|C|]() { } // node is ConstructorDeclarationSyntax
-        if (node is not (PropertyDeclarationSyntax or VariableDeclaratorSyntax { Parent.Parent: FieldDeclarationSyntax } or ConstructorDeclarationSyntax))
             return;
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -58,149 +49,145 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider() : SyntaxEditorBa
             return;
         }
 
-        foreach (var diagnostic in context.Diagnostics)
+        // To ensure deterministic order (source order of members), we find all CS8618 diagnostics at this span.
+        var allDiagnosticsAtLocation = semanticModel.GetDiagnostics(context.Span, cancellationToken)
+                                                    .Where(d => d.Id == CS8618)
+                                                    .ToImmutableArray();
+
+        if (allDiagnosticsAtLocation.Length == 0) return;
+
+        var diagnosticsAndInfo = new List<(Diagnostic diagnostic, SyntaxNode node, string title, string equivalenceKey)>();
+        foreach (var diagnostic in allDiagnosticsAtLocation)
         {
-            var fieldOrPropertySymbol = node is ConstructorDeclarationSyntax
-                ? GetSymbolFromAdditionalLocation(diagnostic, root, semanticModel, cancellationToken)
-                : semanticModel.GetDeclaredSymbol(node, cancellationToken);
+            var memberNode = GetMemberNode(diagnostic, root);
+            if (memberNode == null) continue;
 
-            if (fieldOrPropertySymbol is null || fieldOrPropertySymbol.IsStatic || fieldOrPropertySymbol.Kind == SymbolKind.Event)
-                continue;
-
-            switch (fieldOrPropertySymbol)
-            {
-                case IPropertySymbol { IsOverride: true } propertySymbol when !IsBaseRequired(propertySymbol):
-                    continue;
-                case IPropertySymbol propertySymbol:
-                    {
-                        var setMethod = propertySymbol.SetMethod;
-
-                        // Property must have a `set` or `init` accessor in order to be able to be required
-                        if (setMethod is null)
-                            continue;
-
-                        var containingTypeVisibility = propertySymbol.ContainingType.GetResultantVisibility();
-                        var minimalAccessibility = (Accessibility)Math.Min((int)propertySymbol.DeclaredAccessibility, (int)setMethod.DeclaredAccessibility);
-
-                        if (!CanBeAccessed(containingTypeVisibility, minimalAccessibility))
-                            continue;
-
-                        RegisterCodeFix(context, CSharpCodeFixesResources.Make_property_required, nameof(CSharpCodeFixesResources.Make_property_required));
-                        break;
-                    }
-                case IFieldSymbol { IsReadOnly: true }:
-                    continue;
-                case IFieldSymbol fieldSymbol:
-                    {
-                        var containingTypeVisibility = fieldSymbol.ContainingType.GetResultantVisibility();
-                        var accessibility = fieldSymbol.DeclaredAccessibility;
-
-                        if (!CanBeAccessed(containingTypeVisibility, accessibility))
-                            continue;
-
-                        RegisterCodeFix(context, CSharpCodeFixesResources.Make_field_required, nameof(CSharpCodeFixesResources.Make_field_required));
-                        break;
-                    }
-            }
+            var symbol = semanticModel.GetDeclaredSymbol(memberNode, cancellationToken);
+            if (IsFixableSymbol(symbol, out var title, out var equivalenceKey))
+                diagnosticsAndInfo.Add((diagnostic, memberNode, title, equivalenceKey));
         }
 
-        return;
+        if (diagnosticsAndInfo.Count == 0) return;
 
-        static ISymbol? GetSymbolFromAdditionalLocation(Diagnostic diagnostic, SyntaxNode root, SemanticModel semanticModel, CancellationToken cancellationToken)
+        // Sort by the member's source position.
+        diagnosticsAndInfo.Sort((d1, d2) => d1.node.SpanStart.CompareTo(d2.node.SpanStart));
+
+        var firstNode = diagnosticsAndInfo[0].node;
+        if (!context.Diagnostics.Any(d => GetMemberNode(d, root) == firstNode))
+            return;
+
+        foreach (var (diagnostic, _, title, equivalenceKey) in diagnosticsAndInfo)
         {
-            if (diagnostic.AdditionalLocations.Count <= 0)
-                return null;
-            var location = diagnostic.AdditionalLocations[0];
-            if (location.SourceTree != root.SyntaxTree)
-                return null;
-            var memberNode = root.FindNode(location.SourceSpan);
-            return semanticModel.GetDeclaredSymbol(memberNode, cancellationToken);
+            context.RegisterCodeFix(
+                CodeAction.Create(
+                    title,
+                    GetDocumentUpdater(context, diagnostic),
+                    equivalenceKey),
+                allDiagnosticsAtLocation);
         }
-
-        static bool IsBaseRequired(IPropertySymbol property)
-        {
-            var overridden = property.OverriddenProperty;
-            while (overridden != null)
-            {
-                if (overridden.IsRequired)
-                    return true;
-                overridden = overridden.OverriddenProperty;
-            }
-            return false;
-        }
-
-        // The `required` modifier cannot be used if a member is not accessible from outside of type.
-        // For instance, having private required property in a public class leads to compiler error.
-        // This function checks whether the member can be accessed by checking containing type visibility (which is computed already taking into account whether the type is nested and what is its visibility based on that fact)
-        // against accessibility of member we are trying to make required
-        static bool CanBeAccessed(SymbolVisibility containingTypeVisibility, Accessibility accessibility) => containingTypeVisibility switch
-        {
-            // Public is the highest accessibility. So in order to be accessible outside, member accessibility must be only public
-            SymbolVisibility.Public => accessibility is Accessibility.Public,
-            // In order to be accessible from an internal type, a member must have internal accessibility or higher
-            SymbolVisibility.Internal => accessibility is >= Accessibility.Internal,
-            // Private containing type visibility means it is nested in some other type.
-            // In such case member must be accessible to the outer type of containing one.
-            // This is possible with internal accessibility or higher
-            SymbolVisibility.Private => accessibility is >= Accessibility.Internal,
-            _ => throw ExceptionUtilities.Unreachable(),
-        };
     }
+
+    protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, string? equivalenceKey, CancellationToken cancellationToken)
+        => equivalenceKey == nameof(CSharpMakeMemberRequiredCodeFixProvider);
+
+    static bool IsFixableSymbol(ISymbol? symbol, out string title, out string equivalenceKey)
+    {
+        title = "";
+        equivalenceKey = nameof(CSharpMakeMemberRequiredCodeFixProvider);
+        if (symbol == null || symbol.IsStatic || symbol.Kind == SymbolKind.Event) return false;
+
+        if (symbol is IPropertySymbol propertySymbol)
+        {
+            if (propertySymbol.IsOverride && !IsBaseRequired(propertySymbol)) return false;
+            if (propertySymbol.SetMethod == null) return false;
+            var visibility = propertySymbol.ContainingType.GetResultantVisibility();
+            var setMethodAccessibility = propertySymbol.SetMethod?.DeclaredAccessibility ?? Accessibility.NotApplicable;
+            var accessibility = (Accessibility)Math.Min((int)propertySymbol.DeclaredAccessibility, (int)setMethodAccessibility);
+            if (!CanBeAccessed(visibility, accessibility)) return false;
+
+            title = CSharpCodeFixesResources.Make_property_required;
+            return true;
+        }
+        
+        if (symbol is IFieldSymbol fieldSymbol)
+        {
+            if (fieldSymbol.IsReadOnly) return false;
+            var visibility = fieldSymbol.ContainingType.GetResultantVisibility();
+            if (!CanBeAccessed(visibility, fieldSymbol.DeclaredAccessibility)) return false;
+
+            title = CSharpCodeFixesResources.Make_field_required;
+            return true;
+        }
+
+        return false;
+    }
+
+    static bool IsBaseRequired(IPropertySymbol property)
+    {
+        var overridden = property.OverriddenProperty;
+        while (overridden != null)
+        {
+            if (overridden.IsRequired) return true;
+            overridden = overridden.OverriddenProperty;
+        }
+        return false;
+    }
+
+    // The `required` modifier cannot be used if a member is not accessible from outside of type.
+    // For instance, having private required property in a public class leads to compiler error.
+    // This function checks whether the member can be accessed by checking containing type visibility (which is computed already taking into account whether the type is nested and what is its visibility based on that fact)
+    // against accessibility of member we are trying to make required
+    static bool CanBeAccessed(SymbolVisibility containingTypeVisibility, Accessibility accessibility) => containingTypeVisibility switch
+    {
+        // Public is the highest accessibility. So in order to be accessible outside, member accessibility must be only public
+        SymbolVisibility.Public => accessibility is Accessibility.Public,
+        // In order to be accessible from an internal type, a member must have internal accessibility or higher
+        SymbolVisibility.Internal => accessibility is >= Accessibility.Internal,
+        // Private containing type visibility means it is nested in some other type.
+        // In such case member must be accessible to the outer type of containing one.
+        // This is possible with internal accessibility or higher
+        SymbolVisibility.Private => accessibility is >= Accessibility.Internal,
+        _ => false,
+    };
 
     protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var root = editor.OriginalRoot;
         var generator = editor.Generator;
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var visitedFieldDeclarations = new HashSet<FieldDeclarationSyntax>();
 
         foreach (var diagnostic in diagnostics)
         {
-            var node = root.FindNode(diagnostic.Location.SourceSpan);
-            var memberDeclarator = node;
+            var memberNode = GetMemberNode(diagnostic, root);
+            if (memberNode == null)
+                continue;
 
-            if (node is ConstructorDeclarationSyntax)
-            {
-                memberDeclarator = null;
-                // Find the member node to apply the fix to from additional locations
-                if (diagnostic.AdditionalLocations.Count > 0)
-                {
-                    var location = diagnostic.AdditionalLocations[0];
-                    if (location.SourceTree == root.SyntaxTree)
-                        memberDeclarator = root.FindNode(location.SourceSpan);
-                }
-            }
+            var symbol = semanticModel.GetDeclaredSymbol(memberNode, cancellationToken);
+            if (!IsFixableSymbol(symbol, out _, out _)) continue;
 
-            switch (memberDeclarator)
-            {
-                case null:
-                    continue;
-                // If we are fixing field, do not apply new declaration modifiers just to variable declarator, but to the whole field declaration.
-                // This is observable when there are several variables in single field declaration:
-                // `public string _myField, _myField1;` -> `public required string _myField, _myField1;`
-                // Without this branch the result would be:
-                // ```
-                // public required string _myField;
-                // public required string _myField2;
-                // ```
-                case VariableDeclaratorSyntax { Parent.Parent: FieldDeclarationSyntax fieldDecl }:
-                    memberDeclarator = fieldDecl;
-                    break;
-            }
+            if (memberNode is VariableDeclaratorSyntax { Parent.Parent: FieldDeclarationSyntax fieldDecl })
+                memberNode = fieldDecl;
 
-            if (memberDeclarator is FieldDeclarationSyntax fieldDeclaration)
+            if (memberNode is FieldDeclarationSyntax fieldDeclaration)
             {
-                // Skip field declarations we already visited to not try changing the same declaration twice.
-                // Otherwise we get an exception in fix-all scenario like this:
-                // `public string _myField, _myField1`
-                // Here when visiting diagnostic for `_myField1` we already changed this field declaration.
-                // Trying to change it again throws in `SyntaxEditor` later, because it cannot find the node.
                 if (!visitedFieldDeclarations.Add(fieldDeclaration))
                     continue;
             }
 
-            var declarationModifiers = generator.GetModifiers(memberDeclarator);
+            if (memberNode is not (PropertyDeclarationSyntax or FieldDeclarationSyntax))
+                continue;
+
+            var declarationModifiers = generator.GetModifiers(memberNode);
             var newDeclarationModifiers = declarationModifiers.WithIsRequired(true);
-            editor.ReplaceNode(memberDeclarator, generator.WithModifiers(memberDeclarator, newDeclarationModifiers));
+            editor.ReplaceNode(memberNode, generator.WithModifiers(memberNode, newDeclarationModifiers));
         }
+    }
+
+    private static SyntaxNode? GetMemberNode(Diagnostic diagnostic, SyntaxNode root)
+    {
+        var location = diagnostic.AdditionalLocations.Count > 0 ? diagnostic.AdditionalLocations[0] : diagnostic.Location;
+        var node = root.FindNode(location.SourceSpan, getInnermostNodeForTie: true);
+        return node.FirstAncestorOrSelf<SyntaxNode>(n => n is PropertyDeclarationSyntax or VariableDeclaratorSyntax);
     }
 }

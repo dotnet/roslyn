@@ -917,6 +917,23 @@ public sealed class MakeMemberRequiredTests
                     public C() { }
                 }
                 """,
+            BatchFixedCode = """
+                #nullable enable
+                public class C
+                {
+                    public required string Prop { get; set; }
+                    public required string Field;
+                    public C() { }
+                }
+                """,
+            FixedState =
+            {
+                ExpectedDiagnostics =
+                {
+                    // CS8618 remains on the property because we only applied the fix for the field
+                    DiagnosticResult.CompilerError("CS8618").WithSpan(6, 12, 6, 13).WithSpan(4, 19, 4, 23).WithArguments("property", "Prop", "Consider adding the 'required' modifier or declaring"),
+                }
+            },
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
