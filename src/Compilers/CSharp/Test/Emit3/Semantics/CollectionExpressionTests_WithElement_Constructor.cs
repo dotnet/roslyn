@@ -2971,5 +2971,52 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
+    [Fact]
+    public void Constructor_UseSiteError_Method()
+    {
+        // public sealed class MyCollection<T> : IEnumerable<T>
+        // {
+        //     [CompilerFeatureRequired("MyFeature")]
+        //     public MyCollection() { }
+        //     public IEnumerator<T> GetEnumerator() { }
+        // }
+        string sourceA = """
+                .assembly extern System.Runtime { .ver 8:0:0:0 .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A) }
+
+                .class public sealed MyCollection`1<T>
+                    implements class [System.Runtime]System.Collections.Generic.IEnumerable`1<!T>,
+                                     [System.Runtime]System.Collections.IEnumerable
+                {
+                  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+                  {
+                    .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = { string('MyFeature') }
+                    ret
+                  }
+                  .method public instance class [System.Runtime]System.Collections.Generic.IEnumerator`1<!T> GetEnumerator() { ldnull ret }
+                }
+                """;
+        var refA = CompileIL(sourceA);
+
+        string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [];
+                        MyCollection<int> w = [with()];
+                    }
+                }
+                """;
+        var comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
+        comp.VerifyEmitDiagnostics(
+            // (6,31): error CS9041: 'MyCollection<T>.MyCollection()' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
+            //         MyCollection<int> x = [];
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "[]").WithArguments("MyCollection<T>.MyCollection()", "MyFeature").WithLocation(6, 31),
+            // (7,32): error CS9041: 'MyCollection<T>.MyCollection()' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
+            //         MyCollection<int> w = [with()];
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "with()").WithArguments("MyCollection<T>.MyCollection()", "MyFeature").WithLocation(7, 32));
+    }
+
     #endregion
 }
