@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
     ///   used as is.
     /// - Symbols from referenced assemblies that must be retargeted are substituted with result of retargeting.
     /// </summary>
-    internal sealed class RetargetingAssemblySymbol : NonMissingAssemblySymbol
+    internal sealed class RetargetingAssemblySymbol : MetadataOrSourceOrRetargetingAssemblySymbol
     {
         /// <summary>
         /// The underlying AssemblySymbol, it leaks symbols that should be retargeted.
@@ -202,9 +202,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return _underlyingAssembly.GetInternalsVisibleToAssemblyNames();
         }
 
-        internal override bool AreInternalsVisibleToThisAssembly(AssemblySymbol other)
+        internal override bool AreInternalsVisibleToThisAssembly(AssemblySymbol potentialGiverOfAccess)
         {
-            return _underlyingAssembly.AreInternalsVisibleToThisAssembly(other);
+            IVTConclusion conclusion;
+            if (!AssembliesToWhichInternalAccessHasBeenDetermined.TryGetValue(potentialGiverOfAccess, out conclusion))
+            {
+                conclusion = _underlyingAssembly.MakeFinalIVTDetermination(potentialGiverOfAccess, assertUnexpectedGiver: false);
+
+                if (IsDirectlyOrIndirectlyReferenced(potentialGiverOfAccess))
+                {
+                    AssembliesToWhichInternalAccessHasBeenDetermined.TryAdd(potentialGiverOfAccess, conclusion);
+                }
+                else
+                {
+                    Debug.Fail("We are performing a check for an unrelated assembly which likely indicates a bug.");
+                }
+            }
+
+            return conclusion == IVTConclusion.Match || conclusion == IVTConclusion.OneSignedOneNot;
         }
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()

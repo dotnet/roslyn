@@ -2103,7 +2103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var otherAssembly in haveGrantedAssemblies.Keys)
                 {
-                    IVTConclusion conclusion = MakeFinalIVTDetermination(otherAssembly);
+                    IVTConclusion conclusion = MakeFinalIVTDetermination(otherAssembly, assertUnexpectedGiver: true);
 
                     Debug.Assert(conclusion != IVTConclusion.NoRelationshipClaimed);
 
@@ -2171,7 +2171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            IVTConclusion conclusion = MakeFinalIVTDetermination(potentialGiverOfAccess);
+            IVTConclusion conclusion = MakeFinalIVTDetermination(potentialGiverOfAccess, assertUnexpectedGiver: true);
 
             return conclusion == IVTConclusion.Match || conclusion == IVTConclusion.OneSignedOneNot;
         }
