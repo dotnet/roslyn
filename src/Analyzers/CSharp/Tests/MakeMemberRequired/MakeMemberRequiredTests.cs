@@ -720,6 +720,36 @@ public sealed class MakeMemberRequiredTests
         }.RunAsync();
 
     [Fact]
+    public Task TestRequiredOverridePropertySuggestion()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+                public abstract class Base
+                {
+                    public required abstract string Text { get; set; }
+                }
+                public class Derived : Base
+                {
+                    public override string {|CS9030:Text|} { get; set; }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+                public abstract class Base
+                {
+                    public required abstract string Text { get; set; }
+                }
+                public class Derived : Base
+                {
+                    public override required string Text { get; set; }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+        }.RunAsync();
+
+    [Fact]
     public Task TestRequiredOverrideProperty()
         => new VerifyCS.Test
         {
@@ -731,7 +761,7 @@ public sealed class MakeMemberRequiredTests
                 }
                 public class Derived : Base
                 {
-                    public override string {|CS8618:{|CS9030:Text|}|} { get; set; }
+                    public override string {|CS9030:Text|} { get; set; }
                 }
                 """,
             FixedCode = """

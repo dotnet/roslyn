@@ -660,6 +660,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return pendingReturns;
 
+            static bool isBaseRequired(Symbol symbol)
+            {
+                if (symbol is PropertySymbol property)
+                {
+                    var overridden = property.OverriddenProperty;
+                    while (overridden != null)
+                    {
+                        if (overridden.IsRequired()) return true;
+                        overridden = overridden.OverriddenProperty;
+                    }
+                }
+                return false;
+            }
+
             void enforceMemberNotNull(SyntaxNode? syntaxOpt, LocalState state)
             {
                 if (!state.Reachable)
@@ -792,7 +806,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                if ((symbol.IsRequired() || membersWithStateEnforcedByRequiredMembers.Contains(symbol.Name)) && constructor.ShouldCheckRequiredMembers())
+                if ((symbol.IsRequired() || isBaseRequired(symbol) || membersWithStateEnforcedByRequiredMembers.Contains(symbol.Name)) && constructor.ShouldCheckRequiredMembers())
                 {
                     return;
                 }

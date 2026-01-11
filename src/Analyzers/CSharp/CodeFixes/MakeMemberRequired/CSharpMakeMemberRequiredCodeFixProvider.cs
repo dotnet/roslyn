@@ -27,8 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.MakeMemberRequired;
 internal sealed class CSharpMakeMemberRequiredCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     private const string CS8618 = nameof(CS8618); // Non-nullable variable must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring it as nullable.
+    private const string CS9030 = nameof(CS9030); // '{0}' must be required because it overrides required member '{1}'
 
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [CS8618];
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [CS8618, CS9030];
 
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -49,9 +50,9 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider() : SyntaxEditorBa
             return;
         }
 
-        // To ensure deterministic order (source order of members), we find all CS8618 diagnostics at this span.
+        // To ensure deterministic order (source order of members), we find all CS8618 or CS9030 diagnostics at this span.
         var allDiagnosticsAtLocation = semanticModel.GetDiagnostics(context.Span, cancellationToken)
-                                                    .Where(d => d.Id == CS8618)
+                                                    .Where(d => d.Id is CS8618 or CS9030)
                                                     .ToImmutableArray();
 
         if (allDiagnosticsAtLocation.Length == 0) return;
@@ -83,7 +84,7 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider() : SyntaxEditorBa
                     title,
                     GetDocumentUpdater(context, diagnostic),
                     equivalenceKey),
-                allDiagnosticsAtLocation);
+                diagnostic);
         }
     }
 
