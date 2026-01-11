@@ -458,7 +458,7 @@ internal sealed class CommittedSolution(DebuggingSession debuggingSession, Solut
     /// </summary>
     private static bool? TryReadSourceFileChecksumFromPdb(
         TraceLog log,
-        EditAndContinueMethodDebugInfoReader debugInfoReader,
+        EditAndContinueDebugInfoReader debugInfoReader,
         string sourceFilePath,
         out ImmutableArray<byte> checksum,
         out SourceHashAlgorithm algorithm)
