@@ -59,7 +59,9 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
             if (!shouldPreselectInferredTypes)
                 return recommendedSymbols.NamedSymbols.SelectAsArray(s => new SymbolAndSelectionInfo(Symbol: s, Preselect: false));
 
-            var inferredTypes = context.InferredTypes.Where(t => t.SpecialType != SpecialType.System_Void).ToSet(SymbolEqualityComparer.Default);
+            var inferredTypes = context.InferredTypes.Where(t => t.SpecialType != SpecialType.System_Void).ToImmutableArray();
+            var enumerableOfObjectType = context.SemanticModel.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(context.SemanticModel.Compilation.GetSpecialType(SpecialType.System_Object));
+            var asyncEnumerableOfObjectType = context.SemanticModel.Compilation.IAsyncEnumerableOfTType()?.Construct(context.SemanticModel.Compilation.GetSpecialType(SpecialType.System_Object));
 
             return recommendedSymbols.NamedSymbols.SelectAsArray(
                 static (symbol, args) =>
@@ -68,11 +70,35 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
                     // ignore nullability for purposes of preselection -- if a method is returning a string? but we've
                     // inferred we're assigning to a string or vice versa we'll still count those as the same.
 
-                    var preselect = !args.self.IsInstrinsic(symbol) && args.inferredTypes.Count > 0 && args.inferredTypes.Contains(GetSymbolType(symbol));
+                    var symbolType = GetSymbolType(symbol);
+                    var preselect = !args.self.IsInstrinsic(symbol) &&
+                                    symbolType != null &&
+                                    args.inferredTypes.Length > 0 &&
+                                    (CompletionUtilities.IsTypeImplicitlyConvertible(args.compilation, symbolType, args.inferredTypes) ||
+                                     IsForEachEnumerableMatch(symbolType, args.inferredTypes, args.enumerableOfObjectType, args.asyncEnumerableOfObjectType, args.compilation));
                     return new SymbolAndSelectionInfo(symbol, preselect);
                 },
-                (inferredTypes, self: this));
+                (inferredTypes, compilation: context.SemanticModel.Compilation, self: this, enumerableOfObjectType, asyncEnumerableOfObjectType));
         }
+    }
+
+    private static bool IsForEachEnumerableMatch(ITypeSymbol symbolType, ImmutableArray<ITypeSymbol> inferredTypes, INamedTypeSymbol enumerableOfObjectType, INamedTypeSymbol? asyncEnumerableOfObjectType, Compilation compilation)
+    {
+        foreach (var inferredType in inferredTypes)
+        {
+            if (SymbolEqualityComparer.Default.Equals(inferredType, enumerableOfObjectType))
+            {
+                if (symbolType.CanBeEnumerated())
+                    return true;
+            }
+
+            if (asyncEnumerableOfObjectType == null || !SymbolEqualityComparer.Default.Equals(inferredType, asyncEnumerableOfObjectType))
+                continue;
+            if (symbolType.CanBeAsynchronouslyEnumerated(compilation))
+                return true;
+        }
+
+        return false;
     }
 
     private static bool IsValidForTaskLikeTypeOnlyContext(ISymbol symbol, TSyntaxContext context)
