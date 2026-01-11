@@ -287,6 +287,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly MethodSymbol? _baseOrThisInitializer;
 
+        private NamedTypeSymbol? _lazyRequiredMemberAttribute;
+
 #if DEBUG
         /// <summary>
         /// Contains the expressions that should not be inserted into <see cref="_analyzedNullabilityMapOpt"/>.
@@ -658,6 +660,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return pendingReturns;
 
+            static bool isBaseRequired(Symbol symbol)
+            {
+                if (symbol is PropertySymbol property)
+                {
+                    var overridden = property.OverriddenProperty;
+                    while (overridden != null)
+                    {
+                        if (overridden.IsRequired()) return true;
+                        overridden = overridden.OverriddenProperty;
+                    }
+                }
+                return false;
+            }
+
             void enforceMemberNotNull(SyntaxNode? syntaxOpt, LocalState state)
             {
                 if (!state.Reachable)
@@ -790,7 +806,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                if ((symbol.IsRequired() || membersWithStateEnforcedByRequiredMembers.Contains(symbol.Name)) && constructor.ShouldCheckRequiredMembers())
+                if ((symbol.IsRequired() || isBaseRequired(symbol) || membersWithStateEnforcedByRequiredMembers.Contains(symbol.Name)) && constructor.ShouldCheckRequiredMembers())
                 {
                     return;
                 }
@@ -822,8 +838,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     : NullableFlowState.MaybeNull;
                 if (memberState >= badState) // is 'memberState' as bad as or worse than 'badState'?
                 {
-                    var errorCode = usesFieldKeyword ? ErrorCode.WRN_UninitializedNonNullableBackingField : ErrorCode.WRN_UninitializedNonNullableField;
-                    var info = new CSDiagnosticInfo(errorCode, new object[] { symbol.Kind.Localize(), symbol.Name }, ImmutableArray<Symbol>.Empty, additionalLocations: symbol.Locations);
+                    var isReadOnly = symbol is FieldSymbol { IsReadOnly: true } || symbol is PropertySymbol { IsReadOnly: true };
+
+                    var useSiteInfo = Microsoft.CodeAnalysis.CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependencies;
+                    var canBeRequired = compilation.LanguageVersion >= LanguageVersion.CSharp11 &&
+                                        (_lazyRequiredMemberAttribute ??= compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_RequiredMemberAttribute)) is { TypeKind: not TypeKind.Error } &&
+                                        !symbol.IsRequired() &&
+                                        !symbol.IsStatic && !isReadOnly && symbol.Kind != SymbolKind.Event &&
+                                        !symbol.IsOverride &&
+                                        symbol.IsAsRestrictive(symbol.ContainingType, ref useSiteInfo);
+
+                    if (canBeRequired && symbol is PropertySymbol { SetMethod: { } setMethod } && !setMethod.IsAsRestrictive(symbol.ContainingType, ref useSiteInfo))
+                    {
+                        canBeRequired = false;
+                    }
+
+                    ErrorCode errorCode = usesFieldKeyword ? ErrorCode.WRN_UninitializedNonNullableBackingField : ErrorCode.WRN_UninitializedNonNullableField;
+                    MessageID suggestionId = canBeRequired ? MessageID.IDS_ConsiderAddingRequiredAndNullable : MessageID.IDS_ConsiderDeclaringAsNullable;
+
+                    var info = new CSDiagnosticInfo(errorCode, new object[] { symbol.Kind.Localize(), symbol.Name, suggestionId.Localize() }, ImmutableArray<Symbol>.Empty, additionalLocations: symbol.Locations);
                     Diagnostics.Add(info, exitLocation ?? symbol.GetFirstLocationOrNone());
                 }
             }

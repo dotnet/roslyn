@@ -422,7 +422,7 @@ public sealed class MakeMemberRequiredTests
         }.RunAsync();
 
     [Fact]
-    public Task NotOnConstructorDeclaration()
+    public Task OnConstructorDeclaration()
         => new VerifyCS.Test
         {
             TestCode = """
@@ -432,6 +432,69 @@ public sealed class MakeMemberRequiredTests
             {
                 public string MyProperty { get; set; }
                 public {|CS8618:MyClass|}() { }
+            }
+            """,
+            FixedCode = """
+            #nullable enable
+            
+            class MyClass
+            {
+                public required string MyProperty { get; set; }
+                public MyClass() { }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+        }.RunAsync();
+
+    [Fact]
+    public Task OnConstructorDeclarationField()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            #nullable enable
+            
+            class MyClass
+            {
+                public string _myField;
+                public {|CS8618:MyClass|}() { }
+            }
+            """,
+            FixedCode = """
+            #nullable enable
+            
+            class MyClass
+            {
+                public required string _myField;
+                public MyClass() { }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+        }.RunAsync();
+
+    [Fact]
+    public Task OnConstructorDeclarationMultipleMembers()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            #nullable enable
+            
+            class MyClass
+            {
+                public string MyProperty { get; set; }
+                public string _myField;
+                public {|CS8618:{|CS8618:MyClass|}|}() { }
+            }
+            """,
+            FixedCode = """
+            #nullable enable
+            
+            class MyClass
+            {
+                public required string MyProperty { get; set; }
+                public required string _myField;
+                public MyClass() { }
             }
             """,
             LanguageVersion = LanguageVersion.CSharp11,
@@ -590,5 +653,319 @@ public sealed class MakeMemberRequiredTests
                 """,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+        }.RunAsync();
+
+    [Fact]
+    public Task TestStaticProperty()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+                public class C
+                {
+                    public static string {|CS8618:MyProperty|} { get; set; }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+        }.RunAsync();
+
+    [Fact]
+    public Task TestReadonlyField()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+                public class C
+                {
+                    public readonly string {|CS8618:MyField|};
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+        }.RunAsync();
+
+    [Fact]
+    public Task TestEvent()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+                public class C
+                {
+                    public event System.Action {|CS8618:MyEvent|};
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+        }.RunAsync();
+
+    [Fact]
+    public Task TestOverrideProperty()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+                public abstract class Base
+                {
+                    public abstract string Text { get; set; }
+                }
+                public class Derived : Base
+                {
+                    public override string {|CS8618:Text|} { get; set; }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+        }.RunAsync();
+
+    [Fact]
+    public Task TestRequiredOverridePropertySuggestion()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+                public abstract class Base
+                {
+                    public required abstract string Text { get; set; }
+                }
+                public class Derived : Base
+                {
+                    public override string {|CS9030:Text|} { get; set; }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+                public abstract class Base
+                {
+                    public required abstract string Text { get; set; }
+                }
+                public class Derived : Base
+                {
+                    public override required string Text { get; set; }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+        }.RunAsync();
+
+    [Fact]
+    public Task TestRequiredOverrideProperty()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+                public abstract class Base
+                {
+                    public required abstract string Text { get; set; }
+                }
+                public class Derived : Base
+                {
+                    public override string {|CS9030:Text|} { get; set; }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+                public abstract class Base
+                {
+                    public required abstract string Text { get; set; }
+                }
+                public class Derived : Base
+                {
+                    public override required string Text { get; set; }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+        }.RunAsync();
+
+    [Fact]
+    public Task TestPrivateMemberInPrivateNestedClass()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+                public class Outer
+                {
+                    private class Inner
+                    {
+                        private string {|CS8618:Text|} { get; set; }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+        }.RunAsync();
+
+    [Fact]
+    public Task TestConstructorFixAllBulkFix()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+                public class C
+                {
+                    public string Prop { get; set; }
+                    public string Field;
+                    public {|CS8618:{|CS8618:C|}|}() { }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+                public class C
+                {
+                    public required string Prop { get; set; }
+                    public required string Field;
+                    public C() { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+        }.RunAsync();
+
+    [Fact]
+    public Task TestConstructorFixAllReadonlyField()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+                public class C
+                {
+                    public string Prop { get; set; }
+                    public readonly string ReadonlyField;
+                    public {|CS8618:{|CS8618:C|}|}() { }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+                public class C
+                {
+                    public required string Prop { get; set; }
+                    public readonly string ReadonlyField;
+                    public C() { }
+                }
+                """,
+            FixedState =
+            {
+                ExpectedDiagnostics =
+                {
+                    // CS8618 remains on the readonly field because it was skipped for safety
+                    DiagnosticResult.CompilerError("CS8618").WithSpan(6, 12, 6, 13).WithSpan(5, 28, 5, 41).WithArguments("field", "ReadonlyField", "Consider declaring"),
+                }
+            },
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestConstructorFixAllStaticProperty()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+                public class C
+                {
+                    public string Prop { get; set; }
+                    public static string {|CS8618:StaticProp|} { get; set; }
+                    public {|CS8618:C|}() { }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+                public class C
+                {
+                    public required string Prop { get; set; }
+                    public static string StaticProp { get; set; }
+                    public C() { }
+                }
+                """,
+            FixedState =
+            {
+                ExpectedDiagnostics =
+                {
+                    // CS8618 remains on static property. Note: It has an additional location pointing to itself.
+                    DiagnosticResult.CompilerError("CS8618").WithSpan(5, 26, 5, 36).WithSpan(5, 26, 5, 36).WithArguments("property", "StaticProp", "Consider declaring"),
+                }
+            },
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestConstructorFixAllGetOnlyProperty()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+                public class C
+                {
+                    public string Prop { get; set; }
+                    public string GetOnlyProp { get; }
+                    public {|CS8618:{|CS8618:C|}|}() { }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+                public class C
+                {
+                    public required string Prop { get; set; }
+                    public string GetOnlyProp { get; }
+                    public C() { }
+                }
+                """,
+            FixedState =
+            {
+                ExpectedDiagnostics =
+                {
+                    // CS8618 remains on get-only property
+                    DiagnosticResult.CompilerError("CS8618").WithSpan(6, 12, 6, 13).WithSpan(5, 19, 5, 30).WithArguments("property", "GetOnlyProp", "Consider declaring"),
+                }
+            },
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestPickFieldFix_FixesOnlyField()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+                public class C
+                {
+                    public string Prop { get; set; }
+                    public string Field;
+                    public {|CS8618:{|CS8618:C|}|}() { }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+                public class C
+                {
+                    public string Prop { get; set; }
+                    public required string Field;
+                    public C() { }
+                }
+                """,
+            BatchFixedCode = """
+                #nullable enable
+                public class C
+                {
+                    public required string Prop { get; set; }
+                    public required string Field;
+                    public C() { }
+                }
+                """,
+            FixedState =
+            {
+                ExpectedDiagnostics =
+                {
+                    // CS8618 remains on the property because we only applied the fix for the field
+                    DiagnosticResult.CompilerError("CS8618").WithSpan(6, 12, 6, 13).WithSpan(4, 19, 4, 23).WithArguments("property", "Prop", "Consider adding the 'required' modifier or declaring"),
+                }
+            },
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
 }

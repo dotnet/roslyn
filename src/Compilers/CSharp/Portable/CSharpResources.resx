@@ -5636,11 +5636,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation_Title" xml:space="preserve">
     <value>Nullability of reference types in type of parameter doesn't match implemented member (possibly because of nullability attributes).</value>
   </data>
+  <data name="IDS_ConsiderDeclaringAsNullable" xml:space="preserve">
+    <value>Consider declaring</value>
+  </data>
+  <data name="IDS_ConsiderAddingRequiredAndNullable" xml:space="preserve">
+    <value>Consider adding the 'required' modifier or declaring</value>
+  </data>
   <data name="WRN_UninitializedNonNullableField" xml:space="preserve">
-    <value>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the {0} as nullable.</value>
+    <value>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. {2} the {0} as nullable.</value>
   </data>
   <data name="WRN_UninitializedNonNullableField_Title" xml:space="preserve">
-    <value>Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.</value>
+    <value>Non-nullable field must contain a non-null value when exiting constructor.</value>
   </data>
   <data name="WRN_NullabilityMismatchInAssignment" xml:space="preserve">
     <value>Nullability of reference types in value of type '{0}' doesn't match target type '{1}'.</value>
@@ -7949,11 +7955,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</value>
   </data>
   <data name="WRN_UninitializedNonNullableBackingField" xml:space="preserve">
-    <value>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</value>
+    <value>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. {2} the {0} as nullable or safely handling the case where 'field' is null in the 'get' accessor.</value>
     <comment>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</comment>
   </data>
   <data name="WRN_UninitializedNonNullableBackingField_Title" xml:space="preserve">
-    <value>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</value>
+    <value>Non-nullable property must contain a non-null value when exiting constructor.</value>
   </data>
   <data name="IDS_FeatureFirstClassSpan" xml:space="preserve">
     <value>first-class Span types</value>

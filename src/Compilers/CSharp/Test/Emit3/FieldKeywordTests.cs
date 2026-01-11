@@ -650,9 +650,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (7,25): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                // (7,25): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public List<string> Prop
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(7, 25));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop", "Consider declaring").WithLocation(7, 25));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -695,9 +695,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (7,26): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                // (7,26): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public List<string?> Prop => M(() => (List<string?>)[field[0].ToString()]);
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(7, 26),
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop", "Consider declaring").WithLocation(7, 26),
                 // (7,58): warning CS8602: Dereference of a possibly null reference.
                 //     public List<string?> Prop => M(() => (List<string?>)[field[0].ToString()]);
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "field[0]").WithLocation(7, 58));
@@ -5730,15 +5730,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (4,13): warning CS9264: Non-nullable property 'P1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                    // (4,13): warning CS9264: Non-nullable property 'P1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                     //     object  P1 => field;
-                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "P1").WithArguments("property", "P1").WithLocation(4, 13),
-                    // (5,13): warning CS9264: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "P1").WithArguments("property", "P1", "Consider declaring").WithLocation(4, 13),
+                    // (5,13): warning CS9264: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                     //     object  P2 { get => field; }
-                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "P2").WithArguments("property", "P2").WithLocation(5, 13),
-                    // (7,13): warning CS9264: Non-nullable property 'P4' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "P2").WithArguments("property", "P2", "Consider declaring").WithLocation(5, 13),
+                    // (7,13): warning CS9264: Non-nullable property 'P4' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                     //     object  P4 { get => field; set { field = value; } }
-                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "P4").WithArguments("property", "P4").WithLocation(7, 13));
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "P4").WithArguments("property", "P4", "Consider declaring").WithLocation(7, 13));
             }
         }
 
@@ -5758,9 +5758,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (4,19): warning CS8602: Dereference of a possibly null reference.
                 //     string? P1 => field.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "field").WithLocation(4, 19),
-                // (5,12): warning CS9264: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                // (5,12): warning CS9264: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                 //     string P2 => field.ToString();
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "P2").WithArguments("property", "P2").WithLocation(5, 12));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "P2").WithArguments("property", "P2", "Consider declaring").WithLocation(5, 12));
         }
 
         [Fact]
@@ -5968,9 +5968,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                // (6,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public C() { }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop").WithLocation(6, 12));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop", "Consider declaring").WithLocation(6, 12));
         }
 
         [Fact]
@@ -5988,9 +5988,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                // (6,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public C() { }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop").WithLocation(6, 12));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop", "Consider declaring").WithLocation(6, 12));
         }
 
         [Fact]
@@ -6050,9 +6050,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                // (6,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                 //     static C() { }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop").WithLocation(6, 12));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop", "Consider declaring").WithLocation(6, 12));
         }
 
         [Fact]
@@ -6070,9 +6070,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                // (6,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                 //     static C() { }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop").WithLocation(6, 12));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop", "Consider declaring").WithLocation(6, 12));
         }
 
         [Fact]
@@ -6356,9 +6356,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (10,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //         set => field = null; // 1
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 24),
-                // (12,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                // (12,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public C() // 2
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop").WithLocation(12, 12));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop", "Consider declaring").WithLocation(12, 12));
         }
 
         [Fact]
@@ -6418,9 +6418,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (10,24): warning CS8601: Possible null reference assignment.
                 //         set => field = value; // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "value").WithLocation(10, 24),
-                // (12,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                // (12,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public C() // 2
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop").WithLocation(12, 12));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop", "Consider declaring").WithLocation(12, 12));
         }
 
         [Fact]
@@ -6447,9 +6447,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
             comp.VerifyEmitDiagnostics(
-                // (11,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                // (11,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public C()
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop").WithLocation(11, 12));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop", "Consider declaring").WithLocation(11, 12));
         }
 
         [Fact]
@@ -6475,9 +6475,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
             comp.VerifyEmitDiagnostics(
-                // (11,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                // (11,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public C() // 1
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop").WithLocation(11, 12));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop", "Consider declaring").WithLocation(11, 12));
         }
 
         [Theory]
@@ -6574,9 +6574,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (10,24): warning CS8601: Possible null reference assignment.
                 //         set => field = value; // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "value").WithLocation(10, 24),
-                // (12,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                // (12,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public C() // 2
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop").WithLocation(12, 12));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop", "Consider declaring").WithLocation(12, 12));
         }
 
         [Fact]
@@ -6738,9 +6738,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation([source, NotNullAttributeDefinition]);
             comp.VerifyEmitDiagnostics(
-                // (7,20): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                // (7,20): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public string? Prop { get; set => field = value; }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(7, 20));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop", "Consider declaring").WithLocation(7, 20));
         }
 
         [Fact]
@@ -6760,9 +6760,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation([source, NotNullAttributeDefinition]);
             comp.VerifyEmitDiagnostics(
-                // (7,20): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                // (7,20): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public string? Prop { get; set => field = value; }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(7, 20));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop", "Consider declaring").WithLocation(7, 20));
         }
 
         [Fact]
@@ -6940,9 +6940,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
             comp.VerifyEmitDiagnostics(
-                // (7,19): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                // (7,19): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
                 //     public string Prop { get; set; }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Prop").WithArguments("property", "Prop").WithLocation(7, 19));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Prop").WithArguments("property", "Prop", "Consider declaring").WithLocation(7, 19));
         }
 
         [Fact]
@@ -7072,9 +7072,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation([source, RequiredMemberAttribute, CompilerFeatureRequiredAttribute, SetsRequiredMembersAttribute]);
             comp.VerifyEmitDiagnostics(
-                // (9,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                // (9,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public C()
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop").WithLocation(9, 12));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop", "Consider declaring").WithLocation(9, 12));
         }
 
         [Fact]
@@ -7279,9 +7279,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,39): warning CS8618: Non-nullable event 'E' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the event as nullable.
+                // (5,39): warning CS8618: Non-nullable event 'E' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //     public static event System.Action E; // 1
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E").WithArguments("event", "E").WithLocation(5, 39),
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E").WithArguments("event", "E", "Consider declaring").WithLocation(5, 39),
                 // (10,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //             E = null; // 2
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 17),
@@ -7587,12 +7587,12 @@ class C<T>
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (8,5): warning CS9264: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                    // (8,5): warning CS9264: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                     //     C(bool unused) { }
-                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "P2").WithLocation(8, 5),
-                    // (8,5): warning CS8618: Non-nullable property 'P1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "P2", "Consider declaring").WithLocation(8, 5),
+                    // (8,5): warning CS8618: Non-nullable property 'P1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
                     //     C(bool unused) { }
-                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P1").WithLocation(8, 5));
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P1", "Consider declaring").WithLocation(8, 5));
             }
         }
 
@@ -7642,15 +7642,15 @@ class C<T>
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (9,5): warning CS9264: Non-nullable property 'P5' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                    // (9,5): warning CS9264: Non-nullable property 'P5' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                     //     C(bool unused) { }
-                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "P5").WithLocation(9, 5),
-                    // (9,5): warning CS9264: Non-nullable property 'P6' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "P5", "Consider adding the 'required' modifier or declaring").WithLocation(9, 5),
+                    // (9,5): warning CS9264: Non-nullable property 'P6' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                     //     C(bool unused) { }
-                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "P6").WithLocation(9, 5),
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "P6", "Consider adding the 'required' modifier or declaring").WithLocation(9, 5),
                     // (9,5): warning CS8618: Non-nullable property 'P4' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
                     //     C(bool unused) { }
-                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P4").WithLocation(9, 5));
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P4", "Consider adding the 'required' modifier or declaring").WithLocation(9, 5));
             }
         }
 
@@ -10862,9 +10862,9 @@ class C<T>
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (4,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                // (4,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public string Prop { get => field; set => field = value; } // 1
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(4, 19));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop", "Consider declaring").WithLocation(4, 19));
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
             Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.GetInferredNullableAnnotation());
@@ -10884,9 +10884,9 @@ class C<T>
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (4,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                // (4,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public string Prop => field.ToString() ?? "a";
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(4, 19));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop", "Consider declaring").WithLocation(4, 19));
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
             Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.GetInferredNullableAnnotation());
@@ -10951,9 +10951,9 @@ class C<T>
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                // (6,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public string Prop
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(6, 19),
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop", "Consider declaring").WithLocation(6, 19),
                 // (12,33): warning CS8619: Nullability of reference types in value of type 'List<string>' doesn't match target type 'List<string?>'.
                 //             List<string?> li2 = list;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "list").WithArguments("System.Collections.Generic.List<string>", "System.Collections.Generic.List<string?>").WithLocation(12, 33));
@@ -11341,9 +11341,9 @@ class C<T>
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,14): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                // (5,14): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public T Prop
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(5, 14));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop", "Consider declaring").WithLocation(5, 14));
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
             Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.GetInferredNullableAnnotation());
@@ -11370,9 +11370,9 @@ class C<T>
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                // (5,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public string Prop
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(5, 19));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop", "Consider declaring").WithLocation(5, 19));
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
             Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.GetInferredNullableAnnotation());
@@ -11397,9 +11397,9 @@ class C<T>
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                // (5,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public string Prop
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(5, 19),
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop", "Consider declaring").WithLocation(5, 19),
                 // (8,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //         set => field = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 24));
@@ -11628,9 +11628,9 @@ class C<T>
             }
 
             comp.VerifyEmitDiagnostics(
-                // (5,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                // (5,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public string Prop
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(5, 19),
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop", "Consider declaring").WithLocation(5, 19),
                 // (8,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //         set => field = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 24));
@@ -11774,9 +11774,9 @@ class C<T>
 
             var comp0 = CreateCompilation(source);
             comp0.VerifyEmitDiagnostics(
-                // (5,26): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                // (5,26): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public static string Prop => field;
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(5, 26));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop", "Consider declaring").WithLocation(5, 26));
 
             var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
             Assert.True(sourceField.InfersNullableAnnotation);
@@ -11852,9 +11852,9 @@ class C<T>
 
             var comp0 = CreateCompilation(source);
             comp0.VerifyEmitDiagnostics(
-                // (6,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                // (6,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public string Prop // 1
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(6, 19));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop", "Consider declaring").WithLocation(6, 19));
 
             var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
             Assert.True(sourceField.InfersNullableAnnotation);
@@ -12019,9 +12019,9 @@ class C<T>
 
             var comp0 = CreateCompilation(source);
             comp0.VerifyEmitDiagnostics(
-                // (5,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                // (5,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public string Prop // 1
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(5, 19));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop", "Consider declaring").WithLocation(5, 19));
 
             var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
             Assert.True(sourceField.InfersNullableAnnotation);
@@ -12051,9 +12051,9 @@ class C<T>
 
             var comp0 = CreateCompilation(source);
             comp0.VerifyEmitDiagnostics(
-                      // (5,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                      // (5,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                       //     public string Prop // 1
-                      Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(5, 19),
+                      Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop", "Consider declaring").WithLocation(5, 19),
                       // (10,18): warning CS8321: The local function 'local' is declared but never used
                       //             void local() => field.ToString(); // 2
                       Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(10, 18));
@@ -12119,9 +12119,9 @@ class C<T>
 
             var comp0 = CreateCompilation(source);
             comp0.VerifyEmitDiagnostics(
-                // (5,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                // (5,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public string Prop // 1
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(5, 19));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop", "Consider declaring").WithLocation(5, 19));
 
             var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
             Assert.True(sourceField.InfersNullableAnnotation);
@@ -12182,9 +12182,9 @@ class C<T>
 
             var comp0 = CreateCompilation(source);
             comp0.VerifyEmitDiagnostics(
-                // (6,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                // (6,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public string Prop // 1
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(6, 19));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop", "Consider declaring").WithLocation(6, 19));
 
             var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
             Assert.True(sourceField.InfersNullableAnnotation);
@@ -12216,9 +12216,9 @@ class C<T>
 
             var comp0 = CreateCompilation(source);
             comp0.VerifyEmitDiagnostics(
-                // (5,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                // (5,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public string Prop // 1
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(5, 19));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop", "Consider declaring").WithLocation(5, 19));
 
             var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
             Assert.True(sourceField.InfersNullableAnnotation);

@@ -19824,9 +19824,9 @@ internal class MyOtherClass
                 // (57,32): warning CS0067: The event 'MyOtherClass.SomethingChanged' is never used
                 //     public event EventHandler? SomethingChanged;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "SomethingChanged").WithArguments("MyOtherClass.SomethingChanged").WithLocation(57, 32),
-                // (58,19): warning CS8618: Non-nullable property 'MyProperty' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                // (58,19): warning CS8618: Non-nullable property 'MyProperty' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
                 //     public string MyProperty { get; set; }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "MyProperty").WithArguments("property", "MyProperty").WithLocation(58, 19)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "MyProperty").WithArguments("property", "MyProperty", "Consider declaring").WithLocation(58, 19)
                 );
         }
 
@@ -22484,12 +22484,12 @@ internal partial class EditorDocumentManagerListener
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,19): warning CS8618: Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                // (5,19): warning CS8618: Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
                 //     public string Text { get; set; } // 1
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Text").WithArguments("property", "Text").WithLocation(5, 19),
-                // (12,12): warning CS8618: Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Text").WithArguments("property", "Text", "Consider declaring").WithLocation(5, 19),
+                // (12,12): warning CS8618: Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
                 //     public C2() { } // 2
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C2").WithArguments("property", "Text").WithLocation(12, 12)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C2").WithArguments("property", "Text", "Consider declaring").WithLocation(12, 12)
                 );
         }
 
@@ -22529,12 +22529,12 @@ internal partial class EditorDocumentManagerListener
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,19): warning CS8618: Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                // (5,19): warning CS8618: Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
                 //     public string Text { get; set; } // 1
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Text").WithArguments("property", "Text").WithLocation(5, 19),
-                // (12,12): warning CS8618: Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Text").WithArguments("property", "Text", "Consider declaring").WithLocation(5, 19),
+                // (12,12): warning CS8618: Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
                 //     public C2() { } // 2
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C2").WithArguments("property", "Text").WithLocation(12, 12)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C2").WithArguments("property", "Text", "Consider declaring").WithLocation(12, 12)
                 );
         }
 
