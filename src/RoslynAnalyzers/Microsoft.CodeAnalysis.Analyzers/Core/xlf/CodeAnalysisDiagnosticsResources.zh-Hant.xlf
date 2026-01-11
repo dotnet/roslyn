@@ -174,17 +174,17 @@
       </trans-unit>
       <trans-unit id="DoNotUseFileTypesForAnalyzersOrGeneratorsDescription">
         <source>Using a 'file' type is not allowed for implementing analyzers, generators, or code fixers. This can break analyzer loading on some platforms.</source>
-        <target state="new">Using a 'file' type is not allowed for implementing analyzers, generators, or code fixers. This can break analyzer loading on some platforms.</target>
+        <target state="translated">不允許使用 'file' 類型來實作分析器、產生器或程式碼修正程式。這可能會導致某些平台上的分析器載入失敗。</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseFileTypesForAnalyzersOrGeneratorsMessage">
         <source>Type '{0}' should not be marked with 'file'</source>
-        <target state="new">Type '{0}' should not be marked with 'file'</target>
+        <target state="translated">類型 '{0}' 不應標示為 'file'</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseFileTypesForAnalyzersOrGeneratorsTitle">
         <source>Do not use file types for implementing analyzers, generators, and code fixers</source>
-        <target state="new">Do not use file types for implementing analyzers, generators, and code fixers</target>
+        <target state="translated">請勿使用檔案類型來實作分析器、產生器及程式碼修正程式</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseReservedDiagnosticIdDescription">
@@ -204,7 +204,7 @@
       </trans-unit>
       <trans-unit id="EnableAnalyzerReleaseTrackingRuleDescription">
         <source>Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</source>
-        <target state="new">Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</target>
+        <target state="translated">啟用分析器套件的版本追蹤有助於追蹤及記錄每個分析器版本所發佈及/或變更的分析器診斷。如需詳細資料，請參閱 https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md。</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableAnalyzerReleaseTrackingRuleMessage">
@@ -234,17 +234,17 @@
       </trans-unit>
       <trans-unit id="ImplementationIsObsoleteDescription">
         <source>The author of this interface has deprecated implementing this interface.</source>
-        <target state="new">The author of this interface has deprecated implementing this interface.</target>
+        <target state="translated">此介面的作者已不建議實作此介面。</target>
         <note />
       </trans-unit>
       <trans-unit id="ImplementationIsObsoleteMessage">
         <source>Type {0} cannot implement interface {1} because {1} is obsolete for implementation. See {2} for more details.</source>
-        <target state="new">Type {0} cannot implement interface {1} because {1} is obsolete for implementation. See {2} for more details.</target>
+        <target state="translated">類型 {0} 無法實作介面 {1}，因為已不建議實作 {1}。如需詳細資料，請參閱 {2}。</target>
         <note />
       </trans-unit>
       <trans-unit id="ImplementationIsObsoleteTitle">
         <source>Implementations of this interface are not allowed</source>
-        <target state="new">Implementations of this interface are not allowed</target>
+        <target state="translated">不允許實作此介面</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleDescription">
@@ -454,12 +454,12 @@
       </trans-unit>
       <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullDescription">
         <source>Calling 'SemanticModel.GetDeclaredSymbol' with on certain types inheriting from 'SyntaxNode', for example 'GlobalStatementSyntax' and 'IncompleteMemberSyntax' will always return 'null'.</source>
-        <target state="new">Calling 'SemanticModel.GetDeclaredSymbol' with on certain types inheriting from 'SyntaxNode', for example 'GlobalStatementSyntax' and 'IncompleteMemberSyntax' will always return 'null'.</target>
+        <target state="translated">在繼承自 'SyntaxNode' 的特定類型上呼叫 'SemanticModel.GetDeclaredSymbol'，例如 'GlobalStatementSyntax' 和 'IncompleteMemberSyntax' 一律會傳回 'null'。</target>
         <note />
       </trans-unit>
       <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullForFieldDescription">
         <source>Calling 'SemanticModel.GetDeclaredSymbol' with an argument of type 'FieldDeclarationSyntax' or 'EventFieldDeclarationSyntax' will always return 'null'. Call 'GetDeclaredSymbol' with the variable declarators from the field instead.</source>
-        <target state="new">Calling 'SemanticModel.GetDeclaredSymbol' with an argument of type 'FieldDeclarationSyntax' or 'EventFieldDeclarationSyntax' will always return 'null'. Call 'GetDeclaredSymbol' with the variable declarators from the field instead.</target>
+        <target state="translated">使用類型為 'FieldDeclarationSyntax' 或 'EventFieldDeclarationSyntax' 的引數呼叫 'SemanticModel.GetDeclaredSymbol' 一律會傳回 'null'。改為使用欄位中的變數宣告子呼叫 'GetDeclaredSymbol'。</target>
         <note />
       </trans-unit>
       <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullForFieldMessage">
@@ -474,7 +474,7 @@
       </trans-unit>
       <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullTitle">
         <source>This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'</source>
-        <target state="new">This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'</target>
+        <target state="translated">對 'SemanticModel.GetDeclaredSymbol()' 的呼叫一律會傳回 'null'</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedInAnalyzersDescription">
