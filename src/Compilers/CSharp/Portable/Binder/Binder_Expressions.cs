@@ -7867,7 +7867,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <remarks>
         /// If new checks are added to this method, they will also need to be added to
-        /// <see cref="MakeQueryInvocation(CSharpSyntaxNode, BoundExpression, bool, string, SeparatedSyntaxList{TypeSyntax}, ImmutableArray{TypeWithAnnotations}, ImmutableArray{BoundExpression}, BindingDiagnosticBag, string?)"/>.
+        /// <see cref="MakeQueryInvocation(CSharpSyntaxNode, BoundExpression, string, SeparatedSyntaxList{TypeSyntax}, ImmutableArray{TypeWithAnnotations}, ImmutableArray{BoundExpression}, BindingDiagnosticBag, string?)"/>.
         /// </remarks>
 #else
         /// <summary>
@@ -7876,7 +7876,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <remarks>
         /// If new checks are added to this method, they will also need to be added to
-        /// <see cref="MakeQueryInvocation(CSharpSyntaxNode, BoundExpression, bool, string, SeparatedSyntaxList{TypeSyntax}, ImmutableArray{TypeWithAnnotations}, ImmutableArray{BoundExpression}, BindingDiagnosticBag)"/>.
+        /// <see cref="MakeQueryInvocation(CSharpSyntaxNode, BoundExpression, string, SeparatedSyntaxList{TypeSyntax}, ImmutableArray{TypeWithAnnotations}, ImmutableArray{BoundExpression}, BindingDiagnosticBag)"/>.
         /// </remarks>
 #endif
         private BoundExpression BindMemberAccessWithBoundLeft(

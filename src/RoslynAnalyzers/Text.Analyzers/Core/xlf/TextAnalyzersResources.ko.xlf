@@ -4,137 +4,137 @@
     <body>
       <trans-unit id="FlagsEnumsShouldHavePluralNamesDescription">
         <source>A public enumeration has the System.FlagsAttribute attribute, and its name does not end in ""s"". Types that are marked by using FlagsAttribute have names that are plural because the attribute indicates that more than one value can be specified.</source>
-        <target state="translated">Public 열거형에는 System.FlagsAttribute 특성이 있으며 이 특성의 이름이 ""s""로 끝나지 않습니다. FlagsAttribute를 사용하여 표시되는 형식의 경우 이 특성이 하나 이상의 값이 지정될 수 있을 나타내므로 복수형의 이름을 사용합니다.</target>
+        <target state="new">A public enumeration has the System.FlagsAttribute attribute, and its name does not end in ""s"". Types that are marked by using FlagsAttribute have names that are plural because the attribute indicates that more than one value can be specified.</target>
         <note />
       </trans-unit>
       <trans-unit id="FlagsEnumsShouldHavePluralNamesMessage">
         <source>Flags enums should have plural names</source>
-        <target state="translated">플래그 열거형에는 복수형 이름을 사용해야 합니다.</target>
+        <target state="new">Flags enums should have plural names</target>
         <note />
       </trans-unit>
       <trans-unit id="FlagsEnumsShouldHavePluralNamesTitle">
         <source>Flags enums should have plural names</source>
-        <target state="translated">플래그 열거형에는 복수형 이름을 사용해야 합니다.</target>
+        <target state="new">Flags enums should have plural names</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyFileParse">
         <source>Error parsing dictionary '{0}': {1}</source>
-        <target state="translated">사전 '{0}'을(를) 구문 분석하는 동안 오류 발생: {1}</target>
+        <target state="new">Error parsing dictionary '{0}': {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageVariable">
         <source>Correct the spelling of '{0}' in variable name '{1}'</source>
-        <target state="translated">변수 이름 '{1}'에서 '{0}'의 맞춤법을 수정하세요.</target>
+        <target state="new">Correct the spelling of '{0}' in variable name '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyTitle">
         <source>Identifiers should be spelled correctly</source>
-        <target state="translated">식별자의 맞춤법이 정확해야 합니다.</target>
+        <target state="new">Identifiers should be spelled correctly</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyDescription">
         <source>The name of an externally visible identifier contains one or more words that are not recognized by the Microsoft spelling checker library.</source>
-        <target state="translated">외부에 표시되는 식별자의 이름에 Microsoft 맞춤법 검사기 라이브러리에서 인식할 수 없는 단어가 1개 이상 포함되어 있습니다.</target>
+        <target state="new">The name of an externally visible identifier contains one or more words that are not recognized by the Microsoft spelling checker library.</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageAssembly">
         <source>Correct the spelling of '{0}' in assembly name '{1}'</source>
-        <target state="translated">어셈블리 이름 {1}에서 '{0}'의 맞춤법을 수정하세요.</target>
+        <target state="new">Correct the spelling of '{0}' in assembly name '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageNamespace">
         <source>Correct the spelling of '{0}' in namespace name '{1}'</source>
-        <target state="translated">네임스페이스 이름 '{1}'에서 '{0}'의 맞춤법을 수정하세요.</target>
+        <target state="new">Correct the spelling of '{0}' in namespace name '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageType">
         <source>Correct the spelling of '{0}' in type name '{1}'</source>
-        <target state="translated">형식 이름 {1}에서 '{0}'의 맞춤법을 수정하세요.</target>
+        <target state="new">Correct the spelling of '{0}' in type name '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMember">
         <source>Correct the spelling of '{0}' in member name '{1}' or remove it entirely if it represents any sort of Hungarian notation</source>
-        <target state="translated">멤버 이름 {1}에서 '{0}'의 맞춤법을 수정하거나, 헝가리 표기법을 나타내는 경우 완전히 제거하세요.</target>
+        <target state="new">Correct the spelling of '{0}' in member name '{1}' or remove it entirely if it represents any sort of Hungarian notation</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMemberParameter">
         <source>In method '{0}', correct the spelling of '{1}' in parameter name '{2}' or remove it entirely if it represents any sort of Hungarian notation</source>
-        <target state="translated">{0} 메서드의 매개 변수 이름 {2}에서 '{1}'의 맞춤법을 수정하거나, 헝가리 표기법을 나타내는 경우 완전히 제거하세요.</target>
+        <target state="new">In method '{0}', correct the spelling of '{1}' in parameter name '{2}' or remove it entirely if it represents any sort of Hungarian notation</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageDelegateParameter">
         <source>In delegate '{0}', correct the spelling of '{1}' in parameter name '{2}' or remove it entirely if it represents any sort of Hungarian notation</source>
-        <target state="translated">{0} 대리자의 매개 변수 이름 {2}에서 '{1}'의 맞춤법을 수정하거나, 헝가리 표기법을 나타내는 경우 완전히 제거하세요.</target>
+        <target state="new">In delegate '{0}', correct the spelling of '{1}' in parameter name '{2}' or remove it entirely if it represents any sort of Hungarian notation</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageTypeTypeParameter">
         <source>On type '{0}', correct the spelling of '{1}' in generic type parameter name '{2}'</source>
-        <target state="translated">{0} 형식의 제네릭 형식 매개 변수 이름 {2}에서 '{1}'의 맞춤법을 수정하세요.</target>
+        <target state="new">On type '{0}', correct the spelling of '{1}' in generic type parameter name '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMethodTypeParameter">
         <source>On method '{0}', correct the spelling of '{1}' in generic type parameter name '{2}'</source>
-        <target state="translated">{0} 메서드의 제네릭 형식 매개 변수 이름 {2}에서 '{1}'의 맞춤법을 수정하세요.</target>
+        <target state="new">On method '{0}', correct the spelling of '{1}' in generic type parameter name '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageAssemblyMoreMeaningfulName">
         <source>Consider providing a more meaningful name than assembly name '{0}'</source>
-        <target state="translated">어셈블리 이름 {0}보다 더 의미 있는 이름을 제공하는 것이 좋습니다.</target>
+        <target state="new">Consider providing a more meaningful name than assembly name '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageNamespaceMoreMeaningfulName">
         <source>Consider providing a more meaningful name than namespace name '{0}'</source>
-        <target state="translated">네임스페이스 이름 {0}보다 더 의미 있는 이름을 제공하는 것이 좋습니다.</target>
+        <target state="new">Consider providing a more meaningful name than namespace name '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageTypeMoreMeaningfulName">
         <source>Consider providing a more meaningful name than type name '{0}'</source>
-        <target state="translated">형식 이름 {0}보다 더 의미 있는 이름을 제공하는 것이 좋습니다.</target>
+        <target state="new">Consider providing a more meaningful name than type name '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMemberMoreMeaningfulName">
         <source>Consider providing a more meaningful name than member name '{0}'</source>
-        <target state="translated">멤버 이름 {0}보다 더 의미 있는 이름을 제공하는 것이 좋습니다.</target>
+        <target state="new">Consider providing a more meaningful name than member name '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMemberParameterMoreMeaningfulName">
         <source>In method '{0}', consider providing a more meaningful name than parameter name '{1}'</source>
-        <target state="translated">{0} 메서드에서 매개 변수 이름 {1}보다 더 의미 있는 이름을 제공하는 것이 좋습니다.</target>
+        <target state="new">In method '{0}', consider providing a more meaningful name than parameter name '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageDelegateParameterMoreMeaningfulName">
         <source>In delegate '{0}', consider providing a more meaningful name than parameter name '{1}'</source>
-        <target state="translated">{0} 대리자에서 매개 변수 이름 {1}보다 더 의미 있는 이름을 제공하는 것이 좋습니다.</target>
+        <target state="new">In delegate '{0}', consider providing a more meaningful name than parameter name '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageTypeTypeParameterMoreMeaningfulName">
         <source>On type '{0}', consider providing a more meaningful name than generic type parameter name '{1}'</source>
-        <target state="translated">{0} 형식에서 제네릭 형식 매개 변수 이름 {1}보다 더 의미 있는 이름을 제공하는 것이 좋습니다.</target>
+        <target state="new">On type '{0}', consider providing a more meaningful name than generic type parameter name '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMethodTypeParameterMoreMeaningfulName">
         <source>On method '{0}', consider providing a more meaningful name than generic type parameter name '{1}'</source>
-        <target state="translated">{0} 메서드에서 제네릭 형식 매개 변수 이름 {1}보다 더 의미 있는 이름을 제공하는 것이 좋습니다.</target>
+        <target state="new">On method '{0}', consider providing a more meaningful name than generic type parameter name '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="CategoryNaming">
         <source>Naming</source>
-        <target state="translated">명명</target>
+        <target state="new">Naming</target>
         <note />
       </trans-unit>
       <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesDescription">
         <source>Naming conventions dictate that a plural name for an enumeration indicates that more than one value of the enumeration can be specified at the same time.</source>
-        <target state="translated">명명 규칙은 열거형의 복수형 이름이 하나 이상의 열거형 값이 동시에 지정될 수 있다는 것을 표시함을 나타냅니다.</target>
+        <target state="new">Naming conventions dictate that a plural name for an enumeration indicates that more than one value of the enumeration can be specified at the same time.</target>
         <note />
       </trans-unit>
       <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesMessage">
         <source>Only FlagsAttribute enums should have plural names</source>
-        <target state="translated">FlagsAttribute 열거형만 복수형 이름을 사용할 수 있습니다.</target>
+        <target state="new">Only FlagsAttribute enums should have plural names</target>
         <note />
       </trans-unit>
       <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesTitle">
         <source>Only FlagsAttribute enums should have plural names</source>
-        <target state="translated">FlagsAttribute 열거형만 복수형 이름을 사용할 수 있습니다.</target>
+        <target state="new">Only FlagsAttribute enums should have plural names</target>
         <note />
       </trans-unit>
     </body>

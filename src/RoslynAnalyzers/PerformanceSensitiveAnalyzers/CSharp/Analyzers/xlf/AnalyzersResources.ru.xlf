@@ -4,122 +4,122 @@
     <body>
       <trans-unit id="ClosureCaptureRuleMessage">
         <source>The compiler will emit a class that will hold this as a field to allow capturing of this closure</source>
-        <target state="translated">Компилятор будет выводить класс, содержащий этот объект в качестве поля, чтобы разрешить захват такого замыкания</target>
+        <target state="new">The compiler will emit a class that will hold this as a field to allow capturing of this closure</target>
         <note />
       </trans-unit>
       <trans-unit id="ClosureCaptureRuleTitle">
         <source>Display class allocation to capture closure</source>
-        <target state="translated">Отображение выделения класса для захвата замыкания</target>
+        <target state="new">Display class allocation to capture closure</target>
         <note />
       </trans-unit>
       <trans-unit id="ClosureDriverRuleMessage">
         <source>Heap allocation of closure Captures: {0}</source>
-        <target state="translated">Выделение кучи для захватов замыкания: {0}</target>
+        <target state="new">Heap allocation of closure Captures: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="ClosureDriverRuleTitle">
         <source>Closure Allocation Source</source>
-        <target state="translated">Источник выделения замыкания</target>
+        <target state="new">Closure Allocation Source</target>
         <note />
       </trans-unit>
       <trans-unit id="DelegateOnStructInstanceRuleMessage">
         <source>Struct instance method being used for delegate creation, this will result in a boxing instruction</source>
-        <target state="translated">Метод экземпляра структуры используется для создания делегата, это приведет к инструкции упаковки-преобразования</target>
+        <target state="new">Struct instance method being used for delegate creation, this will result in a boxing instruction</target>
         <note />
       </trans-unit>
       <trans-unit id="DelegateOnStructInstanceRuleTitle">
         <source>Delegate on struct instance caused a boxing allocation</source>
-        <target state="translated">Делегат в экземпляре структуры вызвал выделение упаковки-преобразования</target>
+        <target state="new">Delegate on struct instance caused a boxing allocation</target>
         <note />
       </trans-unit>
       <trans-unit id="LambaOrAnonymousMethodInGenericMethodRuleMessage">
         <source>Considering moving this out of the generic method</source>
-        <target state="translated">Учитывая его перемещение из универсального метода</target>
+        <target state="new">Considering moving this out of the generic method</target>
         <note />
       </trans-unit>
       <trans-unit id="LambaOrAnonymousMethodInGenericMethodRuleTitle">
         <source>Lambda or anonymous method in a generic method allocates a delegate instance</source>
-        <target state="translated">Лямбда-выражение или анонимный метод в универсальном методе выделяет экземпляр делегата</target>
+        <target state="new">Lambda or anonymous method in a generic method allocates a delegate instance</target>
         <note />
       </trans-unit>
       <trans-unit id="MethodGroupAllocationRuleMessage">
         <source>This will allocate a delegate instance</source>
-        <target state="translated">Эта операция выделит экземпляр делегата</target>
+        <target state="new">This will allocate a delegate instance</target>
         <note />
       </trans-unit>
       <trans-unit id="MethodGroupAllocationRuleTitle">
         <source>Delegate allocation from a method group</source>
-        <target state="translated">Выделение делегата из группы методов</target>
+        <target state="new">Delegate allocation from a method group</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleMessage">
         <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation.</source>
-        <target state="translated">Это место вызова направляет в функцию вызов с параметром "params". Это приводит к выделению массива.</target>
+        <target state="new">This call site is calling into a function with a 'params' parameter. This results in an array allocation.</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleTitle">
         <source>Array allocation for params parameter</source>
-        <target state="translated">Выделение массива для параметра params</target>
+        <target state="new">Array allocation for params parameter</target>
         <note />
       </trans-unit>
       <trans-unit id="ReadonlyMethodGroupAllocationRuleMessage">
         <source>This will allocate a delegate instance</source>
-        <target state="translated">Эта операция выделит экземпляр делегата</target>
+        <target state="new">This will allocate a delegate instance</target>
         <note />
       </trans-unit>
       <trans-unit id="ReadonlyMethodGroupAllocationRuleTitle">
         <source>Delegate allocation from a method group</source>
-        <target state="translated">Выделение делегата из группы методов</target>
+        <target state="new">Delegate allocation from a method group</target>
         <note />
       </trans-unit>
       <trans-unit id="ReferenceTypeEnumeratorRuleMessage">
         <source>Non-ValueType enumerator may result in a heap allocation</source>
-        <target state="translated">Перечислитель, отличный от ValueType, может привести к выделению кучи</target>
+        <target state="new">Non-ValueType enumerator may result in a heap allocation</target>
         <note />
       </trans-unit>
       <trans-unit id="ReferenceTypeEnumeratorRuleTitle">
         <source>Possible allocation of reference type enumerator</source>
-        <target state="translated">Возможное выделение перечислителя ссылочного типа</target>
+        <target state="new">Possible allocation of reference type enumerator</target>
         <note />
       </trans-unit>
       <trans-unit id="StringConcatenationAllocationRuleMessage">
         <source>Considering using StringBuilder</source>
-        <target state="translated">Учитывая использование StringBuilder</target>
+        <target state="new">Considering using StringBuilder</target>
         <note />
       </trans-unit>
       <trans-unit id="StringConcatenationAllocationRuleTitle">
         <source>Implicit string concatenation allocation</source>
-        <target state="translated">Неявное выделение объединения строк</target>
+        <target state="new">Implicit string concatenation allocation</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeNonOverridenCallRuleMessage">
         <source>Non-overridden virtual method call on a value type adds a boxing or constrained instruction</source>
-        <target state="translated">Непереопределенный вызов виртуального метода для типа значения добавляет инструкцию упаковки-преобразования или ограниченную инструкцию</target>
+        <target state="new">Non-overridden virtual method call on a value type adds a boxing or constrained instruction</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeNonOverridenCallRuleTitle">
         <source>Non-overridden virtual method call on value type</source>
-        <target state="translated">Непереопределенный вызов виртуального метода для типа значения</target>
+        <target state="new">Non-overridden virtual method call on value type</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleMessage">
         <source>Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable.</source>
-        <target state="translated">Преобразование типа значения в ссылочный тип приводит к упаковке-преобразованию в месте вызова (здесь) и распаковке в месте вызываемого объекта. Рекомендуется по возможности использовать универсальные шаблоны.</target>
+        <target state="new">Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable.</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleTitle">
         <source>Value type to reference type conversion causing boxing allocation</source>
-        <target state="translated">Преобразование типа значения в ссылочный тип приводит к выделению упаковки-преобразования</target>
+        <target state="new">Value type to reference type conversion causing boxing allocation</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleMessage">
         <source>Value type ({0}) is being boxed to a reference type for a string concatenation</source>
-        <target state="translated">Тип значения ({0}) подвергается упаковке-преобразованию в ссылочный тип для объединения строк.</target>
+        <target state="new">Value type ({0}) is being boxed to a reference type for a string concatenation</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleTitle">
         <source>Value type to reference type conversion allocation for string concatenation</source>
-        <target state="translated">Выделение преобразования типа значения в ссылочный тип для объединения строк</target>
+        <target state="new">Value type to reference type conversion allocation for string concatenation</target>
         <note />
       </trans-unit>
     </body>
