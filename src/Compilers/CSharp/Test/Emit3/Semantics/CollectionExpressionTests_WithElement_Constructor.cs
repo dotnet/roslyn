@@ -2911,5 +2911,65 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
         CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics();
     }
 
+    [Fact]
+    public void WithElement_FileLocalType1()
+    {
+        string sourceA = """
+            using System.Collections.Generic;
+
+            file class MyCollection<T> : List<T>
+            {
+                public MyCollection(string value)
+                {
+                }
+            }
+
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<int> c = [with("")];
+                }
+            }
+            """;
+
+        CompileAndVerify(
+            sourceA,
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void WithElement_FileLocalType2()
+    {
+        string sourceA = """
+            using System;
+            using System.Collections.Generic;
+
+            file class MyCollection<T> : List<T>
+            {
+                public MyCollection(Arg value)
+                {
+                }
+            }
+
+            file class Arg {}
+
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<int> c = [with(new Arg()), 1, 2];
+                    Console.WriteLine(string.Join(", ", c));
+                }
+            }
+            """;
+
+        CompileAndVerify(
+            sourceA,
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
     #endregion
 }
