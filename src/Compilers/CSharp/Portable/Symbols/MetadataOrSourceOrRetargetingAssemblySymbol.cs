@@ -72,22 +72,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected bool IsDirectlyOrIndirectlyReferenced(AssemblySymbol potentialGiverOfAccess)
         {
-            if (this is SourceAssemblySymbol sourceAssembly)
-            {
-                var current = sourceAssembly.DeclaringCompilation.PreviousSubmission;
-                while (current is not null)
-                {
-                    if ((object)current.Assembly == potentialGiverOfAccess)
-                    {
-                        return true;
-                    }
-
-                    current = current.PreviousSubmission;
-                }
-            }
-
             var checkedAssemblies = PooledHashSet<AssemblySymbol>.GetInstance();
-            var queue = ArrayBuilder<AssemblySymbol>.GetInstance(this.Modules[0].ReferencedAssemblySymbols.Length);
+            var queue = ArrayBuilder<AssemblySymbol>.GetInstance(
+                this.Modules[0].ReferencedAssemblySymbols.Length +
+                (this is SourceAssemblySymbol { DeclaringCompilation.PreviousSubmission: { } } ? 1 : 0));
 
             checkedAssemblies.Add(this);
             bool found = checkReferences(this, potentialGiverOfAccess, checkedAssemblies, queue);
@@ -107,16 +95,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     foreach (var referencedAssembly in module.ReferencedAssemblySymbols)
                     {
-                        if ((object)referencedAssembly == potentialGiverOfAccess)
+                        if (checkReference(referencedAssembly, potentialGiverOfAccess, checkedAssemblies, queue))
                         {
                             return true;
                         }
-
-                        if (checkedAssemblies.Add(referencedAssembly))
-                        {
-                            queue.Push(referencedAssembly);
-                        }
                     }
+                }
+
+                if (current is SourceAssemblySymbol { DeclaringCompilation.PreviousSubmission.Assembly: { } previous } &&
+                    checkReference(previous, potentialGiverOfAccess, checkedAssemblies, queue))
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
+            static bool checkReference(AssemblySymbol referencedAssembly, AssemblySymbol potentialGiverOfAccess, PooledHashSet<AssemblySymbol> checkedAssemblies, ArrayBuilder<AssemblySymbol> queue)
+            {
+                if ((object)referencedAssembly == potentialGiverOfAccess)
+                {
+                    return true;
+                }
+
+                if (checkedAssemblies.Add(referencedAssembly))
+                {
+                    queue.Push(referencedAssembly);
                 }
 
                 return false;

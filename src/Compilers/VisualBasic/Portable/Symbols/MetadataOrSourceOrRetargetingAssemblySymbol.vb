@@ -60,20 +60,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Protected Function IsDirectlyOrIndirectlyReferenced(potentialGiverOfAccess As AssemblySymbol) As Boolean
-            Dim sourceAssembly = TryCast(Me, SourceAssemblySymbol)
-            If sourceAssembly IsNot Nothing Then
-                Dim current = sourceAssembly.DeclaringCompilation.PreviousSubmission
-                While current IsNot Nothing
-                    If current.Assembly Is potentialGiverOfAccess Then
-                        Return True
-                    End If
-
-                    current = current.PreviousSubmission
-                End While
-            End If
-
             Dim checkedAssemblies = PooledHashSet(Of AssemblySymbol).GetInstance()
-            Dim queue = ArrayBuilder(Of AssemblySymbol).GetInstance(Me.Modules(0).ReferencedAssemblySymbols.Length)
+            Dim queue = ArrayBuilder(Of AssemblySymbol).GetInstance(
+                Me.Modules(0).ReferencedAssemblySymbols.Length +
+                If(TryCast(Me, SourceAssemblySymbol)?.DeclaringCompilation.PreviousSubmission IsNot Nothing, 1, 0))
 
             checkedAssemblies.Add(Me)
             Dim found As Boolean = CheckReferences(Me, potentialGiverOfAccess, checkedAssemblies, queue)
@@ -90,17 +80,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Shared Function CheckReferences(current As AssemblySymbol, potentialGiverOfAccess As AssemblySymbol, checkedAssemblies As PooledHashSet(Of AssemblySymbol), queue As ArrayBuilder(Of AssemblySymbol)) As Boolean
             For Each [module] In current.Modules
                 For Each referencedAssembly In [module].ReferencedAssemblySymbols
-                    If referencedAssembly Is potentialGiverOfAccess Then
+                    If CheckReference(referencedAssembly, potentialGiverOfAccess, checkedAssemblies, queue) Then
                         Return True
-                    End If
-
-                    If checkedAssemblies.Add(referencedAssembly) Then
-                        queue.Push(referencedAssembly)
                     End If
                 Next
             Next
 
+            Dim previous = TryCast(current, SourceAssemblySymbol)?.DeclaringCompilation.PreviousSubmission.Assembly
+            If previous IsNot Nothing AndAlso
+               CheckReference(previous, potentialGiverOfAccess, checkedAssemblies, queue) Then
+                Return True
+            End If
+
             Return False
+        End Function
+
+        Private Shared Function CheckReference(referencedAssembly As AssemblySymbol, potentialGiverOfAccess As AssemblySymbol, checkedAssemblies As PooledHashSet(Of AssemblySymbol), queue As ArrayBuilder(Of AssemblySymbol)) As Boolean
+            If referencedAssembly Is potentialGiverOfAccess Then
+                Return True
+            End If
+
+            If checkedAssemblies.Add(referencedAssembly) Then
+                queue.Push(referencedAssembly)
+            End If
+
+            Return True
         End Function
 
         'EDMAURER This is a cache mapping from assemblies which we have analyzed whether or not they grant
