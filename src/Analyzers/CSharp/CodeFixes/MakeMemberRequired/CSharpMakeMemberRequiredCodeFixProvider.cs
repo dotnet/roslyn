@@ -55,20 +55,23 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider() : SyntaxEditorBa
                                                     .Where(d => d.Id is CS8618 or CS9030)
                                                     .ToImmutableArray();
 
-        if (allDiagnosticsAtLocation.Length == 0) return;
+        if (allDiagnosticsAtLocation.Length == 0)
+            return;
 
         var diagnosticsAndInfo = new List<(Diagnostic diagnostic, SyntaxNode node, string title, string equivalenceKey)>();
         foreach (var diagnostic in allDiagnosticsAtLocation)
         {
             var memberNode = GetMemberNode(diagnostic, root);
-            if (memberNode == null) continue;
+            if (memberNode == null)
+                continue;
 
             var symbol = semanticModel.GetDeclaredSymbol(memberNode, cancellationToken);
             if (IsFixableSymbol(symbol, out var title, out var equivalenceKey))
                 diagnosticsAndInfo.Add((diagnostic, memberNode, title, equivalenceKey));
         }
 
-        if (diagnosticsAndInfo.Count == 0) return;
+        if (diagnosticsAndInfo.Count == 0)
+            return;
 
         // Sort by the member's source position.
         diagnosticsAndInfo.Sort((d1, d2) => d1.node.SpanStart.CompareTo(d2.node.SpanStart));
@@ -91,30 +94,36 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider() : SyntaxEditorBa
     protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, string? equivalenceKey, CancellationToken cancellationToken)
         => equivalenceKey == nameof(CSharpMakeMemberRequiredCodeFixProvider);
 
-    static bool IsFixableSymbol(ISymbol? symbol, out string title, out string equivalenceKey)
+    private static bool IsFixableSymbol(ISymbol? symbol, out string title, out string equivalenceKey)
     {
         title = "";
         equivalenceKey = nameof(CSharpMakeMemberRequiredCodeFixProvider);
-        if (symbol == null || symbol.IsStatic || symbol.Kind == SymbolKind.Event) return false;
+        if (symbol == null || symbol.IsStatic || symbol.Kind == SymbolKind.Event)
+            return false;
 
         if (symbol is IPropertySymbol propertySymbol)
         {
-            if (propertySymbol.IsOverride && !IsBaseRequired(propertySymbol)) return false;
-            if (propertySymbol.SetMethod == null) return false;
+            if (propertySymbol.IsOverride && !IsBaseRequired(propertySymbol))
+                return false;
+            if (propertySymbol.SetMethod == null)
+                return false;
             var visibility = propertySymbol.ContainingType.GetResultantVisibility();
             var setMethodAccessibility = propertySymbol.SetMethod?.DeclaredAccessibility ?? Accessibility.NotApplicable;
             var accessibility = (Accessibility)Math.Min((int)propertySymbol.DeclaredAccessibility, (int)setMethodAccessibility);
-            if (!CanBeAccessed(visibility, accessibility)) return false;
+            if (!CanBeAccessed(visibility, accessibility))
+                return false;
 
             title = CSharpCodeFixesResources.Make_property_required;
             return true;
         }
-        
+
         if (symbol is IFieldSymbol fieldSymbol)
         {
-            if (fieldSymbol.IsReadOnly) return false;
+            if (fieldSymbol.IsReadOnly)
+                return false;
             var visibility = fieldSymbol.ContainingType.GetResultantVisibility();
-            if (!CanBeAccessed(visibility, fieldSymbol.DeclaredAccessibility)) return false;
+            if (!CanBeAccessed(visibility, fieldSymbol.DeclaredAccessibility))
+                return false;
 
             title = CSharpCodeFixesResources.Make_field_required;
             return true;
@@ -123,12 +132,13 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider() : SyntaxEditorBa
         return false;
     }
 
-    static bool IsBaseRequired(IPropertySymbol property)
+    private static bool IsBaseRequired(IPropertySymbol property)
     {
         var overridden = property.OverriddenProperty;
         while (overridden != null)
         {
-            if (overridden.IsRequired) return true;
+            if (overridden.IsRequired)
+                return true;
             overridden = overridden.OverriddenProperty;
         }
         return false;
@@ -138,7 +148,7 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider() : SyntaxEditorBa
     // For instance, having private required property in a public class leads to compiler error.
     // This function checks whether the member can be accessed by checking containing type visibility (which is computed already taking into account whether the type is nested and what is its visibility based on that fact)
     // against accessibility of member we are trying to make required
-    static bool CanBeAccessed(SymbolVisibility containingTypeVisibility, Accessibility accessibility) => containingTypeVisibility switch
+    private static bool CanBeAccessed(SymbolVisibility containingTypeVisibility, Accessibility accessibility) => containingTypeVisibility switch
     {
         // Public is the highest accessibility. So in order to be accessible outside, member accessibility must be only public
         SymbolVisibility.Public => accessibility is Accessibility.Public,
@@ -165,7 +175,8 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider() : SyntaxEditorBa
                 continue;
 
             var symbol = semanticModel.GetDeclaredSymbol(memberNode, cancellationToken);
-            if (!IsFixableSymbol(symbol, out _, out _)) continue;
+            if (!IsFixableSymbol(symbol, out _, out _))
+                continue;
 
             if (memberNode is VariableDeclaratorSyntax { Parent.Parent: FieldDeclarationSyntax fieldDecl })
                 memberNode = fieldDecl;
