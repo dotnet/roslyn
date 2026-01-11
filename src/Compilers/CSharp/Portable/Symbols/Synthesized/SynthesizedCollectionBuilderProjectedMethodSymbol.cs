@@ -127,9 +127,9 @@ internal sealed class SynthesizedCollectionBuilderProjectedMethodSymbol(
 
         internal override bool HasEnumeratorCancellationAttribute => throw ExceptionUtilities.Unreachable();
 
-        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable();
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => this.UnderlyingParameter.InterpolatedStringHandlerArgumentIndexes;
 
-        internal override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable();
+        internal override bool HasInterpolatedStringHandlerArgumentError => this.UnderlyingParameter.HasInterpolatedStringHandlerArgumentError;
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes) => throw ExceptionUtilities.Unreachable();
     }

@@ -865,6 +865,50 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
     }
 
     [Theory]
+    [InlineData("ref ")]
+    [InlineData("")]
+    public void WithElement_RefReadonlyParameter(string modifier)
+    {
+        var source = $$"""
+            using System;
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public MyList(ref readonly int value) : base()
+                {
+                }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    int x = 10;
+                    MyList<int> list = [with({{modifier}}x)];
+                    Console.WriteLine(x);
+                }
+            }
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("10")).VerifyIL("C.Main", """
+            {
+              // Code size       18 (0x12)
+              .maxstack  1
+              .locals init (int V_0) //x
+              IL_0000:  ldc.i4.s   10
+              IL_0002:  stloc.0
+              IL_0003:  ldloca.s   V_0
+              IL_0005:  newobj     "MyList<int>..ctor(ref readonly int)"
+              IL_000a:  pop
+              IL_000b:  ldloc.0
+              IL_000c:  call       "void System.Console.WriteLine(int)"
+              IL_0011:  ret
+            }
+            """);
+    }
+
+    [Theory]
     [InlineData("in ")]
     [InlineData("")]
     public void WithElement_InParameters(string modifier)
@@ -2735,6 +2779,61 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
               IL_0039:  ret
             }
             """);
+    }
+
+    [Fact]
+    public void OverloadResolutionPriority()
+    {
+        string sourceA = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection(string s, object o)
+                {
+                    Console.WriteLine("Called first overload");
+                }
+
+                [OverloadResolutionPriority(1)]
+                public MyCollection(object o, string s)
+                {
+                    Console.WriteLine("Called second overload");
+                }
+            }
+            """;
+        string sourceB = """
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<string> c = [with("", ""), ""];
+                }
+            }
+            """;
+        var comp = CompileAndVerify(
+            [sourceA, sourceB, OverloadResolutionPriorityAttributeDefinition],
+            // targetFramework: TargetFramework.Net100,
+            expectedOutput: IncludeExpectedOutput(
+                """
+                Called second overload
+                """)).VerifyIL("Program.Main", """
+                {
+                  // Code size       28 (0x1c)
+                  .maxstack  3
+                  IL_0000:  ldstr      ""
+                  IL_0005:  ldstr      ""
+                  IL_000a:  newobj     "MyCollection<string>..ctor(object, string)"
+                  IL_000f:  dup
+                  IL_0010:  ldstr      ""
+                  IL_0015:  callvirt   "void System.Collections.Generic.List<string>.Add(string)"
+                  IL_001a:  pop
+                  IL_001b:  ret
+                }
+                """);
     }
 
     #endregion
