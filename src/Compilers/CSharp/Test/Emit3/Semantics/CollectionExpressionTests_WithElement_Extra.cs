@@ -8649,4 +8649,266 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             //     public static MyCollection<T> Create<T>(__arglist, ReadOnlySpan<T> items) => new(__arglist, items);
             Diagnostic(ErrorCode.ERR_BadArgType, "items").WithArguments("2", "System.ReadOnlySpan<T>", "__arglist").WithLocation(16, 97));
     }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_OverloadResolution_ExactMatch()
+    {
+        var source = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyList<T> : List<T>
+            {
+                public string ConstructorUsed { get; }
+                
+                public MyList(int capacity) : base(capacity)
+                {
+                    ConstructorUsed = "int";
+                }
+                
+                public MyList(long capacity) : base((int)capacity)
+                {
+                    ConstructorUsed = "long";
+                }
+            }
+            
+            class MyBuilder
+            {
+                public static MyList<T> Create<T>(int capacity, ReadOnlySpan<T> items) => new(capacity);
+                public static MyList<T> Create<T>(long capacity, ReadOnlySpan<T> items) => new(capacity);
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int> list1 = [with(10), 1];
+                    MyList<int> list2 = [with(10L), 2];
+                    Console.WriteLine($"{list1.ConstructorUsed},{list2.ConstructorUsed}");
+                }
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: IncludeExpectedOutput("int,long"));
+    }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_OverloadResolution_Ambiguous()
+    {
+        var source = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyList<T> : List<T>
+            {
+                public MyList(int capacity) : base(capacity)
+                {
+                    Console.WriteLine("int chosen");
+                }
+                
+                public MyList(long capacity) : base((int)capacity)
+                {
+                    Console.WriteLine("long chosen");
+                }
+            }
+            
+            class MyBuilder
+            {
+                public static MyList<T> Create<T>(int capacity, ReadOnlySpan<T> items) => new(capacity);
+                public static MyList<T> Create<T>(long capacity, ReadOnlySpan<T> items) => new(capacity);
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    short s = 10;
+                    MyList<int> list = [with(s)];
+                }
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: IncludeExpectedOutput("int chosen"));
+    }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_OverloadResolution_BestMatch()
+    {
+        var source = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyList<T> : List<T>
+            {
+                public string ConstructorUsed { get; }
+                
+                public MyList(object value) : base()
+                {
+                    ConstructorUsed = "object";
+                }
+                
+                public MyList(int value) : base()
+                {
+                    ConstructorUsed = "int";
+                }
+            }
+            
+            class MyBuilder
+            {
+                public static MyList<T> Create<T>(int capacity, ReadOnlySpan<T> items) => new(capacity);
+                public static MyList<T> Create<T>(long capacity, ReadOnlySpan<T> items) => new(capacity);
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int> list = [with(42), 1];
+                    Console.WriteLine(list.ConstructorUsed);
+                }
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: IncludeExpectedOutput("int"));
+    }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_NoMatchingConstructor()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyList<T> : List<T>
+            {
+                public MyList(string value) : base() { }
+            }
+            
+            class MyBuilder
+            {
+                public static MyList<T> Create<T>(string value, ReadOnlySpan<T> items) => new(value);
+            }
+            
+            class C
+            {
+                void M()
+                {
+                    MyList<int> list = [with(42)];
+                }
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(
+            // (20,34): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+            //         MyList<int> list = [with(42)];
+            Diagnostic(ErrorCode.ERR_BadArgType, "42").WithArguments("1", "int", "string").WithLocation(20, 34));
+    }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_UserDefinedConversion1()
+    {
+        var source = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyList<T> : List<T>
+            {
+                public MyList(string value) : base() { }
+            }
+            
+            class MyBuilder
+            {
+                public static MyList<T> Create<T>(string value, ReadOnlySpan<T> items) => new(value);
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int> list = [with(new C())];
+                }
+
+                public static implicit operator string(C c) => "converted";
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100).VerifyIL("C.Main", """
+            {
+              // Code size       26 (0x1a)
+              .maxstack  2
+              .locals init (System.ReadOnlySpan<int> V_0)
+              IL_0000:  newobj     "C..ctor()"
+              IL_0005:  call       "string C.op_Implicit(C)"
+              IL_000a:  ldloca.s   V_0
+              IL_000c:  initobj    "System.ReadOnlySpan<int>"
+              IL_0012:  ldloc.0
+              IL_0013:  call       "MyList<int> MyBuilder.Create<int>(string, System.ReadOnlySpan<int>)"
+              IL_0018:  pop
+              IL_0019:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_Constructor_UserDefinedConversion2()
+    {
+        var source = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyList<T> : List<T>
+            {
+                public MyList(long value) : base() { }
+            }
+            
+            class MyBuilder
+            {
+                public static MyList<T> Create<T>(long value, ReadOnlySpan<T> items) => new(value);
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int> list = [with(new C())];
+                }
+
+                public static implicit operator int(C c) => 0;
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100).VerifyIL("C.Main", """
+            {
+              // Code size       27 (0x1b)
+              .maxstack  2
+              .locals init (System.ReadOnlySpan<int> V_0)
+              IL_0000:  newobj     "C..ctor()"
+              IL_0005:  call       "int C.op_Implicit(C)"
+              IL_000a:  conv.i8
+              IL_000b:  ldloca.s   V_0
+              IL_000d:  initobj    "System.ReadOnlySpan<int>"
+              IL_0013:  ldloc.0
+              IL_0014:  call       "MyList<int> MyBuilder.Create<int>(long, System.ReadOnlySpan<int>)"
+              IL_0019:  pop
+              IL_001a:  ret
+            }
+            """);
+    }
 }
