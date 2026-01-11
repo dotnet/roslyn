@@ -8911,4 +8911,93 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             }
             """);
     }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_UnscopedRef1()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class C<T> : List<T>
+            {
+                public C(out Span<string> egress, [UnscopedRef] out string ingress)
+                {
+                    ingress = "a";
+                    egress = new Span<string>(ref ingress);
+                }
+
+                Span<string> M()
+                {
+                    string y = "a";
+                    C<T> list = [with(out Span<string> x, out y)];
+                    return x;
+                }
+            
+                Span<string> N()
+                {
+                    string y = "a";
+                    C<T> list = new(out Span<string> x, out y);
+                    return x;
+                }
+            }
+            
+            class MyBuilder
+            {
+                public static C<T> Create<T>(out Span<string> egress, [UnscopedRef] out string ingress, ReadOnlySpan<T> items) => new(out egress, out ingress);
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(
+            // (19,16): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         return x;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(19, 16),
+            // (26,16): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         return x;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(26, 16));
+    }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_NotUnscopedRef1()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class C<T> : List<T>
+            {
+                public C(out Span<string> egress, out string ingress)
+                {
+                    ingress = "a";
+                    egress = [];
+                }
+            
+                Span<string> M()
+                {
+                    string y = "a";
+                    C<T> list = [with(out Span<string> x, out y)];
+                    return x;
+                }
+
+                Span<string> N()
+                {
+                    string y = "a";
+                    C<T> list = new(out Span<string> x, out y);
+                    return x;
+                }
+            }
+            
+            class MyBuilder
+            {
+                public static C<T> Create<T>(out Span<string> egress, out string ingress, ReadOnlySpan<T> items) => new(out egress, out ingress);
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics();
+    }
 }

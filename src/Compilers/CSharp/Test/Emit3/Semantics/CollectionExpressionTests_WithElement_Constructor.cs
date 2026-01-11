@@ -2836,5 +2836,80 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
                 """);
     }
 
+    [Fact]
+    public void WithElement_UnscopedRef1()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            
+            class C : List<int>
+            {
+                public C(out Span<string> egress, [UnscopedRef] out string ingress)
+                {
+                    ingress = "a";
+                    egress = new Span<string>(ref ingress);
+                }
+
+                Span<string> M()
+                {
+                    string y = "a";
+                    C list = [with(out Span<string> x, out y)];
+                    return x;
+                }
+            
+                Span<string> N()
+                {
+                    string y = "a";
+                    C list = new(out Span<string> x, out y);
+                    return x;
+                }
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(
+            // (17,16): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         return x;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(17, 16),
+            // (24,16): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         return x;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(24, 16));
+    }
+
+    [Fact]
+    public void WithElement_NotUnscopedRef1()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            
+            class C : List<int>
+            {
+                public C(out Span<string> egress, out string ingress)
+                {
+                    ingress = "a";
+                    egress = [];
+                }
+            
+                Span<string> M()
+                {
+                    string y = "a";
+                    C list = [with(out Span<string> x, out y)];
+                    return x;
+                }
+
+                Span<string> N()
+                {
+                    string y = "a";
+                    C list = new(out Span<string> x, out y);
+                    return x;
+                }
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics();
+    }
+
     #endregion
 }
