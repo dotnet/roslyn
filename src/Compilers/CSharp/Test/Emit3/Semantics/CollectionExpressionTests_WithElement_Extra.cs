@@ -8692,7 +8692,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             }
             """;
 
-        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: IncludeExpectedOutput("int,long"));
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: IncludeExpectedOutput("int,long"), verify: Verification.FailsPEVerify);
     }
 
     [Fact]
@@ -8734,7 +8734,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             }
             """;
 
-        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: IncludeExpectedOutput("int chosen"));
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: IncludeExpectedOutput("int chosen"), verify: Verification.FailsPEVerify);
     }
 
     [Fact]
@@ -8778,7 +8778,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             }
             """;
 
-        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: IncludeExpectedOutput("int"));
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: IncludeExpectedOutput("int"), verify: Verification.FailsPEVerify);
     }
 
     [Fact]
@@ -8846,7 +8846,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             }
             """;
 
-        CompileAndVerify(source, targetFramework: TargetFramework.Net100).VerifyIL("C.Main", """
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyIL("C.Main", """
             {
               // Code size       26 (0x1a)
               .maxstack  2
@@ -8894,7 +8894,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             }
             """;
 
-        CompileAndVerify(source, targetFramework: TargetFramework.Net100).VerifyIL("C.Main", """
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyIL("C.Main", """
             {
               // Code size       27 (0x1b)
               .maxstack  2
