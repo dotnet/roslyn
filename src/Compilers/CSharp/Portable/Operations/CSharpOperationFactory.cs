@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
@@ -323,6 +322,14 @@ namespace Microsoft.CodeAnalysis.Operations
                         _ => null
                     };
                     return new NoneOperation(children, _semanticModel, boundNode.Syntax, type: type, constantValue, isImplicit: isImplicit);
+                case BoundKind.CollectionBuilderElementsPlaceholder:
+                    return new CollectionExpressionElementsPlaceholderOperation(
+                        _semanticModel, boundNode.Syntax,
+                        boundNode switch
+                        {
+                            BoundExpression boundExpr => boundExpr.GetPublicTypeSymbol(),
+                            _ => null
+                        }, boundNode.WasCompilerGenerated);
                 case BoundKind.UnconvertedInterpolatedString:
                 case BoundKind.UnconvertedConditionalOperator:
                 case BoundKind.UnconvertedSwitchExpression:
@@ -698,17 +705,17 @@ namespace Microsoft.CodeAnalysis.Operations
             return new AnonymousObjectCreationOperation(initializers, _semanticModel, syntax, type, isImplicit);
         }
 
+        private static bool CanDeriveObjectCreationExpressionArguments(BoundObjectCreationExpression boundObjectCreationExpression)
+            => boundObjectCreationExpression is { ResultKind: not LookupResultKind.OverloadResolutionFailure, Constructor.OriginalDefinition: not ErrorMethodSymbol };
+
         private IOperation CreateBoundObjectCreationExpressionOperation(BoundObjectCreationExpression boundObjectCreationExpression)
         {
-            MethodSymbol constructor = boundObjectCreationExpression.Constructor;
             SyntaxNode syntax = boundObjectCreationExpression.Syntax;
             ITypeSymbol? type = boundObjectCreationExpression.GetPublicTypeSymbol();
             ConstantValue? constantValue = boundObjectCreationExpression.ConstantValueOpt;
             bool isImplicit = boundObjectCreationExpression.WasCompilerGenerated;
 
-            Debug.Assert(constructor is not null);
-
-            if (boundObjectCreationExpression.ResultKind == LookupResultKind.OverloadResolutionFailure || constructor.OriginalDefinition is ErrorMethodSymbol)
+            if (!CanDeriveObjectCreationExpressionArguments(boundObjectCreationExpression))
             {
                 var children = CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundObjectCreationExpression).InvalidNodeChildren);
                 return new InvalidOperation(children, _semanticModel, syntax, type, constantValue, isImplicit);
@@ -730,7 +737,15 @@ namespace Microsoft.CodeAnalysis.Operations
             ImmutableArray<IArgumentOperation> arguments = DeriveArguments(boundObjectCreationExpression);
             IObjectOrCollectionInitializerOperation? initializer = (IObjectOrCollectionInitializerOperation?)Create(boundObjectCreationExpression.InitializerExpressionOpt);
 
-            return new ObjectCreationOperation(constructor.GetPublicSymbol(), initializer, arguments, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new ObjectCreationOperation(
+                boundObjectCreationExpression.Constructor.GetPublicSymbol(),
+                initializer,
+                arguments,
+                _semanticModel,
+                syntax,
+                type,
+                constantValue,
+                isImplicit);
         }
 
         private IOperation CreateBoundWithExpressionOperation(BoundWithExpression boundWithExpression)
@@ -1222,29 +1237,25 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private ICollectionExpressionOperation CreateBoundCollectionExpression(BoundCollectionExpression expr)
         {
-            SyntaxNode syntax = expr.Syntax;
-            ITypeSymbol? collectionType = expr.GetPublicTypeSymbol();
-            bool isImplicit = expr.WasCompilerGenerated;
-            IMethodSymbol? constructMethod = getConstructMethod((CSharpCompilation)_semanticModel.Compilation, expr).GetPublicSymbol();
-            ImmutableArray<IOperation> elements = expr.Elements.SelectAsArray((element, expr) => CreateBoundCollectionExpressionElement(expr, element), expr);
             return new CollectionExpressionOperation(
-                constructMethod,
-                elements,
+                getConstructMethod(expr).GetPublicSymbol(),
+                getConstructArguments(this, expr),
+                expr.Elements.SelectAsArray((element, expr) => CreateBoundCollectionExpressionElement(expr, element), expr),
                 _semanticModel,
-                syntax,
-                collectionType,
-                isImplicit);
+                expr.Syntax,
+                expr.GetPublicTypeSymbol(),
+                expr.WasCompilerGenerated);
 
-            static MethodSymbol? getConstructMethod(CSharpCompilation compilation, BoundCollectionExpression expr)
+            static MethodSymbol? getConstructMethod(BoundCollectionExpression expr)
             {
                 switch (expr.CollectionTypeKind)
                 {
                     case CollectionExpressionTypeKind.None:
                     case CollectionExpressionTypeKind.Array:
-                    case CollectionExpressionTypeKind.ArrayInterface:
                     case CollectionExpressionTypeKind.ReadOnlySpan:
                     case CollectionExpressionTypeKind.Span:
                         return null;
+                    case CollectionExpressionTypeKind.ArrayInterface:
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
                         return (expr.CollectionCreation as BoundObjectCreationExpression)?.Constructor;
                     case CollectionExpressionTypeKind.CollectionBuilder:
@@ -1252,6 +1263,45 @@ namespace Microsoft.CodeAnalysis.Operations
                     default:
                         throw ExceptionUtilities.UnexpectedValue(expr.CollectionTypeKind);
                 }
+            }
+
+            static ImmutableArray<IOperation> getConstructArguments(
+                CSharpOperationFactory @this, BoundCollectionExpression expr)
+            {
+                var collectionCreation = expr.CollectionCreation;
+                while (collectionCreation is BoundConversion conversion)
+                    collectionCreation = conversion.Operand;
+
+                if (collectionCreation is BoundObjectCreationExpression objectCreation)
+                {
+                    // Match the logic in CreateBoundObjectCreationOperation which does not DeriveArguments in the case of an
+                    // problems encountered in binding.
+                    Debug.Assert(!objectCreation.Type.IsAnonymousType);
+                    return !CanDeriveObjectCreationExpressionArguments(objectCreation)
+                        ? @this.CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)objectCreation).InvalidNodeChildren)
+                        : ImmutableArray<IOperation>.CastUp(@this.DeriveArguments(collectionCreation));
+                }
+
+                if (collectionCreation is BoundCall boundCall)
+                {
+                    // Match the logic in CreateBoundCallOperation which does not DeriveArguments in the case of an
+                    // erroneous call node.
+                    return boundCall.IsErroneousNode
+                        ? @this.CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundCall).InvalidNodeChildren)
+                        : ImmutableArray<IOperation>.CastUp(@this.DeriveArguments(collectionCreation));
+                }
+
+                if (collectionCreation is BoundNewT boundNewT)
+                    return [];
+
+                if (collectionCreation is BoundBadExpression boundBad)
+                    return @this.CreateFromArray<BoundExpression, IOperation>(boundBad.ChildBoundNodes);
+
+                if (collectionCreation is null)
+                    return [];
+
+                Debug.Fail("Unhandled case: " + collectionCreation.GetType());
+                return [];
             }
         }
 

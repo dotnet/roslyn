@@ -1308,6 +1308,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
+        {
+            if (node.CollectionCreation is { } collectionCreation)
+            {
+                if (node.CollectionBuilderElementsPlaceholder is { } spanPlaceholder)
+                {
+                    var elementType = ((NamedTypeSymbol)spanPlaceholder.Type!).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+
+                    // If there are no elements, or if the span is being created from the program-data segment over
+                    // readonly data, then this span of elements is safe to return out to the calling method. Otherwise,
+                    // as it could be capturing local data, we conservatively restrict it to the local scope.
+                    var safeContext = node.Elements.Length == 0 || LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(node, elementType.Type)
+                        ? SafeContext.CallingMethod
+                        : _localScopeDepth;
+
+                    var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContextAndLocation)>.GetInstance();
+                    placeholders.Add((spanPlaceholder, SafeContextAndLocation.Create(safeContext)));
+
+                    using var _ = new PlaceholderRegion(this, placeholders);
+                    Visit(collectionCreation);
+                }
+                else
+                {
+                    Visit(collectionCreation);
+                }
+            }
+
+            VisitList(node.Elements);
+            return null;
+        }
+
         private static void Error(BindingDiagnosticBag diagnostics, ErrorCode code, SyntaxNodeOrToken syntax, params object[] args)
         {
             var location = syntax.GetLocation();

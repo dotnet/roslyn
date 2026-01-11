@@ -3868,6 +3868,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             // When the target-typing conversion is processed, the completion continuation will be given a target-type and
             // we'll be able to process the element conversions and compute the final visit result.
 
+            // Walk into the creation side first (generally, this corresponds to the 'with(...)' elements if present.
+            // This will ensure any nullable changes in those arguments are reflected before we walk into the elements.
+            // Note: the creation side may reference a placeholder representing the actual elements to add to the
+            // collection.  For example `SomeCollection.Create(withArg1, withArg2, <placeholder_for_elements>)`. In this
+            // case, we know the type of that place holder and that it is not nullable (it is a ReadOnlySpan).  Populate
+            // the right maps so walking into the creation understands this.
+
+            if (node.CollectionBuilderElementsPlaceholder != null)
+            {
+                AddPlaceholderReplacement(
+                    node.CollectionBuilderElementsPlaceholder,
+                    node.CollectionBuilderElementsPlaceholder,
+                    result: new VisitResult(
+                        node.CollectionBuilderElementsPlaceholder.Type,
+                        NullableAnnotation.NotAnnotated,
+                        NullableFlowState.NotNull));
+            }
+
+            Visit(node.CollectionCreation);
+
+            if (node.CollectionBuilderElementsPlaceholder != null)
+                RemovePlaceholderReplacement(node.CollectionBuilderElementsPlaceholder);
+
             var (collectionKind, targetElementType) = getCollectionDetails(node, node.Type);
 
             var resultBuilder = ArrayBuilder<VisitResult>.GetInstance(node.Elements.Length);
@@ -8576,7 +8599,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    return new BoundUnconvertedCollectionExpression(collection.Syntax, elementsBuilder.ToImmutableAndFree()) { WasCompilerGenerated = true };
+                    // Note: the 'with(...)' element in a collection expression does not contribute to method type
+                    // inference (just like 'new(...)' in an argument position does not.  Instead, once method type
+                    // inference is done, the final target type will be used to bind and determine what 'with(...)'
+                    // and 'new(...)' mean.
+                    //
+                    // So in this case, just pass 'null' for this as they do not contribute to inference and it's 
+                    // the same as if the user did not provide any.
+                    return new BoundUnconvertedCollectionExpression(
+                        collection.Syntax, withElement: null, elements: elementsBuilder.ToImmutableAndFree())
+                    {
+                        WasCompilerGenerated = true
+                    };
                 }
 
                 // Note: for `out` arguments, the argument result contains the declaration type (see `VisitArgumentEvaluate`)
@@ -11582,6 +11616,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override BoundNode? VisitValuePlaceholder(BoundValuePlaceholder node)
+        {
+            VisitPlaceholderWithReplacement(node);
+            return null;
+        }
+
+        public override BoundNode? VisitCollectionBuilderElementsPlaceholder(BoundCollectionBuilderElementsPlaceholder node)
         {
             VisitPlaceholderWithReplacement(node);
             return null;

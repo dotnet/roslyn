@@ -20,6 +20,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+    [CompilerTrait(CompilerFeature.CollectionExpressions)]
     public class CollectionExpressionTests : CSharpTestBase
     {
         private static readonly IEnumerable<KeyValuePair<string, ReportDiagnostic>> WithSpanAllocWarning = new[]
@@ -16394,11 +16395,13 @@ partial class Program
   IL_000f:  ret
 }
 """);
-            // We should extend IOperation conversions to represent IsCollectionExpression
-            // Tracked by https://github.com/dotnet/roslyn/issues/68826
-            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
-                """
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp, """
                 ICollectionExpressionOperation (3 elements, ConstructMethod: MyCollection<System.Int32> MyCollectionBuilder.Create<System.Int32>(System.ReadOnlySpan<System.Int32> items)) (OperationKind.CollectionExpression, Type: MyCollection<System.Int32>) (Syntax: '[1, 2, 3]')
+                  ConstructArguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[1, 2, 3]')
+                        ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElementsPlaceholder, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: '[1, 2, 3]')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Elements(3):
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -16469,8 +16472,6 @@ partial class Program
   IL_0020:  ret
 }
 """);
-            // We should extend IOperation conversions to represent IsCollectionExpression
-            // Tracked by https://github.com/dotnet/roslyn/issues/68826
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
                 ICollectionExpressionOperation (2 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Int32[][]) (Syntax: '[[1], [2]]')
@@ -20796,6 +20797,7 @@ partial class Program
                 }
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
+
             comp.VerifyEmitDiagnostics(
                 // (6,34): warning CS0612: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' is obsolete
                 //         MyCollection<string> x = [];
@@ -20841,7 +20843,9 @@ partial class Program
                     }
                 }
                 """;
+
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
+
             comp.VerifyEmitDiagnostics(
                 // (6,34): error CS0619: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' is obsolete: 'message 4'
                 //         MyCollection<string> x = [];
@@ -21814,6 +21818,44 @@ partial class Program
                 // 1.cs(19,34): error CS0656: Missing compiler required member 'System.ReadOnlySpan`1..ctor'
                 //         MyCollection<object> c = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[1, 2, 3]").WithArguments("System.ReadOnlySpan`1", ".ctor").WithLocation(19, 34));
+        }
+
+        [Fact]
+        public void Missing_ListType()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        IList<int> list = [with(), 1, 2, 3];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Collections_Generic_List_T);
+            comp.VerifyEmitDiagnostics(
+                // (8,27): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         IList<int> list = [with(), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(8, 27),
+                // (8,27): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         IList<int> list = [with(), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(8, 27),
+                // (8,27): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.Add'
+                //         IList<int> list = [with(), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", "Add").WithLocation(8, 27),
+                // (8,27): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
+                //         IList<int> list = [with(), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(8, 27),
+                // (8,28): error CS1729: 'List<int>' does not contain a constructor that takes 0 arguments
+                //         IList<int> list = [with(), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.List<int>", "0").WithLocation(8, 28),
+                // (8,28): error CS0518: Predefined type 'System.Collections.Generic.List`1' is not defined or imported
+                //         IList<int> list = [with(), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "with()").WithArguments("System.Collections.Generic.List`1").WithLocation(8, 28));
         }
 
         [Fact]
@@ -28296,6 +28338,10 @@ partial class Program
                     {
                         return () => [a, b];
                     }
+                    static Expression<Func<List<object>>> Create4()
+                    {
+                        return () => [with(capacity: 0)];
+                    }
                 }
                 """;
             var comp = CreateCompilation(source);
@@ -28308,7 +28354,10 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsCollectionExpression, "[1, 2]").WithLocation(17, 22),
                 // (21,22): error CS9175: An expression tree may not contain a collection expression.
                 //         return () => [a, b];
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsCollectionExpression, "[a, b]").WithLocation(21, 22));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsCollectionExpression, "[a, b]").WithLocation(21, 22),
+                // (25,22): error CS9175: An expression tree may not contain a collection expression.
+                //         return () => [with(capacity: 0)];
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsCollectionExpression, "[with(capacity: 0)]").WithLocation(25, 22));
         }
 
         [Fact]
@@ -29059,14 +29108,18 @@ partial class Program
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics();
 
-            var operation = VerifyOperationTreeForTest<ReturnStatementSyntax>(comp,
-                """
+            var operation = VerifyOperationTreeForTest<ReturnStatementSyntax>(comp, """
                 IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return [..x, y];')
                   ReturnedValue:
                     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection<System.Object>, IsImplicit) (Syntax: '[..x, y]')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Operand:
                         ICollectionExpressionOperation (2 elements, ConstructMethod: MyCollection<System.Object> MyCollectionBuilder.Create<System.Object>(System.ReadOnlySpan<System.Object> items)) (OperationKind.CollectionExpression, Type: MyCollection<System.Object>) (Syntax: '[..x, y]')
+                          ConstructArguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[..x, y]')
+                                ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElementsPlaceholder, Type: System.ReadOnlySpan<System.Object>, IsImplicit) (Syntax: '[..x, y]')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Elements(2):
                               ISpreadOperation (ElementType: System.Int32) (OperationKind.Spread, Type: null) (Syntax: '..x')
                                 Operand:
@@ -29122,14 +29175,18 @@ partial class Program
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics();
 
-            var operation = VerifyOperationTreeForTest<ReturnStatementSyntax>(comp,
-                """
+            var operation = VerifyOperationTreeForTest<ReturnStatementSyntax>(comp, """
                 IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return [a, b];')
                   ReturnedValue:
                     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: IMyCollection<T>, IsImplicit) (Syntax: '[a, b]')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Operand:
                         ICollectionExpressionOperation (2 elements, ConstructMethod: MyCollection<T> MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T> items)) (OperationKind.CollectionExpression, Type: IMyCollection<T>) (Syntax: '[a, b]')
+                          ConstructArguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[a, b]')
+                                ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElementsPlaceholder, Type: System.ReadOnlySpan<T>, IsImplicit) (Syntax: '[a, b]')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Elements(2):
                               IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: T) (Syntax: 'a')
                               IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: T) (Syntax: 'b')
@@ -29159,9 +29216,13 @@ partial class Program
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics();
 
-            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
-                """
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp, """
                 ICollectionExpressionOperation (2 elements, ConstructMethod: System.Collections.Immutable.ImmutableArray<System.Object> System.Collections.Immutable.ImmutableArray.Create<System.Object>(System.ReadOnlySpan<System.Object> items)) (OperationKind.CollectionExpression, Type: System.Collections.Immutable.ImmutableArray<System.Object>) (Syntax: '[..x, y]')
+                  ConstructArguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[..x, y]')
+                        ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElementsPlaceholder, Type: System.ReadOnlySpan<System.Object>, IsImplicit) (Syntax: '[..x, y]')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Elements(2):
                       ISpreadOperation (ElementType: System.Int32) (OperationKind.Spread, Type: null) (Syntax: '..x')
                         Operand:
@@ -29176,8 +29237,7 @@ partial class Program
 
             var tree = comp.SyntaxTrees[0];
             var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "Create");
-            VerifyFlowGraph(comp, method,
-                """
+            VerifyFlowGraph(comp, method, """
                 Block[B0] - Entry
                     Statements (0)
                     Next (Regular) Block[B1]
@@ -29190,6 +29250,11 @@ partial class Program
                             (CollectionExpression)
                           Operand:
                             ICollectionExpressionOperation (2 elements, ConstructMethod: System.Collections.Immutable.ImmutableArray<System.Object> System.Collections.Immutable.ImmutableArray.Create<System.Object>(System.ReadOnlySpan<System.Object> items)) (OperationKind.CollectionExpression, Type: System.Collections.Immutable.ImmutableArray<System.Object>) (Syntax: '[..x, y]')
+                              ConstructArguments(1):
+                                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[..x, y]')
+                                    ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElementsPlaceholder, Type: System.ReadOnlySpan<System.Object>, IsImplicit) (Syntax: '[..x, y]')
+                                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               Elements(2):
                                   ISpreadOperation (ElementType: System.Int32) (OperationKind.Spread, Type: null) (Syntax: '..x')
                                     Operand:
@@ -33613,7 +33678,10 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "S").WithArguments("S").WithLocation(4, 28),
                 // (15,21): error CS9203: A collection expression of type 'S' cannot be used in this context because it may be exposed outside of the current scope.
                 //     static S F() => [[]];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[[]]").WithArguments("S").WithLocation(15, 21));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[[]]").WithArguments("S").WithLocation(15, 21),
+                // (15,22): error CS9404: Element type of this collection may not be a ref struct or a type parameter allowing ref structs
+                //     static S F() => [[]];
+                Diagnostic(ErrorCode.ERR_CollectionRefLikeElementType, "[]").WithLocation(15, 22));
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/70638")]
@@ -34086,16 +34154,13 @@ partial class Program
                 }
                 """;
 
-            // We're missing diagnostics for the `where T : notnull` constraint on the Create method
-            // Tracked by https://github.com/dotnet/roslyn/issues/68786
             CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
                 // (7,28): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
                 // MyCollection<string?> x1 = [null]; // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "[null]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "string?").WithLocation(7, 28),
                 // (8,28): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 // MyCollection<string> x2 = [null]; // 2
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 28)
-                );
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 28));
         }
 
         [Fact]
@@ -34140,8 +34205,7 @@ partial class Program
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "[null]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T?>)", "T", "string?").WithLocation(7, 28),
                 // (8,28): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 // MyCollection<string> x2 = [null];
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 28)
-                );
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 28));
         }
 
         [Fact]
@@ -41019,6 +41083,11 @@ partial class Program
 
             model.VerifyOperationTree(tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().Single(), """
                 ICollectionExpressionOperation (1 elements, ConstructMethod: System.Collections.Immutable.ImmutableArray<System.Object> System.Collections.Immutable.ImmutableArray.Create<System.Object>(System.ReadOnlySpan<System.Object> items)) (OperationKind.CollectionExpression, Type: System.Collections.Immutable.ImmutableArray<System.Object>) (Syntax: '[new()]')
+                  ConstructArguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: items) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[new()]')
+                        ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElementsPlaceholder, Type: System.ReadOnlySpan<System.Object>, IsImplicit) (Syntax: '[new()]')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Elements(1):
                       IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new()')
                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -47325,7 +47394,122 @@ class Program
             // Verify that the library reference is included in used assembly references
             var usedRefs = consumerComp.GetUsedAssemblyReferences();
             Assert.Contains(libraryRef, usedRefs);
+        }
 
+        [Fact]
+        public void RequiredProperties1()
+        {
+            var source = """
+                using System.Collections.Generic;
+            
+                class MyList<T> : List<T>
+                {
+                    public required int RequiredProp { get; init; }
+                }
+            
+                class C
+                {
+                    void M()
+                    {
+                        MyList<int> list = [];
+                    }
+                }
+                """;
+
+            CreateCompilation([source, IsExternalInitTypeDefinition, RequiredMemberAttribute, CompilerFeatureRequiredAttribute]).VerifyEmitDiagnostics(
+                // (12,28): error CS9035: Required member 'MyList<int>.RequiredProp' must be set in the object initializer or attribute constructor.
+                //         MyList<int> list = [];
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "[]").WithArguments("MyList<int>.RequiredProp").WithLocation(12, 28));
+        }
+
+        [Fact]
+        public void RequiredProperties2()
+        {
+            var source = """
+                using System.Collections.Generic;
+                using System.Diagnostics.CodeAnalysis;
+
+                class MyList<T> : List<T>
+                {
+                    public required int RequiredProp { get; init; }
+
+                    [SetsRequiredMembers]
+                    public MyList()
+                    {
+                    }
+                }
+            
+                class C
+                {
+                    void M()
+                    {
+                        MyList<int> list = [];
+                    }
+                }
+                """;
+
+            CreateCompilation([source, IsExternalInitTypeDefinition, RequiredMemberAttribute, CompilerFeatureRequiredAttribute, SetsRequiredMembersAttribute]).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void RequiredProperties3()
+        {
+            var source = """
+                using System.Collections.Generic;
+                using System.Diagnostics.CodeAnalysis;
+            
+                class MyList<T> : List<T>
+                {
+                    public required int RequiredProp { get; init; }
+
+                    public MyList() { RequiredProp = 0; }
+
+                    [SetsRequiredMembers]
+                    public MyList(int i) { RequiredProp = 0; }
+                }
+            
+                class C
+                {
+                    void M()
+                    {
+                        MyList<int> list = [];
+                    }
+                }
+                """;
+
+            CreateCompilation([source, IsExternalInitTypeDefinition, RequiredMemberAttribute, CompilerFeatureRequiredAttribute, SetsRequiredMembersAttribute]).VerifyEmitDiagnostics(
+                // (18,28): error CS9035: Required member 'MyList<int>.RequiredProp' must be set in the object initializer or attribute constructor.
+                //         MyList<int> list = [];
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "[]").WithArguments("MyList<int>.RequiredProp").WithLocation(18, 28));
+        }
+
+        [Fact]
+        public void RequiredProperties4()
+        {
+            var source = """
+                using System.Collections.Generic;
+                using System.Diagnostics.CodeAnalysis;
+            
+                class MyList<T> : List<T>
+                {
+                    public required int RequiredProp { get; init; }
+
+                    public MyList() { RequiredProp = 0; }
+
+                    [SetsRequiredMembers]
+                    public MyList(int i) { RequiredProp = 0; }
+                }
+            
+                class C
+                {
+                    void M()
+                    {
+                        MyList<int> list = [with(0)];
+                    }
+                }
+                """;
+
+            CreateCompilation([source, IsExternalInitTypeDefinition, RequiredMemberAttribute, CompilerFeatureRequiredAttribute, SetsRequiredMembersAttribute]).VerifyEmitDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81552")]
