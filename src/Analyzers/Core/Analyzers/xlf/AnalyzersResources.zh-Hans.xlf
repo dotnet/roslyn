@@ -198,7 +198,7 @@
       </trans-unit>
       <trans-unit id="Make_method_synchronous">
         <source>Make method synchronous</source>
-        <target state="new">Make method synchronous</target>
+        <target state="translated">使方法同步</target>
         <note />
       </trans-unit>
       <trans-unit id="Member_access_should_be_qualified">

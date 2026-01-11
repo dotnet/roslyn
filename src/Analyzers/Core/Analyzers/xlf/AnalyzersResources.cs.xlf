@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Accessibility_modifiers_unnecessary">
         <source>Accessibility modifiers unnecessary</source>
-        <target state="new">Accessibility modifiers unnecessary</target>
+        <target state="translated">Modifikátory přístupnosti nejsou nutné.</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
@@ -198,7 +198,7 @@
       </trans-unit>
       <trans-unit id="Make_method_synchronous">
         <source>Make method synchronous</source>
-        <target state="new">Make method synchronous</target>
+        <target state="translated">Nastavit metodu jako synchronní</target>
         <note />
       </trans-unit>
       <trans-unit id="Member_access_should_be_qualified">
@@ -218,7 +218,7 @@
       </trans-unit>
       <trans-unit id="Method_can_be_made_synchronous">
         <source>Method can be made synchronous</source>
-        <target state="new">Method can be made synchronous</target>
+        <target state="translated">Metoda může být synchronní.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifiers_are_not_ordered">
@@ -343,7 +343,7 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_unsafe_modifier">
         <source>Remove unnecessary 'unsafe' modifier</source>
-        <target state="new">Remove unnecessary 'unsafe' modifier</target>
+        <target state="translated">Odebrat nepotřebný modifikátor unsafe</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unread_private_members">
@@ -428,7 +428,7 @@
       </trans-unit>
       <trans-unit id="Suppression_is_unnecessary">
         <source>Suppression is unnecessary</source>
-        <target state="new">Suppression is unnecessary</target>
+        <target state="translated">Potlačení není nutné.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_file_header_does_not_match_the_required_text">
@@ -508,7 +508,7 @@
       </trans-unit>
       <trans-unit id="unsafe_modifier_is_unnecessary">
         <source>'unsafe' modifier is unnecessary</source>
-        <target state="new">'unsafe' modifier is unnecessary</target>
+        <target state="translated">Modifikátor unsafe není nutný.</target>
         <note />
       </trans-unit>
     </body>
