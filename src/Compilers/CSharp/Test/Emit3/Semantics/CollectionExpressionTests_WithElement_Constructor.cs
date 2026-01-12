@@ -1974,6 +1974,64 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
 
     [Theory]
     [InlineData("List")]
+    [InlineData("ICollection")]
+    [InlineData("IList")]
+    public void WithElement_GetSymbolInfoInterface1(string type)
+    {
+        var source = $$"""
+            using System.Collections.Generic;
+            
+            class C
+            {
+                static void Main()
+                {
+                    string s = null;
+                    {{type}}<int> list = [with(0), 1];
+                    var v = s.ToString();
+                }
+            }
+            """;
+
+        var compilation = CreateCompilation(source).VerifyDiagnostics();
+        var tree = compilation.SyntaxTrees.Single();
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var withElement = tree.GetRoot().DescendantNodes().OfType<WithElementSyntax>().Single();
+
+        var symbol = semanticModel.GetSymbolInfo(withElement);
+        AssertEx.Equal("System.Collections.Generic.List<System.Int32>..ctor(System.Int32 capacity)", symbol.Symbol.ToTestDisplayString());
+    }
+
+    [Theory]
+    [InlineData("List")]
+    [InlineData("ICollection")]
+    [InlineData("IList")]
+    public void WithElement_GetSymbolInfoInterface2(string type)
+    {
+        var source = $$"""
+            using System.Collections.Generic;
+            
+            class C
+            {
+                static void Main()
+                {
+                    string s = null;
+                    {{type}}<int> list = [with(), 1];
+                    var v = s.ToString();
+                }
+            }
+            """;
+
+        var compilation = CreateCompilation(source).VerifyDiagnostics();
+        var tree = compilation.SyntaxTrees.Single();
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var withElement = tree.GetRoot().DescendantNodes().OfType<WithElementSyntax>().Single();
+
+        var symbol = semanticModel.GetSymbolInfo(withElement);
+        AssertEx.Equal("System.Collections.Generic.List<System.Int32>..ctor()", symbol.Symbol.ToTestDisplayString());
+    }
+
+    [Theory]
+    [InlineData("List")]
     [InlineData("IList")]
     public void WithElement_NullableFlow(string type)
     {
