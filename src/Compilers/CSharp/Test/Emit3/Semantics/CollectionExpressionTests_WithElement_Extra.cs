@@ -9002,7 +9002,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
     }
 
     [Fact]
-    public void GetMemberGroup()
+    public void CollectionBuilder_GetMemberGroup()
     {
         string sourceA = """
             using System;
@@ -9046,5 +9046,56 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         // (same as for a ConstructorInitializerSyntax).
         var memberGroup = semanticModel.GetMemberGroup(withElement);
         Assert.Equal(0, memberGroup.Length);
+    }
+
+    [Fact]
+    public void CollectionBuilder_GetSpeculativeSymbolInfo()
+    {
+        string sourceA = """
+            using System;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection()
+                {
+                }
+            }
+            
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(int i, ReadOnlySpan<T> items) => new();
+                public static MyCollection<T> Create<T>(string s, ReadOnlySpan<T> items) => new();
+            }
+            """;
+        string sourceB = """
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<string> c = [with(""), ""];
+                }
+            }
+            """;
+        var comp = CreateCompilation(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+
+        var syntaxTree = comp.SyntaxTrees[1];
+        var semanticModel = comp.GetSemanticModel(syntaxTree);
+
+        var root = syntaxTree.GetRoot();
+        var withElement = root.DescendantNodes().OfType<WithElementSyntax>().Single();
+
+        var symbolInfo = semanticModel.GetSpeculativeSymbolInfo(withElement.SpanStart,
+            SyntaxFactory.WithElement(SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
+                SyntaxFactory.Argument(SyntaxFactory.ParseExpression("1"))))),
+            SpeculativeBindingOption.BindAsExpression);
+
+        // For now, we do not support speculating on a different WithElement.
+        Assert.Null(symbolInfo.Symbol);
+        Assert.Empty(symbolInfo.CandidateSymbols);
     }
 }

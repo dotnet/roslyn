@@ -3060,5 +3060,51 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
         Assert.Equal(0, memberGroup.Length);
     }
 
+    [Fact]
+    public void GetSpeculativeSymbolInfo()
+    {
+        string sourceA = """
+            using System.Collections.Generic;
+
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection(string s)
+                {
+                }
+
+                public MyCollection(int i)
+                {
+                }
+            }
+            """;
+        string sourceB = """
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<string> c = [with(""), ""];
+                }
+            }
+            """;
+        var comp = CreateCompilation(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+
+        var syntaxTree = comp.SyntaxTrees[1];
+        var semanticModel = comp.GetSemanticModel(syntaxTree);
+
+        var root = syntaxTree.GetRoot();
+        var withElement = root.DescendantNodes().OfType<WithElementSyntax>().Single();
+
+        var symbolInfo = semanticModel.GetSpeculativeSymbolInfo(withElement.SpanStart,
+            SyntaxFactory.WithElement(SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
+                SyntaxFactory.Argument(SyntaxFactory.ParseExpression("1"))))),
+            SpeculativeBindingOption.BindAsExpression);
+
+        // For now, we do not support speculating on a different WithElement.
+        Assert.Null(symbolInfo.Symbol);
+        Assert.Empty(symbolInfo.CandidateSymbols);
+    }
+
     #endregion
 }
