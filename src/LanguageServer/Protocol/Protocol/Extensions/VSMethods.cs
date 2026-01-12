@@ -21,9 +21,9 @@ internal static class VSMethods
     public const string GetProjectContextsName = "textDocument/_vs_getProjectContexts";
 
     /// <summary>
-    /// This is called when the active project context for a document has changed.
+    /// This is called when the client would like to refresh feature providers.
     /// </summary>
-    public const string ProjectContextChangedName = "textDocument/_vs_projectContextChanged";
+    public const string FeatureProvidersRefreshName = "workspace/featureProviders/_vs_refresh";
 
     /// <summary>
     /// Strongly typed request object for 'textDocument/_vs_getProjectContexts'.
