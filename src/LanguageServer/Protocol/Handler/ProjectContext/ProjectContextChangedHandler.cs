@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -15,15 +15,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 [Method(VSMethods.ProjectContextChangedName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class ProjectContextChangedHandler() : ILspServiceNotificationHandler<TextDocumentIdentifier?>
+internal class ProjectContextChangedHandler(IFeatureProviderRefresher providerRefresher) : ILspServiceNotificationHandler<TextDocumentIdentifier?>
 {
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => true;
 
     public Task HandleNotificationAsync(TextDocumentIdentifier? request, RequestContext requestContext, CancellationToken cancellationToken)
     {
-        var refresher = requestContext.GetRequiredService<IFeatureProviderRefresher>();
-        refresher.RequestProviderRefresh(request?.DocumentUri);
+        providerRefresher.RequestProviderRefresh(request?.DocumentUri);
         return Task.CompletedTask;
     }
 }

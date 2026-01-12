@@ -11,30 +11,19 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 
 [ExportCSharpVisualBasicLspServiceFactory(typeof(CodeLensRefreshQueue)), Shared]
-internal sealed class CodeLensRefreshQueueFactory : ILspServiceFactory
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CodeLensRefreshQueueFactory(
+    IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
+    LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+    IGlobalOptionService globalOptionService,
+    IFeatureProviderRefresher providerRefresher) : ILspServiceFactory
 {
-    private readonly IAsynchronousOperationListenerProvider _asyncListenerProvider;
-    private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
-    private readonly IGlobalOptionService _globalOptionService;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CodeLensRefreshQueueFactory(
-        IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
-        LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-        IGlobalOptionService globalOptionService)
-    {
-        _asyncListenerProvider = asynchronousOperationListenerProvider;
-        _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
-        _globalOptionService = globalOptionService;
-    }
-
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
         var notificationManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
         var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
-        var refresher = lspServices.GetRequiredService<IFeatureProviderRefresher>();
 
-        return new CodeLensRefreshQueue(_asyncListenerProvider, _lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, refresher, _globalOptionService);
+        return new CodeLensRefreshQueue(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, providerRefresher, globalOptionService);
     }
 }

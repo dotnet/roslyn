@@ -41,7 +41,7 @@ internal abstract class AbstractRefreshQueue :
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
         LspWorkspaceManager lspWorkspaceManager,
         IClientLanguageServerManager notificationManager,
-        IFeatureProviderRefresher refresher)
+        IFeatureProviderRefresher providerRefresher)
     {
         _asyncListener = asynchronousOperationListenerProvider.GetListener(GetFeatureAttribute());
         _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
@@ -51,10 +51,7 @@ internal abstract class AbstractRefreshQueue :
 
         if (ListenForProviderRefresh)
         {
-            refresher.ProviderRefreshRequested += documentUri =>
-            {
-                EnqueueRefreshNotification(documentUri);
-            };
+            providerRefresher.ProviderRefreshRequested += EnqueueRefreshNotification;
         }
     }
 
