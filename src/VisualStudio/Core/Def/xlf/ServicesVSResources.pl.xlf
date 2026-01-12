@@ -319,7 +319,7 @@
       </trans-unit>
       <trans-unit id="Display_diagnostics_inline">
         <source>Display diagnostics inline</source>
-        <target state="new">Display diagnostics inline</target>
+        <target state="translated">Wyświetl diagnostykę śródwierszową</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
@@ -409,7 +409,7 @@
       </trans-unit>
       <trans-unit id="Error_encountered_updating_0">
         <source>Error encountered updating '{0}'</source>
-        <target state="new">Error encountered updating '{0}'</target>
+        <target state="translated">Wystąpił błąd podczas aktualizowania „{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Error_updating_suppressions_0">
@@ -464,7 +464,7 @@
       </trans-unit>
       <trans-unit id="Fix_text_pasted_into_string_literals">
         <source>Fix text pasted into string literals</source>
-        <target state="new">Fix text pasted into string literals</target>
+        <target state="translated">Napraw tekst wklejony do literałów ciągów</target>
         <note />
       </trans-unit>
       <trans-unit id="For_non_interface_members">
@@ -524,12 +524,12 @@
       </trans-unit>
       <trans-unit id="Ignore">
         <source>Ignore</source>
-        <target state="new">Ignore</target>
+        <target state="translated">Ignoruj</target>
         <note />
       </trans-unit>
       <trans-unit id="Ignore_including_future_errors">
         <source>Ignore (including future errors)</source>
-        <target state="new">Ignore (including future errors)</target>
+        <target state="translated">Ignoruj (w tym przyszłe błędy)</target>
         <note />
       </trans-unit>
       <trans-unit id="Implemented_interfaces">
@@ -1119,7 +1119,7 @@
       </trans-unit>
       <trans-unit id="Prefer_simple_property_accessors">
         <source>Prefer simple property accessors</source>
-        <target state="new">Prefer simple property accessors</target>
+        <target state="translated">Preferuj proste akcesory właściwości</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_simple_using_statement">
