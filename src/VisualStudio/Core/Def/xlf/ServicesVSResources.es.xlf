@@ -539,7 +539,7 @@
       </trans-unit>
       <trans-unit id="Ignore">
         <source>Ignore</source>
-        <target state="new">Ignore</target>
+        <target state="translated">Ignorar</target>
         <note />
       </trans-unit>
       <trans-unit id="Ignore_including_future_errors">
