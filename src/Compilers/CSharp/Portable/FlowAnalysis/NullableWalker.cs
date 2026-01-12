@@ -4047,6 +4047,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _completingTargetTypedExpression = false;
 #endif
 
+                    if (node.CollectionBuilderElementsPlaceholder != null)
+                    {
+                        AddPlaceholderReplacement(
+                            node.CollectionBuilderElementsPlaceholder,
+                            node.CollectionBuilderElementsPlaceholder,
+                            result: new VisitResult(
+                                node.CollectionBuilderElementsPlaceholder.Type,
+                                NullableAnnotation.NotAnnotated,
+                                NullableFlowState.NotNull));
+                    }
+
                     // When we have a BoundCall, we are calling into the factory method for a CollectionBuilder.  So a
                     // signature like: `SomeCollection<X,Y> Create<X,Y>(..., ReadOnlySpan<ElementType> t).
                     //
@@ -4058,12 +4069,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(allTypeArguments.Count == call.Method.Arity, "Guaranteed by GetCollectionBuilderMethods");
                     var constructed = call.Method.ConstructedFrom.Construct(allTypeArguments.ToImmutableAndFree());
 
-                    var finalLength = call.Arguments.Length - 1;
+                    //var finalLength = call.Arguments.Length - 1;
+                    //VisitArguments(
+                    //    node,
+                    //    call.Arguments.Take(finalLength).ToImmutableArray(),
+                    //    call.ArgumentRefKindsOpt.IsDefault ? default : call.ArgumentRefKindsOpt.Take(finalLength).ToImmutableArray(),
+                    //    constructed.Parameters.Take(finalLength).ToImmutableArray(),
+                    //    call.ArgsToParamsOpt,
+                    //    call.DefaultArguments,
+                    //    call.Expanded,
+                    //    call.InvokedAsExtensionMethod,
+                    //    member: constructed,
+                    //    delayCompletionForTargetMember: false);
+
                     VisitArguments(
                         node,
-                        call.Arguments.Take(finalLength).ToImmutableArray(),
-                        call.ArgumentRefKindsOpt.IsDefault ? default : call.ArgumentRefKindsOpt.Take(finalLength).ToImmutableArray(),
-                        constructed.Parameters.Take(finalLength).ToImmutableArray(),
+                        call.Arguments,
+                        call.ArgumentRefKindsOpt,
+                        constructed.Parameters,
                         call.ArgsToParamsOpt,
                         call.DefaultArguments,
                         call.Expanded,
@@ -4071,17 +4094,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         member: constructed,
                         delayCompletionForTargetMember: false);
 
-                    //VisitArguments(
-                    //    node,
-                    //    call.Arguments,
-                    //    call.ArgumentRefKindsOpt,
-                    //    constructed.Parameters,
-                    //    call.ArgsToParamsOpt,
-                    //    call.DefaultArguments,
-                    //    call.Expanded,
-                    //    call.InvokedAsExtensionMethod,
-                    //    member: constructed,
-                    //    delayCompletionForTargetMember: false);
+                    if (node.CollectionBuilderElementsPlaceholder != null)
+                        RemovePlaceholderReplacement(node.CollectionBuilderElementsPlaceholder);
 
 #if DEBUG
                     _completingTargetTypedExpression = safe_completingTargetTypedExpression;
