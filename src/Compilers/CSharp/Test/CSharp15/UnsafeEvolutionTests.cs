@@ -2574,7 +2574,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(3, 26));
     }
 
-    // PROTOTYPE: Test all supported member kinds here.
     [Fact]
     public void Member_LangVersion()
     {
@@ -2594,12 +2593,16 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 unsafe ~C() { }
                 public unsafe static C operator +(C c1, C c2) => c1;
                 public unsafe void operator +=(C c) { }
+            #pragma warning disable CS0169 // unused field
+                unsafe int F;
             }
+            unsafe class U;
+            unsafe delegate void D();
             """,
             CompilerFeatureRequiredAttribute,
         ];
 
-        string[] safeSymbols = ["C"];
+        string[] safeSymbols = ["C", "C.F", "U", "D"];
         string[] unsafeSymbols =
         [
             "Program.<<Main>$>g__F|0_0",
