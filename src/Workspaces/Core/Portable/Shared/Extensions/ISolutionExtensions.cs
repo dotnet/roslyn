@@ -54,7 +54,7 @@ internal static partial class ISolutionExtensions
                 return solution.WithAdditionalDocumentText(documentId, text, mode);
 
             case null:
-                throw ISolutionExtensions.CreateDocumentNotFoundException(documentId.DebugName ?? "Unknown");
+                throw ISolutionExtensions.CreateDocumentNotFoundException(documentId.DebugName);
 
             default:
                 throw ExceptionUtilities.UnexpectedValue(documentKind);
