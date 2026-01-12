@@ -5825,8 +5825,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         var comp = CreateCompilation(RequiresUnsafeAttributeDefinition).VerifyDiagnostics();
         var ref1 = AsReference(comp, useCompilationReference);
 
-        // PROTOTYPE: Test other member kinds too (audit all callers of Symbol.ReportExplicitUseOfReservedAttributes).
-        var source = """
+        CSharpTestSource source =
+        [
+            """
             using System.Runtime.CompilerServices;
             [RequiresUnsafeAttribute] class C
             {
@@ -5841,8 +5842,20 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 [RequiresUnsafeAttribute] ~C() { }
                 [RequiresUnsafeAttribute] public static C operator +(C c1, C c2) => c1;
                 [RequiresUnsafeAttribute] public void operator +=(C c) { }
+                public void M([RequiresUnsafeAttribute] int x) { }
+                [return: RequiresUnsafeAttribute] public int Func() => 0;
+                public void M<[RequiresUnsafeAttribute] T>() { }
+            #pragma warning disable CS0169 // unused field
+                [RequiresUnsafeAttribute] int F;
             }
-            """;
+            [RequiresUnsafeAttribute] delegate void D();
+            [RequiresUnsafeAttribute] enum E { X }
+            """, """
+            using System.Runtime.CompilerServices;
+            [module: RequiresUnsafeAttribute]
+            [assembly: RequiresUnsafeAttribute]
+            """,
+        ];
 
         comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], [ref1], options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules));
         comp.VerifyDiagnostics(
