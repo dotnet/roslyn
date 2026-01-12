@@ -139,7 +139,7 @@ public static partial class Renamer
             // this issue. 
             var project = solution.GetRequiredProject(_documentId.ProjectId);
             return project.Documents.FirstOrDefault(d => d.Name == _documentName && d.Folders.SequenceEqual(_documentFolders))
-                ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document, _documentName ?? "Unknown"));
+                ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document, _documentName));
         }
     }
 }
