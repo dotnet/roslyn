@@ -2578,7 +2578,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_LangVersion()
     {
-        var source = """
+        CSharpTestSource source =
+        [
+            """
             #pragma warning disable CS8321 // unused local function
             unsafe void F() { }
             class C
@@ -2590,8 +2592,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 unsafe int this[int i] { get => i; set { } }
                 unsafe C() { }
                 unsafe ~C() { }
+                public unsafe static C operator +(C c1, C c2) => c1;
+                public unsafe void operator +=(C c) { }
             }
-            """;
+            """,
+            CompilerFeatureRequiredAttribute,
+        ];
 
         string[] safeSymbols = ["C"];
         string[] unsafeSymbols =
@@ -2603,6 +2609,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             "C.this[]", "C.get_Item", "C.set_Item",
             "C..ctor",
             "C.Finalize",
+            "C.op_Addition",
+            "C.op_AdditionAssignment",
         ];
 
         CompileAndVerify(source,
@@ -2676,7 +2684,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("updated memory safety rules").WithLocation(10, 12),
             // (11,13): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     unsafe ~C() { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("updated memory safety rules").WithLocation(11, 13));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("updated memory safety rules").WithLocation(11, 13),
+            // (12,37): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     public unsafe static C operator +(C c1, C c2) => c1;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "+").WithArguments("updated memory safety rules").WithLocation(12, 37),
+            // (13,33): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     public unsafe void operator +=(C c) { }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "+=").WithArguments("updated memory safety rules").WithLocation(13, 33));
     }
 
     // PROTOTYPE: Test also implicit methods used in patterns like GetEnumerator in foreach.
@@ -3409,6 +3423,160 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_CallingFinalizeDeprecated, "Finalize()").WithLocation(4, 16));
     }
 
+    [Fact]
+    public void Member_Operator_Static()
+    {
+        var lib = """
+            public class C
+            {
+                public static C operator +(C c1, C c2) => c1;
+                public static unsafe C operator -(C c1, C c2) => c1;
+            }
+            """;
+
+        CompileAndVerifyUnsafe(
+            lib: lib,
+            caller: """
+                var c = new C();
+                _ = c + c;
+                _ = c - c;
+                unsafe { _ = c - c; }
+                """,
+            expectedUnsafeSymbols: ["C.op_Subtraction"],
+            expectedSafeSymbols: ["C.op_Addition"],
+            expectedDiagnostics:
+            [
+                // (3,5): error CS9502: 'C.operator -(C, C)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // _ = c - c;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c - c").WithArguments("C.operator -(C, C)").WithLocation(3, 5),
+            ]);
+
+        CreateCompilation([lib, MemorySafetyRulesAttributeDefinition],
+            options: TestOptions.ReleaseModule.WithAllowUnsafe(true).WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics(
+            // (4,37): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresUnsafeAttribute' is not defined or imported
+            //     public static unsafe C operator -(C c1, C c2) => c1;
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "-").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(4, 37));
+    }
+
+    [Fact]
+    public void Member_Operator_Static_Extension()
+    {
+        var lib = """
+            public class C;
+            public static class E
+            {
+                extension(C)
+                {
+                    public static C operator +(C c1, C c2) => c1;
+                    public static unsafe C operator -(C c1, C c2) => c1;
+                }
+            }
+            """;
+
+        CompileAndVerifyUnsafe(
+            lib: lib,
+            caller: """
+                var c = new C();
+                _ = c + c;
+                _ = c - c;
+                unsafe { _ = c - c; }
+                """,
+            expectedUnsafeSymbols: ["E.op_Subtraction", ExtensionMember("E", "op_Subtraction")],
+            expectedSafeSymbols: ["E.op_Addition", ExtensionMember("E", "op_Addition")],
+            expectedDiagnostics:
+            [
+                // (3,5): error CS9502: 'E.extension(C).operator -(C, C)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // _ = c - c;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c - c").WithArguments("E.extension(C).operator -(C, C)").WithLocation(3, 5),
+            ]);
+
+        CreateCompilation([lib, MemorySafetyRulesAttributeDefinition, ExtensionMarkerAttributeDefinition],
+            options: TestOptions.ReleaseModule.WithAllowUnsafe(true).WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics(
+            // (7,41): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresUnsafeAttribute' is not defined or imported
+            //         public static unsafe C operator -(C c1, C c2) => c1;
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "-").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(7, 41));
+    }
+
+    [Fact]
+    public void Member_Operator_Instance()
+    {
+        var lib = """
+            public class C
+            {
+                public void operator +=(C c) { }
+                public unsafe void operator -=(C c) { }
+            }
+            """;
+
+        CompileAndVerifyUnsafe(
+            lib: lib,
+            caller: """
+                var c = new C();
+                c += c;
+                c -= c;
+                unsafe { c -= c; }
+                """,
+            additionalSources: [CompilerFeatureRequiredAttribute],
+            expectedUnsafeSymbols: ["C.op_SubtractionAssignment"],
+            expectedSafeSymbols: ["C.op_AdditionAssignment"],
+            expectedDiagnostics:
+            [
+                // (3,1): error CS9502: 'C.operator -=(C)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // c -= c;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c -= c").WithArguments("C.operator -=(C)").WithLocation(3, 1),
+            ]);
+
+        CreateCompilation([lib, MemorySafetyRulesAttributeDefinition, CompilerFeatureRequiredAttribute],
+            options: TestOptions.ReleaseModule.WithAllowUnsafe(true).WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics(
+            // (4,33): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresUnsafeAttribute' is not defined or imported
+            //     public unsafe void operator -=(C c) { }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "-=").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(4, 33));
+    }
+
+    [Fact]
+    public void Member_Operator_Instance_Extension()
+    {
+        var lib = """
+            public class C;
+            public static class E
+            {
+                extension(C c1)
+                {
+                    public void operator +=(C c2) { }
+                    public unsafe void operator -=(C c2) { }
+                }
+            }
+            """;
+
+        CompileAndVerifyUnsafe(
+            lib: lib,
+            caller: """
+                var c = new C();
+                c += c;
+                c -= c;
+                unsafe { c -= c; }
+                """,
+            additionalSources: [CompilerFeatureRequiredAttribute],
+            expectedUnsafeSymbols: ["E.op_SubtractionAssignment", ExtensionMember("E", "op_SubtractionAssignment")],
+            expectedSafeSymbols: ["E.op_AdditionAssignment", ExtensionMember("E", "op_AdditionAssignment")],
+            expectedDiagnostics:
+            [
+                // (3,1): error CS9502: 'E.extension(C).operator -=(C)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // c -= c;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c -= c").WithArguments("E.extension(C).operator -=(C)").WithLocation(3, 1),
+            ]);
+
+        CreateCompilation([lib, MemorySafetyRulesAttributeDefinition, CompilerFeatureRequiredAttribute, ExtensionMarkerAttributeDefinition],
+            options: TestOptions.ReleaseModule.WithAllowUnsafe(true).WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics(
+            // (7,37): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresUnsafeAttribute' is not defined or imported
+            //         public unsafe void operator -=(C c2) { }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "-=").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(7, 37));
+    }
+
     [Theory, CombinatorialData]
     public void Member_FunctionPointer(bool useCompilationReference)
     {
@@ -4118,6 +4286,62 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (2,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             // _ = new C(null);
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "null").WithLocation(2, 11));
+    }
+
+    [Theory, CombinatorialData]
+    public void CompatMode_Operator(bool useCompilationReference)
+    {
+        var lib = CreateCompilation(
+            [
+                """
+                public class C
+                {
+                    public unsafe void operator +=(int i) { }
+                    public unsafe void operator -=(int* p) { }
+                }
+                """,
+                CompilerFeatureRequiredAttribute,
+            ],
+            options: TestOptions.UnsafeReleaseDll,
+            assemblyName: "lib")
+            .VerifyDiagnostics();
+        var libRef = AsReference(lib, useCompilationReference);
+
+        var source = """
+            var c = new C();
+            c += 0;
+            c -= null;
+            """;
+
+        CreateCompilation(source,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (3,1): error CS9503: 'C.operator -=(int*)' must be used in an unsafe context because it has pointers in its signature
+            // c -= null;
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c -= null").WithArguments("C.operator -=(int*)").WithLocation(3, 1));
+
+        CompileAndVerify("""
+            var c = new C();
+            c += 0;
+            unsafe { c -= null; }
+            """,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(),
+            verify: Verification.Skipped,
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: ["C.op_SubtractionAssignment"],
+                expectedSafeSymbols: ["C", "C.op_AdditionAssignment"],
+                expectedUnsafeMode: CallerUnsafeMode.Implicit))
+            .VerifyDiagnostics();
+
+        // https://github.com/dotnet/roslyn/issues/81967: operator invocations involving pointers are allowed outside unsafe context
+        CreateCompilation(source,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -4877,6 +5101,132 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         }
     }
 
+    [Theory, CombinatorialData]
+    public void Extern_Operator([CombinatorialValues("      ", "unsafe")] string modifiers)
+    {
+        var libSource = $$"""
+            #pragma warning disable CS0626 // extern without attributes
+            public class C
+            {
+                public {{modifiers}} extern void operator +=(C c);
+            }
+            """;
+
+        var callerSource = """
+            var c = new C();
+            c += c;
+            """;
+
+        CompileAndVerifyUnsafe(
+            libSource,
+            callerSource,
+            additionalSources: [CompilerFeatureRequiredAttribute],
+            verify: Verification.Skipped,
+            expectedUnsafeSymbols: ["C.op_AdditionAssignment"],
+            expectedSafeSymbols: ["C"],
+            expectedDiagnostics:
+            [
+                // (2,1): error CS9502: 'C.operator +=(C)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // c += c;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c += c").WithArguments("C.operator +=(C)").WithLocation(2, 1),
+            ]);
+
+        // When compiling the lib under legacy rules, extern members are not unsafe.
+        var lib = CreateCompilation([libSource, CompilerFeatureRequiredAttribute],
+            assemblyName: "lib",
+            options: TestOptions.UnsafeReleaseDll)
+            .VerifyDiagnostics();
+
+        foreach (var useCompilationReference in new[] { false, true })
+        {
+            CompileAndVerify(callerSource,
+                [AsReference(lib, useCompilationReference)],
+                options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(),
+                verify: Verification.Skipped,
+                symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                    m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
+                    includesAttributeDefinition: false,
+                    expectedUnsafeSymbols: [],
+                    expectedSafeSymbols: ["C", "C.op_AdditionAssignment"]))
+                .VerifyDiagnostics();
+        }
+    }
+
+    [Fact]
+    public void Extern_Operator_WithPointers()
+    {
+        static string getLibSource(string modifiers) => $$"""
+            #pragma warning disable CS0626 // extern without attributes
+            public class C
+            {
+                public {{modifiers}} void operator +=(int* p);
+            }
+            """;
+
+        var callerSource = """
+            var c = new C();
+            c += null;
+            """;
+
+        var libUpdated = CreateCompilation(
+            [getLibSource("extern"), CompilerFeatureRequiredAttribute],
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics();
+
+        foreach (var useCompilationReference in new[] { false, true })
+        {
+            var libUpdatedRef = AsReference(libUpdated, useCompilationReference);
+
+            var libAssemblySymbol = CreateCompilation(callerSource,
+                [libUpdatedRef],
+                options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+                .VerifyDiagnostics(
+                // (2,1): error CS9502: 'C.operator +=(int*)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // c += null;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c += null").WithArguments("C.operator +=(int*)").WithLocation(2, 1))
+                .GetReferencedAssemblySymbol(libUpdatedRef);
+
+            VerifyRequiresUnsafeAttribute(
+                libAssemblySymbol.Modules.Single(),
+                includesAttributeDefinition: !useCompilationReference,
+                isSynthesized: useCompilationReference ? null : true,
+                expectedUnsafeSymbols: ["C.op_AdditionAssignment"],
+                expectedSafeSymbols: ["C"]);
+        }
+
+        CreateCompilation([getLibSource("extern"), CompilerFeatureRequiredAttribute]).VerifyDiagnostics(
+            // (4,36): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     public extern void operator +=(int* p);
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(4, 36));
+
+        // When compiling the lib under legacy rules, extern members are not unsafe, but members with pointers are.
+        var libLegacy = CreateCompilation(
+            [getLibSource("unsafe extern"), CompilerFeatureRequiredAttribute],
+            options: TestOptions.UnsafeReleaseDll)
+            .VerifyDiagnostics();
+
+        foreach (var useCompilationReference in new[] { false, true })
+        {
+            var libLegacyRef = AsReference(libLegacy, useCompilationReference);
+
+            var libAssemblySymbol = CreateCompilation(callerSource,
+                [libLegacyRef],
+                options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+                .VerifyDiagnostics(
+                // (2,1): error CS9503: 'C.operator +=(int*)' must be used in an unsafe context because it has pointers in its signature
+                // c += null;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c += null").WithArguments("C.operator +=(int*)").WithLocation(2, 1))
+                .GetReferencedAssemblySymbol(libLegacyRef);
+
+            VerifyRequiresUnsafeAttribute(
+                libAssemblySymbol.Modules.Single(),
+                includesAttributeDefinition: false,
+                expectedUnsafeSymbols: ["C.op_AdditionAssignment"],
+                expectedSafeSymbols: ["C"],
+                expectedUnsafeMode: CallerUnsafeMode.Implicit);
+        }
+    }
+
     [Fact]
     public void RequiresUnsafeAttribute_Synthesized()
     {
@@ -5489,10 +5839,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 [RequiresUnsafeAttribute] int this[int i] { get => i; set { } }
                 [RequiresUnsafeAttribute] C() { }
                 [RequiresUnsafeAttribute] ~C() { }
+                [RequiresUnsafeAttribute] public static C operator +(C c1, C c2) => c1;
+                [RequiresUnsafeAttribute] public void operator +=(C c) { }
             }
             """;
 
-        comp = CreateCompilation(source, [ref1], options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules));
+        comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], [ref1], options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules));
         comp.VerifyDiagnostics(
             // (4,6): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresUnsafeAttribute'. This is reserved for compiler usage.
             //     [RequiresUnsafeAttribute] void M() { }
@@ -5523,6 +5875,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresUnsafeAttribute").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(11, 6),
             // (12,6): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresUnsafeAttribute'. This is reserved for compiler usage.
             //     [RequiresUnsafeAttribute] ~C() { }
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresUnsafeAttribute").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(12, 6));
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresUnsafeAttribute").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(12, 6),
+            // (13,6): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresUnsafeAttribute'. This is reserved for compiler usage.
+            //     [RequiresUnsafeAttribute] public static C operator +(C c1, C c2) => c1;
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresUnsafeAttribute").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(13, 6),
+            // (14,6): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresUnsafeAttribute'. This is reserved for compiler usage.
+            //     [RequiresUnsafeAttribute] public void operator +=(C c) { }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresUnsafeAttribute").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(14, 6));
     }
 }
