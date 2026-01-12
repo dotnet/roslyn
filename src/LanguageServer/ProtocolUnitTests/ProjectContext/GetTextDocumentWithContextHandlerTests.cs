@@ -132,7 +132,7 @@ public sealed class GetTextDocumentWithContextHandlerTests : AbstractLanguageSer
 
         var results = await Task.WhenAll(project1.Documents.Select(document => RunGetProjectContext(testLspServer, document)));
 
-        var keys = results.Select(r => r.Key).ToArray();
+        var keys = results.Select(r => r?.Key).ToArray();
         Assert.DoesNotContain(null, keys);
         Assert.Single(keys.Distinct());
     }
@@ -163,14 +163,14 @@ public sealed class GetTextDocumentWithContextHandlerTests : AbstractLanguageSer
 
         var results = await Task.WhenAll(testLspServer.TestWorkspace.Projects.Select(project => RunGetProjectContext(testLspServer, project.Documents.First())));
 
-        var keys = results.Select(r => r.Key).ToArray();
+        var keys = results.Select(r => r?.Key).ToArray();
         Assert.DoesNotContain(null, keys);
         Assert.Distinct(keys);
     }
 
     internal static async Task<LSP.VSProjectContextList?> RunGetProjectContext(TestLspServer testLspServer, TestHostDocument document)
     {
-        var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(document.FilePath);
+        var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(document.FilePath!);
         return await testLspServer.ExecuteRequestAsync<LSP.VSGetProjectContextsParams, LSP.VSProjectContextList?>(LSP.VSMethods.GetProjectContextsName,
                         CreateGetProjectContextParams(documentUri), cancellationToken: CancellationToken.None);
     }
