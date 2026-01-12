@@ -36,8 +36,7 @@ $script:skipList = @(
 
   # The integration test framework uses a VSIX as an embedded resource in this dll.
   # The VSIX build is not deterministic (for example the catalog.json contains a randomly generated identifier for the install location).
-  "Microsoft.VisualStudio.Extensibility.Testing.Xunit.dll",
-  "Microsoft.VisualStudio.Extensibility.Testing.Xunit.dll.key"
+  "Microsoft.VisualStudio.Extensibility.Testing.Xunit.dll"
 )
 
 function Run-Build([string]$rootDir, [string]$logFileName) {
