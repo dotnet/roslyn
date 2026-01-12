@@ -329,6 +329,9 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             verify: Verification.FailsPEVerify).VerifyDiagnostics(
             // (7,37): warning CS8625: Cannot convert null literal to non-nullable reference type.
             //         MyCollection<int> c = [with(null), 1, 2];
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 37),
+            // (7,37): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            //         MyCollection<int> c = [with(null), 1, 2];
             Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 37));
     }
 
