@@ -4,57 +4,57 @@
     <body>
       <trans-unit id="Building_Project">
         <source>Building Project</source>
-        <target state="new">Building Project</target>
+        <target state="translated">Compilazione progetto</target>
         <note />
       </trans-unit>
       <trans-unit id="Copying_selection_to_Interactive_Window">
         <source>Copying selection to Interactive Window.</source>
-        <target state="new">Copying selection to Interactive Window.</target>
+        <target state="translated">Copia della selezione nella finestra interattiva.</target>
         <note />
       </trans-unit>
       <trans-unit id="Executing_selection_in_Interactive_Window">
         <source>Executing selection in Interactive Window.</source>
-        <target state="new">Executing selection in Interactive Window.</target>
+        <target state="translated">Esecuzione della selezione nella finestra interattiva.</target>
         <note />
       </trans-unit>
       <trans-unit id="Interactive_host_process_platform">
         <source>Interactive host process platform</source>
-        <target state="new">Interactive host process platform</target>
+        <target state="translated">Piattaforma interattiva per processi host</target>
         <note />
       </trans-unit>
       <trans-unit id="Print_a_list_of_referenced_assemblies">
         <source>Print a list of referenced assemblies.</source>
-        <target state="new">Print a list of referenced assemblies.</target>
+        <target state="translated">Stampa un elenco di tutti gli assembly di riferimento.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_references_command_is_not_supported_in_this_Interactive_Window_implementation">
         <source>The references command is not supported in this Interactive Window implementation.</source>
-        <target state="new">The references command is not supported in this Interactive Window implementation.</target>
+        <target state="translated">Il comando references non è supportato in questa implementazione di Finestra interattiva.</target>
         <note />
       </trans-unit>
       <trans-unit id="Reset_the_execution_environment_to_the_initial_state_keep_history">
         <source>Reset the execution environment to the initial state, keep history.</source>
-        <target state="new">Reset the execution environment to the initial state, keep history.</target>
+        <target state="translated">Ripristina lo stato iniziale dell'ambiente di esecuzione, mantenendo la cronologia.</target>
         <note />
       </trans-unit>
       <trans-unit id="Reset_to_a_clean_environment_only_mscorlib_referenced_do_not_run_initialization_script">
         <source>Reset to a clean environment (only mscorlib referenced), do not run initialization script.</source>
-        <target state="new">Reset to a clean environment (only mscorlib referenced), do not run initialization script.</target>
+        <target state="translated">Esegue il ripristino a un ambiente pulito (solo con riferimenti a mscorlib), senza eseguire lo script di inizializzazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="Resetting_execution_engine">
         <source>Resetting execution engine.</source>
-        <target state="new">Resetting execution engine.</target>
+        <target state="translated">Il motore di esecuzione verrà reimpostato.</target>
         <note />
       </trans-unit>
       <trans-unit id="Resetting_Interactive">
         <source>Resetting Interactive</source>
-        <target state="new">Resetting Interactive</target>
+        <target state="translated">Reimpostazione di Interactive</target>
         <note />
       </trans-unit>
       <trans-unit id="The_CurrentWindow_property_may_only_be_assigned_once">
         <source>The CurrentWindow property may only be assigned once.</source>
-        <target state="new">The CurrentWindow property may only be assigned once.</target>
+        <target state="translated">La proprietà CurrentWindow può essere assegnata una sola volta.</target>
         <note />
       </trans-unit>
     </body>

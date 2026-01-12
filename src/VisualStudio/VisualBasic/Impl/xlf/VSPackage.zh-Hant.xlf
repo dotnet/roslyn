@@ -33,21 +33,21 @@ Collapse #regions on file open;
 Collapse Imports on file open;
 Collapse metadata implementations on file open;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="translated">為重新指派的變數加上底線;顯示內嵌提示;自動插入結束建構;變更美化排列設定;變更大綱模式;自動插入介面和 MustOverride 成員;顯示或隱藏程序行分隔符號;開啟或關閉錯誤校正建議;開啟或關閉參考及關鍵字的醒目提示;
+        <target state="new">Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
 Regex;
-規則運算式;
-游標下的相關元件;
-回報無效的規則運算式;
+regular expressions;
+related components under cursor;
+Report invalid regular expressions;
 regex;
-規則運算式;
+regular expression;
 JSON;
-為 JSON 字串上色;
-回報無效的 JSON 字串;
-偵測並提供 JSON 字串的編輯器功能;
-在開啟檔案時折疊 #regions;
-開啟檔案時折疊匯入;
-開啟檔案時折疊中繼資料實作;
-使用進階色彩;編輯器色彩配置;繼承頁面邊界;匯入指示詞;</target>
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
+Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">

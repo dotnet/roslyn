@@ -129,7 +129,7 @@
       </trans-unit>
       <trans-unit id="ERR_AttributeCannotBeAppliedManually">
         <source>'{0}' cannot be applied manually.</source>
-        <target state="new">'{0}' cannot be applied manually.</target>
+        <target state="translated">無法手動套用 '{0}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeNotOnEventAccessor">
@@ -224,7 +224,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadCompoundAssignmentOpArgs">
         <source>Overloaded compound assignment operator '{0}' takes one parameter</source>
-        <target state="new">Overloaded compound assignment operator '{0}' takes one parameter</target>
+        <target state="translated">多載複合指派運算子 '{0}' 接受一個參數</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
@@ -234,27 +234,27 @@
       </trans-unit>
       <trans-unit id="ERR_BadExtensionBinaryOperatorSignature">
         <source>One of the parameters of a binary operator must be the extended type.</source>
-        <target state="new">One of the parameters of a binary operator must be the extended type.</target>
+        <target state="translated">二元運算子的其中一個參數必須是擴充型別。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadExtensionContainingType">
         <source>Extensions must be declared in a top-level, non-generic, static class</source>
-        <target state="new">Extensions must be declared in a top-level, non-generic, static class</target>
+        <target state="translated">擴充必須宣告於頂層、非泛型、靜態類別中</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadExtensionIncDecSignature">
         <source>The parameter type for ++ or -- operator must be the extended type.</source>
-        <target state="new">The parameter type for ++ or -- operator must be the extended type.</target>
+        <target state="translated">++ 或 -- 運算子的參數型別必須是擴充的型別。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadExtensionShiftOperatorSignature">
         <source>The first operand of an overloaded shift operator must have the same type as the extended type</source>
-        <target state="new">The first operand of an overloaded shift operator must have the same type as the extended type</target>
+        <target state="translated">多載移位 (Shift) 運算子的第一個運算元的型別必須和擴充型別相同</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadExtensionUnaryOperatorSignature">
         <source>The parameter of a unary operator must be the extended type.</source>
-        <target state="new">The parameter of a unary operator must be the extended type.</target>
+        <target state="translated">一元運算子的參數必須為擴充型別。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFieldTypeInRecord">
@@ -334,7 +334,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadSpreadInCatchFilter">
         <source>Cannot use '..' spread operator in the filter expression of a catch clause</source>
-        <target state="new">Cannot use '..' spread operator in the filter expression of a catch clause</target>
+        <target state="translated">不得在 catch 子句的 filter 運算式中使用 '..' 擴散運算子</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadStaticAfterUnsafe">
@@ -409,7 +409,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotMatchOnINumberBase">
         <source>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.</source>
-        <target state="new">Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.</target>
+        <target state="translated">無法在 '{0}' 上使用數值常數或關聯式模式，因為它繼承自或擴充 'INumberBase&lt;T&gt;'。請考慮使用型別模式來縮小為特定數數值型別。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -484,7 +484,7 @@
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberOperatorMismatch">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because one of them is not an operator.</source>
-        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because one of them is not an operator.</target>
+        <target state="translated">'{0}' 未實作介面成員 '{1}'。'{2}' 無法實作 '{1}'，因為其中一方不是運算子。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongInitOnly">
@@ -584,7 +584,7 @@
       </trans-unit>
       <trans-unit id="ERR_DataSectionStringLiteralHashCollision">
         <source>Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</source>
-        <target state="new">Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</target>
+        <target state="translated">無法將此字串常值發射至資料區段，因為它與另一個字串常值發生 XXHash128 雜湊碰撞: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
@@ -764,12 +764,12 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionBasedConditionalLogicalOperator">
         <source>An expression tree may not contain '&amp;&amp;' or '||' operators that use extension user defined operators.</source>
-        <target state="new">An expression tree may not contain '&amp;&amp;' or '||' operators that use extension user defined operators.</target>
+        <target state="translated">運算式樹中不得包含使用擴充自定義運算子的 '&amp;&amp;' 或 '||'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
         <source>An expression tree may not contain an extension property access</source>
-        <target state="new">An expression tree may not contain an extension property access</target>
+        <target state="translated">運算樹中不得包含擴充屬性的存取</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -789,7 +789,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsNamedArgumentOutOfPosition">
         <source>An expression tree may not contain a named argument specification out of position</source>
-        <target state="new">An expression tree may not contain a named argument specification out of position</target>
+        <target state="translated">運算式樹中不得包含位置不正確的具名引數</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsPatternImplicitIndexer">
@@ -814,7 +814,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsUtf8StringLiterals">
         <source>An expression tree may not contain UTF-8 string conversion or literal.</source>
-        <target state="translated">運算式樹狀結構不能包含 UTF-8 字串轉換或常值。</target>
+        <target state="new">An expression tree may not contain UTF-8 string conversion or literal.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
@@ -824,32 +824,32 @@
       </trans-unit>
       <trans-unit id="ERR_ExtensionBlockCollision">
         <source>This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</source>
-        <target state="new">This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</target>
+        <target state="translated">此擴充區塊與另一個擴充區塊發生衝突。它們會在中繼資料中產生相互衝突的內容型別名稱，因此必須放在不同的外層靜態類別中。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsMember">
         <source>This member is not allowed in an extension block</source>
-        <target state="new">This member is not allowed in an extension block</target>
+        <target state="translated">擴充區塊中不允許此成員</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsName">
         <source>Extension declarations may not have a name.</source>
-        <target state="new">Extension declarations may not have a name.</target>
+        <target state="translated">擴充宣告可能沒有名稱。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionParameterDisallowsDefaultValue">
         <source>The receiver parameter of an extension cannot have a default value</source>
-        <target state="new">The receiver parameter of an extension cannot have a default value</target>
+        <target state="translated">擴充的接收者參數不得有預設值</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionResolutionFailed">
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension member '{1}' for receiver of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
-        <target state="new">'{0}' does not contain a definition for '{1}' and no accessible extension member '{1}' for receiver of type '{0}' could be found (are you missing a using directive or an assembly reference?)</target>
+        <target state="translated">'{0}' 不包含 '{1}' 的定義，且找不到適用於接收者型別 '{0}' 的可存取擴充成員 '{1}' (是否缺少 using 指示詞或組件參考?)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionTypeNameDisallowed">
         <source>Types and aliases cannot be named 'extension'.</source>
-        <target state="new">Types and aliases cannot be named 'extension'.</target>
+        <target state="translated">型別與別名不可命名為 'extension'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
@@ -889,7 +889,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion14">
         <source>Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</source>
-        <target state="new">Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</target>
+        <target state="translated">C# 14.0 中無法使用功能 '{0}'。請使用語言版本 {1} 或更高版本。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -899,7 +899,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8_0">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
-        <target state="translated">C# 8.0 中無法使用功能 '{0}'。請使用 {1} 或更新的語言版本。</target>
+        <target state="new">Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion9">
@@ -1079,7 +1079,7 @@
       </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedParamsParameter">
         <source>Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</source>
-        <target state="new">Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</target>
+        <target state="translated">隱含類型的 Lambda 參數 '{0}' 不得使用 'params' 修飾元。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -1089,7 +1089,7 @@
       </trans-unit>
       <trans-unit id="ERR_InExtensionParameterMustBeValueType">
         <source>The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</source>
-        <target state="new">The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</target>
+        <target state="translated">擴充的 'in' 或 'ref readonly' 接收者參數必須是具體 (非泛型) 的值型別。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
@@ -1104,7 +1104,7 @@
       </trans-unit>
       <trans-unit id="ERR_InitInExtension">
         <source>'{0}': cannot declare init-only accessors in an extension block</source>
-        <target state="new">'{0}': cannot declare init-only accessors in an extension block</target>
+        <target state="translated">'{0}': 無法在擴充區塊內宣告 init-only 存取子</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InlineArrayAttributeOnRecord">
@@ -1144,17 +1144,17 @@
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberWithUnnamedExtensionsParameter">
         <source>'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</source>
-        <target state="new">'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</target>
+        <target state="translated">'{0}': 在擁有未命名接收者參數的擴充區塊中，無法宣告執行個體成員</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceOperatorExtensionWrongReceiverType">
         <source>Cannot declare instance extension operator for a type that is not known to be a struct and is not known to be a class</source>
-        <target state="new">Cannot declare instance extension operator for a type that is not known to be a struct and is not known to be a class</target>
+        <target state="translated">若型別無法確定為 struct 或 class，就不能為其宣告執行個體擴充運算子</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceOperatorStructExtensionWrongReceiverRefKind">
         <source>Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter</source>
-        <target state="new">Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter</target>
+        <target state="translated">若擴充區塊的接收者參數非 'ref' 參數，則不可為 struct 宣告執行個體運算子</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
@@ -1329,7 +1329,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterpolatedStringHandlerArgumentDisallowed">
         <source>Interpolated string handler arguments are not allowed in this context.</source>
-        <target state="new">Interpolated string handler arguments are not allowed in this context.</target>
+        <target state="translated">在此語境中不允許使用插值字串處理常式引數。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterpolatedStringHandlerArgumentLocatedAfterInterpolatedString">
@@ -1369,7 +1369,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidExtensionParameterReference">
         <source>Cannot use extension parameter '{0}' in this context.</source>
-        <target state="new">Cannot use extension parameter '{0}' in this context.</target>
+        <target state="translated">無法在此語境中使用擴充參數 '{0}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
@@ -1514,17 +1514,17 @@
       </trans-unit>
       <trans-unit id="ERR_LocalSameNameAsExtensionParameter">
         <source>'{0}': a parameter, local variable, or local function cannot have the same name as an extension parameter</source>
-        <target state="new">'{0}': a parameter, local variable, or local function cannot have the same name as an extension parameter</target>
+        <target state="translated">'{0}': 參數、本機變數或本機函式不能與擴充參數具有相同名稱</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalSameNameAsExtensionTypeParameter">
         <source>'{0}': a parameter, local variable, or local function cannot have the same name as an extension container type parameter</source>
-        <target state="new">'{0}': a parameter, local variable, or local function cannot have the same name as an extension container type parameter</target>
+        <target state="translated">'{0}': 參數、本機變數或本機函式不能與擴充容器的型別參數具有相同名稱</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsExtendedType">
         <source>'{0}': extension member names cannot be the same as their extended type</source>
-        <target state="new">'{0}': extension member names cannot be the same as their extended type</target>
+        <target state="translated">'{0}': 擴充成員名稱不可與其擴充的型別相同</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
@@ -1534,12 +1534,12 @@
       </trans-unit>
       <trans-unit id="ERR_MethodImplAttributeAsyncCannotBeUsed">
         <source>'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.</source>
-        <target state="new">'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.</target>
+        <target state="translated">無法將 'MethodImplAttribute.Async' 手動套用至方法。將方法標記為 'async'。</target>
         <note>'MethodImplAttribute.Async' and 'async' are not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_MisplacedExtension">
         <source>An extension member syntax is disallowed in nested position within an extension member syntax</source>
-        <target state="new">An extension member syntax is disallowed in nested position within an extension member syntax</target>
+        <target state="translated">在擴充成員語法的巢狀位置中，不允許使用擴充成員語法</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MisplacedRecord">
@@ -1569,7 +1569,7 @@
       </trans-unit>
       <trans-unit id="ERR_ModifierOnUnnamedReceiverParameter">
         <source>Cannot use modifiers on the unnamed receiver parameter of extension block</source>
-        <target state="new">Cannot use modifiers on the unnamed receiver parameter of extension block</target>
+        <target state="translated">擴充區塊中未命名的接收者參數不可使用任何修飾元</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerCannotBeUnmanagedCallersOnly">
@@ -1624,7 +1624,7 @@
       </trans-unit>
       <trans-unit id="ERR_NameofExtensionMember">
         <source>Extension members are not allowed as an argument to 'nameof'.</source>
-        <target state="new">Extension members are not allowed as an argument to 'nameof'.</target>
+        <target state="translated">不可在 'nameof' 的引數中使用擴充成員。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -1719,7 +1719,7 @@
       </trans-unit>
       <trans-unit id="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName">
         <source>'{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.</source>
-        <target state="new">'{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.</target>
+        <target state="translated">'{0}' 不是執行個體方法，接收者或擴充接收者參數不可為差補字串處理常式引數。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotOverridableAPIInRecord">
@@ -1769,27 +1769,27 @@
       </trans-unit>
       <trans-unit id="ERR_OperatorInExtensionOfStaticClass">
         <source>An extension block extending a static class cannot contain user-defined operators</source>
-        <target state="new">An extension block extending a static class cannot contain user-defined operators</target>
+        <target state="translated">擴充區塊若擴充靜態類別，不得包含自定義運算子</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorMismatchOnOverride">
         <source>'{0}': cannot override inherited member '{1}' because one of them is not an operator.</source>
-        <target state="new">'{0}': cannot override inherited member '{1}' because one of them is not an operator.</target>
+        <target state="translated">'{0}': 無法覆寫繼承的成員 '{1}'，因為其中一方不是運算子。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorMustReturnVoid">
         <source>The return type for this operator must be void</source>
-        <target state="new">The return type for this operator must be void</target>
+        <target state="translated">此運算子的傳回型別必須為 void</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorsMustBePublic">
         <source>User-defined operator '{0}' must be declared public</source>
-        <target state="new">User-defined operator '{0}' must be declared public</target>
+        <target state="translated">使用者定義的運算子 '{0}' 必須宣告為公開</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorsMustBeStaticAndPublic">
         <source>User-defined operator '{0}' must be declared static and public</source>
-        <target state="new">User-defined operator '{0}' must be declared static and public</target>
+        <target state="translated">使用者定義的運算子 '{0}' 必須宣告為 static 和 public</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OutAttrOnRefReadonlyParam">
@@ -1824,22 +1824,22 @@
       </trans-unit>
       <trans-unit id="ERR_PPIgnoredFollowsIf">
         <source>'#:' directives cannot be after '#if' directive</source>
-        <target state="new">'#:' directives cannot be after '#if' directive</target>
+        <target state="translated">'#:' 指示詞不能出現在 '#if' 指示詞之後</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PPIgnoredFollowsToken">
         <source>'#:' directives cannot be after first token in file</source>
-        <target state="new">'#:' directives cannot be after first token in file</target>
+        <target state="translated">'#:' 指示詞不可出現在檔案中的第一個語彙基元之後</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PPIgnoredNeedsFileBasedProgram">
         <source>'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</source>
-        <target state="new">'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</target>
+        <target state="translated">'#:' 指示詞僅能用於以檔案為基礎的程式 ('-features:FileBasedProgram')</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PPShebangInProjectBasedProgram">
         <source>'#!' directives can be only used in scripts or file-based programs</source>
-        <target state="new">'#!' directives can be only used in scripts or file-based programs</target>
+        <target state="translated">'#!' 指示詞僅能用於指令碼或以檔案為基礎的程式</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
@@ -1879,12 +1879,12 @@
       </trans-unit>
       <trans-unit id="ERR_PartialConstructorInitializer">
         <source>'{0}': only the implementing declaration of a partial constructor can have an initializer</source>
-        <target state="new">'{0}': only the implementing declaration of a partial constructor can have an initializer</target>
+        <target state="translated">'{0}': 只有部分建構函式實作宣告才能有初始設定式</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialEventInitializer">
         <source>'{0}': partial event cannot have initializer</source>
-        <target state="new">'{0}': partial event cannot have initializer</target>
+        <target state="translated">'{0}': 部分事件不可具有初始設定式</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberAccessibilityDifference">
@@ -1899,12 +1899,12 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMemberDuplicateDefinition">
         <source>Partial member '{0}' may not have multiple defining declarations.</source>
-        <target state="new">Partial member '{0}' may not have multiple defining declarations.</target>
+        <target state="translated">部分成員 '{0}' 不可有多個定義宣告。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberDuplicateImplementation">
         <source>Partial member '{0}' may not have multiple implementing declarations.</source>
-        <target state="new">Partial member '{0}' may not have multiple implementing declarations.</target>
+        <target state="translated">部分成員 '{0}' 不可有多個實作宣告。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberInconsistentTupleNames">
@@ -1914,12 +1914,12 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMemberMissingDefinition">
         <source>Partial member '{0}' must have a definition part.</source>
-        <target state="new">Partial member '{0}' must have a definition part.</target>
+        <target state="translated">部分成員 '{0}' 必須有定義部分。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberMissingImplementation">
         <source>Partial member '{0}' must have an implementation part.</source>
-        <target state="new">Partial member '{0}' must have an implementation part.</target>
+        <target state="translated">部分成員 '{0}' 必須要有實作部分。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberOnlyInPartialClass">
@@ -1949,7 +1949,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMemberTypeDifference">
         <source>Both partial member declarations must have the same type.</source>
-        <target state="new">Both partial member declarations must have the same type.</target>
+        <target state="translated">兩個部分成員宣告都必須有相同型別。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberUnsafeDifference">
@@ -2054,7 +2054,7 @@
       </trans-unit>
       <trans-unit id="ERR_ProtectedInExtension">
         <source>'{0}': new protected member declared in an extension block</source>
-        <target state="new">'{0}': new protected member declared in an extension block</target>
+        <target state="translated">'{0}': 在擴充區塊中宣告了新的受保護成員</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RawStringDelimiterOnOwnLine">
@@ -2089,12 +2089,12 @@
       </trans-unit>
       <trans-unit id="ERR_ReceiverParameterOnlyOne">
         <source>An extension container can have only one receiver parameter</source>
-        <target state="new">An extension container can have only one receiver parameter</target>
+        <target state="translated">一個擴充容器只能有一個接收者參數</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReceiverParameterSameNameAsTypeParameter">
         <source>'{0}': a receiver parameter cannot have the same name as an extension container type parameter</source>
-        <target state="new">'{0}': a receiver parameter cannot have the same name as an extension container type parameter</target>
+        <target state="translated">'{0}': 接收者參數不得與擴充容器型別參數具有相同名稱</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RecordAmbigCtor">
@@ -2124,7 +2124,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne">
         <source>The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.</source>
-        <target state="new">The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.</target>
+        <target state="translated">擴充區塊的 'ref' 接收者參數必須是值型別，或具備 struct 限制的泛型型別。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
@@ -2259,7 +2259,7 @@
       </trans-unit>
       <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
         <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
-        <target state="translated">類型 'Microsoft.CodeAnalysis.EmbeddedAttribute' 必須是非泛型、內部、密封、非靜態、具有無參數建構函式、繼承自 System.Attribute，而且可以套用到任何類型。</target>
+        <target state="new">The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
@@ -2374,7 +2374,7 @@
       </trans-unit>
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
         <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
-        <target state="translated">單一元素解構模式需要一些其他語法才能使其明確。建議在右括弧 ')' 後新增捨棄指示項 '_'。</target>
+        <target state="new">A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SpreadMissingMember">
@@ -2474,7 +2474,7 @@
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings_RestartRequired">
         <source>Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</source>
-        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</target>
+        <target state="translated">程式使用的使用者字串結合長度超過允許限制。新增字串字面量時，必須重新啟動應用程式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
@@ -2514,12 +2514,12 @@
       </trans-unit>
       <trans-unit id="ERR_TypeParameterSameNameAsExtensionParameter">
         <source>Type parameter '{0}' has the same name as an extension parameter</source>
-        <target state="new">Type parameter '{0}' has the same name as an extension parameter</target>
+        <target state="translated">型別參數 '{0}' 與擴充參數具有相同名稱</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeParameterSameNameAsExtensionTypeParameter">
         <source>Type parameter '{0}' has the same name as an extension container type parameter</source>
-        <target state="new">Type parameter '{0}' has the same name as an extension container type parameter</target>
+        <target state="translated">型別參數 '{0}' 與擴充容器型別參數具有相同名稱</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnassignedThisAutoPropertyUnsupportedVersion">
@@ -2534,7 +2534,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnderspecifiedExtension">
         <source>The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</source>
-        <target state="new">The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</target>
+        <target state="translated">型別參數 '{0}' 不被擴充參數也不被此成員的任何參數所參考</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">
@@ -2584,7 +2584,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedFeatureInRuntimeAsync">
         <source>Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
-        <target state="new">Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</target>
+        <target state="translated">方法 '{0}' 使用了目前執行階段 async 尚不支援的功能。請在方法上加入 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)' 屬性以停用執行階段 async。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
@@ -2609,7 +2609,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedTypeForSlicePattern">
         <source>Slice patterns may not be used for a value of type '{0}'.</source>
-        <target state="translated">類型 '{0}' 的值不可使用切片模式。</target>
+        <target state="new">Slice patterns may not be used for a value of type '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnterminatedRawString">
@@ -2634,17 +2634,17 @@
       </trans-unit>
       <trans-unit id="ERR_ValueParameterSameNameAsExtensionParameter">
         <source>'value': an automatically-generated parameter name conflicts with an extension parameter name</source>
-        <target state="new">'value': an automatically-generated parameter name conflicts with an extension parameter name</target>
+        <target state="translated">'value': 自動產生的參數名稱與擴充參數名稱衝突</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ValueParameterSameNameAsExtensionTypeParameter">
         <source>'value': an automatically-generated parameter name conflicts with an extension type parameter name</source>
-        <target state="new">'value': an automatically-generated parameter name conflicts with an extension type parameter name</target>
+        <target state="translated">'value': 自動產生的參數名稱與擴充型別參數名稱衝突</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VariableDeclarationNamedField">
         <source>In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</source>
-        <target state="new">In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</target>
+        <target state="translated">在此語言版本 {0} 中，'field' 是屬性存取子中的關鍵字。請重新命名變數，或改用識別碼 '@field'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
@@ -2674,7 +2674,7 @@
       </trans-unit>
       <trans-unit id="IDS_CollectionExpression">
         <source>collection expression</source>
-        <target state="new">collection expression</target>
+        <target state="translated">集合運算式</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAllowsRefStructConstraint">
@@ -2719,7 +2719,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensions">
         <source>extensions</source>
-        <target state="new">extensions</target>
+        <target state="translated">擴充</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureFieldKeyword">
@@ -2819,7 +2819,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureNullConditionalAssignment">
         <source>null conditional assignment</source>
-        <target state="new">null conditional assignment</target>
+        <target state="translated">null 條件指派</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureOverloadResolutionPriority">
@@ -2839,7 +2839,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeaturePartialEventsAndConstructors">
         <source>partial events and constructors</source>
-        <target state="new">partial events and constructors</target>
+        <target state="translated">部分事件與建構函式</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
@@ -2899,7 +2899,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureSimpleLambdaParameterModifiers">
         <source>simple lambda parameter modifiers</source>
-        <target state="new">simple lambda parameter modifiers</target>
+        <target state="translated">簡單的 lambda 參數修飾元</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStringEscapeCharacter">
@@ -2924,7 +2924,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUserDefinedCompoundAssignmentOperators">
         <source>user-defined compound assignment operators</source>
-        <target state="new">user-defined compound assignment operators</target>
+        <target state="translated">使用者自訂複合指派運算子</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUtf8StringLiterals">
@@ -3034,12 +3034,12 @@
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
         <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="new">Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
+        <target state="translated">分析程式組件 '{0}' 無法使用，因為其參考編譯器的版本 '{1}'，比目前執行的版本 '{2}' 還要新。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
         <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
-        <target state="new">Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</target>
+        <target state="translated">分析程式組件無法使用，因為其參考編譯器的版本比目前執行的版本還要新。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedIn">
@@ -3084,12 +3084,12 @@
       </trans-unit>
       <trans-unit id="WRN_CallArgMixing">
         <source>This combination of arguments to '{0}' may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
-        <target state="translated">對 '{0}' 使用此引數組合，會在其宣告範圍外公開參數 '{1}' 所參考的變數</target>
+        <target state="new">This combination of arguments to '{0}' may expose variables referenced by parameter '{1}' outside of their declaration scope</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallArgMixing_Title">
         <source>This combination of arguments may expose variables referenced by parameter outside of their declaration scope</source>
-        <target state="translated">此引數組合會在其宣告範圍外公開參數所參考的變數</target>
+        <target state="new">This combination of arguments may expose variables referenced by parameter outside of their declaration scope</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
@@ -3234,22 +3234,22 @@
       </trans-unit>
       <trans-unit id="WRN_EscapeCall">
         <source>Use of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
-        <target state="translated">在此內容中使用 '{0}' 的結果，可能會將參數 '{1}' 參考的變數公開在其宣告範圍外</target>
+        <target state="new">Use of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeCall2">
         <source>Use of member of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
-        <target state="translated">此內容中使用 '{0}' 的結果成員，可能會將參數 '{1}' 參考的變數公開在其宣告範圍外</target>
+        <target state="new">Use of member of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeCall2_Title">
         <source>Use of member of result in this context may expose variables referenced by parameter outside of their declaration scope</source>
-        <target state="translated">無法在此內容中使用結果的成員，因為它會將參數參考的變數公開在其宣告範圍外</target>
+        <target state="new">Use of member of result in this context may expose variables referenced by parameter outside of their declaration scope</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeCall_Title">
         <source>Use of result in this context may expose variables referenced by parameter outside of their declaration scope</source>
-        <target state="translated">在此內容中使用結果，可能會將參數參考的變數公開在其宣告範圍外</target>
+        <target state="new">Use of result in this context may expose variables referenced by parameter outside of their declaration scope</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeStackAlloc">
@@ -3494,12 +3494,12 @@
       </trans-unit>
       <trans-unit id="WRN_PartialMemberSignatureDifference">
         <source>Partial member declarations '{0}' and '{1}' have signature differences.</source>
-        <target state="new">Partial member declarations '{0}' and '{1}' have signature differences.</target>
+        <target state="translated">部分成員宣告 '{0}' 和 '{1}' 有簽章差異。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PartialMemberSignatureDifference_Title">
         <source>Partial member declarations have signature differences.</source>
-        <target state="new">Partial member declarations have signature differences.</target>
+        <target state="translated">部分成員宣告具有簽章差異。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
@@ -3998,7 +3998,7 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="new">
+        <target state="translated">
                              Visual C# Compiler Options
 
                        - OUTPUT FILES -
@@ -5662,12 +5662,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField">
         <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
-        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</target>
+        <target state="translated">非可為 null 的 {0} '{1}' 在建構函式結束時必須具有非 null 的值。請考慮加入 'required' 修飾元、將此 {0} 宣告為可為 null，或在 'get' 存取子中安全地處理 'field' 可能為 null 的情況。</target>
         <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField_Title">
         <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
-        <target state="new">Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</target>
+        <target state="translated">非可為 null 的屬性在建構函式結束時必須具有非 null 的值。請考慮加入 'required' 修飾元、將此屬性宣告為可為 null，或在 'get' 存取子中安全地處理 'field' 可能為 null 的情況。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
@@ -6082,7 +6082,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadVisIndexerParam">
         <source>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</source>
-        <target state="new">Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</target>
+        <target state="translated">不一致的存取範圍: 參數型別 '{1}' 比索引子或屬性 '{0}' 的存取範圍小</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisOpReturn">
@@ -7007,7 +7007,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
         <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</source>
-        <target state="new">The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</target>
+        <target state="translated">'partial' 修飾元只能直接出現在 'class'、'record'、'struct'、'interface'、'event'、執行個體建構函式名稱或方法或屬性傳回型別之前。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -7666,7 +7666,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_PredefinedTypeAmbiguous">
         <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
-        <target state="new">Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</target>
+        <target state="translated">在多個參考組件中宣告了預先定義的類型 '{0}': '{1}' 與 '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructWithBaseConstructorCall">
@@ -7981,7 +7981,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_DllImportOnInvalidMethod">
         <source>The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member</source>
-        <target state="new">The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member</target>
+        <target state="translated">DllImport 屬性必須用在被標記為 'extern'，且為 'static' 方法或擴充成員的方法上</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
@@ -9080,7 +9080,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_BadTypeforThis">
         <source>The receiver parameter of an extension cannot be of type '{0}'</source>
-        <target state="new">The receiver parameter of an extension cannot be of type '{0}'</target>
+        <target state="translated">擴充接收者參數不可為型別 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamModThis">
@@ -9110,7 +9110,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_ExtensionAttrNotFound">
         <source>Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
-        <target state="new">Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</target>
+        <target state="translated">無法定義新的擴充方法，因為找不到編譯器的必要型別 '{0}'。是否遺漏了 System.Core.dll 的參考?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitExtension">
@@ -9205,7 +9205,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
         <source>Invalid token '{0}' in a member declaration</source>
-        <target state="new">Invalid token '{0}' in a member declaration</target>
+        <target state="translated">成員宣告中的語彙基元 '{0}' 無效</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">
@@ -10385,7 +10385,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_CantSetWin32Manifest">
         <source>Error reading Win32 manifest file '{0}' -- '{1}'</source>
-        <target state="translated">讀取 Win32 資訊清單檔 '{0}' 時發生錯誤 -- '{1}'</target>
+        <target state="new">Error reading Win32 manifest file '{0}' -- '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CantHaveManifestForModule">
@@ -11270,7 +11270,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_NotYetImplementedInRoslyn">
         <source>This language feature ('{0}') is not yet implemented.</source>
-        <target state="translated">尚未實作語言功能 ('{0}')。</target>
+        <target state="new">This language feature ('{0}') is not yet implemented.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueNotAllowed">
@@ -11795,7 +11795,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_InvalidDynamicCondition">
         <source>Expression must be implicitly convertible to Boolean or its type '{0}' must define operator '{1}'.</source>
-        <target state="translated">運算式必須可隱含轉換成布林值，或是其類型 '{0}' 必須定義運算子 '{1}'。</target>
+        <target state="new">Expression must be implicitly convertible to Boolean or its type '{0}' must define operator '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MixingWinRTEventWithRegular">
@@ -11805,32 +11805,32 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope1">
         <source>Call System.IDisposable.Dispose() on allocated instance of {0} before all references to it are out of scope.</source>
-        <target state="translated">於配置的 {0} 執行個體的所有參考都超出範圍之前，在該執行個體上呼叫 System.IDisposable.Dispose()。</target>
+        <target state="new">Call System.IDisposable.Dispose() on allocated instance of {0} before all references to it are out of scope.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope1_Title">
         <source>Call System.IDisposable.Dispose() on allocated instance before all references to it are out of scope</source>
-        <target state="translated">在所配置執行個體的所有參考超出範圍之前，對其呼叫 System.IDisposable.Dispose()</target>
+        <target state="new">Call System.IDisposable.Dispose() on allocated instance before all references to it are out of scope</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope2">
         <source>Allocated instance of {0} is not disposed along all exception paths.  Call System.IDisposable.Dispose() before all references to it are out of scope.</source>
-        <target state="translated">配置的 {0} 執行個體並非沿著所有例外狀況路徑處置。請在其所有參考都超出範圍之前，呼叫 System.IDisposable.Dispose()。</target>
+        <target state="new">Allocated instance of {0} is not disposed along all exception paths.  Call System.IDisposable.Dispose() before all references to it are out of scope.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope2_Title">
         <source>Allocated instance is not disposed along all exception paths</source>
-        <target state="translated">所配置的執行個體未沿著所有例外路徑處置</target>
+        <target state="new">Allocated instance is not disposed along all exception paths</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CA2202_DoNotDisposeObjectsMultipleTimes">
         <source>Object '{0}' can be disposed more than once.</source>
-        <target state="translated">可以多次處置物件 '{0}'。</target>
+        <target state="new">Object '{0}' can be disposed more than once.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CA2202_DoNotDisposeObjectsMultipleTimes_Title">
         <source>Object can be disposed more than once</source>
-        <target state="translated">可以多次處置物件</target>
+        <target state="new">Object can be disposed more than once</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewCoClassOnLink">
@@ -12518,7 +12518,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_InitializerInStructWithoutExplicitConstructor">
         <source>Structs without explicit constructors cannot contain members with initializers.</source>
-        <target state="translated">沒有明確建構函式的結構，不可包含有初始設定式的成員。</target>
+        <target state="new">Structs without explicit constructors cannot contain members with initializers.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EncodinglessSyntaxTree">
@@ -12538,7 +12538,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_UnexpectedBoundGenericName">
         <source>Type arguments are not allowed in the nameof operator.</source>
-        <target state="translated">Nameof 運算子中不可使用類型引數。</target>
+        <target state="new">Type arguments are not allowed in the nameof operator.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullPropagatingOpInExpressionTree">
@@ -12818,7 +12818,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyLocal">
         <source>Cannot return '{0}' by reference because it is read-only</source>
-        <target state="translated">無法藉傳址方式傳回 '{0}'，因其為唯讀</target>
+        <target state="new">Cannot return '{0}' by reference because it is read-only</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnRangeVariable">
@@ -12828,7 +12828,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyLocalCause">
         <source>Cannot return '{0}' by reference because it is a '{1}'</source>
-        <target state="translated">無法藉傳址方式傳回 '{0}'，因其為 '{1}'</target>
+        <target state="new">Cannot return '{0}' by reference because it is a '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonly">
@@ -13053,7 +13053,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList">
         <source>Reference to an implicitly-typed out variable '{0}' is not permitted in the same argument list.</source>
-        <target state="translated">不允許在相同引數清單中參考隱含型別 out 變數 '{0}'。</target>
+        <target state="new">Reference to an implicitly-typed out variable '{0}' is not permitted in the same argument list.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailedForImplicitlyTypedOutVariable">
@@ -13273,7 +13273,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_CompilerAndLanguageVersion">
         <source>Compiler version: '{0}'. Language version: {1}.</source>
-        <target state="translated">編譯器版本: '{0}'。語言版本: {1}。</target>
+        <target state="new">Compiler version: '{0}'. Language version: {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAsyncMain">

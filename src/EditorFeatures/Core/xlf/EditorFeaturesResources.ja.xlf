@@ -34,12 +34,12 @@
       </trans-unit>
       <trans-unit id="Describe_with_Copilot">
         <source>Describe with Copilot</source>
-        <target state="translated">Copilot で説明する</target>
+        <target state="new">Describe with Copilot</target>
         <note />
       </trans-unit>
       <trans-unit id="Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
         <source>'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</source>
-        <target state="translated">参照されているドキュメントが組織によって除外されているため、'Copilot で説明' は使用できません。</target>
+        <target state="new">'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">

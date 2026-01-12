@@ -319,7 +319,7 @@
       </trans-unit>
       <trans-unit id="Display_diagnostics_inline">
         <source>Display diagnostics inline</source>
-        <target state="new">Display diagnostics inline</target>
+        <target state="translated">内联显示诊断</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
@@ -409,7 +409,7 @@
       </trans-unit>
       <trans-unit id="Error_encountered_updating_0">
         <source>Error encountered updating '{0}'</source>
-        <target state="new">Error encountered updating '{0}'</target>
+        <target state="translated">更新 ‘{0}’ 时遇到错误</target>
         <note />
       </trans-unit>
       <trans-unit id="Error_updating_suppressions_0">
@@ -464,7 +464,7 @@
       </trans-unit>
       <trans-unit id="Fix_text_pasted_into_string_literals">
         <source>Fix text pasted into string literals</source>
-        <target state="new">Fix text pasted into string literals</target>
+        <target state="translated">修复粘贴到字符串字面量中的文本</target>
         <note />
       </trans-unit>
       <trans-unit id="For_non_interface_members">
@@ -524,12 +524,12 @@
       </trans-unit>
       <trans-unit id="Ignore">
         <source>Ignore</source>
-        <target state="new">Ignore</target>
+        <target state="translated">忽略</target>
         <note />
       </trans-unit>
       <trans-unit id="Ignore_including_future_errors">
         <source>Ignore (including future errors)</source>
-        <target state="new">Ignore (including future errors)</target>
+        <target state="translated">忽略(包括将来的错误)</target>
         <note />
       </trans-unit>
       <trans-unit id="Implemented_interfaces">
@@ -1119,7 +1119,7 @@
       </trans-unit>
       <trans-unit id="Prefer_simple_property_accessors">
         <source>Prefer simple property accessors</source>
-        <target state="new">Prefer simple property accessors</target>
+        <target state="translated">首选简单属性访问器</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_simple_using_statement">
