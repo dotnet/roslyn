@@ -489,12 +489,12 @@
       </trans-unit>
       <trans-unit id="Generate_only_summary_tag">
         <source>Generate only &lt;summary&gt; tag</source>
-        <target state="new">Generate only &lt;summary&gt; tag</target>
+        <target state="translated">Создать только тег &lt;сводки&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_summary_on_single_line">
         <source>Generate &lt;summary&gt; on single line</source>
-        <target state="new">Generate &lt;summary&gt; on single line</target>
+        <target state="translated">Создать &lt;сводку&gt; в одной строке</target>
         <note />
       </trans-unit>
       <trans-unit id="Generator_running">
