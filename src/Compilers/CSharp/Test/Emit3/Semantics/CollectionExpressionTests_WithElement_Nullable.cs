@@ -529,7 +529,10 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             [sourceA, sourceB],
             expectedOutput: IncludeExpectedOutput("goo"),
             targetFramework: TargetFramework.Net80,
-            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verify: Verification.FailsPEVerify).VerifyDiagnostics(
+                // (7,19): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         Goo([with(null), "goo"]);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 19));
 
         var compilation = verifier.Compilation;
         var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees.Last());

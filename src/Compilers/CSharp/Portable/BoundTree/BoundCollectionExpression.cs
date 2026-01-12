@@ -8,6 +8,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundCollectionExpression
     {
+        /// <summary>
+        /// Returns <see cref="CollectionCreation"/> with any outer <see cref="BoundConversion"/> nodes unwrapped.
+        /// </summary>
         public BoundExpression? GetUnconvertedCollectionCreation()
         {
             var collectionCreation = this.CollectionCreation;
