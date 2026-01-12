@@ -143,8 +143,6 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     [Fact]
     public void ConstructorNonNullParameterPassedNull_Inference1()
     {
-        // PROTOTYPE: Currently, inference on Goo is producing `Goo<string>` even though it should be `Goo<string!>`.
-        // This is problematic as it then means T is oblivious and we don't properly report a warning on 'null'.
         var source = """
             #nullable enable
             using System;
@@ -171,7 +169,10 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             }
             """;
 
-        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("1")).VerifyDiagnostics();
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("1")).VerifyDiagnostics(
+            // (16,19): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            //         Goo([with(null), ""]);
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(16, 19));
     }
 
     [Fact]

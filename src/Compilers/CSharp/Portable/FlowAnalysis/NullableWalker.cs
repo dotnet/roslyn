@@ -4025,28 +4025,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Process the element conversions now that we have the target-type
                 var (collectionKind, targetElementType) = getCollectionDetails(node, strippedTargetCollectionType);
 
-                // We should analyze the Create method
-                // Tracked by https://github.com/dotnet/roslyn/issues/68786
-
-                // unwrap .CollectionCreation
-                // then call into specific VisitObjectCreation(..., strippedTargetCollectionType);
-                var collectionCreation = node.CollectionCreation;
-                while (collectionCreation is BoundConversion conversion)
-                    collectionCreation = conversion.Operand;
-
-                Debug.Assert(collectionCreation
-                                is null
-                                or BoundObjectCreationExpression
-                                or BoundCall
-                                or BoundNewT
-                                or BoundBadExpression);
-
+                var collectionCreation = node.GetUnconvertedCollectionCreation();
                 if (collectionCreation is BoundObjectCreationExpression objectCreation)
                 {
-                    // this.TargetTypedAnalysisCompletion[obje]
-
-                    //VisitObjectCreationExpressionBase(objectCreation, strippedTargetCollectionType);
-
                     VisitConversion(
                         conversionOpt: null,
                         objectCreation,
@@ -4058,6 +4039,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         useLegacyWarnings: false,
                         parameterOpt: null,
                         assignmentKind: AssignmentKind.Assignment);
+                }
+                else if (collectionCreation is BoundCall call)
+                {
+                }
+                else
+                {
+                    // In these cases we don't have arguments we need to renalyze with new nullable information.
+                    // 'null' is when we have a type that doesn't even support 'with' (like span/array).  BoundNewT
+                    // is for `new TypeParameter()` which never has arguments that could even be affected by nullability.
+                    Debug.Assert(collectionCreation is null or BoundNewT or BoundBadExpression);
                 }
 
                 foreach (var completion in completions)

@@ -8,18 +8,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundCollectionExpression
     {
-        private partial void Validate()
+        public BoundExpression? GetUnconvertedCollectionCreation()
         {
             var collectionCreation = this.CollectionCreation;
             while (collectionCreation is BoundConversion conversion)
                 collectionCreation = conversion.Operand;
 
             Debug.Assert(collectionCreation
-                            is null
-                            or BoundObjectCreationExpression
-                            or BoundCall
-                            or BoundNewT
-                            or BoundBadExpression);
+                is null
+                or BoundObjectCreationExpression
+                or BoundCall
+                or BoundNewT
+                or BoundBadExpression);
+
+            return collectionCreation;
+        }
+
+        private partial void Validate()
+        {
+            var collectionCreation = this.GetUnconvertedCollectionCreation();
 
             if (collectionCreation is BoundCall boundCall)
             {
