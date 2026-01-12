@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -7,17 +7,13 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.ProjectContext;
 
-internal sealed class ProjectContextRefreshQueue : AbstractRefreshQueue
+internal sealed class ProjectContextRefreshQueue(
+    IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
+    LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+    LspWorkspaceManager lspWorkspaceManager,
+    IClientLanguageServerManager notificationManager,
+    IFeatureProviderRefresher providerRefresher) : AbstractRefreshQueue(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, providerRefresher)
 {
-    internal ProjectContextRefreshQueue(
-        IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
-        LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-        LspWorkspaceManager lspWorkspaceManager,
-        IClientLanguageServerManager notificationManager)
-        : base(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager)
-    {
-    }
-
     protected override string GetFeatureAttribute()
         => FeatureAttribute.LanguageServer;
 
