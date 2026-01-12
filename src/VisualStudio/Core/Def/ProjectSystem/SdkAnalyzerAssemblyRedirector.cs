@@ -186,7 +186,7 @@ internal class SdkAnalyzerAssemblyRedirectorCore : IAnalyzerAssemblyRedirector
                 return false;
             }
 
-            return 0 == string.Compare(version1, 0, version2, 0, secondDotIndex, StringComparison.OrdinalIgnoreCase);
+            return 0 == string.Compare(version1, 0, version2, 0, secondDotIndex + 1, StringComparison.OrdinalIgnoreCase);
         }
     }
 

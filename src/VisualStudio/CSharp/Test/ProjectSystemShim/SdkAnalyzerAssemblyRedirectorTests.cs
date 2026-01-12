@@ -86,6 +86,8 @@ public sealed class SdkAnalyzerAssemblyRedirectorTests : TestBase
 
     [Theory]
     [InlineData("8.0.100", "9.0.0-preview.7.24406.2")]
+    [InlineData("8.0.1", "8.01.1")]
+    [InlineData("8.01.1", "8.0.1")]
     [InlineData("9.1.100", "9.0.0-preview.7.24406.2")]
     [InlineData("9.1.0-preview.5.24306.11", "9.0.0-preview.7.24406.2")]
     [InlineData("9.0.100", "9.1.100")]
