@@ -1322,5 +1322,36 @@ namespace Microsoft.CodeAnalysis.Text
 
             throw new IOException(CodeAnalysisResources.StreamIsTooLong);
         }
+
+        internal SourceText WithChecksumAlgorithm(SourceHashAlgorithm checksumAlgorithm)
+        {
+            if (checksumAlgorithm == SourceHashAlgorithm.None || checksumAlgorithm == ChecksumAlgorithm)
+                return this;
+
+            return new SourceTextWithAlgorithm(this, checksumAlgorithm);
+        }
+
+        private sealed class SourceTextWithAlgorithm : SourceText
+        {
+            private readonly SourceText _underlying;
+
+            public SourceTextWithAlgorithm(SourceText underlying, SourceHashAlgorithm checksumAlgorithm) : base(checksumAlgorithm: checksumAlgorithm)
+            {
+                Debug.Assert(checksumAlgorithm != SourceHashAlgorithm.None);
+                Debug.Assert(checksumAlgorithm != underlying.ChecksumAlgorithm);
+                _underlying = underlying;
+            }
+
+            public override char this[int position] => _underlying[position];
+
+            public override Encoding? Encoding => _underlying.Encoding;
+
+            public override int Length => _underlying.Length;
+
+            public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
+            {
+                _underlying.CopyTo(sourceIndex, destination, destinationIndex, count);
+            }
+        }
     }
 }
