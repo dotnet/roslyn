@@ -175,7 +175,7 @@
       </trans-unit>
       <trans-unit id="MissingTokenListItem">
         <source>The specified token must be a direct element of a SyntaxTokenList (such as a modifier in a list of modifiers). The token cannot be an arbitrary token from the syntax tree.</source>
-        <target state="new">The specified token must be a direct element of a SyntaxTokenList (such as a modifier in a list of modifiers). The token cannot be an arbitrary token from the syntax tree.</target>
+        <target state="translated">Zadaný token musí být přímým elementem seznamu SyntaxTokenList (například modifikátor v seznamu modifikátorů). Token nemůže být libovolný token ze stromu syntaxe.</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasInvalidAttributes">
@@ -225,12 +225,12 @@
       </trans-unit>
       <trans-unit id="SeparatorTokenMustHaveSameLanguage">
         <source>New separator must have the same Language as the separator being replaced.</source>
-        <target state="new">New separator must have the same Language as the separator being replaced.</target>
+        <target state="translated">Nový oddělovač musí mít stejný jazyk jako oddělovač, který je nahrazován.</target>
         <note />
       </trans-unit>
       <trans-unit id="SeparatorTokenMustHaveSameRawKind">
         <source>New separator must have the same RawKind as the separator being replaced.</source>
-        <target state="new">New separator must have the same RawKind as the separator being replaced.</target>
+        <target state="translated">Nový oddělovač musí mít stejný RawKind jako oddělovač, který je nahrazován.</target>
         <note />
       </trans-unit>
       <trans-unit id="SigningTempPathUnavailable">

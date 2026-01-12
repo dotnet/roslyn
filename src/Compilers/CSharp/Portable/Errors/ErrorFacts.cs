@@ -2503,6 +2503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_ValueParameterSameNameAsExtensionParameter
                 or ErrorCode.ERR_TypeParameterSameNameAsExtensionParameter
                 or ErrorCode.ERR_InvalidExtensionParameterReference
+                or ErrorCode.ERR_ExtensionParameterInStaticContext
                 or ErrorCode.ERR_ValueParameterSameNameAsExtensionTypeParameter
                 or ErrorCode.ERR_UnderspecifiedExtension
                 or ErrorCode.ERR_ExpressionTreeContainsExtensionPropertyAccess
@@ -2553,6 +2554,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_EqualityOperatorInPatternNotSupported
                 or ErrorCode.ERR_InequalityOperatorInPatternNotSupported
                 or ErrorCode.ERR_DesignatorBeforePropertyPattern
+                or ErrorCode.ERR_CompilationUnitUnexpected
+                or ErrorCode.ERR_ScopedAfterInOutRefReadonly
+                or ErrorCode.ERR_InvalidModifierAfterScoped
+                or ErrorCode.ERR_StructLayoutAndExtendedLayout
+                or ErrorCode.ERR_RuntimeDoesNotSupportExtendedLayoutTypes
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

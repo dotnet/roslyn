@@ -152,9 +152,9 @@ public sealed class WillRenameTests(ITestOutputHelper testOutputHelper) : Abstra
     {
         public WorkspaceEdit Result { get; set; }
 
-        public Task<WorkspaceEdit> HandleWillRenameAsync(RenameFilesParams renameParams, RequestContext context, CancellationToken cancellationToken)
+        public async Task<WorkspaceEdit> HandleWillRenameAsync(RenameFilesParams renameParams, RequestContext context, CancellationToken cancellationToken)
         {
-            return Task.FromResult(Result);
+            return Result;
         }
     }
 
