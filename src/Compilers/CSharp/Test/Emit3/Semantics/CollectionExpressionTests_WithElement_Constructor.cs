@@ -3018,5 +3018,47 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "with()").WithArguments("MyCollection<T>.MyCollection()", "MyFeature").WithLocation(7, 32));
     }
 
+    [Fact]
+    public void GetMemberGroup()
+    {
+        string sourceA = """
+            using System.Collections.Generic;
+
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection(string s)
+                {
+                }
+
+                public MyCollection(int i)
+                {
+                }
+            }
+            """;
+        string sourceB = """
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<string> c = [with(""), ""];
+                }
+            }
+            """;
+        var comp = CreateCompilation(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+
+        var syntaxTree = comp.SyntaxTrees[1];
+        var semanticModel = comp.GetSemanticModel(syntaxTree);
+
+        var root = syntaxTree.GetRoot();
+        var withElement = root.DescendantNodes().OfType<WithElementSyntax>().Single();
+
+        // It is expected that we get 0 here.  GetMemberGroup returns nothing for a WithElementSyntax
+        // (same as for a ConstructorInitializerSyntax).
+        var memberGroup = semanticModel.GetMemberGroup(withElement);
+        Assert.Equal(0, memberGroup.Length);
+    }
+
     #endregion
 }
