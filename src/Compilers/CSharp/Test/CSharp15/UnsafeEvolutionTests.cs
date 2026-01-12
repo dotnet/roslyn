@@ -3353,6 +3353,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 public C(int i) { }
                 public unsafe C() { }
             }
+            public unsafe class C2(int x)
+            {
+                int _x = x;
+            }
             """;
 
         CompileAndVerifyUnsafe(
@@ -3361,9 +3365,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 _ = new C(0);
                 _ = new C();
                 unsafe { _ = new C(); }
+                _ = new C2(0);
                 """,
             expectedUnsafeSymbols: [Overload("C..ctor", parameterCount: 0)],
-            expectedSafeSymbols: [Overload("C..ctor", parameterCount: 1)],
+            expectedSafeSymbols: ["C", Overload("C..ctor", parameterCount: 1), "C2", "C2..ctor"],
             expectedDiagnostics:
             [
                 // (2,5): error CS9502: 'C.C()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
