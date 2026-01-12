@@ -1807,7 +1807,7 @@ public partial class Solution
             return;
         }
 
-        throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+        throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document, documentId.DebugName ?? "Unknown"));
 
         bool ContainsSourceGeneratedDocument(DocumentId documentId)
         {
@@ -1841,7 +1841,7 @@ public partial class Solution
 
         if (!ContainsAdditionalDocument(documentId))
         {
-            throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+            throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document, documentId.DebugName ?? "Unknown"));
         }
     }
 
@@ -1867,7 +1867,7 @@ public partial class Solution
 
         if (!ContainsAnalyzerConfigDocument(documentId))
         {
-            throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+            throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document, documentId.DebugName ?? "Unknown"));
         }
     }
 

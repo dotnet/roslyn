@@ -32,23 +32,23 @@ internal static partial class ProjectExtensions
         => project.Solution.GetDocumentIdsWithFilePath(filePath).FirstOrDefault(id => id.ProjectId == project.Id);
 
     public static Document GetRequiredDocument(this Project project, DocumentId documentId)
-        => project.GetDocument(documentId) ?? throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+        => project.GetDocument(documentId) ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document, documentId.DebugName ?? "Unknown"));
 
     public static Document GetRequiredDocument(this Project project, SyntaxTree tree)
-        => project.GetDocument(tree) ?? throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+        => project.GetDocument(tree) ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document, tree.FilePath ?? "Unknown"));
 
     public static TextDocument GetRequiredAdditionalDocument(this Project project, DocumentId documentId)
-        => project.GetAdditionalDocument(documentId) ?? throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+        => project.GetAdditionalDocument(documentId) ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document, documentId.DebugName ?? "Unknown"));
 
     public static TextDocument GetRequiredAnalyzerConfigDocument(this Project project, DocumentId documentId)
-        => project.GetAnalyzerConfigDocument(documentId) ?? throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+        => project.GetAnalyzerConfigDocument(documentId) ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document, documentId.DebugName ?? "Unknown"));
 
     public static TextDocument GetRequiredTextDocument(this Project project, DocumentId documentId)
-        => project.GetTextDocument(documentId) ?? throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+        => project.GetTextDocument(documentId) ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document, documentId.DebugName ?? "Unknown"));
 
     public static async ValueTask<Document> GetRequiredSourceGeneratedDocumentAsync(this Project project, DocumentId documentId, CancellationToken cancellationToken)
     {
         var document = await project.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
-        return document ?? throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+        return document ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document, documentId.DebugName ?? "Unknown"));
     }
 }
