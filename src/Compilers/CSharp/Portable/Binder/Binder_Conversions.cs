@@ -1046,11 +1046,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (@this._targetType is NamedTypeSymbol namedType)
                     {
                         var binder = new ParamsCollectionTypeInProgressBinder(namedType, @this._binder, withElement != null, constructor);
-                        collectionCreation = binder.BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, @this._diagnostics);
+                        collectionCreation = binder.BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, @this._diagnostics, wasTargetTyped: true);
                     }
                     else if (@this._targetType is TypeParameterSymbol typeParameter)
                     {
-                        collectionCreation = @this._binder.BindTypeParameterCreationExpression(syntax, typeParameter, analyzedArguments, initializerOpt: null, typeSyntax: syntax, wasTargetTyped: false, @this._diagnostics);
+                        collectionCreation = @this._binder.BindTypeParameterCreationExpression(syntax, typeParameter, analyzedArguments, initializerOpt: null, typeSyntax: syntax, wasTargetTyped: true, @this._diagnostics);
                     }
                     else
                     {

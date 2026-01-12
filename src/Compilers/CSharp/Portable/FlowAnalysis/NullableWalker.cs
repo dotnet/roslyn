@@ -4028,6 +4028,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We should analyze the Create method
                 // Tracked by https://github.com/dotnet/roslyn/issues/68786
 
+                // unwrap .CollectionCreation
+                // then call into specific VisitObjectCreation(..., strippedTargetCollectionType);
+                var collectionCreation = node.CollectionCreation;
+                while (collectionCreation is BoundConversion conversion)
+                    collectionCreation = conversion.Operand;
+
+                Debug.Assert(collectionCreation
+                                is null
+                                or BoundObjectCreationExpression
+                                or BoundCall
+                                or BoundNewT
+                                or BoundBadExpression);
+
+                if (collectionCreation is BoundObjectCreationExpression objectCreation)
+                {
+                    // this.TargetTypedAnalysisCompletion[obje]
+
+                    //VisitObjectCreationExpressionBase(objectCreation, strippedTargetCollectionType);
+
+                    VisitConversion(
+                        conversionOpt: null,
+                        objectCreation,
+                        Conversion.Identity,
+                        targetCollectionType,
+                        _visitResult.RValueType,
+                        checkConversion: true,
+                        fromExplicitCast: false,
+                        useLegacyWarnings: false,
+                        parameterOpt: null,
+                        assignmentKind: AssignmentKind.Assignment);
+                }
+
                 foreach (var completion in completions)
                 {
                     _ = completion(targetElementType, strippedTargetCollectionType);
@@ -4106,10 +4138,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void VisitObjectCreationExpressionBase(BoundObjectCreationExpressionBase node)
+            => VisitObjectCreationExpressionBase(node, node.Type);
+
+        private void VisitObjectCreationExpressionBase(BoundObjectCreationExpressionBase node, TypeSymbol nodeType)
         {
             Debug.Assert(!IsConditionalState);
             bool isTargetTyped = node.WasTargetTyped;
-            MethodSymbol? constructor = getConstructor(node, node.Type);
+            MethodSymbol? constructor = getConstructor(node, nodeType);
             var arguments = node.Arguments;
 
             (_, ImmutableArray<VisitResult> argumentResults, _, ArgumentsCompletionDelegate<MethodSymbol>? argumentsCompletion) =
@@ -4119,18 +4154,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                            constructor, delayCompletionForTargetMember: isTargetTyped);
             Debug.Assert(isTargetTyped == argumentsCompletion is not null);
 
-            var type = node.Type;
             var initializerOpt = node.InitializerExpressionOpt;
             (int slot, NullableFlowState resultState, Func<TypeSymbol, MethodSymbol?, int>? initialStateInferenceCompletion) =
-                inferInitialObjectState(node, type, constructor, arguments, argumentResults, isTargetTyped, hasObjectInitializer: initializerOpt is { });
+                inferInitialObjectState(node, nodeType, constructor, arguments, argumentResults, isTargetTyped, hasObjectInitializer: initializerOpt is { });
 
             Action<int, TypeSymbol>? initializerCompletion = null;
             if (initializerOpt != null)
             {
-                initializerCompletion = VisitObjectCreationInitializer(slot, type, initializerOpt, delayCompletionForType: isTargetTyped);
+                initializerCompletion = VisitObjectCreationInitializer(slot, nodeType, initializerOpt, delayCompletionForType: isTargetTyped);
             }
 
-            TypeWithState result = setAnalyzedNullability(node, type, argumentResults, argumentsCompletion, initialStateInferenceCompletion, initializerCompletion, resultState, isTargetTyped);
+            TypeWithState result = setAnalyzedNullability(node, nodeType, argumentResults, argumentsCompletion, initialStateInferenceCompletion, initializerCompletion, resultState, isTargetTyped);
             SetResultType(node, result, updateAnalyzedNullability: false);
             return;
 
