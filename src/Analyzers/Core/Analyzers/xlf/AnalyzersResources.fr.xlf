@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Accessibility_modifiers_unnecessary">
         <source>Accessibility modifiers unnecessary</source>
-        <target state="new">Accessibility modifiers unnecessary</target>
+        <target state="translated">Les modificateurs d’accessibilité sont inutiles</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
