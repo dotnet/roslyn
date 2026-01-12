@@ -4040,7 +4040,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parameterOpt: null,
                         assignmentKind: AssignmentKind.Assignment);
                 }
-                else if (collectionCreation is BoundCall call)
+                else if (collectionCreation is BoundCall { Method.Arity: > 0 } call)
                 {
 #if DEBUG
                     var safe_completingTargetTypedExpression = _completingTargetTypedExpression;
@@ -4069,19 +4069,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(allTypeArguments.Count == call.Method.Arity, "Guaranteed by GetCollectionBuilderMethods");
                     var constructed = call.Method.ConstructedFrom.Construct(allTypeArguments.ToImmutableAndFree());
 
-                    //var finalLength = call.Arguments.Length - 1;
-                    //VisitArguments(
-                    //    node,
-                    //    call.Arguments.Take(finalLength).ToImmutableArray(),
-                    //    call.ArgumentRefKindsOpt.IsDefault ? default : call.ArgumentRefKindsOpt.Take(finalLength).ToImmutableArray(),
-                    //    constructed.Parameters.Take(finalLength).ToImmutableArray(),
-                    //    call.ArgsToParamsOpt,
-                    //    call.DefaultArguments,
-                    //    call.Expanded,
-                    //    call.InvokedAsExtensionMethod,
-                    //    member: constructed,
-                    //    delayCompletionForTargetMember: false);
-
                     VisitArguments(
                         node,
                         call.Arguments,
@@ -4108,7 +4095,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // TypeParameter()` which never has arguments that could even be affected by nullability.  And
                     // BoundBadExpression is for error cases, and we don't actually have a real constructor/factory
                     // method that we need to reanalyze nullability for.
-                    Debug.Assert(collectionCreation is null or BoundNewT or BoundBadExpression);
+                    Debug.Assert(collectionCreation is null or BoundNewT or BoundBadExpression or BoundCall { Method.Arity: 0 });
                 }
 
                 foreach (var completion in completions)
