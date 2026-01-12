@@ -33,21 +33,21 @@ Collapse #regions on file open;
 Collapse Imports on file open;
 Collapse metadata implementations on file open;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="translated">Neu zugewiesene Variablen unterstreichen;Inlinehinweise anzeigen;Automatisches Einfügen von Endkonstrukten;Einstellungen für ziemliche Auflistung ändern;Gliederungsmodus ändern;Automatisches Einfügen von Schnittstellen- und MustOverride-Membern;Prozedurzeilentrennzeichen ein- oder ausblenden;Fehlerkorrekturvorschläge aktivieren oder deaktivieren;Aktivieren oder Deaktivieren der Hervorhebung von Verweisen und Schlüsselwörtern;
+        <target state="new">Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
 Regex;
-reguläre Ausdrücke;
-zugehörigen Komponenten unter dem Cursor;
-Ungültige reguläre Ausdrücke melden;
+regular expressions;
+related components under cursor;
+Report invalid regular expressions;
 regex;
-regulärer Ausdruck;
+regular expression;
 JSON;
-Farbig machen von JSON-Zeichenfolgen;
-Ungültige JSON-Zeichenfolgen melden;
-Editorfeatures für JSON-Zeichenfolgen erkennen und anbieten;
-#regions beim Öffnen der Datei reduzieren;
-Importe beim Öffnen der Datei reduzieren;
-Metadatenimplementierungen beim Öffnen der Datei reduzieren;
-Erweiterte Farben verwenden;Editor-Farbschema;Vererbungsspielraum;Richtlinien importieren;</target>
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
+Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
