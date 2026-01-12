@@ -118,7 +118,11 @@ internal static partial class ISolutionExtensions
     }
 
     public static Exception CreateDocumentNotFoundException(DocumentId? documentId)
+#if WORKSPACE
         => CreateDocumentNotFoundException(documentId?.DebugName);
+#else
+        => CreateDocumentNotFoundException(documentId?.ToString());
+#endif
 
     public static Exception CreateDocumentNotFoundException(string? debugName)
         => new InvalidOperationException(string.Format(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document, debugName ?? "Unknown"));
