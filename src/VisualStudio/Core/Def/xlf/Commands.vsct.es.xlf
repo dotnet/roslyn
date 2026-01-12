@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="cmdIdClearStackTraceExplorer|CommandName">
         <source>ClearStackTraceExplorerCommandName</source>
-        <target state="new">ClearStackTraceExplorerCommandName</target>
+        <target state="translated">ClearStackTraceExplorerCommandName</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdIdClearStackTraceExplorer|LocCanonicalName">
@@ -589,42 +589,42 @@
       </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemContextMenu|ButtonText">
         <source>Solution Explorer Symbol Tree</source>
-        <target state="new">Solution Explorer Symbol Tree</target>
+        <target state="translated">Árbol de símbolos del explorador de soluciones</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemContextMenu|MenuText">
         <source>Solution Explorer Symbol Tree</source>
-        <target state="new">Solution Explorer Symbol Tree</target>
+        <target state="translated">Árbol de símbolos del explorador de soluciones</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemFindAllReferences|ButtonText">
         <source>Find All References</source>
-        <target state="new">Find All References</target>
+        <target state="translated">Buscar todas las referencias</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemFindAllReferences|LocCanonicalName">
         <source>FindAllReferences</source>
-        <target state="new">FindAllReferences</target>
+        <target state="translated">FindAllReferences</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemGoToBase|ButtonText">
         <source>Go To Base</source>
-        <target state="new">Go To Base</target>
+        <target state="translated">Ir a base</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemGoToBase|LocCanonicalName">
         <source>GoToBase</source>
-        <target state="new">GoToBase</target>
+        <target state="translated">GoToBase</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemGoToImplementation|ButtonText">
         <source>Go To Implementation</source>
-        <target state="new">Go To Implementation</target>
+        <target state="translated">Ir a implementación</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemGoToImplementation|LocCanonicalName">
         <source>GoToImplementation</source>
-        <target state="new">GoToImplementation</target>
+        <target state="translated">GoToImplementation</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSyncNamespaces|ButtonText">
