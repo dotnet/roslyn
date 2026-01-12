@@ -537,6 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (setMethod != null)
                 {
                     ReportDiagnosticsIfObsolete(diagnostics, setMethod, namedArgument, hasBaseReceiver: false);
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, setMethod, namedArgument);
 
                     if (setMethod.IsInitOnly && setMethod.DeclaringCompilation != this.Compilation)
                     {

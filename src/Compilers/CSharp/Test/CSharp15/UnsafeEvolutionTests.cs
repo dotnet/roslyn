@@ -3127,6 +3127,52 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "set").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(4, 33));
     }
 
+    [Fact]
+    public void Member_Property_Attribute()
+    {
+        CompileAndVerifyUnsafe(
+            lib: """
+                public class A : System.Attribute
+                {
+                    public int P1 { get; set; }
+                    public unsafe int P2 { get; set; }
+                    public int P3 { unsafe get; set; }
+                    public int P4 { get; unsafe set; }
+                    public unsafe int F;
+                }
+                """,
+            caller: """
+                var c = new C1();
+                [A(P1 = 0, P2 = 0, P3 = 0, P4 = 0, F = 0)] class C1;
+                [A(P1 = 0, P2 = 0, P3 = 0, P4 = 0, F = 0)] unsafe class C2;
+                partial class C3
+                {
+                    [A(P1 = 0, P2 = 0, P3 = 0, P4 = 0, F = 0)] void M1() { }
+                }
+                unsafe partial class C3
+                {
+                    [A(P1 = 0, P2 = 0, P3 = 0, P4 = 0, F = 0)] void M2() { }
+                }
+                """,
+            expectedUnsafeSymbols: ["A.P2", "A.get_P2", "A.set_P2", "A.get_P3", "A.set_P4"],
+            expectedSafeSymbols: ["A.P1", "A.get_P1", "A.set_P1", "A.set_P3", "A.get_P4", "A.F"],
+            expectedDiagnostics:
+            [
+                // (2,12): error CS9502: 'A.P2.set' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // [A(P1 = 0, P2 = 0, P3 = 0, P4 = 0, F = 0)] class C1;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "P2 = 0").WithArguments("A.P2.set").WithLocation(2, 12),
+                // (2,28): error CS9502: 'A.P4.set' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // [A(P1 = 0, P2 = 0, P3 = 0, P4 = 0, F = 0)] class C1;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "P4 = 0").WithArguments("A.P4.set").WithLocation(2, 28),
+                // (6,16): error CS9502: 'A.P2.set' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                //     [A(P1 = 0, P2 = 0, P3 = 0, P4 = 0, F = 0)] void M1() { }
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "P2 = 0").WithArguments("A.P2.set").WithLocation(6, 16),
+                // (6,32): error CS9502: 'A.P4.set' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                //     [A(P1 = 0, P2 = 0, P3 = 0, P4 = 0, F = 0)] void M1() { }
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "P4 = 0").WithArguments("A.P4.set").WithLocation(6, 32),
+            ]);
+    }
+
     // PROTOTYPE: Test extension indexers if merged before this feature.
     [Fact]
     public void Member_Indexer()
