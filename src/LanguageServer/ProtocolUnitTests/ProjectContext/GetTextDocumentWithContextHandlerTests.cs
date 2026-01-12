@@ -133,7 +133,7 @@ public sealed class GetTextDocumentWithContextHandlerTests : AbstractLanguageSer
         var results = await Task.WhenAll(project1.Documents.Select(document => RunGetProjectContext(testLspServer, document)));
 
         var keys = results.Select(r => r?.Key).ToArray();
-        Assert.DoesNotContain(null, keys);
+        Assert.Equal(keys.Length, keys.OfType<string>().Count());
         Assert.Single(keys.Distinct());
     }
 
@@ -164,7 +164,7 @@ public sealed class GetTextDocumentWithContextHandlerTests : AbstractLanguageSer
         var results = await Task.WhenAll(testLspServer.TestWorkspace.Projects.Select(project => RunGetProjectContext(testLspServer, project.Documents.First())));
 
         var keys = results.Select(r => r?.Key).ToArray();
-        Assert.DoesNotContain(null, keys);
+        Assert.Equal(keys.Length, keys.OfType<string>().Count());
         Assert.Distinct(keys);
     }
 
