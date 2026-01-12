@@ -1050,7 +1050,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (@this._targetType is TypeParameterSymbol typeParameter)
                     {
-                        collectionCreation = @this._binder.BindTypeParameterCreationExpression(syntax, typeParameter, analyzedArguments, initializerOpt: null, typeSyntax: syntax, wasTargetTyped: true, @this._diagnostics);
+                        collectionCreation = @this._binder.BindTypeParameterCreationExpression(syntax, typeParameter, analyzedArguments, initializerOpt: null, typeSyntax: syntax, wasTargetTyped: false, @this._diagnostics);
                     }
                     else
                     {
