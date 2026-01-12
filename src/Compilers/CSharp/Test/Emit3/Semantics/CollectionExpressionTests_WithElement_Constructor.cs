@@ -2874,7 +2874,6 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             """;
         var comp = CompileAndVerify(
             [sourceA, sourceB, OverloadResolutionPriorityAttributeDefinition],
-            // targetFramework: TargetFramework.Net100,
             expectedOutput: IncludeExpectedOutput(
                 """
                 Called second overload
