@@ -62,7 +62,7 @@ internal static partial class ISolutionExtensions
         }
 #endif
 
-        return solution.GetDocument(documentId) ?? throw CreateDocumentNotFoundException(documentId.DebugName);
+        return solution.GetDocument(documentId) ?? throw CreateDocumentNotFoundException(documentId);
     }
 
 #if WORKSPACE
@@ -82,7 +82,7 @@ internal static partial class ISolutionExtensions
         var project = solution.GetRequiredProject(documentId.ProjectId);
         var sourceGeneratedDocument = project.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
         if (sourceGeneratedDocument == null)
-            throw CreateDocumentNotFoundException(documentId.DebugName);
+            throw CreateDocumentNotFoundException(documentId);
 
         return sourceGeneratedDocument;
     }
@@ -94,14 +94,14 @@ internal static partial class ISolutionExtensions
         => (await solution.GetDocumentAsync(documentId, includeSourceGenerated, cancellationToken).ConfigureAwait(false)) ?? throw CreateDocumentNotFoundException(documentId.DebugName);
 
     public static async ValueTask<TextDocument> GetRequiredTextDocumentAsync(this Solution solution, DocumentId documentId, CancellationToken cancellationToken = default)
-        => (await solution.GetTextDocumentAsync(documentId, cancellationToken).ConfigureAwait(false)) ?? throw CreateDocumentNotFoundException(documentId.DebugName);
+        => (await solution.GetTextDocumentAsync(documentId, cancellationToken).ConfigureAwait(false)) ?? throw CreateDocumentNotFoundException(documentId);
 #endif
 
     public static TextDocument GetRequiredAdditionalDocument(this Solution solution, DocumentId documentId)
-        => solution.GetAdditionalDocument(documentId) ?? throw CreateDocumentNotFoundException(documentId.DebugName);
+        => solution.GetAdditionalDocument(documentId) ?? throw CreateDocumentNotFoundException(documentId);
 
     public static TextDocument GetRequiredAnalyzerConfigDocument(this Solution solution, DocumentId documentId)
-        => solution.GetAnalyzerConfigDocument(documentId) ?? throw CreateDocumentNotFoundException(documentId.DebugName);
+        => solution.GetAnalyzerConfigDocument(documentId) ?? throw CreateDocumentNotFoundException(documentId);
 
     public static TextDocument GetRequiredTextDocument(this Solution solution, DocumentId documentId)
     {
@@ -114,8 +114,11 @@ internal static partial class ISolutionExtensions
             throw new InvalidOperationException($"Use {nameof(GetRequiredTextDocumentAsync)} to get the {nameof(TextDocument)} for a `.{nameof(DocumentId.IsSourceGenerated)}=true` {nameof(DocumentId)}");
 #endif
 
-        throw CreateDocumentNotFoundException(documentId.DebugName);
+        throw CreateDocumentNotFoundException(documentId);
     }
+
+    public static Exception CreateDocumentNotFoundException(DocumentId? documentId)
+        => CreateDocumentNotFoundException(documentId?.DebugName);
 
     public static Exception CreateDocumentNotFoundException(string? debugName)
         => new InvalidOperationException(string.Format(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document, debugName ?? "Unknown"));

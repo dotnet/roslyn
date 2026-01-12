@@ -32,23 +32,23 @@ internal static partial class ProjectExtensions
         => project.Solution.GetDocumentIdsWithFilePath(filePath).FirstOrDefault(id => id.ProjectId == project.Id);
 
     public static Document GetRequiredDocument(this Project project, DocumentId documentId)
-        => project.GetDocument(documentId) ?? throw ISolutionExtensions.CreateDocumentNotFoundException(documentId.DebugName);
+        => project.GetDocument(documentId) ?? throw ISolutionExtensions.CreateDocumentNotFoundException(documentId);
 
     public static Document GetRequiredDocument(this Project project, SyntaxTree tree)
         => project.GetDocument(tree) ?? throw ISolutionExtensions.CreateDocumentNotFoundException(tree.FilePath);
 
     public static TextDocument GetRequiredAdditionalDocument(this Project project, DocumentId documentId)
-        => project.GetAdditionalDocument(documentId) ?? throw ISolutionExtensions.CreateDocumentNotFoundException(documentId.DebugName);
+        => project.GetAdditionalDocument(documentId) ?? throw ISolutionExtensions.CreateDocumentNotFoundException(documentId);
 
     public static TextDocument GetRequiredAnalyzerConfigDocument(this Project project, DocumentId documentId)
-        => project.GetAnalyzerConfigDocument(documentId) ?? throw ISolutionExtensions.CreateDocumentNotFoundException(documentId.DebugName);
+        => project.GetAnalyzerConfigDocument(documentId) ?? throw ISolutionExtensions.CreateDocumentNotFoundException(documentId);
 
     public static TextDocument GetRequiredTextDocument(this Project project, DocumentId documentId)
-        => project.GetTextDocument(documentId) ?? throw ISolutionExtensions.CreateDocumentNotFoundException(documentId.DebugName);
+        => project.GetTextDocument(documentId) ?? throw ISolutionExtensions.CreateDocumentNotFoundException(documentId);
 
     public static async ValueTask<Document> GetRequiredSourceGeneratedDocumentAsync(this Project project, DocumentId documentId, CancellationToken cancellationToken)
     {
         var document = await project.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
-        return document ?? throw ISolutionExtensions.CreateDocumentNotFoundException(documentId.DebugName);
+        return document ?? throw ISolutionExtensions.CreateDocumentNotFoundException(documentId);
     }
 }

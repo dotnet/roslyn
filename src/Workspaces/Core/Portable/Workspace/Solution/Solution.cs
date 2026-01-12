@@ -1807,7 +1807,7 @@ public partial class Solution
             return;
         }
 
-        throw ISolutionExtensions.CreateDocumentNotFoundException(documentId.DebugName);
+        throw ISolutionExtensions.CreateDocumentNotFoundException(documentId);
 
         bool ContainsSourceGeneratedDocument(DocumentId documentId)
         {
@@ -1841,7 +1841,7 @@ public partial class Solution
 
         if (!ContainsAdditionalDocument(documentId))
         {
-            throw ISolutionExtensions.CreateDocumentNotFoundException(documentId.DebugName);
+            throw ISolutionExtensions.CreateDocumentNotFoundException(documentId);
         }
     }
 
@@ -1867,7 +1867,7 @@ public partial class Solution
 
         if (!ContainsAnalyzerConfigDocument(documentId))
         {
-            throw ISolutionExtensions.CreateDocumentNotFoundException(documentId.DebugName);
+            throw ISolutionExtensions.CreateDocumentNotFoundException(documentId);
         }
     }
 
