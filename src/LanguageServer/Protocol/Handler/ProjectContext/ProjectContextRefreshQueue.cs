@@ -12,7 +12,7 @@ internal sealed class ProjectContextRefreshQueue(
     LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
     LspWorkspaceManager lspWorkspaceManager,
     IClientLanguageServerManager notificationManager,
-    IFeatureProviderRefresher providerRefresher) : AbstractRefreshQueue(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, providerRefresher)
+    FeatureProviderRefresher providerRefresher) : AbstractRefreshQueue(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, providerRefresher)
 {
     protected override string GetFeatureAttribute()
         => FeatureAttribute.LanguageServer;

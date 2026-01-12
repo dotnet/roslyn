@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 [Method(VSMethods.FeatureProvidersRefreshName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class FeatureProvidersRefreshHandler(IFeatureProviderRefresher providerRefresher) : ILspServiceNotificationHandler<TextDocumentIdentifier?>
+internal class FeatureProvidersRefreshHandler(FeatureProviderRefresher providerRefresher) : ILspServiceNotificationHandler<TextDocumentIdentifier?>
 {
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => true;

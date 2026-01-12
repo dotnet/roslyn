@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.ProjectContext;
 internal sealed class ProjectContextRefreshQueueFactory(
     IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
     LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-    IFeatureProviderRefresher providerRefresher) : ILspServiceFactory
+    FeatureProviderRefresher providerRefresher) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {

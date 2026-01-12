@@ -17,7 +17,7 @@ internal sealed class CodeLensRefreshQueueFactory(
     IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
     LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
     IGlobalOptionService globalOptionService,
-    IFeatureProviderRefresher providerRefresher) : ILspServiceFactory
+    FeatureProviderRefresher providerRefresher) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {

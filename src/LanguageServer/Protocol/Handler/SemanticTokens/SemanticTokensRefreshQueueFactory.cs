@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 internal sealed class SemanticTokensRefreshQueueFactory(
     IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
     LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-    IFeatureProviderRefresher providerRefresher) : ILspServiceFactory
+    FeatureProviderRefresher providerRefresher) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {

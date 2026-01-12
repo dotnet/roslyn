@@ -20,7 +20,7 @@ internal sealed class DiagnosticsRefreshQueue : AbstractRefreshQueue
         IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
         IDiagnosticsRefresher refresher,
-        IFeatureProviderRefresher providerRefresher) : ILspServiceFactory
+        FeatureProviderRefresher providerRefresher) : ILspServiceFactory
     {
         public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
         {
@@ -38,7 +38,7 @@ internal sealed class DiagnosticsRefreshQueue : AbstractRefreshQueue
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
         LspWorkspaceManager lspWorkspaceManager,
         IClientLanguageServerManager notificationManager,
-        IFeatureProviderRefresher providerRefresher,
+        FeatureProviderRefresher providerRefresher,
         IDiagnosticsRefresher refresher)
         : base(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, providerRefresher)
     {

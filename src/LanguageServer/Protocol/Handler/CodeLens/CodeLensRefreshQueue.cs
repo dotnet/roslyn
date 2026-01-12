@@ -17,7 +17,7 @@ internal sealed class CodeLensRefreshQueue : AbstractRefreshQueue
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
         LspWorkspaceManager lspWorkspaceManager,
         IClientLanguageServerManager notificationManager,
-        IFeatureProviderRefresher providerRefresher,
+        FeatureProviderRefresher providerRefresher,
         IGlobalOptionService globalOptionService)
         : base(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, providerRefresher)
     {
