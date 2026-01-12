@@ -117,8 +117,8 @@ internal static partial class ISolutionExtensions
         throw CreateDocumentNotFoundException(documentId.DebugName);
     }
 
-    public static Exception CreateDocumentNotFoundException(string? documentPath)
-        => new InvalidOperationException(string.Format(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document, documentPath ?? "Unknown"));
+    public static Exception CreateDocumentNotFoundException(string? debugName)
+        => new InvalidOperationException(string.Format(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document, debugName ?? "Unknown"));
 
 #if WORKSPACE
     public static Solution WithUpToDateSourceGeneratorDocuments(this Solution solution, IEnumerable<ProjectId> projectIds)
