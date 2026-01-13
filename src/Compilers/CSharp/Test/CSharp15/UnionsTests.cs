@@ -5249,7 +5249,7 @@ class Program
     static void Main()
     {
         Test1(15);
-        Test1(16);
+        Test2(16);
     }
 
     static S1 Test1(byte x1)
@@ -6620,11 +6620,11 @@ class Program
 {
     static void Main()
     {
-        Test1();
-        Test2();
-        Test3();
-        Test4();
-        Test5();
+        System.Console.Write(Test1().HasValue ? ""[not null] "" : ""null "");
+        System.Console.Write(Test2().HasValue ? ""[not null] "" : ""null "");
+        System.Console.Write(Test3().HasValue ? ""[not null] "" : ""null "");
+        System.Console.Write(Test4().HasValue ? ""[not null] "" : ""null "");
+        System.Console.Write(Test5().HasValue ? ""[not null] "" : ""null "");
     }
 
     static S1? Test1()
@@ -6713,7 +6713,7 @@ IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return 10;')
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
 """);
 
-            var verifier = CompileAndVerify(comp, expectedOutput: "1-int {10} 2-3-4-5-string {11}").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1-int {10} [not null] 2-null 3-[not null] 4-null 5-string {11} [not null]").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test1", @"
 {
@@ -6813,11 +6813,11 @@ class Program
 {
     static void Main()
     {
-        Test1();
-        Test2();
-        Test3();
-        Test4();
-        Test5();
+        System.Console.Write(Test1().HasValue ? ""[not null] "" : ""null "");
+        System.Console.Write(Test2().HasValue ? ""[not null] "" : ""null "");
+        System.Console.Write(Test3().HasValue ? ""[not null] "" : ""null "");
+        System.Console.Write(Test4().HasValue ? ""[not null] "" : ""null "");
+        System.Console.Write(Test5().HasValue ? ""[not null] "" : ""null "");
     }
 
     static S1? Test1()
@@ -6888,7 +6888,7 @@ IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type
             conversion = model.GetConversion(ten);
             Assert.True(conversion.IsIdentity);
 
-            var verifier = CompileAndVerify(comp, expectedOutput: "1-int {10} 2-3-4-5-string {11}").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1-int {10} [not null] 2-null 3-[not null] 4-null 5-string {11} [not null]").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test1", @"
 {
