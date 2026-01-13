@@ -12850,7 +12850,7 @@ done:
 
         private bool ScanCast(bool forPattern, bool inSwitchArmPattern)
         {
-            Debug.Assert(inSwitchArmPattern == false || forPattern == true, "Can't be in a switch arm without also being in a pattern");
+            Debug.Assert(!inSwitchArmPattern || forPattern, "Can't be in a switch arm without also being in a pattern");
 
             if (this.CurrentToken.Kind != SyntaxKind.OpenParenToken)
             {
