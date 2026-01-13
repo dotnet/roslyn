@@ -1529,7 +1529,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        CompileAndVerify(source).VerifyDiagnostics(
+        CreateCompilation(source).VerifyDiagnostics(
             // (23,29): error CS0121: The call is ambiguous between the following methods or properties: 'MyList<int>.MyList(object, string)' and 'MyList<int>.MyList(string, object)'
             //         MyList<int> list = [with("", ""), 1];
             Diagnostic(ErrorCode.ERR_AmbigCall, @"with("""", """")").WithArguments("MyList<int>.MyList(object, string)", "MyList<int>.MyList(string, object)").WithLocation(23, 29));
