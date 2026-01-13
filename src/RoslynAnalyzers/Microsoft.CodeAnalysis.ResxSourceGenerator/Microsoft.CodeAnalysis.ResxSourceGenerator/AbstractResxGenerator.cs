@@ -80,10 +80,40 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                     }
 
                     var resourceHintName = Path.GetFileNameWithoutExtension(resourceFile.Path);
-                    string defaultResourceAndClassName = resourceHintName;
-                    if (options.TryGetValue("build_metadata.AdditionalFiles.RelativeDir", out var relativeDir))
+                    string defaultResourceAndClassName;
+                    if (options.TryGetValue("build_metadata.AdditionalFiles.Link", out var link) && link.Length > 0)
                     {
-                        defaultResourceAndClassName = relativeDir.Replace(Path.DirectorySeparatorChar, '.').Replace(Path.AltDirectorySeparatorChar, '.') + defaultResourceAndClassName;
+                        resourceHintName = Path.GetFileNameWithoutExtension(link);
+                        string linkRelativeDir = Path.GetDirectoryName(link);
+                        if (linkRelativeDir.Length > 0 && !linkRelativeDir.EndsWith("\\", StringComparison.Ordinal))
+                        {
+                            linkRelativeDir += '\\';
+                        }
+
+                        defaultResourceAndClassName = RelativeDirToName(linkRelativeDir, resourceHintName);
+                    }
+                    else if (options.TryGetValue("build_metadata.AdditionalFiles.RelativeDir", out var relativeDir) && !relativeDir.StartsWith("..", StringComparison.Ordinal) && !Path.IsPathRooted(relativeDir))
+                    {
+                        defaultResourceAndClassName = RelativeDirToName(relativeDir, resourceHintName);
+                    }
+                    else
+                    {
+                        // This resx file comes from outside the project directory, and there's no Link metadata.
+                        // Treat it like it's in the project directory.
+                        defaultResourceAndClassName = resourceHintName;
+                    }
+
+                    static string RelativeDirToName(string relativeDir, string hintName)
+                    {
+                        string candidate = relativeDir.Replace(Path.DirectorySeparatorChar, '.').Replace(Path.AltDirectorySeparatorChar, '.') + hintName;
+
+                        // Make sure there are never two periods in a row.
+                        while (candidate.Contains(".."))
+                        {
+                            candidate = candidate.Replace("..", ".");
+                        }
+
+                        return candidate;
                     }
 
                     if (!string.IsNullOrEmpty(rootNamespace))
@@ -91,12 +121,12 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                         defaultResourceAndClassName = $"{rootNamespace}.{defaultResourceAndClassName}";
                     }
 
-                    if (!options.TryGetValue("build_metadata.AdditionalFiles.ManifestResourceName", out var resourceName) || string.IsNullOrEmpty(resourceName))
+                    if (!options.TryGetValue("build_metadata.AdditionalFiles.ManifestResourceName", out var resourceName) || resourceName.Length == 0)
                     {
                         resourceName = defaultResourceAndClassName;
                     }
 
-                    if (!options.TryGetValue("build_metadata.AdditionalFiles.ClassName", out var resourceClassName) || string.IsNullOrEmpty(resourceClassName))
+                    if (!options.TryGetValue("build_metadata.AdditionalFiles.ClassName", out var resourceClassName) || resourceClassName.Length == 0)
                     {
                         resourceClassName = defaultResourceAndClassName;
                     }
