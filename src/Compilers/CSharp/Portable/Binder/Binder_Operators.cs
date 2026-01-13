@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (best.Signature.Method is { } bestMethod)
                 {
-                    ReportObsoleteAndUnsafeAndFeatureAvailabilityDiagnostics(bestMethod, node, diagnostics);
+                    ReportUseSiteDiagnostics(bestMethod, node, diagnostics);
                     ReportUseSite(bestMethod, diagnostics, node);
                 }
 
@@ -1186,7 +1186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (signature.Method is { } bestMethod)
                 {
-                    ReportObsoleteAndUnsafeAndFeatureAvailabilityDiagnostics(bestMethod, node, diagnostics);
+                    ReportUseSiteDiagnostics(bestMethod, node, diagnostics);
                     ReportUseSite(bestMethod, diagnostics, node);
                 }
 
@@ -1509,7 +1509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (signature.Method is { } bestMethod)
                     {
-                        ReportObsoleteAndUnsafeAndFeatureAvailabilityDiagnostics(bestMethod, node, diagnostics);
+                        ReportUseSiteDiagnostics(bestMethod, node, diagnostics);
                         ReportUseSite(bestMethod, diagnostics, node);
                     }
 
@@ -2222,7 +2222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return possiblyBest;
         }
 
-        private void ReportObsoleteAndUnsafeAndFeatureAvailabilityDiagnostics(MethodSymbol operatorMethod, SyntaxNode node, BindingDiagnosticBag diagnostics)
+        private void ReportUseSiteDiagnostics(MethodSymbol operatorMethod, SyntaxNode node, BindingDiagnosticBag diagnostics)
         {
             if ((object)operatorMethod != null)
             {
@@ -2390,7 +2390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (possiblyBest is { HasValue: true, Signature: { Method: { } bestMethod } })
             {
-                ReportObsoleteAndUnsafeAndFeatureAvailabilityDiagnostics(bestMethod, node, diagnostics);
+                ReportUseSiteDiagnostics(bestMethod, node, diagnostics);
                 ReportUseSite(bestMethod, diagnostics, node);
             }
 
