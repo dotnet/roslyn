@@ -8520,7 +8520,15 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
 
         var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
-        CompileAndVerify([code, executableCode, handler], targetFramework: TargetFramework.Net90, verify: Verification.FailsPEVerify)
+        CompileAndVerify(
+            [code, executableCode, handler],
+            targetFramework: TargetFramework.Net90,
+            verify: Verification.FailsPEVerify,
+            expectedOutput: IncludeExpectedOutput("""
+            i:10
+            s:arg
+            literal:literal
+            """))
             .VerifyDiagnostics(
                 // (4,34): warning CS0436: The type 'InterpolatedStringHandlerAttribute' in '' conflicts with the imported type 'InterpolatedStringHandlerAttribute' in 'System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
                 // [System.Runtime.CompilerServices.InterpolatedStringHandler]
