@@ -744,21 +744,19 @@ namespace Microsoft.CodeAnalysis.Text
                 }
             });
 #else
-            unsafe
+            var builder = PooledStringBuilder.GetInstance();
+            builder.Builder.EnsureCapacity(length);
+
+            while (position < this.Length && length > 0)
             {
-                result = new('\0', length);
-                fixed (char* pointer = result)
-                {
-                    while (position < this.Length && length > 0)
-                    {
-                        int copyLength = Math.Min(tempBuffer.Length, length);
-                        this.CopyTo(position, tempBuffer, 0, copyLength);
-                        tempBuffer.AsSpan(0, copyLength).CopyTo(new Span<char>(pointer + (position - span.Start), copyLength));
-                        length -= copyLength;
-                        position += copyLength;
-                    }
-                }
+                int copyLength = Math.Min(tempBuffer.Length, length);
+                this.CopyTo(position, tempBuffer, 0, copyLength);
+                builder.Builder.Append(tempBuffer, 0, copyLength);
+                length -= copyLength;
+                position += copyLength;
             }
+
+            result = builder.ToStringAndFree();
 #endif
 
             s_charArrayPool.Free(tempBuffer);
