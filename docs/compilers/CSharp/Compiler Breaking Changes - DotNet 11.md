@@ -157,6 +157,7 @@ See also https://github.com/dotnet/roslyn/issues/80954.
 
 ## Parsing of 'with' within a switch-expression-arm
 
+***Introduced in Visual Studio 2026 version 18.4***
 See https://github.com/dotnet/roslyn/issues/81837 and https://github.com/dotnet/roslyn/pull/81863
 
 Previously, when seeing the following, the compiler would treat `(X.Y)when` as a cast-expression.  Specifically,
