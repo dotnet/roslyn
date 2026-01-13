@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -39,20 +41,49 @@ namespace Microsoft.CodeAnalysis.CSharp
         private partial void Validate()
         {
             var collectionCreation = this.GetUnconvertedCollectionCreation();
+            var collectionBuilderElementsPlaceholder = this.GetCollectionBuilderElementsPlaceholder();
 
             if (collectionCreation is BoundCall boundCall)
             {
-                Debug.Assert(
-                    boundCall.Arguments is [.., BoundCollectionBuilderElementsPlaceholder placeHolder] &&
-                    placeHolder == this.CollectionBuilderElementsPlaceholder);
+                Debug.Assert(this.CollectionTypeKind == CollectionExpressionTypeKind.CollectionBuilder);
+                Debug.Assert(boundCall.Arguments is [.., BoundCollectionBuilderElementsPlaceholder placeHolder] &&
+                    placeHolder == collectionBuilderElementsPlaceholder);
+                Debug.Assert(collectionBuilderElementsPlaceholder.Type!.IsReadOnlySpan());
+            }
+            else
+            {
+                Debug.Assert(collectionBuilderElementsPlaceholder is null);
             }
 
             if (this.CollectionTypeKind == CollectionExpressionTypeKind.CollectionBuilder)
             {
+                Debug.Assert(collectionCreation is BoundCall);
                 Debug.Assert(this.CollectionCreation is not null);
                 Debug.Assert(this.CollectionBuilderMethod is not null);
-                Debug.Assert(this.CollectionBuilderElementsPlaceholder is not null);
+                Debug.Assert(collectionBuilderElementsPlaceholder is not null);
             }
+            else
+            {
+                Debug.Assert(collectionBuilderElementsPlaceholder is null);
+            }
+        }
+
+        /// <summary>
+        /// If this is a collection expression targeting a collection builder factory method, then gets the final <see
+        /// cref="ReadOnlySpan{T}"/> argument that passes along the elements to the factory method.
+        /// </summary>
+        public BoundCollectionBuilderElementsPlaceholder? GetCollectionBuilderElementsPlaceholder()
+        {
+            var collectionCreation = this.GetUnconvertedCollectionCreation();
+
+            if (collectionCreation is BoundCall boundCall)
+            {
+                Debug.Assert(
+                    boundCall.Arguments is [.., BoundCollectionBuilderElementsPlaceholder]);
+                return (BoundCollectionBuilderElementsPlaceholder)boundCall.Arguments[^1];
+            }
+
+            return null;
         }
     }
 

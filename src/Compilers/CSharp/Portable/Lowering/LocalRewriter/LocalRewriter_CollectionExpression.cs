@@ -583,7 +583,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.CollectionCreation is { });
             Debug.Assert(node.Placeholder is null);
             Debug.Assert(node.CollectionBuilderMethod is { });
-            Debug.Assert(node.CollectionBuilderElementsPlaceholder is { });
+
+            var elementsPlaceholder = node.GetCollectionBuilderElementsPlaceholder();
+            Debug.Assert(elementsPlaceholder is { });
 
             var constructMethod = node.CollectionBuilderMethod;
 
@@ -601,7 +603,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : VisitArrayOrSpanCollectionExpression(node, spanType);
 
             // Replace the placeholder with the span value and rewrite the collection creation.
-            var elementsPlaceholder = node.CollectionBuilderElementsPlaceholder;
             AddPlaceholderReplacement(elementsPlaceholder, span);
             var result = VisitExpression(node.CollectionCreation);
             RemovePlaceholderReplacement(elementsPlaceholder);

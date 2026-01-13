@@ -3875,21 +3875,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             // case, we know the type of that place holder and that it is not nullable (it is a ReadOnlySpan).  Populate
             // the right maps so walking into the creation understands this.
 
-            if (node.CollectionBuilderElementsPlaceholder != null)
+            var collectionBuilderElementsPlaceholder = node.GetCollectionBuilderElementsPlaceholder();
+            if (collectionBuilderElementsPlaceholder != null)
             {
                 AddPlaceholderReplacement(
-                    node.CollectionBuilderElementsPlaceholder,
-                    node.CollectionBuilderElementsPlaceholder,
+                    collectionBuilderElementsPlaceholder,
+                    collectionBuilderElementsPlaceholder,
                     result: new VisitResult(
-                        node.CollectionBuilderElementsPlaceholder.Type,
+                        collectionBuilderElementsPlaceholder.Type,
                         NullableAnnotation.NotAnnotated,
                         NullableFlowState.NotNull));
             }
 
             Visit(node.CollectionCreation);
 
-            if (node.CollectionBuilderElementsPlaceholder != null)
-                RemovePlaceholderReplacement(node.CollectionBuilderElementsPlaceholder);
+            if (collectionBuilderElementsPlaceholder != null)
+                RemovePlaceholderReplacement(collectionBuilderElementsPlaceholder);
 
             var (collectionKind, targetElementType) = getCollectionDetails(node, node.Type);
 
@@ -4074,7 +4075,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var allTypeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
                     ((NamedTypeSymbol)strippedTargetCollectionType).GetAllTypeArgumentsNoUseSiteDiagnostics(allTypeArguments);
 
-                    Debug.Assert(node.CollectionBuilderElementsPlaceholder != null);
+                    var collectionBuilderElementsPlaceholder = node.GetCollectionBuilderElementsPlaceholder();
+                    Debug.Assert(collectionBuilderElementsPlaceholder != null);
                     Debug.Assert(allTypeArguments.Count == call.Method.Arity, "Guaranteed by GetCollectionBuilderMethods");
                     var constructed = call.Method.ConstructedFrom.Construct(allTypeArguments.ToImmutableAndFree());
 
@@ -4082,8 +4084,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var lastParameterType = constructed.Parameters[^1].TypeWithAnnotations;
                     Debug.Assert(lastParameterType.Type.IsReadOnlySpan());
                     AddPlaceholderReplacement(
-                        node.CollectionBuilderElementsPlaceholder,
-                        node.CollectionBuilderElementsPlaceholder,
+                        collectionBuilderElementsPlaceholder,
+                        collectionBuilderElementsPlaceholder,
                         result: new VisitResult(
                             lastParameterType.Type,
                             lastParameterType.NullableAnnotation,
@@ -4101,7 +4103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         member: constructed,
                         delayCompletionForTargetMember: false);
 
-                    RemovePlaceholderReplacement(node.CollectionBuilderElementsPlaceholder);
+                    RemovePlaceholderReplacement(collectionBuilderElementsPlaceholder);
 
 #if DEBUG
                     _completingTargetTypedExpression = safe_completingTargetTypedExpression;

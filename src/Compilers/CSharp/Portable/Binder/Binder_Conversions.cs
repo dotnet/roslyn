@@ -855,7 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly BindingDiagnosticBag _diagnostics = diagnostics;
 
             private BoundCollectionExpression CreateCollectionExpression(
-                CollectionExpressionTypeKind collectionTypeKind, ImmutableArray<BoundNode> elements, BoundObjectOrCollectionValuePlaceholder? placeholder = null, BoundExpression? collectionCreation = null, MethodSymbol? collectionBuilderMethod = null, BoundCollectionBuilderElementsPlaceholder? collectionBuilderElementsPlaceholder = null)
+                CollectionExpressionTypeKind collectionTypeKind, ImmutableArray<BoundNode> elements, BoundObjectOrCollectionValuePlaceholder? placeholder = null, BoundExpression? collectionCreation = null, MethodSymbol? collectionBuilderMethod = null)
             {
                 return new BoundCollectionExpression(
                     _node.Syntax,
@@ -863,7 +863,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     placeholder,
                     collectionCreation,
                     collectionBuilderMethod,
-                    collectionBuilderElementsPlaceholder,
                     wasTargetTyped: true,
                     hasWithElement: _node.WithElement != null,
                     _node,
@@ -1280,18 +1279,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private readonly BoundCollectionExpression? TryConvertCollectionExpressionBuilderType(ImmutableArray<BoundNode> elements)
             {
-                var (collectionCreation, collectionBuilderMethod, collectionBuilderElementsPlaceholder) = bindCollectionBuilderInfo(in this);
-                if (collectionCreation is null || collectionBuilderMethod is null || collectionBuilderElementsPlaceholder is null)
+                var (collectionCreation, collectionBuilderMethod) = bindCollectionBuilderInfo(in this);
+                if (collectionCreation is null || collectionBuilderMethod is null)
                     return null;
 
                 return CreateCollectionExpression(
                     CollectionExpressionTypeKind.CollectionBuilder,
                     elements,
                     collectionCreation: collectionCreation,
-                    collectionBuilderMethod: collectionBuilderMethod,
-                    collectionBuilderElementsPlaceholder: collectionBuilderElementsPlaceholder);
+                    collectionBuilderMethod: collectionBuilderMethod);
 
-                static (BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, BoundCollectionBuilderElementsPlaceholder? elementsPlaceholder) bindCollectionBuilderInfo(
+                static (BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod) bindCollectionBuilderInfo(
                     ref readonly CollectionExpressionConverter @this)
                 {
                     var namedType = (NamedTypeSymbol)@this._targetType;
@@ -1419,7 +1417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     overloadResolutionResult.Free();
                     analyzedArguments.Free();
 
-                    return (collectionCreation, collectionBuilderMethod, collectionBuilderElementsPlaceholder);
+                    return (collectionCreation, collectionBuilderMethod);
                 }
             }
         }
@@ -2278,7 +2276,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 placeholder: null,
                 collectionCreation,
                 collectionBuilderMethod: null,
-                collectionBuilderElementsPlaceholder: null,
                 wasTargetTyped: inConversion,
                 // Regardless of whether there was a 'with' element, we are in an error recovery scenario, and we've
                 // converted the args into a BadExpression in collectionCreate.  So treat this as not having a 'with'

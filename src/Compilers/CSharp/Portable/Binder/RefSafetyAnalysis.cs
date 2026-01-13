@@ -1312,7 +1312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.CollectionCreation is { } collectionCreation)
             {
-                if (node.CollectionBuilderElementsPlaceholder is { } spanPlaceholder)
+                if (node.GetCollectionBuilderElementsPlaceholder() is { } spanPlaceholder)
                 {
                     var elementType = ((NamedTypeSymbol)spanPlaceholder.Type!).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
 
