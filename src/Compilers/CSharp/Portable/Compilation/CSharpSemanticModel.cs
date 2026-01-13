@@ -3543,6 +3543,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
+                            if (conversion.ConversionGroupOpt?.Conversion.IsUnion == true &&
+                                conversion.Operand is BoundConversion { Conversion.IsUnion: true } unionConversion &&
+                                unionConversion.ConversionGroupOpt == conversion.ConversionGroupOpt)
+                            {
+                                Debug.Assert(unionConversion.SymbolOpt is { });
+                                GetSymbolsAndResultKind(unionConversion, unionConversion.SymbolOpt, originalCandidates: [], out symbols, out resultKind);
+                            }
+
                             goto default;
                         }
                     }
