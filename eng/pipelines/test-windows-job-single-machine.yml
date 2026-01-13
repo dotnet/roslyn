@@ -20,14 +20,21 @@ parameters:
   default: ''
 - name: queueName
   type: string
-  default: 'windows.vs2019.amd64.open'
+  default: ''
+- name: vmImageName
+  type: string
+  default: ''
 
 jobs:
 - job: ${{ parameters.jobName }}
   dependsOn: ${{ parameters.buildJobName }}
   pool:
-    name: NetCore-Svc-Public
-    demands: ImageOverride -equals ${{ parameters.queueName }}
+    ${{ if ne(parameters.queueName, '') }}:
+      name: NetCore-Svc-Public
+      demands: ImageOverride -equals ${{ parameters.queueName }}
+
+    ${{ if ne(parameters.vmImageName, '') }}:
+      vmImage: ${{ parameters.vmImageName }}
   timeoutInMinutes: 120
   variables:
     DOTNET_ROLL_FORWARD: LatestMajor

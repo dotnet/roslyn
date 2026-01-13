@@ -18,16 +18,23 @@ parameters:
 - name: testArguments
   type: string
   default: ''
+- name: queueName
+  type: string
+  default: ''
+- name: vmImageName
+  type: string
+  default: ''
 
 jobs:
 - job: ${{ parameters.jobName }}
   dependsOn: ${{ parameters.buildJobName }}
   pool:
-    # Note that when helix is enabled, the agent running this job is essentially
-    # a thin client that kicks off a helix job and waits for it to complete.
-    # Thus we don't use a helix queue to run the job here, and instead use the plentiful AzDO vmImages.
-    vmImage: windows-2019
-  timeoutInMinutes: 120
+    ${{ if ne(parameters.queueName, '') }}:
+      name: NetCore-Svc-Public
+      demands: ImageOverride -equals ${{ parameters.queueName }}
+
+    ${{ if ne(parameters.vmImageName, '') }}:
+      vmImage: ${{ parameters.vmImageName }}
   steps:
     - checkout: none
 
