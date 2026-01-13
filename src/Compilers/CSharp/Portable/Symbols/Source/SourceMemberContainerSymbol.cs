@@ -877,7 +877,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsSealed => HasFlag(DeclarationModifiers.Sealed);
 
-        public override bool IsAbstract => HasFlag(DeclarationModifiers.Abstract);
+        public override bool IsAbstract => HasFlag(DeclarationModifiers.Abstract) || HasFlag(DeclarationModifiers.Closed);
 
         internal bool IsPartial => HasFlag(DeclarationModifiers.Partial);
 

@@ -123,15 +123,145 @@ public sealed class ClosedClassesTests : CSharpTestBase
     [Fact]
     public void ImplicitlyAbstract_01()
     {
+        var source1 = """
+            public closed class C { }
+            """;
+
+        var source2 = """
+            new C(); // 1
+            """;
+
+        var comp = CreateCompilation([source1, source2]);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS0144: Cannot create an instance of the abstract type or interface 'C'
+            // new C(); // 1
+            Diagnostic(ErrorCode.ERR_NoNewAbstract, "new C()").WithArguments("C").WithLocation(1, 1));
+
+        var classC = comp.GetMember<NamedTypeSymbol>("C");
+        Assert.True(classC.IsAbstract);
+
+        var referenceComp = CreateCompilation(source1);
+        verifyReference(referenceComp.ToMetadataReference());
+        verifyReference(referenceComp.EmitToImageReference());
+
+        void verifyReference(MetadataReference reference)
+        {
+            var comp2 = CreateCompilation("""
+                new C(); // 1
+                """, references: [reference]);
+            comp2.VerifyEmitDiagnostics(
+                // (1,1): error CS0144: Cannot create an instance of the abstract type or interface 'C'
+                // new C(); // 1
+                Diagnostic(ErrorCode.ERR_NoNewAbstract, "new C()").WithArguments("C").WithLocation(1, 1));
+
+            var classC2 = comp2.GetMember<NamedTypeSymbol>("C");
+            Assert.True(classC2.IsAbstract);
+        }
+    }
+
+    [Fact]
+    public void ImplicitlyAbstract_02()
+    {
         var source = """
-            closed class C { }
+            abstract class Base
+            {
+                public abstract void M();
+            }
+
+            closed class C : Base { }
+
+            class D : C { }
+            class E : C
+            {
+                public override void M() { }
+            }
             """;
 
         var comp = CreateCompilation(source);
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (8,7): error CS0534: 'D' does not implement inherited abstract member 'Base.M()'
+            // class D : C { }
+            Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "D").WithArguments("D", "Base.M()").WithLocation(8, 7));
 
         var classC = comp.GetMember<NamedTypeSymbol>("C");
-        // PROTOTYPE(cc): Should closed types implicitly return true from IsAbstract, like interfaces do?
-        Assert.False(classC.IsAbstract);
+        Assert.True(classC.IsAbstract);
+    }
+
+    [Fact]
+    public void ImplicitlyAbstract_03()
+    {
+        var source = """
+            closed class C
+            {
+                public abstract void M();
+            }
+            class D : C { }
+
+            class E : C
+            {
+                public override void M() { }
+            }
+            """;
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (5,7): error CS0534: 'D' does not implement inherited abstract member 'C.M()'
+            // class D : C { }
+            Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "D").WithArguments("D", "C.M()").WithLocation(5, 7));
+
+        var classC = comp.GetMember<NamedTypeSymbol>("C");
+        Assert.True(classC.IsAbstract);
+    }
+
+    [Fact]
+    public void BadTypeKind_01()
+    {
+        var source = """
+            closed interface I { } // 1
+            closed enum E { } // 2
+            closed delegate void D(); // 3
+            closed struct S { } // 4
+
+            class C
+            {
+                closed void M() { } // 5
+                closed int P { get; set; } // 6
+                closed event System.Action E; // 7
+                closed string F; // 8
+            }
+            """;
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (1,18): error CS0106: The modifier 'closed' is not valid for this item
+            // closed interface I { } // 1
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "I").WithArguments("closed").WithLocation(1, 18),
+            // (2,13): error CS0106: The modifier 'closed' is not valid for this item
+            // closed enum E { } // 2
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("closed").WithLocation(2, 13),
+            // (3,22): error CS0106: The modifier 'closed' is not valid for this item
+            // closed delegate void D(); // 3
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "D").WithArguments("closed").WithLocation(3, 22),
+            // (4,15): error CS0106: The modifier 'closed' is not valid for this item
+            // closed struct S { } // 4
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "S").WithArguments("closed").WithLocation(4, 15),
+            // (8,17): error CS0106: The modifier 'closed' is not valid for this item
+            //     closed void M() { } // 5
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("closed").WithLocation(8, 17),
+            // (9,16): error CS0106: The modifier 'closed' is not valid for this item
+            //     closed int P { get; set; } // 6
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("closed").WithLocation(9, 16),
+            // (10,32): error CS0106: The modifier 'closed' is not valid for this item
+            //     closed event System.Action E; // 7
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("closed").WithLocation(10, 32),
+            // (10,32): warning CS0067: The event 'C.E' is never used
+            //     closed event System.Action E; // 7
+            Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(10, 32),
+            // (11,19): error CS0106: The modifier 'closed' is not valid for this item
+            //     closed string F; // 8
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "F").WithArguments("closed").WithLocation(11, 19),
+            // (11,19): warning CS0169: The field 'C.F' is never used
+            //     closed string F; // 8
+            Diagnostic(ErrorCode.WRN_UnreferencedField, "F").WithArguments("C.F").WithLocation(11, 19));
     }
 }
