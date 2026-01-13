@@ -2214,50 +2214,103 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
     }
 
     [Fact]
-    public void CollectionBuilder_ProtectedMethod()
+    public void CollectionBuilder_ProtectedMethod1()
     {
         string sourceA = """
-                using System;
-                using System.Collections;
-                using System.Collections.Generic;
-                using System.Runtime.CompilerServices;
-                [CollectionBuilder(typeof(MyBuilder), "Create")]
-                class MyCollection<T> : IEnumerable<T>
-                {
-                    public readonly T Arg;
-                    private readonly List<T> _items;
-                    public MyCollection(T arg, ReadOnlySpan<T> items) { Arg = arg; _items = new(items.ToArray()); }
-                    public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
-                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-                }
-                partial class MyBuilder
-                {
-                    protected static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(default, items);
-                    protected static MyCollection<T> Create<T>(T arg, ReadOnlySpan<T> items) => new(arg, items);
-                }
-                """;
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                public readonly T Arg;
+                private readonly List<T> _items;
+                public MyCollection(T arg, ReadOnlySpan<T> items) { Arg = arg; _items = new(items.ToArray()); }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+            partial class MyBuilder
+            {
+                protected static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(default, items);
+                protected static MyCollection<T> Create<T>(T arg, ReadOnlySpan<T> items) => new(arg, items);
+            }
+            """;
         string sourceB = """
-                using System;
-                partial class MyBuilder
+            using System;
+            partial class MyBuilder
+            {
+                static void Main()
                 {
-                    static void Main()
-                    {
-                        MyCollection<int> c;
-                        c = EmptyArgs(1);
-                        Console.Write("{0}, ", c.Arg);
-                        c.Report();
-                        c = NonEmptyArgs<int>(2);
-                        Console.Write("{0}, ", c.Arg);
-                        c.Report();
-                    }
-                    static MyCollection<T> EmptyArgs<T>(T t) => [with(), t];
-                    static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
+                    MyCollection<int> c;
+                    c = EmptyArgs(1);
+                    Console.Write("{0}, ", c.Arg);
+                    c.Report();
+                    c = NonEmptyArgs<int>(2);
+                    Console.Write("{0}, ", c.Arg);
+                    c.Report();
                 }
-                """;
+                static MyCollection<T> EmptyArgs<T>(T t) => [with(), t];
+                static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
+            }
+            """;
 
         CreateCompilation(
             [sourceA, sourceB, s_collectionExtensions],
             targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionBuilder_ProtectedMethod2()
+    {
+        string sourceA = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                public readonly T Arg;
+                private readonly List<T> _items;
+                public MyCollection(T arg, ReadOnlySpan<T> items) { Arg = arg; _items = new(items.ToArray()); }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+            partial class MyBuilder
+            {
+                protected static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(default, items);
+                protected static MyCollection<T> Create<T>(T arg, ReadOnlySpan<T> items) => new(arg, items);
+            }
+            """;
+        string sourceB = """
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<int> c;
+                    c = EmptyArgs(1);
+                    Console.Write("{0}, ", c.Arg);
+                    c.Report();
+                    c = NonEmptyArgs<int>(2);
+                    Console.Write("{0}, ", c.Arg);
+                    c.Report();
+                }
+                static MyCollection<T> EmptyArgs<T>(T t) => [with(), t];
+                static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
+            }
+            """;
+
+        CreateCompilation(
+            [sourceA, sourceB, s_collectionExtensions],
+            targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+            // (14,49): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            //     static MyCollection<T> EmptyArgs<T>(T t) => [with(), t];
+            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(), t]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(14, 49),
+            // (15,52): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            //     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
+            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(t), t]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(15, 52));
     }
 
     [Fact]
