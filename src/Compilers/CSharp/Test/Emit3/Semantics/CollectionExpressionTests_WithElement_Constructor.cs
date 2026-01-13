@@ -865,6 +865,50 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
     }
 
     [Theory]
+    [InlineData("ref ")]
+    [InlineData("")]
+    public void WithElement_RefReadonlyParameter(string modifier)
+    {
+        var source = $$"""
+            using System;
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public MyList(ref readonly int value) : base()
+                {
+                }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    int x = 10;
+                    MyList<int> list = [with({{modifier}}x)];
+                    Console.WriteLine(x);
+                }
+            }
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("10")).VerifyIL("C.Main", """
+            {
+              // Code size       18 (0x12)
+              .maxstack  1
+              .locals init (int V_0) //x
+              IL_0000:  ldc.i4.s   10
+              IL_0002:  stloc.0
+              IL_0003:  ldloca.s   V_0
+              IL_0005:  newobj     "MyList<int>..ctor(ref readonly int)"
+              IL_000a:  pop
+              IL_000b:  ldloc.0
+              IL_000c:  call       "void System.Console.WriteLine(int)"
+              IL_0011:  ret
+            }
+            """);
+    }
+
+    [Theory]
     [InlineData("in ")]
     [InlineData("")]
     public void WithElement_InParameters(string modifier)
@@ -1393,7 +1437,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
     }
 
     [Fact]
-    public void WithElement_OverloadResolution_Ambiguous()
+    public void WithElement_OverloadResolution_BestMatch1()
     {
         var source = """
             using System;
@@ -1419,7 +1463,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
     }
 
     [Fact]
-    public void WithElement_OverloadResolution_BestMatch()
+    public void WithElement_OverloadResolution_BestMatch2()
     {
         var source = """
             using System;
@@ -1451,6 +1495,44 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             """;
 
         CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("int"));
+    }
+
+    [Fact]
+    public void WithElement_OverloadResolution_Ambiguous()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public string ConstructorUsed { get; }
+                
+                public MyList(object value1, string value2) : base()
+                {
+                    ConstructorUsed = "object/string chosen";
+                }
+                
+                public MyList(string value1, object value2) : base()
+                {
+                    ConstructorUsed = "string/object chosen";
+                }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int> list = [with("", ""), 1];
+                    Console.WriteLine(list.ConstructorUsed);
+                }
+            }
+            """;
+
+        CreateCompilation(source).VerifyDiagnostics(
+            // (23,29): error CS0121: The call is ambiguous between the following methods or properties: 'MyList<int>.MyList(object, string)' and 'MyList<int>.MyList(string, object)'
+            //         MyList<int> list = [with("", ""), 1];
+            Diagnostic(ErrorCode.ERR_AmbigCall, @"with("""", """")").WithArguments("MyList<int>.MyList(object, string)", "MyList<int>.MyList(string, object)").WithLocation(23, 29));
     }
 
     [Fact]
@@ -2735,6 +2817,330 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
               IL_0039:  ret
             }
             """);
+    }
+
+    [Fact]
+    public void OverloadResolutionPriority()
+    {
+        string sourceA = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection(string s, object o)
+                {
+                    Console.WriteLine("Called first overload");
+                }
+
+                [OverloadResolutionPriority(1)]
+                public MyCollection(object o, string s)
+                {
+                    Console.WriteLine("Called second overload");
+                }
+            }
+            """;
+        string sourceB = """
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<string> c = [with("", ""), ""];
+                }
+            }
+            """;
+        var comp = CompileAndVerify(
+            [sourceA, sourceB, OverloadResolutionPriorityAttributeDefinition],
+            expectedOutput: IncludeExpectedOutput(
+                """
+                Called second overload
+                """)).VerifyIL("Program.Main", """
+                {
+                  // Code size       28 (0x1c)
+                  .maxstack  3
+                  IL_0000:  ldstr      ""
+                  IL_0005:  ldstr      ""
+                  IL_000a:  newobj     "MyCollection<string>..ctor(object, string)"
+                  IL_000f:  dup
+                  IL_0010:  ldstr      ""
+                  IL_0015:  callvirt   "void System.Collections.Generic.List<string>.Add(string)"
+                  IL_001a:  pop
+                  IL_001b:  ret
+                }
+                """);
+    }
+
+    [Fact]
+    public void WithElement_UnscopedRef1()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            
+            class C : List<int>
+            {
+                public C(out Span<string> egress, [UnscopedRef] out string ingress)
+                {
+                    ingress = "a";
+                    egress = new Span<string>(ref ingress);
+                }
+
+                Span<string> M()
+                {
+                    string y = "a";
+                    C list = [with(out Span<string> x, out y)];
+                    return x;
+                }
+            
+                Span<string> N()
+                {
+                    string y = "a";
+                    C list = new(out Span<string> x, out y);
+                    return x;
+                }
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(
+            // (17,16): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         return x;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(17, 16),
+            // (24,16): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         return x;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(24, 16));
+    }
+
+    [Fact]
+    public void WithElement_NotUnscopedRef1()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            
+            class C : List<int>
+            {
+                public C(out Span<string> egress, out string ingress)
+                {
+                    ingress = "a";
+                    egress = [];
+                }
+            
+                Span<string> M()
+                {
+                    string y = "a";
+                    C list = [with(out Span<string> x, out y)];
+                    return x;
+                }
+
+                Span<string> N()
+                {
+                    string y = "a";
+                    C list = new(out Span<string> x, out y);
+                    return x;
+                }
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void WithElement_FileLocalType1()
+    {
+        string sourceA = """
+            using System.Collections.Generic;
+
+            file class MyCollection<T> : List<T>
+            {
+                public MyCollection(string value)
+                {
+                }
+            }
+
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<int> c = [with("")];
+                }
+            }
+            """;
+
+        CompileAndVerify(
+            sourceA,
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void WithElement_FileLocalType2()
+    {
+        string sourceA = """
+            using System;
+            using System.Collections.Generic;
+
+            file class MyCollection<T> : List<T>
+            {
+                public MyCollection(Arg value)
+                {
+                }
+            }
+
+            file class Arg {}
+
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<int> c = [with(new Arg()), 1, 2];
+                    Console.WriteLine(string.Join(", ", c));
+                }
+            }
+            """;
+
+        CompileAndVerify(
+            sourceA,
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Constructor_UseSiteError_Method()
+    {
+        // public sealed class MyCollection<T> : IEnumerable<T>
+        // {
+        //     [CompilerFeatureRequired("MyFeature")]
+        //     public MyCollection() { }
+        //     public IEnumerator<T> GetEnumerator() { }
+        // }
+        string sourceA = """
+                .assembly extern System.Runtime { .ver 8:0:0:0 .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A) }
+
+                .class public sealed MyCollection`1<T>
+                    implements class [System.Runtime]System.Collections.Generic.IEnumerable`1<!T>,
+                                     [System.Runtime]System.Collections.IEnumerable
+                {
+                  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+                  {
+                    .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = { string('MyFeature') }
+                    ret
+                  }
+                  .method public instance class [System.Runtime]System.Collections.Generic.IEnumerator`1<!T> GetEnumerator() { ldnull ret }
+                }
+                """;
+        var refA = CompileIL(sourceA);
+
+        string sourceB = """
+                #pragma warning disable 219
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [];
+                        MyCollection<int> w = [with()];
+                    }
+                }
+                """;
+        var comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
+        comp.VerifyEmitDiagnostics(
+            // (6,31): error CS9041: 'MyCollection<T>.MyCollection()' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
+            //         MyCollection<int> x = [];
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "[]").WithArguments("MyCollection<T>.MyCollection()", "MyFeature").WithLocation(6, 31),
+            // (7,32): error CS9041: 'MyCollection<T>.MyCollection()' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
+            //         MyCollection<int> w = [with()];
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "with()").WithArguments("MyCollection<T>.MyCollection()", "MyFeature").WithLocation(7, 32));
+    }
+
+    [Fact]
+    public void GetMemberGroup()
+    {
+        string sourceA = """
+            using System.Collections.Generic;
+
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection(string s)
+                {
+                }
+
+                public MyCollection(int i)
+                {
+                }
+            }
+            """;
+        string sourceB = """
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<string> c = [with(""), ""];
+                }
+            }
+            """;
+        var comp = CreateCompilation(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+
+        var syntaxTree = comp.SyntaxTrees[1];
+        var semanticModel = comp.GetSemanticModel(syntaxTree);
+
+        var root = syntaxTree.GetRoot();
+        var withElement = root.DescendantNodes().OfType<WithElementSyntax>().Single();
+
+        // It is expected that we get 0 here.  GetMemberGroup returns nothing for a WithElementSyntax
+        // (same as for a ConstructorInitializerSyntax).
+        var memberGroup = semanticModel.GetMemberGroup(withElement);
+        Assert.Equal(0, memberGroup.Length);
+    }
+
+    [Fact]
+    public void GetSpeculativeSymbolInfo()
+    {
+        string sourceA = """
+            using System.Collections.Generic;
+
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection(string s)
+                {
+                }
+
+                public MyCollection(int i)
+                {
+                }
+            }
+            """;
+        string sourceB = """
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<string> c = [with(""), ""];
+                }
+            }
+            """;
+        var comp = CreateCompilation(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+
+        var syntaxTree = comp.SyntaxTrees[1];
+        var semanticModel = comp.GetSemanticModel(syntaxTree);
+
+        var root = syntaxTree.GetRoot();
+        var withElement = root.DescendantNodes().OfType<WithElementSyntax>().Single();
+
+        var symbolInfo = semanticModel.GetSpeculativeSymbolInfo(withElement.SpanStart,
+            SyntaxFactory.WithElement(SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
+                SyntaxFactory.Argument(SyntaxFactory.ParseExpression("1"))))),
+            SpeculativeBindingOption.BindAsExpression);
+
+        // For now, we do not support speculating on a different WithElement.
+        Assert.Null(symbolInfo.Symbol);
+        Assert.Empty(symbolInfo.CandidateSymbols);
     }
 
     #endregion

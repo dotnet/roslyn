@@ -2012,7 +2012,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
     }
 
     [Fact]
-    public void CollectionBuilder_PrivateMethod()
+    public void CollectionBuilder_PrivateMethod1()
     {
         string sourceA = """
                 using System;
@@ -2059,6 +2059,258 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 // (15,53): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
                 //     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
                 Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(t)").WithArguments("Create", "1"));
+    }
+
+    [Fact]
+    public void CollectionBuilder_PrivateMethod2()
+    {
+        string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    public readonly T Arg;
+                    private readonly List<T> _items;
+                    public MyCollection(T arg, ReadOnlySpan<T> items) { Arg = arg; _items = new(items.ToArray()); }
+                    public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                static partial class MyBuilder
+                {
+                    private static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(default, items);
+                    private static MyCollection<T> Create<T>(T arg, ReadOnlySpan<T> items) => new(arg, items);
+                }
+                """;
+        string sourceB = """
+                using System;
+                static partial class MyBuilder
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> c;
+                        c = EmptyArgs(1);
+                        Console.Write("{0}, ", c.Arg);
+                        c.Report();
+                        c = NonEmptyArgs<int>(2);
+                        Console.Write("{0}, ", c.Arg);
+                        c.Report();
+                    }
+                    static MyCollection<T> EmptyArgs<T>(T t) => [with(), t];
+                    static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
+                }
+                """;
+
+        CreateCompilation(
+            [sourceA, sourceB, s_collectionExtensions],
+            targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionBuilder_InternalMethod1()
+    {
+        string sourceA = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                public readonly T Arg;
+                private readonly List<T> _items;
+                public MyCollection(T arg, ReadOnlySpan<T> items) { Arg = arg; _items = new(items.ToArray()); }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+            class MyBuilder
+            {
+                internal static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(default, items);
+                internal static MyCollection<T> Create<T>(T arg, ReadOnlySpan<T> items) => new(arg, items);
+            }
+            """;
+        string sourceB = """
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<int> c;
+                    c = EmptyArgs(1);
+                    Console.Write("{0}, ", c.Arg);
+                    c.Report();
+                    c = NonEmptyArgs<int>(2);
+                    Console.Write("{0}, ", c.Arg);
+                    c.Report();
+                }
+                static MyCollection<T> EmptyArgs<T>(T t) => [with(), t];
+                static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
+            }
+            """;
+
+        CreateCompilation(
+            [sourceA, sourceB, s_collectionExtensions],
+            targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionBuilder_InternalMethod2()
+    {
+        string sourceA = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            public class MyCollection<T> : IEnumerable<T>
+            {
+                public readonly T Arg;
+                private readonly List<T> _items;
+                public MyCollection(T arg, ReadOnlySpan<T> items) { Arg = arg; _items = new(items.ToArray()); }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+            public class MyBuilder
+            {
+                internal static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(default, items);
+                internal static MyCollection<T> Create<T>(T arg, ReadOnlySpan<T> items) => new(arg, items);
+            }
+            """;
+        string sourceB = """
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<int> c;
+                    c = EmptyArgs(1);
+                    Console.Write("{0}, ", c.Arg);
+                    c.Report();
+                    c = NonEmptyArgs<int>(2);
+                    Console.Write("{0}, ", c.Arg);
+                    c.Report();
+                }
+                static MyCollection<T> EmptyArgs<T>(T t) => [with(), t];
+                static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
+            }
+            """;
+
+        var compilation1 = CreateCompilation(
+            [sourceA, s_collectionExtensions],
+            targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+
+        var compilation2 = CreateCompilation(
+            [sourceB, s_collectionExtensions],
+            references: [compilation1.ToMetadataReference()],
+            targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+            // (14,49): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            //     static MyCollection<T> EmptyArgs<T>(T t) => [with(), t];
+            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(), t]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(14, 49),
+            // (15,52): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            //     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
+            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(t), t]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(15, 52));
+    }
+
+    [Fact]
+    public void CollectionBuilder_ProtectedMethod1()
+    {
+        string sourceA = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                public readonly T Arg;
+                private readonly List<T> _items;
+                public MyCollection(T arg, ReadOnlySpan<T> items) { Arg = arg; _items = new(items.ToArray()); }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+            partial class MyBuilder
+            {
+                protected static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(default, items);
+                protected static MyCollection<T> Create<T>(T arg, ReadOnlySpan<T> items) => new(arg, items);
+            }
+            """;
+        string sourceB = """
+            using System;
+            partial class MyBuilder
+            {
+                static void Main()
+                {
+                    MyCollection<int> c;
+                    c = EmptyArgs(1);
+                    Console.Write("{0}, ", c.Arg);
+                    c.Report();
+                    c = NonEmptyArgs<int>(2);
+                    Console.Write("{0}, ", c.Arg);
+                    c.Report();
+                }
+                static MyCollection<T> EmptyArgs<T>(T t) => [with(), t];
+                static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
+            }
+            """;
+
+        CreateCompilation(
+            [sourceA, sourceB, s_collectionExtensions],
+            targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionBuilder_ProtectedMethod2()
+    {
+        string sourceA = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                public readonly T Arg;
+                private readonly List<T> _items;
+                public MyCollection(T arg, ReadOnlySpan<T> items) { Arg = arg; _items = new(items.ToArray()); }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+            partial class MyBuilder
+            {
+                protected static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(default, items);
+                protected static MyCollection<T> Create<T>(T arg, ReadOnlySpan<T> items) => new(arg, items);
+            }
+            """;
+        string sourceB = """
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<int> c;
+                    c = EmptyArgs(1);
+                    Console.Write("{0}, ", c.Arg);
+                    c.Report();
+                    c = NonEmptyArgs<int>(2);
+                    Console.Write("{0}, ", c.Arg);
+                    c.Report();
+                }
+                static MyCollection<T> EmptyArgs<T>(T t) => [with(), t];
+                static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
+            }
+            """;
+
+        CreateCompilation(
+            [sourceA, sourceB, s_collectionExtensions],
+            targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+            // (14,49): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            //     static MyCollection<T> EmptyArgs<T>(T t) => [with(), t];
+            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(), t]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(14, 49),
+            // (15,52): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            //     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
+            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(t), t]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(15, 52));
     }
 
     [Fact]
@@ -8141,7 +8393,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
     }
 
     [Fact]
-    public void InterpolatedStringHandler()
+    public void InterpolatedStringHandler_Constructor()
     {
         var code = """
             using System;
@@ -8218,6 +8470,109 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
     }
 
     [Fact]
+    public void InterpolatedStringHandler_CollectionBuilder()
+    {
+        var code = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Collections.Generic;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection(
+                    int i, string s, CustomHandler c,
+                    ReadOnlySpan<T> items)
+                {
+                    Console.WriteLine(c);
+
+                    foreach (var item in items)
+                        this.Add(item);
+                }
+            }
+
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(int i, string s, [InterpolatedStringHandlerArgumentAttribute("i", "s")] CustomHandler c, ReadOnlySpan<T> items) => new(i, s, c, items);
+            }
+
+            public partial struct CustomHandler
+            {
+                public CustomHandler(int literalLength, int formattedCount, int i, string s) : this(literalLength, formattedCount)
+                {
+                    _builder.AppendLine("i:" + i.ToString());
+                    _builder.AppendLine("s:" + s);
+                }
+            }
+            """;
+
+        var executableCode = """
+            class Program
+            {
+                static void Main()
+                {
+                    int i = 10;
+                    string s = "arg";
+                    MyCollection<string> c = [with(i, s, $"" + $"literal"), "goo"];
+                }
+            }
+            """;
+
+        var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+
+        CompileAndVerify(
+            [code, executableCode, handler],
+            targetFramework: TargetFramework.Net90,
+            verify: Verification.FailsPEVerify,
+            expectedOutput: IncludeExpectedOutput("""
+            i:10
+            s:arg
+            literal:literal
+            """))
+            .VerifyDiagnostics(
+                // (4,34): warning CS0436: The type 'InterpolatedStringHandlerAttribute' in '' conflicts with the imported type 'InterpolatedStringHandlerAttribute' in 'System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
+                // [System.Runtime.CompilerServices.InterpolatedStringHandler]
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "InterpolatedStringHandler").WithArguments("", "System.Runtime.CompilerServices.InterpolatedStringHandlerAttribute", "System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Runtime.CompilerServices.InterpolatedStringHandlerAttribute").WithLocation(4, 34))
+            .VerifyIL("Program.Main", """
+                {
+                  // Code size       59 (0x3b)
+                  .maxstack  7
+                  .locals init (string V_0, //s
+                                string V_1,
+                                int V_2,
+                                string V_3,
+                                CustomHandler V_4)
+                  IL_0000:  ldc.i4.s   10
+                  IL_0002:  ldstr      "arg"
+                  IL_0007:  stloc.0
+                  IL_0008:  stloc.2
+                  IL_0009:  ldloc.2
+                  IL_000a:  ldloc.0
+                  IL_000b:  stloc.3
+                  IL_000c:  ldloc.3
+                  IL_000d:  ldloca.s   V_4
+                  IL_000f:  ldc.i4.7
+                  IL_0010:  ldc.i4.0
+                  IL_0011:  ldloc.2
+                  IL_0012:  ldloc.3
+                  IL_0013:  call       "CustomHandler..ctor(int, int, int, string)"
+                  IL_0018:  ldloca.s   V_4
+                  IL_001a:  ldstr      "literal"
+                  IL_001f:  call       "bool CustomHandler.AppendLiteral(string)"
+                  IL_0024:  pop
+                  IL_0025:  ldloc.s    V_4
+                  IL_0027:  ldstr      "goo"
+                  IL_002c:  stloc.1
+                  IL_002d:  ldloca.s   V_1
+                  IL_002f:  newobj     "System.ReadOnlySpan<string>..ctor(ref readonly string)"
+                  IL_0034:  call       "MyCollection<string> MyBuilder.Create<string>(int, string, CustomHandler, System.ReadOnlySpan<string>)"
+                  IL_0039:  pop
+                  IL_003a:  ret
+                }
+                """);
+    }
+
+    [Fact]
     public void WithOutsideCollectionIsAnInvocation()
     {
         var source = """
@@ -8236,5 +8591,790 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             // (6,11): error CS0103: The name 'with' does not exist in the current context
             //         N(with(capacity: 0), 1, 2, 3);
             Diagnostic(ErrorCode.ERR_NameNotInContext, "with").WithArguments("with").WithLocation(6, 11));
+    }
+
+    [Theory]
+    [InlineData("object")]
+    [InlineData("dynamic")]
+    public void WithElement_CollectionBuilder_DynamicArguments(string parameterType)
+    {
+        var source = $$"""
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                public {{parameterType}} Value;
+
+                private readonly List<T> _items;
+                public MyCollection({{parameterType}} value, ReadOnlySpan<T> items)
+                {
+                    Value = value;
+                    _items = new();
+                    _items.AddRange(items.ToArray());
+                }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>({{parameterType}} value, ReadOnlySpan<T> items) => new(value, items);
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    dynamic d = 42;
+                    MyCollection<int> list = [with(d), 1];
+                    Console.WriteLine(list.Value);
+                }
+            }
+            """;
+
+        if (parameterType == "dynamic")
+        {
+            CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(
+                // (23,97): error CS1978: Cannot use an expression of type 'ReadOnlySpan<T>' as an argument to a dynamically dispatched operation.
+                //     public static MyCollection<T> Create<T>(dynamic value, ReadOnlySpan<T> items) => new(value, items);
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "items").WithArguments("System.ReadOnlySpan<T>").WithLocation(23, 97),
+                // (31,40): error CS9402: 'with(...)' element arguments cannot be dynamic
+                //         MyCollection<int> list = [with(d), 1];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "d").WithLocation(31, 40));
+        }
+        else
+        {
+            CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(
+                // (31,40): error CS9402: 'with(...)' element arguments cannot be dynamic
+                //         MyCollection<int> list = [with(d), 1];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "d").WithLocation(31, 40));
+        }
+    }
+
+    [Theory]
+    [InlineData("object")]
+    [InlineData("dynamic")]
+    public void WithElement_CollectionBuilder_DynamicParameters(string argumentType)
+    {
+        var source = $$"""
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                public object Value;
+            
+                private readonly List<T> _items;
+                public MyCollection(object value, ReadOnlySpan<T> items)
+                {
+                    Value = value;
+                    _items = new();
+                    _items.AddRange(items.ToArray());
+                }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+            
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(object value, ReadOnlySpan<T> items) => new(value, items);
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    {{argumentType}} d = 42;
+                    MyCollection<int> list = [with(d), 1];
+                    Console.WriteLine(list.Value);
+                }
+            }
+            """;
+
+        if (argumentType == "dynamic")
+        {
+            CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(
+                // (31,40): error CS9402: 'with(...)' element arguments cannot be dynamic
+                //         MyCollection<int> list = [with(d), 1];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "d").WithLocation(31, 40));
+        }
+        else
+        {
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyIL("C.Main", """
+                {
+                  // Code size       33 (0x21)
+                  .maxstack  2
+                  IL_0000:  ldc.i4.s   42
+                  IL_0002:  box        "int"
+                  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=4_Align=4 <PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA4504"
+                  IL_000c:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+                  IL_0011:  call       "MyCollection<int> MyBuilder.Create<int>(object, System.ReadOnlySpan<int>)"
+                  IL_0016:  ldfld      "object MyCollection<int>.Value"
+                  IL_001b:  call       "void System.Console.WriteLine(object)"
+                  IL_0020:  ret
+                }
+                """);
+        }
+    }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_ArgList()
+    {
+        var source = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection(__arglist, ReadOnlySpan<T> items) : base(span.ToArray())
+                {
+                }
+            }
+            
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(__arglist, ReadOnlySpan<T> items) => new(__arglist, items);
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
+            // (9,12): error CS0224: A method with vararg cannot be generic, be in a generic type, or have a params parameter
+            //     public MyCollection(__arglist, ReadOnlySpan<T> items) : base(span.ToArray())
+            Diagnostic(ErrorCode.ERR_BadVarargs, "MyCollection").WithLocation(9, 12),
+            // (9,25): error CS0257: An __arglist parameter must be the last parameter in a parameter list
+            //     public MyCollection(__arglist, ReadOnlySpan<T> items) : base(span.ToArray())
+            Diagnostic(ErrorCode.ERR_VarargsLast, "__arglist").WithLocation(9, 25),
+            // (9,66): error CS0103: The name 'span' does not exist in the current context
+            //     public MyCollection(__arglist, ReadOnlySpan<T> items) : base(span.ToArray())
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "span").WithArguments("span").WithLocation(9, 66),
+            // (16,35): error CS0224: A method with vararg cannot be generic, be in a generic type, or have a params parameter
+            //     public static MyCollection<T> Create<T>(__arglist, ReadOnlySpan<T> items) => new(__arglist, items);
+            Diagnostic(ErrorCode.ERR_BadVarargs, "Create").WithLocation(16, 35),
+            // (16,45): error CS0257: An __arglist parameter must be the last parameter in a parameter list
+            //     public static MyCollection<T> Create<T>(__arglist, ReadOnlySpan<T> items) => new(__arglist, items);
+            Diagnostic(ErrorCode.ERR_VarargsLast, "__arglist").WithLocation(16, 45),
+            // (16,86): error CS1503: Argument 1: cannot convert from 'System.RuntimeArgumentHandle' to 'System.ReadOnlySpan<T>'
+            //     public static MyCollection<T> Create<T>(__arglist, ReadOnlySpan<T> items) => new(__arglist, items);
+            Diagnostic(ErrorCode.ERR_BadArgType, "__arglist").WithArguments("1", "System.RuntimeArgumentHandle", "System.ReadOnlySpan<T>").WithLocation(16, 86),
+            // (16,97): error CS1503: Argument 2: cannot convert from 'ReadOnlySpan<T>' to '__arglist'
+            //     public static MyCollection<T> Create<T>(__arglist, ReadOnlySpan<T> items) => new(__arglist, items);
+            Diagnostic(ErrorCode.ERR_BadArgType, "items").WithArguments("2", "System.ReadOnlySpan<T>", "__arglist").WithLocation(16, 97));
+    }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_OverloadResolution_ExactMatch()
+    {
+        var source = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyList<T> : List<T>
+            {
+                public string ConstructorUsed { get; }
+                
+                public MyList(int capacity) : base(capacity)
+                {
+                    ConstructorUsed = "int";
+                }
+                
+                public MyList(long capacity) : base((int)capacity)
+                {
+                    ConstructorUsed = "long";
+                }
+            }
+            
+            class MyBuilder
+            {
+                public static MyList<T> Create<T>(int capacity, ReadOnlySpan<T> items) => new(capacity);
+                public static MyList<T> Create<T>(long capacity, ReadOnlySpan<T> items) => new(capacity);
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int> list1 = [with(10), 1];
+                    MyList<int> list2 = [with(10L), 2];
+                    Console.WriteLine($"{list1.ConstructorUsed},{list2.ConstructorUsed}");
+                }
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: IncludeExpectedOutput("int,long"), verify: Verification.FailsPEVerify);
+    }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_OverloadResolution_Ambiguous()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyList<T> : List<T>
+            {
+                public MyList(object value1, string value2)
+                {
+                    Console.WriteLine("object/string chosen");
+                }
+                
+                public MyList(string value1, object value2)
+                {
+                    Console.WriteLine("string/object chosen");
+                }
+            }
+            
+            class MyBuilder
+            {
+                public static MyList<T> Create<T>(object value1, string value2, ReadOnlySpan<T> items) => new(value1, value2);
+                public static MyList<T> Create<T>(string value1, object value2, ReadOnlySpan<T> items) => new(value1, value2);
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int> list = [with("", "")];
+                }
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(
+            // (29,29): error CS0121: The call is ambiguous between the following methods or properties: 'MyBuilder.Create<int>(object, string, System.ReadOnlySpan<int>)' and 'MyBuilder.Create<int>(string, object, System.ReadOnlySpan<int>)'
+            //         MyList<int> list = [with("", "")];
+            Diagnostic(ErrorCode.ERR_AmbigCall, @"with("""", """")").WithArguments("MyBuilder.Create<int>(object, string, System.ReadOnlySpan<int>)", "MyBuilder.Create<int>(string, object, System.ReadOnlySpan<int>)").WithLocation(29, 29));
+    }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_OverloadResolution_BestMatch1()
+    {
+        var source = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyList<T> : List<T>
+            {
+                public MyList(int capacity) : base(capacity)
+                {
+                    Console.WriteLine("int chosen");
+                }
+                
+                public MyList(long capacity) : base((int)capacity)
+                {
+                    Console.WriteLine("long chosen");
+                }
+            }
+            
+            class MyBuilder
+            {
+                public static MyList<T> Create<T>(int capacity, ReadOnlySpan<T> items) => new(capacity);
+                public static MyList<T> Create<T>(long capacity, ReadOnlySpan<T> items) => new(capacity);
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    short s = 10;
+                    MyList<int> list = [with(s)];
+                }
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: IncludeExpectedOutput("int chosen"), verify: Verification.FailsPEVerify);
+    }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_OverloadResolution_BestMatch2()
+    {
+        var source = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyList<T> : List<T>
+            {
+                public string ConstructorUsed { get; }
+                
+                public MyList(object value) : base()
+                {
+                    ConstructorUsed = "object";
+                }
+                
+                public MyList(int value) : base()
+                {
+                    ConstructorUsed = "int";
+                }
+            }
+            
+            class MyBuilder
+            {
+                public static MyList<T> Create<T>(int capacity, ReadOnlySpan<T> items) => new(capacity);
+                public static MyList<T> Create<T>(long capacity, ReadOnlySpan<T> items) => new(capacity);
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int> list = [with(42), 1];
+                    Console.WriteLine(list.ConstructorUsed);
+                }
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: IncludeExpectedOutput("int"), verify: Verification.FailsPEVerify);
+    }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_NoMatchingConstructor()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyList<T> : List<T>
+            {
+                public MyList(string value) : base() { }
+            }
+            
+            class MyBuilder
+            {
+                public static MyList<T> Create<T>(string value, ReadOnlySpan<T> items) => new(value);
+            }
+            
+            class C
+            {
+                void M()
+                {
+                    MyList<int> list = [with(42)];
+                }
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(
+            // (20,34): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+            //         MyList<int> list = [with(42)];
+            Diagnostic(ErrorCode.ERR_BadArgType, "42").WithArguments("1", "int", "string").WithLocation(20, 34));
+    }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_UserDefinedConversion1()
+    {
+        var source = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyList<T> : List<T>
+            {
+                public MyList(string value) : base() { }
+            }
+            
+            class MyBuilder
+            {
+                public static MyList<T> Create<T>(string value, ReadOnlySpan<T> items)
+                {
+                    Console.WriteLine("Factory called: " + value);
+                    return new(value);
+                }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int> list = [with(new C())];
+                }
+
+                public static implicit operator string(C c)
+                {
+                    Console.WriteLine("Implicit operator called");
+                    return "converted";
+                }
+            }
+            """;
+
+        CompileAndVerify(
+            source,
+            targetFramework: TargetFramework.Net100,
+            verify: Verification.FailsPEVerify,
+            expectedOutput: IncludeExpectedOutput("""
+                Implicit operator called
+                Factory called: converted
+                """)).VerifyIL("C.Main", """
+            {
+              // Code size       26 (0x1a)
+              .maxstack  2
+              .locals init (System.ReadOnlySpan<int> V_0)
+              IL_0000:  newobj     "C..ctor()"
+              IL_0005:  call       "string C.op_Implicit(C)"
+              IL_000a:  ldloca.s   V_0
+              IL_000c:  initobj    "System.ReadOnlySpan<int>"
+              IL_0012:  ldloc.0
+              IL_0013:  call       "MyList<int> MyBuilder.Create<int>(string, System.ReadOnlySpan<int>)"
+              IL_0018:  pop
+              IL_0019:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_Constructor_UserDefinedConversion2()
+    {
+        var source = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyList<T> : List<T>
+            {
+                public MyList(long value) : base() { }
+            }
+            
+            class MyBuilder
+            {
+                public static MyList<T> Create<T>(long value, ReadOnlySpan<T> items) => new(value);
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int> list = [with(new C())];
+                }
+
+                public static implicit operator int(C c)
+                {
+                    Console.WriteLine("conversion called");
+                    return 0;
+                }
+            }
+            """;
+
+        CompileAndVerify(
+            source,
+            targetFramework: TargetFramework.Net100,
+            verify: Verification.FailsPEVerify,
+            expectedOutput: IncludeExpectedOutput("""
+                conversion called
+                """)).VerifyIL("C.Main", """
+            {
+              // Code size       27 (0x1b)
+              .maxstack  2
+              .locals init (System.ReadOnlySpan<int> V_0)
+              IL_0000:  newobj     "C..ctor()"
+              IL_0005:  call       "int C.op_Implicit(C)"
+              IL_000a:  conv.i8
+              IL_000b:  ldloca.s   V_0
+              IL_000d:  initobj    "System.ReadOnlySpan<int>"
+              IL_0013:  ldloc.0
+              IL_0014:  call       "MyList<int> MyBuilder.Create<int>(long, System.ReadOnlySpan<int>)"
+              IL_0019:  pop
+              IL_001a:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_UnscopedRef1()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class C<T> : List<T>
+            {
+                public C(out Span<string> egress, [UnscopedRef] out string ingress)
+                {
+                    ingress = "a";
+                    egress = new Span<string>(ref ingress);
+                }
+
+                Span<string> M()
+                {
+                    string y = "a";
+                    C<T> list = [with(out Span<string> x, out y)];
+                    return x;
+                }
+            
+                Span<string> N()
+                {
+                    string y = "a";
+                    C<T> list = new(out Span<string> x, out y);
+                    return x;
+                }
+            }
+            
+            class MyBuilder
+            {
+                public static C<T> Create<T>(out Span<string> egress, [UnscopedRef] out string ingress, ReadOnlySpan<T> items) => new(out egress, out ingress);
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(
+            // (19,16): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         return x;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(19, 16),
+            // (26,16): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         return x;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(26, 16));
+    }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_NotUnscopedRef1()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class C<T> : List<T>
+            {
+                public C(out Span<string> egress, out string ingress)
+                {
+                    ingress = "a";
+                    egress = [];
+                }
+            
+                Span<string> M()
+                {
+                    string y = "a";
+                    C<T> list = [with(out Span<string> x, out y)];
+                    return x;
+                }
+
+                Span<string> N()
+                {
+                    string y = "a";
+                    C<T> list = new(out Span<string> x, out y);
+                    return x;
+                }
+            }
+            
+            class MyBuilder
+            {
+                public static C<T> Create<T>(out Span<string> egress, out string ingress, ReadOnlySpan<T> items) => new(out egress, out ingress);
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionBuilder_GetMemberGroup()
+    {
+        string sourceA = """
+            using System;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection()
+                {
+                }
+            }
+            
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(int i, ReadOnlySpan<T> items) => new();
+                public static MyCollection<T> Create<T>(string s, ReadOnlySpan<T> items) => new();
+            }
+            """;
+        string sourceB = """
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<string> c = [with(""), ""];
+                }
+            }
+            """;
+        var comp = CreateCompilation(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+
+        var syntaxTree = comp.SyntaxTrees[1];
+        var semanticModel = comp.GetSemanticModel(syntaxTree);
+
+        var root = syntaxTree.GetRoot();
+        var withElement = root.DescendantNodes().OfType<WithElementSyntax>().Single();
+
+        // It is expected that we get 0 here.  GetMemberGroup returns nothing for a WithElementSyntax
+        // (same as for a ConstructorInitializerSyntax).
+        var memberGroup = semanticModel.GetMemberGroup(withElement);
+        Assert.Equal(0, memberGroup.Length);
+    }
+
+    [Fact]
+    public void CollectionBuilder_GetSpeculativeSymbolInfo()
+    {
+        string sourceA = """
+            using System;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection()
+                {
+                }
+            }
+            
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(int i, ReadOnlySpan<T> items) => new();
+                public static MyCollection<T> Create<T>(string s, ReadOnlySpan<T> items) => new();
+            }
+            """;
+        string sourceB = """
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<string> c = [with(""), ""];
+                }
+            }
+            """;
+        var comp = CreateCompilation(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+
+        var syntaxTree = comp.SyntaxTrees[1];
+        var semanticModel = comp.GetSemanticModel(syntaxTree);
+
+        var root = syntaxTree.GetRoot();
+        var withElement = root.DescendantNodes().OfType<WithElementSyntax>().Single();
+
+        var symbolInfo = semanticModel.GetSpeculativeSymbolInfo(withElement.SpanStart,
+            SyntaxFactory.WithElement(SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
+                SyntaxFactory.Argument(SyntaxFactory.ParseExpression("1"))))),
+            SpeculativeBindingOption.BindAsExpression);
+
+        // For now, we do not support speculating on a different WithElement.
+        Assert.Null(symbolInfo.Symbol);
+        Assert.Empty(symbolInfo.CandidateSymbols);
+    }
+
+    [Fact]
+    public void CollectionBuilderFileLocalType1()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            file class MyCollection<T> : IEnumerable<T>
+            {
+                private readonly List<T> _items;
+                public MyCollection(string value, ReadOnlySpan<T> items)
+                {
+                    _items = new();
+                    _items.AddRange(items.ToArray());
+                }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+
+            file class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(string value, ReadOnlySpan<T> items) => new(value, items);
+            }
+
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<int> c = [with(""), 1, 2];
+                    Console.WriteLine(string.Join(", ", c));
+                }
+            }
+            """;
+
+        CompileAndVerify(
+            sourceA,
+            expectedOutput: IncludeExpectedOutput("1, 2"),
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionBuilderFileLocalType2()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            file class MyCollection<T> : IEnumerable<T>
+            {
+                private readonly List<T> _items;
+                public MyCollection(Arg value, ReadOnlySpan<T> items)
+                {
+                    _items = new();
+                    _items.AddRange(items.ToArray());
+                }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+
+            file class Arg {}
+
+            file class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(Arg value, ReadOnlySpan<T> items) => new(value, items);
+            }
+
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<int> c = [with(new Arg()), 1, 2];
+                    Console.WriteLine(string.Join(", ", c));
+                }
+            }
+            """;
+
+        CompileAndVerify(
+            sourceA,
+            expectedOutput: IncludeExpectedOutput("1, 2"),
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 }
