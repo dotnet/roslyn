@@ -3875,22 +3875,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // case, we know the type of that place holder and that it is not nullable (it is a ReadOnlySpan).  Populate
             // the right maps so walking into the creation understands this.
 
-            var collectionBuilderElementsPlaceholder = node.GetCollectionBuilderElementsPlaceholder();
-            if (collectionBuilderElementsPlaceholder != null)
-            {
-                AddPlaceholderReplacement(
-                    collectionBuilderElementsPlaceholder,
-                    collectionBuilderElementsPlaceholder,
-                    result: new VisitResult(
-                        collectionBuilderElementsPlaceholder.Type,
-                        NullableAnnotation.NotAnnotated,
-                        NullableFlowState.NotNull));
-            }
-
             var collectionCreationCompletion = visitCollectionCreationArguments(node);
-
-            if (collectionBuilderElementsPlaceholder != null)
-                RemovePlaceholderReplacement(collectionBuilderElementsPlaceholder);
 
             var (collectionKind, targetElementType) = getCollectionDetails(node, node.Type);
 
@@ -3924,12 +3909,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetResult(node, visitResult, updateAnalyzedNullability: !node.WasTargetTyped, isLvalue: false);
             return null;
 
-            ArgumentsCompletionDelegate<MethodSymbol> visitCollectionCreationArguments(BoundCollectionExpression node)
+            Action<TypeSymbol>? visitCollectionCreationArguments(BoundCollectionExpression node)
             {
                 var collectionCreation = node.GetUnconvertedCollectionCreation();
                 if (collectionCreation is BoundObjectCreationExpression objectCreation)
                 {
-                    var (member, results, returnNotNull, completion) = this.VisitArguments(
+                    // Walk into the arguments of the object creation, passing in 'delayCompletionForTargetMember: true'
+                    // so that we reprocess the nullability of the arguments when we have the target-type for the
+                    // collection expression.
+                    var (_, argumentResults, _, completion) = this.VisitArguments(
                         objectCreation,
                         objectCreation.Arguments,
                         objectCreation.ArgumentRefKindsOpt,
@@ -3940,12 +3928,84 @@ namespace Microsoft.CodeAnalysis.CSharp
                         invokedAsExtensionMethod: false,
                         objectCreation.Constructor,
                         delayCompletionForTargetMember: true);
-                    return completion;
+                    Debug.Assert(completion != null);
+
+                    return collectionFinalType =>
+                    {
+                        // Find the actual constructor we are calling into now that we know the real target-type of the
+                        // collection expression.
+                        var constructor = (MethodSymbol)AsMemberOfType(collectionFinalType, objectCreation.Constructor);
+                        completion(argumentResults, constructor.Parameters, constructor);
+                    };
                 }
                 else if (collectionCreation is BoundCall call)
                 {
-                    var (_, _, completion) = this.VisitArguments();
-                    return completion;
+                    var collectionBuilderElementsPlaceholder = node.GetCollectionBuilderElementsPlaceholder();
+                    Debug.Assert(collectionBuilderElementsPlaceholder != null);
+
+                    AddPlaceholderReplacement(
+                        collectionBuilderElementsPlaceholder,
+                        collectionBuilderElementsPlaceholder,
+                        result: new VisitResult(
+                            collectionBuilderElementsPlaceholder.Type,
+                            NullableAnnotation.NotAnnotated,
+                            NullableFlowState.NotNull));
+
+                    var (_, argumentResults, _, completion) = this.VisitArguments(
+                        call,
+                        call.Arguments,
+                        call.ArgumentRefKindsOpt,
+                        call.Method.Parameters,
+                        call.ArgsToParamsOpt,
+                        call.DefaultArguments,
+                        call.Expanded,
+                        call.InvokedAsExtensionMethod,
+                        call.Method,
+                        delayCompletionForTargetMember: true);
+                    Debug.Assert(completion != null);
+
+                    RemovePlaceholderReplacement(collectionBuilderElementsPlaceholder);
+
+                    return collectionFinalType =>
+                    {
+                        // BoundCalls are calls to CollectionBuilder factory methods.  In the case where they are generic,
+                        // our first pass will have substituted oblivious types in the type signature for the type
+                        // arguments.  So we'll have a signature like:
+                        //
+                        //      SomeCollection<X~,Y~> Create<X~,Y~>(...X~..., ReadOnlySpan<ElementType> t).
+                        //
+                        // Now that we have determined the real final collection type (say `SomeCollection<X!, Y?>`) we need
+                        // to go back through and reanalyze the arguments to the BoundCall with the proper substitutions for
+                        // X and Y.
+                        //
+                        // Note: the language requires (and our conversion logic ensures) that the creation method has the
+                        // same arity as the collection type.  So in order to get the final creation method we just need to
+                        // take the final collection type and use its type arguments to re-construct the creation method.
+
+                        var allTypeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+                        ((NamedTypeSymbol)collectionFinalType).GetAllTypeArgumentsNoUseSiteDiagnostics(allTypeArguments);
+
+                        Debug.Assert(collectionBuilderElementsPlaceholder != null);
+                        Debug.Assert(allTypeArguments.Count == call.Method.Arity, "Guaranteed by GetCollectionBuilderMethods");
+
+                        var constructed = call.Method.Arity == 0 ? call.Method : call.Method.ConstructedFrom.Construct(allTypeArguments.ToImmutable());
+                        allTypeArguments.Free();
+
+                        // Ensure the placeholder is swapped out so we see its final type correctly when reanalyzing the arguments.
+                        var lastParameterType = constructed.Parameters[^1].TypeWithAnnotations;
+                        Debug.Assert(lastParameterType.Type.IsReadOnlySpan());
+                        AddPlaceholderReplacement(
+                            collectionBuilderElementsPlaceholder,
+                            collectionBuilderElementsPlaceholder,
+                            result: new VisitResult(
+                                lastParameterType.Type,
+                                lastParameterType.NullableAnnotation,
+                                NullableFlowState.NotNull));
+
+                        completion(argumentResults, constructed.Parameters, constructed);
+
+                        RemovePlaceholderReplacement(collectionBuilderElementsPlaceholder);
+                    };
                 }
                 else
                 {
@@ -4048,6 +4108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithState convertCollection(
                 BoundCollectionExpression node,
                 TypeWithAnnotations targetCollectionType,
+                Action<TypeSymbol>? collectionCreationCompletion,
                 ArrayBuilder<Func<TypeWithAnnotations, TypeSymbol, TypeWithState>> completions)
             {
                 var strippedTargetCollectionType = targetCollectionType.Type.StrippedType();
@@ -4061,105 +4122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Now that we know the final type of the collection, use that to properly reanalyze the arguments
                 // passed to a with(...) element if present.
-                var collectionCreation = node.GetUnconvertedCollectionCreation();
-                if (collectionCreation is BoundObjectCreationExpression { WasTargetTyped: true } objectCreation)
-                {
-                    // In the case of a constructor we will have recursed into the BoundObjectCreationExpression
-                    // already. because the constructor was target typed, this will have registered 'completions' to go
-                    // reanalyze the arguments properly once we know the final collection type.  Call into the
-                    // VisitConversion helper to do that reanalysis.  (Effectively, the `with(...)` is treated as
-                    // `new(...)` that is being converted to the final collection type.)
-                    VisitConversion(
-                        conversionOpt: null,
-                        objectCreation,
-                        Conversion.Identity,
-                        targetCollectionType,
-                        _visitResult.RValueType,
-                        checkConversion: true,
-                        fromExplicitCast: false,
-                        useLegacyWarnings: false,
-                        parameterOpt: null,
-                        assignmentKind: AssignmentKind.Assignment);
-                }
-                else if (collectionCreation is BoundCall { Method.Arity: > 0 } call)
-                {
-                    // BoundCalls are calls to CollectionBuilder factory methods.  In the case where they are generic,
-                    // our first pass will have substituted oblivious types in the type signature for the type
-                    // arguments.  So we'll have a signature like:
-                    //
-                    //      SomeCollection<X~,Y~> Create<X~,Y~>(...X~..., ReadOnlySpan<ElementType> t).
-                    //
-                    // Now that we have determined the real final collection type (say `SomeCollection<X!, Y?>`) we need
-                    // to go back through and reanalyze the arguments to the BoundCall with the proper substitutions for
-                    // X and Y.
-                    //
-                    // Note: the language requires (and our conversion logic ensures) that the creation method has the
-                    // same arity as the collection type.  So in order to get the final creation method we just need to
-                    // take the final collection type and use its type arguments to re-construct the creation method.
-
-                    // Ensure we're in a safe place to recurse back into the arguments.
-#if DEBUG
-                    var safe_completingTargetTypedExpression = _completingTargetTypedExpression;
-                    _completingTargetTypedExpression = false;
-#endif
-
-                    var allTypeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-                    ((NamedTypeSymbol)strippedTargetCollectionType).GetAllTypeArgumentsNoUseSiteDiagnostics(allTypeArguments);
-
-                    var collectionBuilderElementsPlaceholder = node.GetCollectionBuilderElementsPlaceholder();
-                    Debug.Assert(collectionBuilderElementsPlaceholder != null);
-                    Debug.Assert(allTypeArguments.Count == call.Method.Arity, "Guaranteed by GetCollectionBuilderMethods");
-                    var constructed = call.Method.ConstructedFrom.Construct(allTypeArguments.ToImmutableAndFree());
-
-                    // Ensure the placeholder is swapped out so we see its final type correctly when reanalyzing the arguments.
-                    var lastParameterType = constructed.Parameters[^1].TypeWithAnnotations;
-                    Debug.Assert(lastParameterType.Type.IsReadOnlySpan());
-                    AddPlaceholderReplacement(
-                        collectionBuilderElementsPlaceholder,
-                        collectionBuilderElementsPlaceholder,
-                        result: new VisitResult(
-                            lastParameterType.Type,
-                            lastParameterType.NullableAnnotation,
-                            NullableFlowState.NotNull));
-
-                    VisitArguments(
-                        node,
-                        call.Arguments,
-                        call.ArgumentRefKindsOpt,
-                        constructed.Parameters,
-                        call.ArgsToParamsOpt,
-                        call.DefaultArguments,
-                        call.Expanded,
-                        call.InvokedAsExtensionMethod,
-                        member: constructed,
-                        delayCompletionForTargetMember: false);
-
-                    RemovePlaceholderReplacement(collectionBuilderElementsPlaceholder);
-
-#if DEBUG
-                    _completingTargetTypedExpression = safe_completingTargetTypedExpression;
-#endif
-                }
-                else
-                {
-                    // In these cases we don't have arguments we need to renalyze with new nullable information.
-                    //
-                    // 1. 'null' is when we have a type that doesn't even support 'with' (like span/array).
-                    // 2. BoundNewT is for `new TypeParameter()` which never has arguments that could even be affected
-                    //    by nullability.
-                    // 3. BoundBadExpression is for error cases, and we don't actually have a real constructor/factory
-                    //    method that we need to reanalyze nullability for.
-                    // 4. BoundObjectCreation(wasTargetTyped = false).  When we have a `with(...)` passed to IList<T>.
-                    //    This takes no generic type arguments, so there's no need to reanalyze arguments there.
-                    // 5. BoundCall(arity = 0).  When we have a collection builder, but it's not generic, so we don't
-                    //   need to do any reinference or checking of arguments.
-                    Debug.Assert(collectionCreation
-                        is null
-                        or BoundNewT
-                        or BoundBadExpression
-                        or BoundObjectCreationExpression { WasTargetTyped: false }
-                        or BoundCall { Method.Arity: 0 });
-                }
+                collectionCreationCompletion?.Invoke(strippedTargetCollectionType);
 
                 foreach (var completion in completions)
                 {
