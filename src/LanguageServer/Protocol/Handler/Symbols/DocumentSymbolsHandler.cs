@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 /// </summary>
 [ExportCSharpVisualBasicStatelessLspService(typeof(DocumentSymbolsHandler)), Shared]
 [Method(Methods.TextDocumentDocumentSymbolName)]
-internal sealed class DocumentSymbolsHandler : ILspServiceDocumentRequestHandler<RoslynDocumentSymbolParams, SumType<DocumentSymbol[], SymbolInformation[]>>
+internal sealed partial class DocumentSymbolsHandler : ILspServiceDocumentRequestHandler<RoslynDocumentSymbolParams, SumType<DocumentSymbol[], SymbolInformation[]>>
 {
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => true;
@@ -51,6 +51,17 @@ internal sealed class DocumentSymbolsHandler : ILspServiceDocumentRequestHandler
     internal static async Task<SumType<DocumentSymbol[], SymbolInformation[]>> GetDocumentSymbolsAsync(
         Document document, bool useHierarchicalSymbols, bool supportsVSExtensions, CancellationToken cancellationToken)
     {
+        // For hierarchical symbols in C#, use the syntax walker for proper namespace support
+        if (useHierarchicalSymbols && document.Project.Language == LanguageNames.CSharp)
+        {
+            var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (syntaxRoot == null)
+                return Array.Empty<DocumentSymbol>();
+
+            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            return GetHierarchicalDocumentSymbolsFromSyntax(syntaxRoot, sourceText, cancellationToken);
+        }
+
         var navBarService = document.Project.Services.GetRequiredService<INavigationBarItemService>();
         var navBarItems = await navBarService.GetItemsAsync(document, supportsCodeGeneration: false, frozenPartialSemantics: false, cancellationToken).ConfigureAwait(false);
         if (navBarItems.IsEmpty)

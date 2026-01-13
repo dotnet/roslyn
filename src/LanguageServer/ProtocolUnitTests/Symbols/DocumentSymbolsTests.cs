@@ -23,7 +23,7 @@ public sealed class DocumentSymbolsTests : AbstractLanguageServerProtocolTests
     {
         var markup =
             """
-            namespace Test;
+            {|namespace:namespace {|namespaceSelection:Test|};
 
             {|class:class {|classSelection:A|}
             {
@@ -36,7 +36,7 @@ public sealed class DocumentSymbolsTests : AbstractLanguageServerProtocolTests
                 }|}
 
                 {|operator:static A {|operatorSelection:operator +|}(A a1, A a2) => a1;|}
-            }|}
+            }|}|}
             """;
         var clientCapabilities = new LSP.ClientCapabilities()
         {
@@ -49,12 +49,13 @@ public sealed class DocumentSymbolsTests : AbstractLanguageServerProtocolTests
             }
         };
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
-        var classSymbol = CreateDocumentSymbol(LSP.SymbolKind.Class, "A", "Test.A", testLspServer.GetLocations("class").Single(), testLspServer.GetLocations("classSelection").Single());
-        var constructorSymbol = CreateDocumentSymbol(LSP.SymbolKind.Method, "A", "A()", testLspServer.GetLocations("constructor").Single(), testLspServer.GetLocations("constructorSelection").Single(), classSymbol);
+        var namespaceSymbol = CreateDocumentSymbol(LSP.SymbolKind.Namespace, "Test", "Test", testLspServer.GetLocations("namespace").Single(), testLspServer.GetLocations("namespaceSelection").Single());
+        var classSymbol = CreateDocumentSymbol(LSP.SymbolKind.Class, "A", "A", testLspServer.GetLocations("class").Single(), testLspServer.GetLocations("classSelection").Single(), namespaceSymbol);
+        var constructorSymbol = CreateDocumentSymbol(LSP.SymbolKind.Constructor, "A", "A()", testLspServer.GetLocations("constructor").Single(), testLspServer.GetLocations("constructorSelection").Single(), classSymbol);
         var methodSymbol = CreateDocumentSymbol(LSP.SymbolKind.Method, "M", "M()", testLspServer.GetLocations("method").Single(), testLspServer.GetLocations("methodSelection").Single(), classSymbol);
         var operatorSymbol = CreateDocumentSymbol(LSP.SymbolKind.Operator, "operator +", "operator +(A a1, A a2)", testLspServer.GetLocations("operator").Single(), testLspServer.GetLocations("operatorSelection").Single(), classSymbol);
 
-        LSP.DocumentSymbol[] expected = [classSymbol];
+        LSP.DocumentSymbol[] expected = [namespaceSymbol];
 
         var results = await RunGetDocumentSymbolsAsync<LSP.DocumentSymbol[]>(testLspServer);
         Assert.NotNull(results);
@@ -141,9 +142,10 @@ public sealed class DocumentSymbolsTests : AbstractLanguageServerProtocolTests
     {
         var markup =
             """
-            namepsace NamespaceA
+            namespace NamespaceA
             {
                 public class
+            }
             """;
         var clientCapabilities = new LSP.ClientCapabilities()
         {
@@ -158,11 +160,14 @@ public sealed class DocumentSymbolsTests : AbstractLanguageServerProtocolTests
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
 
-        var results = await RunGetDocumentSymbolsAsync<LSP.SymbolInformation[]>(testLspServer).ConfigureAwait(false);
+        var results = await RunGetDocumentSymbolsAsync<LSP.DocumentSymbol[]>(testLspServer).ConfigureAwait(false);
         Assert.NotNull(results);
-#pragma warning disable CS0618 // Type or member is obsolete
-        Assert.Equal(".", results.First().Name);
-#pragma warning restore CS0618
+        // The namespace "NamespaceA" is the top-level symbol with the empty-named class as a child
+        Assert.Single(results);
+        Assert.Equal("NamespaceA", results[0].Name);
+        Assert.NotNull(results[0].Children);
+        Assert.Single(results[0].Children!);
+        Assert.Equal(".", results[0].Children![0].Name);
     }
 
     [Theory, CombinatorialData]
@@ -180,7 +185,7 @@ public sealed class DocumentSymbolsTests : AbstractLanguageServerProtocolTests
     {
         var markup =
             """
-            namespace Test;
+            {|namespace:namespace {|namespaceSelection:Test|};
             {|class:class {|classSelection:A|}
             {
                 {|method:void {|methodSelection:M|}()
@@ -189,7 +194,7 @@ public sealed class DocumentSymbolsTests : AbstractLanguageServerProtocolTests
                     {
                     }|}
                 }|}
-            }|}
+            }|}|}
             """;
         var clientCapabilities = new LSP.ClientCapabilities()
         {
@@ -203,11 +208,12 @@ public sealed class DocumentSymbolsTests : AbstractLanguageServerProtocolTests
         };
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
-        var classSymbol = CreateDocumentSymbol(LSP.SymbolKind.Class, "A", "Test.A", testLspServer.GetLocations("class").Single(), testLspServer.GetLocations("classSelection").Single());
+        var namespaceSymbol = CreateDocumentSymbol(LSP.SymbolKind.Namespace, "Test", "Test", testLspServer.GetLocations("namespace").Single(), testLspServer.GetLocations("namespaceSelection").Single());
+        var classSymbol = CreateDocumentSymbol(LSP.SymbolKind.Class, "A", "A", testLspServer.GetLocations("class").Single(), testLspServer.GetLocations("classSelection").Single(), namespaceSymbol);
         var methodSymbol = CreateDocumentSymbol(LSP.SymbolKind.Method, "M", "M()", testLspServer.GetLocations("method").Single(), testLspServer.GetLocations("methodSelection").Single(), classSymbol);
-        var localFunctionSymbol = CreateDocumentSymbol(LSP.SymbolKind.Method, "LocalFunction", "LocalFunction()", testLspServer.GetLocations("localFunction").Single(), testLspServer.GetLocations("localFunctionSelection").Single(), methodSymbol);
+        var localFunctionSymbol = CreateDocumentSymbol(LSP.SymbolKind.Function, "LocalFunction", "LocalFunction()", testLspServer.GetLocations("localFunction").Single(), testLspServer.GetLocations("localFunctionSelection").Single(), methodSymbol);
 
-        LSP.DocumentSymbol[] expected = [classSymbol];
+        LSP.DocumentSymbol[] expected = [namespaceSymbol];
 
         var results = await RunGetDocumentSymbolsAsync<LSP.DocumentSymbol[]>(testLspServer);
         Assert.NotNull(results);
