@@ -3887,7 +3887,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         NullableFlowState.NotNull));
             }
 
-            Visit(node.CollectionCreation);
+            var collectionCreationCompletion = visitCollectionCreationArguments(node);
 
             if (collectionBuilderElementsPlaceholder != null)
                 RemovePlaceholderReplacement(collectionBuilderElementsPlaceholder);
@@ -3907,7 +3907,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We're in the context of a conversion, so the analysis of element conversions and the final visit result
                 // will be completed later (when that conversion is processed).
                 TargetTypedAnalysisCompletion[node] =
-                    (TypeWithAnnotations resultTypeWithAnnotations) => convertCollection(node, resultTypeWithAnnotations, elementConversionCompletions);
+                    (TypeWithAnnotations resultTypeWithAnnotations) => convertCollection(
+                        node, resultTypeWithAnnotations, collectionCreationCompletion, elementConversionCompletions);
             }
             else
             {
@@ -3922,6 +3923,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             SetResult(node, visitResult, updateAnalyzedNullability: !node.WasTargetTyped, isLvalue: false);
             return null;
+
+            ArgumentsCompletionDelegate<MethodSymbol> visitCollectionCreationArguments(BoundCollectionExpression node)
+            {
+                var collectionCreation = node.GetUnconvertedCollectionCreation();
+                if (collectionCreation is BoundObjectCreationExpression objectCreation)
+                {
+                    var (member, results, returnNotNull, completion) = this.VisitArguments(
+                        objectCreation,
+                        objectCreation.Arguments,
+                        objectCreation.ArgumentRefKindsOpt,
+                        objectCreation.Constructor.Parameters,
+                        objectCreation.ArgsToParamsOpt,
+                        objectCreation.DefaultArguments,
+                        objectCreation.Expanded,
+                        invokedAsExtensionMethod: false,
+                        objectCreation.Constructor,
+                        delayCompletionForTargetMember: true);
+                    return completion;
+                }
+                else if (collectionCreation is BoundCall call)
+                {
+                    var (_, _, completion) = this.VisitArguments();
+                    return completion;
+                }
+                else
+                {
+                    return null;
+                }
+            }
 
             void visitElement(BoundNode element, BoundCollectionExpression node, TypeWithAnnotations targetElementType, ArrayBuilder<Func<TypeWithAnnotations, TypeSymbol, TypeWithState>> elementConversionCompletions)
             {
@@ -4015,7 +4045,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            TypeWithState convertCollection(BoundCollectionExpression node, TypeWithAnnotations targetCollectionType, ArrayBuilder<Func<TypeWithAnnotations, TypeSymbol, TypeWithState>> completions)
+            TypeWithState convertCollection(
+                BoundCollectionExpression node,
+                TypeWithAnnotations targetCollectionType,
+                ArrayBuilder<Func<TypeWithAnnotations, TypeSymbol, TypeWithState>> completions)
             {
                 var strippedTargetCollectionType = targetCollectionType.Type.StrippedType();
                 Debug.Assert(TypeSymbol.Equals(strippedTargetCollectionType, node.Type, TypeCompareKind.AllIgnoreOptions));
