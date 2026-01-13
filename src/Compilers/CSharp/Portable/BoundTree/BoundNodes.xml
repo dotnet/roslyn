@@ -1954,6 +1954,12 @@
     <!-- Collection builder method being invoked. Null for all other collection expression types. If generic, this will
          be the constructed form.   -->
     <Field Name="CollectionBuilderMethod" Type="MethodSymbol?" Null="allow"/>
+    <!-- Placeholder location where the collection builder elements will be placed.  Null for all other collection
+         expression types.  For example, if the collection is `[with(a, b, c), x, y, z]` initial binding will produce
+         `Factory.Create(a, b, c, <placeholder>)`.  The last arg will be replaced in lowering with the ReadOnlySpan for
+         and will naturally be visited during all binding phases.  It is just the packaging and movement into the final
+         arg that the lowering phase concerns itself with. -->
+    <Field Name="CollectionBuilderElementsPlaceholder" Type="BoundCollectionBuilderElementsPlaceholder?" Null="allow" SkipInVisitor="true"/>
     <Field Name="WasTargetTyped" Type="bool" />
     <Field Name="HasWithElement" Type="bool" />
     <Field Name="UnconvertedCollectionExpression" Type="BoundUnconvertedCollectionExpression" Null="disallow" SkipInVisitor="true"/>

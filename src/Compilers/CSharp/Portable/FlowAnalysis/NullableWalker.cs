@@ -3960,7 +3960,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (collectionCreation is BoundCall call)
                 {
-                    var collectionBuilderElementsPlaceholder = node.GetCollectionBuilderElementsPlaceholder();
+                    var collectionBuilderElementsPlaceholder = node.CollectionBuilderElementsPlaceholder;
                     Debug.Assert(collectionBuilderElementsPlaceholder != null);
 
                     AddPlaceholderReplacement(

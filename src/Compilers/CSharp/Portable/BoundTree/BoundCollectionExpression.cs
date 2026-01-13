@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private partial void Validate()
         {
             var collectionCreation = this.GetUnconvertedCollectionCreation();
-            var collectionBuilderElementsPlaceholder = this.GetCollectionBuilderElementsPlaceholder();
+            var collectionBuilderElementsPlaceholder = this.CollectionBuilderElementsPlaceholder;
 
             if (collectionCreation is BoundCall boundCall)
             {
@@ -66,29 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or BoundBadExpression);
 
             return collectionCreation;
-        }
-
-        /// <summary>
-        /// If this is a collection expression targeting a collection builder factory method, then gets the final <see
-        /// cref="ReadOnlySpan{T}"/> argument that passes along the elements to the factory method. <see
-        /// langword="null"/> for all other collection expression types.For example, if the collection is <c>[with(a, b,
-        /// c), x, y, z]</c> initial binding will produce <c>Factory.Create(a, b, c, 'placeholder')</c>.  The last arg
-        /// will be replaced in lowering with the ReadOnlySpan for and will naturally be visited during all binding
-        /// phases. It is just the packaging and movement into the final arg that the lowering phase concerns itself
-        /// with.
-        /// </summary>
-        public BoundCollectionBuilderElementsPlaceholder? GetCollectionBuilderElementsPlaceholder()
-        {
-            var collectionCreation = this.GetUnconvertedCollectionCreation();
-
-            if (collectionCreation is BoundCall boundCall)
-            {
-                Debug.Assert(
-                    boundCall.Arguments is [.., BoundCollectionBuilderElementsPlaceholder]);
-                return (BoundCollectionBuilderElementsPlaceholder)boundCall.Arguments[^1];
-            }
-
-            return null;
         }
     }
 
