@@ -6983,7 +6983,7 @@ class Program
     static void Main()
     {
         Test1(15);
-        Test1(16);
+        Test2(16);
     }
 
     static S1? Test1(byte x1)
