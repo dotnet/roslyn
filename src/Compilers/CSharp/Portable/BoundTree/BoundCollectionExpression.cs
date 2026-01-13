@@ -3,8 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using static Microsoft.CodeAnalysis.PooledObjects.ObjectPool<T>;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -70,7 +73,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// If this is a collection expression targeting a collection builder factory method, then gets the final <see
-        /// cref="ReadOnlySpan{T}"/> argument that passes along the elements to the factory method.
+        /// cref="ReadOnlySpan{T}"/> argument that passes along the elements to the factory method. <see
+        /// langword="null"/> for all other collection expression types.For example, if the collection is <c>[with(a, b,
+        /// c), x, y, z]</c> initial binding will produce <c>Factory.Create(a, b, c, 'placeholder')</c>.  The last arg
+        /// will be replaced in lowering with the ReadOnlySpan for and will naturally be visited during all binding
+        /// phases. It is just the packaging and movement into the final arg that the lowering phase concerns itself
+        /// with.
         /// </summary>
         public BoundCollectionBuilderElementsPlaceholder? GetCollectionBuilderElementsPlaceholder()
         {
