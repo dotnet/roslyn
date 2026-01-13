@@ -9,7 +9,16 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundCollectionExpression
     {
         /// <summary>
-        /// Returns <see cref="CollectionCreation"/> with any outer <see cref="BoundConversion"/> nodes unwrapped.
+        /// Returns <see cref="CollectionCreation"/> with any outer <see cref="BoundConversion"/> nodes unwrapped. The
+        /// final returned <see cref="BoundExpression"/> will either be:
+        /// <list type="bullet">
+        /// <item><see langword="null"/> (when no <c>with(...)</c> element is present),</item>
+        /// <item>a <see cref="BoundObjectCreationExpression"/> (when targeting a collection with a constructor),</item>
+        /// <item>a <see cref="BoundCall"/> (when targeting a CollectionBuilder method),</item>
+        /// <item>a <see cref="BoundNewT"/> (when targeting a type parameter with the <c>new()</c> constraint,</item>
+        /// <item>or a <see cref="BoundBadExpression"/> in the case of errors where the <c>with(...)</c> element does
+        /// not bind properly.</item>
+        /// </list>
         /// </summary>
         public BoundExpression? GetUnconvertedCollectionCreation()
         {
