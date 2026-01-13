@@ -121,7 +121,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     var serviceBrokerFactory = exportProvider.GetExportedValue<ServiceBrokerFactory>();
     StarredCompletionAssemblyHelper.InitializeInstance(serverConfiguration.StarredCompletionsPath, extensionManager, loggerFactory, serviceBrokerFactory);
-    
+
     LanguageServerHost? server = null;
     if (serverConfiguration.UseStdIo)
     {
