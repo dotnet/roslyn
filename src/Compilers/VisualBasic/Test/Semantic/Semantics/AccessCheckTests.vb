@@ -776,6 +776,12 @@ End Class
             Assert.True(compilation.IsSymbolAccessibleWithin(aarrayType, sourceAssem))
             Assert.False(Symbol.IsSymbolAccessible(karrayType, sourceAssem))
             Assert.False(compilation.IsSymbolAccessibleWithin(karrayType, sourceAssem))
+#If Not DEBUG Then
+            Assert.False(Symbol.IsSymbolAccessible(classA, mscorlibAssem))
+            Assert.False(compilation.IsSymbolAccessibleWithin(classA, mscorlibAssem))
+            Assert.False(Symbol.IsSymbolAccessible(aliasA, mscorlibAssem))
+            Assert.False(compilation.IsSymbolAccessibleWithin(aliasA, mscorlibAssem))
+#End If
             Assert.True(Symbol.IsSymbolAccessible(unknownType, sourceAssem))
             Assert.True(compilation.IsSymbolAccessibleWithin(unknownType, sourceAssem))
             Assert.True(Symbol.IsSymbolAccessible(mscorlibAssem, sourceAssem))
