@@ -23,12 +23,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers;
 /// A completion provider for offering <see langword="await"/> keyword.
 /// This is implemented separately, not as a keyword recommender as it contains extra logic for making container method async.
 /// </summary>
-internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
+internal abstract class AbstractAwaitCompletionProvider : AbstractAsyncSupportingCompletionProvider
 {
-    private const string Position = nameof(Position);
-    private const string LeftTokenPosition = nameof(LeftTokenPosition);
     private const string AppendConfigureAwait = nameof(AppendConfigureAwait);
-    private const string MakeContainerAsync = nameof(MakeContainerAsync);
 
     /// <summary>
     /// If 'await' should be placed at the current position.  If not present, it means to add 'await' prior 
@@ -55,11 +52,6 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
         _awaitfDisplayText = $"{_awaitKeyword}f";
         _awaitfFilterText = $"{_awaitKeyword}F"; // Uppercase F to select "awaitf" if "af" is written.
     }
-
-    protected abstract int GetAsyncKeywordInsertionPosition(SyntaxNode declaration);
-    protected abstract Task<TextChange?> GetReturnTypeChangeAsync(Solution solution, SemanticModel semanticModel, SyntaxNode declaration, CancellationToken cancellationToken);
-
-    protected abstract SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken leftToken, int position);
 
     protected abstract ITypeSymbol? GetTypeSymbolOfExpression(SemanticModel semanticModel, SyntaxNode potentialAwaitableExpression, CancellationToken cancellationToken);
     protected abstract SyntaxNode? GetExpressionToPlaceAwaitInFrontOf(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
@@ -102,7 +94,7 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
 
         var makeContainerAsync = declaration is not null && !SyntaxGenerator.GetGenerator(document).GetModifiers(declaration).IsAsync;
         if (makeContainerAsync)
-            builder.Add(KeyValuePair.Create(MakeContainerAsync, string.Empty));
+            builder.Add(KeyValuePair.Create(AddModifiers, string.Empty));
 
         if (isAwaitKeywordContext)
         {
@@ -161,48 +153,10 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
         }
     }
 
-    public sealed override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
+    protected override async Task<(TextChange textChange, ImmutableArray<TextChange> allChanges)> GetCompletionTextChangesAsync(
+        Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
     {
-        // IsComplexTextEdit is true when we want to add async to the container or place await in front of the expression.
-        if (!item.IsComplexTextEdit)
-            return await base.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
-
         using var _ = ArrayBuilder<TextChange>.GetInstance(out var builder);
-
-        var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-        var syntaxKinds = syntaxFacts.SyntaxKinds;
-
-        if (item.TryGetProperty(MakeContainerAsync, out var _))
-        {
-            var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var position = int.Parse(item.GetProperty(Position));
-            var leftTokenPosition = int.Parse(item.GetProperty(LeftTokenPosition));
-            var declaration = GetAsyncSupportingDeclaration(root.FindToken(leftTokenPosition), position);
-            if (declaration is null)
-            {
-                // IsComplexTextEdit should only be true when GetAsyncSupportingDeclaration returns non-null.
-                // This is ensured by the ShouldMakeContainerAsync overrides.
-                Debug.Fail("Expected non-null value for declaration.");
-                return await base.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
-            }
-
-            // Add the 'async' modifier at the appropriate location.
-            var asyncChange = new TextChange(new TextSpan(GetAsyncKeywordInsertionPosition(declaration), 0), syntaxFacts.GetText(syntaxKinds.AsyncKeyword) + " ");
-
-            // Try to fixup the return type to be task-like if needed.
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var returnTypeChange = await GetReturnTypeChangeAsync(
-                document.Project.Solution, semanticModel, declaration, cancellationToken).ConfigureAwait(false);
-            var addImportsChanges = returnTypeChange == null
-                ? []
-                : await ImportCompletionProviderHelpers.GetAddImportTextChangesAsync(
-                    document, leftTokenPosition, "System.Threading.Tasks", cancellationToken).ConfigureAwait(false);
-
-            builder.AddRange(addImportsChanges);
-            builder.Add(asyncChange);
-            builder.AddIfNotNull(returnTypeChange);
-        }
 
         if (item.TryGetProperty(AddAwaitAtCurrentPosition, out var _))
         {
@@ -210,6 +164,7 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
         }
         else
         {
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var position = item.Span.Start;
             var dotToken = GetDotTokenLeftOfPosition(syntaxTree, position, cancellationToken);
             var expr = GetExpressionToPlaceAwaitInFrontOf(syntaxTree, position, cancellationToken);
@@ -228,13 +183,9 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
             builder.Add(new TextChange(TextSpan.FromBounds(dotToken.Value.SpanStart, item.Span.End), replacementText));
         }
 
-        var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-        var newText = text.WithChanges(builder);
         var allChanges = builder.ToImmutable();
-
-        // Collapse all text changes down to a single change (for clients that only care about that), but also keep
-        // all the individual changes around for clients that prefer the fine-grained information.
-        return CompletionChange.Create(Utilities.Collapse(newText, allChanges), allChanges);
+        var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+        return (Utilities.Collapse(text.WithChanges(allChanges), allChanges), allChanges);
     }
 
     /// <summary>
