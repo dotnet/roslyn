@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -581,6 +582,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                     Contract.ThrowIfTrue(_currentNumberOfCallbacks > _expectedNumberOfCallbacks, "received too many callbacks");
 
                     var diagnosticParams = input.ToObject<LSP.PublishDiagnosticParams>();
+                    Assumes.Present(diagnosticParams);
                     Results.Add(diagnosticParams);
 
                     if (_currentNumberOfCallbacks == _expectedNumberOfCallbacks)
