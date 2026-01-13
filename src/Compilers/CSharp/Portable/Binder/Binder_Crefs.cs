@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             int arity = 0;
             TypeArgumentListSyntax? typeArgumentListSyntax = null;
-            CrefParameterListSyntax? parameters = null;
+            BaseCrefParameterListSyntax? parameters = null;
             string? memberName = null;
 
             if (syntax.Member is NameMemberCrefSyntax { Name: SimpleNameSyntax simpleName } nameMember)
@@ -242,7 +242,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 memberName = GetOperatorMethodName(operatorSyntax);
                 parameters = operatorSyntax.Parameters;
             }
-            // PROTOTYPE handle IndexerMemberCrefSyntax and check for LangVersion
+            else if (syntax.Member is IndexerMemberCrefSyntax indexerSyntax)
+            {
+                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureExtensionIndexers, diagnostics);
+                memberName = WellKnownMemberNames.Indexer;
+                parameters = indexerSyntax.Parameters;
+            }
 
             if (memberName == null)
             {
@@ -327,7 +332,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     foreach (var candidate in candidates)
                     {
-                        // PROTOTYPE we should find all the members supported in latest LangVer, but report if they require a new LangVer than current
                         if (!SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(candidate, LanguageVersion.Preview))
                         {
                             continue;

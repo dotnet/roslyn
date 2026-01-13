@@ -4364,7 +4364,6 @@ static class E
     {
         var src = """
 /// <see cref="E.extension(int).this[string]"/>
-/// <see cref="E.extension(int).Item(string)"/>
 /// <see cref="E.extension(int).get_Item(string)"/>
 /// <see cref="E.extension(int).get_Item"/>
 /// <see cref="E.extension(int).set_Item(string, int)"/>
@@ -4373,10 +4372,13 @@ static class E
 /// <see cref="E.get_Item"/>
 /// <see cref="E.set_Item(int, string, int)"/>
 /// <see cref="E.set_Item"/>
-static class E
+/// <see cref="E.extension(int).this[]"/>
+/// <see cref="E.extension(int).Item(string)"/>
+public static class E
 {
     extension(int i)
     {
+        /// <summary></summary>
         public int this[string s]
         {
             get => throw null;
@@ -4385,21 +4387,19 @@ static class E
     }
 }
 """;
-        // PROTOTYPE cref, we should bind `this[string]`
         var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
         comp.VerifyEmitDiagnostics(
-            // (1,16): warning CS1574: XML comment has cref attribute 'extension(int).this[string]' that could not be resolved
-            // /// <see cref="E.extension(int).this[string]"/>
-            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(int).this[string]").WithArguments("extension(int).this[string]").WithLocation(1, 16),
-            // (2,16): warning CS1574: XML comment has cref attribute 'extension(int).Item(string)' that could not be resolved
+            // (10,16): warning CS1574: XML comment has cref attribute 'extension(int).this[]' that could not be resolved
+            // /// <see cref="E.extension(int).this[]"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(int).this[]").WithArguments("extension(int).this[]").WithLocation(10, 16),
+            // (11,16): warning CS1574: XML comment has cref attribute 'extension(int).Item(string)' that could not be resolved
             // /// <see cref="E.extension(int).Item(string)"/>
-            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(int).Item(string)").WithArguments("extension(int).Item(string)").WithLocation(2, 16));
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(int).Item(string)").WithArguments("extension(int).Item(string)").WithLocation(11, 16));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         AssertEx.Equal([
-            "(E.extension(int).this[string], null)",
-            "(E.extension(int).Item(string), null)",
+            "(E.extension(int).this[string], System.Int32 E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.this[System.String s] { get; set; })",
             "(E.extension(int).get_Item(string), System.Int32 E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.this[System.String s].get)",
             "(E.extension(int).get_Item, System.Int32 E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.this[System.String s].get)",
             "(E.extension(int).set_Item(string, int), void E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.this[System.String s].set)",
@@ -4407,13 +4407,16 @@ static class E
             "(E.get_Item(int, string), System.Int32 E.get_Item(System.Int32 i, System.String s))",
             "(E.get_Item, System.Int32 E.get_Item(System.Int32 i, System.String s))",
             "(E.set_Item(int, string, int), void E.set_Item(System.Int32 i, System.String s, System.Int32 value))",
-            "(E.set_Item, void E.set_Item(System.Int32 i, System.String s, System.Int32 value))"],
+            "(E.set_Item, void E.set_Item(System.Int32 i, System.String s, System.Int32 value))",
+            "(E.extension(int).this[], null)",
+            "(E.extension(int).Item(string), null)"],
             PrintXmlCrefSymbols(tree, model));
     }
 
     [Fact]
     public void Cref_02()
     {
+        // LangVer of consuming compilation
         var libSrc = """
 public static class E
 {
@@ -4431,40 +4434,125 @@ public static class E
 
         var src = """
 /// <see cref="E.extension(int).this[string]"/>
-/// <see cref="E.extension(int).Item(string)"/>
 /// <see cref="E.extension(int).get_Item(string)"/>
-/// <see cref="E.extension(int).get_Item"/>
-/// <see cref="E.extension(int).set_Item(string, int)"/>
-/// <see cref="E.extension(int).set_Item"/>
-/// <see cref="E.get_Item(int, string)"/>
-/// <see cref="E.get_Item"/>
-/// <see cref="E.set_Item(int, string, int)"/>
-/// <see cref="E.set_Item"/>
 class C { }
 """;
-        // PROTOTYPE cref, we should bind `this[string]` and produce LangVer diagnostics
         var comp = CreateCompilation(src, references: [libComp.EmitToImageReference()], parseOptions: TestOptions.Regular14.WithDocumentationMode(DocumentationMode.Diagnose));
         comp.VerifyEmitDiagnostics(
-            // (1,16): warning CS1574: XML comment has cref attribute 'extension(int).this[string]' that could not be resolved
+            // (1,18): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // /// <see cref="E.extension(int).this[string]"/>
-            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(int).this[string]").WithArguments("extension(int).this[string]").WithLocation(1, 16),
-            // (2,16): warning CS1574: XML comment has cref attribute 'extension(int).Item(string)' that could not be resolved
-            // /// <see cref="E.extension(int).Item(string)"/>
-            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(int).Item(string)").WithArguments("extension(int).Item(string)").WithLocation(2, 16));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extension(int).this[string]").WithArguments("extension indexers").WithLocation(1, 18));
+
+        validateCrefSymbols(comp);
+
+        comp = CreateCompilation(src, references: [libComp.EmitToImageReference()], parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+        comp.VerifyEmitDiagnostics();
+
+        validateCrefSymbols(comp);
+
+        comp = CreateCompilation(src, references: [libComp.EmitToImageReference()], parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+        comp.VerifyEmitDiagnostics();
+
+        validateCrefSymbols(comp);
+
+        static void validateCrefSymbols(CSharpCompilation comp)
+        {
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            AssertEx.Equal([
+                "(E.extension(int).this[string], System.Int32 E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.this[System.String s] { get; set; })",
+                "(E.extension(int).get_Item(string), System.Int32 E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.this[System.String s].get)"],
+                PrintXmlCrefSymbols(tree, model));
+        }
+    }
+
+    [Fact]
+    public void Cref_03()
+    {
+        // [IndexerName]
+        var src = """
+/// <see cref="E.extension(int).this[string]"/>
+/// <see cref="E.extension(int).get_MyIndexer(string)"/>
+/// <see cref="E.extension(int).get_MyIndexer"/>
+/// <see cref="E.extension(int).set_MyIndexer(string, int)"/>
+/// <see cref="E.extension(int).set_MyIndexer"/>
+/// <see cref="E.get_MyIndexer(int, string)"/>
+/// <see cref="E.get_MyIndexer"/>
+/// <see cref="E.set_MyIndexer(int, string, int)"/>
+/// <see cref="E.set_MyIndexer"/>
+static class E
+{
+    extension(int i)
+    {
+        [System.Runtime.CompilerServices.IndexerName("MyIndexer")]
+        public int this[string s]
+        {
+            get => throw null;
+            set => throw null;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         AssertEx.Equal([
-            "(E.extension(int).this[string], null)",
-            "(E.extension(int).Item(string), null)",
-            "(E.extension(int).get_Item(string), System.Int32 E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.this[System.String s].get)",
-            "(E.extension(int).get_Item, System.Int32 E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.this[System.String s].get)",
-            "(E.extension(int).set_Item(string, int), void E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.this[System.String s].set)",
-            "(E.extension(int).set_Item, void E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.this[System.String s].set)",
-            "(E.get_Item(int, string), System.Int32 E.get_Item(System.Int32 i, System.String s))",
-            "(E.get_Item, System.Int32 E.get_Item(System.Int32 i, System.String s))",
-            "(E.set_Item(int, string, int), void E.set_Item(System.Int32 i, System.String s, System.Int32 value))",
-            "(E.set_Item, void E.set_Item(System.Int32 i, System.String s, System.Int32 value))"],
+            "(E.extension(int).this[string], System.Int32 E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.this[System.String s] { get; set; })",
+            "(E.extension(int).get_MyIndexer(string), System.Int32 E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.this[System.String s].get)",
+            "(E.extension(int).get_MyIndexer, System.Int32 E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.this[System.String s].get)",
+            "(E.extension(int).set_MyIndexer(string, int), void E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.this[System.String s].set)",
+            "(E.extension(int).set_MyIndexer, void E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.this[System.String s].set)",
+            "(E.get_MyIndexer(int, string), System.Int32 E.get_MyIndexer(System.Int32 i, System.String s))",
+            "(E.get_MyIndexer, System.Int32 E.get_MyIndexer(System.Int32 i, System.String s))",
+            "(E.set_MyIndexer(int, string, int), void E.set_MyIndexer(System.Int32 i, System.String s, System.Int32 value))",
+            "(E.set_MyIndexer, void E.set_MyIndexer(System.Int32 i, System.String s, System.Int32 value))"],
+            PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_04()
+    {
+        // generic
+        var src = """
+/// <see cref="E.extension{U}(int).this[U]"/>
+/// <see cref="E.extension{U}(int).get_Item(U)"/>
+/// <see cref="E.extension{U}(int).get_Item"/>
+/// <see cref="E.extension{U}(int).set_Item(U, int)"/>
+/// <see cref="E.extension{U}(int).set_Item"/>
+/// <see cref="E.get_Item{U}(int, U)"/>
+/// <see cref="E.get_Item"/>
+/// <see cref="E.set_Item{U}(int, U, int)"/>
+/// <see cref="E.set_Item"/>
+public static class E
+{
+    extension<T>(int i)
+    {
+        /// <summary></summary>
+        public int this[T t]
+        {
+            get => throw null;
+            set => throw null;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal([
+            "(E.extension{U}(int).this[U], System.Int32 E.<G>$B8D310208B4544F25EEBACB9990FC73B<U>.this[U t] { get; set; })",
+            "(E.extension{U}(int).get_Item(U), System.Int32 E.<G>$B8D310208B4544F25EEBACB9990FC73B<U>.this[U t].get)",
+            "(E.extension{U}(int).get_Item, System.Int32 E.<G>$B8D310208B4544F25EEBACB9990FC73B<U>.this[U t].get)",
+            "(E.extension{U}(int).set_Item(U, int), void E.<G>$B8D310208B4544F25EEBACB9990FC73B<U>.this[U t].set)",
+            "(E.extension{U}(int).set_Item, void E.<G>$B8D310208B4544F25EEBACB9990FC73B<U>.this[U t].set)",
+            "(E.get_Item{U}(int, U), System.Int32 E.get_Item<U>(System.Int32 i, U t))",
+            "(E.get_Item, System.Int32 E.get_Item<T>(System.Int32 i, T t))",
+            "(E.set_Item{U}(int, U, int), void E.set_Item<U>(System.Int32 i, U t, System.Int32 value))",
+            "(E.set_Item, void E.set_Item<T>(System.Int32 i, T t, System.Int32 value))"],
             PrintXmlCrefSymbols(tree, model));
     }
 
