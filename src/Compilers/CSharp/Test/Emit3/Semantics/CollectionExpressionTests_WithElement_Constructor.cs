@@ -1437,7 +1437,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
     }
 
     [Fact]
-    public void WithElement_OverloadResolution_Ambiguous()
+    public void WithElement_OverloadResolution_BestMatch1()
     {
         var source = """
             using System;
@@ -1463,7 +1463,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
     }
 
     [Fact]
-    public void WithElement_OverloadResolution_BestMatch()
+    public void WithElement_OverloadResolution_BestMatch2()
     {
         var source = """
             using System;
@@ -1495,6 +1495,41 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             """;
 
         CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("int"));
+    }
+
+    [Fact]
+    public void WithElement_OverloadResolution_Ambiguous()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public string ConstructorUsed { get; }
+                
+                public MyList(object value1, string value2) : base()
+                {
+                    ConstructorUsed = "object/string chosen";
+                }
+                
+                public MyList(string value1, string value2) : base()
+                {
+                    ConstructorUsed = "string/object chosen";
+                }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int> list = [with("", ""), 1];
+                    Console.WriteLine(list.ConstructorUsed);
+                }
+            }
+            """;
+
+        CompileAndVerify(source).VerifyDiagnostics();
     }
 
     [Fact]
