@@ -252,6 +252,132 @@ public sealed class DocumentSymbolsTests : AbstractLanguageServerProtocolTests
         }
     }
 
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/vscode-csharp/issues/7985")]
+    public async Task TestGetDocumentSymbolsAsync_NestedNamespace(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            {|outerNamespace:namespace {|outerNamespaceSelection:Outer|}
+            {
+                {|innerNamespace:namespace {|innerNamespaceSelection:Inner|}
+                {
+                    {|class:class {|classSelection:A|}
+                    {
+                    }|}
+                }|}
+            }|}
+            """;
+        var clientCapabilities = new LSP.ClientCapabilities()
+        {
+            TextDocument = new LSP.TextDocumentClientCapabilities()
+            {
+                DocumentSymbol = new LSP.DocumentSymbolSetting()
+                {
+                    HierarchicalDocumentSymbolSupport = true
+                }
+            }
+        };
+
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
+        var outerNamespaceSymbol = CreateDocumentSymbol(LSP.SymbolKind.Namespace, "Outer", "Outer", testLspServer.GetLocations("outerNamespace").Single(), testLspServer.GetLocations("outerNamespaceSelection").Single());
+        var innerNamespaceSymbol = CreateDocumentSymbol(LSP.SymbolKind.Namespace, "Inner", "Inner", testLspServer.GetLocations("innerNamespace").Single(), testLspServer.GetLocations("innerNamespaceSelection").Single(), outerNamespaceSymbol);
+        var classSymbol = CreateDocumentSymbol(LSP.SymbolKind.Class, "A", "A", testLspServer.GetLocations("class").Single(), testLspServer.GetLocations("classSelection").Single(), innerNamespaceSymbol);
+
+        LSP.DocumentSymbol[] expected = [outerNamespaceSymbol];
+
+        var results = await RunGetDocumentSymbolsAsync<LSP.DocumentSymbol[]>(testLspServer);
+        Assert.NotNull(results);
+        Assert.Equal(expected.Length, results.Length);
+        for (var i = 0; i < results.Length; i++)
+        {
+            AssertDocumentSymbolEquals(expected[i], results[i]);
+        }
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/vscode-csharp/issues/7985")]
+    public async Task TestGetDocumentSymbolsAsync_ClassWithoutNamespace(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            {|class:class {|classSelection:A|}
+            {
+                {|method:void {|methodSelection:M|}()
+                {
+                }|}
+            }|}
+            """;
+        var clientCapabilities = new LSP.ClientCapabilities()
+        {
+            TextDocument = new LSP.TextDocumentClientCapabilities()
+            {
+                DocumentSymbol = new LSP.DocumentSymbolSetting()
+                {
+                    HierarchicalDocumentSymbolSupport = true
+                }
+            }
+        };
+
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
+        var classSymbol = CreateDocumentSymbol(LSP.SymbolKind.Class, "A", "A", testLspServer.GetLocations("class").Single(), testLspServer.GetLocations("classSelection").Single());
+        var methodSymbol = CreateDocumentSymbol(LSP.SymbolKind.Method, "M", "M()", testLspServer.GetLocations("method").Single(), testLspServer.GetLocations("methodSelection").Single(), classSymbol);
+
+        LSP.DocumentSymbol[] expected = [classSymbol];
+
+        var results = await RunGetDocumentSymbolsAsync<LSP.DocumentSymbol[]>(testLspServer);
+        Assert.NotNull(results);
+        Assert.Equal(expected.Length, results.Length);
+        for (var i = 0; i < results.Length; i++)
+        {
+            AssertDocumentSymbolEquals(expected[i], results[i]);
+        }
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/vscode-csharp/issues/7985")]
+    public async Task TestGetDocumentSymbolsAsync_NestedType(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            {|namespace:namespace {|namespaceSelection:Test|};
+
+            {|class:class {|classSelection:Outer|}
+            {
+                {|nestedEnum:enum {|nestedEnumSelection:Bar|}
+                {
+                    {|enumMember:{|enumMemberSelection:None|}|}
+                }|}
+            }|}|}
+            """;
+        var clientCapabilities = new LSP.ClientCapabilities()
+        {
+            TextDocument = new LSP.TextDocumentClientCapabilities()
+            {
+                DocumentSymbol = new LSP.DocumentSymbolSetting()
+                {
+                    HierarchicalDocumentSymbolSupport = true
+                }
+            }
+        };
+
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
+        var namespaceSymbol = CreateDocumentSymbol(LSP.SymbolKind.Namespace, "Test", "Test", testLspServer.GetLocations("namespace").Single(), testLspServer.GetLocations("namespaceSelection").Single());
+        var classSymbol = CreateDocumentSymbol(LSP.SymbolKind.Class, "Outer", "Outer", testLspServer.GetLocations("class").Single(), testLspServer.GetLocations("classSelection").Single(), namespaceSymbol);
+        var nestedEnumSymbol = CreateDocumentSymbol(LSP.SymbolKind.Enum, "Bar", "Bar", testLspServer.GetLocations("nestedEnum").Single(), testLspServer.GetLocations("nestedEnumSelection").Single(), classSymbol);
+        var enumMemberSymbol = CreateDocumentSymbol(LSP.SymbolKind.EnumMember, "None", "None", testLspServer.GetLocations("enumMember").Single(), testLspServer.GetLocations("enumMemberSelection").Single(), nestedEnumSymbol);
+
+        LSP.DocumentSymbol[] expected = [namespaceSymbol];
+
+        var results = await RunGetDocumentSymbolsAsync<LSP.DocumentSymbol[]>(testLspServer);
+        Assert.NotNull(results);
+        Assert.Equal(expected.Length, results.Length);
+        for (var i = 0; i < results.Length; i++)
+        {
+            AssertDocumentSymbolEquals(expected[i], results[i]);
+        }
+    }
+
     private static LSP.DocumentSymbol CreateDocumentSymbol(LSP.SymbolKind kind, string name, string detail,
         LSP.Location location, LSP.Location selection, LSP.DocumentSymbol? parent = null)
     {
