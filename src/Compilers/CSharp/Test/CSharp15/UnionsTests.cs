@@ -2261,6 +2261,106 @@ class Program
         }
 
         [Fact]
+        public void UnionMatching_35_TypeParameter()
+        {
+            var src = @"
+class C1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public C1(int x) { _value = x; }
+    public C1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new C1(1)));
+        System.Console.Write(Test2(new C1(""2"")));
+        System.Console.Write(Test3(new C1(3)));
+        System.Console.Write(Test4(new C1(4)));
+    }
+
+    static bool Test1<T>(T u) where T : C1
+    {
+        return u is int;
+    }   
+
+    static bool Test2<T>(T u) where T : C1
+    {
+        return u is string;
+    }   
+
+    static bool Test3<T>(T u) where T : C1
+    {
+        return u is long;
+    }   
+
+    static bool Test4<T>(T u) where T : C1
+    {
+        return u is C1;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+
+            // PROTOTYPE: Confirm that a type parameter is never a union type, even when constrained to one.
+            var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseFalseTrue").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1<T>(T)", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  isinst     ""int""
+  IL_000b:  ldnull
+  IL_000c:  cgt.un
+  IL_000e:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test2<T>(T)", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  isinst     ""string""
+  IL_000b:  ldnull
+  IL_000c:  cgt.un
+  IL_000e:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test3<T>(T)", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  isinst     ""long""
+  IL_000b:  ldnull
+  IL_000c:  cgt.un
+  IL_000e:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test4<T>(T)", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  ldnull
+  IL_0007:  cgt.un
+  IL_0009:  ret
+}
+");
+        }
+
+        [Fact]
         public void PatternWrongType_TypePattern_01_BindConstantPatternWithFallbackToTypePattern_UnionType_Out_UnionType_In()
         {
             var src1 = @"
@@ -7471,6 +7571,151 @@ class Program
             CompileAndVerify(comp, expectedOutput: "(int, object) {(10, )}").VerifyDiagnostics();
         }
 
+        [Fact]
+        public void UnionConversion_46_Implicit_Ambiguous_UserDefined_Conversion_Shadows()
+        {
+            var src = @"
+public struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(S2 x) => throw null;
+    public S1(string x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+
+    public static implicit operator S1(S2 x) => throw null;
+}
+
+public struct S2
+{
+    public static implicit operator S1(S2 x) => throw null;
+}
+
+class Program
+{
+    static S1 Test2(S2 x)
+    {
+        return x;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+
+            // Error duplication is tracked as https://github.com/dotnet/roslyn/issues/81984.
+            comp.VerifyDiagnostics(
+                // (20,16): error CS0457: Ambiguous user defined conversions 'S2.implicit operator S1(S2)' and 'S1.implicit operator S1(S2)' when converting from 'S2' to 'S1'
+                //         return x;
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "x").WithArguments("S2.implicit operator S1(S2)", "S1.implicit operator S1(S2)", "S2", "S1").WithLocation(20, 16),
+                // (20,16): error CS0457: Ambiguous user defined conversions 'S2.implicit operator S1(S2)' and 'S1.implicit operator S1(S2)' when converting from 'S2' to 'S1'
+                //         return x;
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "x").WithArguments("S2.implicit operator S1(S2)", "S1.implicit operator S1(S2)", "S2", "S1").WithLocation(20, 16)
+                );
+        }
+
+        [Fact]
+        public void UnionConversion_47_Cast_Emplicit_Ambiguous_UserDefined_Conversion_Shadows()
+        {
+            var src = @"
+public struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(S2 x) => throw null;
+    public S1(string x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+
+    public static explicit operator S1(S2 x) => throw null;
+}
+
+public struct S2
+{
+    public static explicit operator S1(S2 x) => throw null;
+}
+
+class Program
+{
+    static S1 Test2(S2 x)
+    {
+        return (S1)x;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+
+            comp.VerifyDiagnostics(
+                // (20,16): error CS0457: Ambiguous user defined conversions 'S2.explicit operator S1(S2)' and 'S1.explicit operator S1(S2)' when converting from 'S2' to 'S1'
+                //         return (S1)x;
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "(S1)x").WithArguments("S2.explicit operator S1(S2)", "S1.explicit operator S1(S2)", "S2", "S1").WithLocation(20, 16)
+                );
+        }
+
+        [Fact]
+        public void UnionConversion_48_Abstract_Union()
+        {
+            var src = @"
+public abstract class C1 : System.Runtime.CompilerServices.IUnion
+{
+    public C1(int x) => throw null;
+    public C1(string x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+}
+
+class Program
+{
+    static C1 Test1(int x)
+    {
+        return new C1(x);
+    }   
+
+    static C1 Test2(int x)
+    {
+        return x;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (13,16): error CS0144: Cannot create an instance of the abstract type or interface 'C1'
+                //         return new C1(x);
+                Diagnostic(ErrorCode.ERR_NoNewAbstract, "new C1(x)").WithArguments("C1").WithLocation(13, 16),
+                // (18,16): error CS0144: Cannot create an instance of the abstract type or interface 'C1'
+                //         return x;
+                Diagnostic(ErrorCode.ERR_NoNewAbstract, "x").WithArguments("C1").WithLocation(18, 16)
+                );
+        }
+
+        [Fact]
+        public void UnionConversion_49_From_Dynamic()
+        {
+            var src = @"
+public struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    public S1(int x) => throw null;
+    public S1(string x) => throw null;
+    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        try
+        {
+            Test1(1);
+        }
+        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException)
+        {
+            System.Console.WriteLine(""RuntimeBinderException caught"");
+        }
+    }
+
+    static S1 Test1(dynamic x)
+    {
+        return x;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            // Conversion from dynamic is not a union conversion.
+            CompileAndVerify(comp, expectedOutput: "RuntimeBinderException caught").VerifyDiagnostics();
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
         public void UserDefinedCast_RefStruct_Explicit()
         {
@@ -10562,3 +10807,6 @@ class Program
         }
     }
 }
+
+// PROTOTYPE: Test conversions from 'new()' and other target-typed constructs
+// PROTOTYPE: Ensure we test nullable state resulting from a struct union type nullary (no-argument) constructor invocation.

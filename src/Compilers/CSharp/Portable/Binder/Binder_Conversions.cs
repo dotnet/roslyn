@@ -2286,6 +2286,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination: analysis.FromType,
                 diagnostics: diagnostics);
 
+            if (analysis.Operator.ContainingType.IsAbstract)
+            {
+                // Report error for new of abstract type.
+                diagnostics.Add(ErrorCode.ERR_NoNewAbstract, syntax.Location, analysis.Operator.ContainingType);
+            }
+
+            // PROTOTYPE: Any other validations to perform? Perhaps we should simply bind object creation, drop the node, but keep diagnostics.
+
             var unionConversion = new BoundConversion(
                     syntax,
                     convertedOperand,
