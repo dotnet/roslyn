@@ -9377,4 +9377,95 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             targetFramework: TargetFramework.Net80,
             verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
+
+    [Fact]
+    public void ConstructibleTypeParameterNoArguments()
+    {
+        string sourceA = """
+            using System;
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main()
+                {
+                    var v = M<List<int>>(1);
+                    Console.WriteLine(v[0]);
+                }
+
+                static T M<T>(int i) where T : IList<int>, new()
+                {
+                    T t = [with(), i];
+                    return t;
+                }
+            }
+            """;
+
+        CompileAndVerify(
+            sourceA,
+            expectedOutput: IncludeExpectedOutput("1"),
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ConstructibleTypeParameterWithArgument1()
+    {
+        string sourceA = """
+            using System;
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main()
+                {
+                    var v = M<List<int>>(1);
+                    Console.WriteLine(v[0]);
+                }
+            
+                static T M<T>(int i) where T : IList<int>, new()
+                {
+                    T t = [with(i)];
+                    return t;
+                }
+            }
+            """;
+
+        CreateCompilation(sourceA, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+            // (14,16): error CS0417: 'T': cannot provide arguments when creating an instance of a variable type
+            //         T t = [with(i)];
+            Diagnostic(ErrorCode.ERR_NewTyvarWithArgs, "with(i)").WithArguments("T").WithLocation(14, 16));
+    }
+
+    [Fact]
+    public void ConstructibleTypeParameterWithArgument2()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main()
+                {
+                    var v = M<List<int>>(1);
+                    Console.WriteLine(v[0]);
+                }
+            
+                static T M<T>(int i) where T : IList<int>, new()
+                {
+                    string? s;
+                    T t = [with(s = "")];
+                    Console.WriteLine(s);
+                    return t;
+                }
+            }
+            """;
+
+        CreateCompilation(sourceA, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+            // (16,16): error CS0417: 'T': cannot provide arguments when creating an instance of a variable type
+            //         T t = [with(s = "")];
+            Diagnostic(ErrorCode.ERR_NewTyvarWithArgs, @"with(s = """")").WithArguments("T").WithLocation(16, 16));
+    }
 }
