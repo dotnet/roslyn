@@ -8994,7 +8994,11 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             
             class MyBuilder
             {
-                public static MyList<T> Create<T>(string value, ReadOnlySpan<T> items) => new(value);
+                public static MyList<T> Create<T>(string value, ReadOnlySpan<T> items)
+                {
+                    Console.WriteLine("Factory called: " + value);
+                    return new(value);
+                }
             }
             
             class C
@@ -9004,11 +9008,22 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                     MyList<int> list = [with(new C())];
                 }
 
-                public static implicit operator string(C c) => "converted";
+                public static implicit operator string(C c)
+                {
+                    Console.WriteLine("Implicit operator called");
+                    return "converted";
+                }
             }
             """;
 
-        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyIL("C.Main", """
+        CompileAndVerify(
+            source,
+            targetFramework: TargetFramework.Net100,
+            verify: Verification.FailsPEVerify,
+            expectedOutput: IncludeExpectedOutput("""
+                Implicit operator called
+                Factory called: converted
+                """)).VerifyIL("C.Main", """
             {
               // Code size       26 (0x1a)
               .maxstack  2
