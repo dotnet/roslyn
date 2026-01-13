@@ -8819,6 +8819,49 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
     {
         var source = """
             using System;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyList<T> : List<T>
+            {
+                public MyList(object value1, string value2)
+                {
+                    Console.WriteLine("object/string chosen");
+                }
+                
+                public MyList(string value1, object value2)
+                {
+                    Console.WriteLine("string/object chosen");
+                }
+            }
+            
+            class MyBuilder
+            {
+                public static MyList<T> Create<T>(object value1, string value2, ReadOnlySpan<T> items) => new(value1, value2);
+                public static MyList<T> Create<T>(string value1, object value2, ReadOnlySpan<T> items) => new(value1, value2);
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int> list = [with("", "")];
+                }
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(
+            // (29,29): error CS0121: The call is ambiguous between the following methods or properties: 'MyBuilder.Create<int>(object, string, System.ReadOnlySpan<int>)' and 'MyBuilder.Create<int>(string, object, System.ReadOnlySpan<int>)'
+            //         MyList<int> list = [with("", "")];
+            Diagnostic(ErrorCode.ERR_AmbigCall, @"with("""", """")").WithArguments("MyBuilder.Create<int>(object, string, System.ReadOnlySpan<int>)", "MyBuilder.Create<int>(string, object, System.ReadOnlySpan<int>)").WithLocation(29, 29));
+    }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_OverloadResolution_BestMatch1()
+    {
+        var source = """
+            using System;
             using System.Collections;
             using System.Collections.Generic;
             using System.Runtime.CompilerServices;
@@ -8857,7 +8900,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
     }
 
     [Fact]
-    public void WithElement_CollectionBuilder_OverloadResolution_BestMatch()
+    public void WithElement_CollectionBuilder_OverloadResolution_BestMatch2()
     {
         var source = """
             using System;
