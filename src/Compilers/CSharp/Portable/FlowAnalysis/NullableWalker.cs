@@ -4029,10 +4029,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Now that we know the final type of the collection, use that to properly reanalyze the arguments
                 // passed to a with(...) element if present.
                 var collectionCreation = node.GetUnconvertedCollectionCreation();
-                if (collectionCreation is BoundObjectCreationExpression objectCreation)
+                if (collectionCreation is BoundObjectCreationExpression { WasTargetTyped: true } objectCreation)
                 {
-                    Debug.Assert(objectCreation.WasTargetTyped);
-
                     // In the case of a constructor we will have recursed into the BoundObjectCreationExpression
                     // already. because the constructor was target typed, this will have registered 'completions' to go
                     // reanalyze the arguments properly once we know the final collection type.  Call into the
@@ -4118,8 +4116,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //    by nullability.
                     // 3. BoundBadExpression is for error cases, and we don't actually have a real constructor/factory
                     //    method that we need to reanalyze nullability for.
-                    // 4. BoundCall(arity = 0) 
-                    Debug.Assert(collectionCreation is null or BoundNewT or BoundBadExpression or BoundCall { Method.Arity: 0 });
+                    // 4. BoundObjectCreation(wasTargetTyped = false).  When we have a `with(...)` passed to IList<T>.
+                    //    This takes no generic type arguments, so there's no need to reanalyze arguments there.
+                    // 5. BoundCall(arity = 0).  When we have a collection builder, but it's not generic, so we don't
+                    //   need to do any reinference or checking of arguments.
+                    Debug.Assert(collectionCreation
+                        is null
+                        or BoundNewT
+                        or BoundBadExpression
+                        or BoundObjectCreationExpression { WasTargetTyped: false }
+                        or BoundCall { Method.Arity: 0 });
                 }
 
                 foreach (var completion in completions)
