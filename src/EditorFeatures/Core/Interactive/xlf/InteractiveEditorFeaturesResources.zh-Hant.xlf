@@ -4,57 +4,57 @@
     <body>
       <trans-unit id="Building_Project">
         <source>Building Project</source>
-        <target state="new">Building Project</target>
+        <target state="translated">正在建置專案</target>
         <note />
       </trans-unit>
       <trans-unit id="Copying_selection_to_Interactive_Window">
         <source>Copying selection to Interactive Window.</source>
-        <target state="new">Copying selection to Interactive Window.</target>
+        <target state="translated">正在將選取範圍複製到互動視窗。</target>
         <note />
       </trans-unit>
       <trans-unit id="Executing_selection_in_Interactive_Window">
         <source>Executing selection in Interactive Window.</source>
-        <target state="new">Executing selection in Interactive Window.</target>
+        <target state="translated">正在於互動視窗中執行選取範圍。</target>
         <note />
       </trans-unit>
       <trans-unit id="Interactive_host_process_platform">
         <source>Interactive host process platform</source>
-        <target state="new">Interactive host process platform</target>
+        <target state="translated">互動式主機處理序平台</target>
         <note />
       </trans-unit>
       <trans-unit id="Print_a_list_of_referenced_assemblies">
         <source>Print a list of referenced assemblies.</source>
-        <target state="new">Print a list of referenced assemblies.</target>
+        <target state="translated">列印參考組件的清單。</target>
         <note />
       </trans-unit>
       <trans-unit id="The_references_command_is_not_supported_in_this_Interactive_Window_implementation">
         <source>The references command is not supported in this Interactive Window implementation.</source>
-        <target state="new">The references command is not supported in this Interactive Window implementation.</target>
+        <target state="translated">在此互動視窗實作中不支援參考命令。</target>
         <note />
       </trans-unit>
       <trans-unit id="Reset_the_execution_environment_to_the_initial_state_keep_history">
         <source>Reset the execution environment to the initial state, keep history.</source>
-        <target state="new">Reset the execution environment to the initial state, keep history.</target>
+        <target state="translated">將執行環境重設為初始狀態，但保留記錄。</target>
         <note />
       </trans-unit>
       <trans-unit id="Reset_to_a_clean_environment_only_mscorlib_referenced_do_not_run_initialization_script">
         <source>Reset to a clean environment (only mscorlib referenced), do not run initialization script.</source>
-        <target state="new">Reset to a clean environment (only mscorlib referenced), do not run initialization script.</target>
+        <target state="translated">重設為初始環境 (僅參考 mscorlib)，不要執行初始化指令碼。</target>
         <note />
       </trans-unit>
       <trans-unit id="Resetting_execution_engine">
         <source>Resetting execution engine.</source>
-        <target state="new">Resetting execution engine.</target>
+        <target state="translated">正在重設執行引擎。</target>
         <note />
       </trans-unit>
       <trans-unit id="Resetting_Interactive">
         <source>Resetting Interactive</source>
-        <target state="new">Resetting Interactive</target>
+        <target state="translated">正在重設互動</target>
         <note />
       </trans-unit>
       <trans-unit id="The_CurrentWindow_property_may_only_be_assigned_once">
         <source>The CurrentWindow property may only be assigned once.</source>
-        <target state="new">The CurrentWindow property may only be assigned once.</target>
+        <target state="translated">CurrentWindow 屬性只能受指派一次。</target>
         <note />
       </trans-unit>
     </body>

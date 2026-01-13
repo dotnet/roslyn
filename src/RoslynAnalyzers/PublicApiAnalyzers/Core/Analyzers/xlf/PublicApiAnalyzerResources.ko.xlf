@@ -4,292 +4,292 @@
     <body>
       <trans-unit id="AddAllItemsInDocumentToTheApiTitle">
         <source>Add all items in document '{0}' to the API</source>
-        <target state="new">Add all items in document '{0}' to the API</target>
+        <target state="translated">문서 '{0}'의 모든 항목을 API에 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="AddAllItemsInProjectToTheApiTitle">
         <source>Add all items in project '{0}' to the API</source>
-        <target state="new">Add all items in project '{0}' to the API</target>
+        <target state="translated">프로젝트 '{0}'의 모든 항목을 API에 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="AddAllItemsInTheSolutionToTheApiTitle">
         <source>Add all items in the solution to the API</source>
-        <target state="new">Add all items in the solution to the API</target>
+        <target state="translated">API에 솔루션의 모든 항목 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotateInternalApiDescription">
         <source>All internal types and members should be declared with nullability annotations in InternalAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="new">All internal types and members should be declared with nullability annotations in InternalAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</target>
+        <target state="translated">모든 내부 형식 및 구성원은 InternalAPI.txt에서 Null 허용 여부 주석을 포함하여 선언되어야 합니다. 그러면 코드 검토 및 소스 제어 기록에서 API Null 허용 여부 변경 내용을 쉽게 확인할 수 있고 호환성이 손상되는 변경을 방지할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotateInternalApiMessage">
         <source>Symbol '{0}' is missing nullability annotations in the declared API</source>
-        <target state="new">Symbol '{0}' is missing nullability annotations in the declared API</target>
+        <target state="translated">선언된 API에서 '{0}' 기호에 Null 허용 여부 주석이 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotateInternalApiTitle">
         <source>Annotate nullability of internal types and members in the declared API</source>
-        <target state="new">Annotate nullability of internal types and members in the declared API</target>
+        <target state="translated">선언된 API에서 내부 형식 및 구성원의 Null 허용 여부 주석 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiDescription">
         <source>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="new">All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</target>
+        <target state="translated">모든 public 형식 및 멤버는 PublicAPI.txt에서 Null 허용 여부 주석을 포함하여 선언되어야 합니다. 그러면 코드 검토 및 소스 제어 기록에서 API Null 허용 여부 변경 내용을 쉽게 확인할 수 있고 호환성이 손상되는 변경을 방지할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiMessage">
         <source>Symbol '{0}' is missing nullability annotations in the declared API</source>
-        <target state="new">Symbol '{0}' is missing nullability annotations in the declared API</target>
+        <target state="translated">선언된 API에서 '{0}' 기호에 Null 허용 여부 주석이 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiTitle">
         <source>Annotate nullability of public types and members in the declared API</source>
-        <target state="new">Annotate nullability of public types and members in the declared API</target>
+        <target state="translated">선언된 API에서 public 형식 및 멤버의 Null 허용 여부 주석 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersMessage">
         <source>Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.</source>
-        <target state="new">Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.</target>
+        <target state="translated">'{0}' 기호가 backcompat 요구 사항인 '선택적 매개 변수가 있는 여러 오버로드를 추가하지 마세요.'를 위반합니다. 자세한 내용은 '{1}'을(를) 참조하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersTitle">
         <source>Do not add multiple public overloads with optional parameters</source>
-        <target state="new">Do not add multiple public overloads with optional parameters</target>
+        <target state="translated">선택적 매개 변수가 있는 여러 공용 오버로드를 추가하지 마세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclareInternalApiDescription">
         <source>All internal types and members should be declared in InternalAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="new">All internal types and members should be declared in InternalAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</target>
+        <target state="translated">모든 내부 형식 및 구성원은 InternalAPI.txt에서 선언해야 합니다. 이로 인해 코드 검토 및 소스 제어 기록에서 API 변경 내용을 쉽게 확인할 수 있고 큰 변경을 방지할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclareInternalApiMessage">
         <source>Symbol '{0}' is not part of the declared API</source>
-        <target state="new">Symbol '{0}' is not part of the declared API</target>
+        <target state="translated">'{0}' 기호가 선언된 API에 포함되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclareInternalApiTitle">
         <source>Add internal types and members to the declared API</source>
-        <target state="new">Add internal types and members to the declared API</target>
+        <target state="translated">선언된 API에 내부 형식 및 구성원 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiDescription">
         <source>All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="new">All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</target>
+        <target state="translated">모든 public 형식 및 멤버는 PublicAPI.txt에서 선언해야 합니다. 이로 인해 코드 검토 및 소스 제어 기록에서 API 변경 내용을 쉽게 확인할 수 있고 큰 변경을 방지할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiMessage">
         <source>Symbol '{0}' is not part of the declared public API</source>
-        <target state="new">Symbol '{0}' is not part of the declared public API</target>
+        <target state="translated">기호 '{0}'은(는) 선언된 공개 API의 일부가 아닙니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiTitle">
         <source>Add public types and members to the declared API</source>
-        <target state="new">Add public types and members to the declared API</target>
+        <target state="translated">선언된 API에 공용 형식 및 멤버 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInInternalApiFilesMessage">
         <source>The symbol '{0}' appears more than once in the internal API files</source>
-        <target state="new">The symbol '{0}' appears more than once in the internal API files</target>
+        <target state="translated">내부 API 파일에 '{0}' 기호가 두 번 이상 나타납니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInInternalApiFilesTitle">
         <source>Do not duplicate symbols in internal API files</source>
-        <target state="new">Do not duplicate symbols in internal API files</target>
+        <target state="translated">내부 API 파일에서 기호를 복제하지 마세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesMessage">
         <source>The symbol '{0}' appears more than once in the public API files</source>
-        <target state="new">The symbol '{0}' appears more than once in the public API files</target>
+        <target state="translated">'{0}' 기호가 퍼블릭 API 파일에 두 번 이상 나타납니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesTitle">
         <source>Do not duplicate symbols in public API files</source>
-        <target state="new">Do not duplicate symbols in public API files</target>
+        <target state="translated">공용 API 파일에서 기호를 복제하지 마세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableNullableInProjectToTheApiTitle">
         <source>Enable nullability annotations in the API for project '{0}'</source>
-        <target state="new">Enable nullability annotations in the API for project '{0}'</target>
+        <target state="translated">API에서 프로젝트 '{0}'에 Null 허용 여부 주석 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableNullableInTheSolutionToTheApiTitle">
         <source>Enable nullability annotations in the API for the solution</source>
-        <target state="new">Enable nullability annotations in the API for the solution</target>
+        <target state="translated">솔루션에 대한 API에서 null 허용 여부 주석 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeMessage">
         <source>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members</source>
-        <target state="new">Constructor makes its noninheritable base class inheritable, thereby exposing its protected members</target>
+        <target state="translated">생성자는 상속할 수 없는 기본 클래스를 상속할 수 있도록 만들어 보호된 멤버를 공개합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeTitle">
         <source>Constructor make noninheritable base class inheritable</source>
-        <target state="new">Constructor make noninheritable base class inheritable</target>
+        <target state="translated">생성자가 상속할 수 없는 기본 클래스를 상속할 수 있도록 만듭니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ImplicitConstructorErrorMessageName">
         <source>implicit constructor for '{0}'</source>
-        <target state="new">implicit constructor for '{0}'</target>
+        <target state="translated">'{0}'의 암시적 생성자</target>
         <note />
       </trans-unit>
       <trans-unit id="ImplicitGetAccessor">
         <source>implicit get-accessor for '{0}'</source>
-        <target state="new">implicit get-accessor for '{0}'</target>
+        <target state="translated">'{0}'의 암시적 get 접근자</target>
         <note />
       </trans-unit>
       <trans-unit id="ImplicitSetAccessor">
         <source>implicit set-accessor for '{0}'</source>
-        <target state="new">implicit set-accessor for '{0}'</target>
+        <target state="translated">'{0}'의 암시적 set 접근자</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalApiFileMissingMessage">
         <source>Internal API file '{0}' is missing or not marked as an additional analyzer file</source>
-        <target state="new">Internal API file '{0}' is missing or not marked as an additional analyzer file</target>
+        <target state="translated">내부 API 파일 '{0}'이(가) 누락되었거나 추가 분석기 파일로 표시되지 않았습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalApiFileMissingTitle">
         <source>Missing shipped or unshipped internal API file</source>
-        <target state="new">Missing shipped or unshipped internal API file</target>
+        <target state="translated">배송되거나 배송되지 않은 내부 API 파일 누락</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalApiFilesInvalidMessage">
         <source>The contents of the internal API files are invalid: {0}</source>
-        <target state="new">The contents of the internal API files are invalid: {0}</target>
+        <target state="translated">내부 API 파일의 내용이 잘못되었습니다. {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalApiFilesInvalidTitle">
         <source>The contents of the internal API files are invalid</source>
-        <target state="new">The contents of the internal API files are invalid</target>
+        <target state="translated">내부 API 파일의 내용이 잘못되었습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ObliviousInternalApiDescription">
         <source>All internal members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
-        <target state="new">All internal members should use either nullable or non-nullable reference types, but no oblivious reference types.</target>
+        <target state="translated">모든 내부 구성원은 null을 허용하거나 null을 허용하지 않는 참조 형식을 사용해야 하지만, 인식 불가능한 참조 형식은 사용하면 안 됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ObliviousInternalApiMessage">
         <source>Symbol '{0}' uses some oblivious reference types</source>
-        <target state="new">Symbol '{0}' uses some oblivious reference types</target>
+        <target state="translated">'{0}' 기호는 일부 인식 불가능한 참조 형식을 사용합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ObliviousInternalApiTitle">
         <source>Internal members should not use oblivious types</source>
-        <target state="new">Internal members should not use oblivious types</target>
+        <target state="translated">내부 구성원은 인식 불가능한 형식을 사용하면 안 됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ObliviousPublicApiDescription">
         <source>All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
-        <target state="new">All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</target>
+        <target state="translated">모든 public 멤버는 nullable 또는 nullable이 아닌 참조 형식을 사용해야 하지만, 인식 불가능한 참조 형식은 사용하면 안 됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ObliviousPublicApiMessage">
         <source>Symbol '{0}' uses some oblivious reference types</source>
-        <target state="new">Symbol '{0}' uses some oblivious reference types</target>
+        <target state="translated">'{0}' 기호는 일부 인식 불가능한 참조 형식을 사용합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ObliviousPublicApiTitle">
         <source>Public members should not use oblivious types</source>
-        <target state="new">Public members should not use oblivious types</target>
+        <target state="translated">public 멤버는 인식 불가능한 형식을 사용하면 안 됨</target>
         <note />
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersMessage">
         <source>'{0}' violates the backcompat requirement: 'API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</source>
-        <target state="new">'{0}' violates the backcompat requirement: 'API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</target>
+        <target state="translated">'{0}'이(가) backcompat 요구 사항인 '선택적 매개 변수가 있는 API는 공용 오버로드 중 가장 많은 매개 변수를 보유해야 합니다'를 위반합니다. 자세한 내용은 '{1}'을(를) 참조하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersTitle">
         <source>API with optional parameter(s) should have the most parameters amongst its public overloads</source>
-        <target state="new">API with optional parameter(s) should have the most parameters amongst its public overloads</target>
+        <target state="translated">선택적 매개 변수가 있는 API에는 공개 오버로드 중에서 가장 많은 매개 변수가 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFileMissingMessage">
         <source>Public API file '{0}' is missing or not marked as an additional analyzer file</source>
-        <target state="new">Public API file '{0}' is missing or not marked as an additional analyzer file</target>
+        <target state="translated">퍼블릭 API 파일 '{0}'이(가) 없거나 추가 분석기 파일로 표시되지 않았습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFileMissingTitle">
         <source>Missing shipped or unshipped public API file</source>
-        <target state="new">Missing shipped or unshipped public API file</target>
+        <target state="translated">제공되거나 제공되지 않은 퍼블릭 API 파일이 없음</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFilesInvalidMessage">
         <source>The contents of the public API files are invalid: {0}</source>
-        <target state="new">The contents of the public API files are invalid: {0}</target>
+        <target state="translated">공용 API 파일의 콘텐츠가 유효하지 않습니다. {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFilesInvalidTitle">
         <source>The contents of the public API files are invalid</source>
-        <target state="new">The contents of the public API files are invalid</target>
+        <target state="translated">공용 API 파일의 콘텐츠가 유효하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedInternalApiDescription">
         <source>When removing a internal type or member, put that entry in InternalAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="new">When removing a internal type or member, put that entry in InternalAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</target>
+        <target state="translated">내부 형식 또는 구성원을 제거할 때 해당 항목을 InternalAPI.Unshipped.txt에 '*REMOVED*' 접두어를 추가합니다. 이는 코드 검토 및 소스 제어 기록의 API 변경 내용에 주의를 기울이고 주요 변경 내용을 방지하는 데 도움이 됩니다.</target>
         <note>{Locked="*REMOVED*"}</note>
       </trans-unit>
       <trans-unit id="RemoveDeletedInternalApiMessage">
         <source>Symbol '{0}' is part of the declared internal API, but is either not internal or could not be found</source>
-        <target state="new">Symbol '{0}' is part of the declared internal API, but is either not internal or could not be found</target>
+        <target state="translated">기호 '{0}'은(는) 선언된 내부 API의 일부이지만 내부가 아니거나 찾을 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedInternalApiTitle">
         <source>Remove deleted types and members from the declared internal API</source>
-        <target state="new">Remove deleted types and members from the declared internal API</target>
+        <target state="translated">선언된 내부 API에서 삭제된 형식 및 구성원 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedPublicApiDescription">
         <source>When removing a public type or member, put that entry in PublicAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="new">When removing a public type or member, put that entry in PublicAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</target>
+        <target state="translated">public 형식 및 멤버를 제거할 경우 해당 항목을 '*REMOVED*' 접두사를 사용해 PublicAPI.Unshipped.txt에 넣습니다. 이렇게 하면 코드 검토와 원본 제어 기록에서 API 변경 내용에 주의를 기울이게 하고, 호환성이 손상되는 변경을 방지할 수 있습니다.</target>
         <note>{Locked="*REMOVED*"}</note>
       </trans-unit>
       <trans-unit id="RemoveDeletedPublicApiMessage">
         <source>Symbol '{0}' is part of the declared API, but is either not public or could not be found</source>
-        <target state="new">Symbol '{0}' is part of the declared API, but is either not public or could not be found</target>
+        <target state="translated">'{0}' 기호가 선언된 API의 일부이지만, 공용이 아니거나 찾을 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedPublicApiTitle">
         <source>Remove deleted types and members from the declared API</source>
-        <target state="new">Remove deleted types and members from the declared API</target>
+        <target state="translated">선언된 API에서 삭제된 형식 및 멤버 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="RemovedApiIsNotActuallyRemovedMessage">
         <source>Symbol '{0}' is marked as removed but it isn't deleted in source code</source>
-        <target state="new">Symbol '{0}' is marked as removed but it isn't deleted in source code</target>
+        <target state="translated">'{0}' 기호가 제거됨으로 표시되지만 소스 코드에서는 삭제되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemovedApiIsNotActuallyRemovedTitle">
         <source>API is marked as removed but it exists in source code</source>
-        <target state="new">API is marked as removed but it exists in source code</target>
+        <target state="translated">API가 제거된 것으로 표시되지만 소스 코드에 존재합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateInternalApiFilesDescription">
         <source>InternalAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, InternalAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="new">InternalAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, InternalAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</target>
+        <target state="translated">InternalAPI.txt 파일에는 Null 허용 여부 정보를 추적하기 위해 #nullable enable이 있어야 하며, 그렇지 않으면 이 진단이 억제되어야 합니다. Null 허용 여부를 사용하도록 설정하면 InternalAPI.txt는 Null을 허용(형식의 접미사 ?)하거나 null을 허용하지 않는(접미사 !) 형식을 기록합니다. 또한 여전히 인식 불가능한 참조 형식(라인의 접두사 ~)을 사용하는 모든 API를 추적합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateInternalApiFilesMessage">
         <source>InternalAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</source>
-        <target state="new">InternalAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</target>
+        <target state="translated">InternalAPI.txt에 '#nullable enable'이 없으므로 API의 Null 허용 여부 주석이 기록되지 않았습니다. 이 추적을 사용하도록 설정하는 것이 좋습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateInternalApiFilesTitle">
         <source>Enable tracking of nullability of reference types in the declared API</source>
-        <target state="new">Enable tracking of nullability of reference types in the declared API</target>
+        <target state="translated">선언된 API에서 참조 형식의 Null 허용 여부 추적 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotatePublicApiFilesDescription">
         <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="new">PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</target>
+        <target state="translated">Null 허용 여부 정보를 추적하려면 PublicAPI.txt 파일에 '#nullable enable'이 있거나, 그렇지 않으면 이 진단이 표시되지 않아야 합니다. Null 허용 여부를 사용하는 경우 PublicAPI.txt는 nullable 형식(형식에 접미사 '?') 또는 nullable이 아닌 형식(접미사 '!')을 기록합니다. 또한 여전히 인식 불가능한 참조 형식(라인의 접두사 ~)을 사용하는 모든 API를 추적합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotatePublicApiFilesMessage">
         <source>PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</source>
-        <target state="new">PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</target>
+        <target state="translated">PublicAPI.txt에 '#nullable enable'이 없으므로 API의 Null 허용 여부 주석이 기록되지 않았습니다. 이 추적을 사용하도록 설정하는 것이 좋습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotatePublicApiFilesTitle">
         <source>Enable tracking of nullability of reference types in the declared API</source>
-        <target state="new">Enable tracking of nullability of reference types in the declared API</target>
+        <target state="translated">선언된 API에서 참조 형식의 Null 허용 여부 추적 사용</target>
         <note />
       </trans-unit>
     </body>

@@ -34,12 +34,12 @@
       </trans-unit>
       <trans-unit id="Describe">
         <source>Describe</source>
-        <target state="new">Describe</target>
+        <target state="translated">Описать</target>
         <note />
       </trans-unit>
       <trans-unit id="Describe_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
         <source>'Describe' is unavailable since the referenced document is excluded by your organization.</source>
-        <target state="new">'Describe' is unavailable since the referenced document is excluded by your organization.</target>
+        <target state="translated">Функция "Описать" недоступна, так как документ, на который указывает ссылка, исключен вашей организацией.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
@@ -439,7 +439,7 @@
       </trans-unit>
       <trans-unit id="User_Types_Arrays">
         <source>User Types - Arrays</source>
-        <target state="new">User Types - Arrays</target>
+        <target state="translated">Пользовательские типы — массивы</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Classes">
@@ -459,7 +459,7 @@
       </trans-unit>
       <trans-unit id="User_Types_Function_Pointers">
         <source>User Types - Function Pointers</source>
-        <target state="new">User Types - Function Pointers</target>
+        <target state="translated">Пользовательские типы — указатели функций</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Interfaces">
@@ -469,7 +469,7 @@
       </trans-unit>
       <trans-unit id="User_Types_Pointers">
         <source>User Types - Pointers</source>
-        <target state="new">User Types - Pointers</target>
+        <target state="translated">Пользовательские типы — указатели</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Record_Structs">

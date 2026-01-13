@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="Implement">
         <source>Implement</source>
-        <target state="new">Implement</target>
+        <target state="translated">Wdróż</target>
         <note />
       </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="Lambda_expression_can_be_simplified">
         <source>Lambda expression can be simplified</source>
-        <target state="new">Lambda expression can be simplified</target>
+        <target state="translated">Wyrażenie lambda można uprościć</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_anonymous_function_static">
@@ -179,7 +179,7 @@
       </trans-unit>
       <trans-unit id="Property_accessor_can_be_simplified">
         <source>Property accessor can be simplified</source>
-        <target state="new">Property accessor can be simplified</target>
+        <target state="translated">Akcesor właściwości można uprościć</target>
         <note />
       </trans-unit>
       <trans-unit id="Property_pattern_can_be_simplified">
@@ -229,7 +229,7 @@
       </trans-unit>
       <trans-unit id="Simplify_property_accessor">
         <source>Simplify property accessor</source>
-        <target state="new">Simplify property accessor</target>
+        <target state="translated">Uprość akcesor właściwości</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_property_pattern">
@@ -374,7 +374,7 @@
       </trans-unit>
       <trans-unit id="Use_implicitly_typed_lambda">
         <source>Use implicitly typed lambda</source>
-        <target state="new">Use implicitly typed lambda</target>
+        <target state="translated">Użyj wyrażenia lambda o niejawnie określonym typie</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_index_operator">
