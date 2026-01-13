@@ -239,13 +239,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 new TextChange(new TextSpan(6, 5), "Universe"));
 
             var destination = new char[32];
-            newText.CopyTo(0, destination, 0, 0);   //should copy nothing and not throw.
-            Assert.Throws<ArgumentOutOfRangeException>(() => newText.CopyTo(-1, destination, 0, 2));
-            Assert.Throws<ArgumentOutOfRangeException>(() => newText.CopyTo(0, destination, -1, 2));
-            Assert.Throws<ArgumentOutOfRangeException>(() => newText.CopyTo(0, destination, 0, -1));
-            Assert.Throws<ArgumentNullException>(() => newText.CopyTo(0, null, 0, 2));
-            Assert.Throws<ArgumentOutOfRangeException>(() => newText.CopyTo(newText.Length - 1, destination, 0, 2));
-            Assert.Throws<ArgumentOutOfRangeException>(() => newText.CopyTo(0, destination, destination.Length - 1, 2));
+            newText.CopyTo(0, destination, 0);   //should copy nothing and not throw.
+            Assert.Throws<ArgumentOutOfRangeException>(() => newText.CopyTo(-1, destination, 2));
+            Assert.Throws<ArgumentOutOfRangeException>(() => newText.CopyTo(0, destination, -1));
+            Assert.Throws<ArgumentNullException>(() => newText.CopyTo(0, null, 2));
+            Assert.Throws<ArgumentOutOfRangeException>(() => newText.CopyTo(newText.Length - 1, destination, 2));
+            Assert.Throws<ArgumentOutOfRangeException>(() => newText.CopyTo(0, destination.AsSpan(destination.Length - 1), 2));
         }
 
         [Fact]
