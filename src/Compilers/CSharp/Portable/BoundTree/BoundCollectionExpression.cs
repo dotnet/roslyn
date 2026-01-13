@@ -3,11 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using static Microsoft.CodeAnalysis.PooledObjects.ObjectPool<T>;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {

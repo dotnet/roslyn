@@ -4206,13 +4206,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void VisitObjectCreationExpressionBase(BoundObjectCreationExpressionBase node)
-            => VisitObjectCreationExpressionBase(node, node.Type);
-
-        private void VisitObjectCreationExpressionBase(BoundObjectCreationExpressionBase node, TypeSymbol nodeType)
         {
             Debug.Assert(!IsConditionalState);
             bool isTargetTyped = node.WasTargetTyped;
-            MethodSymbol? constructor = getConstructor(node, nodeType);
+            MethodSymbol? constructor = getConstructor(node, node.Type);
             var arguments = node.Arguments;
 
             (_, ImmutableArray<VisitResult> argumentResults, _, ArgumentsCompletionDelegate<MethodSymbol>? argumentsCompletion) =
@@ -4222,17 +4219,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                            constructor, delayCompletionForTargetMember: isTargetTyped);
             Debug.Assert(isTargetTyped == argumentsCompletion is not null);
 
+            var type = node.Type;
             var initializerOpt = node.InitializerExpressionOpt;
             (int slot, NullableFlowState resultState, Func<TypeSymbol, MethodSymbol?, int>? initialStateInferenceCompletion) =
-                inferInitialObjectState(node, nodeType, constructor, arguments, argumentResults, isTargetTyped, hasObjectInitializer: initializerOpt is { });
+                inferInitialObjectState(node, type, constructor, arguments, argumentResults, isTargetTyped, hasObjectInitializer: initializerOpt is { });
 
             Action<int, TypeSymbol>? initializerCompletion = null;
             if (initializerOpt != null)
             {
-                initializerCompletion = VisitObjectCreationInitializer(slot, nodeType, initializerOpt, delayCompletionForType: isTargetTyped);
+                initializerCompletion = VisitObjectCreationInitializer(slot, type, initializerOpt, delayCompletionForType: isTargetTyped);
             }
 
-            TypeWithState result = setAnalyzedNullability(node, nodeType, argumentResults, argumentsCompletion, initialStateInferenceCompletion, initializerCompletion, resultState, isTargetTyped);
+            TypeWithState result = setAnalyzedNullability(node, type, argumentResults, argumentsCompletion, initialStateInferenceCompletion, initializerCompletion, resultState, isTargetTyped);
             SetResultType(node, result, updateAnalyzedNullability: false);
             return;
 
