@@ -92,10 +92,10 @@
   <Target Name="PublishedProjectOutputGroup" DependsOnTargets="_CalculateFilteredReferenceAssembliesInputsAndOutputs" Returns="@(_OutputFile)" />
 
   <!-- Generates ref assemblies -->
-  <Target Name="PublishVsixItems" DependsOnTargets="PublishedProjectOutputGroup;GenerateFilteredReferenceAssemblies" Returns="@(_OutputRefAssembly)" />
+  <Target Name="PublishVsixItems" DependsOnTargets="PublishedProjectOutputGroup;_CalculateFilteredReferenceAssembliesInputsAndOutputs" Returns="@(_OutputRefAssembly)" />
 
   <!-- Package reference assemblies under the tools directory. -->
-  <Target Name="_AddGeneratedReferenceAssembliesToPackage" DependsOnTargets="GenerateFilteredReferenceAssemblies">
+  <Target Name="_AddGeneratedReferenceAssembliesToPackage" DependsOnTargets="_CalculateFilteredReferenceAssembliesInputsAndOutputs">
     <ItemGroup>
       <TfmSpecificPackageFile Include="@(_OutputRefAssembly)"
                               PackagePath="tools/$(TargetFramework)/%(FileName)%(Extension)"/>
