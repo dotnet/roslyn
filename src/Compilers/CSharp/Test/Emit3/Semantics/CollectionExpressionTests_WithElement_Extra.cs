@@ -9067,11 +9067,21 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                     MyList<int> list = [with(new C())];
                 }
 
-                public static implicit operator int(C c) => 0;
+                public static implicit operator int(C c)
+                {
+                    Console.WriteLine("conversion called");
+                    return 0;
+                }
             }
             """;
 
-        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyIL("C.Main", """
+        CompileAndVerify(
+            source,
+            targetFramework: TargetFramework.Net100,
+            verify: Verification.FailsPEVerify,
+            expectedOutput: IncludeExpectedOutput("""
+                conversion called
+                """)).VerifyIL("C.Main", """
             {
               // Code size       27 (0x1b)
               .maxstack  2
