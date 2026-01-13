@@ -375,11 +375,7 @@ internal sealed class CommittedSolution(DebuggingSession debuggingSession, Solut
             return SourceText.From(text, defaultEncoding, checksumAlgorithm);
         }
 
-<<<<<<< HEAD
-        return await Task.Run(() => TryGetPdbMatchingSourceTextFromDisk(log, filePath, requiredChecksum, checksumAlgorithm), cancellationToken).ConfigureAwait(false);
-=======
         return await Task.Run(() => TryGetPdbMatchingSourceTextFromDisk(log, filePath, defaultEncoding, requiredChecksum, checksumAlgorithm), cancellationToken).ConfigureAwait(false);
->>>>>>> 33415907921 (EncOptionsReader)
     }
 
     private static DebugInformationReaderProvider? GetMethodDebugInfoReader(TraceLog log, CompilationOutputs compilationOutputs, string projectName)
