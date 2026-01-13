@@ -4,8 +4,7 @@
     <!-- Semantic search queries run in VS OOP. -->
     <TargetFramework>$(NetVS)</TargetFramework>
 
-    <_BuildTaskTfm Condition="'$(MSBuildRuntimeType)' != 'Core'">net472</_BuildTaskTfm>
-    <_BuildTaskTfm Condition="'$(MSBuildRuntimeType)' == 'Core'">$(NetRoslyn)</_BuildTaskTfm>
+    <_BuildTaskTfm>$(NetRoslyn)</_BuildTaskTfm>
     <_BuildTaskAssemblyFile>$(ArtifactsBinDir)SemanticSearch.BuildTask\$(Configuration)\$(_BuildTaskTfm)\SemanticSearch.BuildTask.dll</_BuildTaskAssemblyFile>
     <_ApisDir>$(MSBuildThisFileDirectory)Apis\</_ApisDir>
 
