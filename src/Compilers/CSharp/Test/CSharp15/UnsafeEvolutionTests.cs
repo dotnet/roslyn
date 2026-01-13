@@ -28,14 +28,18 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         DiagnosticDescription[] expectedDiagnostics,
         ReadOnlySpan<string> additionalSources = default,
         Verification verify = default,
-        CallerUnsafeMode expectedUnsafeMode = CallerUnsafeMode.Explicit)
+        CallerUnsafeMode expectedUnsafeMode = CallerUnsafeMode.Explicit,
+        CSharpCompilationOptions? optionsDll = null)
     {
+        optionsDll ??= TestOptions.UnsafeReleaseDll;
+        var optionsExe = optionsDll.WithOutputKind(OutputKind.ConsoleApplication);
+
         CreateCompilation([lib, caller, .. additionalSources],
-            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            options: optionsExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(expectedDiagnostics);
 
         var libUpdated = CompileAndVerify([lib, .. additionalSources],
-            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All),
+            options: optionsDll.WithUpdatedMemorySafetyRules(),
             verify: verify,
             symbolValidator: symbolValidator)
             .VerifyDiagnostics();
@@ -45,7 +49,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         foreach (var libUpdatedRef in libUpdatedRefs)
         {
             var libAssemblySymbol = CreateCompilation([caller, .. additionalSources], [libUpdatedRef],
-                options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All))
+                options: optionsExe.WithUpdatedMemorySafetyRules())
                 .VerifyDiagnostics(expectedDiagnostics)
                 .GetReferencedAssemblySymbol(libUpdatedRef);
 
@@ -53,7 +57,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         }
 
         var libLegacy = CompileAndVerify([lib, .. additionalSources],
-            options: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            options: optionsDll,
             verify: verify,
             symbolValidator: module =>
             {
@@ -68,7 +72,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .GetImageReference();
 
         CreateCompilation([caller, .. additionalSources], [libLegacy],
-            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            options: optionsExe.WithUpdatedMemorySafetyRules())
             .VerifyEmitDiagnostics();
 
         void symbolValidator(ModuleSymbol module)
@@ -3446,6 +3450,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             caller: """
                 _ = C.F;
                 """,
+            optionsDll: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
             expectedUnsafeSymbols: ["C..cctor"],
             expectedSafeSymbols: ["C", "C..ctor"],
             expectedDiagnostics: []);
