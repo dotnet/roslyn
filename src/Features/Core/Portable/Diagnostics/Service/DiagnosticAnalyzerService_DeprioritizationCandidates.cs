@@ -99,7 +99,7 @@ internal sealed partial class DiagnosticAnalyzerService
             if (telemetryInfo == null)
                 return null;
 
-            if (telemetryInfo.SymbolStartActionsCount == 0 && telemetryInfo.SemanticModelActionsCount == 0)
+            if (telemetryInfo is { SymbolStartActionsCount: 0, SemanticModelActionsCount: 0 })
                 return null;
 
             return [.. analyzer.SupportedDiagnostics.Select(d => d.Id)];

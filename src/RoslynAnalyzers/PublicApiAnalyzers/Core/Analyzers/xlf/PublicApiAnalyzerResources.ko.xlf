@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotateInternalApiFilesDescription">
         <source>InternalAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, InternalAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="translated">InternalAPI.txt 파일에는 Null 허용 여부 정보를 추적하기 위해 `#nullable enable`이 있어야 합니다. 그렇지 않으면 이 진단이 억제되어야 합니다. Null 허용 여부를 사용하도록 설정하면 InternalAPI.txt는 Null을 허용(형식의 접미사 `?`)하거나 null을 허용하지 않는(접미사 `!`) 형식을 기록합니다. 또한 여전히 인식 불가능한 참조 형식(접두사 `~` 온라인)을 사용하는 모든 API를 추적합니다.</target>
+        <target state="translated">InternalAPI.txt 파일에는 Null 허용 여부 정보를 추적하기 위해 #nullable enable이 있어야 하며, 그렇지 않으면 이 진단이 억제되어야 합니다. Null 허용 여부를 사용하도록 설정하면 InternalAPI.txt는 Null을 허용(형식의 접미사 ?)하거나 null을 허용하지 않는(접미사 !) 형식을 기록합니다. 또한 여전히 인식 불가능한 참조 형식(라인의 접두사 ~)을 사용하는 모든 API를 추적합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateInternalApiFilesMessage">
@@ -279,7 +279,7 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotatePublicApiFilesDescription">
         <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="translated">Null 허용 여부 정보를 추적하려면 PublicAPI.txt 파일에 '#nullable enable'이 있어야 합니다. 또는 이 진단이 표시되지 않아야 합니다. Null 허용 여부를 사용하는 경우 PublicAPI.txt는 nullable 형식(형식에 접미사 '?') 또는 nullable이 아닌 형식(접미사 '!')을 기록합니다. 또한 null을 허용하지 않는 참조 형식(줄에 접두사 '~')을 계속 사용하는 모든 API를 추적합니다.</target>
+        <target state="translated">Null 허용 여부 정보를 추적하려면 PublicAPI.txt 파일에 '#nullable enable'이 있거나, 그렇지 않으면 이 진단이 표시되지 않아야 합니다. Null 허용 여부를 사용하는 경우 PublicAPI.txt는 nullable 형식(형식에 접미사 '?') 또는 nullable이 아닌 형식(접미사 '!')을 기록합니다. 또한 여전히 인식 불가능한 참조 형식(라인의 접두사 ~)을 사용하는 모든 API를 추적합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotatePublicApiFilesMessage">

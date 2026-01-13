@@ -418,4 +418,10 @@
   <data name="unsafe_modifier_is_unnecessary" xml:space="preserve">
     <value>'unsafe' modifier is unnecessary</value>
   </data>
+  <data name="Make_method_synchronous" xml:space="preserve">
+    <value>Make method synchronous</value>
+  </data>
+  <data name="Method_can_be_made_synchronous" xml:space="preserve">
+    <value>Method can be made synchronous</value>
+  </data>
 </root>

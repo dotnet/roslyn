@@ -5,7 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.IO.Hashing;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -26,7 +28,7 @@ internal class GetTextDocumentWithContextHandler() : ILspServiceDocumentRequestH
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(VSGetProjectContextsParams request) => new() { DocumentUri = request.TextDocument.DocumentUri };
 
-    public Task<VSProjectContextList?> HandleRequestAsync(VSGetProjectContextsParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<VSProjectContextList?> HandleRequestAsync(VSGetProjectContextsParams request, RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Workspace);
         Contract.ThrowIfNull(context.Solution);
@@ -37,7 +39,7 @@ internal class GetTextDocumentWithContextHandler() : ILspServiceDocumentRequestH
 
         if (!documentIds.Any())
         {
-            return SpecializedTasks.Null<VSProjectContextList>();
+            return null;
         }
 
         var contexts = new List<VSProjectContext>();
@@ -57,10 +59,17 @@ internal class GetTextDocumentWithContextHandler() : ILspServiceDocumentRequestH
         var openDocumentId = documentIds.First();
         var currentContextDocumentId = context.Workspace.GetDocumentIdInCurrentContext(openDocumentId);
 
-        return Task.FromResult<VSProjectContextList?>(new VSProjectContextList
+        // Create a key that uniquely identifies this set of contexts. The client side stores the preferred context
+        // against this key on the client side so we can restore the active context across different documents.
+        var keyString = string.Join(";", contexts.Select(c => c.Label).OrderBy(l => l));
+        var keyHash = XxHash128.Hash(Encoding.Unicode.GetBytes(keyString));
+        var key = Convert.ToBase64String(keyHash);
+
+        return new VSProjectContextList
         {
+            Key = key,
             ProjectContexts = [.. contexts],
             DefaultIndex = documentIds.IndexOf(d => d == currentContextDocumentId)
-        });
+        };
     }
 }
