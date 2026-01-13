@@ -35,7 +35,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(expectedDiagnostics);
 
         var libUpdated = CompileAndVerify([lib, .. additionalSources],
-            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(),
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All),
             verify: verify,
             symbolValidator: symbolValidator)
             .VerifyDiagnostics();
@@ -45,7 +45,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         foreach (var libUpdatedRef in libUpdatedRefs)
         {
             var libAssemblySymbol = CreateCompilation([caller, .. additionalSources], [libUpdatedRef],
-                options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+                options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All))
                 .VerifyDiagnostics(expectedDiagnostics)
                 .GetReferencedAssemblySymbol(libUpdatedRef);
 
@@ -53,7 +53,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         }
 
         var libLegacy = CompileAndVerify([lib, .. additionalSources],
-            options: TestOptions.UnsafeReleaseDll,
+            options: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
             verify: verify,
             symbolValidator: module =>
             {
@@ -3427,6 +3427,34 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics(
             // (4,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresUnsafeAttribute' is not defined or imported
             //     public unsafe C() { }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(4, 19));
+    }
+
+    [Fact]
+    public void Member_Constructor_Static()
+    {
+        var lib = """
+            public class C
+            {
+                public static readonly int F = 42;
+                static unsafe C() { }
+            }
+            """;
+
+        CompileAndVerifyUnsafe(
+            lib: lib,
+            caller: """
+                _ = C.F;
+                """,
+            expectedUnsafeSymbols: ["C..cctor"],
+            expectedSafeSymbols: ["C", "C..ctor"],
+            expectedDiagnostics: []);
+
+        CreateCompilation([lib, MemorySafetyRulesAttributeDefinition],
+            options: TestOptions.ReleaseModule.WithAllowUnsafe(true).WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics(
+            // (4,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresUnsafeAttribute' is not defined or imported
+            //     static unsafe C() { }
             Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(4, 19));
     }
 
