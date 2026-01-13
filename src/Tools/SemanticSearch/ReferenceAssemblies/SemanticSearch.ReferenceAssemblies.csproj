@@ -70,7 +70,9 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="GenerateFilteredReferenceAssemblies" Condition="Exists('$(_BuildTaskAssemblyFile)')" BeforeTargets="AfterBuild" DependsOnTargets="_CalculateFilteredReferenceAssembliesInputsAndOutputs" Inputs="@(_InputFile)" Outputs="@(_OutputFile)">
+  <Target Name="GenerateFilteredReferenceAssemblies"
+          Condition="Exists('$(_BuildTaskAssemblyFile)') and ($([MSBuild]::VersionGreaterThanOrEquals('$(MSBuildAssemblyVersion)', '18.0')) or '$(MSBuildRuntimeType)' == 'Core')"
+          BeforeTargets="AfterBuild" DependsOnTargets="_CalculateFilteredReferenceAssembliesInputsAndOutputs" Inputs="@(_InputFile)" Outputs="@(_OutputFile)">
 
     <MakeDir Directories="$(_OutputDir)" />
 
