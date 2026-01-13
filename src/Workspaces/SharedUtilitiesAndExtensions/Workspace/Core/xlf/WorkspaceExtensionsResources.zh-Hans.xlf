@@ -123,8 +123,8 @@
         <note />
       </trans-unit>
       <trans-unit id="The_solution_does_not_contain_the_specified_document">
-        <source>The solution does not contain the specified document.</source>
-        <target state="translated">解决方案不包含指定的文档。</target>
+        <source>The solution does not contain the specified document: '{0}'.</source>
+        <target state="new">The solution does not contain the specified document: '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_members">

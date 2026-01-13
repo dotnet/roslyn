@@ -611,7 +611,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return EncompassingImplicitConversion(aExpr: null, a, b, ref useSiteInfo);
         }
 
-        private static bool IsEncompassingImplicitConversionKind(ConversionKind kind)
+        internal static bool IsEncompassingImplicitConversionKind(ConversionKind kind)
         {
             switch (kind)
             {

@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             var foundMatch = false;
             static bool ShouldValidateRange((string? prefix, int start, int end) range)
-                => range.start >= 0 && range.end >= 0;
+                => range is { start: >= 0, end: >= 0 };
 
             // Check if ID matches any one of the required ranges.
             foreach (var allowedIds in allowedIdsInfoList)

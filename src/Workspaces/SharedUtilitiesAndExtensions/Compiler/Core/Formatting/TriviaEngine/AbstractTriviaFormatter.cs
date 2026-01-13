@@ -619,7 +619,7 @@ internal abstract class AbstractTriviaFormatter
     /// one new line at the end of the trivia
     /// </summary>
     private static int GetTrailingLinesAtEndOfTrivia1(LineColumn lineColumnAfterTrivia1)
-        => (lineColumnAfterTrivia1.Column == 0 && lineColumnAfterTrivia1.Line > 0) ? 1 : 0;
+        => lineColumnAfterTrivia1 is { Column: 0, Line: > 0 } ? 1 : 0;
 
     private void AddExtraLines(int linesBetweenTokens, ArrayBuilder<SyntaxTrivia> changes)
     {
@@ -765,7 +765,7 @@ internal abstract class AbstractTriviaFormatter
         TextSpan notUsed,
         ArrayBuilder<SyntaxTrivia> changes)
     {
-        if (delta.Lines == 0 && delta.Spaces == 0)
+        if (delta is { Lines: 0, Spaces: 0 })
         {
             // remove trivia
             return;
@@ -868,8 +868,8 @@ internal abstract class AbstractTriviaFormatter
             // if there was already new lines, ignore elastic
             var lineColumnAfterPreviousTrivia = GetLineColumn(lineColumn, previousTrivia);
 
-            var newLineFromPreviousOperation = (whitespaceBetween.Lines > 0) ||
-                                               (lineColumnAfterPreviousTrivia.Line > 0 && lineColumnAfterPreviousTrivia.Column == 0);
+            var newLineFromPreviousOperation = whitespaceBetween.Lines > 0 ||
+                                               lineColumnAfterPreviousTrivia is { Line: > 0, Column: 0 };
             if (newLineFromPreviousOperation && whitespaceBetween.WhitespaceOnly)
             {
                 return LineColumnDelta.Default;
