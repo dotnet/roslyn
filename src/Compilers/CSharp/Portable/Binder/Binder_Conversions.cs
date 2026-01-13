@@ -1045,6 +1045,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression collectionCreation;
                     if (@this._targetType is NamedTypeSymbol namedType)
                     {
+                        // We consider the `with(...)` in a collection expression to be 'target typed', just as the
+                        // collection expression is as well.  For a constructor case:
+                        //
+                        //      SomeType<T> x = [with(...), ...];
+                        //
+                        // Is akin to writing: SomeType<T> x = new(...);
+                        //
+                        // By marking this as target-typed, we then properly do nullable re-inference of the constructor
+                        // call in generic scenarios.  More explicitly, this helps ensure that nullable walking know to
+                        // properly schedule a second pass to re-infer nullability once the final, target type is known.
+                        //
+                        // For example, as nullable walking starts, we may see the signature as
+                        // `SomeCollection<string~>` (string is oblivious).  But once the real collection type is
+                        // determined to be `SomeCollection<string!>` we can then to a final conversion check of the
+                        // constructor call to ensure proper nullability warnings.
                         var binder = new ParamsCollectionTypeInProgressBinder(namedType, @this._binder, withElement != null, constructor);
                         collectionCreation = binder.BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, @this._diagnostics, wasTargetTyped: true);
                     }
