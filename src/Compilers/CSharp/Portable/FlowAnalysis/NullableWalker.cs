@@ -3911,6 +3911,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Action<TypeSymbol>? visitCollectionCreationArguments(BoundCollectionExpression node)
             {
+                if (node.CollectionTypeKind is not CollectionExpressionTypeKind.CollectionBuilder and not CollectionExpressionTypeKind.ImplementsIEnumerable)
+                {
+                    Visit(node.CollectionCreation);
+                    return null;
+                }
+
                 var collectionCreation = node.GetUnconvertedCollectionCreation();
                 if (collectionCreation is BoundObjectCreationExpression objectCreation)
                 {
