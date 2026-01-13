@@ -1844,7 +1844,7 @@
       </trans-unit>
       <trans-unit id="ERR_OperatorsMustBeStaticAndPublic">
         <source>User-defined operator '{0}' must be declared static and public</source>
-        <target state="new">User-defined operator '{0}' must be declared static and public</target>
+        <target state="translated">Uživatelem definovaný operátor {0} musí být deklarovaný jako static a public.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OutAttrOnRefReadonlyParam">
@@ -7746,7 +7746,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_PredefinedTypeAmbiguous">
         <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
-        <target state="new">Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</target>
+        <target state="translated">Předdefinovaný typ {0} je deklarovaný v několika odkazovaných sestaveních: {1} a {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructWithBaseConstructorCall">
