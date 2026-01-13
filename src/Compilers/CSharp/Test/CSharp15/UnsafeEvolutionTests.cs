@@ -3724,13 +3724,16 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Theory, CombinatorialData]
     public void CompatMode_Method_ParameterType(
         [CombinatorialValues("int*", "int*[]", "delegate*<void>")] string parameterType,
+        bool unsafeOnType,
         bool useCompilationReference)
     {
+        var (typeModifier, methodModifier) = unsafeOnType ? ("unsafe", "") : ("", "unsafe");
+
         var lib = CreateCompilation($$"""
-            public class C
+            public {{typeModifier}} class C
             {
-                public unsafe void M1(int x) { }
-                public unsafe void M2({{parameterType}} y) { }
+                public {{methodModifier}} void M1(int x) { }
+                public {{methodModifier}} void M2({{parameterType}} y) { }
             }
             """,
             options: TestOptions.UnsafeReleaseDll,
