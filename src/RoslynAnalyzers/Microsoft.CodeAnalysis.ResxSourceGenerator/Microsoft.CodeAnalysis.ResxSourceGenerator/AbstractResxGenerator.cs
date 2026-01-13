@@ -80,13 +80,26 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                     }
 
                     var resourceHintName = Path.GetFileNameWithoutExtension(resourceFile.Path);
-                    var resourceName = resourceHintName;
+                    string defaultResourceAndClassName = resourceHintName;
                     if (options.TryGetValue("build_metadata.AdditionalFiles.RelativeDir", out var relativeDir))
                     {
-                        resourceName = relativeDir.Replace(Path.DirectorySeparatorChar, '.').Replace(Path.AltDirectorySeparatorChar, '.') + resourceName;
+                        defaultResourceAndClassName = relativeDir.Replace(Path.DirectorySeparatorChar, '.').Replace(Path.AltDirectorySeparatorChar, '.') + defaultResourceAndClassName;
                     }
 
-                    options.TryGetValue("build_metadata.AdditionalFiles.ClassName", out var resourceClassName);
+                    if (!string.IsNullOrEmpty(rootNamespace))
+                    {
+                        defaultResourceAndClassName = $"{rootNamespace}.{defaultResourceAndClassName}";
+                    }
+
+                    if (!options.TryGetValue("build_metadata.AdditionalFiles.ManifestResourceName", out var resourceName) || string.IsNullOrEmpty(resourceName))
+                    {
+                        resourceName = defaultResourceAndClassName;
+                    }
+
+                    if (!options.TryGetValue("build_metadata.AdditionalFiles.ClassName", out var resourceClassName) || string.IsNullOrEmpty(resourceClassName))
+                    {
+                        resourceClassName = defaultResourceAndClassName;
+                    }
 
                     if (!options.TryGetValue("build_metadata.AdditionalFiles.OmitGetResourceString", out var omitGetResourceStringText)
                         || !bool.TryParse(omitGetResourceStringText, out var omitGetResourceString))
@@ -129,7 +142,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                         new ResourceInformation(
                             CompilationInformation: compilationInfo,
                             ResourceFile: resourceFile,
-                            ResourceName: string.IsNullOrEmpty(rootNamespace) ? resourceName : string.Join(".", rootNamespace, resourceName),
+                            ResourceName: resourceName,
                             ResourceHintName: resourceHintName,
                             ResourceClassName: resourceClassName,
                             OmitGetResourceString: omitGetResourceString,
@@ -237,7 +250,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="AssemblyName"></param>
         /// <param name="CodeLanguage">Language of source file to generate. Supported languages: CSharp, VisualBasic.</param>
@@ -250,7 +263,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
             bool HasNotNullIfNotNull);
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="CompilationInformation">Information about the compilation.</param>
         /// <param name="ResourceFile">Resources (resx) file.</param>
@@ -589,61 +602,6 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                     }
                 }
 
-                string resourceTypeName;
-                string? resourceTypeDefinition;
-                if (string.IsNullOrEmpty(ResourceInformation.ResourceClassName) || ResourceInformation.ResourceName == ResourceInformation.ResourceClassName)
-                {
-                    // resource name is same as accessor, no need for a second type.
-                    resourceTypeName = className;
-                    resourceTypeDefinition = null;
-                }
-                else
-                {
-                    // resource name differs from the access class, need a type for specifying the resources
-                    // this empty type must remain as it is required by the .NETNative toolchain for locating resources
-                    // once assemblies have been merged into the application
-                    resourceTypeName = ResourceInformation.ResourceName;
-
-                    SplitName(resourceTypeName, out var resourceNamespaceName, out var resourceClassName);
-                    var resourceClassIndent = resourceNamespaceName == null ? "" : "    ";
-
-                    switch (language)
-                    {
-                        case Lang.CSharp:
-                            resourceTypeDefinition = $"{resourceClassIndent}internal static class {resourceClassName} {{ }}";
-                            if (resourceNamespaceName != null)
-                            {
-                                resourceTypeDefinition = $$"""
-                                    namespace {{resourceNamespaceName}}
-                                    {
-                                    {{resourceTypeDefinition}}
-                                    }
-                                    """;
-                            }
-
-                            break;
-
-                        case Lang.VisualBasic:
-                            resourceTypeDefinition = $"""
-                                {resourceClassIndent}Friend Class {resourceClassName}
-                                {resourceClassIndent}End Class
-                                """;
-                            if (resourceNamespaceName != null)
-                            {
-                                resourceTypeDefinition = $"""
-                                    Namespace {resourceNamespaceName}
-                                    {resourceTypeDefinition}
-                                    End Namespace
-                                    """;
-                            }
-
-                            break;
-
-                        default:
-                            throw new InvalidOperationException();
-                    }
-                }
-
                 // List of NoWarn
                 string? noWarnDisabled = null;
                 string? noWarnRestored = null;
@@ -682,7 +640,6 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                             {{(CompilationInformation.SupportsNullable ? "#nullable enable" : "")}}
                             using System.Reflection;
 
-                            {{resourceTypeDefinition}}
                             {{namespaceStart}}
                             {{classIndent}}/// <summary>
                             {{classIndent}}///   A strongly-typed resource class, for looking up localized strings, etc.
@@ -693,7 +650,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                             {{memberIndent}}/// <summary>
                             {{memberIndent}}///   Returns the cached ResourceManager instance used by this class.
                             {{memberIndent}}/// </summary>
-                            {{memberIndent}}public static global::System.Resources.ResourceManager ResourceManager => s_resourceManager ?? (s_resourceManager = new global::System.Resources.ResourceManager(typeof({{resourceTypeName}})));
+                            {{memberIndent}}public static global::System.Resources.ResourceManager ResourceManager => s_resourceManager ?? (s_resourceManager = new global::System.Resources.ResourceManager({{(ResourceInformation.ResourceName == ResourceInformation.ResourceClassName ? $"typeof({className})" : $"\"{ResourceInformation.ResourceName}\", typeof({className}).Assembly")}}));
                             {{getStringMethod}}
                             {{strings}}
                             {{classIndent}}}
@@ -707,7 +664,6 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
 
                             Imports System.Reflection
 
-                            {resourceTypeDefinition}
                             {namespaceStart}
                             {classIndent}''' <summary>
                             {classIndent}'''   A strongly-typed resource class, for looking up localized strings, etc.
@@ -723,7 +679,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                             {memberIndent}Public Shared ReadOnly Property ResourceManager As Global.System.Resources.ResourceManager
                             {memberIndent}    Get
                             {memberIndent}        If s_resourceManager Is Nothing Then
-                            {memberIndent}            s_resourceManager = New Global.System.Resources.ResourceManager(GetType({resourceTypeName}))
+                            {memberIndent}            s_resourceManager = New Global.System.Resources.ResourceManager({(ResourceInformation.ResourceName == ResourceInformation.ResourceClassName ? $"GetType({className})" : $"\"{ResourceInformation.ResourceName}\", GetType({className}).Assembly")})
                             {memberIndent}        End If
                             {memberIndent}        Return s_resourceManager
                             {memberIndent}    End Get

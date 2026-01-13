@@ -17,7 +17,7 @@ Friend Partial Class NS
     Public Shared ReadOnly Property ResourceManager As Global.System.Resources.ResourceManager
         Get
             If s_resourceManager Is Nothing Then
-                s_resourceManager = New Global.System.Resources.ResourceManager("TestProject.Resources", GetType(NS).Assembly)
+                s_resourceManager = New Global.System.Resources.ResourceManager("RootNS.Folder.File", GetType(NS).Assembly)
             End If
             Return s_resourceManager
         End Get
