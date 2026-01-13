@@ -35,6 +35,7 @@ jobs:
 
     ${{ if ne(parameters.vmImageName, '') }}:
       vmImage: ${{ parameters.vmImageName }}
+  timeoutInMinutes: 120
   steps:
     - checkout: none
 
