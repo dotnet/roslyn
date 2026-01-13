@@ -29,16 +29,19 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         ReadOnlySpan<string> additionalSources = default,
         Verification verify = default,
         CallerUnsafeMode expectedUnsafeMode = CallerUnsafeMode.Explicit,
+        CSharpParseOptions? parseOptions = null,
         CSharpCompilationOptions? optionsDll = null)
     {
         optionsDll ??= TestOptions.UnsafeReleaseDll;
         var optionsExe = optionsDll.WithOutputKind(OutputKind.ConsoleApplication);
 
         CreateCompilation([lib, caller, .. additionalSources],
+            parseOptions: parseOptions,
             options: optionsExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(expectedDiagnostics);
 
         var libUpdated = CompileAndVerify([lib, .. additionalSources],
+            parseOptions: parseOptions,
             options: optionsDll.WithUpdatedMemorySafetyRules(),
             verify: verify,
             symbolValidator: symbolValidator)
@@ -49,6 +52,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         foreach (var libUpdatedRef in libUpdatedRefs)
         {
             var libAssemblySymbol = CreateCompilation([caller, .. additionalSources], [libUpdatedRef],
+                parseOptions: parseOptions,
                 options: optionsExe.WithUpdatedMemorySafetyRules())
                 .VerifyDiagnostics(expectedDiagnostics)
                 .GetReferencedAssemblySymbol(libUpdatedRef);
@@ -57,6 +61,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         }
 
         var libLegacy = CompileAndVerify([lib, .. additionalSources],
+            parseOptions: parseOptions,
             options: optionsDll,
             verify: verify,
             symbolValidator: module =>
@@ -72,6 +77,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .GetImageReference();
 
         CreateCompilation([caller, .. additionalSources], [libLegacy],
+            parseOptions: parseOptions,
             options: optionsExe.WithUpdatedMemorySafetyRules())
             .VerifyEmitDiagnostics();
 
@@ -2954,6 +2960,140 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedUnsafeSymbols: ["C.M"],
             expectedSafeSymbols: ["C"],
             expectedDiagnostics: []);
+    }
+
+    [Fact]
+    public void Member_Await()
+    {
+        var lib = """
+            using System;
+            using System.Runtime.CompilerServices;
+
+            public class C : INotifyCompletion
+            {
+                public unsafe bool IsCompleted => false;
+                public unsafe C GetAwaiter() => this;
+                public unsafe void GetResult() { }
+                public unsafe void OnCompleted(Action continuation) { }
+            }
+            """;
+
+        CompileAndVerifyUnsafe(
+            lib: lib,
+            caller: """
+                await new C();
+                """,
+            expectedUnsafeSymbols: ["C.IsCompleted", "C.GetAwaiter", "C.GetResult", "C.OnCompleted"],
+            expectedSafeSymbols: ["C"],
+            expectedDiagnostics:
+            [
+                // (1,1): error CS9502: 'C.GetAwaiter()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // await new C();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "await new C()").WithArguments("C.GetAwaiter()").WithLocation(1, 1),
+                // (1,1): error CS9502: 'C.GetResult()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // await new C();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "await new C()").WithArguments("C.GetResult()").WithLocation(1, 1),
+            ]);
+
+        CreateCompilation(
+            [
+                lib,
+                """
+                unsafe { await new C(); }
+                """,
+            ],
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (1,10): error CS4004: Cannot await in an unsafe context
+            // unsafe { await new C(); }
+            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await new C()").WithLocation(1, 10));
+    }
+
+    [Fact]
+    public void Member_AsyncHelpers()
+    {
+        var corlib = CreateEmptyCompilation(
+            """
+            namespace System
+            {
+                public class Object;
+                public class ValueType;
+                public class Attribute;
+                public struct Void;
+                public struct Int32;
+                public struct Boolean;
+                public class AttributeUsageAttribute
+                {
+                    public AttributeUsageAttribute(AttributeTargets t) { }
+                    public bool AllowMultiple { get; set; }
+                    public bool Inherited { get; set; }
+                }
+                public class Enum;
+                public enum AttributeTargets;
+                public class String;
+                public class Action;
+                public class Obsolete : Attribute;
+            }
+            namespace System.Runtime.CompilerServices
+            {
+                public interface INotifyCompletion;
+                [System.Obsolete] public static class AsyncHelpers
+                {
+                    public unsafe static void AwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : INotifyCompletion { }
+                }
+            }
+            namespace System.Threading.Tasks
+            {
+                public class Task : System.Runtime.CompilerServices.INotifyCompletion
+                {
+                    public bool IsCompleted => false;
+                    public Task GetAwaiter() => this;
+                    public void GetResult() { }
+                    public void OnCompleted(Action continuation) { }
+                }
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics()
+            .EmitToImageReference();
+
+        CreateEmptyCompilation("""
+            using System.Threading.Tasks;
+
+            class Test
+            {
+                public static async Task F()
+                {
+                    await new Task();
+                }
+            }
+            """,
+            [corlib],
+            parseOptions: WithRuntimeAsync(TestOptions.RegularPreview),
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (7,15): error CS9502: 'AsyncHelpers.AwaitAwaiter<Task>(Task)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+            //         await new Task();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "new Task()").WithArguments("System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter<System.Threading.Tasks.Task>(System.Threading.Tasks.Task)").WithLocation(7, 15));
+
+        CreateEmptyCompilation("""
+            using System.Threading.Tasks;
+
+            class Test
+            {
+                public static async Task F()
+                {
+                    unsafe { await new Task(); }
+                }
+            }
+            """,
+            [corlib],
+            parseOptions: WithRuntimeAsync(TestOptions.RegularPreview),
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (7,18): error CS4004: Cannot await in an unsafe context
+            //         unsafe { await new Task(); }
+            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await new Task()").WithLocation(7, 18));
     }
 
     // PROTOTYPE: Test also lambdas and delegates.
