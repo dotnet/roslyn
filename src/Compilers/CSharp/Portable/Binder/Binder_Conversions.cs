@@ -1463,10 +1463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return [];
                 }
 
-                var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-                targetType.GetAllTypeArgumentsNoUseSiteDiagnostics(builder);
-                var allTypeArguments = builder.ToImmutableAndFree();
-
+                var allTypeArguments = targetType.GetAllTypeArgumentsNoUseSiteDiagnostics();
                 var readOnlySpanType = Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T);
 
                 var result = ArrayBuilder<MethodSymbol>.GetInstance();

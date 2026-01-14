@@ -3913,7 +3913,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var collectionCreation = node.GetUnconvertedCollectionCreation();
                 if (collectionCreation is BoundObjectCreationExpression objectCreation &&
-                    node.CollectionTypeKind != CollectionExpressionTypeKind.ArrayInterface)
+                    node.CollectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
                 {
                     // Walk into the arguments of the object creation, passing in 'delayCompletionForTargetMember: true'
                     // so that we reprocess the nullability of the arguments when we have the target-type for the
@@ -3983,10 +3983,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // same arity as the collection type.  So in order to get the final creation method we just need to
                         // take the final collection type and use its type arguments to re-construct the creation method.
 
-                        var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-                        ((NamedTypeSymbol)collectionFinalType).GetAllTypeArgumentsNoUseSiteDiagnostics(builder);
-
-                        var allTypeArguments = builder.ToImmutableAndFree();
+                        var allTypeArguments = ((NamedTypeSymbol)collectionFinalType).GetAllTypeArgumentsNoUseSiteDiagnostics();
                         Debug.Assert(allTypeArguments.Length == call.Method.Arity, "Guaranteed by GetCollectionBuilderMethods");
 
                         var constructed = call.Method.Arity == 0 ? call.Method : call.Method.ConstructedFrom.Construct(allTypeArguments);
