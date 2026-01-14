@@ -39,7 +39,7 @@ jobs:
     - task: BatchScript@1
       displayName: Rehydrate RunTests
       inputs:
-        filename: ./artifacts/bin/RunTests/${{ parameters.configuration }}/net9.0/rehydrate.cmd
+        filename: ./artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/rehydrate.cmd
       env:
         HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
 
