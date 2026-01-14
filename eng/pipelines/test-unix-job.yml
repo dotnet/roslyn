@@ -21,13 +21,20 @@ parameters:
 - name: queueName
   type: string
   default: ''
+- name: vmImageName
+  type: string
+  default: ''
 
 jobs:
 - job: ${{ parameters.jobName }}
   dependsOn: ${{ parameters.buildJobName }}
   pool:
-    name: NetCore-Svc-Public
-    demands: ImageOverride -equals ${{ parameters.queueName }}
+    ${{ if ne(parameters.queueName, '') }}:
+      name: NetCore-Svc-Public
+      demands: ImageOverride -equals ${{ parameters.queueName }}
+
+    ${{ if ne(parameters.vmImageName, '') }}:
+      vmImage: ${{ parameters.vmImageName }}
   timeoutInMinutes: 90
   steps:
     - checkout: none
