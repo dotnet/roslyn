@@ -639,4 +639,80 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
                 }
                 """,
         }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81987")]
+    public Task TestPointer1_A()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class C
+            {
+                unsafe void M()
+                {
+                    var item = FindItem();
+                    if (item == null)
+                        throw new System.InvalidOperationException();
+                }
+
+                unsafe int* FindItem() => null;
+            }
+            """
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81987")]
+    public Task TestPointer1_B()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class C
+            {
+                unsafe void M(int* item)
+                {
+                    item = FindItem();
+                    if (item == null)
+                        throw new System.InvalidOperationException();
+                }
+
+                unsafe int* FindItem() => null;
+            }
+            """
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81987")]
+    public Task TestPointer2_A()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class C
+            {
+                unsafe void M()
+                {
+                    var item = FindItem();
+                    if (item == null)
+                        throw new System.InvalidOperationException();
+                }
+
+                unsafe void* FindItem() => null;
+            }
+            """
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81987")]
+    public Task TestPointer2_B()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class C
+            {
+                unsafe void M(void* item)
+                {
+                    item = FindItem();
+                    if (item == null)
+                        throw new System.InvalidOperationException();
+                }
+
+                unsafe void* FindItem() => null;
+            }
+            """
+        }.RunAsync();
 }

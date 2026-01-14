@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     {
                                         Debug.Assert(inputSlot > 0);
                                         var property = e.Property.IsExtensionBlockMember()
-                                            ? ReInferAndVisitExtensionPropertyAccess(e, e.Property, new BoundExpressionWithNullability(e.Syntax, expression, NullableAnnotation.NotAnnotated, inputType)).updatedProperty
+                                            ? ReInferAndVisitExtensionPropertyAccess(e, e.Property, new BoundExpressionWithNullability(e.Syntax, expression, NullableAnnotation.NotAnnotated, inputType)).Member
                                             : (PropertySymbol)AsMemberOfType(inputType, e.Property);
                                         var type = property.TypeWithAnnotations;
                                         var output = new BoundDagTemp(e.Syntax, type.Type, e);

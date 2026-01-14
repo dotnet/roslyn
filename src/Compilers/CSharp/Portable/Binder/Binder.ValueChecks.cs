@@ -744,11 +744,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return expr;
 
                 case BoundKind.PropertyAccess:
+                    var propertyAccess = (BoundPropertyAccess)expr;
                     if (!InAttributeArgument)
                     {
                         // If the property has a synthesized backing field, record the accessor kind of the property
                         // access for determining whether the property access can use the backing field directly.
-                        var propertyAccess = (BoundPropertyAccess)expr;
                         if (HasSynthesizedBackingField(propertyAccess.PropertySymbol, out _))
                         {
                             expr = propertyAccess.Update(
@@ -759,8 +759,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 propertyAccess.ResultKind,
                                 propertyAccess.Type);
                         }
+#if DEBUG
+                        else
+                        {
+                            // Under DEBUG, create a new node to mark as checked, rather than mutating the original.
+                            // This allows the original node to be passed to CheckValue multiple times safely, without
+                            // asserting in WasPropertyBackingFieldAccessChecked.
+                            expr = propertyAccess.Clone();
+                        }
+#endif
                     }
 #if DEBUG
+                    else
+                    {
+                        // Under DEBUG, create a new node to mark as checked, rather than mutating the original.
+                        // This allows the original node to be passed to CheckValue multiple times safely, without
+                        // asserting in WasPropertyBackingFieldAccessChecked.
+                        expr = propertyAccess.Clone();
+                    }
                     expr.WasPropertyBackingFieldAccessChecked = true;
 #endif
                     break;

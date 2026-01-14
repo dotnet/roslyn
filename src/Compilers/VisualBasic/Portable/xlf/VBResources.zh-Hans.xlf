@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="ERR_AttributeCannotBeAppliedManually">
         <source>'{0}' cannot be applied manually.</source>
-        <target state="new">'{0}' cannot be applied manually.</target>
+        <target state="translated">无法手动应用 ‘{0}’。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime">
         <source>Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</source>
-        <target state="new">Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</target>
+        <target state="translated">更新需要发出显式接口实现，如果不重启应用程序，运行时将不支持此实现。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidExperimentalDiagID">
@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
         <source>The target runtime does not support extended layout types.</source>
-        <target state="new">The target runtime does not support extended layout types.</target>
+        <target state="translated">目标运行时不支持扩展布局类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormatDeterministic">
@@ -89,7 +89,7 @@
       </trans-unit>
       <trans-unit id="ERR_MethodImplAttributeAsyncCannotBeUsed">
         <source>'MethodImplAttribute.Async' cannot be manually applied to methods.</source>
-        <target state="new">'MethodImplAttribute.Async' cannot be manually applied to methods.</target>
+        <target state="translated">无法将 'MethodImplAttribute.Async' 手动应用于方法。</target>
         <note>'MethodImplAttribute.Async' is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -149,7 +149,7 @@
       </trans-unit>
       <trans-unit id="ERR_StructLayoutAndExtendedLayout">
         <source>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</source>
-        <target state="new">Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</target>
+        <target state="translated">不允许在同一类型上使用 'StructLayoutAttribute' 和 'ExtendedLayoutAttribute'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SymbolDefinedInAssembly">
@@ -159,7 +159,7 @@
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings_RestartRequired">
         <source>Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</source>
-        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</target>
+        <target state="translated">该程序所使用的用户字符串的合并后长度超出了允许的限制。添加字符串或 XML 文本需要重启应用程序。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeReserved">
@@ -391,174 +391,173 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="needs-review-translation">                  Visual Basic 编译器选项
+        <target state="translated">                  Visual Basic 编译器选项
 
-                                 - 输出文件 -
+                                  - 输出文件 -
 -out:&lt;file&gt;                       指定输出文件名。
 -target:exe                       创建控制台应用程序(默认)。
-                                 (缩写: -t)
+                                  (缩写: -t)
 -target:winexe                    创建 Windows 应用程序。
 -target:library                   创建库程序集。
 -target:module                    创建可添加到
-                                 程序集的模块。
--target:appcontainerexe           创建在 AppContainer 中
-                                 运行的 Windows 应用程序。
+                                  程序集的模块。
+-target:appcontainerexe           创建在 AppContainer 中运行的
+                                  Windows 应用程序。
 -target:winmdobj                  创建 Windows 元数据中间文件
 -doc[+|-]                         生成 XML 文档文件。
 -doc:&lt;file&gt;                       将 XML 文档文件生成到 &lt;file&gt;。
 -refout:&lt;file&gt;                    引用要生成的程序集输出
 
-                                 - 输入文件 -
+                                  - 输入文件 -
 -addmodule:&lt;file_list&gt;            从指定模块引用元数据
 -link:&lt;file_list&gt;                 从指定的互操作程序集嵌入
-                                 元数据。(缩写: -l)
+                                  元数据。(缩写: -l)
 -recurse:&lt;wildcard&gt;               根据通配符规范，包括
-                                 当前目录和子目录中的
-                                 所有文件。
+                                  当前目录和子目录中的
+                                  所有文件。
 -reference:&lt;file_list&gt;            从指定的程序集引用
-                                 元数据。(缩写: -r)
+                                  元数据。(缩写: -r)
 -analyzer:&lt;file_list&gt;             从此程序集中运行分析器
-                                 (缩写: -a)
+                                  (缩写: -a)
 -additionalfile:&lt;file list&gt;       不直接影响代码生成，但可能
-                                 由分析器用于生成错误或警告的
-                                 其他文件。
+                                  由分析器用于生成错误或警告的
+                                  其他文件。
 
-                                 - 资源 -
+                                  - 资源 -
 -linkresource:&lt;resinfo&gt;           将指定文件链接为外部
-                                 程序集资源。
-                                 resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
-                                 (缩写: -linkres)
+                                  程序集资源。
+                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
+                                  (缩写: -linkres)
 -nowin32manifest                  默认清单不应嵌入
-                                 在输出 PE 的清单部分。
+                                  在输出 PE 的清单部分中。
 -resource:&lt;resinfo&gt;               将指定的文件添加为嵌入式
-                                 程序集资源。
-                                 resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
-                                 (缩写: -res)
+                                  程序集资源。
+                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
+                                  (缩写: -res)
 -win32icon:&lt;file&gt;                 为默认 Win32 资源
-                                 指定 Win32 图标文件(.ico)。
+                                  指定 Win32 图标文件(.ico)。
 -win32manifest:&lt;file&gt;             提供的文件嵌入在
-                                 输出 PE 的清单部分。
+                                  输出 PE 的清单部分。
 -win32resource:&lt;file&gt;             指定 Win32 资源文件(.res)。
 
-                                 - 代码生成 -
+                                  - 代码生成 -
 -optimize[+|-]                    启用优化。
 -removeintchecks[+|-]             移除整数检查。默认关闭。
 -debug[+|-]                       发出调试信息。
 -debug:full                       发出完整调试信息(默认)。
 -debug:pdbonly                    发出完整调试信息。
 -debug:portable                   发出跨平台调试信息。
--debug:embedded                   将跨平台调试信息发出到
-                                 目标 .dll 或 .exe。
+-debug:embedded                   将跨平台调试信息发送到
+                                  目标 .dll 或 .exe 中。
 -deterministic                    生成确定性程序集
-                                 (包括模块版本 GUID 和时间戳)
+                                  (包括模块版本 GUID 和时间戳)
 -refonly                          生成引用程序集来代替主输出
 -instrument:TestCoverage          生成检测到用于收集覆盖范围信息的
-                                 程序集
+                                  程序集
 -sourcelink:&lt;file&gt;                要嵌入 PDB 的源链接信息。
 
-                                 - 错误和警告 -
+                                  - 错误和警告 -
 -nowarn                           禁用所有警告。
 -nowarn:&lt;number_list&gt;             禁用单个警告的列表。
 -warnaserror[+|-]                 将所有警告视为错误。
 -warnaserror[+|-]:&lt;number_list&gt;   将警告列表视为错误。
 -ruleset:&lt;file&gt;                   指定禁用特定诊断的规则集
-                                 文件。
+                                  文件。
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
-                                 指定用于按 SARIF 格式记录所有编译器和
-                                 分析器诊断的文件。
-                                 sarif_version:{1|2|2.1} 默认值为 1. 2 和 2.1
-                                 均表示 SARIF 版本 2.1.0。
+                                  指定用于按 SARIF 格式记录所有编译器和
+                                  分析器诊断的文件。
+                                  sarif_version:{1|2|2.1} 默认值为 1。2 和 2.1
+                                  均表示 SARIF 版本 2.1.0。
 -reportanalyzer                   报告其他分析器信息，例如
-                                 执行时间。
+                                  执行时间。
 -skipanalyzers[+|-]               跳过诊断分析器的执行。
 
-                                 - 语言 -
+                                  - 语言 -
 -define:&lt;symbol_list&gt;             声明全局条件编译
-                                 符号。symbol_list:name=value,...
-                                 (缩写: -d)
+                                  符号。symbol_list:name=value,...
+                                  (缩写: -d)
 -imports:&lt;import_list&gt;            在引用的元数据文件中声明
-                                 命名空间的全局导入。
-                                 import_list:namespace,...
--langversion:?                  显示语言版本的允许值
+                                  命名空间的全局导入。
+                                  import_list:namespace,...
+-langversion:?                   显示语言版本的允许值
 -langversion:&lt;string&gt;             指定语言版本，例如
-                                 `default` (最新主版本)或
-                                 `latest` (最新版本，包括次要版本)，
-                                 或者特定版本，例如 `14` 或 `15.3`
+                                  `default` (最新主版本)或
+                                  `latest` (最新版本，包括次要版本)，
+                                  或特定版本，例如 `14` 或 `15.3`
 -o-optionexplicit[+|-]              需要显式声明变量。
 -optioninfer[+|-]                 允许变量的类型推理。
 -rootnamespace:&lt;string&gt;           指定所有类型声明的根
-                                 命名空间。
+                                  命名空间。
 -optionstrict[+|-]                强制实施严格语言语义。
 -optionstrict:custom              当不采用严格语言语义时发出
-                                 警告。
+                                  警告。
 -optioncompare:binary             指定二进制样式字符串比较。
-                                 这是默认值。
+                                  这是默认值。
 -optioncompare:text               指定文本样式字符串比较。
 
-                                 - 其他 -
+                                  - 其他 -
 -help                             显示此用法消息。(缩写: -?)
 -noconfig                         不自动包含 VBC.RSP 文件。
 -nologo                           不显示编译器版权横幅。
--quiet                            静默输出模式。
+-quiet                            安静输出模式。
 -verbose                          显示详细消息。
 -parallel[+|-]                    并发生成。
 -version                          显示编译器版本号并退出。
 
-                                 - 高级 -
+                                  - 高级 -
 -baseaddress:&lt;number&gt;             库或模块的基址
-                                 (十六进制)。
+                                  (十六进制)。
 -checksumalgorithm:&lt;alg&gt;          指定用于计算存储在 PDB 中的源文件
-                                 校验和的算法。支持的值为:
-                                 SHA1 或 SHA256 (默认值)。
+                                  校验和的算法。支持的值为:
+                                  SHA1 或 SHA256 (默认值)。
 -codepage:&lt;number&gt;                指定打开源文件时要使用的
-                                 代码页。
+                                  代码页。
 -delaysign[+|-]                   仅使用强名称密钥的公共部分
-                                 对程序集进行延迟签名。
+                                  对程序集进行延迟签名。
 -publicsign[+|-]                  仅使用强名称密钥的公共部分
-                                 对程序集进行公共签名。
+                                  对程序集进行公共签名。
 -errorreport:&lt;string&gt;             指定如何处理内部编译器
-                                 错误；必须是“提示”、“发送”、“无”或“排队”
-                                 (默认)。
+                                  错误；必须是“提示”、“发送”、“无”或“排队”
+                                  (默认)。
 -generatedfilesout:&lt;dir&gt;          将编译期间生成的文件放在
-                                 指定的目录。
+                                  指定的目录内。
 -filealign:&lt;number&gt;               指定用于输出文件部分的
-                                 对齐方式。
+                                  对齐方式。
 -highentropyva[+|-]               启用高熵 ASLR。
 -keycontainer:&lt;string&gt;            指定强名称密钥容器。
 -keyfile:&lt;file&gt;                   指定强名称密钥文件。
 -libpath:&lt;path_list&gt;              用于搜索元数据引用的目录
-                                 列表。(分号分隔。)
+                                  列表。(以分号分隔。)
 -main:&lt;class&gt;                     指定包含子主项的类或
-                                 模块。它也可以是一个继承自
-                                 System.Windows.Forms.Form 的类。
-                                 (缩写: -m)
--moduleassemblyname:&lt;string&gt;      此模块将成为其一部分的程序集的
-                                 名称。
+                                  模块。它还可以是一个继承自
+                                  System.Windows.Forms.Form 的类。
+                                  (缩写: -m)
+-moduleassemblyname:&lt;string&gt;      此模块将成为其所属部分的程序集的
+                                  名称。
 -netcf                            面向 .NET Compact Framework。
 -nostdlib                         不引用标准库
-                                 (system.dll 和 VBC.RSP 文件)。
+                                  (system.dll 和 VBC.RSP 文件)。
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                                 通过编译器指定源路径名称输出的
-                                 映射。
+                                  为由编译器输出的源路径名称指定
+                                  映射。
 -platform:&lt;string&gt;                限制此代码可以在哪些平台上运行；
-                                 必须是 x86、x64、Itanium、arm、arm64
-                                 AnyCPU32BitPreferred 或 anycpu (默认值)。
+                                  必须是 x86、x64、Itanium、arm、arm64
+                                  AnyCPU32BitPreferred 或 anycpu (默认值)。
 --preferreduilang                  指定首选输出语言名称。
 -nosdkpath                        禁止搜索标准库程序集的默认 SDK 路径。
 -reportivts[+|-]                  输出所有依赖项授予此程序集的
-                                 所有 IVT 的相关信息，并在外部程序集可访问性错误中
-                                 注释它们来自哪个程序集。
--sdkpath:&lt;path&gt;                   .NET Framework SDK 目录的位置
-                                 (mscorlib.dll)。
+                                  所有 IVT 的相关信息，并在外部程序集可访问性错误中
+                                  注释它们来自哪个程序集。
+-sdkpath:&lt;路径&gt;             用于搜索标准库程序集的路径。
 -subsystemversion:&lt;version&gt;       指定输出 PE 的子系统版本。
-                                 version:&lt;number&gt;[.&lt;number&gt;]
+                                  version:&lt;number&gt;[.&lt;number&gt;]
 -utf8output[+|-]                  以 UTF-8 字符编码发出编译器
-                                 输出。
+                                  输出。
 @&lt;file&gt;                           从文本文件插入命令行设置
--vbruntime[+|-|*]                 在使用/不使用默认 Visual Basic 运行的情况下
-                                 进行编译。
+-vbruntime[+|-|*]                 在使用/不使用默认 Visual Basic 运行时的情况下
+                                  进行编译。
 -vbruntime:&lt;file&gt;                 使用 &lt;file&gt; 中的备用 Visual Basic 运行时
-                                 进行编译。
+                                  进行编译。
 </target>
         <note />
       </trans-unit>
@@ -654,12 +653,12 @@
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
         <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="needs-review-translation">分析器程序集“{0}”引用了编译器的版本“{1}”，该版本高于当前正在运行的版本“{2}”。</target>
+        <target state="translated">无法使用分析器程序集 ‘{0}’，因为它引用的编译器版本 ‘{1}’ 高于当前正在运行的版本 ‘{2}’。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
         <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
-        <target state="needs-review-translation">分析器程序集引用的编译器版本高于当前正在运行的版本。</target>
+        <target state="translated">无法使用分析器程序集，因为它引用的编译器版本高于当前正在运行的版本。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">

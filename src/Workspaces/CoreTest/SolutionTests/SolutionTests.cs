@@ -320,6 +320,20 @@ public sealed class SolutionTests : TestBase
         Assert.Throws<InvalidOperationException>(() => solution.WithDocumentSyntaxRoot(s_unrelatedDocumentId, root));
     }
 
+    [Fact]
+    public void GetRequiredDocument_ThrowsWithDocumentPath()
+    {
+        using var workspace = CreateWorkspaceWithProjectAndDocuments();
+        var solution = workspace.CurrentSolution;
+
+        // Create a document ID with a debug name to verify it appears in the exception message
+        var projectId = solution.Projects.Single().Id;
+        var documentId = DocumentId.CreateNewId(projectId, debugName: "MyTestDocument.cs");
+
+        var exception = Assert.Throws<InvalidOperationException>(() => solution.GetRequiredDocument(documentId));
+        Assert.Contains("MyTestDocument.cs", exception.Message);
+    }
+
     [Fact, WorkItem(37125, "https://github.com/dotnet/roslyn/issues/41940")]
     public async Task WithDocumentSyntaxRoot_AnalyzerConfigWithoutFilePath()
     {
@@ -2483,8 +2497,9 @@ public sealed class SolutionTests : TestBase
         Assert.Throws<InvalidOperationException>(() => solution.AddDocument(documentId: DocumentId.CreateNewId(ProjectId.CreateNewId()), "name", sourceText));
     }
 
-    [Fact]
-    public async Task GetFirstRelatedDocumentIdWithDuplicatedDocuments()
+    [Theory]
+    [CombinatorialData]
+    public async Task GetFirstRelatedDocumentIdWithDuplicatedDocuments(bool populateCacheFirst)
     {
         using var workspace = CreateWorkspaceWithProjectAndDocuments();
         var origSolution = workspace.CurrentSolution;
@@ -2498,12 +2513,117 @@ public sealed class SolutionTests : TestBase
 
         var newSolution = origSolution.AddDocument(newDocumentId, document.Name, sourceText, filePath: document.FilePath!);
 
-        // Populate the SolutionState cache for this document id
-        _ = newSolution.GetRelatedDocumentIds(origDocumentId);
+        if (populateCacheFirst)
+        {
+            // Populate the SolutionState cache for this document id
+            _ = newSolution.GetRelatedDocumentIds(origDocumentId);
+        }
 
-        // Ensure a GetFirstRelatedDocumentId call with a poulated cache doesn't return newDocumentId
+        // Ensure a GetFirstRelatedDocumentId call doesn't return an ID, since the document is from the same project
         var relatedDocument = newSolution.GetFirstRelatedDocumentId(origDocumentId, relatedProjectIdHint: null);
         Assert.Null(relatedDocument);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public async Task GetFirstRelatedDocumentIdWithAdditionalDocumentHavingSamePath(bool populateCacheFirst, bool passRelatedProjectHint)
+    {
+        const string LinkedFileName = @"Z:\Linked.cs";
+
+        using var workspace = CreateWorkspace();
+
+        var additionalFileProjectId = ProjectId.CreateNewId("AdditionalFileProject");
+        var sourceFileProjectId = ProjectId.CreateNewId("SourceFileProject");
+
+        var solution = workspace.CurrentSolution
+            .AddProject(additionalFileProjectId, "AdditionalFileProject", "AdditionalFileProject.dll", LanguageNames.CSharp)
+            .AddAdditionalDocument(DocumentId.CreateNewId(additionalFileProjectId), "Linked.cs", SourceText.From("class C {}"), filePath: LinkedFileName)
+            .AddProject(sourceFileProjectId, "MainProject", "MainProject.dll", LanguageNames.CSharp)
+            .AddDocument(DocumentId.CreateNewId(sourceFileProjectId), "Linked.cs", SourceText.From("class C {}"), filePath: LinkedFileName);
+
+        var sourceFileDocumentId = solution.GetRequiredProject(sourceFileProjectId).DocumentIds.Single();
+
+        if (populateCacheFirst)
+        {
+            // Populate the SolutionState cache for this document id
+            _ = solution.GetRelatedDocumentIds(sourceFileDocumentId);
+        }
+
+        // Ensure a GetFirstRelatedDocumentId call doesn't return an ID, since the related document is an additional document, not a regular document
+        var relatedDocument = solution.GetFirstRelatedDocumentId(sourceFileDocumentId, relatedProjectIdHint: passRelatedProjectHint ? additionalFileProjectId : null);
+        Assert.Null(relatedDocument);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public async Task GetFirstRelatedDocumentIdWithAnalyzerConfigDocumentHavingSamePath(bool populateCacheFirst, bool passRelatedProjectHint)
+    {
+        const string LinkedFileName = @"Z:\Linked.cs";
+
+        using var workspace = CreateWorkspace();
+
+        var analyzerConfigProjectId = ProjectId.CreateNewId("AnalyzerConfigProject");
+        var sourceFileProjectId = ProjectId.CreateNewId("SourceFileProject");
+
+        var solution = workspace.CurrentSolution
+            .AddProject(analyzerConfigProjectId, "AnalyzerConfigProject", "AnalyzerConfigProject.dll", LanguageNames.CSharp)
+            .AddAnalyzerConfigDocument(DocumentId.CreateNewId(analyzerConfigProjectId), "Linked.cs", SourceText.From("class C {}"), filePath: LinkedFileName)
+            .AddProject(sourceFileProjectId, "MainProject", "MainProject.dll", LanguageNames.CSharp)
+            .AddDocument(DocumentId.CreateNewId(sourceFileProjectId), "Linked.cs", SourceText.From("class C {}"), filePath: LinkedFileName);
+
+        var sourceFileDocumentId = solution.GetRequiredProject(sourceFileProjectId).DocumentIds.Single();
+
+        if (populateCacheFirst)
+        {
+            // Populate the SolutionState cache for this document id
+            _ = solution.GetRelatedDocumentIds(sourceFileDocumentId);
+        }
+
+        // Ensure a GetFirstRelatedDocumentId call doesn't return an ID, since the related document is an additional document, not a regular document
+        var relatedDocument = solution.GetFirstRelatedDocumentId(sourceFileDocumentId, relatedProjectIdHint: passRelatedProjectHint ? analyzerConfigProjectId : null);
+        Assert.Null(relatedDocument);
+    }
+
+    [Fact]
+    public async Task SetCurrentSolutionWithRegularAndAdditionalFileUsingSamePathDoesNotThrow()
+    {
+        const string LinkedFileName = @"Z:\Linked.cs";
+
+        using var workspace = CreateWorkspace();
+
+        var additionalFileProjectId = ProjectId.CreateNewId("AdditionalFileProject");
+        var sourceFileProjectId = ProjectId.CreateNewId("SourceFileProject");
+
+        var solution = workspace.CurrentSolution
+            .AddProject(additionalFileProjectId, "AdditionalFileProject", "AdditionalFileProject.dll", LanguageNames.CSharp)
+            .AddAdditionalDocument(DocumentId.CreateNewId(additionalFileProjectId), "Linked.cs", SourceText.From("class C {}"), filePath: LinkedFileName)
+            .AddProject(sourceFileProjectId, "MainProject", "MainProject.dll", LanguageNames.CSharp)
+            .AddDocument(DocumentId.CreateNewId(sourceFileProjectId), "Linked.cs", SourceText.From("class C {}"), filePath: LinkedFileName);
+
+        // Ensure we don't accidentally try to unify the two documents's syntax trees, since one of them won't even have one. When we had this bug
+        // SetCurrentSolution would throw, so the validation here is simply that this doesn't crash.
+        workspace.SetCurrentSolution(_ => solution, WorkspaceChangeKind.SolutionAdded);
+    }
+
+    [Fact]
+    public async Task SetCurrentSolutionWithRegularAndAnalyzerConfigFileUsingSamePathDoesNotThrow()
+    {
+        const string LinkedFileName = @"Z:\Linked.cs";
+
+        using var workspace = CreateWorkspace();
+
+        var analyzerConfigProjectId = ProjectId.CreateNewId("AnalyzerConfigProject");
+        var sourceFileProjectId = ProjectId.CreateNewId("SourceFileProject");
+
+        var solution = workspace.CurrentSolution
+            .AddProject(analyzerConfigProjectId, "AnalyzerConfigProject", "AnalyzerConfigProject.dll", LanguageNames.CSharp)
+            .AddAnalyzerConfigDocument(DocumentId.CreateNewId(analyzerConfigProjectId), "Linked.cs", SourceText.From("class C {}"), filePath: LinkedFileName)
+            .AddProject(sourceFileProjectId, "MainProject", "MainProject.dll", LanguageNames.CSharp)
+            .AddDocument(DocumentId.CreateNewId(sourceFileProjectId), "Linked.cs", SourceText.From("class C {}"), filePath: LinkedFileName);
+
+        // Ensure we don't accidentally try to unify the two documents's syntax trees, since one of them won't even have one.  When we had this bug
+        // SetCurrentSolution would throw, so the validation here is simply that this doesn't crash.
+        workspace.SetCurrentSolution(_ => solution, WorkspaceChangeKind.SolutionAdded);
     }
 
     [Fact]

@@ -16,7 +16,9 @@ internal static class IDEDiagnosticIds
     public const string RemoveUnnecessaryImportsDiagnosticId = "IDE0005";
     public const string RemoveUnnecessaryImportsGeneratedCodeDiagnosticId = RemoveUnnecessaryImportsDiagnosticId + "_gen";
 
-    public const string IntellisenseBuildFailedDiagnosticId = "IDE0006";
+    // No longer used. Avoid re-using the same ID again.
+    // public const string IntellisenseBuildFailedDiagnosticId = "IDE0006";
+
     public const string UseImplicitTypeDiagnosticId = "IDE0007";
     public const string UseExplicitTypeDiagnosticId = "IDE0008";
     public const string AddThisOrMeQualificationDiagnosticId = "IDE0009";
@@ -217,6 +219,9 @@ internal static class IDEDiagnosticIds
     public const string RemoveUnnecessaryNullableWarningSuppression = "IDE0370";
 
     public const string RemoveUnnecessaryUnsafeModifier = "IDE0380";
+
+    public const string RemoveUnnecessaryAsyncModifier = "IDE0390";
+    public const string RemoveUnnecessaryAsyncModifierInterfaceImplementationOrOverride = "IDE0391";
 
     // Analyzer error Ids
     public const string AnalyzerChangedId = "IDE1001";

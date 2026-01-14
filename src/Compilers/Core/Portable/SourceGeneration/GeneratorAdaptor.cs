@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis
 
             context.RegisterSourceOutput(contextBuilderSource, (productionContext, contextBuilder) =>
             {
-                var generatorExecutionContext = contextBuilder.ToExecutionContext(_sourceExtension, productionContext.CancellationToken);
+                var generatorExecutionContext = contextBuilder.ToExecutionContext(_sourceExtension, productionContext.ChecksumAlgorithm, productionContext.CancellationToken);
 #pragma warning disable CS0618 // Type or member is obsolete
                 SourceGenerator.Execute(generatorExecutionContext);
 #pragma warning restore CS0618 // Type or member is obsolete
@@ -84,10 +85,10 @@ namespace Microsoft.CodeAnalysis
 
             public ISyntaxContextReceiver? Receiver;
 
-            public GeneratorExecutionContext ToExecutionContext(string sourceExtension, CancellationToken cancellationToken)
+            public GeneratorExecutionContext ToExecutionContext(string sourceExtension, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
             {
                 Debug.Assert(ParseOptions is object && ConfigOptions is object);
-                return new GeneratorExecutionContext(Compilation, ParseOptions, AdditionalTexts, ConfigOptions, Receiver, sourceExtension, cancellationToken);
+                return new GeneratorExecutionContext(Compilation, ParseOptions, AdditionalTexts, ConfigOptions, Receiver, sourceExtension, checksumAlgorithm, cancellationToken);
             }
         }
     }
