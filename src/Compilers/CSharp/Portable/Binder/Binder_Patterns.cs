@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SetMethod: null,
                     RefKind: RefKind.None,
                     ParameterCount: 0,
-                    TypeWithAnnotations: { Type.SpecialType: SpecialType.System_Object, CustomModifiers: [] }
+                    Type.SpecialType: SpecialType.System_Object
                 };
             }
         }
@@ -81,6 +81,67 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             return GetUnionTypeValueProperty(inputUnionType, ref useSiteInfo);
+        }
+
+        internal static bool IsUnionTypeValueProperty(NamedTypeSymbol unionType, Symbol symbol)
+        {
+            return Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(unionType) == (object)symbol;
+        }
+
+        private static PropertySymbol? GetUnionTypeHasValuePropertyOriginalDefinition(NamedTypeSymbol inputUnionType)
+        {
+            Debug.Assert(inputUnionType.IsUnionTypeNoUseSiteDiagnostics);
+
+            PropertySymbol? valueProperty = null;
+
+            // PROTOTYPE: Not dealing with inheritance for now.
+            foreach (var m in inputUnionType.OriginalDefinition.GetMembers(WellKnownMemberNames.HasValuePropertyName))
+            {
+                if (m is PropertySymbol prop && hasHasValueSignature(prop))
+                {
+                    valueProperty = prop;
+                    break;
+                }
+            }
+
+            if (valueProperty is null || valueProperty.GetUseSiteInfo().DiagnosticInfo?.DefaultSeverity == DiagnosticSeverity.Error)
+            {
+                return null; // PROTOTYPE: Cover this code path
+            }
+
+            return valueProperty;
+
+            static bool hasHasValueSignature(PropertySymbol property)
+            {
+                // PROTOTYPE: Cover individual conditions with tests
+                return property is
+                {
+                    IsStatic: false,
+                    DeclaredAccessibility: Accessibility.Public,
+                    GetMethod: not null,
+                    SetMethod: null,
+                    RefKind: RefKind.None,
+                    ParameterCount: 0,
+                    Type.SpecialType: SpecialType.System_Boolean
+                };
+            }
+        }
+
+        internal static PropertySymbol? GetUnionTypeHasValueProperty(NamedTypeSymbol inputUnionType)
+        {
+            PropertySymbol? valueProperty = GetUnionTypeHasValuePropertyOriginalDefinition(inputUnionType);
+            if (valueProperty is null)
+            {
+                return null;
+            }
+
+            return valueProperty.AsMember(inputUnionType);
+        }
+
+        internal static bool IsUnionTypeHasValueProperty(NamedTypeSymbol unionType, PropertySymbol property)
+        {
+            // PROTOTYPE: Deal with inheritance?
+            return (object)property.OriginalDefinition == Binder.GetUnionTypeHasValuePropertyOriginalDefinition(unionType);
         }
 
         private BoundExpression BindIsPatternExpression(IsPatternExpressionSyntax node, BindingDiagnosticBag diagnostics)

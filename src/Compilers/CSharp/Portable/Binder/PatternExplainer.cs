@@ -689,7 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 if (evaluations.Length == 1 && e.Property is { Name: WellKnownMemberNames.ValuePropertyName } property &&
                                     e.Input.Type is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true } unionType &&
-                                    Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(unionType) == (object)property)
+                                    Binder.IsUnionTypeValueProperty(unionType, property))
                                 {
                                     return subPattern;
                                 }

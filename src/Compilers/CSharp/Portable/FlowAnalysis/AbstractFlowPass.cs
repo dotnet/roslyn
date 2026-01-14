@@ -962,7 +962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     IsUnionMatching: false,
                 } rewritten &&
                 (possibleUnionValueSymbol is null ||
-                 (possibleUnionValueSymbol.ContainingType.IsWellKnownTypeIUnion() && Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(inputType) == (object)possibleUnionValueSymbol)))
+                 (possibleUnionValueSymbol.ContainingType.IsWellKnownTypeIUnion() && Binder.IsUnionTypeValueProperty(inputType, possibleUnionValueSymbol))))
             {
                 Debug.Assert(!inputType.IsNullableType());
                 Debug.Assert(!negated);

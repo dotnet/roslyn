@@ -2049,7 +2049,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         variable.ContainingSlot is > 0 and var containingSlot &&
                         property.ContainingType.IsWellKnownTypeIUnion() &&
                         _variables[containingSlot].Symbol.GetTypeOrReturnType().Type is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true, UnionCaseTypes: not [] } unionType &&
-                        Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(unionType) == (object)property:
+                        Binder.IsUnionTypeValueProperty(unionType, property):
                     {
                         // For union types where none of the case types are nullable, the default state for Value is "not null" rather than "maybe null".
                         var result = NullableFlowState.NotNull;
@@ -11951,10 +11951,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverType = (receiverOpt != null) ? VisitRvalueWithState(receiverOpt) : default;
 
             SpecialMember? nullableOfTMember = null;
+            PropertySymbol? unionValue = null;
             if (member.RequiresInstanceReceiver())
             {
                 member = AsMemberOfType(receiverType.Type, member);
                 nullableOfTMember = GetNullableOfTMember(member);
+
+                if (member is PropertySymbol { Name: WellKnownMemberNames.HasValuePropertyName } property &&
+                    receiverType.Type is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true } unionType &&
+                    Binder.IsUnionTypeHasValueProperty(unionType, property))
+                {
+                    unionValue = Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(unionType);
+                }
+
                 // https://github.com/dotnet/roslyn/issues/30598: For l-values, mark receiver as not null
                 // after RHS has been visited, and only if the receiver has not changed.
                 bool skipReceiverNullCheck = nullableOfTMember != SpecialMember.System_Nullable_T_get_Value;
@@ -11978,13 +11987,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(!IsConditionalState);
-            if (nullableOfTMember == SpecialMember.System_Nullable_T_get_HasValue && !(receiverOpt is null))
+            if (receiverOpt is not null)
             {
-                int containingSlot = MakeSlot(receiverOpt);
-                if (containingSlot > 0)
+                int slotToSet = -1;
+
+                if (nullableOfTMember == SpecialMember.System_Nullable_T_get_HasValue)
+                {
+                    slotToSet = MakeSlot(receiverOpt);
+                }
+                else if (unionValue is not null)
+                {
+                    slotToSet = MakeMemberSlot(receiverOpt, unionValue);
+                }
+
+                if (slotToSet > 0)
                 {
                     Split();
-                    SetState(ref this.StateWhenTrue, containingSlot, NullableFlowState.NotNull);
+                    SetState(ref this.StateWhenTrue, slotToSet, NullableFlowState.NotNull);
                 }
             }
 

@@ -328,39 +328,67 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakeTestsAndBindings(input, pattern, out _, bindings);
         }
 
+        private readonly struct TestInputOutputInfo(BoundDagTemp dagTemp, BoundPropertySubpatternMember? unionValue)
+        {
+            public readonly BoundDagTemp DagTemp = dagTemp;
+            public readonly BoundPropertySubpatternMember? UnionValue = unionValue;
+
+            // PROTOTYPE: Make explicit or remove once all MakeTestsAndBindings helpers are updated.
+            public static implicit operator TestInputOutputInfo(BoundDagTemp dagTemp)
+            {
+                return new TestInputOutputInfo(dagTemp, null);
+            }
+        }
+
         /// <summary>
         /// Make the tests and variable bindings for the given pattern with the given input.  The pattern's
         /// "output" value is placed in <paramref name="output"/>.  The output is defined as the input
         /// narrowed according to the pattern's *narrowed type*; see https://github.com/dotnet/csharplang/issues/2850.
         /// </summary>
         private Tests MakeTestsAndBindings(
-            BoundDagTemp input,
+            TestInputOutputInfo input,
             BoundPattern pattern,
-            out BoundDagTemp output,
+            out TestInputOutputInfo output,
             ArrayBuilder<BoundPatternBinding> bindings)
         {
             Debug.Assert(!pattern.IsUnionMatching);
-            Debug.Assert(pattern.HasErrors || pattern.InputType.Equals(input.Type, TypeCompareKind.AllIgnoreOptions) || pattern.InputType.IsErrorType());
+            Debug.Assert(input.UnionValue is null ?
+                (pattern.HasErrors || pattern.InputType.Equals(input.DagTemp.Type, TypeCompareKind.AllIgnoreOptions) || pattern.InputType.IsErrorType()) :
+                (pattern.InputType.SpecialType == SpecialType.System_Object));
+
             switch (pattern)
             {
                 case BoundDeclarationPattern declaration:
-                    return MakeTestsAndBindingsForDeclarationPattern(input, declaration, out output, bindings);
+                    {
+                        return MakeUnionPropertyTestIfNecessary(PrepareForUnionValuePropertyMatching(ref input), MakeTestsAndBindingsForDeclarationPattern(input.DagTemp, declaration, out var outputTemp, bindings), outputTemp, out output);
+                    }
                 case BoundConstantPattern constant:
                     return MakeTestsForConstantPattern(input, constant, out output);
                 case BoundDiscardPattern:
                 case BoundSlicePattern:
+                    Debug.Assert(input.UnionValue is null);
                     output = input;
                     return Tests.True.Instance;
                 case BoundListPattern list:
-                    return MakeTestsAndBindingsForListPattern(input, list, out output, bindings);
+                    {
+                        return MakeUnionPropertyTestIfNecessary(PrepareForUnionValuePropertyMatching(ref input), MakeTestsAndBindingsForListPattern(input.DagTemp, list, out var outputTemp, bindings), outputTemp, out output);
+                    }
                 case BoundRecursivePattern recursive:
-                    return MakeTestsAndBindingsForRecursivePattern(input, recursive, out output, bindings);
+                    {
+                        return MakeUnionPropertyTestIfNecessary(PrepareForUnionValuePropertyMatching(ref input), MakeTestsAndBindingsForRecursivePattern(input.DagTemp, recursive, out var outputTemp, bindings), outputTemp, out output);
+                    }
                 case BoundITuplePattern iTuple:
-                    return MakeTestsAndBindingsForITuplePattern(input, iTuple, out output, bindings);
+                    {
+                        return MakeUnionPropertyTestIfNecessary(PrepareForUnionValuePropertyMatching(ref input), MakeTestsAndBindingsForITuplePattern(input.DagTemp, iTuple, out var outputTemp, bindings), outputTemp, out output);
+                    }
                 case BoundTypePattern type:
-                    return MakeTestsForTypePattern(input, type, out output);
+                    {
+                        return MakeUnionPropertyTestIfNecessary(PrepareForUnionValuePropertyMatching(ref input), MakeTestsForTypePattern(input.DagTemp, type, out var outputTemp), outputTemp, out output);
+                    }
                 case BoundRelationalPattern rel:
-                    return MakeTestsAndBindingsForRelationalPattern(input, rel, out output);
+                    {
+                        return MakeUnionPropertyTestIfNecessary(PrepareForUnionValuePropertyMatching(ref input), MakeTestsAndBindingsForRelationalPattern(input.DagTemp, rel, out var outputTemp), outputTemp, out output);
+                    }
                 case BoundNegatedPattern neg:
                     output = input;
                     return MakeTestsAndBindingsForNegatedPattern(input, neg, bindings);
@@ -369,6 +397,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
             }
+        }
+
+        private static Tests MakeUnionPropertyTestIfNecessary(Tests? unionValueEvaluation, Tests valueTest, BoundDagTemp outputDagTemp, out TestInputOutputInfo output)
+        {
+            output = (TestInputOutputInfo)outputDagTemp;
+            return MakeUnionPropertyTestIfNecessary(unionValueEvaluation, valueTest);
+        }
+
+        private Tests? PrepareForUnionValuePropertyMatching(ref TestInputOutputInfo input)
+        {
+            Tests? unionValueEvaluation = null;
+
+            if (input.UnionValue is { } unionValue)
+            {
+                Debug.Assert(unionValue.Symbol is PropertySymbol);
+                var property = (PropertySymbol)unionValue.Symbol;
+                BoundDagEvaluation evaluation = new BoundDagPropertyEvaluation(unionValue.Syntax, property, isLengthOrCount: false, OriginalInput(input.DagTemp, property));
+                unionValueEvaluation = new Tests.One(evaluation);
+                input = (TestInputOutputInfo)new BoundDagTemp(unionValue.Syntax, unionValue.Type, evaluation);
+            }
+
+            return unionValueEvaluation;
+        }
+
+        private static Tests MakeUnionPropertyTestIfNecessary(Tests? unionValueEvaluation, Tests valueTest)
+        {
+            Debug.Assert(unionValueEvaluation is null || unionValueEvaluation is Tests.One { Test: BoundDagPropertyEvaluation });
+            return unionValueEvaluation is null || valueTest is Tests.True or Tests.False ? valueTest : Tests.AndSequence.Create(unionValueEvaluation, valueTest);
         }
 
         private Tests MakeTestsAndBindingsForITuplePattern(
@@ -538,36 +594,75 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private Tests MakeTestsForConstantPattern(
-            BoundDagTemp input,
+            TestInputOutputInfo inputInfo,
             BoundConstantPattern constant,
-            out BoundDagTemp output)
+            out TestInputOutputInfo outputInfo)
         {
             if (constant.ConstantValue == ConstantValue.Null)
             {
-                output = input;
-                return new Tests.One(new BoundDagExplicitNullTest(constant.Syntax, input));
-            }
-            else if (constant.ConstantValue.IsString && input.Type.IsSpanOrReadOnlySpanChar())
-            {
-                output = input;
-                return new Tests.One(new BoundDagValueTest(constant.Syntax, constant.ConstantValue, input));
+                if (inputInfo.UnionValue is { } unionValue && Binder.GetUnionTypeHasValueProperty((NamedTypeSymbol)inputInfo.DagTemp.Type) is PropertySymbol hasValue)
+                {
+                    if (_forLowering)
+                    {
+                        outputInfo = inputInfo;
+                        BoundDagEvaluation hasValueEvaluation = new BoundDagPropertyEvaluation(unionValue.Syntax, hasValue, isLengthOrCount: false, OriginalInput(inputInfo.DagTemp, hasValue));
+                        var hasValueEvaluationTest = new Tests.One(hasValueEvaluation);
+                        return MakeUnionPropertyTestIfNecessary(
+                            hasValueEvaluationTest,
+                            makeConstantTest(constant.Syntax, new BoundDagTemp(unionValue.Syntax, hasValue.Type, hasValueEvaluation), ConstantValue.False));
+                    }
+                    else
+                    {
+                        _suitableForLowering = false;
+                    }
+                }
+
+                Tests? unionValueEvaluation = PrepareForUnionValuePropertyMatching(ref inputInfo);
+
+                outputInfo = inputInfo;
+                return MakeUnionPropertyTestIfNecessary(unionValueEvaluation, new Tests.One(new BoundDagExplicitNullTest(constant.Syntax, inputInfo.DagTemp)));
             }
             else
             {
-                var tests = ArrayBuilder<Tests>.GetInstance(2);
-                Debug.Assert(constant.Value.Type is not null || constant.HasErrors);
-                output = input = constant.Value.Type is { } type ? MakeConvertToType(input, constant.Syntax, type, isExplicitTest: false, tests) : input;
-                if (ValueSetFactory.ForInput(input)?.Related(BinaryOperatorKind.Equal, constant.ConstantValue).IsEmpty == true)
+                return MakeUnionPropertyTestIfNecessary(PrepareForUnionValuePropertyMatching(ref inputInfo), makeTestsForNonNullConstantPattern(inputInfo.DagTemp, constant, out outputInfo));
+            }
+
+            Tests makeTestsForNonNullConstantPattern(BoundDagTemp input, BoundConstantPattern constant, out TestInputOutputInfo output)
+            {
+                ConstantValue constantValue = constant.ConstantValue;
+                if (constantValue.IsString && input.Type.IsSpanOrReadOnlySpanChar())
                 {
-                    // This could only happen for a length input where the permitted value domain (>=0) is a strict subset of possible values for the type (int)
-                    Debug.Assert(input.Source is BoundDagPropertyEvaluation { IsLengthOrCount: true });
-                    tests.Add(Tests.False.Instance);
+                    output = (TestInputOutputInfo)input;
+                    return new Tests.One(new BoundDagValueTest(constant.Syntax, constantValue, input));
                 }
                 else
                 {
-                    tests.Add(new Tests.One(new BoundDagValueTest(constant.Syntax, constant.ConstantValue, input)));
+                    var tests = ArrayBuilder<Tests>.GetInstance(2);
+                    Debug.Assert(constant.Value.Type is not null || constant.HasErrors);
+                    if (constant.Value.Type is { } type)
+                    {
+                        input = MakeConvertToType(input, constant.Syntax, type, isExplicitTest: false, tests);
+                    }
+
+                    output = (TestInputOutputInfo)input;
+
+                    tests.Add(makeConstantTest(constant.Syntax, input, constantValue));
+                    return Tests.AndSequence.Create(tests);
                 }
-                return Tests.AndSequence.Create(tests);
+            }
+
+            static Tests makeConstantTest(SyntaxNode syntax, BoundDagTemp input, ConstantValue constantValue)
+            {
+                if (ValueSetFactory.ForInput(input)?.Related(BinaryOperatorKind.Equal, constantValue).IsEmpty == true)
+                {
+                    // This could only happen for a length input where the permitted value domain (>=0) is a strict subset of possible values for the type (int)
+                    Debug.Assert(input.Source is BoundDagPropertyEvaluation { IsLengthOrCount: true });
+                    return Tests.False.Instance;
+                }
+                else
+                {
+                    return new Tests.One(new BoundDagValueTest(syntax, constantValue, input));
+                }
             }
         }
 
@@ -640,6 +735,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundPattern pattern = subpattern.Pattern;
                     BoundDagTemp currentInput = input;
+
+                    if (subpattern.Member is { Symbol: PropertySymbol { Name: WellKnownMemberNames.ValuePropertyName } property } &&
+                        input.Type is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true } unionType &&
+                        Binder.IsUnionTypeValueProperty(unionType, property))
+                    {
+                        // This sub-puttern is a union matching 
+
+                        Debug.Assert(subpattern is { Member.Receiver: null, IsLengthOrCount: false }); // This is the shape created by UnionMatchingRewriter.
+                        if (subpattern is { Member.Receiver: null, IsLengthOrCount: false })
+                        {
+                            tests.Add(MakeTestsAndBindings(new TestInputOutputInfo(input, subpattern.Member), pattern, output: out _, bindings));
+                            continue;
+                        }
+                    }
+
                     if (!tryMakeTestsForSubpatternMember(subpattern.Member, ref currentInput, subpattern.IsLengthOrCount))
                     {
                         Debug.Assert(recursive.HasAnyErrors);
@@ -691,16 +801,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private Tests MakeTestsAndBindingsForNegatedPattern(BoundDagTemp input, BoundNegatedPattern neg, ArrayBuilder<BoundPatternBinding> bindings)
+        private Tests MakeTestsAndBindingsForNegatedPattern(TestInputOutputInfo input, BoundNegatedPattern neg, ArrayBuilder<BoundPatternBinding> bindings)
         {
-            var tests = MakeTestsAndBindings(input, neg.Negated, bindings);
+            var tests = MakeTestsAndBindings(input, neg.Negated, output: out _, bindings);
             return Tests.Not.Create(tests);
         }
 
         private Tests MakeTestsAndBindingsForBinaryPattern(
-            BoundDagTemp input,
+            TestInputOutputInfo inputInfo,
             BoundBinaryPattern bin,
-            out BoundDagTemp output,
+            out TestInputOutputInfo outputInfo,
             ArrayBuilder<BoundPatternBinding> bindings)
         {
             // Users (such as ourselves) can have many, many nested binary patterns. To avoid crashing, do left recursion manually.
@@ -715,46 +825,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             } while (currentNode != null);
 
             currentNode = binaryPatternStack.Pop();
-            Tests result = MakeTestsAndBindings(input, currentNode.Left, out output, bindings);
+            Tests result = MakeTestsAndBindings(inputInfo, currentNode.Left, out outputInfo, bindings);
 
             do
             {
-                result = makeTestsAndBindingsForBinaryPattern(this, result, output, input, currentNode, out output, bindings);
+                result = makeTestsAndBindingsForBinaryPattern(this, result, outputInfo, inputInfo, currentNode, out outputInfo, bindings);
             } while (binaryPatternStack.TryPop(out currentNode));
 
             binaryPatternStack.Free();
 
             return result;
 
-            static Tests makeTestsAndBindingsForBinaryPattern(DecisionDagBuilder @this, Tests leftTests, BoundDagTemp leftOutput, BoundDagTemp input, BoundBinaryPattern bin, out BoundDagTemp output, ArrayBuilder<BoundPatternBinding> bindings)
+            Tests makeTestsAndBindingsForBinaryPattern(DecisionDagBuilder @this, Tests leftTests, TestInputOutputInfo leftOutputInfo, TestInputOutputInfo inputInfo, BoundBinaryPattern bin, out TestInputOutputInfo outputInfo, ArrayBuilder<BoundPatternBinding> bindings)
             {
                 var builder = ArrayBuilder<Tests>.GetInstance(2);
                 if (bin.Disjunction)
                 {
                     builder.Add(leftTests);
-                    builder.Add(@this.MakeTestsAndBindings(input, bin.Right, bindings));
+                    builder.Add(@this.MakeTestsAndBindings(inputInfo, bin.Right, output: out _, bindings));
                     var result = Tests.OrSequence.Create(builder);
                     if (bin.InputType.Equals(bin.NarrowedType))
                     {
-                        output = input;
+                        outputInfo = inputInfo;
                         return result;
                     }
                     else
                     {
                         builder = ArrayBuilder<Tests>.GetInstance(2);
                         builder.Add(result);
-                        var evaluation = new BoundDagTypeEvaluation(bin.Syntax, bin.NarrowedType, input);
-                        output = new BoundDagTemp(bin.Syntax, bin.NarrowedType, evaluation);
+
+                        // PROTOTYPE: Is there an advantage to use TryGetValue here? 
+                        Tests? unionValueEvaluation = PrepareForUnionValuePropertyMatching(ref inputInfo);
+                        var evaluation = new BoundDagTypeEvaluation(bin.Syntax, bin.NarrowedType, inputInfo.DagTemp);
+                        outputInfo = (TestInputOutputInfo)new BoundDagTemp(bin.Syntax, bin.NarrowedType, evaluation);
                         builder.Add(new Tests.One(evaluation));
-                        return Tests.AndSequence.Create(builder);
+                        return MakeUnionPropertyTestIfNecessary(unionValueEvaluation, Tests.AndSequence.Create(builder));
                     }
                 }
                 else
                 {
                     builder.Add(leftTests);
-                    builder.Add(@this.MakeTestsAndBindings(leftOutput, bin.Right, out var rightOutput, bindings));
-                    output = rightOutput;
-                    Debug.Assert(bin.HasErrors || output.Type.Equals(bin.NarrowedType, TypeCompareKind.AllIgnoreOptions));
+                    builder.Add(@this.MakeTestsAndBindings(leftOutputInfo, bin.Right, out var rightOutput, bindings));
+                    outputInfo = rightOutput;
+                    Debug.Assert(bin.HasErrors ||
+                                 (outputInfo.UnionValue is null ?
+                                      outputInfo.DagTemp.Type.Equals(bin.NarrowedType, TypeCompareKind.AllIgnoreOptions) :
+                                      bin.NarrowedType.SpecialType == SpecialType.System_Object));
                     return Tests.AndSequence.Create(builder);
                 }
             }
