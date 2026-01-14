@@ -144,7 +144,7 @@
       </trans-unit>
       <trans-unit id="Convert_0_extension_methods_to_extension">
         <source>Convert '{0}' extension methods to extension</source>
-        <target state="new">Convert '{0}' extension methods to extension</target>
+        <target state="translated">Convertir los métodos de extensión “{0}” en una extensión</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_0_to_record">
@@ -154,7 +154,7 @@
       </trans-unit>
       <trans-unit id="Convert_all_extension_methods_in_0_to_extension">
         <source>Convert all extension methods in '{0}' to extension</source>
-        <target state="new">Convert all extension methods in '{0}' to extension</target>
+        <target state="translated">Convertir todos los métodos de extensión en “{0}” a una extensión</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_method">

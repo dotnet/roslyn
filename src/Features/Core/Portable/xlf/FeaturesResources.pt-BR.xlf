@@ -322,7 +322,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Built_in_Copilot_analysis">
         <source>Built-in Copilot analysis</source>
-        <target state="translated">Análise interna do Copilot</target>
+        <target state="new">Built-in Copilot analysis</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_VisualBasic_References">
@@ -512,7 +512,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Conditional_alternation_refers_to_an_undefined_group_number_0">
         <source>Conditional alternation refers to an undefined group number {0}</source>
-        <target state="new">Conditional alternation refers to an undefined group number {0}</target>
+        <target state="translated">Alternância condicional refere-se a um número de grupo indefinido {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(1)\1))</note>
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
@@ -562,7 +562,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Convert_to_field_property">
         <source>Convert to 'field' property</source>
-        <target state="new">Convert to 'field' property</target>
+        <target state="translated">Converter em propriedade "field"</target>
         <note>{Locked="field"} "field" is C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -962,7 +962,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Insufficient_or_invalid_hexadecimal_digits">
         <source>Insufficient or invalid hexadecimal digits</source>
-        <target state="new">Insufficient or invalid hexadecimal digits</target>
+        <target state="translated">Dígitos hexadecimais insuficientes ou inválidos</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \x</note>
       </trans-unit>
       <trans-unit id="Introduce_constant">
@@ -1097,7 +1097,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Method_0_must_be_static_and_non_generic">
         <source>Method '{0}' must be static and non-generic</source>
-        <target state="translated">O método '{0}' deve ser estático e não genérico</target>
+        <target state="new">Method '{0}' must be static and non-generic</target>
         <note />
       </trans-unit>
       <trans-unit id="Miscellaneous_Files">
@@ -1242,7 +1242,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
         <source>Nested quantifier '{0}'</source>
-        <target state="new">Nested quantifier '{0}'</target>
+        <target state="translated">Quantificador aninhado "{0}"</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</note>
       </trans-unit>
       <trans-unit id="No_common_root_node_for_extraction">
@@ -1337,27 +1337,27 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Pull_selected_members_up_to_0">
         <source>Pull selected members up to {0}</source>
-        <target state="translated">Efetuar pull dos membros selecionados para {0}</target>
+        <target state="new">Pull selected members up to {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_0_following_nothing">
         <source>Quantifier '{0}' following nothing</source>
-        <target state="new">Quantifier '{0}' following nothing</target>
+        <target state="translated">Nada precede o quantificador "{0}"</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: *</note>
       </trans-unit>
       <trans-unit id="Quantifier_and_capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue">
         <source>Quantifier and capture group numbers must be less than or equal to Int32.MaxValue</source>
-        <target state="new">Quantifier and capture group numbers must be less than or equal to Int32.MaxValue</target>
+        <target state="translated">O quantificador e os números do grupo de captura devem ser menores ou iguais a Int32.MaxValue</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a{2147483648}</note>
       </trans-unit>
       <trans-unit id="Query">
         <source>Query</source>
-        <target state="translated">Consulta</target>
+        <target state="new">Query</target>
         <note />
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group_name_0">
         <source>Reference to undefined group name '{0}'</source>
-        <target state="new">Reference to undefined group name '{0}'</target>
+        <target state="translated">Referência ao nome do grupo indefinido "{0}"</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \k&lt;a&gt;. Here, {0} will be the name of the undefined group ('a')</note>
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group_number_0">
@@ -2532,7 +2532,7 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       </trans-unit>
       <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
         <source>Renaming anonymous type members is not yet supported.</source>
-        <target state="translated">Renomear membros de tipo anônimo ainda não é suportado.</target>
+        <target state="new">Renaming anonymous type members is not yet supported.</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_1">
@@ -2597,12 +2597,12 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       </trans-unit>
       <trans-unit id="Semantic_search_query_failed_to_compile">
         <source>Semantic search query failed to compile</source>
-        <target state="translated">Falha na compilação da consulta de pesquisa semântica</target>
+        <target state="new">Semantic search query failed to compile</target>
         <note />
       </trans-unit>
       <trans-unit id="Semantic_search_query_terminated_with_exception">
         <source>Semantic search query terminated with exception</source>
-        <target state="translated">A consulta de pesquisa semântica foi encerrada com uma exceção</target>
+        <target state="new">Semantic search query terminated with exception</target>
         <note />
       </trans-unit>
       <trans-unit id="Silent">
@@ -2697,7 +2697,7 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       </trans-unit>
       <trans-unit id="The_assembly_0_references_compiler_version_1_newer_than_2">
         <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="new">Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
+        <target state="translated">O assembly do analisador "{0}" não pode ser usado porque faz referência à versão "{1}" do compilador, que é mais recente do que a versão "{2}" em execução no momento.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_query_does_not_specify_0_top_level_function">
@@ -2782,7 +2782,7 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       </trans-unit>
       <trans-unit id="Unable_to_load_type_0_1">
         <source>Unable to load type '{0}': '{1}'</source>
-        <target state="translated">Não foi possível carregar o tipo '{0}': '{1}'</target>
+        <target state="new">Unable to load type '{0}': '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_property">
@@ -2982,7 +2982,7 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       </trans-unit>
       <trans-unit id="Updating_the_type_of_0_around_an_active_statement_requires_restarting_the_application">
         <source>Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</source>
-        <target state="translated">Atualizar o tipo de {0} (de '{1}' para '{2}') em torno de uma instrução ativa requer a reinicialização do aplicativo.</target>
+        <target state="new">Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_type_of_0_requires_restarting_the_application">
@@ -3902,7 +3902,7 @@ Se o especificador de formato "M" for usado sem outros especificadores de format
       </trans-unit>
       <trans-unit id="Generate_Equals_object">
         <source>Generate Equals(object)</source>
-        <target state="translated">Gerar Equals(object)</target>
+        <target state="new">Generate Equals(object)</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_GetHashCode">
@@ -4162,7 +4162,7 @@ Deseja continuar?</target>
       </trans-unit>
       <trans-unit id="_0_1">
         <source>    {0} - {1}</source>
-        <target state="translated">    {0} - {1}</target>
+        <target state="new">    {0} - {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source">
@@ -4807,12 +4807,12 @@ Essa versão é usada no: {2}</target>
       </trans-unit>
       <trans-unit id="Add_string_IsNullOrEmpty_check">
         <source>Add 'string.IsNullOrEmpty' check</source>
-        <target state="translated">Adicionar a verificação 'string.IsNullOrEmpty'</target>
+        <target state="new">Add 'string.IsNullOrEmpty' check</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_string_IsNullOrWhiteSpace_check">
         <source>Add 'string.IsNullOrWhiteSpace' check</source>
-        <target state="translated">Adicionar a verificação 'string.IsNullOrWhiteSpace'</target>
+        <target state="new">Add 'string.IsNullOrWhiteSpace' check</target>
         <note />
       </trans-unit>
       <trans-unit id="Initialize_field_0">
