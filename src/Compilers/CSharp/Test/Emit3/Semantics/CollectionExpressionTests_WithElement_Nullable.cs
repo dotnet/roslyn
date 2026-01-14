@@ -682,22 +682,16 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         string sourceA = """
             #nullable enable
             using System;
-            using System.Collections;
             using System.Collections.Generic;
             using System.Diagnostics.CodeAnalysis;
             using System.Runtime.CompilerServices;
 
             [CollectionBuilder(typeof(MyBuilder), "Create")]
-            class MyCollection<T> : IEnumerable<T>
+            class MyCollection<T> : List<T>
             {
-                private readonly List<T> _items;
                 public MyCollection(string? value, ReadOnlySpan<T> items)
                 {
-                    _items = new();
-                    _items.AddRange(items.ToArray());
                 }
-                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
-                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
             }
             class MyBuilder
             {
@@ -730,21 +724,15 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         string sourceA = """
             #nullable enable
             using System;
-            using System.Collections;
             using System.Collections.Generic;
             using System.Runtime.CompilerServices;
 
             [CollectionBuilder(typeof(MyBuilder), "Create")]
-            class MyCollection<T> : IEnumerable<T>
+            class MyCollection<T> : List<T>
             {
-                private readonly List<T> _items;
                 public MyCollection(string? value, ReadOnlySpan<T> items)
                 {
-                    _items = new();
-                    _items.AddRange(items.ToArray());
                 }
-                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
-                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
             }
             class MyBuilder
             {
@@ -781,22 +769,16 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         string sourceA = """
             #nullable enable
             using System;
-            using System.Collections;
             using System.Collections.Generic;
             using System.Diagnostics.CodeAnalysis;
             using System.Runtime.CompilerServices;
 
             [CollectionBuilder(typeof(MyBuilder), "Create")]
-            class MyCollection<T> : IEnumerable<T>
+            class MyCollection<T> : List<T>
             {
-                private readonly List<T> _items;
                 public MyCollection(string? value, ReadOnlySpan<T> items)
                 {
-                    _items = new();
-                    _items.AddRange(items.ToArray());
                 }
-                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
-                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
             }
             class MyBuilder
             {
@@ -829,21 +811,15 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         string sourceA = """
             #nullable enable
             using System;
-            using System.Collections;
             using System.Collections.Generic;
             using System.Runtime.CompilerServices;
 
             [CollectionBuilder(typeof(MyBuilder), "Create")]
-            class MyCollection<T> : IEnumerable<T>
+            class MyCollection<T> : List<T>
             {
-                private readonly List<T> _items;
                 public MyCollection(string? value, ReadOnlySpan<T> items)
                 {
-                    _items = new();
-                    _items.AddRange(items.ToArray());
                 }
-                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
-                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
             }
             class MyBuilder
             {
@@ -1008,22 +984,16 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         string sourceA = """
             #nullable enable
             using System;
-            using System.Collections;
             using System.Collections.Generic;
             using System.Diagnostics.CodeAnalysis;
             using System.Runtime.CompilerServices;
 
             [CollectionBuilder(typeof(MyBuilder), "Create")]
-            class MyCollection<T> : IEnumerable<T>
+            class MyCollection<T> : List<T>
             {
-                private readonly List<T> _items;
                 public MyCollection(string? value, ReadOnlySpan<T> items)
                 {
-                    _items = new();
-                    _items.AddRange(items.ToArray());
                 }
-                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
-                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
             }
             class MyBuilder
             {
@@ -1059,21 +1029,15 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         string sourceA = """
             #nullable enable
             using System;
-            using System.Collections;
             using System.Collections.Generic;
             using System.Runtime.CompilerServices;
 
             [CollectionBuilder(typeof(MyBuilder), "Create")]
-            class MyCollection<T> : IEnumerable<T>
+            class MyCollection<T> : List<T>
             {
-                private readonly List<T> _items;
                 public MyCollection(string? value, ReadOnlySpan<T> items)
                 {
-                    _items = new();
-                    _items.AddRange(items.ToArray());
                 }
-                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
-                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
             }
             class MyBuilder
             {
@@ -1107,22 +1071,16 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         string sourceA = """
             #nullable enable
             using System;
-            using System.Collections;
             using System.Collections.Generic;
             using System.Diagnostics.CodeAnalysis;
             using System.Runtime.CompilerServices;
 
             [CollectionBuilder(typeof(MyBuilder), "Create")]
-            class MyCollection<T> : IEnumerable<T>
+            class MyCollection<T> : List<T>
             {
-                private readonly List<T> _items;
                 public MyCollection(string? value, ReadOnlySpan<T> items)
                 {
-                    _items = new();
-                    _items.AddRange(items.ToArray());
                 }
-                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
-                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
             }
             class MyBuilder
             {
@@ -1158,21 +1116,15 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         string sourceA = """
             #nullable enable
             using System;
-            using System.Collections;
             using System.Collections.Generic;
             using System.Runtime.CompilerServices;
 
             [CollectionBuilder(typeof(MyBuilder), "Create")]
-            class MyCollection<T> : IEnumerable<T>
+            class MyCollection<T> : List<T>
             {
-                private readonly List<T> _items;
                 public MyCollection(string? value, ReadOnlySpan<T> items)
                 {
-                    _items = new();
-                    _items.AddRange(items.ToArray());
                 }
-                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
-                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
             }
             class MyBuilder
             {
@@ -1338,22 +1290,16 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         string sourceA = """
             #nullable enable
             using System;
-            using System.Collections;
             using System.Collections.Generic;
             using System.Diagnostics.CodeAnalysis;
             using System.Runtime.CompilerServices;
 
             [CollectionBuilder(typeof(MyBuilder), "Create")]
-            class MyCollection<T> : IEnumerable<T>
+            class MyCollection<T> : List<T>
             {
-                private readonly List<T> _items;
-                public MyCollection(string value, ReadOnlySpan<T> items)
+                public MyCollection(string? value, ReadOnlySpan<T> items)
                 {
-                    _items = new();
-                    _items.AddRange(items.ToArray());
                 }
-                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
-                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
             }
             class MyBuilder
             {
@@ -1390,21 +1336,15 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         string sourceA = """
             #nullable enable
             using System;
-            using System.Collections;
             using System.Collections.Generic;
             using System.Runtime.CompilerServices;
 
             [CollectionBuilder(typeof(MyBuilder), "Create")]
-            class MyCollection<T> : IEnumerable<T>
+            class MyCollection<T> : List<T>
             {
-                private readonly List<T> _items;
-                public MyCollection(string value, ReadOnlySpan<T> items)
+                public MyCollection(string? value, ReadOnlySpan<T> items)
                 {
-                    _items = new();
-                    _items.AddRange(items.ToArray());
                 }
-                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
-                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
             }
             class MyBuilder
             {
@@ -1439,22 +1379,16 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         string sourceA = """
             #nullable enable
             using System;
-            using System.Collections;
             using System.Collections.Generic;
             using System.Diagnostics.CodeAnalysis;
             using System.Runtime.CompilerServices;
 
             [CollectionBuilder(typeof(MyBuilder), "Create")]
-            class MyCollection<T> : IEnumerable<T>
+            class MyCollection<T> : List<T>
             {
-                private readonly List<T> _items;
                 public MyCollection(string? value, ReadOnlySpan<T> items)
                 {
-                    _items = new();
-                    _items.AddRange(items.ToArray());
                 }
-                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
-                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
             }
             class MyBuilder
             {
@@ -1491,21 +1425,15 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         string sourceA = """
             #nullable enable
             using System;
-            using System.Collections;
             using System.Collections.Generic;
             using System.Runtime.CompilerServices;
 
             [CollectionBuilder(typeof(MyBuilder), "Create")]
-            class MyCollection<T> : IEnumerable<T>
+            class MyCollection<T> : List<T>
             {
-                private readonly List<T> _items;
                 public MyCollection(string? value, ReadOnlySpan<T> items)
                 {
-                    _items = new();
-                    _items.AddRange(items.ToArray());
                 }
-                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
-                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
             }
             class MyBuilder
             {
@@ -1674,22 +1602,16 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         string sourceA = """
             #nullable enable
             using System;
-            using System.Collections;
             using System.Collections.Generic;
             using System.Diagnostics.CodeAnalysis;
             using System.Runtime.CompilerServices;
 
             [CollectionBuilder(typeof(MyBuilder), "Create")]
-            class MyCollection<T> : IEnumerable<T>
+            class MyCollection<T> : List<T>
             {
-                private readonly List<T> _items;
                 public MyCollection(string? value, ReadOnlySpan<T> items)
                 {
-                    _items = new();
-                    _items.AddRange(items.ToArray());
                 }
-                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
-                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
             }
             class MyBuilder
             {
@@ -1727,21 +1649,15 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         string sourceA = """
             #nullable enable
             using System;
-            using System.Collections;
             using System.Collections.Generic;
             using System.Runtime.CompilerServices;
 
             [CollectionBuilder(typeof(MyBuilder), "Create")]
-            class MyCollection<T> : IEnumerable<T>
+            class MyCollection<T> : List<T>
             {
-                private readonly List<T> _items;
                 public MyCollection(string? value, ReadOnlySpan<T> items)
                 {
-                    _items = new();
-                    _items.AddRange(items.ToArray());
                 }
-                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
-                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
             }
             class MyBuilder
             {
@@ -1778,22 +1694,16 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         string sourceA = """
             #nullable enable
             using System;
-            using System.Collections;
             using System.Collections.Generic;
             using System.Diagnostics.CodeAnalysis;
             using System.Runtime.CompilerServices;
 
             [CollectionBuilder(typeof(MyBuilder), "Create")]
-            class MyCollection<T> : IEnumerable<T>
+            class MyCollection<T> : List<T>
             {
-                private readonly List<T> _items;
-                public MyCollection(string value, ReadOnlySpan<T> items)
+                public MyCollection(string? value, ReadOnlySpan<T> items)
                 {
-                    _items = new();
-                    _items.AddRange(items.ToArray());
                 }
-                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
-                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
             }
             class MyBuilder
             {
@@ -1831,21 +1741,15 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         string sourceA = """
             #nullable enable
             using System;
-            using System.Collections;
             using System.Collections.Generic;
             using System.Runtime.CompilerServices;
 
             [CollectionBuilder(typeof(MyBuilder), "Create")]
-            class MyCollection<T> : IEnumerable<T>
+            class MyCollection<T> : List<T>
             {
-                private readonly List<T> _items;
-                public MyCollection(string value, ReadOnlySpan<T> items)
+                public MyCollection(string? value, ReadOnlySpan<T> items)
                 {
-                    _items = new();
-                    _items.AddRange(items.ToArray());
                 }
-                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
-                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
             }
             class MyBuilder
             {
@@ -2166,22 +2070,16 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         string sourceA = """
             #nullable enable
             using System;
-            using System.Collections;
             using System.Collections.Generic;
             using System.Diagnostics.CodeAnalysis;
             using System.Runtime.CompilerServices;
 
             [CollectionBuilder(typeof(MyBuilder), "Create")]
-            class MyCollection<T> : IEnumerable<T>
+            class MyCollection<T> : List<T>
             {
-                private readonly List<T> _items;
-                public MyCollection(string? value, string? other, ReadOnlySpan<T> items)
+                public MyCollection(string? value, ReadOnlySpan<T> items)
                 {
-                    _items = new();
-                    _items.AddRange(items.ToArray());
                 }
-                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
-                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
             }
             class MyBuilder
             {
@@ -2220,22 +2118,17 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         string sourceA = """
             #nullable enable
             using System;
-            using System.Collections;
             using System.Collections.Generic;
             using System.Diagnostics.CodeAnalysis;
             using System.Runtime.CompilerServices;
 
             [CollectionBuilder(typeof(MyBuilder), "Create")]
             class MyCollection<T> : IEnumerable<T>
+            class MyCollection<T> : List<T>
             {
-                private readonly List<T> _items;
-                public MyCollection(string? value, string? other, ReadOnlySpan<T> items)
+                public MyCollection(string? value, ReadOnlySpan<T> items)
                 {
-                    _items = new();
-                    _items.AddRange(items.ToArray());
                 }
-                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
-                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
             }
             class MyBuilder
             {
@@ -2274,22 +2167,16 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         string sourceA = """
             #nullable enable
             using System;
-            using System.Collections;
             using System.Collections.Generic;
             using System.Diagnostics.CodeAnalysis;
             using System.Runtime.CompilerServices;
 
             [CollectionBuilder(typeof(MyBuilder), "Create")]
-            class MyCollection<T> : IEnumerable<T>
+            class MyCollection<T> : List<T>
             {
-                private readonly List<T> _items;
-                public MyCollection(string? value, string? other, ReadOnlySpan<T> items)
+                public MyCollection(string? value, ReadOnlySpan<T> items)
                 {
-                    _items = new();
-                    _items.AddRange(items.ToArray());
                 }
-                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
-                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
             }
             class MyBuilder
             {
@@ -2328,22 +2215,16 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         string sourceA = """
             #nullable enable
             using System;
-            using System.Collections;
             using System.Collections.Generic;
             using System.Diagnostics.CodeAnalysis;
             using System.Runtime.CompilerServices;
 
             [CollectionBuilder(typeof(MyBuilder), "Create")]
-            class MyCollection<T> : IEnumerable<T>
+            class MyCollection<T> : List<T>
             {
-                private readonly List<T> _items;
-                public MyCollection(string? value, string? other, ReadOnlySpan<T> items)
+                public MyCollection(string? value, ReadOnlySpan<T> items)
                 {
-                    _items = new();
-                    _items.AddRange(items.ToArray());
                 }
-                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
-                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
             }
             class MyBuilder
             {
@@ -2382,22 +2263,16 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         string sourceA = """
             #nullable enable
             using System;
-            using System.Collections;
             using System.Collections.Generic;
             using System.Diagnostics.CodeAnalysis;
             using System.Runtime.CompilerServices;
 
             [CollectionBuilder(typeof(MyBuilder), "Create")]
-            class MyCollection<T> : IEnumerable<T>
+            class MyCollection<T> : List<T>
             {
-                private readonly List<T> _items;
-                public MyCollection(string? value, string? other, ReadOnlySpan<T> items)
+                public MyCollection(string? value, ReadOnlySpan<T> items)
                 {
-                    _items = new();
-                    _items.AddRange(items.ToArray());
                 }
-                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
-                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
             }
             class MyBuilder
             {
@@ -2436,22 +2311,16 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         string sourceA = """
             #nullable enable
             using System;
-            using System.Collections;
             using System.Collections.Generic;
             using System.Diagnostics.CodeAnalysis;
             using System.Runtime.CompilerServices;
 
             [CollectionBuilder(typeof(MyBuilder), "Create")]
-            class MyCollection<T> : IEnumerable<T>
+            class MyCollection<T> : List<T>
             {
-                private readonly List<T> _items;
-                public MyCollection(string? value, string? other, ReadOnlySpan<T> items)
+                public MyCollection(string? value, ReadOnlySpan<T> items)
                 {
-                    _items = new();
-                    _items.AddRange(items.ToArray());
                 }
-                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
-                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
             }
             class MyBuilder
             {
@@ -2490,22 +2359,16 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         string sourceA = """
             #nullable enable
             using System;
-            using System.Collections;
             using System.Collections.Generic;
             using System.Diagnostics.CodeAnalysis;
             using System.Runtime.CompilerServices;
 
             [CollectionBuilder(typeof(MyBuilder), "Create")]
-            class MyCollection<T> : IEnumerable<T>
+            class MyCollection<T> : List<T>
             {
-                private readonly List<T> _items;
-                public MyCollection(string? value, string? other, ReadOnlySpan<T> items)
+                public MyCollection(string? value, ReadOnlySpan<T> items)
                 {
-                    _items = new();
-                    _items.AddRange(items.ToArray());
                 }
-                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
-                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
             }
             class MyBuilder
             {
@@ -2544,22 +2407,16 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         string sourceA = """
             #nullable enable
             using System;
-            using System.Collections;
             using System.Collections.Generic;
             using System.Diagnostics.CodeAnalysis;
             using System.Runtime.CompilerServices;
 
             [CollectionBuilder(typeof(MyBuilder), "Create")]
-            class MyCollection<T> : IEnumerable<T>
+            class MyCollection<T> : List<T>
             {
-                private readonly List<T> _items;
-                public MyCollection(string? value, string? other, ReadOnlySpan<T> items)
+                public MyCollection(string? value, ReadOnlySpan<T> items)
                 {
-                    _items = new();
-                    _items.AddRange(items.ToArray());
                 }
-                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
-                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
             }
             class MyBuilder
             {
