@@ -68,9 +68,6 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
             });
     }
 
-    public Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, CancellationToken cancellationToken)
-        => CreateAndAddToWorkspaceAsync(projectSystemName, language, new VisualStudioProjectCreationInfo(), cancellationToken);
-
     public async Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(
         string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo, CancellationToken cancellationToken)
     {
