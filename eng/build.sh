@@ -312,6 +312,7 @@ function BuildSolution {
 
   MSBuild $toolset_build_proj \
     $bl \
+    /check \
     /p:Configuration=$configuration \
     /p:Projects="$projects" \
     /p:RepoRoot="$repo_root" \
