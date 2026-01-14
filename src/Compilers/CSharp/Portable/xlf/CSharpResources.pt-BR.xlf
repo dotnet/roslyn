@@ -4142,7 +4142,7 @@
 
                        - GERAÇÃO DE CÓDIGO -
 -debug[+|-]                   Emitir informações de depuração
--debug:{full|pdscriptly|portable|embedded}
+-debug:{full|pdbonly|portable|embedded}
                               Especificar o tipo de depuração ("full" é padrão,
                               "portable" é um formato de multiplataforma,
                               "embedded" é um formato de multiplataforma inserido
