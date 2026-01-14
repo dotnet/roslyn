@@ -9347,7 +9347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 Debug.Assert(conversionOperandSlot > 0);
                             }
 
-                            if (conversionOperandSlot > 0 && valueFieldSlot > 0)
+                            if (conversionOperandSlot > 0)
                             {
                                 SetState(ref this.State, conversionOperandSlot, valueFieldType.State);
                             }
