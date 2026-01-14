@@ -3911,28 +3911,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Action<TypeSymbol>? visitCollectionCreationArguments(BoundCollectionExpression node)
             {
-                // Only the CollectionBuilder and ImplementsIEnumerable kinds can end up with a target type that would
-                // make us want to reanalyze the collection creation arguments.  This is because these are the types
-                // where the factory-method or constructor (respectiely), could be generic and then have type parameters
-                // which are reinferred to be more specific nullable types that will affect the analysis of the
-                // arguments passed into them.  The other kinds are:
-                //
-                // 1. Arrays/Spans.  These can't have CollectionCreation expressions at all.
-                // 2. Array interfaces (e.g. IList<T>).  These only have two supported constructors that are called
-                //    (List<T>() and List<T>(int)), and neither of these involve generics, so they do not need
-                //    reanalysis.
-                //
-                // So for all these uninteresting cases, all we do is visit the collection creation once and be done.
-                // This at least ensures we visit any *arguments* passed into the 'with', which themselves could affect
-                // nullability state.  For example `[with(a = "")]`.
-                if (node.CollectionTypeKind is not CollectionExpressionTypeKind.CollectionBuilder and not CollectionExpressionTypeKind.ImplementsIEnumerable)
-                {
-                    Visit(node.CollectionCreation);
-                    return null;
-                }
-
                 var collectionCreation = node.GetUnconvertedCollectionCreation();
-                if (collectionCreation is BoundObjectCreationExpression objectCreation)
+                if (collectionCreation is BoundObjectCreationExpression objectCreation &&
+                    node.CollectionTypeKind != CollectionExpressionTypeKind.ArrayInterface)
                 {
                     // Walk into the arguments of the object creation, passing in 'delayCompletionForTargetMember: true'
                     // so that we reprocess the nullability of the arguments when we have the target-type for the
@@ -4014,6 +3995,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    // Only the CollectionBuilder and ImplementsIEnumerable kinds can end up with a target type that
+                    // would make us want to reanalyze the collection creation arguments.  This is because these are the
+                    // types where the factory-method or constructor (respectively), could be generic and then have type
+                    // parameters which are reinferred to be more specific nullable types that will affect the analysis
+                    // of the arguments passed into them.  The other kinds are:
+                    //
+                    // 1. Arrays/Spans.  These can't have CollectionCreation expressions at all.
+                    // 2. Array interfaces (e.g. IList<T>).  These only have two supported constructors that are called
+                    //    (List<T>() and List<T>(int)), and neither of these involve generics, so they do not need
+                    //    reanalysis.
+                    //
+                    // So for all these uninteresting cases, all we do is visit the collection creation once and be
+                    // done. This at least ensures we visit any *arguments* passed into the 'with', which themselves
+                    // could affect nullability state.  For example `[with(a = "")]`.
+                    Visit(node.CollectionCreation);
                     return null;
                 }
             }

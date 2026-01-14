@@ -9458,8 +9458,11 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                     string? s;
                     T t = [with(s = "")];
                     Console.WriteLine(s);
+                    Goo(s);
                     return t;
                 }
+            
+                static void Goo(string s) { }
             }
             """;
 
@@ -9467,5 +9470,33 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             // (16,16): error CS0417: 'T': cannot provide arguments when creating an instance of a variable type
             //         T t = [with(s = "")];
             Diagnostic(ErrorCode.ERR_NewTyvarWithArgs, @"with(s = """")").WithArguments("T").WithLocation(16, 16));
+    }
+
+    [Theory]
+    [InlineData("IList<int>")]
+    [InlineData("ICollection<int>")]
+    public void InterfaceTypeWithArgument1(string type)
+    {
+        string sourceA = $$"""
+            #nullable enable
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main()
+                {
+                    string? s;
+                    {{type}} t = [with(s = "")];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CreateCompilation(sourceA, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+            // (9,36): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+            //         ICollection<int> t = [with(s = "")];
+            Diagnostic(ErrorCode.ERR_BadArgType, @"s = """"").WithArguments("1", "string", "int"));
     }
 }
