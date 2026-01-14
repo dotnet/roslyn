@@ -702,4 +702,20 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
                 //         Goo(s);
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(8, 13));
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72142")]
+    public void ConstructorTestNullElementAdd()
+    {
+        var source = """
+            #nullable enable
+            using System.Collections.Generic;
+
+            List<string> list = [null];
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("")).VerifyDiagnostics(
+            // (4,22): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // List<string> list = [null];
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 22));
+    }
 }
