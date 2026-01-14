@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -58,8 +59,8 @@ internal sealed partial class DocumentSymbolsHandler
         private static Range GetRange(SyntaxNode node, SourceText text)
             => ProtocolConversions.TextSpanToRange(node.Span, text);
 
-        private static Range GetSelectionRange(SyntaxToken identifier, SourceText text)
-            => ProtocolConversions.TextSpanToRange(identifier.Span, text);
+        private static Range GetSelectionRange(TextSpan span, SourceText text)
+            => ProtocolConversions.TextSpanToRange(span, text);
 
         private void VisitContainerDeclaration(
             SyntaxNode node,
@@ -67,7 +68,7 @@ internal sealed partial class DocumentSymbolsHandler
             string detail,
             LSP.SymbolKind kind,
             Glyph glyph,
-            SyntaxToken identifierToken)
+            TextSpan selectionSpan)
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
@@ -82,7 +83,7 @@ internal sealed partial class DocumentSymbolsHandler
                 Kind = kind,
                 Glyph = (int)glyph,
                 Range = GetRange(node, _text),
-                SelectionRange = GetSelectionRange(identifierToken, _text),
+                SelectionRange = GetSelectionRange(selectionSpan, _text),
                 Children = children,
             };
 
@@ -95,7 +96,7 @@ internal sealed partial class DocumentSymbolsHandler
             string detail,
             LSP.SymbolKind kind,
             Glyph glyph,
-            SyntaxToken identifierToken,
+            TextSpan selectionSpan,
             bool visitChildren = false)
         {
             _cancellationToken.ThrowIfCancellationRequested();
@@ -115,14 +116,13 @@ internal sealed partial class DocumentSymbolsHandler
                 Kind = kind,
                 Glyph = (int)glyph,
                 Range = GetRange(node, _text),
-                SelectionRange = GetSelectionRange(identifierToken, _text),
+                SelectionRange = GetSelectionRange(selectionSpan, _text),
                 Children = children,
             };
 
             AddSymbol(symbol);
         }
 
-        // Namespace declarations
         public override void VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
         {
             var name = node.Name.ToString();
@@ -132,7 +132,7 @@ internal sealed partial class DocumentSymbolsHandler
                 name,
                 LSP.SymbolKind.Namespace,
                 Glyph.Namespace,
-                node.Name.GetLastToken());
+                node.Name.Span);
         }
 
         public override void VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node)
@@ -144,22 +144,21 @@ internal sealed partial class DocumentSymbolsHandler
                 name,
                 LSP.SymbolKind.Namespace,
                 Glyph.Namespace,
-                node.Name.GetLastToken());
+                node.Name.Span);
         }
 
-        // Type declarations
         public override void VisitClassDeclaration(ClassDeclarationSyntax node)
         {
             var name = node.Identifier.Text;
             var glyph = GetAccessibilityGlyph(node.Modifiers, Glyph.ClassPublic, Glyph.ClassInternal, Glyph.ClassProtected, Glyph.ClassPrivate);
-            VisitContainerDeclaration(node, name, GetTypeDetail(node), LSP.SymbolKind.Class, glyph, node.Identifier);
+            VisitContainerDeclaration(node, name, GetTypeDetail(node), LSP.SymbolKind.Class, glyph, node.Identifier.Span);
         }
 
         public override void VisitStructDeclaration(StructDeclarationSyntax node)
         {
             var name = node.Identifier.Text;
             var glyph = GetAccessibilityGlyph(node.Modifiers, Glyph.StructurePublic, Glyph.StructureInternal, Glyph.StructureProtected, Glyph.StructurePrivate);
-            VisitContainerDeclaration(node, name, GetTypeDetail(node), LSP.SymbolKind.Struct, glyph, node.Identifier);
+            VisitContainerDeclaration(node, name, GetTypeDetail(node), LSP.SymbolKind.Struct, glyph, node.Identifier.Span);
         }
 
         public override void VisitRecordDeclaration(RecordDeclarationSyntax node)
@@ -170,39 +169,40 @@ internal sealed partial class DocumentSymbolsHandler
                 ? GetAccessibilityGlyph(node.Modifiers, Glyph.StructurePublic, Glyph.StructureInternal, Glyph.StructureProtected, Glyph.StructurePrivate)
                 : GetAccessibilityGlyph(node.Modifiers, Glyph.ClassPublic, Glyph.ClassInternal, Glyph.ClassProtected, Glyph.ClassPrivate);
             var kind = isStruct ? LSP.SymbolKind.Struct : LSP.SymbolKind.Class;
-            VisitContainerDeclaration(node, name, GetTypeDetail(node), kind, glyph, node.Identifier);
+            VisitContainerDeclaration(node, name, GetTypeDetail(node), kind, glyph, node.Identifier.Span);
         }
 
         public override void VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
         {
             var name = node.Identifier.Text;
             var glyph = GetAccessibilityGlyph(node.Modifiers, Glyph.InterfacePublic, Glyph.InterfaceInternal, Glyph.InterfaceProtected, Glyph.InterfacePrivate);
-            VisitContainerDeclaration(node, name, GetTypeDetail(node), LSP.SymbolKind.Interface, glyph, node.Identifier);
+            VisitContainerDeclaration(node, name, GetTypeDetail(node), LSP.SymbolKind.Interface, glyph, node.Identifier.Span);
         }
 
         public override void VisitEnumDeclaration(EnumDeclarationSyntax node)
         {
             var name = node.Identifier.Text;
             var glyph = GetAccessibilityGlyph(node.Modifiers, Glyph.EnumPublic, Glyph.EnumInternal, Glyph.EnumProtected, Glyph.EnumPrivate);
-            VisitContainerDeclaration(node, name, name, LSP.SymbolKind.Enum, glyph, node.Identifier);
+            VisitContainerDeclaration(node, name, name, LSP.SymbolKind.Enum, glyph, node.Identifier.Span);
         }
 
         public override void VisitDelegateDeclaration(DelegateDeclarationSyntax node)
         {
             var name = node.Identifier.Text;
             var glyph = GetAccessibilityGlyph(node.Modifiers, Glyph.DelegatePublic, Glyph.DelegateInternal, Glyph.DelegateProtected, Glyph.DelegatePrivate);
-            var detail = $"{name}({GetParameterListString(node.ParameterList)})";
-            VisitMemberDeclaration(node, name, detail, LSP.SymbolKind.Class, glyph, node.Identifier);
+            var typeParams = GetTypeParameterListString(node.TypeParameterList);
+            var detail = $"{name}{typeParams}({GetParameterListString(node.ParameterList)})";
+            VisitMemberDeclaration(node, name, detail, LSP.SymbolKind.Class, glyph, node.Identifier.Span);
         }
 
-        // Member declarations
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
         {
             var name = node.Identifier.Text;
             var glyph = GetAccessibilityGlyph(node.Modifiers, Glyph.MethodPublic, Glyph.MethodInternal, Glyph.MethodProtected, Glyph.MethodPrivate);
-            var detail = $"{name}({GetParameterListString(node.ParameterList)})";
+            var typeParams = GetTypeParameterListString(node.TypeParameterList);
+            var detail = $"{name}{typeParams}({GetParameterListString(node.ParameterList)})";
             // Visit children to find local functions
-            VisitMemberDeclaration(node, name, detail, LSP.SymbolKind.Method, glyph, node.Identifier, visitChildren: true);
+            VisitMemberDeclaration(node, name, detail, LSP.SymbolKind.Method, glyph, node.Identifier.Span, visitChildren: true);
         }
 
         public override void VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
@@ -210,35 +210,35 @@ internal sealed partial class DocumentSymbolsHandler
             var name = node.Identifier.Text;
             var glyph = GetAccessibilityGlyph(node.Modifiers, Glyph.MethodPublic, Glyph.MethodInternal, Glyph.MethodProtected, Glyph.MethodPrivate);
             var detail = $"{name}({GetParameterListString(node.ParameterList)})";
-            VisitMemberDeclaration(node, name, detail, LSP.SymbolKind.Constructor, glyph, node.Identifier);
+            VisitMemberDeclaration(node, name, detail, LSP.SymbolKind.Constructor, glyph, node.Identifier.Span);
         }
 
         public override void VisitDestructorDeclaration(DestructorDeclarationSyntax node)
         {
             var name = $"~{node.Identifier.Text}";
-            VisitMemberDeclaration(node, name, $"{name}()", LSP.SymbolKind.Method, Glyph.MethodPublic, node.Identifier);
+            VisitMemberDeclaration(node, name, $"{name}()", LSP.SymbolKind.Method, Glyph.MethodPublic, node.Identifier.Span);
         }
 
         public override void VisitPropertyDeclaration(PropertyDeclarationSyntax node)
         {
             var name = node.Identifier.Text;
             var glyph = GetAccessibilityGlyph(node.Modifiers, Glyph.PropertyPublic, Glyph.PropertyInternal, Glyph.PropertyProtected, Glyph.PropertyPrivate);
-            VisitMemberDeclaration(node, name, name, LSP.SymbolKind.Property, glyph, node.Identifier);
+            VisitMemberDeclaration(node, name, name, LSP.SymbolKind.Property, glyph, node.Identifier.Span);
         }
 
         public override void VisitIndexerDeclaration(IndexerDeclarationSyntax node)
         {
-            var name = "this";
+            var name = node.ThisKeyword.ValueText;
             var glyph = GetAccessibilityGlyph(node.Modifiers, Glyph.PropertyPublic, Glyph.PropertyInternal, Glyph.PropertyProtected, Glyph.PropertyPrivate);
-            var detail = $"this[{GetBracketedParameterListString(node.ParameterList)}]";
-            VisitMemberDeclaration(node, name, detail, LSP.SymbolKind.Property, glyph, node.ThisKeyword);
+            var detail = $"{node.ThisKeyword.ValueText}[{GetBracketedParameterListString(node.ParameterList)}]";
+            VisitMemberDeclaration(node, name, detail, LSP.SymbolKind.Property, glyph, node.ThisKeyword.Span);
         }
 
         public override void VisitEventDeclaration(EventDeclarationSyntax node)
         {
             var name = node.Identifier.Text;
             var glyph = GetAccessibilityGlyph(node.Modifiers, Glyph.EventPublic, Glyph.EventInternal, Glyph.EventProtected, Glyph.EventPrivate);
-            VisitMemberDeclaration(node, name, name, LSP.SymbolKind.Event, glyph, node.Identifier);
+            VisitMemberDeclaration(node, name, name, LSP.SymbolKind.Event, glyph, node.Identifier.Span);
         }
 
         public override void VisitEventFieldDeclaration(EventFieldDeclarationSyntax node)
@@ -247,58 +247,59 @@ internal sealed partial class DocumentSymbolsHandler
             foreach (var variable in node.Declaration.Variables)
             {
                 var name = variable.Identifier.Text;
-                VisitMemberDeclaration(variable, name, name, LSP.SymbolKind.Event, glyph, variable.Identifier);
+                VisitMemberDeclaration(variable, name, name, LSP.SymbolKind.Event, glyph, variable.Identifier.Span);
             }
         }
 
         public override void VisitFieldDeclaration(FieldDeclarationSyntax node)
         {
             var isConst = node.Modifiers.Any(SyntaxKind.ConstKeyword);
-            var fieldGlyph = GetAccessibilityGlyph(node.Modifiers, Glyph.FieldPublic, Glyph.FieldInternal, Glyph.FieldProtected, Glyph.FieldPrivate);
-            var constGlyph = GetAccessibilityGlyph(node.Modifiers, Glyph.ConstantPublic, Glyph.ConstantInternal, Glyph.ConstantProtected, Glyph.ConstantPrivate);
-            var glyph = isConst ? constGlyph : fieldGlyph;
+            var glyph = isConst
+                ? GetAccessibilityGlyph(node.Modifiers, Glyph.ConstantPublic, Glyph.ConstantInternal, Glyph.ConstantProtected, Glyph.ConstantPrivate)
+                : GetAccessibilityGlyph(node.Modifiers, Glyph.FieldPublic, Glyph.FieldInternal, Glyph.FieldProtected, Glyph.FieldPrivate);
+
             var kind = isConst ? LSP.SymbolKind.Constant : LSP.SymbolKind.Field;
 
             foreach (var variable in node.Declaration.Variables)
             {
                 var name = variable.Identifier.Text;
-                VisitMemberDeclaration(variable, name, name, kind, glyph, variable.Identifier);
+                VisitMemberDeclaration(variable, name, name, kind, glyph, variable.Identifier.Span);
             }
         }
 
         public override void VisitOperatorDeclaration(OperatorDeclarationSyntax node)
         {
-            var name = $"operator {node.OperatorToken.Text}";
+            var name = $"{node.OperatorKeyword.Text} {node.OperatorToken.Text}";
             var glyph = GetAccessibilityGlyph(node.Modifiers, Glyph.OperatorPublic, Glyph.OperatorInternal, Glyph.OperatorProtected, Glyph.OperatorPrivate);
             var detail = $"{name}({GetParameterListString(node.ParameterList)})";
-            VisitMemberDeclaration(node, name, detail, LSP.SymbolKind.Operator, glyph, node.OperatorToken);
+            VisitMemberDeclaration(node, name, detail, LSP.SymbolKind.Operator, glyph, node.OperatorToken.Span);
         }
 
         public override void VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node)
         {
             var keyword = node.ImplicitOrExplicitKeyword.Text;
             var typeName = node.Type.ToString();
-            var name = $"{keyword} operator {typeName}";
+            var name = $"{keyword} {node.OperatorKeyword.Text} {typeName}";
             var glyph = GetAccessibilityGlyph(node.Modifiers, Glyph.OperatorPublic, Glyph.OperatorInternal, Glyph.OperatorProtected, Glyph.OperatorPrivate);
             var detail = $"{name}({GetParameterListString(node.ParameterList)})";
-            VisitMemberDeclaration(node, name, detail, LSP.SymbolKind.Operator, glyph, node.OperatorKeyword);
+            VisitMemberDeclaration(node, name, detail, LSP.SymbolKind.Operator, glyph, node.OperatorKeyword.Span);
         }
 
         public override void VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node)
         {
             var name = node.Identifier.Text;
-            VisitMemberDeclaration(node, name, name, LSP.SymbolKind.EnumMember, Glyph.EnumMemberPublic, node.Identifier);
+            VisitMemberDeclaration(node, name, name, LSP.SymbolKind.EnumMember, Glyph.EnumMemberPublic, node.Identifier.Span);
         }
 
         public override void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
         {
             var name = node.Identifier.Text;
-            var detail = $"{name}({GetParameterListString(node.ParameterList)})";
+            var typeParams = GetTypeParameterListString(node.TypeParameterList);
+            var detail = $"{name}{typeParams}({GetParameterListString(node.ParameterList)})";
             // Visit children to find nested local functions
-            VisitMemberDeclaration(node, name, detail, LSP.SymbolKind.Function, Glyph.MethodPrivate, node.Identifier, visitChildren: true);
+            VisitMemberDeclaration(node, name, detail, LSP.SymbolKind.Function, Glyph.MethodPrivate, node.Identifier.Span, visitChildren: true);
         }
 
-        // Helper methods
         private static string GetTypeDetail(TypeDeclarationSyntax node)
         {
             var name = node.Identifier.Text;
@@ -309,6 +310,15 @@ internal sealed partial class DocumentSymbolsHandler
             }
 
             return name;
+        }
+
+        private static string GetTypeParameterListString(TypeParameterListSyntax? typeParameterList)
+        {
+            if (typeParameterList == null || typeParameterList.Parameters.Count == 0)
+                return string.Empty;
+
+            var typeParams = string.Join(", ", typeParameterList.Parameters.Select(p => p.Identifier.Text));
+            return $"<{typeParams}>";
         }
 
         private static string GetParameterListString(ParameterListSyntax? parameterList)
