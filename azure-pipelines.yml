@@ -28,8 +28,8 @@ jobs:
     jobName: Build_Windows_Release
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
-    queueName: windows.vs2019.amd64.open
     buildArguments: "/p:Features=run-nullable-analysis=never"
+    queueName: windows.vs2019.amd64.open
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -39,6 +39,7 @@ jobs:
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
     testArguments: -testDesktop -test32
+    queueName: windows.vs2019.amd64.open
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -48,6 +49,7 @@ jobs:
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
     testArguments: -testDesktop -test64
+    queueName: windows.vs2019.amd64.open
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -57,6 +59,7 @@ jobs:
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
     testArguments: -testCoreClr
+    queueName: windows.vs2019.amd64.open
 
 - template: eng/pipelines/test-windows-job-single-machine.yml
   parameters:
@@ -66,6 +69,7 @@ jobs:
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
     testArguments: -testCoreClr
+    queueName: windows.vs2019.amd64.open
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -75,6 +79,7 @@ jobs:
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
     testArguments: -testDesktop -test32
+    queueName: windows.vs2019.amd64.open
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -84,6 +89,7 @@ jobs:
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
     testArguments: -testDesktop -test64
+    queueName: windows.vs2019.amd64.open
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -93,6 +99,7 @@ jobs:
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
     testArguments: -testCoreClr
+    queueName: windows.vs2019.amd64.open
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -102,6 +109,7 @@ jobs:
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
     testArguments: -testCoreClr -testIOperation -testCompilerOnly
+    queueName: windows.vs2019.amd64.open
 
 # Unix Build and Test Jobs
 - template: eng/pipelines/build-unix-job.yml
@@ -109,7 +117,7 @@ jobs:
     jobName: Build_Unix_Debug
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
-    queueName: 'Build.Ubuntu.2204.amd64.Open'
+    queueName: Build.Ubuntu.2204.Amd64.Open
 
 - template: eng/pipelines/test-unix-job.yml
   parameters:
@@ -119,6 +127,7 @@ jobs:
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
     testArguments: --testCoreClr --helixQueueName Ubuntu.2204.amd64.Open
+    queueName: Build.Ubuntu.2204.Amd64.Open
 
 - template: eng/pipelines/test-unix-job-single-machine.yml
   parameters:
@@ -128,7 +137,7 @@ jobs:
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
     testArguments: --testCoreClr
-    queueName: 'Build.Ubuntu.2204.amd64.Open'
+    queueName: Build.Ubuntu.2204.Amd64.Open
 
 - template: eng/pipelines/test-unix-job.yml
   parameters:
@@ -138,6 +147,7 @@ jobs:
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
     testArguments: --testCoreClr --helixQueueName OSX.13.Amd64.Open
+    queueName: Build.Ubuntu.2204.Amd64.Open
 
 # Build Correctness Jobs
 

@@ -265,10 +265,13 @@ extends:
 
               - task: MicroBuildSigningPlugin@4
                 inputs:
-                  signType: $(SignType)
+                  signType: ${{ parameters.SignType }}
                   zipSources: false
                   feedSource: https://dnceng.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json
-                condition: and(succeeded(), in(variables['SignType'], 'test', 'real'))
+                  # Set ConnectedPMEServiceName if the build is a CI build, otherwise it is not needed
+                  ${{ if eq(variables['Build.Reason'], 'IndividualCI') }}:
+                    ConnectedPMEServiceName: 248d384a-b39b-46e3-8ad5-c2c210d5e7ca
+                condition: and(succeeded(), in('${{ parameters.SignType }}', 'test', 'real'))
 
               - task: PowerShell@2
                 displayName: Build
@@ -284,14 +287,14 @@ extends:
                     -binaryLog
                     -configuration $(BuildConfiguration)
                     -officialBuildId $(Build.BuildNumber)
-                    -officialSkipTests $(SkipTests)
-                    -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
+                    -officialSkipTests ${{ parameters.SkipTests }}
+                    -officialSkipApplyOptimizationData ${{ parameters.SkipApplyOptimizationData }}
                     -officialSourceBranchName $(SourceBranchName)
-                    -officialIbcDrop $(IbcDrop)
+                    -officialIbcDrop ${{ parameters.IbcDrop }}
                     -officialVisualStudioDropAccessToken $(_DevDivDropAccessToken)
                     /p:RepositoryName=$(Build.Repository.Name)
                     /p:VisualStudioDropName=$(VisualStudio.DropName)
-                    /p:DotNetSignType=$(SignType)
+                    /p:DotNetSignType=${{ parameters.SignType }}
                     /p:DotnetPublishUsingPipelines=true
                     /p:IgnoreIbcMergeErrors=true
                     /p:GenerateSbom=true
@@ -327,7 +330,7 @@ extends:
                   testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(BuildConfiguration)\*.xml'
                   mergeTestResults: true
                   testRunTitle: "Unit Tests"
-                condition: and(succeededOrFailed(), ne(variables['SkipTests'], 'true'))
+                condition: and(succeededOrFailed(), ne('${{ parameters.SkipTests }}', 'true'))
 
           # Publish to Build Asset Registry
           - template: /eng/common/templates-official/job/publish-build-assets.yml@self
@@ -371,7 +374,7 @@ extends:
                   componentPassword: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
                   componentBuildProjectName: internal
                   sourceBranch: "$(ComponentBranchName)"
-                  publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&api-version=6.0"
+                  publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&version=$(ComponentBranchName)&api-version=6.0"
                   publishDataAccessToken: "$(System.AccessToken)"
                   dropPath: '$(Pipeline.Workspace)\VSSetup'
 

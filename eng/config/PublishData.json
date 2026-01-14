@@ -49,6 +49,7 @@
       "Microsoft.CodeAnalysis.ExternalAccess.IntelliTrace": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp": "arcade",
+      "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp": "arcade",
       "Microsoft.CodeAnalysis.ExternalAccess.Razor": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.TypeScript": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.UnitTesting": "vs-impl",
@@ -105,6 +106,7 @@
       "Microsoft.CodeAnalysis.ExternalAccess.IntelliTrace": "arcade",
       "Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem": "arcade",
       "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp": "arcade",
+      "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp": "arcade",
       "Microsoft.CodeAnalysis.ExternalAccess.Razor": "arcade",
       "Microsoft.CodeAnalysis.ExternalAccess.TypeScript": "arcade",
       "Microsoft.CodeAnalysis.ExternalAccess.UnitTesting": "arcade",
@@ -119,163 +121,13 @@
   },
   "comment-about-servicing-branches": "For a list of VS versions under servicing, see https://docs.microsoft.com/en-us/visualstudio/releases/2019/servicing#support-options-for-enterprise-and-professional-customers",
   "branches": {
-    "dev15.9.x-vs-deps": {
-      "nugetKind": "PerBuildPreRelease",
-      "version": "2.10.*",
-      "nuget": [],
-      "vsix": null,
-      "channels": [],
-      "vsBranch": "rel/d15.9",
-      "vsMajorVersion": 15
-    },
-    "release/dev16.4-vs-deps": {
-      "nugetKind": [
-        "Shipping"
-      ],
-      "version": "3.4.*",
-      "nuget": [],
-      "vsix": null,
-      "channels": [],
-      "vsBranch": "rel/d16.4",
-      "vsMajorVersion": 16
-    },
-    "release/dev16.7-vs-deps": {
+    "release/dev16.11-vs-deps": {
       "nugetKind": [
         "Shipping",
         "NonShipping"
       ],
-      "version": "3.7.*",
-      "nuget": [],
-      "vsix": null,
-      "channels": [],
-      "vsBranch": "rel/d16.7",
-      "vsMajorVersion": 16
-    },
-    "release/dev16.9-vs-deps": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "version": "3.9.*",
-      "packageFeeds": "default",
-      "channels": [],
-      "vsBranch": "rel/d16.9",
-      "vsMajorVersion": 16
-    },
-    "release/dev16.10-vs-deps": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "version": "3.10.*",
-      "packageFeeds": "default",
-      "channels": [],
-      "vsBranch": "rel/d16.10",
-      "vsMajorVersion": 16
-    },
-    "main-vs-deps": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "version": "4.0.*",
-      "packageFeeds": "default",
-      "channels": [],
-      "vsBranch": "main",
-      "vsMajorVersion": 17
-    },
-    "release/dev17.0-preview1-vs-deps": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "version": "4.0.*",
-      "packageFeeds": "default",
-      "channels": [],
-      "vsBranch": "feature/d17initial",
-      "vsMajorVersion": 17
-    },
-    "release/dev17.0-vs-deps": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "version": "4.0.*",
-      "packageFeeds": "default",
-      "channels": [],
-      "vsBranch": "main",
-      "vsMajorVersion": 17,
-      "insertionCreateDraftPR": false
-    },
-    "main": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "version": "4.0.*",
-      "packageFeeds": "arcade",
-      "channels": [],
-      "vsBranch": "main",
-      "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[Validation]"
-    },
-    "features/NullableReferenceTypes": {
-      "nugetKind": "PerBuildPreRelease",
-      "version": "2.6.*",
-      "nuget": [],
-      "vsix": null,
-      "channels": [
-        "nonnull"
-      ],
-      "vsBranch": "lab/d16.1stg",
-      "vsMajorVersion": 16
-    },
-    "features/dataflow": {
-      "nugetKind": "PerBuildPreRelease",
-      "version": "2.8.*",
-      "nuget": [],
-      "vsix": null,
-      "channels": [
-        "dataflow"
-      ],
-      "vsBranch": "lab/d16.1stg",
-      "vsMajorVersion": 16
-    },
-    "features/razorSupport2": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "version": "3.1.*",
-      "nuget": [],
-      "vsix": null,
-      "channels": [],
-      "vsBranch": "lab/d16.1stg",
-      "vsMajorVersion": 16
-    },
-    "features/compilerNext": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "version": "3.4.*",
-      "nuget": [],
-      "vsix": null,
-      "channels": [],
-      "vsBranch": "main",
-      "vsMajorVersion": 16
-    },
-    "features/unitTesting": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "version": "3.3.*",
-      "nuget": [],
-      "vsix": null,
-      "channels": [],
-      "vsBranch": "rel/d16.5",
-      "vsMajorVersion": 16
+      "vsBranch": "rel/d16.11",
+      "insertionTitlePrefix": "[d16.11]"
     }
   },
   "releases": {

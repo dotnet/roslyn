@@ -9,13 +9,13 @@ parameters:
 - name: configuration
   type: string
   default: 'Debug'
+- name: buildArguments
+  type: string
+  default: ''
 - name: queueName
   type: string
   default: ''
 - name: vmImageName
-  type: string
-  default: ''
-- name: buildArguments
   type: string
   default: ''
 
@@ -61,4 +61,3 @@ jobs:
       parameters:
         configuration: ${{ parameters.configuration }}
         jobName: ${{ parameters.jobName }}
-
