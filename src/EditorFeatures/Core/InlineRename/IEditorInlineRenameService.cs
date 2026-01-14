@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -241,6 +242,12 @@ internal interface IInlineRenameInfo
     /// an inline rename
     /// </summary>
     InlineRenameFileRenameInfo GetFileRenameInfo();
+
+    /// <summary>
+    /// Checks if the proposed replacement text conflicts with an existing declaration.
+    /// Returns true if there is a conflict, along with an error message.
+    /// </summary>
+    bool CheckDeclarationConflict(string replacementText, [NotNullWhen(true)] out string? message);
 }
 
 #nullable enable
