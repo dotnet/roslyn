@@ -16,6 +16,24 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
 {
     private static string? IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null;
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72142")]
+    public void ConstructorTestNullElementAdd()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+
+            List<string> list = [null];
+            Console.WriteLine(list.Count);
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("1")).VerifyDiagnostics(
+            // (4,22): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // List<string> list = [null];
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 22));
+    }
+
     [Fact]
     public void ConstructorNonNullParameterPassedNull()
     {
@@ -701,23 +719,5 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
                 // (8,13): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.Goo(string s)'.
                 //         Goo(s);
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(8, 13));
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72142")]
-    public void ConstructorTestNullElementAdd()
-    {
-        var source = """
-            #nullable enable
-            using System;
-            using System.Collections.Generic;
-
-            List<string> list = [null];
-            Console.WriteLine(list.Count);
-            """;
-
-        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("1")).VerifyDiagnostics(
-            // (4,22): warning CS8625: Cannot convert null literal to non-nullable reference type.
-            // List<string> list = [null];
-            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 22));
     }
 }
