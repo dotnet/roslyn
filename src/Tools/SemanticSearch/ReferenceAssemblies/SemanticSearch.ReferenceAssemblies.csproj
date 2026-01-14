@@ -4,7 +4,8 @@
     <!-- Semantic search queries run in VS OOP. -->
     <TargetFramework>$(NetVS)</TargetFramework>
 
-    <_BuildTaskTfm>$(NetRoslyn)</_BuildTaskTfm>
+    <_BuildTaskTfm Condition="'$(MSBuildRuntimeType)' != 'Core'">net472</_BuildTaskTfm>
+    <_BuildTaskTfm Condition="'$(MSBuildRuntimeType)' == 'Core'">$(NetRoslyn)</_BuildTaskTfm>
     <_BuildTaskAssemblyFile>$(ArtifactsBinDir)SemanticSearch.BuildTask\$(Configuration)\$(_BuildTaskTfm)\SemanticSearch.BuildTask.dll</_BuildTaskAssemblyFile>
     <_ApisDir>$(MSBuildThisFileDirectory)Apis\</_ApisDir>
 
@@ -41,7 +42,7 @@
     in subsequent builds because the task assembly can't be written by the
     next build.
   -->
-  <UsingTask TaskName="Microsoft.CodeAnalysis.Tools.GenerateFilteredReferenceAssembliesTask" AssemblyFile="$(_BuildTaskAssemblyFile)" TaskFactory="TaskHostFactory" Runtime="NET" />
+  <UsingTask TaskName="Microsoft.CodeAnalysis.Tools.GenerateFilteredReferenceAssembliesTask" AssemblyFile="$(_BuildTaskAssemblyFile)" TaskFactory="TaskHostFactory" />
 
   <Target Name="_CalculateFilteredReferenceAssembliesInputsAndOutputs" DependsOnTargets="ResolveAssemblyReferences">
     <PropertyGroup>
@@ -79,9 +80,7 @@
       <_RequireNoApiChanges Condition="'$(ContinuousIntegrationBuildCorrectness)' == 'true'">true</_RequireNoApiChanges>
     </PropertyGroup>
 
-    <!-- https://github.com/dotnet/roslyn/issues/82006: the condition is needed to skip this task in CI legs on MSBuild older than 18.0 -->
-    <Microsoft.CodeAnalysis.Tools.GenerateFilteredReferenceAssembliesTask References="@(_InputReference)" ApiSets="@(ApiSet)" OutputDir="$(_OutputDir)" ApisDir="$(_ApisDir)" RequireNoApiChanges="$(_RequireNoApiChanges)"
-                                                                          Condition="$([MSBuild]::VersionGreaterThanOrEquals('$(MSBuildAssemblyVersion)', '18.0'))" />
+    <Microsoft.CodeAnalysis.Tools.GenerateFilteredReferenceAssembliesTask References="@(_InputReference)" ApiSets="@(ApiSet)" OutputDir="$(_OutputDir)" ApisDir="$(_ApisDir)" RequireNoApiChanges="$(_RequireNoApiChanges)" />
 
     <ItemGroup>
       <FileWrites Include="@(_OutputFile)" />
