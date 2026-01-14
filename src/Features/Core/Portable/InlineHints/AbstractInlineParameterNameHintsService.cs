@@ -78,7 +78,7 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
 
         void AddHintsIfAppropriate(SyntaxNode node)
         {
-            if (suppressForParametersThatDifferOnlyBySuffix && ParametersDifferOnlyBySuffix(buffer))
+            if (suppressForParametersThatDifferOnlyBySuffix && DifferOnlyBySuffix(buffer, syntaxFacts))
                 return;
 
             foreach (var (position, argument, parameter, kind) in buffer)
@@ -121,25 +121,40 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
         }
     }
 
-    private static bool ParametersDifferOnlyBySuffix(
-        ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)> parameterHints)
+    private static bool DifferOnlyBySuffix(
+        ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)> parameterHints,
+        ISyntaxFactsService syntaxFacts)
     {
         // Only relevant if we have two or more parameters.
         if (parameterHints.Count <= 1)
             return false;
 
-        return ParametersDifferOnlyByAlphaSuffix(parameterHints) ||
-               ParametersDifferOnlyByNumericSuffix(parameterHints);
-
-        static bool ParametersDifferOnlyByAlphaSuffix(
-            ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)> parameterHints)
+        // Check if parameters differ only by suffix (e.g., colorA, colorB)
+        if (NamesDifferOnlyByAlphaSuffix(parameterHints, static h => h.parameter?.Name) ||
+            NamesDifferOnlyByNumericSuffix(parameterHints, static h => h.parameter?.Name))
         {
-            if (!HasAlphaSuffix(parameterHints[0].parameter, out var firstPrefix))
+            return true;
+        }
+
+        // Check if arguments differ only by suffix (e.g., point1, point2)
+        if (NamesDifferOnlyByAlphaSuffix(parameterHints, h => GetIdentifierNameFromArgument(h.argument, syntaxFacts)) ||
+            NamesDifferOnlyByNumericSuffix(parameterHints, h => GetIdentifierNameFromArgument(h.argument, syntaxFacts)))
+        {
+            return true;
+        }
+
+        return false;
+
+        static bool NamesDifferOnlyByAlphaSuffix(
+            ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)> hints,
+            Func<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind), string?> nameGetter)
+        {
+            if (!HasAlphaSuffix(nameGetter(hints[0]), out var firstPrefix))
                 return false;
 
-            for (var i = 1; i < parameterHints.Count; i++)
+            for (var i = 1; i < hints.Count; i++)
             {
-                if (!HasAlphaSuffix(parameterHints[i].parameter, out var nextPrefix))
+                if (!HasAlphaSuffix(nameGetter(hints[i]), out var nextPrefix))
                     return false;
 
                 if (!firstPrefix.Span.Equals(nextPrefix.Span, StringComparison.Ordinal))
@@ -149,15 +164,16 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
             return true;
         }
 
-        static bool ParametersDifferOnlyByNumericSuffix(
-            ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)> parameterHints)
+        static bool NamesDifferOnlyByNumericSuffix(
+            ArrayBuilder<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind)> hints,
+            Func<(int position, SyntaxNode argument, IParameterSymbol? parameter, HintKind kind), string?> nameGetter)
         {
-            if (!HasNumericSuffix(parameterHints[0].parameter, out var firstPrefix))
+            if (!HasNumericSuffix(nameGetter(hints[0]), out var firstPrefix))
                 return false;
 
-            for (var i = 1; i < parameterHints.Count; i++)
+            for (var i = 1; i < hints.Count; i++)
             {
-                if (!HasNumericSuffix(parameterHints[i].parameter, out var nextPrefix))
+                if (!HasNumericSuffix(nameGetter(hints[i]), out var nextPrefix))
                     return false;
 
                 if (!firstPrefix.Span.Equals(nextPrefix.Span, StringComparison.Ordinal))
@@ -167,10 +183,8 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
             return true;
         }
 
-        static bool HasAlphaSuffix(IParameterSymbol? parameter, out ReadOnlyMemory<char> prefix)
+        static bool HasAlphaSuffix(string? name, out ReadOnlyMemory<char> prefix)
         {
-            var name = parameter?.Name;
-
             // Has to end with A-Z
             // That A-Z can't be following another A-Z (that's just a capitalized word).
             if (name?.Length >= 2 &&
@@ -185,10 +199,8 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
             return false;
         }
 
-        static bool HasNumericSuffix(IParameterSymbol? parameter, out ReadOnlyMemory<char> prefix)
+        static bool HasNumericSuffix(string? name, out ReadOnlyMemory<char> prefix)
         {
-            var name = parameter?.Name;
-
             // Has to end with 0-9.  only handles single-digit numeric suffix for now for simplicity
             if (name?.Length >= 2 &&
                 IsNumeric(name[^1]))
@@ -279,7 +291,48 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
     private static bool ParameterMatchesArgumentName(SyntaxNode argument, IParameterSymbol parameter, ISyntaxFactsService syntaxFacts)
     {
         var argumentName = GetIdentifierNameFromArgument(argument, syntaxFacts);
-        return syntaxFacts.StringComparer.Compare(parameter.Name, argumentName) == 0;
+        return NamesMatchIgnoringCaseAndUnderscores(parameter.Name, argumentName);
+    }
+
+    private static bool NamesMatchIgnoringCaseAndUnderscores(string name1, string name2)
+    {
+        var index1 = 0;
+        var index2 = 0;
+
+        while (index1 < name1.Length && index2 < name2.Length)
+        {
+            // Skip underscores in both names
+            while (index1 < name1.Length && name1[index1] == '_')
+                index1++;
+
+            while (index2 < name2.Length && name2[index2] == '_')
+                index2++;
+
+            // If both reached end, they match
+            if (index1 >= name1.Length && index2 >= name2.Length)
+                return true;
+
+            // If only one reached end, they don't match
+            if (index1 >= name1.Length || index2 >= name2.Length)
+                return false;
+
+            // Compare characters ignoring case
+            if (char.ToLowerInvariant(name1[index1]) != char.ToLowerInvariant(name2[index2]))
+                return false;
+
+            index1++;
+            index2++;
+        }
+
+        // Skip any trailing underscores
+        while (index1 < name1.Length && name1[index1] == '_')
+            index1++;
+
+        while (index2 < name2.Length && name2[index2] == '_')
+            index2++;
+
+        // Both should have reached the end
+        return index1 >= name1.Length && index2 >= name2.Length;
     }
 
     protected static string GetIdentifierNameFromArgument(SyntaxNode argument, ISyntaxFactsService syntaxFacts)
