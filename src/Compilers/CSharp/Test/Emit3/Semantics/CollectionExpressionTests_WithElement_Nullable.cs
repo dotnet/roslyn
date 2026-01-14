@@ -840,7 +840,6 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             """;
         string sourceB = """
             #nullable enable
-            using System;
             class Program
             {
                 static void Main()
@@ -884,7 +883,6 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             """;
         string sourceB = """
             #nullable enable
-            using System;
             class Program
             {
                 static void Main()
@@ -927,7 +925,6 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             """;
         string sourceB = """
             #nullable enable
-            using System;
             class Program
             {
                 static void Main()
@@ -946,9 +943,9 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             expectedOutput: IncludeExpectedOutput(""),
             targetFramework: TargetFramework.Net80,
             verify: Verification.FailsPEVerify).VerifyDiagnostics(
-            // (8,37): warning CS8604: Possible null reference argument for parameter 'value' in 'MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)'.
+            // (7,37): warning CS8604: Possible null reference argument for parameter 'value' in 'MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)'.
             //         MyCollection<int> c = [with(s), 1, 2];
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("value", "MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)").WithLocation(8, 37));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("value", "MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)").WithLocation(7, 37));
     }
 
     [Fact]
@@ -974,7 +971,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             """;
         string sourceB = """
             #nullable enable
-            using System;
+            
             class Program
             {
                 static void Main()
@@ -992,10 +989,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             [sourceA, sourceB],
             expectedOutput: IncludeExpectedOutput(""),
             targetFramework: TargetFramework.Net80,
-            verify: Verification.FailsPEVerify).VerifyDiagnostics(
-            // (8,37): warning CS8604: Possible null reference argument for parameter 'value' in 'MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)'.
-            //         MyCollection<int> c = [with(s), 1, 2];
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("value", "MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)").WithLocation(8, 37));
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -1022,7 +1016,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             """;
         string sourceB = """
             #nullable enable
-            using System;
+            
             class Program
             {
                 static void Main()
@@ -1066,12 +1060,12 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             """;
         string sourceB = """
             #nullable enable
-            using System;
+            
             class Program
             {
                 static void Main()
                 {
-                    string? s = null;
+                    string? s = "";
                     MyCollection<int> c = [with(s), 1, 2];
                     Goo(s);
                 }
@@ -1109,7 +1103,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             """;
         string sourceB = """
             #nullable enable
-            using System;
+            
             class Program
             {
                 static void Main()
@@ -1127,7 +1121,10 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             [sourceA, sourceB],
             expectedOutput: IncludeExpectedOutput(""),
             targetFramework: TargetFramework.Net80,
-            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (9,13): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.Goo(string s)'.
+            //         Goo(s);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(9, 13));
     }
 
     [Fact]
@@ -1153,7 +1150,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             """;
         string sourceB = """
             #nullable enable
-            using System;
+            
             class Program
             {
                 static void Main()
@@ -1183,7 +1180,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     {
         var source = """
             #nullable enable
-            using System;
+            
             using System.Collections.Generic;
             using System.Diagnostics.CodeAnalysis;
 
@@ -1218,7 +1215,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     {
         var source = """
             #nullable enable
-            using System;
+            
             using System.Collections.Generic;
             using System.Diagnostics.CodeAnalysis;
 
@@ -1253,7 +1250,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     {
         var source = """
             #nullable enable
-            using System;
+            
             using System.Collections.Generic;
 
             class MyList<T> : List<T>
@@ -1284,7 +1281,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     {
         var source = """
             #nullable enable
-            using System;
+            
             using System.Collections.Generic;
 
             class MyList<T> : List<T>
@@ -1315,7 +1312,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     {
         var source = """
             #nullable enable
-            using System;
+            
             using System.Collections.Generic;
             using System.Diagnostics.CodeAnalysis;
 
@@ -1350,7 +1347,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     {
         var source = """
             #nullable enable
-            using System;
+            
             using System.Collections.Generic;
             using System.Diagnostics.CodeAnalysis;
 
@@ -1385,7 +1382,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     {
         var source = """
             #nullable enable
-            using System;
+            
             using System.Collections.Generic;
 
             class MyList<T> : List<T>
@@ -1416,7 +1413,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     {
         var source = """
             #nullable enable
-            using System;
+            
             using System.Collections.Generic;
 
             class MyList<T> : List<T>
@@ -1466,7 +1463,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             """;
         string sourceB = """
             #nullable enable
-            using System;
+            
             class Program
             {
                 static void Main()
@@ -1513,7 +1510,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             """;
         string sourceB = """
             #nullable enable
-            using System;
+            
             class Program
             {
                 static void Main()
@@ -1530,10 +1527,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         CompileAndVerify(
             [sourceA, sourceB],
             targetFramework: TargetFramework.Net80,
-            verify: Verification.FailsPEVerify).VerifyDiagnostics(
-            // (8,37): warning CS8604: Possible null reference argument for parameter 'value' in 'MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)'.
-            //         MyCollection<int> c = [with(s), 1, 2];
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("value", "MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)").WithLocation(8, 37));
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -1559,7 +1553,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             """;
         string sourceB = """
             #nullable enable
-            using System;
+            
             class Program
             {
                 static void Main()
@@ -1606,7 +1600,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             """;
         string sourceB = """
             #nullable enable
-            using System;
+            
             class Program
             {
                 static void Main()
@@ -1624,10 +1618,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             [sourceA, sourceB],
             expectedOutput: IncludeExpectedOutput(""),
             targetFramework: TargetFramework.Net80,
-            verify: Verification.FailsPEVerify).VerifyDiagnostics(
-            // (8,37): warning CS8604: Possible null reference argument for parameter 'value' in 'MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)'.
-            //         MyCollection<int> c = [with(s), 1, 2];
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("value", "MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)").WithLocation(8, 37));
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -1654,7 +1645,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             """;
         string sourceB = """
             #nullable enable
-            using System;
+            
             class Program
             {
                 static void Main()
@@ -1701,7 +1692,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             """;
         string sourceB = """
             #nullable enable
-            using System;
+            
             class Program
             {
                 static void Main()
@@ -1718,10 +1709,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         CompileAndVerify(
             [sourceA, sourceB],
             targetFramework: TargetFramework.Net80,
-            verify: Verification.FailsPEVerify).VerifyDiagnostics(
-            // (8,37): warning CS8604: Possible null reference argument for parameter 'value' in 'MyCollection<int> MyBuilder.Create<int>(string? value, ReadOnlySpan<int> items)'.
-            //         MyCollection<int> c = [with(s), 1, 2];
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("value", "MyCollection<int> MyBuilder.Create<int>(string? value, ReadOnlySpan<int> items)").WithLocation(8, 37));
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -1747,7 +1735,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             """;
         string sourceB = """
             #nullable enable
-            using System;
+            
             class Program
             {
                 static void Main()
@@ -1791,7 +1779,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             """;
         string sourceB = """
             #nullable enable
-            using System;
+            
             class Program
             {
                 static void Main()
@@ -2113,6 +2101,9 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             [sourceA, sourceB],
             targetFramework: TargetFramework.Net80,
             verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (7,37): warning CS8604: Possible null reference argument for parameter 'value' in 'MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)'.
+            //         MyCollection<int> c = [with(s), 1, 2];
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("value", "MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)").WithLocation(7, 37),
             // (8,13): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.Goo(string s)'.
             //         Goo(s);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(8, 13));
@@ -2162,7 +2153,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             // (8,13): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.Goo(string s)'.
             //         Goo(s);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(8, 13));
-    }}
+    }
 
     [Fact]
     public void CollectionBuilderNonNullableParameterWithoutMaybeNull_Null()
@@ -2204,7 +2195,10 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             [sourceA, sourceB],
             expectedOutput: IncludeExpectedOutput(""),
             targetFramework: TargetFramework.Net80,
-            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (7,37): warning CS8604: Possible null reference argument for parameter 'value' in 'MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)'.
+            //         MyCollection<int> c = [with(s), 1, 2];
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("value", "MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)").WithLocation(7, 37));
     }
 
     [Fact]
@@ -2970,10 +2964,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         CompileAndVerify(
             [sourceA, sourceB],
             targetFramework: TargetFramework.Net80,
-            verify: Verification.FailsPEVerify).VerifyDiagnostics(
-            // (7,37): warning CS8604: Possible null reference argument for parameter 'value' in 'MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)'.
-            //         MyCollection<int> c = [with(s), 1, 2];
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("value", "MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)").WithLocation(7, 37));
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -3060,10 +3051,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         CompileAndVerify(
             [sourceA, sourceB],
             targetFramework: TargetFramework.Net80,
-            verify: Verification.FailsPEVerify).VerifyDiagnostics(
-            // (7,37): warning CS8604: Possible null reference argument for parameter 'value' in 'MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)'.
-            //         MyCollection<int> c = [with(s), 1, 2];
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("value", "MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)").WithLocation(7, 37));
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     #endregion
