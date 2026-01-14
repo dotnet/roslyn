@@ -4,92 +4,92 @@
     <body>
       <trans-unit id="Failed_to_load_solution_filter_0">
         <source>Failed to load solution filter: '{0}'</source>
-        <target state="new">Failed to load solution filter: '{0}'</target>
+        <target state="translated">솔루션 필터 '{0}'을(를) 로드하지 못했습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_project_reference_without_a_matching_metadata_reference_0">
         <source>Found project reference without a matching metadata reference: {0}</source>
-        <target state="new">Found project reference without a matching metadata reference: {0}</target>
+        <target state="translated">일치하는 메타데이터 참조가 없는 프로젝트 참조를 찾음: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_0_specified_1">
         <source>Invalid {0} specified: {1}</source>
-        <target state="new">Invalid {0} specified: {1}</target>
+        <target state="translated">잘못된 {0}이(가) 지정됨: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Msbuild_failed_when_processing_the_file_0">
         <source>Msbuild failed when processing the file '{0}'</source>
-        <target state="new">Msbuild failed when processing the file '{0}'</target>
+        <target state="translated">'{0}' 파일 처리 시 Msbuild에서 실패했습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Msbuild_failed_when_processing_the_file_0_with_message_1">
         <source>Msbuild failed when processing the file '{0}' with message: {1}</source>
-        <target state="new">Msbuild failed when processing the file '{0}' with message: {1}</target>
+        <target state="translated">'{0}' 파일 처리 시 Msbuild에서 실패했습니다. 메시지: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Path_for_additional_document_0_was_null">
         <source>Path for additional document '{0}' was null}</source>
-        <target state="new">Path for additional document '{0}' was null}</target>
+        <target state="translated">추가 문서 ‘{0}‘의 경로는 null} 입니다</target>
         <note />
       </trans-unit>
       <trans-unit id="Path_for_document_0_was_null">
         <source>Path for document '{0}' was null</source>
-        <target state="new">Path for document '{0}' was null</target>
+        <target state="translated">문서 '{0}'에 대한 경로가 null이었음</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_already_added">
         <source>Project already added.</source>
-        <target state="new">Project already added.</target>
+        <target state="translated">Project가 이미 추가되었습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_project_with_the_same_file_path_and_output_path_as_another_project_0">
         <source>Found project with the same file path and output path as another project: {0}</source>
-        <target state="new">Found project with the same file path and output path as another project: {0}</target>
+        <target state="translated">다른 프로젝트와 파일 경로 및 출력 경로가 같은 프로젝트를 찾았습니다. {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Duplicate_project_discovered_and_skipped_0">
         <source>Duplicate project discovered and skipped: {0}</source>
-        <target state="new">Duplicate project discovered and skipped: {0}</target>
+        <target state="translated">중복된 프로젝트가 검색되어 건너뛰었습니다. {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_does_not_have_a_path">
         <source>Project does not have a path.</source>
-        <target state="new">Project does not have a path.</target>
+        <target state="translated">프로젝트에 경로가 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_path_for_0_was_null">
         <source>Project path for '{0}' was null</source>
-        <target state="new">Project path for '{0}' was null</target>
+        <target state="translated">'{0}'에 대한 프로젝트 경로가 null이었음</target>
         <note />
       </trans-unit>
       <trans-unit id="The_build_host_could_not_be_found_at_0">
         <source>The build host could not be found at '{0}'</source>
-        <target state="new">The build host could not be found at '{0}'</target>
+        <target state="translated">'{0}'에서 빌드 호스트를 찾을 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_add_metadata_reference_0">
         <source>Unable to add metadata reference '{0}'</source>
-        <target state="new">Unable to add metadata reference '{0}'</target>
+        <target state="translated">메타데이터 참조 '{0}'을(를) 추가할 수 없음</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_find_0">
         <source>Unable to find '{0}'</source>
-        <target state="new">Unable to find '{0}'</target>
+        <target state="translated">{0}을(를) 찾을 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_find_a_0_for_1">
         <source>Unable to find a '{0}' for '{1}'</source>
-        <target state="new">Unable to find a '{0}' for '{1}'</target>
+        <target state="translated">'{1}'에 대한 '{0}'을(를) 찾을 수 없음</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_remove_metadata_reference_0">
         <source>Unable to remove metadata reference '{0}'</source>
-        <target state="new">Unable to remove metadata reference '{0}'</target>
+        <target state="translated">메타데이터 참조 '{0}'을(를) 제거할 수 없음</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved_metadata_reference_removed_from_project_0">
         <source>Unresolved metadata reference removed from project: {0}</source>
-        <target state="new">Unresolved metadata reference removed from project: {0}</target>
+        <target state="translated">확인되지 않은 메타데이터 참조가 프로젝트에서 제거됨: {0}</target>
         <note />
       </trans-unit>
     </body>

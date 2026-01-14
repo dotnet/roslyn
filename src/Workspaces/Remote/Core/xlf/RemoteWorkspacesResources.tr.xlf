@@ -59,7 +59,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_ExtensionMethodImportCompletion">
         <source>Extension method import completion</source>
-        <target state="translated">Genişletme yöntemini içeri aktarma işlemi tamamlandı</target>
+        <target state="new">Extension method import completion</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_FindUsages">
