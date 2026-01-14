@@ -842,7 +842,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
 
         CompileAndVerify(
             [sourceA, sourceB],
-            expectedOutput: IncludeExpectedOutput("1, 2"),
+            expectedOutput: IncludeExpectedOutput(""),
             targetFramework: TargetFramework.Net80,
             verify: Verification.FailsPEVerify).VerifyDiagnostics(
             // (8,37): warning CS8604: Possible null reference argument for parameter 'value' in 'MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)'.
@@ -1062,7 +1062,10 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             [sourceA, sourceB],
             expectedOutput: IncludeExpectedOutput(""),
             targetFramework: TargetFramework.Net80,
-            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (8,37): warning CS8604: Possible null reference argument for parameter 'value' in 'MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)'.
+            //         MyCollection<int> c = [with(s), 1, 2];
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("value", "MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)").WithLocation(8, 37));
     }
 
     [Fact]
@@ -1147,7 +1150,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
 
         CompileAndVerify(
             [sourceA, sourceB],
-            expectedOutput: IncludeExpectedOutput("1, 2"),
+            expectedOutput: IncludeExpectedOutput(""),
             targetFramework: TargetFramework.Net80,
             verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
@@ -1809,7 +1812,8 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
                     string? arg = null;
                     string? other = null;
                     MyList<int> list = [with(s, other), 1, 2];
-                    Goo(s);
+                    Goo(arg);
+                    Goo(other);
                 }
 
                 static void Goo(string s) { }
@@ -1844,7 +1848,8 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
                     string? arg = null;
                     string other = "";
                     MyList<int> list = [with(s, other), 1, 2];
-                    Goo(s);
+                    Goo(arg);
+                    Goo(other);
                 }
 
                 static void Goo(string s) { }
@@ -1879,7 +1884,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
                     string? arg = "";
                     string? other = null;
                     MyList<int> list = [with(s, other), 1, 2];
-                    Goo(s);
+                    Goo(arg);
                     Goo(other);
                 }
 
@@ -1915,7 +1920,8 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
                     string? arg = "";
                     string? other = "";
                     MyList<int> list = [with(s, other), 1, 2];
-                    Goo(s);
+                    Goo(arg);
+                    Goo(other);
                 }
 
                 static void Goo(string s) { }
@@ -1950,7 +1956,8 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
                     string? arg = null;
                     string? other = null;
                     MyList<int> list = [with(s, other), 1, 2];
-                    Goo(s);
+                    Goo(arg);
+                    Goo(other);
                 }
 
                 static void Goo(string s) { }
@@ -1985,7 +1992,8 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
                     string? arg = null;
                     string other = "";
                     MyList<int> list = [with(s, other), 1, 2];
-                    Goo(s);
+                    Goo(arg);
+                    Goo(other);
                 }
 
                 static void Goo(string s) { }
@@ -2020,7 +2028,8 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
                     string? arg = "";
                     string? other = null;
                     MyList<int> list = [with(s, other), 1, 2];
-                    Goo(s);
+                    Goo(arg);
+                    Goo(other);
                 }
 
                 static void Goo(string s) { }
@@ -2055,7 +2064,8 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
                     string? arg = "";
                     string? other = "";
                     MyList<int> list = [with(s, other), 1, 2];
-                    Goo(s);
+                    Goo(arg);
+                    Goo(other);
                 }
 
                 static void Goo(string s) { }
@@ -2100,7 +2110,8 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
                     string? arg = null;
                     string? other = null;
                     MyCollection<int> c = [with(s, other), 1, 2];
-                    Goo(s);
+                    Goo(arg);
+                    Goo(other);
                 }
 
                 static void Goo(string s) { }
@@ -2149,7 +2160,8 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
                     string? arg = null;
                     string? other = "";
                     MyCollection<int> c = [with(s, other), 1, 2];
-                    Goo(s);
+                    Goo(arg);
+                    Goo(other);
                 }
 
                 static void Goo(string s) { }
@@ -2178,7 +2190,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             [CollectionBuilder(typeof(MyBuilder), "Create")]
             class MyCollection<T> : List<T>
             {
-                public MyCollection(string? value, ReadOnlySpan<T> items)
+                public MyCollection(string? value, string? other, ReadOnlySpan<T> items)
                 {
                 }
             }
@@ -2197,7 +2209,8 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
                     string? arg = "";
                     string? other = null;
                     MyCollection<int> c = [with(s, other), 1, 2];
-                    Goo(s);
+                    Goo(arg);
+                    Goo(other);
                 }
 
                 static void Goo(string s) { }
@@ -2226,7 +2239,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             [CollectionBuilder(typeof(MyBuilder), "Create")]
             class MyCollection<T> : List<T>
             {
-                public MyCollection(string? value, ReadOnlySpan<T> items)
+                public MyCollection(string? value, string? other, ReadOnlySpan<T> items)
                 {
                 }
             }
@@ -2245,7 +2258,8 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
                     string? arg = "";
                     string? other = "";
                     MyCollection<int> c = [with(s, other), 1, 2];
-                    Goo(s);
+                    Goo(arg);
+                    Goo(other);
                 }
 
                 static void Goo(string s) { }
@@ -2274,7 +2288,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             [CollectionBuilder(typeof(MyBuilder), "Create")]
             class MyCollection<T> : List<T>
             {
-                public MyCollection(string? value, ReadOnlySpan<T> items)
+                public MyCollection(string? value, string? other, ReadOnlySpan<T> items)
                 {
                 }
             }
@@ -2293,7 +2307,8 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
                     string? arg = null;
                     string? other = null;
                     MyCollection<int> c = [with(s, other), 1, 2];
-                    Goo(s);
+                    Goo(arg);
+                    Goo(other);
                 }
 
                 static void Goo(string s) { }
@@ -2322,7 +2337,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             [CollectionBuilder(typeof(MyBuilder), "Create")]
             class MyCollection<T> : List<T>
             {
-                public MyCollection(string? value, ReadOnlySpan<T> items)
+                public MyCollection(string? value, string? other, ReadOnlySpan<T> items)
                 {
                 }
             }
@@ -2341,7 +2356,8 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
                     string? arg = null;
                     string? other = "";
                     MyCollection<int> c = [with(s, other), 1, 2];
-                    Goo(s);
+                    Goo(arg);
+                    Goo(other);
                 }
 
                 static void Goo(string s) { }
@@ -2370,7 +2386,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             [CollectionBuilder(typeof(MyBuilder), "Create")]
             class MyCollection<T> : List<T>
             {
-                public MyCollection(string? value, ReadOnlySpan<T> items)
+                public MyCollection(string? value, string? other, ReadOnlySpan<T> items)
                 {
                 }
             }
@@ -2389,7 +2405,8 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
                     string? arg = "";
                     string? other = null;
                     MyCollection<int> c = [with(s, other), 1, 2];
-                    Goo(s);
+                    Goo(arg);
+                    Goo(other);
                 }
 
                 static void Goo(string s) { }
@@ -2418,7 +2435,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             [CollectionBuilder(typeof(MyBuilder), "Create")]
             class MyCollection<T> : List<T>
             {
-                public MyCollection(string? value, ReadOnlySpan<T> items)
+                public MyCollection(string? value, string? other, ReadOnlySpan<T> items)
                 {
                 }
             }
@@ -2437,7 +2454,8 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
                     string? arg = "";
                     string? other = "";
                     MyCollection<int> c = [with(s, other), 1, 2];
-                    Goo(s);
+                    Goo(arg);
+                    Goo(other);
                 }
 
                 static void Goo(string s) { }
