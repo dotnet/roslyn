@@ -2085,7 +2085,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             // (9,13): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.Goo(string s)'.
             //         Goo(arg);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "arg").WithArguments("s", "void Program.Goo(string s)").WithLocation(9, 13));
-}
+    }
 
     [Fact]
     public void CollectionBuilderParameterWithNotNullIfNotNull_ArgNotNull_OtherNull()
