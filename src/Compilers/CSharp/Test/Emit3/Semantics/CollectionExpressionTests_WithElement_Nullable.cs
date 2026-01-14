@@ -557,7 +557,6 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     {
         var source = """
             #nullable enable
-            using System;
             using System.Collections.Generic;
             using System.Diagnostics.CodeAnalysis;
 
@@ -589,7 +588,6 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     {
         var source = """
             #nullable enable
-            using System;
             using System.Collections.Generic;
             using System.Diagnostics.CodeAnalysis;
 
@@ -621,7 +619,6 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     {
         var source = """
             #nullable enable
-            using System;
             using System.Collections.Generic;
             using System.Diagnostics.CodeAnalysis;
 
@@ -653,7 +650,6 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     {
         var source = """
             #nullable enable
-            using System;
             using System.Collections.Generic;
             using System.Diagnostics.CodeAnalysis;
 
@@ -720,7 +716,10 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         CompileAndVerify(
             [sourceA, sourceB],
             targetFramework: TargetFramework.Net80,
-            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (8,13): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.Goo(string s)'.
+            //         Goo(s);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(8, 13));
     }
 
     [Fact]
@@ -807,7 +806,10 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         CompileAndVerify(
             [sourceA, sourceB],
             targetFramework: TargetFramework.Net80,
-            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (9,13): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.Goo(string s)'.
+            //         Goo(s);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(9, 13));
     }
 
     [Fact]
@@ -888,9 +890,9 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             """;
 
         CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics(
-            // (18,34): warning CS8604: Possible null reference argument for parameter 'arg' in 'MyList<int>.MyList(string? arg)'.
+            // (18,34): warning CS8604: Possible null reference argument for parameter 'arg' in 'MyList<int>.MyList(string arg)'.
             //         MyList<int> list = [with(s), 1, 2];
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("arg", "MyList<int>.MyList(string? arg)").WithLocation(18, 34));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("arg", "MyList<int>.MyList(string arg)").WithLocation(18, 34));
     }
 
     [Fact]
@@ -922,10 +924,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             }
             """;
 
-        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics(
-            // (18,34): warning CS8604: Possible null reference argument for parameter 'arg' in 'MyList<int>.MyList(string? arg)'.
-            //         MyList<int> list = [with(s), 1, 2];
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("arg", "MyList<int>.MyList(string? arg)").WithLocation(18, 34));
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -992,10 +991,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             }
             """;
 
-        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics(
-            // (18,34): warning CS8604: Possible null reference argument for parameter 'arg' in 'MyList<int>.MyList(string? arg)'.
-            //         MyList<int> list = [with(s), 1, 2];
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("arg", "MyList<int>.MyList(string? arg)").WithLocation(18, 34));
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -1213,6 +1209,9 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             """;
 
         CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (17,34): warning CS8604: Possible null reference argument for parameter 'arg' in 'MyList<int>.MyList(string arg)'.
+            //         MyList<int> list = [with(s), 1, 2];
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("arg", "MyList<int>.MyList(string arg)").WithLocation(17, 34),
             // (18,13): warning CS8604: Possible null reference argument for parameter 's' in 'void C.Goo(string s)'.
             //         Goo(s);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void C.Goo(string s)").WithLocation(18, 13));
@@ -1604,7 +1603,10 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             }
             """;
 
-        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (18,34): warning CS8604: Possible null reference argument for parameter 'arg' in 'MyList<int>.MyList(string arg)'.
+            //         MyList<int> list = [with(s), 1, 2];
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("arg", "MyList<int>.MyList(string arg)").WithLocation(18, 34));
     }
 
     [Fact]
@@ -1866,8 +1868,11 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
 
         CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics(
             // (19,13): warning CS8604: Possible null reference argument for parameter 's' in 'void C.Goo(string s)'.
-            //         Goo(s);
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void C.Goo(string s)").WithLocation(19, 13));
+            //         Goo(arg);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "arg").WithArguments("s", "void C.Goo(string s)").WithLocation(19, 13),
+            // (20,13): warning CS8604: Possible null reference argument for parameter 's' in 'void C.Goo(string s)'.
+            //         Goo(other);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "other").WithArguments("s", "void C.Goo(string s)").WithLocation(20, 13));
     }
 
     [Fact]
@@ -1902,8 +1907,8 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
 
         CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics(
             // (19,13): warning CS8604: Possible null reference argument for parameter 's' in 'void C.Goo(string s)'.
-            //         Goo(s);
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void C.Goo(string s)").WithLocation(19, 13));
+            //         Goo(arg);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "arg").WithArguments("s", "void C.Goo(string s)").WithLocation(19, 13));
     }
 
     [Fact]
@@ -1937,9 +1942,9 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             """;
 
         CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics(
-            // (19,13): warning CS8604: Possible null reference argument for parameter 's' in 'void C.Goo(string s)'.
-            //         Goo(s);
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void C.Goo(string s)").WithLocation(19, 13));
+            // (20,13): warning CS8604: Possible null reference argument for parameter 's' in 'void C.Goo(string s)'.
+            //         Goo(other);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "other").WithArguments("s", "void C.Goo(string s)").WithLocation(20, 13));
     }
 
     [Fact]
@@ -1972,10 +1977,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             }
             """;
 
-        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics(
-            // (19,13): warning CS8604: Possible null reference argument for parameter 's' in 'void C.Goo(string s)'.
-            //         Goo(s);
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void C.Goo(string s)").WithLocation(19, 13));
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -1991,7 +1993,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             [CollectionBuilder(typeof(MyBuilder), "Create")]
             class MyCollection<T> : List<T>
             {
-                public MyCollection(string? value, ReadOnlySpan<T> items)
+                public MyCollection(string? value, string? other, ReadOnlySpan<T> items)
                 {
                 }
             }
@@ -2038,10 +2040,9 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             using System.Runtime.CompilerServices;
 
             [CollectionBuilder(typeof(MyBuilder), "Create")]
-            class MyCollection<T> : IEnumerable<T>
             class MyCollection<T> : List<T>
             {
-                public MyCollection(string? value, ReadOnlySpan<T> items)
+                public MyCollection(string? value, string? other, ReadOnlySpan<T> items)
                 {
                 }
             }
@@ -2169,10 +2170,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         CompileAndVerify(
             [sourceA, sourceB],
             targetFramework: TargetFramework.Net80,
-            verify: Verification.FailsPEVerify).VerifyDiagnostics(
-            // (9,13): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.Goo(string s)'.
-            //         Goo(s);
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(9, 13));
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     #endregion
