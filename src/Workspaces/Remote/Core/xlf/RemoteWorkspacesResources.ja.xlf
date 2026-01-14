@@ -59,7 +59,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_ExtensionMethodImportCompletion">
         <source>Extension method import completion</source>
-        <target state="translated">拡張メソッドのインポート完了</target>
+        <target state="new">Extension method import completion</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_FindUsages">

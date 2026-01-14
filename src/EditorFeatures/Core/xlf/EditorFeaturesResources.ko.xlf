@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
         <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
-        <target state="translated">식별자 '{0}'의 인라인 이름 바꾸기 세션이 활성 상태입니다. 추가 옵션에 액세스하려면 인라인 이름 바꾸기를 다시 호출하세요. 언제든지 이름을 바꾸려는 식별자를 계속 편집할 수 있습니다.</target>
+        <target state="new">An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</target>
         <note>For screenreaders. {0} is the identifier being renamed.</note>
       </trans-unit>
       <trans-unit id="Applying_changes">
@@ -39,12 +39,12 @@
       </trans-unit>
       <trans-unit id="Describe_with_Copilot">
         <source>Describe with Copilot</source>
-        <target state="translated">Copilot으로 설명</target>
+        <target state="new">Describe with Copilot</target>
         <note />
       </trans-unit>
       <trans-unit id="Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
         <source>'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</source>
-        <target state="translated">참조된 문서가 조직에서 제외되었므로 'Copilot로 설명'을 사용할 수 없습니다.</target>
+        <target state="new">'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
@@ -984,7 +984,7 @@
       </trans-unit>
       <trans-unit id="Rename_colon_0">
         <source>Rename: {0}</source>
-        <target state="translated">이름 바꾸기: {0}</target>
+        <target state="new">Rename: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
@@ -1105,8 +1105,8 @@
       <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
         <source>We can fix the error by not making struct "out/ref" parameter(s).
 Do you want to proceed?</source>
-        <target state="translated">구조체 "out/ref" 매개 변수를 만들지 않는 방법으로 오류를 수정할 수 있습니다. 
-계속하시겠습니까?</target>
+        <target state="new">We can fix the error by not making struct "out/ref" parameter(s).
+Do you want to proceed?</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_Signature_colon">
@@ -1171,7 +1171,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="Apply3">
         <source>Apply</source>
-        <target state="translated">적용</target>
+        <target state="new">Apply</target>
         <note />
       </trans-unit>
       <trans-unit id="Cancel">
@@ -1246,12 +1246,12 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="New_name_colon_0">
         <source>New name: {0}</source>
-        <target state="translated">새 이름: {0}</target>
+        <target state="new">New name: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Modify_any_highlighted_location_to_begin_renaming">
         <source>Modify any highlighted location to begin renaming.</source>
-        <target state="translated">이름 변경을 시작할 강조 표시된 위치를 수정합니다.</target>
+        <target state="new">Modify any highlighted location to begin renaming.</target>
         <note />
       </trans-unit>
       <trans-unit id="Paste">

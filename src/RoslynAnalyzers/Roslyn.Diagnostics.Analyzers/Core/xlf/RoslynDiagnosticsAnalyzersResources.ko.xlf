@@ -4,492 +4,492 @@
     <body>
       <trans-unit id="AddSharedAttribute">
         <source>Add 'Shared' attribute</source>
-        <target state="new">Add 'Shared' attribute</target>
+        <target state="translated">'Shared' 특성 추가</target>
         <note>{Locked="Shared"}</note>
       </trans-unit>
       <trans-unit id="ApplyTraitToContainingType">
         <source>Apply trait to containing type</source>
-        <target state="new">Apply trait to containing type</target>
+        <target state="translated">포함하는 형식에 특성 적용</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeCodeFixTitle">
         <source>Remove the 'Opt' suffix</source>
-        <target state="new">Remove the 'Opt' suffix</target>
+        <target state="translated">'Opt' 접미사 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeDescription">
         <source>Avoid the 'Opt' suffix in a nullable-enabled code.</source>
-        <target state="new">Avoid the 'Opt' suffix in a nullable-enabled code.</target>
+        <target state="translated">nullable 지원 코드에서는 'Opt' 접미사를 사용하지 마세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeMessage">
         <source>Avoid the 'Opt' suffix in a nullable-enabled code</source>
-        <target state="new">Avoid the 'Opt' suffix in a nullable-enabled code</target>
+        <target state="translated">nullable 지원 코드에서는 'Opt' 접미사를 사용하지 마세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeTitle">
         <source>Avoid the 'Opt' suffix</source>
-        <target state="new">Avoid the 'Opt' suffix</target>
+        <target state="translated">'Opt' 접미사 사용 방지</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateTestAccessorDescription">
         <source>This is a refactoring which simplifies the process of creating test accessors using the 'TestAccessor' pattern.</source>
-        <target state="new">This is a refactoring which simplifies the process of creating test accessors using the 'TestAccessor' pattern.</target>
+        <target state="translated">'TestAccessor' 패턴을 사용하여 테스트 접근자를 만드는 프로세스를 간소화하는 리팩터링입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateTestAccessorMessage">
         <source>Create test accessor</source>
-        <target state="new">Create test accessor</target>
+        <target state="translated">테스트 접근자 만들기</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateTestAccessorTitle">
         <source>Create test accessor</source>
-        <target state="new">Create test accessor</target>
+        <target state="translated">테스트 접근자 만들기</target>
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsDescription">
         <source>Defaultable types should have defaultable fields.</source>
-        <target state="new">Defaultable types should have defaultable fields.</target>
+        <target state="translated">기본값 설정 가능 형식에는 기본값 설정 가능 필드가 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsMessage">
         <source>Defaultable type '{0}' has a non-defaultable field or auto-property '{1}'</source>
-        <target state="new">Defaultable type '{0}' has a non-defaultable field or auto-property '{1}'</target>
+        <target state="translated">기본값 설정 가능 형식 '{0}'에 기본값 설정 불가능 필드 또는 자동 속성 '{1}'이(가) 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsTitle">
         <source>Defaultable types should have defaultable fields</source>
-        <target state="new">Defaultable types should have defaultable fields</target>
+        <target state="translated">기본값 설정 가능 형식에는 기본값 설정 가능 필드가 있어야 함</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCallGetTestAccessorDescription">
         <source>'GetTestAccessor()' is a helper method reserved for testing. Production code must not call this member.</source>
-        <target state="new">'GetTestAccessor()' is a helper method reserved for testing. Production code must not call this member.</target>
+        <target state="translated">'GetTestAccessor()'는 테스트용으로 예약된 도우미 메서드입니다. 프로덕션 코드는 이 멤버를 호출해서는 안 됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCallGetTestAccessorMessage">
         <source>Do not call 'GetTestAccessor()' from production code</source>
-        <target state="new">Do not call 'GetTestAccessor()' from production code</target>
+        <target state="translated">프로덕션 코드에서 'GetTestAccessor()'를 호출하지 마세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCallGetTestAccessorTitle">
         <source>Do not call 'GetTestAccessor()'</source>
-        <target state="new">Do not call 'GetTestAccessor()'</target>
+        <target state="translated">'GetTestAccessor()' 호출 금지</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCapturePrimaryConstructorParametersDescription">
         <source>Primary constructor parameters should not be implicitly captured. Manually assign them to fields at the start of the type.</source>
-        <target state="new">Primary constructor parameters should not be implicitly captured. Manually assign them to fields at the start of the type.</target>
+        <target state="translated">기본 생성자 매개 변수는 암시적으로 캡처하면 안 됩니다. 형식이 시작될 때 필드에 수동으로 할당합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCapturePrimaryConstructorParametersMessage">
         <source>Primary constructor parameter '{0}' should not be implicitly captured</source>
-        <target state="new">Primary constructor parameter '{0}' should not be implicitly captured</target>
+        <target state="translated">기본 생성자 매개 변수 '{0}'을(를) 암시적으로 캡처하면 안 됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCapturePrimaryConstructorParametersTitle">
         <source>Do not capture primary constructor parameters</source>
-        <target state="new">Do not capture primary constructor parameters</target>
+        <target state="translated">기본 생성자 매개 변수 캡처 안 함</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueAvoidNullableWrapperDescription">
         <source>Avoid nullable wrapper.</source>
-        <target state="new">Avoid nullable wrapper.</target>
+        <target state="translated">nullable 래퍼를 사용하지 마세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueAvoidNullableWrapperMessage">
         <source>Do not wrap non-copyable type '{0}' in '{1}' operation</source>
-        <target state="new">Do not wrap non-copyable type '{0}' in '{1}' operation</target>
+        <target state="translated">'{1}' 작업에서 복사할 수 없는 형식 '{0}' 래핑 안 함</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueDescription">
         <source>Do not copy value.</source>
-        <target state="new">Do not copy value.</target>
+        <target state="translated">값을 복사하지 마세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueMessage">
         <source>Do not copy value</source>
-        <target state="new">Do not copy value</target>
+        <target state="translated">값 복사 안 함</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoAssignValueFromReferenceDescription">
         <source>Cannot assign a value from a reference to a non-copyable type.</source>
-        <target state="new">Cannot assign a value from a reference to a non-copyable type.</target>
+        <target state="translated">참조에서 복사할 수 없는 형식으로 값을 할당할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoAssignValueFromReferenceMessage">
         <source>Cannot assign a value from a reference to non-copyable type '{0}'</source>
-        <target state="new">Cannot assign a value from a reference to non-copyable type '{0}'</target>
+        <target state="translated">참조에서 복사할 수 없는 '{0}' 형식으로 값을 할당할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoAutoPropertyDescription">
         <source>Auto-properties always copy values, so they cannot be declared with non-copyable types.</source>
-        <target state="new">Auto-properties always copy values, so they cannot be declared with non-copyable types.</target>
+        <target state="translated">자동 속성은 항상 값을 복사하므로 복사할 수 없는 형식으로 선언할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoAutoPropertyMessage">
         <source>Auto-property '{1}' cannot have non-copyable type '{0}'</source>
-        <target state="new">Auto-property '{1}' cannot have non-copyable type '{0}'</target>
+        <target state="translated">자동 속성 '{1}'은(는) 복사할 수 없는 형식 '{0}'을(를) 포함할 수 없음</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoBoxingDescription">
         <source>Do not box non-copyable value types.</source>
-        <target state="new">Do not box non-copyable value types.</target>
+        <target state="translated">복사할 수 없는 값 형식을 boxing하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoBoxingMessage">
         <source>Do not box non-copyable type '{0}'</source>
-        <target state="new">Do not box non-copyable type '{0}'</target>
+        <target state="translated">복사할 수 없는 형식 '{0}' boxing 안 함</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoFieldOfCopyableTypeDescription">
         <source>A field with a non-copyable type cannot be a member of a copyable type. The containing type can be made non-copyable or converted to a reference type, or the field can be removed or converted to a copyable type.</source>
-        <target state="new">A field with a non-copyable type cannot be a member of a copyable type. The containing type can be made non-copyable or converted to a reference type, or the field can be removed or converted to a copyable type.</target>
+        <target state="translated">복사할 수 없는 형식의 필드는 복사할 수 있는 형식의 멤버일 수 없습니다. 포함하는 형식은 복사할 수 없는 형식이 되거나 참조 형식으로 변환되거나, 필드가 제거되거나 복사할 수 있는 형식으로 변환될 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoFieldOfCopyableTypeMessage">
         <source>Copyable field '{1}' cannot have non-copyable type '{0}'</source>
-        <target state="new">Copyable field '{1}' cannot have non-copyable type '{0}'</target>
+        <target state="translated">복사할 수 있는 필드 '{1}'은(는) 복사할 수 없는 형식 '{0}'을(를) 포함할 수 없음</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceDescription">
         <source>Cannot return a value from a reference to a non-copyable type.</source>
-        <target state="new">Cannot return a value from a reference to a non-copyable type.</target>
+        <target state="translated">참조에서 복사할 수 없는 형식으로 값을 반환할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceMessage">
         <source>Cannot return a value from a reference to non-copyable type '{0}'</source>
-        <target state="new">Cannot return a value from a reference to non-copyable type '{0}'</target>
+        <target state="translated">참조에서 복사할 수 없는 '{0}' 형식으로 값을 반환할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoUnboxingDescription">
         <source>Do not unbox non-copyable value types.</source>
-        <target state="new">Do not unbox non-copyable value types.</target>
+        <target state="translated">복사할 수 없는 값 형식을 unboxing하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoUnboxingMessage">
         <source>Do not unbox non-copyable type '{0}'</source>
-        <target state="new">Do not unbox non-copyable type '{0}'</target>
+        <target state="translated">복사할 수 없는 형식 '{0}' unboxing 안 함</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueTitle">
         <source>Do not copy value</source>
-        <target state="new">Do not copy value</target>
+        <target state="translated">값 복사 안 함</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueUnsupportedUseDescription">
         <source>Unsupported use of non-copyable type.</source>
-        <target state="new">Unsupported use of non-copyable type.</target>
+        <target state="translated">복사할 수 없는 형식의 사용이 지원되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueUnsupportedUseMessage">
         <source>Unsupported use of non-copyable type '{0}' in '{1}' operation</source>
-        <target state="new">Unsupported use of non-copyable type '{0}' in '{1}' operation</target>
+        <target state="translated">'{1}' 작업에서 복사할 수 없는 형식 '{0}'의 사용이 지원되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertCodeFix">
         <source>Use 'RoslynDebug.Assert'.</source>
-        <target state="new">Use 'RoslynDebug.Assert'.</target>
+        <target state="translated">'RoslynDebug.Assert'를 사용합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertDescription">
         <source>'Debug.Assert' on .NET Framework eagerly creates the string value. This can cause OOMs in tests, particularly for strings that involve syntax nodes. Use 'RoslynDebug.Assert' instead, which will only create the string if required.</source>
-        <target state="new">'Debug.Assert' on .NET Framework eagerly creates the string value. This can cause OOMs in tests, particularly for strings that involve syntax nodes. Use 'RoslynDebug.Assert' instead, which will only create the string if required.</target>
+        <target state="translated">.NET Framework의 'Debug.Assert'는 문자열 값을 즉시 만듭니다. 이로 인해 특히 구문 노드를 포함하는 문자열의 경우 테스트에서 OOM이 발생할 수 있습니다. 필요한 경우에만 문자열을 만드는 'RoslynDebug.Assert'를 대신 사용합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertMessage">
         <source>Do not use interpolated strings with 'Debug.Assert'. Use 'RoslynDebug.Assert' instead.</source>
-        <target state="new">Do not use interpolated strings with 'Debug.Assert'. Use 'RoslynDebug.Assert' instead.</target>
+        <target state="translated">보간된 문자열은 'Debug.Assert'와 함께 사용하지 마세요. 대신 'RoslynDebug.Assert'를 사용합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertTitle">
         <source>Do not use interpolated strings with 'Debug.Assert'</source>
-        <target state="new">Do not use interpolated strings with 'Debug.Assert'</target>
+        <target state="translated">보간된 문자열은 'Debug.Assert'와 함께 사용하지 마세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_ImplicitConstructor">
         <source>Explicitly define the importing constructor</source>
-        <target state="new">Explicitly define the importing constructor</target>
+        <target state="translated">명시적으로 가져오기 생성자 정의</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_MissingAttribute">
         <source>Add 'ImportingConstructor' attribute</source>
-        <target state="new">Add 'ImportingConstructor' attribute</target>
+        <target state="translated">'ImportingConstructor' 특성 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_NonPublicConstructor">
         <source>Make constructor public</source>
-        <target state="new">Make constructor public</target>
+        <target state="translated">생성자를 public으로 만들기</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorDescription">
         <source>Exported parts should be marked with 'ImportingConstructorAttribute'.</source>
-        <target state="new">Exported parts should be marked with 'ImportingConstructorAttribute'.</target>
+        <target state="translated">내보낸 파트는 'ImportingConstructorAttribute'로 표시해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorMessage">
         <source>'{0}' is MEF-exported and should have a single, public importing constructor of the correct form</source>
-        <target state="new">'{0}' is MEF-exported and should have a single, public importing constructor of the correct form</target>
+        <target state="translated">'{0}'은(는) MEF 내보내기이며 올바른 형식의 단일 공용 가져오기 생성자가 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorTitle">
         <source>Exported parts should have a public constructor marked with 'ImportingConstructorAttribute'</source>
-        <target state="new">Exported parts should have a public constructor marked with 'ImportingConstructorAttribute'</target>
+        <target state="translated">내보낸 파트에는 'ImportingConstructorAttribute'로 표시된 공용 생성자가 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposeMemberForTestingDescription">
         <source>Expose member for testing.</source>
-        <target state="new">Expose member for testing.</target>
+        <target state="translated">테스트를 위해 멤버를 노출합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposeMemberForTestingMessage">
         <source>Expose member for testing</source>
-        <target state="new">Expose member for testing</target>
+        <target state="translated">테스트용 멤버 노출</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposeMemberForTestingTitle">
         <source>Expose member for testing</source>
-        <target state="new">Expose member for testing</target>
+        <target state="translated">테스트용 멤버 노출</target>
         <note />
       </trans-unit>
       <trans-unit id="FixNumberedComments">
         <source>Fix numbered comments</source>
-        <target state="new">Fix numbered comments</target>
+        <target state="translated">번호가 매겨진 주석 수정</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_ErrorSetToFalse">
         <source>Set 'ObsoleteAttribute.Error' to 'true'</source>
-        <target state="new">Set 'ObsoleteAttribute.Error' to 'true'</target>
+        <target state="translated">'ObsoleteAttribute.Error'를 'true'로 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_IncorrectDescription">
         <source>Use correct 'ObsoleteAttribute' message.</source>
-        <target state="new">Use correct 'ObsoleteAttribute' message.</target>
+        <target state="translated">올바른 'ObsoleteAttribute' 메시지를 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingAttribute">
         <source>Add 'ObsoleteAttribute'</source>
-        <target state="new">Add 'ObsoleteAttribute'</target>
+        <target state="translated">'ObsoleteAttribute' 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingDescription">
         <source>Configure 'ObsoleteAttribute' for importing constructor.</source>
-        <target state="new">Configure 'ObsoleteAttribute' for importing constructor.</target>
+        <target state="translated">가져오기 생성자를 위해 'ObsoleteAttribute'를 구성합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingError">
         <source>Set 'ObsoleteAttribute.Error' to 'true'</source>
-        <target state="new">Set 'ObsoleteAttribute.Error' to 'true'</target>
+        <target state="translated">'ObsoleteAttribute.Error'를 'true'로 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteDescription">
         <source>Importing constructor should be marked with 'ObsoleteAttribute'.</source>
-        <target state="new">Importing constructor should be marked with 'ObsoleteAttribute'.</target>
+        <target state="translated">가져오기 생성자는 'ObsoleteAttribute'로 표시해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteMessage">
         <source>Importing constructor should be marked with 'ObsoleteAttribute'</source>
-        <target state="new">Importing constructor should be marked with 'ObsoleteAttribute'</target>
+        <target state="translated">가져오기 생성자는 'ObsoleteAttribute'로 표시해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteTitle">
         <source>Importing constructor should be marked with 'ObsoleteAttribute'</source>
-        <target state="new">Importing constructor should be marked with 'ObsoleteAttribute'</target>
+        <target state="translated">가져오기 생성자는 'ObsoleteAttribute'로 표시해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_statement_on_following_line">
         <source>Place statement on following line</source>
-        <target state="new">Place statement on following line</target>
+        <target state="translated">다음 줄에 문 배치</target>
         <note />
       </trans-unit>
       <trans-unit id="NamedTypeFullNameNotNullSuppressorJustification">
         <source>The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</source>
-        <target state="new">The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</target>
+        <target state="translated">'typeof(T).FullName' 구문을 사용하는 경우 'Type.FullName' 속성은 null일 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">
         <source>Use 'null' instead of 'default'</source>
-        <target state="new">Use 'null' instead of 'default'</target>
+        <target state="translated">'default' 대신 'null'을 사용합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralDescription">
         <source>Use 'null' instead of 'default' for nullable types.</source>
-        <target state="new">Use 'null' instead of 'default' for nullable types.</target>
+        <target state="translated">Null 허용 형식에 'default' 대신 'null'을 사용합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralMessage">
         <source>Use 'null' instead of 'default' for nullable types</source>
-        <target state="new">Use 'null' instead of 'default' for nullable types</target>
+        <target state="translated">Null 허용 형식에 'default' 대신 'null'을 사용합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralTitle">
         <source>Prefer null literal</source>
-        <target state="new">Prefer null literal</target>
+        <target state="translated">null 리터럴을 기본으로 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="RelaxTestNamingSuppressorJustification">
         <source>Asynchronous test methods do not require the 'Async' suffix</source>
-        <target state="new">Asynchronous test methods do not require the 'Async' suffix</target>
+        <target state="translated">비동기 테스트 메서드에는 'Async' 접미사가 필요하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Run iterations">
         <source>Run iterations</source>
-        <target state="new">Run iterations</target>
+        <target state="translated">반복 실행</target>
         <note />
       </trans-unit>
       <trans-unit id="TemporaryArrayAsRefDescription">
         <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</source>
-        <target state="new">Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</target>
+        <target state="translated">TemporaryArray&lt;T&gt;.AsRef()의 인스턴스는 'using' 변수여야 합니다.</target>
         <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="TemporaryArrayAsRefMessage">
         <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</source>
-        <target state="new">Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</target>
+        <target state="translated">TemporaryArray&lt;T&gt;.AsRef()의 인스턴스는 'using' 변수여야 합니다.</target>
         <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="TemporaryArrayAsRefTitle">
         <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</source>
-        <target state="new">Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</target>
+        <target state="translated">TemporaryArray&lt;T&gt;.AsRef()의 인스턴스는 'using' 변수여야 합니다.</target>
         <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">
         <source>Apply 'PartNotDiscoverableAttribute'</source>
-        <target state="new">Apply 'PartNotDiscoverableAttribute'</target>
+        <target state="translated">'PartNotDiscoverableAttribute' 적용</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableDescription">
         <source>Test exports should not be discoverable.</source>
-        <target state="new">Test exports should not be discoverable.</target>
+        <target state="translated">테스트 내보내기는 검색할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableMessage">
         <source>'{0}' is exported for test purposes and should be marked with 'PartNotDiscoverableAttribute'</source>
-        <target state="new">'{0}' is exported for test purposes and should be marked with 'PartNotDiscoverableAttribute'</target>
+        <target state="translated">'{0}'은(는) 테스트용으로 내보냈으며 'PartNotDiscoverableAttribute'로 표시해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableTitle">
         <source>Test exports should not be discoverable</source>
-        <target state="new">Test exports should not be discoverable</target>
+        <target state="translated">테스트 내보내기는 검색 가능해서는 안 됨</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableTitle">
         <source>Use 'SpecializedCollections.EmptyEnumerable()'</source>
-        <target state="new">Use 'SpecializedCollections.EmptyEnumerable()'</target>
+        <target state="translated">'SpecializedCollections.EmptyEnumerable()'을 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableDescription">
         <source>#N/A</source>
-        <target state="new">#N/A</target>
+        <target state="translated">#N/A</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableMessage">
         <source>Use 'SpecializedCollections.EmptyEnumerable()'</source>
-        <target state="new">Use 'SpecializedCollections.EmptyEnumerable()'</target>
+        <target state="translated">'SpecializedCollections.EmptyEnumerable()'을 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsSingletonEnumerableTitle">
         <source>Use 'SpecializedCollections.SingletonEnumerable()'</source>
-        <target state="new">Use 'SpecializedCollections.SingletonEnumerable()'</target>
+        <target state="translated">'SpecializedCollections.SingletonEnumerable()'을 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsSingletonEnumerableDescription">
         <source>#N/A</source>
-        <target state="new">#N/A</target>
+        <target state="translated">#N/A</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsSingletonEnumerableMessage">
         <source>Use 'SpecializedCollections.SingletonEnumerable()'</source>
-        <target state="new">Use 'SpecializedCollections.SingletonEnumerable()'</target>
+        <target state="translated">'SpecializedCollections.SingletonEnumerable()'을 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTitle">
         <source>Invoke the correct property to ensure correct use site diagnostics</source>
-        <target state="new">Invoke the correct property to ensure correct use site diagnostics</target>
+        <target state="translated">올바른 속성을 호출하여 사이트 진단을 올바르게 사용하는지 확인하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsDescription">
         <source>#N/A</source>
-        <target state="new">#N/A</target>
+        <target state="translated">#N/A</target>
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsMessage">
         <source>Invoke the correct property to ensure correct use site diagnostics</source>
-        <target state="new">Invoke the correct property to ensure correct use site diagnostics</target>
+        <target state="translated">올바른 속성을 호출하여 사이트 진단을 올바르게 사용하는지 확인하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionTitle">
         <source>Do not use generic 'CodeAction.Create' to create 'CodeAction'</source>
-        <target state="new">Do not use generic 'CodeAction.Create' to create 'CodeAction'</target>
+        <target state="translated">제네릭 'CodeAction.Create'를 사용하여 'CodeAction'을 만들지 마세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionDescription">
         <source>#N/A</source>
-        <target state="new">#N/A</target>
+        <target state="translated">#N/A</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionMessage">
         <source>Do not use generic 'CodeAction.Create' to create 'CodeAction'</source>
-        <target state="new">Do not use generic 'CodeAction.Create' to create 'CodeAction'</target>
+        <target state="translated">제네릭 'CodeAction.Create'를 사용하여 'CodeAction'을 만들지 마세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableTitle">
         <source>Override 'Object.Equals(object)' when implementing 'IEquatable'</source>
-        <target state="new">Override 'Object.Equals(object)' when implementing 'IEquatable'</target>
+        <target state="translated">IEquatable을 구현할 때 Object.Equals(개체)를 재정의하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableDescription">
         <source>#N/A</source>
-        <target state="new">#N/A</target>
+        <target state="translated">#N/A</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableMessage">
         <source>Override 'Object.Equals(object)' when implementing 'IEquatable'</source>
-        <target state="new">Override 'Object.Equals(object)' when implementing 'IEquatable'</target>
+        <target state="translated">IEquatable을 구현할 때 Object.Equals(개체)를 재정의하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle">
         <source>'SymbolDeclaredEvent' must be generated for source symbols</source>
-        <target state="new">'SymbolDeclaredEvent' must be generated for source symbols</target>
+        <target state="translated">'SymbolDeclaredEvent'는 소스 기호에 대해 생성되어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsDescription">
         <source>Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event.</source>
-        <target state="new">Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event.</target>
+        <target state="translated">선언된 모든 소스 기호에 대해 기호가 선언된 이벤트를 생성하는 데 컴파일 이벤트 대기열이 필요합니다. 그러므로 모든 소스 기호 형식 또는 소스 기호의 기본 형식 중 하나는 기호가 선언된 이벤트를 생성해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsMessage">
         <source>'SymbolDeclaredEvent' must be generated for source symbols</source>
-        <target state="new">'SymbolDeclaredEvent' must be generated for source symbols</target>
+        <target state="translated">'SymbolDeclaredEvent'는 소스 기호에 대해 생성되어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFTitle">
         <source>Do not mix attributes from different versions of MEF</source>
-        <target state="new">Do not mix attributes from different versions of MEF</target>
+        <target state="translated">다른 버전의 MEF 특성을 조합하지 마세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFDescription">
         <source>Do not mix attributes from different versions of MEF.</source>
-        <target state="new">Do not mix attributes from different versions of MEF.</target>
+        <target state="translated">다른 버전의 MEF 특성을 조합하지 마세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFMessage">
         <source>Attribute '{0}' comes from a different version of MEF than the export attribute on '{1}'</source>
-        <target state="new">Attribute '{0}' comes from a different version of MEF than the export attribute on '{1}'</target>
+        <target state="translated">'{0}' 특성은 '{1}'의 export 특성이 아닌 다른 버전의 MEF에서 가져온 것입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedTitle">
         <source>Parts exported with MEFv2 must be marked with 'SharedAttribute'</source>
-        <target state="new">Parts exported with MEFv2 must be marked with 'SharedAttribute'</target>
+        <target state="translated">MEFv2를 통해 내보낸 파트는 'SharedAttribute'로 표시해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedDescription">
         <source>Part exported with MEFv2 must be marked with the 'SharedAttribute'.</source>
-        <target state="new">Part exported with MEFv2 must be marked with the 'SharedAttribute'.</target>
+        <target state="translated">MEFv2를 통해 내보낸 파트는 'SharedAttribute'로 표시해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
         <source>'{0}' is exported with MEFv2 and hence must be marked with 'SharedAttribute'</source>
-        <target state="new">'{0}' is exported with MEFv2 and hence must be marked with 'SharedAttribute'</target>
+        <target state="translated">'{0}'을(를) MEFv2를 통해 내보냈으므로 'SharedAttribute'로 표시해야 합니다.</target>
         <note />
       </trans-unit>
     </body>

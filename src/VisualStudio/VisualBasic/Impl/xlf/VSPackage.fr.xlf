@@ -33,21 +33,21 @@ Collapse #regions on file open;
 Collapse Imports on file open;
 Collapse metadata implementations on file open;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="translated">Souligner les variables réaffectées;Afficher les indicateurs inline; Insertion automatique des constructions de fin ; Modifier les paramètres de liste de création de listes ; Modifier le mode plan ; Insertion automatique des membres Interface et MustOverride ; Afficher ou masquer les séparateurs de ligne de procédure ; Activer ou désactiver les suggestions de correction d’erreur ; Activer ou désactiver la mise en surbrillance des références et des mots clés ;
+        <target state="new">Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
 Regex;
-expressions régulières ;
-composants associés sous le curseur ;
-signaler des expressions régulières non valides ;
-expression régulière ;
-expression régulière ;
-JSON ;
-coloriser les chaînes JSON ;
-signaler des chaînes JSON non valides ;
-détecter et proposer des fonctionnalités d’éditeur pour les chaînes JSON ;
-Réduire #regions sur le fichier ouvert ;
-réduire les importations à l’ouverture du fichier ;
-Réduire les implémentations de métadonnées lors de l’ouverture du fichier ;
-Utiliser des couleurs améliorées ; Modèle de couleurs de l’éditeur;Marge d’héritage;Directives d’importation;</target>
+regular expressions;
+related components under cursor;
+Report invalid regular expressions;
+regex;
+regular expression;
+JSON;
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
+Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -117,7 +117,7 @@ Utiliser des couleurs améliorées ; Modèle de couleurs de l’éditeur;Marge d
       </trans-unit>
       <trans-unit id="312">
         <source>Change completion list settings;Pre-select most recently used member</source>
-        <target state="translated">Modifier les paramètres de la liste de saisie semi-automatique ; Présélectionner le dernier membre utilisé</target>
+        <target state="new">Change completion list settings;Pre-select most recently used member</target>
         <note>IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="114">

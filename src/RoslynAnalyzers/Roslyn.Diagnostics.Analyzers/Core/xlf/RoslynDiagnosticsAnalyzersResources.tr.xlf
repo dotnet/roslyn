@@ -4,492 +4,492 @@
     <body>
       <trans-unit id="AddSharedAttribute">
         <source>Add 'Shared' attribute</source>
-        <target state="new">Add 'Shared' attribute</target>
+        <target state="translated">'Shared' özniteliği ekleme</target>
         <note>{Locked="Shared"}</note>
       </trans-unit>
       <trans-unit id="ApplyTraitToContainingType">
         <source>Apply trait to containing type</source>
-        <target state="new">Apply trait to containing type</target>
+        <target state="translated">İçeren türe özellik uygulama</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeCodeFixTitle">
         <source>Remove the 'Opt' suffix</source>
-        <target state="new">Remove the 'Opt' suffix</target>
+        <target state="translated">'Opt' sonekini kaldır</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeDescription">
         <source>Avoid the 'Opt' suffix in a nullable-enabled code.</source>
-        <target state="new">Avoid the 'Opt' suffix in a nullable-enabled code.</target>
+        <target state="translated">Null atanabilir özellikli bir kodda 'Opt' sonekinden kaçının.</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeMessage">
         <source>Avoid the 'Opt' suffix in a nullable-enabled code</source>
-        <target state="new">Avoid the 'Opt' suffix in a nullable-enabled code</target>
+        <target state="translated">Null atanabilir özellikli bir kodda 'Opt' sonekinden kaçının</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeTitle">
         <source>Avoid the 'Opt' suffix</source>
-        <target state="new">Avoid the 'Opt' suffix</target>
+        <target state="translated">'Opt' sonekinden kaçının</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateTestAccessorDescription">
         <source>This is a refactoring which simplifies the process of creating test accessors using the 'TestAccessor' pattern.</source>
-        <target state="new">This is a refactoring which simplifies the process of creating test accessors using the 'TestAccessor' pattern.</target>
+        <target state="translated">Bu, 'TestAccessor' desenini kullanarak test erişimcileri oluşturma işlemini basitleştiren bir yeniden düzenlemedir.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateTestAccessorMessage">
         <source>Create test accessor</source>
-        <target state="new">Create test accessor</target>
+        <target state="translated">Test erişimcisi oluştur</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateTestAccessorTitle">
         <source>Create test accessor</source>
-        <target state="new">Create test accessor</target>
+        <target state="translated">Test erişimcisi oluştur</target>
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsDescription">
         <source>Defaultable types should have defaultable fields.</source>
-        <target state="new">Defaultable types should have defaultable fields.</target>
+        <target state="translated">Varsayılan değer atanabilir türler, varsayılan değer atanabilir alanlara sahip olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsMessage">
         <source>Defaultable type '{0}' has a non-defaultable field or auto-property '{1}'</source>
-        <target state="new">Defaultable type '{0}' has a non-defaultable field or auto-property '{1}'</target>
+        <target state="translated">Varsayılan değer atanabilir '{0}' türü, varsayılan değer atanamayan alana veya otomatik '{1}' özelliğine sahip</target>
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsTitle">
         <source>Defaultable types should have defaultable fields</source>
-        <target state="new">Defaultable types should have defaultable fields</target>
+        <target state="translated">Varsayılan değer atanabilir türler varsayılan değer atanabilir alanlara sahip olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCallGetTestAccessorDescription">
         <source>'GetTestAccessor()' is a helper method reserved for testing. Production code must not call this member.</source>
-        <target state="new">'GetTestAccessor()' is a helper method reserved for testing. Production code must not call this member.</target>
+        <target state="translated">'GetTestAccessor()', test için ayrılmış bir yardımcı metottur. Üretim kodu bu üyeyi çağırmamalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCallGetTestAccessorMessage">
         <source>Do not call 'GetTestAccessor()' from production code</source>
-        <target state="new">Do not call 'GetTestAccessor()' from production code</target>
+        <target state="translated">Üretim kodundan 'GetTestAccessor()' metodunu çağırmayın</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCallGetTestAccessorTitle">
         <source>Do not call 'GetTestAccessor()'</source>
-        <target state="new">Do not call 'GetTestAccessor()'</target>
+        <target state="translated">'GetTestAccessor()' metodunu çağırmayın</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCapturePrimaryConstructorParametersDescription">
         <source>Primary constructor parameters should not be implicitly captured. Manually assign them to fields at the start of the type.</source>
-        <target state="new">Primary constructor parameters should not be implicitly captured. Manually assign them to fields at the start of the type.</target>
+        <target state="translated">Birincil oluşturucu parametreleri örtük olarak yakalanmamalıdır. Bunları türün başındaki alanlara el ile atayın.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCapturePrimaryConstructorParametersMessage">
         <source>Primary constructor parameter '{0}' should not be implicitly captured</source>
-        <target state="new">Primary constructor parameter '{0}' should not be implicitly captured</target>
+        <target state="translated">Birincil oluşturucu parametre '{0}' örtük olarak yakalanmamalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCapturePrimaryConstructorParametersTitle">
         <source>Do not capture primary constructor parameters</source>
-        <target state="new">Do not capture primary constructor parameters</target>
+        <target state="translated">Birincil oluşturucu parametrelerini yakalama</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueAvoidNullableWrapperDescription">
         <source>Avoid nullable wrapper.</source>
-        <target state="new">Avoid nullable wrapper.</target>
+        <target state="translated">Null atanabilir sarmalayıcıdan kaçının.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueAvoidNullableWrapperMessage">
         <source>Do not wrap non-copyable type '{0}' in '{1}' operation</source>
-        <target state="new">Do not wrap non-copyable type '{0}' in '{1}' operation</target>
+        <target state="translated">'{1}' işleminde kopyalanabilir olmayan '{0}' türünü sarmalamayın</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueDescription">
         <source>Do not copy value.</source>
-        <target state="new">Do not copy value.</target>
+        <target state="translated">Değeri kopyalamayın.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueMessage">
         <source>Do not copy value</source>
-        <target state="new">Do not copy value</target>
+        <target state="translated">Değeri kopyalamayın</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoAssignValueFromReferenceDescription">
         <source>Cannot assign a value from a reference to a non-copyable type.</source>
-        <target state="new">Cannot assign a value from a reference to a non-copyable type.</target>
+        <target state="translated">Kopyalanamayan türe yönelik bir başvurudan değer atanamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoAssignValueFromReferenceMessage">
         <source>Cannot assign a value from a reference to non-copyable type '{0}'</source>
-        <target state="new">Cannot assign a value from a reference to non-copyable type '{0}'</target>
+        <target state="translated">'{0}' kopyalanamayan türüne yönelik bir başvurudan değer atanamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoAutoPropertyDescription">
         <source>Auto-properties always copy values, so they cannot be declared with non-copyable types.</source>
-        <target state="new">Auto-properties always copy values, so they cannot be declared with non-copyable types.</target>
+        <target state="translated">Otomatik özellikler her zaman değerleri kopyalar, bu nedenle kopyalanabilir olmayan türlerle bildirilemez.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoAutoPropertyMessage">
         <source>Auto-property '{1}' cannot have non-copyable type '{0}'</source>
-        <target state="new">Auto-property '{1}' cannot have non-copyable type '{0}'</target>
+        <target state="translated">'{1}' otomatik özelliği kopyalanabilir olmayan '{0}' türüne sahip olamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoBoxingDescription">
         <source>Do not box non-copyable value types.</source>
-        <target state="new">Do not box non-copyable value types.</target>
+        <target state="translated">Kopyalanabilir olmayan değer türlerini kutuya eklemeyin.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoBoxingMessage">
         <source>Do not box non-copyable type '{0}'</source>
-        <target state="new">Do not box non-copyable type '{0}'</target>
+        <target state="translated">Kopyalanabilir olmayan '{0}' türünü kutuya eklemeyin</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoFieldOfCopyableTypeDescription">
         <source>A field with a non-copyable type cannot be a member of a copyable type. The containing type can be made non-copyable or converted to a reference type, or the field can be removed or converted to a copyable type.</source>
-        <target state="new">A field with a non-copyable type cannot be a member of a copyable type. The containing type can be made non-copyable or converted to a reference type, or the field can be removed or converted to a copyable type.</target>
+        <target state="translated">Kopyalanabilir olmayan bir tür içeren alan, kopyalanabilir türün bir üyesi olamaz. Kapsayan tür, kopyalanabilir olmayan hale getirilebilir veya bir başvuru türüne dönüştürülebilir ya da alan kaldırılabilir ya da kopyalanabilir bir türe dönüştürülebilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoFieldOfCopyableTypeMessage">
         <source>Copyable field '{1}' cannot have non-copyable type '{0}'</source>
-        <target state="new">Copyable field '{1}' cannot have non-copyable type '{0}'</target>
+        <target state="translated">'{1}' kopyalanabilir alanı, kopyalanabilir olmayan '{0}' türüne sahip olamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceDescription">
         <source>Cannot return a value from a reference to a non-copyable type.</source>
-        <target state="new">Cannot return a value from a reference to a non-copyable type.</target>
+        <target state="translated">Kopyalanamayan türe yönelik bir başvurudan değer döndürülemez.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceMessage">
         <source>Cannot return a value from a reference to non-copyable type '{0}'</source>
-        <target state="new">Cannot return a value from a reference to non-copyable type '{0}'</target>
+        <target state="translated">'{0}' kopyalanamayan türüne yönelik bir başvurudan değer döndürülemez</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoUnboxingDescription">
         <source>Do not unbox non-copyable value types.</source>
-        <target state="new">Do not unbox non-copyable value types.</target>
+        <target state="translated">Kopyalanabilir olmayan değer türlerini kutuya eklemeyin.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoUnboxingMessage">
         <source>Do not unbox non-copyable type '{0}'</source>
-        <target state="new">Do not unbox non-copyable type '{0}'</target>
+        <target state="translated">Kopyalanabilir olmayan '{0}' türünü kutudan çıkarmayın</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueTitle">
         <source>Do not copy value</source>
-        <target state="new">Do not copy value</target>
+        <target state="translated">Değeri kopyalamayın</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueUnsupportedUseDescription">
         <source>Unsupported use of non-copyable type.</source>
-        <target state="new">Unsupported use of non-copyable type.</target>
+        <target state="translated">Kopyalanabilir olmayan türün kullanımı desteklenmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueUnsupportedUseMessage">
         <source>Unsupported use of non-copyable type '{0}' in '{1}' operation</source>
-        <target state="new">Unsupported use of non-copyable type '{0}' in '{1}' operation</target>
+        <target state="translated">'{1}' işleminde kopyalanabilir olmayan '{0}' türünün kullanımı desteklenmiyor</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertCodeFix">
         <source>Use 'RoslynDebug.Assert'.</source>
-        <target state="new">Use 'RoslynDebug.Assert'.</target>
+        <target state="translated">'RoslynDebug.Assert' kullanın.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertDescription">
         <source>'Debug.Assert' on .NET Framework eagerly creates the string value. This can cause OOMs in tests, particularly for strings that involve syntax nodes. Use 'RoslynDebug.Assert' instead, which will only create the string if required.</source>
-        <target state="new">'Debug.Assert' on .NET Framework eagerly creates the string value. This can cause OOMs in tests, particularly for strings that involve syntax nodes. Use 'RoslynDebug.Assert' instead, which will only create the string if required.</target>
+        <target state="translated">.NET Framework'te 'Debug.Assert' gayretli bir şekilde dize değerini oluşturur. Bu, testlerde özellikle söz dizimi düğümleri içeren dizeler için bellek yetersizliği sorunlarına yol açabilir. Bunun yerine, yalnızca gerektiğinde dize oluşturan 'RoslynDebug.Assert' kullanın.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertMessage">
         <source>Do not use interpolated strings with 'Debug.Assert'. Use 'RoslynDebug.Assert' instead.</source>
-        <target state="new">Do not use interpolated strings with 'Debug.Assert'. Use 'RoslynDebug.Assert' instead.</target>
+        <target state="translated">'Debug.Assert' ile ilişkilendirilmiş dizeler kullanmayın. Bunun yerine 'RoslynDebug.Assert' kullanın.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertTitle">
         <source>Do not use interpolated strings with 'Debug.Assert'</source>
-        <target state="new">Do not use interpolated strings with 'Debug.Assert'</target>
+        <target state="translated">'Debug.Assert' ile ilişkilendirilmiş dizeler kullanmayın</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_ImplicitConstructor">
         <source>Explicitly define the importing constructor</source>
-        <target state="new">Explicitly define the importing constructor</target>
+        <target state="translated">İçeri aktarma oluşturucusunu açıkça tanımlayın</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_MissingAttribute">
         <source>Add 'ImportingConstructor' attribute</source>
-        <target state="new">Add 'ImportingConstructor' attribute</target>
+        <target state="translated">'ImportingConstructor' özniteliği ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_NonPublicConstructor">
         <source>Make constructor public</source>
-        <target state="new">Make constructor public</target>
+        <target state="translated">Oluşturucuyu genel yapın</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorDescription">
         <source>Exported parts should be marked with 'ImportingConstructorAttribute'.</source>
-        <target state="new">Exported parts should be marked with 'ImportingConstructorAttribute'.</target>
+        <target state="translated">Dışarı aktarılan bölümler 'ImportingConstructorAttribute' ile işaretlenmelidir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorMessage">
         <source>'{0}' is MEF-exported and should have a single, public importing constructor of the correct form</source>
-        <target state="new">'{0}' is MEF-exported and should have a single, public importing constructor of the correct form</target>
+        <target state="translated">'{0}', MEF ile dışarı aktarıldı ve doğru biçimde tek bir ortak içeri aktarma oluşturucusuna sahip olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorTitle">
         <source>Exported parts should have a public constructor marked with 'ImportingConstructorAttribute'</source>
-        <target state="new">Exported parts should have a public constructor marked with 'ImportingConstructorAttribute'</target>
+        <target state="translated">Dışarı aktarılan bölümler 'ImportingConstructorAttribute' ile işaretlenmiş bir ortak oluşturucuya sahip olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposeMemberForTestingDescription">
         <source>Expose member for testing.</source>
-        <target state="new">Expose member for testing.</target>
+        <target state="translated">Test için üyeyi kullanıma sunun.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposeMemberForTestingMessage">
         <source>Expose member for testing</source>
-        <target state="new">Expose member for testing</target>
+        <target state="translated">Test için üyeyi kullanıma sunun</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposeMemberForTestingTitle">
         <source>Expose member for testing</source>
-        <target state="new">Expose member for testing</target>
+        <target state="translated">Test için üyeyi kullanıma sunun</target>
         <note />
       </trans-unit>
       <trans-unit id="FixNumberedComments">
         <source>Fix numbered comments</source>
-        <target state="new">Fix numbered comments</target>
+        <target state="translated">Numaralı açıklamaları düzelt</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_ErrorSetToFalse">
         <source>Set 'ObsoleteAttribute.Error' to 'true'</source>
-        <target state="new">Set 'ObsoleteAttribute.Error' to 'true'</target>
+        <target state="translated">'ObsoleteAttribute.Error' özelliğini 'true' olarak ayarlayın</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_IncorrectDescription">
         <source>Use correct 'ObsoleteAttribute' message.</source>
-        <target state="new">Use correct 'ObsoleteAttribute' message.</target>
+        <target state="translated">Doğru 'ObsoleteAttribute' iletisini kullanın.</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingAttribute">
         <source>Add 'ObsoleteAttribute'</source>
-        <target state="new">Add 'ObsoleteAttribute'</target>
+        <target state="translated">'ObsoleteAttribute' ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingDescription">
         <source>Configure 'ObsoleteAttribute' for importing constructor.</source>
-        <target state="new">Configure 'ObsoleteAttribute' for importing constructor.</target>
+        <target state="translated">İçeri aktarma oluşturucusu için 'ObsoleteAttribute' özniteliğini yapılandırın.</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingError">
         <source>Set 'ObsoleteAttribute.Error' to 'true'</source>
-        <target state="new">Set 'ObsoleteAttribute.Error' to 'true'</target>
+        <target state="translated">'ObsoleteAttribute.Error' özelliğini 'true' olarak ayarlayın</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteDescription">
         <source>Importing constructor should be marked with 'ObsoleteAttribute'.</source>
-        <target state="new">Importing constructor should be marked with 'ObsoleteAttribute'.</target>
+        <target state="translated">İçeri aktarma oluşturucusunun 'ObsoleteAttribute' ile işaretlenmesi gerekir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteMessage">
         <source>Importing constructor should be marked with 'ObsoleteAttribute'</source>
-        <target state="new">Importing constructor should be marked with 'ObsoleteAttribute'</target>
+        <target state="translated">İçeri aktarma oluşturucusunun 'ObsoleteAttribute' ile işaretlenmesi gerekir</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteTitle">
         <source>Importing constructor should be marked with 'ObsoleteAttribute'</source>
-        <target state="new">Importing constructor should be marked with 'ObsoleteAttribute'</target>
+        <target state="translated">İçeri aktarma oluşturucusunun 'ObsoleteAttribute' ile işaretlenmesi gerekir</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_statement_on_following_line">
         <source>Place statement on following line</source>
-        <target state="new">Place statement on following line</target>
+        <target state="translated">Aşağıdaki satıra ifadeyi yerleştirin</target>
         <note />
       </trans-unit>
       <trans-unit id="NamedTypeFullNameNotNullSuppressorJustification">
         <source>The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</source>
-        <target state="new">The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</target>
+        <target state="translated">'typeof(T).FullName' söz dizimi kullanılırken 'Type.FullName' özelliği hiçbir zaman null olmaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">
         <source>Use 'null' instead of 'default'</source>
-        <target state="new">Use 'null' instead of 'default'</target>
+        <target state="translated">'default' yerine 'null' kullanın</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralDescription">
         <source>Use 'null' instead of 'default' for nullable types.</source>
-        <target state="new">Use 'null' instead of 'default' for nullable types.</target>
+        <target state="translated">Başvuru türleri için 'default' yerine 'null' kullanın.</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralMessage">
         <source>Use 'null' instead of 'default' for nullable types</source>
-        <target state="new">Use 'null' instead of 'default' for nullable types</target>
+        <target state="translated">Başvuru türleri için 'default' yerine 'null' kullan</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralTitle">
         <source>Prefer null literal</source>
-        <target state="new">Prefer null literal</target>
+        <target state="translated">Null sabit değerini tercih et</target>
         <note />
       </trans-unit>
       <trans-unit id="RelaxTestNamingSuppressorJustification">
         <source>Asynchronous test methods do not require the 'Async' suffix</source>
-        <target state="new">Asynchronous test methods do not require the 'Async' suffix</target>
+        <target state="translated">Asenkron test metotları için 'Async' soneki gerekmez</target>
         <note />
       </trans-unit>
       <trans-unit id="Run iterations">
         <source>Run iterations</source>
-        <target state="new">Run iterations</target>
+        <target state="translated">Yinelemeleri çalıştır</target>
         <note />
       </trans-unit>
       <trans-unit id="TemporaryArrayAsRefDescription">
         <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</source>
-        <target state="new">Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</target>
+        <target state="translated">TemporaryArray&lt;T&gt;.AsRef() örneği bir 'using' değişkeni olmalıdır.</target>
         <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="TemporaryArrayAsRefMessage">
         <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</source>
-        <target state="new">Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</target>
+        <target state="translated">TemporaryArray&lt;T&gt;.AsRef() örneği bir 'using' değişkeni olmalıdır</target>
         <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="TemporaryArrayAsRefTitle">
         <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</source>
-        <target state="new">Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</target>
+        <target state="translated">TemporaryArray&lt;T&gt;.AsRef() örneği bir 'using' değişkeni olmalıdır</target>
         <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">
         <source>Apply 'PartNotDiscoverableAttribute'</source>
-        <target state="new">Apply 'PartNotDiscoverableAttribute'</target>
+        <target state="translated">'PartNotDiscoverableAttribute' uygulayın</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableDescription">
         <source>Test exports should not be discoverable.</source>
-        <target state="new">Test exports should not be discoverable.</target>
+        <target state="translated">Test dışarı aktarmaları bulunabilir olmamalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableMessage">
         <source>'{0}' is exported for test purposes and should be marked with 'PartNotDiscoverableAttribute'</source>
-        <target state="new">'{0}' is exported for test purposes and should be marked with 'PartNotDiscoverableAttribute'</target>
+        <target state="translated">'{0}', test amaçları doğrultusunda dışarı aktarıldığından 'PartNotDiscoverableAttribute' ile işaretlenmelidir</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableTitle">
         <source>Test exports should not be discoverable</source>
-        <target state="new">Test exports should not be discoverable</target>
+        <target state="translated">Test dışarı aktarmaları bulunabilir olmamalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableTitle">
         <source>Use 'SpecializedCollections.EmptyEnumerable()'</source>
-        <target state="new">Use 'SpecializedCollections.EmptyEnumerable()'</target>
+        <target state="translated">'SpecializedCollections.EmptyEnumerable()' kullanın</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableDescription">
         <source>#N/A</source>
-        <target state="new">#N/A</target>
+        <target state="translated">#N/A</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableMessage">
         <source>Use 'SpecializedCollections.EmptyEnumerable()'</source>
-        <target state="new">Use 'SpecializedCollections.EmptyEnumerable()'</target>
+        <target state="translated">'SpecializedCollections.EmptyEnumerable()' kullanın</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsSingletonEnumerableTitle">
         <source>Use 'SpecializedCollections.SingletonEnumerable()'</source>
-        <target state="new">Use 'SpecializedCollections.SingletonEnumerable()'</target>
+        <target state="translated">'SpecializedCollections.SingletonEnumerable()' kullanın</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsSingletonEnumerableDescription">
         <source>#N/A</source>
-        <target state="new">#N/A</target>
+        <target state="translated">#N/A</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsSingletonEnumerableMessage">
         <source>Use 'SpecializedCollections.SingletonEnumerable()'</source>
-        <target state="new">Use 'SpecializedCollections.SingletonEnumerable()'</target>
+        <target state="translated">'SpecializedCollections.SingletonEnumerable()' kullanın</target>
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTitle">
         <source>Invoke the correct property to ensure correct use site diagnostics</source>
-        <target state="new">Invoke the correct property to ensure correct use site diagnostics</target>
+        <target state="translated">Doğru site tanılamalarının kullanıldığından emin olmak için doğru özelliği çağırın</target>
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsDescription">
         <source>#N/A</source>
-        <target state="new">#N/A</target>
+        <target state="translated">#N/A</target>
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsMessage">
         <source>Invoke the correct property to ensure correct use site diagnostics</source>
-        <target state="new">Invoke the correct property to ensure correct use site diagnostics</target>
+        <target state="translated">Doğru site tanılamalarının kullanıldığından emin olmak için doğru özelliği çağırın</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionTitle">
         <source>Do not use generic 'CodeAction.Create' to create 'CodeAction'</source>
-        <target state="new">Do not use generic 'CodeAction.Create' to create 'CodeAction'</target>
+        <target state="translated">'CodeAction' oluşturmak için genel 'CodeAction.Create' kullanmayın</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionDescription">
         <source>#N/A</source>
-        <target state="new">#N/A</target>
+        <target state="translated">#N/A</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionMessage">
         <source>Do not use generic 'CodeAction.Create' to create 'CodeAction'</source>
-        <target state="new">Do not use generic 'CodeAction.Create' to create 'CodeAction'</target>
+        <target state="translated">'CodeAction' oluşturmak için genel 'CodeAction.Create' kullanmayın</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableTitle">
         <source>Override 'Object.Equals(object)' when implementing 'IEquatable'</source>
-        <target state="new">Override 'Object.Equals(object)' when implementing 'IEquatable'</target>
+        <target state="translated">'IEquatable' uygularken 'Object.Equals(object)' özniteliğini geçersiz kılın</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableDescription">
         <source>#N/A</source>
-        <target state="new">#N/A</target>
+        <target state="translated">#N/A</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableMessage">
         <source>Override 'Object.Equals(object)' when implementing 'IEquatable'</source>
-        <target state="new">Override 'Object.Equals(object)' when implementing 'IEquatable'</target>
+        <target state="translated">'IEquatable' uygularken 'Object.Equals(object)' özniteliğini geçersiz kılın</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle">
         <source>'SymbolDeclaredEvent' must be generated for source symbols</source>
-        <target state="new">'SymbolDeclaredEvent' must be generated for source symbols</target>
+        <target state="translated">Kaynak semboller için 'SymbolDeclaredEvent' oluşturulmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsDescription">
         <source>Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event.</source>
-        <target state="new">Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event.</target>
+        <target state="translated">Tüm bildirilen kaynak semboller için sembolle bildirilen olaylar oluşturmak üzere derleme olay kuyruğu gereklidir. Bu nedenle, her kaynak sembol türünün veya temel türlerinden birinin sembolle bildirilen bir olay oluşturması gerekir.</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsMessage">
         <source>'SymbolDeclaredEvent' must be generated for source symbols</source>
-        <target state="new">'SymbolDeclaredEvent' must be generated for source symbols</target>
+        <target state="translated">Kaynak semboller için 'SymbolDeclaredEvent' oluşturulmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFTitle">
         <source>Do not mix attributes from different versions of MEF</source>
-        <target state="new">Do not mix attributes from different versions of MEF</target>
+        <target state="translated">Farklı MEF sürümlerine ait öznitelikleri karışık kullanmayın</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFDescription">
         <source>Do not mix attributes from different versions of MEF.</source>
-        <target state="new">Do not mix attributes from different versions of MEF.</target>
+        <target state="translated">Farklı MEF sürümlerindeki öznitelikleri karışık olarak kullanmayın.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFMessage">
         <source>Attribute '{0}' comes from a different version of MEF than the export attribute on '{1}'</source>
-        <target state="new">Attribute '{0}' comes from a different version of MEF than the export attribute on '{1}'</target>
+        <target state="translated">'{0}' özniteliği, '{1}' üzerindeki dışarı aktarma özniteliğinden farklı bir MEF sürümüne ait</target>
         <note />
       </trans-unit>
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedTitle">
         <source>Parts exported with MEFv2 must be marked with 'SharedAttribute'</source>
-        <target state="new">Parts exported with MEFv2 must be marked with 'SharedAttribute'</target>
+        <target state="translated">MEFv2 ile dışarı aktarılan parçalar 'SharedAttribute' ile işaretlenmelidir</target>
         <note />
       </trans-unit>
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedDescription">
         <source>Part exported with MEFv2 must be marked with the 'SharedAttribute'.</source>
-        <target state="new">Part exported with MEFv2 must be marked with the 'SharedAttribute'.</target>
+        <target state="translated">MEFv2 ile dışarı aktarılan parça 'SharedAttribute' ile işaretlenmelidir.</target>
         <note />
       </trans-unit>
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
         <source>'{0}' is exported with MEFv2 and hence must be marked with 'SharedAttribute'</source>
-        <target state="new">'{0}' is exported with MEFv2 and hence must be marked with 'SharedAttribute'</target>
+        <target state="translated">'{0}', MEFv2 ile dışarı aktarıldığından 'SharedAttribute' ile işaretlenmelidir</target>
         <note />
       </trans-unit>
     </body>

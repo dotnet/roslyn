@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Sort_Usings">
         <source>&amp;Sort Usings</source>
-        <target state="translated">using の並べ替え(&amp;S)</target>
+        <target state="new">&amp;Sort Usings</target>
         <note />
       </trans-unit>
       <trans-unit id="Only_attributes_constructor_initializers_expressions_or_statements_can_be_made_explicit">

@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Sort_Usings">
         <source>&amp;Sort Usings</source>
-        <target state="translated">Cla&amp;ssificar Usos</target>
+        <target state="new">&amp;Sort Usings</target>
         <note />
       </trans-unit>
       <trans-unit id="Only_attributes_constructor_initializers_expressions_or_statements_can_be_made_explicit">
