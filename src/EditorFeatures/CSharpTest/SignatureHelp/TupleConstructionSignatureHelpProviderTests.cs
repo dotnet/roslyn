@@ -149,6 +149,34 @@ public sealed class TupleConstructionSignatureHelpProviderTests : AbstractCSharp
             new("(int, int)", currentParameterIndex: 0),
             new("(string, string)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17514")]
+    public Task InvocationArgument_PartiallyWritten()
+        => TestAsync("""
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    M([|(string, $$)|])
+                }
+
+                static void M((string alpha, int beta, int gamma) t) { }
+            }
+            """, [new("(string alpha, int beta, int gamma)", currentParameterIndex: 1)], usePreviousCharAsTrigger: true);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17514")]
+    public Task InvocationArgument_PartiallyWritten_Indirect()
+        => TestAsync("""
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    M(new[] { [|(string, $$)|] })
+                }
+
+                static void M((string alpha, int beta, int gamma)[] t) { }
+            }
+            """, [new("(string alpha, int beta, int gamma)", currentParameterIndex: 1)], usePreviousCharAsTrigger: true);
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14793")]
     public Task DoNotCrashInLinkedFile()
         => VerifyItemWithReferenceWorkerAsync(

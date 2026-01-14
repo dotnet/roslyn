@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         private readonly ConcurrentDictionary<Symbol, bool> _reportedSymbolsMap = new ConcurrentDictionary<Symbol, bool>(ReferenceEqualityComparer.Instance);
         private NamedTypeSymbol _lazySystemStringType = ErrorTypeSymbol.UnknownResultType;
         private readonly MethodSymbol[] _lazyWellKnownTypeMethods;
+        private readonly MethodSymbol[] _lazySpecialTypeMethods;
 
         public EmbeddedTypesManager(PEModuleBuilder moduleBeingBuilt) :
             base(moduleBeingBuilt)
@@ -48,6 +49,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             for (int i = 0; i < _lazyWellKnownTypeMethods.Length; i++)
             {
                 _lazyWellKnownTypeMethods[i] = ErrorMethodSymbol.UnknownMethod;
+            }
+
+            _lazySpecialTypeMethods = new MethodSymbol[(int)SpecialMember.Count];
+
+            for (int i = 0; i < _lazySpecialTypeMethods.Length; i++)
+            {
+                _lazySpecialTypeMethods[i] = ErrorMethodSymbol.UnknownMethod;
             }
         }
 
@@ -115,6 +123,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             return lazyMethod;
         }
 
+        public MethodSymbol GetSpecialMethod(SpecialMember method, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        {
+            return LazyGetSpecialTypeMethod(ref _lazySpecialTypeMethods[(int)method],
+                                              method,
+                                              syntaxNodeOpt,
+                                              diagnostics);
+        }
+
+        private MethodSymbol LazyGetSpecialTypeMethod(ref MethodSymbol lazyMethod, SpecialMember member, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        {
+            if ((object)lazyMethod == (object)ErrorMethodSymbol.UnknownMethod)
+            {
+                BindingDiagnosticBag bindingDiagnosticBag = BindingDiagnosticBag.GetInstance();
+                var symbol = (MethodSymbol)Binder.GetSpecialTypeMember(ModuleBeingBuilt.Compilation,
+                                                                         member,
+                                                                         bindingDiagnosticBag,
+                                                                         syntaxNodeOpt);
+
+                if (bindingDiagnosticBag.HasAnyErrors())
+                {
+                    symbol = null;
+                }
+
+                if (Interlocked.CompareExchange(ref lazyMethod, symbol, ErrorMethodSymbol.UnknownMethod) == ErrorMethodSymbol.UnknownMethod)
+                {
+                    diagnostics.AddRange(bindingDiagnosticBag.DiagnosticBag);
+                }
+            }
+
+            return lazyMethod;
+        }
+
         internal override int GetTargetAttributeSignatureIndex(CSharpAttributeData attrData, AttributeDescription description)
         {
             return attrData.GetTargetAttributeSignatureIndex(description);
@@ -150,6 +190,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                 default:
                     return SynthesizedAttributeData.Create(ModuleBeingBuilt.Compilation, ctor, constructorArguments, namedArguments);
             }
+        }
+
+        internal override CSharpAttributeData CreateSynthesizedAttribute(SpecialMember constructor, ImmutableArray<TypedConstant> constructorArguments, ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        {
+            var ctor = GetSpecialMethod(constructor, syntaxNodeOpt, diagnostics);
+            if ((object)ctor == null)
+            {
+                return null;
+            }
+
+            return SynthesizedAttributeData.Create(ModuleBeingBuilt.Compilation, ctor, constructorArguments, namedArguments);
         }
 
         internal override bool TryGetAttributeArguments(CSharpAttributeData attrData, out ImmutableArray<TypedConstant> constructorArguments, out ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)

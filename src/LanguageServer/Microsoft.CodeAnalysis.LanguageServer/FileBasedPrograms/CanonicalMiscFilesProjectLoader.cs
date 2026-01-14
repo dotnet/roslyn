@@ -124,14 +124,15 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
         return await ExecuteUnderGateAsync(async loadedProjects =>
         {
             // Try to find and remove the document from the miscellaneous workspace only
-            var miscWorkspace = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace;
+            var solution = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace.CurrentSolution;
 
-            var documents = miscWorkspace.CurrentSolution.GetDocumentIdsWithFilePath(documentPath);
-            if (documents.Any())
+            // Filter to actual documents, ignoring additional documents like Razor files etc.
+            var documentIds = solution.GetDocumentIdsWithFilePath(documentPath).WhereAsArray(id => solution.GetDocument(id) is not null);
+            if (documentIds.Length > 0)
             {
                 await _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.ApplyChangeToWorkspaceAsync(workspace =>
                 {
-                    foreach (var documentId in documents)
+                    foreach (var documentId in documentIds)
                     {
                         workspace.OnDocumentRemoved(documentId);
                     }

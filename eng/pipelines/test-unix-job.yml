@@ -39,7 +39,7 @@ jobs:
     - task: ShellScript@2
       displayName: Rehydrate RunTests
       inputs:
-        scriptPath: ./artifacts/bin/RunTests/${{ parameters.configuration }}/net9.0/rehydrate.sh
+        scriptPath: ./artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/rehydrate.sh
       env:
         HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)/.duplicate'
 

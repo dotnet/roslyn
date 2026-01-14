@@ -64,23 +64,23 @@ internal sealed class SQLitePersistentStorageService(
         return Path.Combine(workingFolderPath, StorageExtension, nameof(v2), PersistentStorageFileName);
     }
 
-    protected override ValueTask<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(
+    protected override async ValueTask<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(
         SolutionKey solutionKey, string workingFolderPath, string databaseFilePath, IPersistentStorageFaultInjector? faultInjector, CancellationToken cancellationToken)
     {
         if (!TryInitializeLibraries())
         {
             // SQLite is not supported on the current platform
-            return new((IChecksummedPersistentStorage?)null);
+            return null;
         }
 
         if (solutionKey.FilePath == null)
-            return new(NoOpPersistentStorage.GetOrThrow(solutionKey, Configuration.ThrowOnFailure));
+            return NoOpPersistentStorage.GetOrThrow(solutionKey, Configuration.ThrowOnFailure);
 
-        return new(SQLitePersistentStorage.TryCreate(
+        return SQLitePersistentStorage.TryCreate(
             solutionKey,
             workingFolderPath,
             databaseFilePath,
             asyncListener,
-            faultInjector));
+            faultInjector);
     }
 }

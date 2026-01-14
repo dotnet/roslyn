@@ -4,22 +4,22 @@
     <body>
       <trans-unit id="Cannot_create_0">
         <source>Cannot create {0}.</source>
-        <target state="new">Cannot create {0}.</target>
+        <target state="translated">{0}을(를) 만들 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Missing_document_file_path">
         <source>Missing document file path</source>
-        <target state="new">Missing document file path</target>
+        <target state="translated">누락된 문서 파일 경로</target>
         <note />
       </trans-unit>
       <trans-unit id="The_message_type_0_is_not_assignable_to_1">
         <source>The message type {0} is not assignable to {1}.</source>
-        <target state="new">The message type {0} is not assignable to {1}.</target>
+        <target state="translated">메시지 유형{0}을(를) {1}에 할당할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_0_implements_interface_1_more_than_once">
         <source>Type {0} implements interface {1} more than once.</source>
-        <target state="new">Type {0} implements interface {1} more than once.</target>
+        <target state="translated">형식 {0}이(가) 인터페이스 {1}을(를) 두 번 이상 구현합니다.</target>
         <note />
       </trans-unit>
     </body>
