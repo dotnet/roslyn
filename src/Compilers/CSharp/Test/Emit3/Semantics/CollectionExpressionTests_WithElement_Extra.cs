@@ -9521,7 +9521,8 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             }
             """;
 
-        CompileAndVerify(sourceA, targetFramework: TargetFramework.Net80, expectedOutput: IncludeExpectedOutput("""
+        CompileAndVerify(sourceA, targetFramework: TargetFramework.Net80, verify: Verification.FailsPEVerify,
+            expectedOutput: IncludeExpectedOutput("""
             42
             0, 1
             """)).VerifyDiagnostics().VerifyIL("Program.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """

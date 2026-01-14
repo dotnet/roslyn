@@ -550,6 +550,56 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             " list)", symbolInfo.Symbol.ToTestDisplayString(true));
     }
 
+    [Fact]
+    public void TestInferTypeFromOtherBranch1()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+
+            var v = true ? [with(null), "a", "b"] : new MyCollection<string>("");
+            Console.WriteLine(string.Join(", ", v));
+
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection(T arg)
+                {
+                }
+            }
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("a, b")).VerifyDiagnostics(
+            // (5,22): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // var v = true ? [with(null), "a", "b"] : new MyCollection<string>("");
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 22));
+    }
+
+    [Fact]
+    public void TestInferTypeFromOtherBranch2()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+
+            var v = true ? [with(""), null] : new MyCollection<string>("");
+            Console.WriteLine(string.Join(", ", v));
+
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection(T arg)
+                {
+                }
+            }
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("")).VerifyDiagnostics(
+            // (5,27): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // var v = true ? [with(""), null] : new MyCollection<string>("");
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 27));
+    }
+
     #region AllowNull
 
     [Fact]
