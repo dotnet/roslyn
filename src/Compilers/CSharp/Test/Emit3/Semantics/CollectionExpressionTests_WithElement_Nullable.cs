@@ -553,7 +553,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     #region AllowNull
 
     [Fact]
-    public void ConstructorNonNullParameterWithAllowNull()
+    public void ConstructorNonNullableParameterWithAllowNull()
     {
         var source = """
             #nullable enable
@@ -583,7 +583,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     }
 
     [Fact]
-    public void ConstructorNonNullParameterWithoutAllowNull()
+    public void ConstructorNonNullableParameterWithoutAllowNull()
     {
         var source = """
             #nullable enable
@@ -615,7 +615,69 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     }
 
     [Fact]
-    public void CollectionBuilderNonNullParameterWithAllowNull()
+    public void ConstructorNullableParameterWithAllowNull()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+
+            class MyList<T> : List<T>
+            {
+                public MyList([AllowNull] string? arg)
+                {
+                }
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    MyList<int> list = [with(s), 1, 2];
+                    Console.WriteLine($"{list.Count}");
+                }
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ConstructorNullableParameterWithoutAllowNull()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+
+            class MyList<T> : List<T>
+            {
+                public MyList(string? arg)
+                {
+                }
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    MyList<int> list = [with(s), 1, 2];
+                    Console.WriteLine($"{list.Count}");
+                }
+            }
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("2")).VerifyDiagnostics(
+            // (17,34): warning CS8604: Possible null reference argument for parameter 'arg' in 'MyList<int>.MyList(string arg)'.
+            //         MyList<int> list = [with(s), 1, 2];
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("arg", "MyList<int>.MyList(string arg)").WithLocation(17, 34));
+    }
+
+    [Fact]
+    public void CollectionBuilderNonNullableParameterWithAllowNull()
     {
         string sourceA = """
             #nullable enable
@@ -663,7 +725,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     }
 
     [Fact]
-    public void CollectionBuilderNonNullParameterWithoutAllowNull()
+    public void CollectionBuilderNonNullableParameterWithoutAllowNull()
     {
         string sourceA = """
             #nullable enable
@@ -713,9 +775,170 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("value", "MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)").WithLocation(8, 37));
     }
 
+    [Fact]
+    public void CollectionBuilderNullableParameterWithAllowNull()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                private readonly List<T> _items;
+                public MyCollection(string? value, ReadOnlySpan<T> items)
+                {
+                    _items = new();
+                    _items.AddRange(items.ToArray());
+                }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>([AllowNull] string? value, ReadOnlySpan<T> items) => new(value, items);
+            }
+            """;
+        string sourceB = """
+            #nullable enable
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    MyCollection<int> c = [with(s), 1, 2];
+                    Console.WriteLine(string.Join(", ", c));
+                }
+            }
+            """;
+
+        CompileAndVerify(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionBuilderNullableParameterWithoutAllowNull()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                private readonly List<T> _items;
+                public MyCollection(string? value, ReadOnlySpan<T> items)
+                {
+                    _items = new();
+                    _items.AddRange(items.ToArray());
+                }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(string? value, ReadOnlySpan<T> items) => new(value, items);
+            }
+            """;
+        string sourceB = """
+            #nullable enable
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    MyCollection<int> c = [with(s), 1, 2];
+                    Console.WriteLine(string.Join(", ", c));
+                }
+            }
+            """;
+
+        CompileAndVerify(
+            [sourceA, sourceB],
+            expectedOutput: IncludeExpectedOutput("1, 2"),
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (8,37): warning CS8604: Possible null reference argument for parameter 'value' in 'MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)'.
+            //         MyCollection<int> c = [with(s), 1, 2];
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("value", "MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)").WithLocation(8, 37));
+    }
+
     #endregion
 
     #region DisallowNull
+
+    [Fact]
+    public void ConstructorNonNullableParameterWithDisallowNull()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+
+            class MyList<T> : List<T>
+            {
+                public MyList([DisallowNull] string arg)
+                {
+                }
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    MyList<int> list = [with(s), 1, 2];
+                    Console.WriteLine($"{list.Count}");
+                }
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (18,34): warning CS8604: Possible null reference argument for parameter 'arg' in 'MyList<int>.MyList(string? arg)'.
+            //         MyList<int> list = [with(s), 1, 2];
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("arg", "MyList<int>.MyList(string? arg)").WithLocation(18, 34));
+    }
+
+    [Fact]
+    public void ConstructorNonNullableParameterWithoutDisallowNull()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+
+            class MyList<T> : List<T>
+            {
+                public MyList(string arg)
+                {
+                }
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    MyList<int> list = [with(s), 1, 2];
+                    Console.WriteLine($"{list.Count}");
+                }
+            }
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("2")).VerifyDiagnostics();
+    }
 
     [Fact]
     public void ConstructorNullableParameterWithDisallowNull()
@@ -777,6 +1000,105 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             """;
 
         CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("2")).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionBuilderNonNullableParameterWithDisallowNull()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                private readonly List<T> _items;
+                public MyCollection(string? value, ReadOnlySpan<T> items)
+                {
+                    _items = new();
+                    _items.AddRange(items.ToArray());
+                }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>([DisallowNull] string value, ReadOnlySpan<T> items) => new(value, items);
+            }
+            """;
+        string sourceB = """
+            #nullable enable
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    MyCollection<int> c = [with(s), 1, 2];
+                    Console.WriteLine(string.Join(", ", c));
+                }
+            }
+            """;
+
+        CompileAndVerify(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (8,37): warning CS8604: Possible null reference argument for parameter 'value' in 'MyCollection<int> MyBuilder.Create<int>(string? value, ReadOnlySpan<int> items)'.
+            //         MyCollection<int> c = [with(s), 1, 2];
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("value", "MyCollection<int> MyBuilder.Create<int>(string? value, ReadOnlySpan<int> items)").WithLocation(8, 37));
+    }
+
+    [Fact]
+    public void CollectionBuilderNonNullableParameterWithoutDisallowNull()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                private readonly List<T> _items;
+                public MyCollection(string? value, ReadOnlySpan<T> items)
+                {
+                    _items = new();
+                    _items.AddRange(items.ToArray());
+                }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(string value, ReadOnlySpan<T> items) => new(value, items);
+            }
+            """;
+        string sourceB = """
+            #nullable enable
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    MyCollection<int> c = [with(s), 1, 2];
+                    Console.WriteLine(string.Join(", ", c));
+                }
+            }
+            """;
+
+        CompileAndVerify(
+            [sourceA, sourceB],
+            expectedOutput: IncludeExpectedOutput("1, 2"),
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -883,7 +1205,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     #region MaybeNull
 
     [Fact]
-    public void ConstructorNonNullParameterWithMaybeNull()
+    public void ConstructorNonNullableParameterWithMaybeNull()
     {
         var source = """
             #nullable enable
@@ -917,7 +1239,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     }
 
     [Fact]
-    public void ConstructorNonNullParameterWithoutMaybeNull()
+    public void ConstructorNonNullableParameterWithoutMaybeNull()
     {
         var source = """
             #nullable enable
@@ -947,25 +1269,25 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     }
 
     [Fact]
-    public void ConstructorNotNullParameterMaybeNullAttribute1()
+    public void ConstructorNullableParameterWithMaybeNull()
     {
         var source = """
             #nullable enable
             using System.Collections.Generic;
             using System.Diagnostics.CodeAnalysis;
-            
+
             class MyList<T> : List<T>
             {
-                public MyList([MaybeNull] string arg)
+                public MyList([MaybeNull] string? arg)
                 {
                 }
             }
-            
+
             class C
             {
                 static void Main()
                 {
-                    string? s = "";
+                    string s = "";
                     MyList<int> list = [with(s), 1, 2];
                     Goo(s);
                 }
@@ -981,7 +1303,37 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     }
 
     [Fact]
-    public void CollectionBuilderNonNullParameterWithMaybeNull()
+    public void ConstructorNullableParameterWithoutMaybeNull()
+    {
+        var source = """
+            #nullable enable
+            using System.Collections.Generic;
+
+            class MyList<T> : List<T>
+            {
+                public MyList(string? arg)
+                {
+                }
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    string s = "";
+                    MyList<int> list = [with(s), 1, 2];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("")).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionBuilderNonNullableParameterWithMaybeNull()
     {
         string sourceA = """
             #nullable enable
@@ -1033,7 +1385,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     }
 
     [Fact]
-    public void CollectionBuilderNonNullParameterWithoutMaybeNull()
+    public void CollectionBuilderNonNullableParameterWithoutMaybeNull()
     {
         string sourceA = """
             #nullable enable
@@ -1082,7 +1434,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     }
 
     [Fact]
-    public void CollectionBuilderNotNullParameterMaybeNullAttribute()
+    public void CollectionBuilderNullableParameterWithMaybeNull()
     {
         string sourceA = """
             #nullable enable
@@ -1096,7 +1448,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             class MyCollection<T> : IEnumerable<T>
             {
                 private readonly List<T> _items;
-                public MyCollection(string value, ReadOnlySpan<T> items)
+                public MyCollection(string? value, ReadOnlySpan<T> items)
                 {
                     _items = new();
                     _items.AddRange(items.ToArray());
@@ -1106,7 +1458,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             }
             class MyBuilder
             {
-                public static MyCollection<T> Create<T>([MaybeNull] string value, ReadOnlySpan<T> items) => new(value, items);
+                public static MyCollection<T> Create<T>([MaybeNull] string? value, ReadOnlySpan<T> items) => new(value, items);
             }
             """;
         string sourceB = """
@@ -1115,7 +1467,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             {
                 static void Main()
                 {
-                    string? s = "";
+                    string s = "";
                     MyCollection<int> c = [with(s), 1, 2];
                     Goo(s);
                 }
@@ -1128,9 +1480,58 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             [sourceA, sourceB],
             targetFramework: TargetFramework.Net80,
             verify: Verification.FailsPEVerify).VerifyDiagnostics(
-                // (8,13): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.Goo(string s)'.
-                //         Goo(s);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(8, 13));
+            // (8,13): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.Goo(string s)'.
+            //         Goo(s);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(8, 13));
+    }
+
+    [Fact]
+    public void CollectionBuilderNullableParameterWithoutMaybeNull()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                private readonly List<T> _items;
+                public MyCollection(string? value, ReadOnlySpan<T> items)
+                {
+                    _items = new();
+                    _items.AddRange(items.ToArray());
+                }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(string? value, ReadOnlySpan<T> items) => new(value, items);
+            }
+            """;
+        string sourceB = """
+            #nullable enable
+            class Program
+            {
+                static void Main()
+                {
+                    string s = "";
+                    MyCollection<int> c = [with(s), 1, 2];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(
+            [sourceA, sourceB],
+            expectedOutput: IncludeExpectedOutput(""),
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     #endregion
@@ -1138,7 +1539,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     #region NotNull
 
     [Fact]
-    public void ConstructorNullParameterWithNotNull()
+    public void ConstructorNullableParameterWithNotNull()
     {
         var source = """
             #nullable enable
@@ -1170,7 +1571,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     }
 
     [Fact]
-    public void ConstructorNullParameterWithoutNotNull()
+    public void ConstructorNullableParameterWithoutNotNull()
     {
         var source = """
             #nullable enable
@@ -1203,21 +1604,21 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     }
 
     [Fact]
-    public void ConstructorNullParameterNotNullAttribute1()
+    public void ConstructorNonNullableParameterWithNotNull()
     {
         var source = """
             #nullable enable
             using System.Collections.Generic;
             using System.Diagnostics.CodeAnalysis;
-            
+
             class MyList<T> : List<T>
             {
-                public MyList([NotNull] string? arg)
+                public MyList([NotNull] string arg)
                 {
                     arg = "";
                 }
             }
-            
+
             class C
             {
                 static void Main()
@@ -1233,8 +1634,42 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
 
         CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
+
     [Fact]
-    public void CollectionBuilderNullParameterNotNullAttribute()
+    public void ConstructorNonNullableParameterWithoutNotNull()
+    {
+        var source = """
+            #nullable enable
+            using System.Collections.Generic;
+
+            class MyList<T> : List<T>
+            {
+                public MyList(string arg)
+                {
+                }
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    MyList<int> list = [with(s), 1, 2];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("")).VerifyDiagnostics(
+            // (17,13): warning CS8604: Possible null reference argument for parameter 's' in 'void C.Goo(string s)'.
+            //         Goo(s);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void C.Goo(string s)").WithLocation(17, 13));
+    }
+
+    [Fact]
+    public void CollectionBuilderNullableParameterWithNotNull()
     {
         string sourceA = """
             #nullable enable
@@ -1287,60 +1722,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     }
 
     [Fact]
-    public void CollectionBuilderNullParameterWithNotNull()
-    {
-        string sourceA = """
-            #nullable enable
-            using System;
-            using System.Collections;
-            using System.Collections.Generic;
-            using System.Diagnostics.CodeAnalysis;
-            using System.Runtime.CompilerServices;
-
-            [CollectionBuilder(typeof(MyBuilder), "Create")]
-            class MyCollection<T> : IEnumerable<T>
-            {
-                private readonly List<T> _items;
-                public MyCollection(string? value, ReadOnlySpan<T> items)
-                {
-                    _items = new();
-                    _items.AddRange(items.ToArray());
-                }
-                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
-                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-            }
-            class MyBuilder
-            {
-                public static MyCollection<T> Create<T>([NotNull] string? value, ReadOnlySpan<T> items)
-                {
-                    value = "";
-                    return new(value, items);
-                }
-            }
-            """;
-        string sourceB = """
-            #nullable enable
-            class Program
-            {
-                static void Main()
-                {
-                    string? s = null;
-                    MyCollection<int> c = [with(s), 1, 2];
-                    Goo(s);
-                }
-
-                static void Goo(string s) { }
-            }
-            """;
-
-        CompileAndVerify(
-            [sourceA, sourceB],
-            targetFramework: TargetFramework.Net80,
-            verify: Verification.FailsPEVerify).VerifyDiagnostics();
-    }
-
-    [Fact]
-    public void CollectionBuilderNullParameterWithoutNotNull()
+    public void CollectionBuilderNullableParameterWithoutNotNull()
     {
         string sourceA = """
             #nullable enable
@@ -1364,6 +1746,110 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             class MyBuilder
             {
                 public static MyCollection<T> Create<T>(string? value, ReadOnlySpan<T> items) => new(value, items);
+            }
+            """;
+        string sourceB = """
+            #nullable enable
+            class Program
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    MyCollection<int> c = [with(s), 1, 2];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (8,13): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.Goo(string s)'.
+            //         Goo(s);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(8, 13));
+    }
+
+    [Fact]
+    public void CollectionBuilderNonNullableParameterWithNotNull()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                private readonly List<T> _items;
+                public MyCollection(string value, ReadOnlySpan<T> items)
+                {
+                    _items = new();
+                    _items.AddRange(items.ToArray());
+                }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>([NotNull] string value, ReadOnlySpan<T> items)
+                {
+                    value = "";
+                    return new(value, items);
+                }
+            }
+            """;
+        string sourceB = """
+            #nullable enable
+            class Program
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    MyCollection<int> c = [with(s), 1, 2];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionBuilderNonNullableParameterWithoutNotNull()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                private readonly List<T> _items;
+                public MyCollection(string value, ReadOnlySpan<T> items)
+                {
+                    _items = new();
+                    _items.AddRange(items.ToArray());
+                }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(string value, ReadOnlySpan<T> items) => new(value, items);
             }
             """;
         string sourceB = """
@@ -1674,9 +2160,6 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void C.Goo(string s)").WithLocation(19, 13));
     }
 
-    #endregion
-
-
     [Fact]
     public void CollectionBuilderParameterWithNotNullIfNotNull_BothNull()
     {
@@ -1722,7 +2205,6 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             }
             """;
 
-        // When 'other' is null, NotNullIfNotNull doesn't guarantee 's' is not null
         CompileAndVerify(
             [sourceA, sourceB],
             targetFramework: TargetFramework.Net80,
@@ -1733,7 +2215,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     }
 
     [Fact]
-    public void CollectionBuilderParameterWithNotNullIfNotNull_OtherNotNull()
+    public void CollectionBuilderParameterWithNotNullIfNotNull_ArgNull_OtherNotNull()
     {
         string sourceA = """
             #nullable enable
@@ -1768,7 +2250,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
                 static void Main()
                 {
                     string? s = null;
-                    string other = "";
+                    string? other = "";
                     MyCollection<int> c = [with(s, other), 1, 2];
                     Goo(s);
                 }
@@ -1787,13 +2269,122 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     }
 
     [Fact]
-    public void CollectionBuilderParameterWithoutNotNullIfNotNull_OtherNotNull()
+    public void CollectionBuilderParameterWithNotNullIfNotNull_ArgNotNull_OtherNull()
     {
         string sourceA = """
             #nullable enable
             using System;
             using System.Collections;
             using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                private readonly List<T> _items;
+                public MyCollection(string? value, string? other, ReadOnlySpan<T> items)
+                {
+                    _items = new();
+                    _items.AddRange(items.ToArray());
+                }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>([NotNullIfNotNull(nameof(other))] string? value, string? other, ReadOnlySpan<T> items)
+                    => new(value, other, items);
+            }
+            """;
+        string sourceB = """
+            #nullable enable
+            class Program
+            {
+                static void Main()
+                {
+                    string? s = "";
+                    string? other = null;
+                    MyCollection<int> c = [with(s, other), 1, 2];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (9,13): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.Goo(string s)'.
+            //         Goo(s);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(9, 13));
+    }
+
+    [Fact]
+    public void CollectionBuilderParameterWithNotNullIfNotNull_BothNotNull()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                private readonly List<T> _items;
+                public MyCollection(string? value, string? other, ReadOnlySpan<T> items)
+                {
+                    _items = new();
+                    _items.AddRange(items.ToArray());
+                }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>([NotNullIfNotNull(nameof(other))] string? value, string? other, ReadOnlySpan<T> items)
+                    => new(value, other, items);
+            }
+            """;
+        string sourceB = """
+            #nullable enable
+            class Program
+            {
+                static void Main()
+                {
+                    string? s = "";
+                    string? other = "";
+                    MyCollection<int> c = [with(s, other), 1, 2];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (9,13): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.Goo(string s)'.
+            //         Goo(s);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(9, 13));
+    }
+
+    [Fact]
+    public void CollectionBuilderParameterWithoutNotNullIfNotNull_BothNull()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
             using System.Runtime.CompilerServices;
 
             [CollectionBuilder(typeof(MyBuilder), "Create")]
@@ -1821,7 +2412,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
                 static void Main()
                 {
                     string? s = null;
-                    string other = "";
+                    string? other = null;
                     MyCollection<int> c = [with(s, other), 1, 2];
                     Goo(s);
                 }
@@ -1830,7 +2421,6 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             }
             """;
 
-        // Without NotNullIfNotNull, even if 'other' is not null, 's' is still maybe null
         CompileAndVerify(
             [sourceA, sourceB],
             targetFramework: TargetFramework.Net80,
@@ -1839,4 +2429,168 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         Goo(s);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(9, 13));
     }
+
+    [Fact]
+    public void CollectionBuilderParameterWithoutNotNullIfNotNull_ArgNull_OtherNotNull()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                private readonly List<T> _items;
+                public MyCollection(string? value, string? other, ReadOnlySpan<T> items)
+                {
+                    _items = new();
+                    _items.AddRange(items.ToArray());
+                }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(string? value, string? other, ReadOnlySpan<T> items)
+                    => new(value, other, items);
+            }
+            """;
+        string sourceB = """
+            #nullable enable
+            class Program
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    string? other = "";
+                    MyCollection<int> c = [with(s, other), 1, 2];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (9,13): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.Goo(string s)'.
+            //         Goo(s);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(9, 13));
+    }
+
+    [Fact]
+    public void CollectionBuilderParameterWithoutNotNullIfNotNull_ArgNotNull_OtherNull()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                private readonly List<T> _items;
+                public MyCollection(string? value, string? other, ReadOnlySpan<T> items)
+                {
+                    _items = new();
+                    _items.AddRange(items.ToArray());
+                }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(string? value, string? other, ReadOnlySpan<T> items)
+                    => new(value, other, items);
+            }
+            """;
+        string sourceB = """
+            #nullable enable
+            class Program
+            {
+                static void Main()
+                {
+                    string? s = "";
+                    string? other = null;
+                    MyCollection<int> c = [with(s, other), 1, 2];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (9,13): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.Goo(string s)'.
+            //         Goo(s);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(9, 13));
+    }
+
+    [Fact]
+    public void CollectionBuilderParameterWithoutNotNullIfNotNull_BothNotNull()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                private readonly List<T> _items;
+                public MyCollection(string? value, string? other, ReadOnlySpan<T> items)
+                {
+                    _items = new();
+                    _items.AddRange(items.ToArray());
+                }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(string? value, string? other, ReadOnlySpan<T> items)
+                    => new(value, other, items);
+            }
+            """;
+        string sourceB = """
+            #nullable enable
+            class Program
+            {
+                static void Main()
+                {
+                    string? s = "";
+                    string? other = "";
+                    MyCollection<int> c = [with(s, other), 1, 2];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (9,13): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.Goo(string s)'.
+            //         Goo(s);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(9, 13));
+    }
+
+    #endregion
 }
