@@ -70,9 +70,7 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="GenerateFilteredReferenceAssemblies"
-          Condition="Exists('$(_BuildTaskAssemblyFile)') and ($([MSBuild]::VersionGreaterThanOrEquals('$(MSBuildAssemblyVersion)', '18.0')) or '$(MSBuildRuntimeType)' == 'Core')"
-          BeforeTargets="AfterBuild" DependsOnTargets="_CalculateFilteredReferenceAssembliesInputsAndOutputs" Inputs="@(_InputFile)" Outputs="@(_OutputFile)">
+  <Target Name="GenerateFilteredReferenceAssemblies" Condition="Exists('$(_BuildTaskAssemblyFile)')" BeforeTargets="AfterBuild" DependsOnTargets="_CalculateFilteredReferenceAssembliesInputsAndOutputs" Inputs="@(_InputFile)" Outputs="@(_OutputFile)">
 
     <MakeDir Directories="$(_OutputDir)" />
 
@@ -81,7 +79,9 @@
       <_RequireNoApiChanges Condition="'$(ContinuousIntegrationBuildCorrectness)' == 'true'">true</_RequireNoApiChanges>
     </PropertyGroup>
 
-    <Microsoft.CodeAnalysis.Tools.GenerateFilteredReferenceAssembliesTask References="@(_InputReference)" ApiSets="@(ApiSet)" OutputDir="$(_OutputDir)" ApisDir="$(_ApisDir)" RequireNoApiChanges="$(_RequireNoApiChanges)" />
+    <!-- https://github.com/dotnet/roslyn/issues/82006: the condition is needed to skip this task in CI legs on MSBuild older than 18.0 -->
+    <Microsoft.CodeAnalysis.Tools.GenerateFilteredReferenceAssembliesTask References="@(_InputReference)" ApiSets="@(ApiSet)" OutputDir="$(_OutputDir)" ApisDir="$(_ApisDir)" RequireNoApiChanges="$(_RequireNoApiChanges)"
+                                                                          Condition="$([MSBuild]::VersionGreaterThanOrEquals('$(MSBuildAssemblyVersion)', '18.0'))" />
 
     <ItemGroup>
       <FileWrites Include="@(_OutputFile)" />
@@ -92,10 +92,10 @@
   <Target Name="PublishedProjectOutputGroup" DependsOnTargets="_CalculateFilteredReferenceAssembliesInputsAndOutputs" Returns="@(_OutputFile)" />
 
   <!-- Generates ref assemblies -->
-  <Target Name="PublishVsixItems" DependsOnTargets="PublishedProjectOutputGroup;_CalculateFilteredReferenceAssembliesInputsAndOutputs" Returns="@(_OutputRefAssembly)" />
+  <Target Name="PublishVsixItems" DependsOnTargets="PublishedProjectOutputGroup;GenerateFilteredReferenceAssemblies" Returns="@(_OutputRefAssembly)" />
 
   <!-- Package reference assemblies under the tools directory. -->
-  <Target Name="_AddGeneratedReferenceAssembliesToPackage" DependsOnTargets="_CalculateFilteredReferenceAssembliesInputsAndOutputs">
+  <Target Name="_AddGeneratedReferenceAssembliesToPackage" DependsOnTargets="GenerateFilteredReferenceAssemblies">
     <ItemGroup>
       <TfmSpecificPackageFile Include="@(_OutputRefAssembly)"
                               PackagePath="tools/$(TargetFramework)/%(FileName)%(Extension)"/>
