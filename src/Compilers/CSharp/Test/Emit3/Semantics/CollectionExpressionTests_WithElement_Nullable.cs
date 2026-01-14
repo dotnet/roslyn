@@ -708,14 +708,16 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     {
         var source = """
             #nullable enable
+            using System;
             using System.Collections.Generic;
 
             List<string> list = [null];
+            Console.WriteLine(list.Count);
             """;
 
-        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("")).VerifyDiagnostics(
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("1")).VerifyDiagnostics(
             // (4,22): warning CS8625: Cannot convert null literal to non-nullable reference type.
             // List<string> list = [null];
-            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 22));
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 22));
     }
 }
