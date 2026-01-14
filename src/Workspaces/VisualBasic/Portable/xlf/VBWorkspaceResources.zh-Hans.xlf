@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Sort_Imports">
         <source>&amp;Sort Imports</source>
-        <target state="translated">对导入项排序(&amp;S)</target>
+        <target state="new">&amp;Sort Imports</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_Coding_Conventions">

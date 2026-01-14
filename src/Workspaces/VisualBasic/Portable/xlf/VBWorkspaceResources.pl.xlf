@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Sort_Imports">
         <source>&amp;Sort Imports</source>
-        <target state="translated">&amp;Sortuj importy</target>
+        <target state="new">&amp;Sort Imports</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_Coding_Conventions">
