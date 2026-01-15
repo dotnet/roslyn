@@ -508,7 +508,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
                 }
                 else
                 {
-                    ((DebugInformationReaderProvider)reader).CreateEditAndContinueMethodDebugInfoReader();
+                    ((DebugInformationReaderProvider)reader).CreateEditAndContinueDebugInfoReader();
                 }
             });
         }

@@ -82,7 +82,7 @@ public sealed class EditAndContinueMethodDebugInfoReaderTests
         else
         {
             provider = DebugInformationReaderProvider.CreateFromStream(pdbStream);
-            reader = provider.CreateEditAndContinueMethodDebugInfoReader();
+            reader = provider.CreateEditAndContinueDebugInfoReader();
         }
 
         // Main method

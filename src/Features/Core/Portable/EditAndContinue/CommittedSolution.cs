@@ -464,7 +464,7 @@ internal sealed class CommittedSolution(DebuggingSession debuggingSession, Solut
             return null;
         }
 
-        var debugInfoReader = debugInfoReaderProvider.CreateEditAndContinueMethodDebugInfoReader();
+        var debugInfoReader = debugInfoReaderProvider.CreateEditAndContinueDebugInfoReader();
 
         var result = TryReadSourceFileChecksumFromPdb(debuggingSession.SessionLog, debugInfoReader, document.FilePath, out checksum, out checksumAlgorithm);
 

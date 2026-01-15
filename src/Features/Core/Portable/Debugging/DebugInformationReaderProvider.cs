@@ -40,7 +40,7 @@ internal abstract class DebugInformationReaderProvider : IDisposable
     {
         private readonly MetadataReaderProvider _pdbReaderProvider = pdbReaderProvider;
 
-        public override EditAndContinueDebugInfoReader CreateEditAndContinueMethodDebugInfoReader()
+        public override EditAndContinueDebugInfoReader CreateEditAndContinueDebugInfoReader()
             => EditAndContinueDebugInfoReader.Create(_pdbReaderProvider.GetMetadataReader());
 
         public override ValueTask CopyContentToAsync(Stream stream, CancellationToken cancellationToken)
@@ -65,7 +65,7 @@ internal abstract class DebugInformationReaderProvider : IDisposable
         private readonly int _version = version;
         private ISymUnmanagedReader5? _symReader = symReader;
 
-        public override EditAndContinueDebugInfoReader CreateEditAndContinueMethodDebugInfoReader()
+        public override EditAndContinueDebugInfoReader CreateEditAndContinueDebugInfoReader()
             => EditAndContinueDebugInfoReader.Create(_symReader ?? throw new ObjectDisposedException(GetType().FullName), _version);
 
         public override async ValueTask CopyContentToAsync(Stream stream, CancellationToken cancellationToken)
@@ -102,7 +102,7 @@ internal abstract class DebugInformationReaderProvider : IDisposable
     /// <summary>
     /// Creates EnC debug information reader.
     /// </summary>
-    public abstract EditAndContinueDebugInfoReader CreateEditAndContinueMethodDebugInfoReader();
+    public abstract EditAndContinueDebugInfoReader CreateEditAndContinueDebugInfoReader();
 
     public abstract ValueTask CopyContentToAsync(Stream stream, CancellationToken cancellationToken);
 

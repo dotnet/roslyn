@@ -943,7 +943,10 @@ RETRY:
                 }
 
                 var value = reader.ReadUTF8(nullIndex);
+
+                // Skip the null terminator
                 reader.ReadByte();
+
                 return value;
             }
         }
