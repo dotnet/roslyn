@@ -2570,4 +2570,119 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     }
 
     #endregion
+
+    #region DoesNotReturn
+
+    [Fact]
+    public void CollectionBuilderWithDoesNotReturn_NoArgs_NoWithElement()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+            }
+
+            class MyBuilder
+            {
+                [DoesNotReturn]
+                public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => throw null!;
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    MyCollection<int> list = [];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionBuilderWithDoesNotReturn_NoArgs_WithElement()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+            }
+            
+            class MyBuilder
+            {
+                [DoesNotReturn]
+                public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => throw null!;
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    MyCollection<int> list = [with()];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionBuilderWithDoesNotReturn_Args_WithElement()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+            }
+            
+            class MyBuilder
+            {
+                [DoesNotReturn]
+                public static MyCollection<T> Create<T>(bool b, ReadOnlySpan<T> items) => throw null!;
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    MyCollection<int> list = [with(true)];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    #endregion
 }
