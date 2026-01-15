@@ -2448,6 +2448,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExtensionParameterInStaticContext = 9347,
         ERR_CompilationUnitUnexpected = 9348,
 
+        ERR_ScopedAfterInOutRefReadonly = 9349,
+        ERR_InvalidModifierAfterScoped = 9350,
+
+        ERR_StructLayoutAndExtendedLayout = 9351,
+        ERR_RuntimeDoesNotSupportExtendedLayoutTypes = 9352,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  2) Add message to CSharpResources.resx

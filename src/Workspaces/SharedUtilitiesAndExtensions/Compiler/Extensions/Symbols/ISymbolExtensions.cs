@@ -713,7 +713,7 @@ internal static partial class ISymbolExtensions
         }
 
         // bool IsCompleted { get }
-        if (!returnType.GetMembers().OfType<IPropertySymbol>().Any(p => p.Name == WellKnownMemberNames.IsCompleted && p.Type.SpecialType == SpecialType.System_Boolean && p.GetMethod != null))
+        if (!returnType.GetMembers().OfType<IPropertySymbol>().Any(p => p is { Name: WellKnownMemberNames.IsCompleted, Type.SpecialType: SpecialType.System_Boolean, GetMethod: not null }))
         {
             return false;
         }
@@ -727,7 +727,7 @@ internal static partial class ISymbolExtensions
 
         // void OnCompleted(Action) 
         // Actions are delegates, so we'll just check for delegates.
-        if (!methods.Any(x => x.Name == WellKnownMemberNames.OnCompleted && x.ReturnsVoid && x.Parameters is [{ Type.TypeKind: TypeKind.Delegate }]))
+        if (!methods.Any(x => x is { Name: WellKnownMemberNames.OnCompleted, ReturnsVoid: true, Parameters: [{ Type.TypeKind: TypeKind.Delegate }] }))
             return false;
 
         // void GetResult() || T GetResult()
@@ -752,7 +752,7 @@ internal static partial class ISymbolExtensions
             .ToList();
 
         // T Current { get }
-        if (!members.OfType<IPropertySymbol>().Any(p => p.Name == WellKnownMemberNames.CurrentPropertyName && p.GetMethod != null))
+        if (!members.OfType<IPropertySymbol>().Any(p => p is { Name: WellKnownMemberNames.CurrentPropertyName, GetMethod: not null }))
         {
             return false;
         }
@@ -792,7 +792,7 @@ internal static partial class ISymbolExtensions
             .ToList();
 
         // T Current { get }
-        if (!members.OfType<IPropertySymbol>().Any(p => p.Name == WellKnownMemberNames.CurrentPropertyName && p.GetMethod != null))
+        if (!members.OfType<IPropertySymbol>().Any(p => p is { Name: WellKnownMemberNames.CurrentPropertyName, GetMethod: not null }))
         {
             return false;
         }

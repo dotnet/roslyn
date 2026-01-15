@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Accessibility_modifiers_unnecessary">
         <source>Accessibility modifiers unnecessary</source>
-        <target state="new">Accessibility modifiers unnecessary</target>
+        <target state="translated">Modificadores de accesibilidad innecesarios</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
@@ -196,6 +196,11 @@
         <target state="translated">Hacer el archivo de solo lectura</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_method_synchronous">
+        <source>Make method synchronous</source>
+        <target state="translated">Convertir el método en sincrónico</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Member_access_should_be_qualified">
         <source>Member access should be qualified.</source>
         <target state="translated">Debe calificarse el acceso a miembros.</target>
@@ -209,6 +214,11 @@
       <trans-unit id="Member_name_can_be_simplified">
         <source>Member name can be simplified</source>
         <target state="translated">El nombre del miembro se puede simplificar.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Method_can_be_made_synchronous">
+        <source>Method can be made synchronous</source>
+        <target state="translated">El método puede hacerse sincrónico</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifiers_are_not_ordered">
@@ -333,7 +343,7 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_unsafe_modifier">
         <source>Remove unnecessary 'unsafe' modifier</source>
-        <target state="new">Remove unnecessary 'unsafe' modifier</target>
+        <target state="translated">Quitar el modificador “unsafe” innecesario</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unread_private_members">
@@ -418,7 +428,7 @@
       </trans-unit>
       <trans-unit id="Suppression_is_unnecessary">
         <source>Suppression is unnecessary</source>
-        <target state="new">Suppression is unnecessary</target>
+        <target state="translated">La supresión no es necesaria</target>
         <note />
       </trans-unit>
       <trans-unit id="The_file_header_does_not_match_the_required_text">
@@ -498,7 +508,7 @@
       </trans-unit>
       <trans-unit id="unsafe_modifier_is_unnecessary">
         <source>'unsafe' modifier is unnecessary</source>
-        <target state="new">'unsafe' modifier is unnecessary</target>
+        <target state="translated">El modificador “unsafe” no es necesario</target>
         <note />
       </trans-unit>
     </body>

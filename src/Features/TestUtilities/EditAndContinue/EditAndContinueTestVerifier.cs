@@ -276,7 +276,7 @@ internal abstract class EditAndContinueTestVerifier
         }
 
         var duplicateNonPartial = allEdits
-            .Where(e => e.PartialType == null && e.DeletedSymbolContainer is null)
+            .Where(e => e is { PartialType: null, DeletedSymbolContainer: null })
             .GroupBy(e => e.Symbol, SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: true))
             .Where(g => g.Count() > 1)
             .Select(g => g.Key);

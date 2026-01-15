@@ -134,7 +134,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""additionalTexts"": [],
   ""analyzers"": [],
   ""generators"": [],
-  ""emitOptions"": null
+  ""emitOptions"": null,
+  ""resources"": []
 }
 ", key);
         }
@@ -266,7 +267,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""additionalTexts"": [],
   ""analyzers"": [],
   ""generators"": [],
-  ""emitOptions"": null
+  ""emitOptions"": null,
+  ""resources"": []
 }}
 ", key, "references", "syntaxTrees", "extensions");
         }
@@ -584,11 +586,164 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     "pdbChecksumAlgorithm": "SHA256",
     "runtimeMetadataVersion": null,
     "defaultSourceFileEncoding": null,
-    "fallbackSourceFileEncoding": null
-  }
+    "fallbackSourceFileEncoding": null,
+    "sourceLink": null
+  },
+  "resources": []
 }
 """;
             AssertJson(expected, json, "toolsVersions", "references", "extensions");
+        }
+
+        [Fact]
+        public void SourceLink()
+        {
+            var syntaxTree = CSharpTestBase.Parse("", filename: "file.cs", checksumAlgorithm: SourceHashAlgorithms.Default);
+            var compilation = CSharpTestBase.CreateCompilation(syntaxTree, options: Options);
+
+            var sourceLinkContent = """
+{
+  "documents": {
+    "/*": "https://raw.githubusercontent.com/test/repo/*"
+  }
+}
+""";
+            var sourceLinkBytes = Encoding.UTF8.GetBytes(sourceLinkContent);
+            string sourceLinkChecksum = GetChecksum(sourceLinkBytes);
+
+            using var sourceLinkStream = new System.IO.MemoryStream(sourceLinkBytes);
+            var key = compilation.GetDeterministicKey(emitOptions: EmitOptions, sourceLinkStream: sourceLinkStream, options: DeterministicKeyOptions.IgnoreToolVersions);
+
+            var expected = $$"""
+"sourceLink": {
+  "checksum": "{{sourceLinkChecksum}}",
+  "checksumAlgorithm": "Sha256"
+}
+""";
+            AssertJsonSection(expected, key, "emitOptions.sourceLink");
+        }
+
+        [Fact]
+        public void Resources()
+        {
+            var syntaxTree = CSharpTestBase.Parse(
+                "",
+                filename: "file.cs",
+                checksumAlgorithm: HashAlgorithm);
+            var compilation = CSharpTestBase.CreateCompilation(syntaxTree, options: Options);
+
+            // Embedded public resource
+            var embeddedPublicBytes = Encoding.UTF8.GetBytes("Embedded public resource");
+            string embeddedPublicChecksum = GetChecksum(embeddedPublicBytes);
+
+            // Embedded non-public resource
+            var embeddedPrivateBytes = Encoding.UTF8.GetBytes("Embedded private resource");
+            string embeddedPrivateChecksum = GetChecksum(embeddedPrivateBytes);
+
+            var resources = ImmutableArray.Create(
+                new ResourceDescription(
+                    "EmbeddedPublicResource",
+                    () => new System.IO.MemoryStream(embeddedPublicBytes),
+                    isPublic: true),
+                new ResourceDescription(
+                    "EmbeddedPrivateResource",
+                    () => new System.IO.MemoryStream(embeddedPrivateBytes),
+                    isPublic: false),
+                new ResourceDescription(
+                    "LinkedResource",
+                    "LinkedResource.txt",
+                    () => new System.IO.MemoryStream(Encoding.UTF8.GetBytes("dummy")),
+                    isPublic: true)
+            );
+
+            var key = compilation.GetDeterministicKey(resources: resources, options: DeterministicKeyOptions.IgnoreToolVersions);
+
+            var expected = $$"""
+"resources": [
+  {
+    "resourceName": "EmbeddedPublicResource",
+    "fileName": null,
+    "isPublic": true,
+    "content": {
+      "checksum": "{{embeddedPublicChecksum}}",
+      "checksumAlgorithm": "Sha256"
+    }
+  },
+  {
+    "resourceName": "EmbeddedPrivateResource",
+    "fileName": null,
+    "isPublic": false,
+    "content": {
+      "checksum": "{{embeddedPrivateChecksum}}",
+      "checksumAlgorithm": "Sha256"
+    }
+  },
+  {
+    "resourceName": "LinkedResource",
+    "fileName": "LinkedResource.txt",
+    "isPublic": true,
+    "content": null
+  }
+]
+""";
+            AssertJsonSection(expected, key, "resources");
+        }
+
+        [Fact]
+        public void MultipleSyntaxTreesWithDifferentChecksumAlgorithms()
+        {
+            var source1 = "public class Class1 { }";
+            var source2 = "public class Class2 { }";
+
+            var tree1 = CSharpTestBase.Parse(source1, filename: "file1.cs", checksumAlgorithm: SourceHashAlgorithm.Sha1);
+            var tree2 = CSharpTestBase.Parse(source2, filename: "file2.cs", checksumAlgorithm: SourceHashAlgorithm.Sha256);
+
+            var compilation = CSharpTestBase.CreateCompilation([tree1, tree2]);
+            var key = compilation.GetDeterministicKey(options: DeterministicKeyOptions.IgnoreToolVersions);
+
+            var checksum1 = GetChecksum(tree1.GetText());
+            var checksum2 = GetChecksum(tree2.GetText());
+
+            AssertJsonSection($$"""
+"syntaxTrees": [
+  {
+    "fileName": "file1.cs",
+    "text": {
+      "checksum": "{{checksum1}}",
+      "checksumAlgorithm": "Sha1",
+      "encodingName": "Unicode (UTF-8)"
+    },
+    "parseOptions": {
+      "kind": "Regular",
+      "specifiedKind": "Regular",
+      "documentationMode": "Parse",
+      "language": "C#",
+      "features": {},
+      "languageVersion": "Preview",
+      "specifiedLanguageVersion": "Preview",
+      "preprocessorSymbols": []
+    }
+  },
+  {
+    "fileName": "file2.cs",
+    "text": {
+      "checksum": "{{checksum2}}",
+      "checksumAlgorithm": "Sha256",
+      "encodingName": "Unicode (UTF-8)"
+    },
+    "parseOptions": {
+      "kind": "Regular",
+      "specifiedKind": "Regular",
+      "documentationMode": "Parse",
+      "language": "C#",
+      "features": {},
+      "languageVersion": "Preview",
+      "specifiedLanguageVersion": "Preview",
+      "preprocessorSymbols": []
+    }
+  }
+]
+""", key, "compilation.syntaxTrees");
         }
     }
 }
