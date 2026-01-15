@@ -34603,12 +34603,13 @@ partial class Program
                 }
                 """;
 
-            // We're missing a diagnostic for the `where T : notnull` constraint on the Create method
-            // Tracked by https://github.com/dotnet/roslyn/issues/68786
             CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
                 // (9,1): warning CS8602: Dereference of a possibly null reference.
                 // M(ref maybeNull, [maybeNull]).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M(ref maybeNull, [maybeNull])").WithLocation(9, 1));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M(ref maybeNull, [maybeNull])").WithLocation(9, 1),
+                // (9,18): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                // M(ref maybeNull, [maybeNull]).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "[maybeNull]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "string?").WithLocation(9, 18));
         }
 
         [Fact]
@@ -34645,13 +34646,13 @@ partial class Program
                 }
                 """;
 
-            // We're missing a diagnostic for the `where T : notnull` constraint on the Create method
-            // Tracked by https://github.com/dotnet/roslyn/issues/68786
-
             CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
                 // (9,1): warning CS8602: Dereference of a possibly null reference.
                 // M(ref maybeNull, [maybeNull]).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M(ref maybeNull, [maybeNull])").WithLocation(9, 1));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M(ref maybeNull, [maybeNull])").WithLocation(9, 1),
+                // (9,18): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                // M(ref maybeNull, [maybeNull]).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "[maybeNull]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "string?").WithLocation(9, 18));
         }
 
         [Fact]

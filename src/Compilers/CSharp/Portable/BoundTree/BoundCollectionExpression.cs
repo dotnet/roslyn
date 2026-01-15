@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -10,30 +11,55 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private partial void Validate()
         {
+            var collectionCreation = this.GetUnconvertedCollectionCreation();
+            var collectionBuilderElementsPlaceholder = this.CollectionBuilderElementsPlaceholder;
+
+            if (collectionCreation is BoundCall boundCall)
+            {
+                Debug.Assert(this.CollectionTypeKind == CollectionExpressionTypeKind.CollectionBuilder);
+                Debug.Assert(this.CollectionCreation is not null);
+                Debug.Assert(this.CollectionBuilderMethod is not null);
+                Debug.Assert(collectionBuilderElementsPlaceholder is not null);
+                Debug.Assert(collectionBuilderElementsPlaceholder.Type is not null);
+
+                Debug.Assert(boundCall.Arguments is [.., BoundCollectionBuilderElementsPlaceholder placeholder] &&
+                    placeholder == collectionBuilderElementsPlaceholder);
+                Debug.Assert(collectionBuilderElementsPlaceholder.Type.IsReadOnlySpan());
+            }
+            else
+            {
+                Debug.Assert(this.CollectionTypeKind != CollectionExpressionTypeKind.CollectionBuilder);
+                Debug.Assert(this.CollectionBuilderMethod is null);
+                Debug.Assert(collectionBuilderElementsPlaceholder is null);
+            }
+        }
+
+        /// <summary>
+        /// Returns <see cref="CollectionCreation"/> with any outer <see cref="BoundConversion"/> nodes unwrapped. The
+        /// final returned <see cref="BoundExpression"/> will either be:
+        /// <list type="bullet">
+        /// <item><see langword="null"/> (when no <c>with(...)</c> element is present),</item>
+        /// <item>a <see cref="BoundObjectCreationExpression"/> (when targeting a collection with a constructor),</item>
+        /// <item>a <see cref="BoundCall"/> (when targeting a CollectionBuilder method),</item>
+        /// <item>a <see cref="BoundNewT"/> (when targeting a type parameter with the <c>new()</c> constraint,</item>
+        /// <item>or a <see cref="BoundBadExpression"/> in the case of errors where the <c>with(...)</c> element does
+        /// not bind properly.</item>
+        /// </list>
+        /// </summary>
+        public BoundExpression? GetUnconvertedCollectionCreation()
+        {
             var collectionCreation = this.CollectionCreation;
             while (collectionCreation is BoundConversion conversion)
                 collectionCreation = conversion.Operand;
 
             Debug.Assert(collectionCreation
-                            is null
-                            or BoundObjectCreationExpression
-                            or BoundCall
-                            or BoundNewT
-                            or BoundBadExpression);
+                is null
+                or BoundObjectCreationExpression
+                or BoundCall
+                or BoundNewT
+                or BoundBadExpression);
 
-            if (collectionCreation is BoundCall boundCall)
-            {
-                Debug.Assert(
-                    boundCall.Arguments is [.., BoundCollectionBuilderElementsPlaceholder placeHolder] &&
-                    placeHolder == this.CollectionBuilderElementsPlaceholder);
-            }
-
-            if (this.CollectionTypeKind == CollectionExpressionTypeKind.CollectionBuilder)
-            {
-                Debug.Assert(this.CollectionCreation is not null);
-                Debug.Assert(this.CollectionBuilderMethod is not null);
-                Debug.Assert(this.CollectionBuilderElementsPlaceholder is not null);
-            }
+            return collectionCreation;
         }
     }
 

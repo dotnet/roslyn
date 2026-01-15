@@ -9377,4 +9377,192 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             targetFramework: TargetFramework.Net80,
             verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
+
+    [Fact]
+    public void ConstructibleTypeParameterNoArguments()
+    {
+        string sourceA = """
+            using System;
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main()
+                {
+                    var v = M<List<int>>(1);
+                    Console.WriteLine(v[0]);
+                }
+
+                static T M<T>(int i) where T : IList<int>, new()
+                {
+                    T t = [with(), i];
+                    return t;
+                }
+            }
+            """;
+
+        CompileAndVerify(
+            sourceA,
+            expectedOutput: IncludeExpectedOutput("1"),
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ConstructibleTypeParameterWithArgument1()
+    {
+        string sourceA = """
+            using System;
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main()
+                {
+                    var v = M<List<int>>(1);
+                    Console.WriteLine(v[0]);
+                }
+            
+                static T M<T>(int i) where T : IList<int>, new()
+                {
+                    T t = [with(i)];
+                    return t;
+                }
+            }
+            """;
+
+        CreateCompilation(sourceA, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+            // (14,16): error CS0417: 'T': cannot provide arguments when creating an instance of a variable type
+            //         T t = [with(i)];
+            Diagnostic(ErrorCode.ERR_NewTyvarWithArgs, "with(i)").WithArguments("T").WithLocation(14, 16));
+    }
+
+    [Fact]
+    public void ConstructibleTypeParameterWithArgument2()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main()
+                {
+                    var v = M<List<int>>(1);
+                    Console.WriteLine(v[0]);
+                }
+            
+                static T M<T>(int i) where T : IList<int>, new()
+                {
+                    string? s;
+                    T t = [with(s = "")];
+                    Console.WriteLine(s);
+                    Goo(s);
+                    return t;
+                }
+            
+                static void Goo(string s) { }
+            }
+            """;
+
+        CreateCompilation(sourceA, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+            // (16,16): error CS0417: 'T': cannot provide arguments when creating an instance of a variable type
+            //         T t = [with(s = "")];
+            Diagnostic(ErrorCode.ERR_NewTyvarWithArgs, @"with(s = """")").WithArguments("T").WithLocation(16, 16));
+    }
+
+    [Theory]
+    [InlineData("IList<int>")]
+    [InlineData("ICollection<int>")]
+    public void InterfaceTypeWithArgument1(string type)
+    {
+        string sourceA = $$"""
+            #nullable enable
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main()
+                {
+                    string? s;
+                    {{type}} t = [with(s = "")];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CreateCompilation(sourceA, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+            // (9,36): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+            //         ICollection<int> t = [with(s = "")];
+            Diagnostic(ErrorCode.ERR_BadArgType, @"s = """"").WithArguments("1", "string", "int"));
+    }
+
+    [Fact]
+    public void TestAwait1()
+    {
+        string sourceA = $$"""
+            using System;
+            using System.Threading.Tasks;
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static async Task Main()
+                {
+                    List<int> s = [with(await GetValue(42)), await GetValue(0), await GetValue(1)];
+                    Console.WriteLine(s.Capacity);
+                    Console.WriteLine(string.Join(", ", s));
+                }
+
+                static Task<int> GetValue(int value) => Task.FromResult(value);
+            }
+            """;
+
+        var compilation = CreateRuntimeAsyncCompilation(sourceA, TestOptions.ReleaseExe);
+        CompileAndVerify(compilation,
+            expectedOutput: ExecutionConditionUtil.IsCoreClr && RuntimeAsyncTestHelpers.IsRuntimeAsyncEnabled ? """
+                42
+                0, 1
+                """ : null,
+            verify: Verification.Fails with { ILVerifyMessage = "[Main]: Return value missing on the stack. { Offset = 0x53 }" })
+            .VerifyDiagnostics().VerifyIL("Program.Main", """
+            {
+              // Code size       84 (0x54)
+              .maxstack  3
+              .locals init (System.Collections.Generic.List<int> V_0, //s
+                            int V_1,
+                            int V_2)
+              IL_0000:  ldc.i4.s   42
+              IL_0002:  call       "System.Threading.Tasks.Task<int> Program.GetValue(int)"
+              IL_0007:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_000c:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+              IL_0011:  dup
+              IL_0012:  ldc.i4.0
+              IL_0013:  call       "System.Threading.Tasks.Task<int> Program.GetValue(int)"
+              IL_0018:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_001d:  stloc.1
+              IL_001e:  ldloc.1
+              IL_001f:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+              IL_0024:  dup
+              IL_0025:  ldc.i4.1
+              IL_0026:  call       "System.Threading.Tasks.Task<int> Program.GetValue(int)"
+              IL_002b:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_0030:  stloc.2
+              IL_0031:  ldloc.2
+              IL_0032:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+              IL_0037:  stloc.0
+              IL_0038:  ldloc.0
+              IL_0039:  callvirt   "int System.Collections.Generic.List<int>.Capacity.get"
+              IL_003e:  call       "void System.Console.WriteLine(int)"
+              IL_0043:  ldstr      ", "
+              IL_0048:  ldloc.0
+              IL_0049:  call       "string string.Join<int>(string, System.Collections.Generic.IEnumerable<int>)"
+              IL_004e:  call       "void System.Console.WriteLine(string)"
+              IL_0053:  ret
+            }
+            """);
+    }
 }
