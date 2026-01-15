@@ -112,7 +112,20 @@ green token, every piece of green trivia, every green list is a `GreenNode` subc
 
 Why? Because structs cannot participate in the sharing scenarios described above. If tokens were
 structs at the green level, reusing an identifier across multiple locations would require copying
-the struct each time. With green nodes as objects, we just point to the same object.
+the struct each time. With green nodes as objects, we can instead point to the same instance.
+
+Beyond sharing, this choice also enables an important aspect of the green layer’s design:
+specialization. The green tree contains many specialized implementations tailored for different
+scenarios (for example, optimized token representations and specialized list implementations).
+This specialization is essential for achieving good performance and memory usage, and will be
+discussed in more detail below.
+
+Structs are not well suited to this role, as they cannot participate in inheritance hierarchies
+or support multiple specialized implementations behind a common abstraction. By representing
+green nodes as objects, we can use standard inheritance techniques to freely specialize the
+internal representation, while still exposing a simple, lightweight, struct-based API at th
+e public syntax level. The public structs effectively act as thin facades over these underlying
+green nodes.
 
 The consequence is that red wrappers are extremely cheap. A red `SyntaxToken` struct is just:
 
