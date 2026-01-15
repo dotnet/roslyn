@@ -2959,7 +2959,46 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 """,
             expectedUnsafeSymbols: ["C.M"],
             expectedSafeSymbols: ["C"],
-            expectedDiagnostics: []);
+            expectedDiagnostics:
+            [
+                // (1,22): error CS9502: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // delegate*<void> p1 = &C.M;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "&C.M").WithArguments("C.M()").WithLocation(1, 22),
+            ]);
+    }
+
+    [Fact]
+    public void Member_Method_ConvertToDelegate()
+    {
+        // PROTOTYPE: confirm with LDM that delegates cannot be marked caller-unsafe;
+        //            then unsafe modifier on a delegate should result in a warning
+        CompileAndVerifyUnsafe(
+            lib: """
+                public static class C
+                {
+                    public static unsafe void M() { }
+                }
+                """,
+            caller: """
+                D1 a = C.M;
+                D2 b = C.M;
+                unsafe { D1 c = C.M; }
+                unsafe { D1 d = C.M; }
+
+                delegate void D1();
+                unsafe delegate void D2();
+                """,
+            expectedUnsafeSymbols: ["C.M"],
+            expectedSafeSymbols: ["C"],
+            expectedDiagnostics:
+            [
+                // (1,8): error CS9502: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // D1 a = C.M;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "C.M").WithArguments("C.M()").WithLocation(1, 8),
+                // (2,8): error CS9502: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // D2 b = C.M;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "C.M").WithArguments("C.M()").WithLocation(2, 8),
+            ]);
     }
 
     [Fact]
@@ -3096,7 +3135,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await new Task()").WithLocation(7, 18));
     }
 
-    // PROTOTYPE: Test also lambdas and delegates.
     [Fact]
     public void Member_LocalFunction()
     {
@@ -3112,6 +3150,72 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (1,1): error CS9502: 'M1()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
             // M1();
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M1()").WithArguments("M1()").WithLocation(1, 1));
+    }
+
+    [Fact]
+    public void Member_Lambda()
+    {
+        // PROTOTYPE: confirm with LDM that lambdas cannot be marked caller-unsafe
+        var source = """
+            var lam = unsafe () => { };
+            """;
+        CreateCompilation(source,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (1,11): error CS1525: Invalid expression term 'unsafe'
+            // var lam = unsafe () => { };
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "unsafe").WithArguments("unsafe").WithLocation(1, 11),
+            // (1,11): error CS1002: ; expected
+            // var lam = unsafe () => { };
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "unsafe").WithLocation(1, 11),
+            // (1,19): error CS8124: Tuple must contain at least two elements.
+            // var lam = unsafe () => { };
+            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 19),
+            // (1,21): error CS1001: Identifier expected
+            // var lam = unsafe () => { };
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 21),
+            // (1,24): error CS1525: Invalid expression term '{'
+            // var lam = unsafe () => { };
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(1, 24),
+            // (1,24): error CS1002: ; expected
+            // var lam = unsafe () => { };
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 24));
+    }
+
+    [Fact]
+    public void Member_Lambda_InUnsafeContext()
+    {
+        var source = """
+            unsafe
+            {
+                D lam = () => { };
+            }
+
+            delegate void D();
+            """;
+        var metadata = CreateCompilation(source,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics()
+            .EmitToImageReference();
+        var assemblySymbol = CreateCompilation("", [metadata],
+            options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            .GetReferencedAssemblySymbol(metadata);
+        VerifyRequiresUnsafeAttribute(
+            assemblySymbol.Modules.Single(),
+            includesAttributeDefinition: false,
+            expectedUnsafeSymbols: [],
+            expectedSafeSymbols:
+            [
+                "Program",
+                "Program.<Main>$",
+                "Program.<>c",
+                "Program.<>c.<<Main>$>b__0_0",
+                "D",
+                "D..ctor",
+                "D.Invoke",
+                "D.BeginInvoke",
+                "D.EndInvoke",
+            ]);
     }
 
     [Fact]
