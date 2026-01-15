@@ -2685,4 +2685,70 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     }
 
     #endregion
+
+    #region MemberNotNull
+
+    [Fact]
+    public void CollectionBuilderWithMemberNotNull()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+            }
+            
+            static class MyBuilder
+            {
+                public static string? Singleton;
+
+                [MemberNotNull(nameof(Singleton))]
+                public static MyCollection<T> Create<T>(bool b, ReadOnlySpan<T> items) => throw null!;
+            }
+
+            static class Other
+            {
+                public static string? Singleton;
+
+                [MemberNotNull(nameof(Singleton))]
+                public static void EnsureNotNull() => throw null!;
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    Other.EnsureNotNull();
+                    Goo(Other.Singleton);
+
+                    MyCollection<int> list = [with(true)];
+                    Goo(MyBuilder.Singleton);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        // PROTOTYPE: MemberNotNull analysis does not flow across calls to collection builders yet. This is probably
+        // because we lack a way to track that the collection builder affects 'MyBuilder' state, and thus the member
+        // access to MyBuilder.Singleton.  This is unlike the normal static call case on 'Other' where both the method
+        // call and the member access are off of the same 'Other' type in the code directly.
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (14,27): warning CS0649: Field 'MyBuilder.Singleton' is never assigned to, and will always have its default value null
+            //     public static string? Singleton;
+            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Singleton").WithArguments("MyBuilder.Singleton", "null").WithLocation(14, 27),
+            // (22,27): warning CS0649: Field 'Other.Singleton' is never assigned to, and will always have its default value null
+            //     public static string? Singleton;
+            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Singleton").WithArguments("Other.Singleton", "null").WithLocation(22, 27),
+            // (36,13): warning CS8604: Possible null reference argument for parameter 's' in 'void C.Goo(string s)'.
+            //         Goo(MyBuilder.Singleton);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "MyBuilder.Singleton").WithArguments("s", "void C.Goo(string s)").WithLocation(36, 13));
+    }
+
+    #endregion
 }
