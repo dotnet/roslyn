@@ -2454,13 +2454,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_StructLayoutAndExtendedLayout = 9351,
         ERR_RuntimeDoesNotSupportExtendedLayoutTypes = 9352,
 
-        // PROTOTYPE: Renumber accordingly.
-        ERR_CollectionArgumentsMustBeFirst = 9400,
-        ERR_CollectionArgumentsNotSupportedForType = 9401,
-        ERR_CollectionArgumentsDynamicBinding = 9402,
-        ERR_CollectionArgumentsMustBeEmpty = 9403,
-        ERR_CollectionRefLikeElementType = 9404,
-        ERR_BadCollectionArgumentsArgCount = 9405,
+        ERR_CollectionArgumentsMustBeFirst = 9353,
+        ERR_CollectionArgumentsNotSupportedForType = 9354,
+        ERR_CollectionArgumentsDynamicBinding = 9355,
+        ERR_CollectionArgumentsMustBeEmpty = 9356,
+        ERR_CollectionRefLikeElementType = 9357,
+        ERR_BadCollectionArgumentsArgCount = 9358,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
