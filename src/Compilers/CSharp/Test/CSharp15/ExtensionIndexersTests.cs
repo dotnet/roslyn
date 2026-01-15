@@ -4411,6 +4411,54 @@ public static class E
             "(E.extension(int).this[], null)",
             "(E.extension(int).Item(string), null)"],
             PrintXmlCrefSymbols(tree, model));
+
+        src = """
+/// <see cref="E.extension(int).this[string]"/>
+/// <see cref="E.extension(int).get_Item(string)"/>
+public static class E
+{
+    extension(int i)
+    {
+        /// <summary></summary>
+        public int this[string s]
+        {
+            get => throw null;
+            set => throw null;
+        }
+    }
+}
+""";
+
+        CreateCompilation(src, parseOptions: TestOptions.Regular13.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyEmitDiagnostics(
+            // (1,16): warning CS1574: XML comment has cref attribute 'extension(int).this[string]' that could not be resolved
+            // /// <see cref="E.extension(int).this[string]"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(int).this[string]").WithArguments("extension(int).this[string]").WithLocation(1, 16),
+            // (1,18): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // /// <see cref="E.extension(int).this[string]"/>
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extension(int).this[string]").WithArguments("extension indexers").WithLocation(1, 18),
+            // (2,16): warning CS1574: XML comment has cref attribute 'extension(int).get_Item(string)' that could not be resolved
+            // /// <see cref="E.extension(int).get_Item(string)"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(int).get_Item(string)").WithArguments("extension(int).get_Item(string)").WithLocation(2, 16),
+            // (2,18): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+            // /// <see cref="E.extension(int).get_Item(string)"/>
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "extension(int).get_Item(string)").WithArguments("extensions", "14.0").WithLocation(2, 18),
+            // (5,5): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+            //     extension(int i)
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, @"extension(int i)
+{
+").WithArguments("extensions", "14.0").WithLocation(5, 5),
+            // (5,5): error CS0710: Static classes cannot have instance constructors
+            //     extension(int i)
+            Diagnostic(ErrorCode.ERR_ConstructorInStaticClass, "extension").WithLocation(5, 5),
+            // (6,6): error CS1513: } expected
+            //     {
+            Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(6, 6),
+            // (8,20): error CS0720: 'E.this[string]': cannot declare indexers in a static class
+            //         public int this[string s]
+            Diagnostic(ErrorCode.ERR_IndexerInStaticClass, "this").WithArguments("E.this[string]").WithLocation(8, 20),
+            // (14,1): error CS1022: Type or namespace definition, or end-of-file expected
+            // }
+            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(14, 1));
     }
 
     [Fact]
@@ -4470,16 +4518,7 @@ class C { }
     public void Cref_03()
     {
         // [IndexerName]
-        var src = """
-/// <see cref="E.extension(int).this[string]"/>
-/// <see cref="E.extension(int).get_MyIndexer(string)"/>
-/// <see cref="E.extension(int).get_MyIndexer"/>
-/// <see cref="E.extension(int).set_MyIndexer(string, int)"/>
-/// <see cref="E.extension(int).set_MyIndexer"/>
-/// <see cref="E.get_MyIndexer(int, string)"/>
-/// <see cref="E.get_MyIndexer"/>
-/// <see cref="E.set_MyIndexer(int, string, int)"/>
-/// <see cref="E.set_MyIndexer"/>
+        var libSrc = """
 static class E
 {
     extension(int i)
@@ -4493,7 +4532,24 @@ static class E
     }
 }
 """;
-        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        var src = """
+/// <see cref="E.extension(int).this[string]"/>
+/// <see cref="E.extension(int).get_MyIndexer(string)"/>
+/// <see cref="E.extension(int).get_MyIndexer"/>
+/// <see cref="E.extension(int).set_MyIndexer(string, int)"/>
+/// <see cref="E.extension(int).set_MyIndexer"/>
+/// <see cref="E.get_MyIndexer(int, string)"/>
+/// <see cref="E.get_MyIndexer"/>
+/// <see cref="E.set_MyIndexer(int, string, int)"/>
+/// <see cref="E.set_MyIndexer"/>
+static class C
+{
+}
+""";
+
+        var libComp = CreateCompilation(libSrc);
+
+        var comp = CreateCompilation(src, references: [libComp.EmitToImageReference()], parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();

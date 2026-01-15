@@ -223,8 +223,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<Symbol> BindExtensionMemberCref(ExtensionMemberCrefSyntax syntax, NamespaceOrTypeSymbol? containerOpt, out Symbol? ambiguityWinner, BindingDiagnosticBag diagnostics)
         {
-            CheckFeatureAvailability(syntax, MessageID.IDS_FeatureExtensions, diagnostics);
-
             int arity = 0;
             TypeArgumentListSyntax? typeArgumentListSyntax = null;
             BaseCrefParameterListSyntax? parameters = null;
@@ -232,6 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (syntax.Member is NameMemberCrefSyntax { Name: SimpleNameSyntax simpleName } nameMember)
             {
+                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureExtensions, diagnostics);
                 arity = simpleName.Arity;
                 typeArgumentListSyntax = simpleName is GenericNameSyntax genericName ? genericName.TypeArgumentList : null;
                 parameters = nameMember.Parameters;
@@ -239,6 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (syntax.Member is OperatorMemberCrefSyntax operatorSyntax)
             {
+                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureExtensions, diagnostics);
                 memberName = GetOperatorMethodName(operatorSyntax);
                 parameters = operatorSyntax.Parameters;
             }
