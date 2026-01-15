@@ -2688,7 +2688,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
 
     #region MemberNotNull
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82029")]
     public void CollectionBuilderWithMemberNotNull()
     {
         var source = """
@@ -2734,10 +2734,13 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             }
             """;
 
-        // PROTOTYPE: MemberNotNull analysis does not flow across calls to collection builders yet. This is probably
+        // MemberNotNull analysis does not flow across calls to collection builders yet. This is probably
         // because we lack a way to track that the collection builder affects 'MyBuilder' state, and thus the member
         // access to MyBuilder.Singleton.  This is unlike the normal static call case on 'Other' where both the method
         // call and the member access are off of the same 'Other' type in the code directly.
+        //
+        // https://github.com/dotnet/roslyn/issues/82029 tracks determining if this is even a bug, or is the
+        // expected behavior.
         CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics(
             // (14,27): warning CS0649: Field 'MyBuilder.Singleton' is never assigned to, and will always have its default value null
             //     public static string? Singleton;
