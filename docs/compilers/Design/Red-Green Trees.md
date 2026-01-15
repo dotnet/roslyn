@@ -154,7 +154,7 @@ elements.
 
 Lists with 5 or more elements use an array-backed representation.
 
-### Why This Matters
+#### Why This Matters
 
 In practice, **90% or more of lists contain 4 elements or fewer**. Think about how often you write
 methods with 0, 1, 2, or 3 parameters versus methods with 5+ parameters. Argument lists, type
@@ -163,6 +163,27 @@ parameter lists, attribute lists—all follow similar distributions.
 By optimizing for the common case, Roslyn avoids array allocations for the overwhelming majority of
 lists. The red `SyntaxList<T>` and `SeparatedSyntaxList<T>` structs handle all these cases
 transparently, presenting a uniform API regardless of the underlying representation.
+
+### Weakly-held red children
+
+Certain red lists are able to hold their red children using weak references. This allows portions of
+the red tree to be reclaimed by the GC when they are no longer strongly reachable, without affecting
+correctness.
+
+This is safe because a red node can only be collected if nothing is holding a strong reference to it.
+If the only remaining reference is the weak reference held by the parent list, then there is no possible
+observer that could notice the red node going away. If the child is later requested again, a new red
+node will be created from the same underlying green node. Since red nodes are purely a cache over
+immutable green structure, this behavior is unobservable and semantically equivalent to retaining the
+original red node.
+
+#### Current usage
+
+Currently, this optimization is applied only to blocks (`{ ... }`) that are owned by a member or
+accessor. These blocks can be large, and are often only needed temporarily during analysis. By allowing
+the red lists for such blocks to weakly reference their children, large amounts of red memory can be
+released once nothing else is holding onto those nodes, reducing peak memory usage while preserving
+the existing red/green tree semantics.
 
 ## Green Node Caching
 
