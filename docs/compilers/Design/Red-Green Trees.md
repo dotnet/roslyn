@@ -180,7 +180,8 @@ original red node.
 #### Current usage
 
 Currently, this optimization is applied only to blocks (`{ ... }`) that are owned by a member or
-accessor. These blocks can be large, and are often only needed temporarily during analysis. By allowing
+accessor ([see here](https://github.com/dotnet/roslyn/blob/744249e4f0afb645808e87aebec109a38d5dde8b/src/Compilers/CSharp/Portable/Syntax/CSharpSyntaxNode.cs#L518)).
+These blocks can be large, and are often only needed temporarily during analysis. By allowing
 the red lists for such blocks to weakly reference their children, large amounts of red memory can be
 released once nothing else is holding onto those nodes, reducing peak memory usage while preserving
 the existing red/green tree semantics.
