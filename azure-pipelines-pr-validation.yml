@@ -246,7 +246,7 @@ extends:
                     -configuration $(BuildConfiguration)
                     -officialBuildId $(OriginalBuildNumber)
                     -officialSkipTests $(SkipTests)
-                    -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
+                    -officialSkipApplyOptimizationData ${{ parameters.SkipApplyOptimizationData }}
                     -officialSourceBranchName $(SourceBranchName)
                     -officialIbcDrop $(IbcDrop)
                     -officialVisualStudioDropAccessToken $(_DevDivDropAccessToken)
