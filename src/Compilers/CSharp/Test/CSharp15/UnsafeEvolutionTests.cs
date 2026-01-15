@@ -126,6 +126,19 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             ?? throw new InvalidOperationException($"Cannot find '{qualifiedName}' with {parameterCount} parameters.");
     }
 
+    private static Func<ModuleSymbol, Symbol> OverloadByReturnType(string qualifiedName, string returnType)
+    {
+        return module =>
+        {
+            var candidates = module.GlobalNamespace
+                .GetMembersByQualifiedName<MethodSymbol>(qualifiedName);
+
+            return candidates.SingleOrDefault(m => m.ReturnType.ToTestDisplayString() == returnType)
+                ?? throw new InvalidOperationException($"Cannot find '{qualifiedName}' with return type '{returnType}'. " +
+                    $"Found {string.Join(", ", candidates.Select(static m => m.ReturnType.ToTestDisplayString()))}.");
+        };
+    }
+
     private static void VerifyMemorySafetyRulesAttribute(
         ModuleSymbol module,
         bool includesAttributeDefinition,
@@ -3906,6 +3919,33 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (7,37): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresUnsafeAttribute' is not defined or imported
             //         public unsafe void operator -=(C c2) { }
             Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "-=").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(7, 37));
+    }
+
+    [Fact]
+    public void Member_Operator_Conversion()
+    {
+        CompileAndVerifyUnsafe(
+            lib: """
+                public class C
+                {
+                    public static implicit operator int(C c) => 0;
+                    public static unsafe implicit operator string(C c) => "";
+                }
+                """,
+            caller: """
+                var c = new C();
+                int i = c;
+                string s = c;
+                unsafe { string s2 = c; }
+                """,
+            expectedUnsafeSymbols: [OverloadByReturnType("C.op_Implicit", "System.String")],
+            expectedSafeSymbols: [OverloadByReturnType("C.op_Implicit", "System.Int32")],
+            expectedDiagnostics:
+            [
+                // (3,12): error CS9502: 'C.implicit operator string(C)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // string s = c;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c").WithArguments("C.implicit operator string(C)").WithLocation(3, 12),
+            ]);
     }
 
     [Theory, CombinatorialData]

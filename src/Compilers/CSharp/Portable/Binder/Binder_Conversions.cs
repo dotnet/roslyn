@@ -310,6 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
                     if (conversion.Method is not null)
                     {
+                        ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, conversion.Method, syntax);
                         ReportUseSite(conversion.Method, diagnostics, syntax.Location);
                     }
 
