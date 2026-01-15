@@ -2270,4 +2270,304 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     }
 
     #endregion
+
+    #region DoesNotReturnIf
+
+    [Fact]
+    public void ConstructorWithDoesNotReturnIf_Null_NullCheck()
+    {
+        var source = """
+            #nullable enable
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+
+            class MyList<T> : List<T>
+            {
+                public MyList([DoesNotReturnIf(true)] bool b)
+                {
+                }
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    MyList<int> list = [with(s == null), 1, 2];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ConstructorWithDoesNotReturnIf_Null_NotNullCheck()
+    {
+        var source = """
+            #nullable enable
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+
+            class MyList<T> : List<T>
+            {
+                public MyList([DoesNotReturnIf(true)] bool b)
+                {
+                }
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    MyList<int> list = [with(s != null), 1, 2];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (18,13): warning CS8604: Possible null reference argument for parameter 's' in 'void C.Goo(string s)'.
+            //         Goo(s);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void C.Goo(string s)").WithLocation(18, 13));
+    }
+
+    [Fact]
+    public void ConstructorWithDoesNotReturnIf_NotNull_NullCheck()
+    {
+        var source = """
+            #nullable enable
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+
+            class MyList<T> : List<T>
+            {
+                public MyList([DoesNotReturnIf(true)] bool b)
+                {
+                }
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    string? s = "";
+                    MyList<int> list = [with(s == null), 1, 2];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ConstructorWithDoesNotReturnIf_NotNull_NotNullCheck()
+    {
+        var source = """
+            #nullable enable
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+
+            class MyList<T> : List<T>
+            {
+                public MyList([DoesNotReturnIf(true)] bool b)
+                {
+                }
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    string? s = "";
+                    MyList<int> list = [with(s != null), 1, 2];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (18,13): warning CS8604: Possible null reference argument for parameter 's' in 'void C.Goo(string s)'.
+            //         Goo(s);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void C.Goo(string s)").WithLocation(18, 13));
+    }
+
+    [Fact]
+    public void CollectionBuilderWithDoesNotReturnIf_Null_NullCheck()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+            }
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>([DoesNotReturnIf(true)] bool value, ReadOnlySpan<T> items) => null!;
+            }
+            """;
+        string sourceB = """
+            #nullable enable
+            class Program
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    MyCollection<int> c = [with(s == null), 1, 2];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionBuilderWithDoesNotReturnIf_Null_NotNullCheck()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+            }
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>([DoesNotReturnIf(true)] bool value, ReadOnlySpan<T> items) => null!;
+            }
+            """;
+        string sourceB = """
+            #nullable enable
+            class Program
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    MyCollection<int> c = [with(s != null), 1, 2];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (8,13): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.Goo(string s)'.
+            //         Goo(s);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(8, 13));
+    }
+
+    [Fact]
+    public void CollectionBuilderWithDoesNotReturnIf_NotNull_NullCheck()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+            }
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>([DoesNotReturnIf(true)] bool value, ReadOnlySpan<T> items) => null!;
+            }
+            """;
+        string sourceB = """
+            #nullable enable
+            class Program
+            {
+                static void Main()
+                {
+                    string? s = "";
+                    MyCollection<int> c = [with(s == null), 1, 2];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionBuilderWithDoesNotReturnIf_NotNull_NotNullCheck()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+            }
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>([DoesNotReturnIf(true)] bool value, ReadOnlySpan<T> items) => null!;
+            }
+            """;
+        string sourceB = """
+            #nullable enable
+            class Program
+            {
+                static void Main()
+                {
+                    string? s = "";
+                    MyCollection<int> c = [with(s != null), 1, 2];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (8,13): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.Goo(string s)'.
+            //         Goo(s);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(8, 13));
+    }
+
+    #endregion
 }
