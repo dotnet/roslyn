@@ -110,7 +110,7 @@ The `TextChange` describes what region of the old text was replaced and with wha
 information, the incremental parser can identify which parts of the old tree are still valid and can
 be reused.
 
-### Token Reuse via the blender
+### Token Reuse via the Blender
 
 At the heart of incremental parsing is a component called the **blender**
 ([`Blender.cs`](https://github.com/dotnet/roslyn/blob/b2cfaaf967aaad26cd58e7b2cc3f2d9fcede96f4/src/Compilers/CSharp/Portable/Parser/Blender.cs),
