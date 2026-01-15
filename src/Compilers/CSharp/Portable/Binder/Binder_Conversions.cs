@@ -1439,6 +1439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 else if (addMethods.Length == 1)
                                 {
                                     addMethodBinder.ReportDiagnosticsIfObsolete(diagnostics, addMethods[0], syntax, hasBaseReceiver: false);
+                                    addMethodBinder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, addMethods[0], syntax);
                                     ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, addMethods[0], syntax, isDelegateConversion: false);
                                     Debug.Assert(!IsDisallowedExtensionInOlderLangVer(addMethods[0]));
                                 }

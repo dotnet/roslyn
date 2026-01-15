@@ -3219,6 +3219,75 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Member_CollectionAddMethod()
+    {
+        CompileAndVerifyUnsafe(
+            lib: """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                public class C : IEnumerable<int>
+                {
+                    public unsafe void Add(int x) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                """,
+            caller: """
+                C c1 = [1, 2, 3];
+                C c2 = new() { 1, 2, 3 };
+                X x = new() { F = { 1, 2, 3 } };
+                M(1, 2, 3);
+                static void M(params C c) { }
+                class X { public C F; }
+                """,
+            expectedUnsafeSymbols: ["C.Add"],
+            expectedSafeSymbols: ["C"],
+            expectedDiagnostics:
+            [
+                // (1,9): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // C c1 = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "1").WithArguments("C.Add(int)").WithLocation(1, 9),
+                // (1,12): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // C c1 = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "2").WithArguments("C.Add(int)").WithLocation(1, 12),
+                // (1,15): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // C c1 = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "3").WithArguments("C.Add(int)").WithLocation(1, 15),
+                // (2,16): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // C c2 = new() { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "1").WithArguments("C.Add(int)").WithLocation(2, 16),
+                // (2,19): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // C c2 = new() { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "2").WithArguments("C.Add(int)").WithLocation(2, 19),
+                // (2,22): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // C c2 = new() { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "3").WithArguments("C.Add(int)").WithLocation(2, 22),
+                // (3,21): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // X x = new() { F = { 1, 2, 3 } };
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "1").WithArguments("C.Add(int)").WithLocation(3, 21),
+                // (3,24): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // X x = new() { F = { 1, 2, 3 } };
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "2").WithArguments("C.Add(int)").WithLocation(3, 24),
+                // (3,27): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // X x = new() { F = { 1, 2, 3 } };
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "3").WithArguments("C.Add(int)").WithLocation(3, 27),
+                // (4,3): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // M(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "1").WithArguments("C.Add(int)").WithLocation(4, 3),
+                // (4,6): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // M(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "2").WithArguments("C.Add(int)").WithLocation(4, 6),
+                // (4,9): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // M(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "3").WithArguments("C.Add(int)").WithLocation(4, 9),
+                // (5,15): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // static void M(params C c) { }
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "params C c").WithArguments("C.Add(int)").WithLocation(5, 15),
+            ]);
+    }
+
+    [Fact]
     public void Member_LocalFunction()
     {
         var source = """
