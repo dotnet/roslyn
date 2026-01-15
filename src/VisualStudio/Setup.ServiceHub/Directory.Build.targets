@@ -5,7 +5,6 @@
     <ItemGroup>      
       <!-- Add registrations for 64-bit and 64-bit Server GC on .Net Core host -->
       <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)Core64')" />
-      <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)Core64S')" />
     </ItemGroup>
   </Target>
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../'))" />

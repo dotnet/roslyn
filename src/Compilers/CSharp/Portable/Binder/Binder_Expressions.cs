@@ -2090,12 +2090,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else if (parameter.IsExtensionParameter() &&
                                 (InParameterDefaultValue || InAttributeArgument ||
-                                 this.ContainingMember() is not { Kind: not SymbolKind.NamedType, IsStatic: false } || // We are not in an instance member
+                                 this.ContainingMember() is null or { Kind: SymbolKind.NamedType } or { IsStatic: true } || // We are not in an instance member
                                  (object)this.ContainingMember().ContainingSymbol != parameter.ContainingSymbol) &&
                                 !IsInsideNameof)
                         {
                             // Give a better error for the simple case of using an extension parameter in a static member, while avoiding any of the other cases where it is always illegal
-                            if (this.ContainingMember().IsStatic && !InParameterDefaultValue && !InAttributeArgument && (object)this.ContainingMember().ContainingSymbol == parameter.ContainingSymbol)
+                            if (this.ContainingMember() is { IsStatic: true } && !InParameterDefaultValue && !InAttributeArgument && (object)this.ContainingMember().ContainingSymbol == parameter.ContainingSymbol)
                             {
                                 // Static members cannot access the value of extension parameter '{0}'.
                                 Error(diagnostics, ErrorCode.ERR_ExtensionParameterInStaticContext, node, parameter.Name);
@@ -2833,7 +2833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GenerateExplicitConversionErrors(diagnostics, node, conversion, operand, targetType);
             }
 
-            return CreateConversion(node, operand, conversion, isCast: true, conversionGroupOpt: conversionGroup, wasCompilerGenerated: wasCompilerGenerated, destination: targetType, diagnostics: diagnostics, hasErrors: hasErrors | suppressErrors);
+            return CreateConversion(node, operand, conversion, isCast: true, conversionGroupOpt: conversionGroup, InConversionGroupFlags.Unspecified, wasCompilerGenerated: wasCompilerGenerated, destination: targetType, diagnostics: diagnostics, hasErrors: hasErrors | suppressErrors);
         }
 
         private void GenerateExplicitConversionErrors(
@@ -3579,7 +3579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     reportUnsafeIfNeeded(methodResult, diagnostics, argument, parameterTypeWithAnnotations);
 
-                    coercedArgument = CreateConversion(argument.Syntax, argument, kind, isCast: false, conversionGroupOpt: null, parameterTypeWithAnnotations.Type, diagnostics);
+                    coercedArgument = CreateConversion(argument.Syntax, argument, kind, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, parameterTypeWithAnnotations.Type, diagnostics);
                 }
                 else if (argument.Kind == BoundKind.OutVariablePendingInference)
                 {
@@ -3600,7 +3600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (argument is BoundTupleLiteral)
                     {
                         // CreateConversion reports tuple literal name mismatches, and constructs the expected pattern of bound nodes.
-                        coercedArgument = CreateConversion(argument.Syntax, argument, kind, isCast: false, conversionGroupOpt: null, parameterTypeWithAnnotations.Type, diagnostics);
+                        coercedArgument = CreateConversion(argument.Syntax, argument, kind, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, parameterTypeWithAnnotations.Type, diagnostics);
                     }
                     else
                     {
@@ -3765,6 +3765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         interpolatedStringConversion,
                         isCast: false,
                         conversionGroupOpt: null,
+                        InConversionGroupFlags.Unspecified,
                         handlerType,
                         diagnostics);
                 }
@@ -3781,6 +3782,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         interpolatedStringConversion,
                         isCast: false,
                         conversionGroupOpt: null,
+                        InConversionGroupFlags.Unspecified,
                         wasCompilerGenerated: false,
                         handlerType,
                         diagnostics,
@@ -3796,6 +3798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         interpolatedStringConversion,
                         isCast: false,
                         conversionGroupOpt: null,
+                        InConversionGroupFlags.Unspecified,
                         handlerType,
                         diagnostics);
                 }
@@ -3963,6 +3966,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: CheckOverflowAtRuntime,
                     explicitCastInCode: false,
                     conversionGroupOpt: null,
+                    InConversionGroupFlags.Unspecified,
                     constantValueOpt: null,
                     handlerType,
                     hasErrors || interpolatedString.HasErrors);
@@ -7760,7 +7764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <remarks>
         /// If new checks are added to this method, they will also need to be added to
-        /// <see cref="MakeQueryInvocation(CSharpSyntaxNode, BoundExpression, bool, string, SeparatedSyntaxList{TypeSyntax}, ImmutableArray{TypeWithAnnotations}, ImmutableArray{BoundExpression}, BindingDiagnosticBag, string?)"/>.
+        /// <see cref="MakeQueryInvocation(CSharpSyntaxNode, BoundExpression, string, SeparatedSyntaxList{TypeSyntax}, ImmutableArray{TypeWithAnnotations}, ImmutableArray{BoundExpression}, BindingDiagnosticBag, string?)"/>.
         /// </remarks>
 #else
         /// <summary>
@@ -7769,7 +7773,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <remarks>
         /// If new checks are added to this method, they will also need to be added to
-        /// <see cref="MakeQueryInvocation(CSharpSyntaxNode, BoundExpression, bool, string, SeparatedSyntaxList{TypeSyntax}, ImmutableArray{TypeWithAnnotations}, ImmutableArray{BoundExpression}, BindingDiagnosticBag)"/>.
+        /// <see cref="MakeQueryInvocation(CSharpSyntaxNode, BoundExpression, string, SeparatedSyntaxList{TypeSyntax}, ImmutableArray{TypeWithAnnotations}, ImmutableArray{BoundExpression}, BindingDiagnosticBag)"/>.
         /// </remarks>
 #endif
         private BoundExpression BindMemberAccessWithBoundLeft(
@@ -9121,6 +9125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: true,
                     explicitCastInCode: false,
                     conversionGroupOpt: null,
+                    InConversionGroupFlags.Unspecified,
                     constantValueOpt: expr.ConstantValueOpt,
                     type: underlyingType);
             }
@@ -9967,7 +9972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GenerateImplicitConversionError(diagnostics, node, failedConversion, index, int32);
 
                 // Suppress any additional diagnostics
-                return CreateConversion(node, index, failedConversion, isCast: false, conversionGroupOpt: null, destination: int32, diagnostics: BindingDiagnosticBag.Discarded);
+                return CreateConversion(node, index, failedConversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, destination: int32, diagnostics: BindingDiagnosticBag.Discarded);
             }
 
             return result;
@@ -10029,7 +10034,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversion = conversion.SetArrayIndexConversionForDynamic();
             }
 
-            BoundExpression result = CreateConversion(expr.Syntax, expr, conversion, isCast: false, conversionGroupOpt: null, destination: targetType, diagnostics); // UNDONE: was cast?
+            BoundExpression result = CreateConversion(expr.Syntax, expr, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, destination: targetType, diagnostics); // UNDONE: was cast?
             Debug.Assert(result != null); // If this ever fails (it shouldn't), then put a null-check around the diagnostics update.
 
             return result;
@@ -11535,12 +11540,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GenerateBadConditionalAccessNodeError(node, receiver, access, diagnostics);
             }
 
-            // The resulting type must be either a reference type T or Nullable<T>
+            // The resulting type must be either a reference type T, Nullable<T>, or a pointer type.
             // Therefore we must reject cases resulting in types that are not reference types and cannot be lifted into nullable.
             // - access cannot have unconstrained generic type
-            // - access cannot be a pointer
             // - access cannot be a restricted type
-            if ((!accessType.IsReferenceType && !accessType.IsValueType) || accessType.IsPointerOrFunctionPointer() || accessType.IsRestrictedType())
+            // Note: Pointers (including function pointers) are allowed because they can represent null (as the zero value).
+            if ((!accessType.IsReferenceType && !accessType.IsValueType) || accessType.IsRestrictedType())
             {
                 // Result type of the access is void when result value cannot be made nullable.
                 // For improved diagnostics we detect the cases where the value will be used and produce a
@@ -11554,10 +11559,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 accessType = GetSpecialType(SpecialType.System_Void, diagnostics, node);
             }
 
-            // if access has value type, the type of the conditional access is nullable of that
+            // if access has value type (but not a pointer), the type of the conditional access is nullable of that
             // https://github.com/dotnet/roslyn/issues/35075: The test `accessType.IsValueType && !accessType.IsNullableType()`
             // should probably be `accessType.IsNonNullableValueType()`
-            if (accessType.IsValueType && !accessType.IsNullableType() && !accessType.IsVoidType())
+            // Note: As far as the language is concerned, pointers (including function pointers) are not value types.
+            // However, due to a historical quirk in the compiler implementation, we do treat them as value types.
+            // Since we're checking for value types here, we exclude pointers to avoid wrapping them in Nullable<>.
+            if (accessType.IsValueType && !accessType.IsNullableType() && !accessType.IsVoidType() && !accessType.IsPointerOrFunctionPointer())
             {
                 accessType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, node).Construct(accessType);
             }

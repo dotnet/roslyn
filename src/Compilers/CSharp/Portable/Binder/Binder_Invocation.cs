@@ -1767,6 +1767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         conversion,
                         isCast,
                         isCast ? new ConversionGroup(conversion, parameter.TypeWithAnnotations) : null,
+                        InConversionGroupFlags.Unspecified,
                         parameterType,
                         diagnostics);
                 }
@@ -1881,6 +1882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                  @checked: CheckOverflowAtRuntime,
                                  explicitCastInCode: false,
                                  conversionGroupOpt: null,
+                                 InConversionGroupFlags.Unspecified,
                                  constantValueOpt: null,
                                  type: collectionType)
                 { WasCompilerGenerated = true, IsParamsArrayOrCollection = true };

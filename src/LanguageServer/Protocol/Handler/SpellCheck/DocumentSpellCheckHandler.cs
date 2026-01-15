@@ -23,7 +23,7 @@ internal sealed class DocumentSpellCheckHandler : AbstractSpellCheckHandler<VSIn
 
     protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(VSInternalDocumentSpellCheckableParams requestParams)
     {
-        if (requestParams.PreviousResultId != null && requestParams.TextDocument != null)
+        if (requestParams is { PreviousResultId: not null, TextDocument: not null })
         {
             return ImmutableArray.Create(new PreviousPullResult(requestParams.PreviousResultId, requestParams.TextDocument));
         }

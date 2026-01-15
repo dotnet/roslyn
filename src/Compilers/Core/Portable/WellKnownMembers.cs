@@ -2494,7 +2494,7 @@ namespace Microsoft.CodeAnalysis
 
                 // System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor
                 (byte)MemberFlags.Constructor,                                                                              // Flags
-                (byte)WellKnownType.System_Runtime_CompilerServices_AsyncStateMachineAttribute,                             // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_AsyncStateMachineAttribute - WellKnownType.ExtSentinel), // DeclaringTypeId
                 0,                                                                                                          // Arity
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
@@ -2502,7 +2502,7 @@ namespace Microsoft.CodeAnalysis
 
                 // System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor
                 (byte)MemberFlags.Constructor,                                                                              // Flags
-                (byte)WellKnownType.System_Runtime_CompilerServices_IteratorStateMachineAttribute,                          // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_IteratorStateMachineAttribute - WellKnownType.ExtSentinel), // DeclaringTypeId
                 0,                                                                                                          // Arity
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
