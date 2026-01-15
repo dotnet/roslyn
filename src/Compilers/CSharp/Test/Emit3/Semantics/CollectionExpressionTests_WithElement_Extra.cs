@@ -9499,4 +9499,70 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             //         ICollection<int> t = [with(s = "")];
             Diagnostic(ErrorCode.ERR_BadArgType, @"s = """"").WithArguments("1", "string", "int"));
     }
+
+    [Fact]
+    public void TestAwait1()
+    {
+        string sourceA = $$"""
+            using System;
+            using System.Threading.Tasks;
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static async Task Main()
+                {
+                    List<int> s = [with(await GetValue(42)), await GetValue(0), await GetValue(1)];
+                    Console.WriteLine(s.Capacity);
+                    Console.WriteLine(string.Join(", ", s));
+                }
+
+                static Task<int> GetValue(int value) => Task.FromResult(value);
+            }
+            """;
+
+        var compilation = CreateRuntimeAsyncCompilation(sourceA, TestOptions.ReleaseExe);
+        CompileAndVerify(compilation,
+            expectedOutput: ExecutionConditionUtil.IsCoreClr && RuntimeAsyncTestHelpers.IsRuntimeAsyncEnabled ? """
+                42
+                0, 1
+                """ : null,
+            verify: Verification.Fails with { ILVerifyMessage = "[Main]: Return value missing on the stack. { Offset = 0x53 }" })
+            .VerifyDiagnostics().VerifyIL("Program.Main", """
+            {
+              // Code size       84 (0x54)
+              .maxstack  3
+              .locals init (System.Collections.Generic.List<int> V_0, //s
+                            int V_1,
+                            int V_2)
+              IL_0000:  ldc.i4.s   42
+              IL_0002:  call       "System.Threading.Tasks.Task<int> Program.GetValue(int)"
+              IL_0007:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_000c:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+              IL_0011:  dup
+              IL_0012:  ldc.i4.0
+              IL_0013:  call       "System.Threading.Tasks.Task<int> Program.GetValue(int)"
+              IL_0018:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_001d:  stloc.1
+              IL_001e:  ldloc.1
+              IL_001f:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+              IL_0024:  dup
+              IL_0025:  ldc.i4.1
+              IL_0026:  call       "System.Threading.Tasks.Task<int> Program.GetValue(int)"
+              IL_002b:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_0030:  stloc.2
+              IL_0031:  ldloc.2
+              IL_0032:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+              IL_0037:  stloc.0
+              IL_0038:  ldloc.0
+              IL_0039:  callvirt   "int System.Collections.Generic.List<int>.Capacity.get"
+              IL_003e:  call       "void System.Console.WriteLine(int)"
+              IL_0043:  ldstr      ", "
+              IL_0048:  ldloc.0
+              IL_0049:  call       "string string.Join<int>(string, System.Collections.Generic.IEnumerable<int>)"
+              IL_004e:  call       "void System.Console.WriteLine(string)"
+              IL_0053:  ret
+            }
+            """);
+    }
 }

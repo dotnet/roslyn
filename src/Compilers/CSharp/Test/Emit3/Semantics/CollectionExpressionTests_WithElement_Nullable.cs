@@ -550,6 +550,93 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             " list)", symbolInfo.Symbol.ToTestDisplayString(true));
     }
 
+    [Fact]
+    public void TestInferTypeFromOtherBranch1()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+
+            var v = true ? [with(null), "a", "b"] : new MyCollection<string>("");
+            Console.WriteLine(string.Join(", ", v));
+
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection(T arg)
+                {
+                }
+            }
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("a, b")).VerifyDiagnostics(
+            // (5,22): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // var v = true ? [with(null), "a", "b"] : new MyCollection<string>("");
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 22));
+    }
+
+    [Fact]
+    public void TestInferTypeFromOtherBranch2()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+
+            var v = true ? [with(""), null] : new MyCollection<string>("");
+            Console.WriteLine(string.Join(", ", v));
+
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection(T arg)
+                {
+                }
+            }
+            """;
+
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("")).VerifyDiagnostics(
+            // (5,27): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // var v = true ? [with(""), null] : new MyCollection<string>("");
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 27));
+    }
+
+    [Fact]
+    public void CollectionBuilderInferenceIncorrectArity()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+            }
+            class MyBuilder
+            {
+                // This is incorrect as the arity doesn't match MyCollection<T>
+                public static MyCollection<TElement> Create<TElement, TOther>(TOther arg, ReadOnlySpan<TElement> elements) => default!;
+            }
+            """;
+        string sourceB = """
+            #nullable enable
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<string> x = [with(""), "goo"];
+                }
+            }
+            """;
+
+        // PROTOTYPE: Need to update this diagnostic message to not state that it's a single ROS parameter.
+        // But it needs to have a final ROS parameter.
+        CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+            // (6,34): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            //         MyCollection<string> x = [with(""), "goo"];
+            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, @"[with(""""), ""goo""]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 34));
+    }
+
     #region AllowNull
 
     [Fact]
@@ -2085,7 +2172,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             // (9,13): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.Goo(string s)'.
             //         Goo(arg);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "arg").WithArguments("s", "void Program.Goo(string s)").WithLocation(9, 13));
-}
+    }
 
     [Fact]
     public void CollectionBuilderParameterWithNotNullIfNotNull_ArgNotNull_OtherNull()
@@ -2180,6 +2267,487 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             [sourceA, sourceB],
             targetFramework: TargetFramework.Net80,
             verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    #endregion
+
+    #region DoesNotReturnIf
+
+    [Fact]
+    public void ConstructorWithDoesNotReturnIf_Null_NullCheck()
+    {
+        var source = """
+            #nullable enable
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+
+            class MyList<T> : List<T>
+            {
+                public MyList([DoesNotReturnIf(true)] bool b)
+                {
+                }
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    MyList<int> list = [with(s == null), 1, 2];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ConstructorWithDoesNotReturnIf_Null_NotNullCheck()
+    {
+        var source = """
+            #nullable enable
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+
+            class MyList<T> : List<T>
+            {
+                public MyList([DoesNotReturnIf(true)] bool b)
+                {
+                }
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    MyList<int> list = [with(s != null), 1, 2];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (18,13): warning CS8604: Possible null reference argument for parameter 's' in 'void C.Goo(string s)'.
+            //         Goo(s);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void C.Goo(string s)").WithLocation(18, 13));
+    }
+
+    [Fact]
+    public void ConstructorWithDoesNotReturnIf_NotNull_NullCheck()
+    {
+        var source = """
+            #nullable enable
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+
+            class MyList<T> : List<T>
+            {
+                public MyList([DoesNotReturnIf(true)] bool b)
+                {
+                }
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    string? s = "";
+                    MyList<int> list = [with(s == null), 1, 2];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ConstructorWithDoesNotReturnIf_NotNull_NotNullCheck()
+    {
+        var source = """
+            #nullable enable
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+
+            class MyList<T> : List<T>
+            {
+                public MyList([DoesNotReturnIf(true)] bool b)
+                {
+                }
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    string? s = "";
+                    MyList<int> list = [with(s != null), 1, 2];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (18,13): warning CS8604: Possible null reference argument for parameter 's' in 'void C.Goo(string s)'.
+            //         Goo(s);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void C.Goo(string s)").WithLocation(18, 13));
+    }
+
+    [Fact]
+    public void CollectionBuilderWithDoesNotReturnIf_Null_NullCheck()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+            }
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>([DoesNotReturnIf(true)] bool value, ReadOnlySpan<T> items) => null!;
+            }
+            """;
+        string sourceB = """
+            #nullable enable
+            class Program
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    MyCollection<int> c = [with(s == null), 1, 2];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionBuilderWithDoesNotReturnIf_Null_NotNullCheck()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+            }
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>([DoesNotReturnIf(true)] bool value, ReadOnlySpan<T> items) => null!;
+            }
+            """;
+        string sourceB = """
+            #nullable enable
+            class Program
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    MyCollection<int> c = [with(s != null), 1, 2];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (8,13): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.Goo(string s)'.
+            //         Goo(s);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(8, 13));
+    }
+
+    [Fact]
+    public void CollectionBuilderWithDoesNotReturnIf_NotNull_NullCheck()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+            }
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>([DoesNotReturnIf(true)] bool value, ReadOnlySpan<T> items) => null!;
+            }
+            """;
+        string sourceB = """
+            #nullable enable
+            class Program
+            {
+                static void Main()
+                {
+                    string? s = "";
+                    MyCollection<int> c = [with(s == null), 1, 2];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionBuilderWithDoesNotReturnIf_NotNull_NotNullCheck()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+            }
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>([DoesNotReturnIf(true)] bool value, ReadOnlySpan<T> items) => null!;
+            }
+            """;
+        string sourceB = """
+            #nullable enable
+            class Program
+            {
+                static void Main()
+                {
+                    string? s = "";
+                    MyCollection<int> c = [with(s != null), 1, 2];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (8,13): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.Goo(string s)'.
+            //         Goo(s);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(8, 13));
+    }
+
+    #endregion
+
+    #region DoesNotReturn
+
+    [Fact]
+    public void CollectionBuilderWithDoesNotReturn_NoArgs_NoWithElement()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+            }
+
+            class MyBuilder
+            {
+                [DoesNotReturn]
+                public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => throw null!;
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    MyCollection<int> list = [];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionBuilderWithDoesNotReturn_NoArgs_WithElement()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+            }
+            
+            class MyBuilder
+            {
+                [DoesNotReturn]
+                public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => throw null!;
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    MyCollection<int> list = [with()];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionBuilderWithDoesNotReturn_Args_WithElement()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+            }
+            
+            class MyBuilder
+            {
+                [DoesNotReturn]
+                public static MyCollection<T> Create<T>(bool b, ReadOnlySpan<T> items) => throw null!;
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    string? s = null;
+                    MyCollection<int> list = [with(true)];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    #endregion
+
+    #region MemberNotNull
+
+    [Fact]
+    public void CollectionBuilderWithMemberNotNull()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+            }
+            
+            static class MyBuilder
+            {
+                public static string? Singleton;
+
+                [MemberNotNull(nameof(Singleton))]
+                public static MyCollection<T> Create<T>(bool b, ReadOnlySpan<T> items) => throw null!;
+            }
+
+            static class Other
+            {
+                public static string? Singleton;
+
+                [MemberNotNull(nameof(Singleton))]
+                public static void EnsureNotNull() => throw null!;
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    Other.EnsureNotNull();
+                    Goo(Other.Singleton);
+
+                    MyCollection<int> list = [with(true)];
+                    Goo(MyBuilder.Singleton);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        // PROTOTYPE: MemberNotNull analysis does not flow across calls to collection builders yet. This is probably
+        // because we lack a way to track that the collection builder affects 'MyBuilder' state, and thus the member
+        // access to MyBuilder.Singleton.  This is unlike the normal static call case on 'Other' where both the method
+        // call and the member access are off of the same 'Other' type in the code directly.
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (14,27): warning CS0649: Field 'MyBuilder.Singleton' is never assigned to, and will always have its default value null
+            //     public static string? Singleton;
+            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Singleton").WithArguments("MyBuilder.Singleton", "null").WithLocation(14, 27),
+            // (22,27): warning CS0649: Field 'Other.Singleton' is never assigned to, and will always have its default value null
+            //     public static string? Singleton;
+            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Singleton").WithArguments("Other.Singleton", "null").WithLocation(22, 27),
+            // (36,13): warning CS8604: Possible null reference argument for parameter 's' in 'void C.Goo(string s)'.
+            //         Goo(MyBuilder.Singleton);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "MyBuilder.Singleton").WithArguments("s", "void C.Goo(string s)").WithLocation(36, 13));
     }
 
     #endregion
