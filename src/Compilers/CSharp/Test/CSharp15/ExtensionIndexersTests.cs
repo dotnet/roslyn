@@ -4429,6 +4429,7 @@ public static class E
 }
 """;
 
+        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, it would be better if the location for the "feature not available" errors pointed to the extension keyword only
         CreateCompilation(src, parseOptions: TestOptions.Regular13.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyEmitDiagnostics(
             // (1,16): warning CS1574: XML comment has cref attribute 'extension(int).this[string]' that could not be resolved
             // /// <see cref="E.extension(int).this[string]"/>
@@ -4445,7 +4446,7 @@ public static class E
             // (5,5): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
             //     extension(int i)
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, @"extension(int i)
-{
+    {
 ").WithArguments("extensions", "14.0").WithLocation(5, 5),
             // (5,5): error CS0710: Static classes cannot have instance constructors
             //     extension(int i)
