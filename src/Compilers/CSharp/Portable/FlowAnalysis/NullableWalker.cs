@@ -4407,44 +4407,51 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (delayCompletionForType)
                 {
-                    return (int containingSlot, TypeSymbol containingType) =>
-                    {
-                        var objectInitializer = (BoundObjectInitializerMember)node.Left;
-                        var symbol = objectInitializer.MemberSymbol;
-                        Symbol? updatedSymbol = null;
-                        if (symbol is PropertySymbol property && property.IsExtensionBlockMember())
-                        {
-                            argumentResults = argumentResults.SetItem(0, new VisitResult(containingType, NullableAnnotation.NotAnnotated, NullableFlowState.NotNull));
-                            if (argumentsCompletion is not null)
-                            {
-                                var parameters = AdjustParametersIfNeeded(property.Parameters, isExtensionBlockMember: true, property);
-                                (updatedSymbol, _) = argumentsCompletion(argumentResults, parameters, property);
-                            }
-                        }
-                        else if (symbol is null)
-                        {
-                            argumentsCompletion?.Invoke(argumentResults, parametersOpt: default, member: null);
-                        }
-                        else
-                        {
-                            updatedSymbol = AsMemberOfType(containingType, symbol);
-                            if (updatedSymbol is PropertySymbol nonExtensionProperty && !objectInitializer.Arguments.IsEmpty)
-                            {
-                                argumentsCompletion?.Invoke(argumentResults, nonExtensionProperty.Parameters, nonExtensionProperty);
-                            }
-                        }
-
-                        Debug.Assert(initializationCompletion is null || updatedSymbol is not null);
-                        initializationCompletion?.Invoke(containingSlot, updatedSymbol!);
-
-                        setAnalyzedNullabilityAndUpdateSymbol(node, objectInitializer, updatedSymbol);
-                    };
+                    return visitMemberInitializerAsContinuation(node, argumentResults, argumentsCompletion, initializationCompletion);
                 }
 
                 Debug.Assert(argumentsCompletion is null);
                 Debug.Assert(initializationCompletion is null);
                 setAnalyzedNullabilityAndUpdateSymbol(node, objectInitializer, updatedSymbol);
                 return null;
+            }
+
+            InitializerCompletionAfterTargetType visitMemberInitializerAsContinuation(BoundAssignmentOperator node, ImmutableArray<VisitResult> argumentResults,
+                ArgumentsCompletionDelegate<Symbol>? argumentsCompletion, InitializerCompletionAfterUpdatedSymbol? initializationCompletion)
+            {
+                // This logic is in a local function so that we only capture when delayed completion is needed
+                return (int containingSlot, TypeSymbol containingType) =>
+                {
+                    var objectInitializer = (BoundObjectInitializerMember)node.Left;
+                    var symbol = objectInitializer.MemberSymbol;
+                    Symbol? updatedSymbol = null;
+                    if (symbol is PropertySymbol property && property.IsExtensionBlockMember())
+                    {
+                        if (argumentsCompletion is not null)
+                        {
+                            var parameters = AdjustParametersIfNeeded(property.Parameters, isExtensionBlockMember: true, property);
+                            argumentResults = argumentResults.SetItem(0, new VisitResult(containingType, NullableAnnotation.NotAnnotated, NullableFlowState.NotNull));
+                            (updatedSymbol, _) = argumentsCompletion(argumentResults, parameters, property);
+                        }
+                    }
+                    else if (symbol is null)
+                    {
+                        argumentsCompletion?.Invoke(argumentResults, parametersOpt: default, member: null);
+                    }
+                    else
+                    {
+                        updatedSymbol = AsMemberOfType(containingType, symbol);
+                        if (updatedSymbol is PropertySymbol nonExtensionProperty && !objectInitializer.Arguments.IsEmpty)
+                        {
+                            argumentsCompletion?.Invoke(argumentResults, nonExtensionProperty.Parameters, nonExtensionProperty);
+                        }
+                    }
+
+                    Debug.Assert(initializationCompletion is null || updatedSymbol is not null);
+                    initializationCompletion?.Invoke(containingSlot, updatedSymbol!);
+
+                    setAnalyzedNullabilityAndUpdateSymbol(node, objectInitializer, updatedSymbol);
+                };
             }
 
             void setAnalyzedNullabilityAndUpdateSymbol(BoundAssignmentOperator node, BoundObjectInitializerMember objectInitializer, Symbol? updatedSymbol)
