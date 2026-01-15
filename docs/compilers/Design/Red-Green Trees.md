@@ -91,7 +91,7 @@ The same green node can appear multiple times within a *single* syntax tree. If 
 methods that all have empty parameter lists `()`, all ten can point to the same `ParameterList`
 green node.
 
-This means "green tree" is actually a misnomer. The green structure is an **acyclic directed graph**
+This means "green tree" is actually a misnomer. The green structure is an **directed acyclic graph**
 (DAG), not a tree. Multiple parents can share the same child. This dramatically reduces memory for
 files with repeated constructs.
 
