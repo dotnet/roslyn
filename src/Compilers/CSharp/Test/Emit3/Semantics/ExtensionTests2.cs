@@ -16558,7 +16558,7 @@ struct InterpolationHandler
             );
     }
 
-    [Theory(Skip = "PROTOTYPE interpolation handlers")]
+    [Theory]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
@@ -16740,11 +16740,33 @@ struct InterpolationHandler
 """;
 
         var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
-        comp2.VerifyDiagnostics(
-            // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(S1)[0, $""] += 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(S1)[0, $""""]").WithLocation(15, 9)
-            );
+        if (refKind == "in")
+        {
+            comp2.VerifyDiagnostics(
+                // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         default(S1)[0, $""] += 1;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(S1)[0, $""""]").WithLocation(15, 9)
+                );
+        }
+        else if (refKind == "ref")
+        {
+            comp2.VerifyDiagnostics(
+                // (15,9): error CS1510: A ref or out value must be an assignable variable
+                //         default(S1)[0, $""] += 1;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(S1)").WithLocation(15, 9)
+                );
+        }
+        else
+        {
+            comp2.VerifyDiagnostics(
+                // (15,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         default(S1)[0, $""] += 1;
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9),
+                // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         default(S1)[0, $""] += 1;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(S1)[0, $""""]").WithLocation(15, 9)
+                );
+        }
     }
 
     [Fact]
@@ -17112,7 +17134,7 @@ struct InterpolationHandler<TR>
             );
     }
 
-    [Fact(Skip = "PROTOTYPE interpolation handlers")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_05()
     {
@@ -17289,9 +17311,9 @@ struct InterpolationHandler<TR>
 
         var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
         comp2.VerifyDiagnostics(
-            // (13,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            // (13,9): error CS1510: A ref or out value must be an assignable variable
             //         default(T)[0, $""] += 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(T)[0, $""""]").WithLocation(13, 9),
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(T)").WithLocation(13, 9),
             // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
             //         extension<T>(in T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
@@ -17494,7 +17516,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "PROTOTYPE interpolation handlers")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79415")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_07()
@@ -17576,7 +17598,7 @@ class Program
 """;
 
         var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123123:123123").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123123:123123123").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>()",
 @"
@@ -17615,7 +17637,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "PROTOTYPE interpolation handlers")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79415")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_08()
@@ -17705,7 +17727,7 @@ class Program
 """;
 
         var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123123123:123123123").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123123:123123123:123123123").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>()",
 @"
@@ -17777,7 +17799,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "PROTOTYPE interpolation handlers")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_WithInterpolationHandler_01()
     {
@@ -17961,7 +17983,7 @@ struct InterpolationHandler
             );
     }
 
-    [Theory(Skip = "PROTOTYPE interpolation handlers")]
+    [Theory]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
@@ -18121,14 +18143,33 @@ struct InterpolationHandler
 """;
 
         var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
-        comp2.VerifyDiagnostics(
-            // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(S1)[0, $""] += 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(S1)[0, $""""]").WithLocation(15, 9)
-            );
+        if (refKind == "in")
+        {
+            comp2.VerifyDiagnostics(
+                // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         default(S1)[0, $""] = 1;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(S1)[0, $""""]").WithLocation(15, 9));
+        }
+        else if (refKind == "ref readonly")
+        {
+            comp2.VerifyDiagnostics(
+                // (15,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         default(S1)[0, $""] = 1;
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9),
+                // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         default(S1)[0, $""] = 1;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(S1)[0, $""""]").WithLocation(15, 9));
+        }
+        else
+        {
+            comp2.VerifyDiagnostics(
+                // (15,9): error CS1510: A ref or out value must be an assignable variable
+                //         default(S1)[0, $""] = 1;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(S1)").WithLocation(15, 9));
+        }
     }
 
-    [Fact(Skip = "PROTOTYPE interpolation handlers")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_WithInterpolationHandler_03()
     {
@@ -18221,7 +18262,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "PROTOTYPE interpolation handlers")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
     public void IndexerAccess_Set_WithInterpolationHandler_04()
@@ -18473,7 +18514,7 @@ struct InterpolationHandler<TR>
             );
     }
 
-    [Fact(Skip = "PROTOTYPE interpolation handlers")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_WithInterpolationHandler_05()
     {
@@ -18639,9 +18680,9 @@ struct InterpolationHandler<TR>
 
         var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
         comp2.VerifyDiagnostics(
-            // (13,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(T)[0, $""] += 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(T)[0, $""""]").WithLocation(13, 9),
+            // (13,9): error CS1510: A ref or out value must be an assignable variable
+            //         default(T)[0, $""] = 1;
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(T)").WithLocation(13, 9),
             // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
             //         extension<T>(in T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
@@ -18651,7 +18692,7 @@ struct InterpolationHandler<TR>
             );
     }
 
-    [Fact(Skip = "PROTOTYPE interpolation handlers")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
     public void IndexerAccess_Set_WithInterpolationHandler_06()
@@ -18830,7 +18871,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "PROTOTYPE interpolation handlers")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_WithInterpolationHandler_07()
     {
@@ -18936,7 +18977,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "PROTOTYPE interpolation handlers")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_WithInterpolationHandler_08()
     {
@@ -19215,7 +19256,7 @@ class Program
 ");
     }
 
-    [Theory(Skip = "PROTOTYPE interpolation handlers")]
+    [Theory]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
@@ -19370,9 +19411,25 @@ struct InterpolationHandler
 """;
 
         var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
-        // !!! Shouldn't there be a not a variable error for 'default(T)[0, $"", 1]' !!!
-        comp2.VerifyDiagnostics(
-            );
+
+        if (refKind == "in")
+        {
+            comp2.VerifyDiagnostics();
+        }
+        else if (refKind == "ref readonly")
+        {
+            comp2.VerifyDiagnostics(
+                // (15,13): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         _ = default(S1)[0, $"", 1];
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 13));
+        }
+        else
+        {
+            comp2.VerifyDiagnostics(
+                // (15,13): error CS1510: A ref or out value must be an assignable variable
+                //         _ = default(S1)[0, $"", 1];
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(S1)").WithLocation(15, 13));
+        }
     }
 
     [Fact]
@@ -19648,7 +19705,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "PROTOTYPE interpolation handlers")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_LValueReceiver_05()
     {
@@ -19808,9 +19865,10 @@ struct InterpolationHandler<TR>
 """;
 
         var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
-
-        // !!! Shouldn't there be a not a variable error for 'default(T)[0, $"", 1]' !!!
         comp2.VerifyDiagnostics(
+            // (13,13): error CS1510: A ref or out value must be an assignable variable
+            //         _ = default(T)[0, $"", 1];
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(T)").WithLocation(13, 13),
             // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
             //         extension<T>(in T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
@@ -20078,7 +20136,7 @@ class Program
 ");
     }
 
-    [Theory(Skip = "PROTOTYPE interpolation handlers")]
+    [Theory]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
@@ -20144,7 +20202,29 @@ class Program
 """;
 
         var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe.WithAllowUnsafe(true));
-        var verifier = CompileAndVerify(comp, expectedOutput: "123124", verify: Verification.Skipped).VerifyDiagnostics();
+        if (refKind == "ref")
+        {
+            comp.VerifyEmitDiagnostics(
+                // (46,13): error CS1510: A ref or out value must be an assignable variable
+                //         _ = GetS1()[Program.Get1(), $"", Get1()];
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "GetS1()").WithLocation(46, 13));
+
+            return;
+        }
+
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124", verify: Verification.Skipped);
+
+        if (refKind == "in")
+        {
+            verifier.VerifyDiagnostics();
+        }
+        else if (refKind == "ref readonly")
+        {
+            verifier.VerifyDiagnostics(
+                // (46,13): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         _ = GetS1()[Program.Get1(), $"", Get1()];
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetS1()").WithArguments("0").WithLocation(46, 13));
+        }
 
         verifier.VerifyIL("Program.Test",
 @"
@@ -20386,7 +20466,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "PROTOTYPE interpolation handlers")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_RValueReceiver_05()
     {
@@ -20463,29 +20543,13 @@ class Program
 """;
 
         var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123124:123124").VerifyDiagnostics();
-
-        verifier.VerifyIL("Program.Test2<T>()",
-@"
-{
-  // Code size       35 (0x23)
-  .maxstack  5
-  .locals init (T V_0)
-  IL_0000:  nop
-  IL_0001:  call       ""T Program.GetT<T>()""
-  IL_0006:  stloc.0
-  IL_0007:  ldloca.s   V_0
-  IL_0009:  call       ""int Program.Get1()""
-  IL_000e:  ldc.i4.0
-  IL_000f:  ldc.i4.0
-  IL_0010:  ldloca.s   V_0
-  IL_0012:  newobj     ""InterpolationHandler<T>..ctor(int, int, ref T)""
-  IL_0017:  call       ""int Program.Get1()""
-  IL_001c:  call       ""int E.get_Item<T>(ref T, int, InterpolationHandler<T>, int)""
-  IL_0021:  pop
-  IL_0022:  ret
-}
-");
+        comp.VerifyEmitDiagnostics(
+            // (49,13): error CS1510: A ref or out value must be an assignable variable
+            //         _ = GetT<T>()[Get1(), $"", Get1()];
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "GetT<T>()").WithLocation(49, 13),
+            // (61,13): error CS1510: A ref or out value must be an assignable variable
+            //         _ = GetT<T>()[Get1(), $"", await Get1Async()];
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "GetT<T>()").WithLocation(61, 13));
     }
 
     [Fact]

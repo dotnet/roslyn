@@ -22515,7 +22515,7 @@ static class E
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
     [CombinatorialData]
-    public void InterpolationHandler_ReceiverParameter_ByIn_WithLocalReciever(bool useMetadataRef)
+    public void InterpolationHandler_ReceiverParameter_ByIn_WithLocalReceiver(bool useMetadataRef)
     {
         var src = """
             [System.Runtime.CompilerServices.InterpolatedStringHandler]
@@ -24183,7 +24183,7 @@ static class E
         Assert.True(implM.Parameters[1].InterpolatedStringHandlerArgumentIndexes.IsEmpty);
     }
 
-    [Fact(Skip = "PROTOTYPE interpolation handlers"), WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
     public void InterpolationHandler_ExtensionIndexer_Basic()
     {
         var src = """
@@ -24227,7 +24227,7 @@ static class E
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("12345678"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
-    [Fact(Skip = "PROTOTYPE interpolation handlers"), WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
     public void InterpolationHandler_ExtensionIndexer_NullableWarnings()
     {
         var src = """
@@ -24645,11 +24645,21 @@ static class E
         );
     }
 
-    [Fact(Skip = "PROTOTYPE interpolation handlers")]
+    [Fact(Skip = "Tracked by https://github.com/dotnet/roslyn/issues/82273")]
     public void InterpolationHandler_Indexer_InObjectInitializer()
     {
+        // Tracked by https://github.com/dotnet/roslyn/issues/82273
+        // Crashes in Release and hits an assertion (AssertContainingContextIsForThisCreation) in Debug in ControlFlowGraphBuilder 
         var code = """
-            _ = new C() { [$"{1}"] = 1 };
+            public class Program
+            {
+                public static void Main()
+                {
+                    /*<bind>*/
+                    _ = new C() { [$"{1}"] = 1 };
+                    /*</bind>*/
+                }
+            }
 
             public class C
             {
@@ -24677,11 +24687,76 @@ static class E
             }
             """;
 
+        DiagnosticDescription[] expectedDiagnostics = [
+            // (6,24): error CS8976: Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.
+            //         _ = new C() { [$"{1}"] = 1 };
+            Diagnostic(ErrorCode.ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers, @"$""{1}""").WithLocation(6, 24)
+            ];
+
         var comp = CreateCompilation(code, targetFramework: TargetFramework.NetCoreApp);
-        comp.VerifyDiagnostics(
-            // (1,16): error CS8976: Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.
-            // _ = new C() { [$"{1}"] = 1 };
-            Diagnostic(ErrorCode.ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers, @"$""{1}""").WithLocation(1, 16));
+        comp.VerifyDiagnostics(expectedDiagnostics);
+
+        string expectedOperationTree = """
+IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '_ = new C() ... 1}"] = 1 };')
+  Expression:
+    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid) (Syntax: '_ = new C() ... {1}"] = 1 }')
+      Left:
+        IDiscardOperation (Symbol: C _) (OperationKind.Discard, Type: C) (Syntax: '_')
+      Right:
+        IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C() { [$"{1}"] = 1 }')
+          Arguments(0)
+          Initializer:
+            IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C, IsInvalid) (Syntax: '{ [$"{1}"] = 1 }')
+              Initializers(1):
+                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: '[$"{1}"] = 1')
+                    Left:
+                      IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid) (Syntax: '[$"{1}"]')
+                        Children(1):
+                            IInterpolatedStringHandlerCreationOperation (HandlerAppendCallsReturnBool: False, HandlerCreationHasSuccessParameter: False) (OperationKind.InterpolatedStringHandlerCreation, Type: CustomHandler, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                              Creation:
+                                IObjectCreationOperation (Constructor: CustomHandler..ctor(System.Int32 literalLength, System.Int32 formattedCount, C c)) (OperationKind.ObjectCreation, Type: CustomHandler, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                                  Arguments(3):
+                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: literalLength) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: formattedCount) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'C')
+                                        IInterpolatedStringHandlerArgumentPlaceholderOperation (CallsiteReceiver) (OperationKind.InterpolatedStringHandlerArgumentPlaceholder, Type: null, IsImplicit) (Syntax: 'C')
+                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  Initializer:
+                                    null
+                              Content:
+                                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, IsInvalid) (Syntax: '$"{1}"')
+                                  Parts(1):
+                                      IInterpolatedStringAppendOperation (OperationKind.InterpolatedStringAppendFormatted, Type: null, IsInvalid, IsImplicit) (Syntax: '{1}')
+                                        AppendCall:
+                                          IInvocationOperation ( void CustomHandler.AppendFormatted(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '{1}')
+                                            Instance Receiver:
+                                              IInstanceReferenceOperation (ReferenceKind: InterpolatedStringHandler) (OperationKind.InstanceReference, Type: CustomHandler, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                                            Arguments(1):
+                                                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '1')
+                                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Right:
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+""";
+
+        VerifyOperationTreeAndDiagnosticsForTest<ExpressionStatementSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var mainDeclaration = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First();
+
+        var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(mainDeclaration.Body, model);
+        ControlFlowGraphVerifier.VerifyGraph(comp, """
+
+""", graph, symbol);
     }
 
     [Fact]
