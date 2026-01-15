@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
-    <MicrosoftCodeAnalysisTestingVersion>1.1.3-beta1.24319.1</MicrosoftCodeAnalysisTestingVersion>
+    <MicrosoftCodeAnalysisTestingVersion>1.1.3-beta1.26059.1</MicrosoftCodeAnalysisTestingVersion>
     <_BasicReferenceAssembliesVersion>1.8.3</_BasicReferenceAssembliesVersion>
     <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
     <CodeStyleAnalyzerVersion>4.8.0-3.final</CodeStyleAnalyzerVersion>
