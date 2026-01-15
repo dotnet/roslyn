@@ -3182,6 +3182,43 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Member_CollectionConstructor()
+    {
+        CompileAndVerifyUnsafe(
+            lib: """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                public class C : IEnumerable<int>
+                {
+                    public unsafe C() { }
+                    public void Add(int x) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                """,
+            caller: """
+                C c1 = [1, 2, 3];
+                M(1, 2, 3);
+                static void M(params C c) { }
+                """,
+            expectedUnsafeSymbols: ["C..ctor"],
+            expectedSafeSymbols: ["C"],
+            expectedDiagnostics:
+            [
+                // (1,8): error CS9502: 'C.C()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // C c1 = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "[1, 2, 3]").WithArguments("C.C()").WithLocation(1, 8),
+                // (2,1): error CS9502: 'C.C()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // M(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M(1, 2, 3)").WithArguments("C.C()").WithLocation(2, 1),
+                // (3,15): error CS9502: 'C.C()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // static void M(params C c) { }
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "params C c").WithArguments("C.C()").WithLocation(3, 15),
+            ]);
+    }
+
+    [Fact]
     public void Member_LocalFunction()
     {
         var source = """

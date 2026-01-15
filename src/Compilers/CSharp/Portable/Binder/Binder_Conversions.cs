@@ -1192,6 +1192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = memberResolutionResult.Member;
 
                 binder.ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
+                binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node);
                 // NOTE: Use-site diagnostics were reported during overload resolution.
 
                 ImmutableSegmentedDictionary<string, Symbol> requiredMembers = GetMembersRequiringInitialization(method);
