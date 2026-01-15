@@ -148,7 +148,7 @@ Mapping this position back to the old text is trivial. If the parser is before t
 the position is identical in both texts. If the parser is after the edit location, we simply apply
 the delta to map back to the corresponding position in the old text.
 
-#### How blender Synchronization Works
+#### How Blender Synchronization Works
 
 The parser asks the blender for data given a position in the new text. The blender internally
 translates this to the corresponding position in the old text.
