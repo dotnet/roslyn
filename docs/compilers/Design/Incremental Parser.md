@@ -40,6 +40,8 @@ minimize context sensitivity to maximize incremental reuse potential.
 
 ### Green Nodes: Position-Free, Parent-Free
 
+For a full detailed writeup of 'Green Nodes', see [Red-Green Trees](./Red-Green Trees.md).
+
 Roslyn uses the "red/green tree" pattern. The parser produces **green nodes**, which are immutable
 nodes that store only their *kind* and their *children*. Crucially, green nodes do **not** store:
 
@@ -66,6 +68,8 @@ commensurate with the *impact* of the edit (usually tiny) rather than the size o
 navigation. They're built on-demand from green nodes when user code traverses the tree.
 
 ### Full-Fidelity Concrete Syntax Trees
+
+For a full detailed writeup on 'Full-Fidelity', see [Red-Green Trees](./Red-Green Trees.md).
 
 Roslyn produces *full-fidelity* syntax trees. Every character from the source file is represented
 somewhere in the tree, including whitespace, comments, and even syntax errors. If you concatenate
@@ -521,3 +525,4 @@ This list is not exhaustive, but serves to give a good high-level idea of the ma
 - [`docs/compilers/Design/Parser.md`](https://github.com/dotnet/roslyn/blob/b2cfaaf967aaad26cd58e7b2cc3f2d9fcede96f4/docs/compilers/Design/Parser.md):
   Design guidelines for the parser, including notes on how diagnostic placement affects incremental
   parsing
+- [Red-Green Trees](./Red-Green Trees.md).  A deep dive into Roslyn's Red/Green syntax node split, with a heavy emphasis on the internal Green side.
