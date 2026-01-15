@@ -30,7 +30,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         Verification verify = default,
         CallerUnsafeMode expectedUnsafeMode = CallerUnsafeMode.Explicit,
         CSharpParseOptions? parseOptions = null,
-        CSharpCompilationOptions? optionsDll = null)
+        CSharpCompilationOptions? optionsDll = null,
+        DiagnosticDescription[]? expectedDiagnosticsWhenReferencingLegacyLib = null)
     {
         optionsDll ??= TestOptions.UnsafeReleaseDll;
         var optionsExe = optionsDll.WithOutputKind(OutputKind.ConsoleApplication);
@@ -79,7 +80,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(caller, [libLegacy],
             parseOptions: parseOptions,
             options: optionsExe.WithUpdatedMemorySafetyRules())
-            .VerifyEmitDiagnostics();
+            .VerifyEmitDiagnostics(expectedDiagnosticsWhenReferencingLegacyLib ?? []);
 
         void symbolValidator(ModuleSymbol module)
         {
@@ -3167,7 +3168,19 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 }
                 """,
             caller: """
-                C c = [1, 2, 3];
+                C c1 = [1, 2, 3];
+                M(1, 2, 3);
+                static void M(params C c) { }
+
+                unsafe
+                {
+                    C c2 = [1, 2, 3];
+                    M2(1, 2, 3);
+                    static void M2(params C c) { }
+                }
+
+                M3(1, 2, 3);
+                static unsafe void M3(params C c) { }
                 """,
             additionalSources: [TestSources.Span, CollectionBuilderAttributeDefinition],
             verify: Verification.Skipped,
@@ -3175,9 +3188,27 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedSafeSymbols: ["C"],
             expectedDiagnostics:
             [
-                // (1,7): error CS9502: 'C.Create(ReadOnlySpan<int>)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
-                // C c = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "[1, 2, 3]").WithArguments("C.Create(System.ReadOnlySpan<int>)").WithLocation(1, 7),
+                // (1,8): error CS9502: 'C.Create(ReadOnlySpan<int>)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // C c1 = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "[1, 2, 3]").WithArguments("C.Create(System.ReadOnlySpan<int>)").WithLocation(1, 8),
+                // (2,1): error CS9502: 'C.Create(ReadOnlySpan<int>)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // M(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M(1, 2, 3)").WithArguments("C.Create(System.ReadOnlySpan<int>)").WithLocation(2, 1),
+                // (3,15): error CS9502: 'C.Create(ReadOnlySpan<int>)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // static void M(params C c) { }
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "params C c").WithArguments("C.Create(System.ReadOnlySpan<int>)").WithLocation(3, 15),
+                // (12,1): error CS9502: 'C.Create(ReadOnlySpan<int>)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // M3(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M3(1, 2, 3)").WithArguments("C.Create(System.ReadOnlySpan<int>)").WithLocation(12, 1),
+                // (12,1): error CS9502: 'M3(params C)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // M3(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M3(1, 2, 3)").WithArguments("M3(params C)").WithLocation(12, 1),
+            ],
+            expectedDiagnosticsWhenReferencingLegacyLib:
+            [
+                // (12,1): error CS9502: 'M3(params C)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // M3(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M3(1, 2, 3)").WithArguments("M3(params C)").WithLocation(12, 1),
             ]);
     }
 
@@ -3199,8 +3230,18 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 """,
             caller: """
                 C c1 = [1, 2, 3];
-                M(1, 2, 3);
-                static void M(params C c) { }
+                M1(1, 2, 3);
+                static void M1(params C c) { }
+
+                unsafe
+                {
+                    C c2 = [1, 2, 3];
+                    M2(1, 2, 3);
+                    static void M2(params C c) { }
+                }
+
+                M3(1, 2, 3);
+                static unsafe void M3(params C c) { }
                 """,
             expectedUnsafeSymbols: ["C..ctor"],
             expectedSafeSymbols: ["C"],
@@ -3210,11 +3251,23 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // C c1 = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "[1, 2, 3]").WithArguments("C.C()").WithLocation(1, 8),
                 // (2,1): error CS9502: 'C.C()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
-                // M(1, 2, 3);
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M(1, 2, 3)").WithArguments("C.C()").WithLocation(2, 1),
-                // (3,15): error CS9502: 'C.C()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
-                // static void M(params C c) { }
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "params C c").WithArguments("C.C()").WithLocation(3, 15),
+                // M1(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M1(1, 2, 3)").WithArguments("C.C()").WithLocation(2, 1),
+                // (3,16): error CS9502: 'C.C()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // static void M1(params C c) { }
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "params C c").WithArguments("C.C()").WithLocation(3, 16),
+                // (12,1): error CS9502: 'C.C()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // M3(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M3(1, 2, 3)").WithArguments("C.C()").WithLocation(12, 1),
+                // (12,1): error CS9502: 'M3(params C)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // M3(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M3(1, 2, 3)").WithArguments("M3(params C)").WithLocation(12, 1),
+            ],
+            expectedDiagnosticsWhenReferencingLegacyLib:
+            [
+                // (12,1): error CS9502: 'M3(params C)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // M3(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M3(1, 2, 3)").WithArguments("M3(params C)").WithLocation(12, 1),
             ]);
     }
 
@@ -3236,9 +3289,22 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             caller: """
                 C c1 = [1, 2, 3];
                 C c2 = new() { 1, 2, 3 };
-                X x = new() { F = { 1, 2, 3 } };
-                M(1, 2, 3);
-                static void M(params C c) { }
+                X x1 = new() { F = { 1, 2, 3 } };
+                M1(1, 2, 3);
+                static void M1(params C c) { }
+
+                unsafe
+                {
+                    C c3 = [1, 2, 3];
+                    C c4 = new() { 1, 2, 3 };
+                    X x2 = new() { F = { 1, 2, 3 } };
+                    M2(1, 2, 3);
+                    static void M2(params C c) { }
+                }
+
+                M3(1, 2, 3);
+                static unsafe void M3(params C c) { }
+
                 class X { public C F; }
                 """,
             expectedUnsafeSymbols: ["C.Add"],
@@ -3263,27 +3329,45 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (2,22): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // C c2 = new() { 1, 2, 3 };
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "3").WithArguments("C.Add(int)").WithLocation(2, 22),
-                // (3,21): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
-                // X x = new() { F = { 1, 2, 3 } };
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "1").WithArguments("C.Add(int)").WithLocation(3, 21),
-                // (3,24): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
-                // X x = new() { F = { 1, 2, 3 } };
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "2").WithArguments("C.Add(int)").WithLocation(3, 24),
-                // (3,27): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
-                // X x = new() { F = { 1, 2, 3 } };
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "3").WithArguments("C.Add(int)").WithLocation(3, 27),
-                // (4,3): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
-                // M(1, 2, 3);
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "1").WithArguments("C.Add(int)").WithLocation(4, 3),
-                // (4,6): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
-                // M(1, 2, 3);
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "2").WithArguments("C.Add(int)").WithLocation(4, 6),
-                // (4,9): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
-                // M(1, 2, 3);
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "3").WithArguments("C.Add(int)").WithLocation(4, 9),
-                // (5,15): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
-                // static void M(params C c) { }
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "params C c").WithArguments("C.Add(int)").WithLocation(5, 15),
+                // (3,22): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // X x1 = new() { F = { 1, 2, 3 } };
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "1").WithArguments("C.Add(int)").WithLocation(3, 22),
+                // (3,25): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // X x1 = new() { F = { 1, 2, 3 } };
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "2").WithArguments("C.Add(int)").WithLocation(3, 25),
+                // (3,28): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // X x1 = new() { F = { 1, 2, 3 } };
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "3").WithArguments("C.Add(int)").WithLocation(3, 28),
+                // (4,4): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // M1(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "1").WithArguments("C.Add(int)").WithLocation(4, 4),
+                // (4,7): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // M1(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "2").WithArguments("C.Add(int)").WithLocation(4, 7),
+                // (4,10): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // M1(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "3").WithArguments("C.Add(int)").WithLocation(4, 10),
+                // (5,16): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // static void M1(params C c) { }
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "params C c").WithArguments("C.Add(int)").WithLocation(5, 16),
+                // (16,1): error CS9502: 'M3(params C)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // M3(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M3(1, 2, 3)").WithArguments("M3(params C)").WithLocation(16, 1),
+                // (16,4): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // M3(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "1").WithArguments("C.Add(int)").WithLocation(16, 4),
+                // (16,7): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // M3(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "2").WithArguments("C.Add(int)").WithLocation(16, 7),
+                // (16,10): error CS9502: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // M3(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "3").WithArguments("C.Add(int)").WithLocation(16, 10),
+            ],
+            expectedDiagnosticsWhenReferencingLegacyLib:
+            [
+                // (16,1): error CS9502: 'M3(params C)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // M3(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M3(1, 2, 3)").WithArguments("M3(params C)").WithLocation(16, 1),
             ]);
     }
 
