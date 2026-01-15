@@ -17,24 +17,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (collectionCreation is BoundCall boundCall)
             {
                 Debug.Assert(this.CollectionTypeKind == CollectionExpressionTypeKind.CollectionBuilder);
-                Debug.Assert(boundCall.Arguments is [.., BoundCollectionBuilderElementsPlaceholder placeholder] &&
-                    placeholder == collectionBuilderElementsPlaceholder);
-                Debug.Assert(collectionBuilderElementsPlaceholder.Type!.IsReadOnlySpan());
-            }
-            else
-            {
-                Debug.Assert(collectionBuilderElementsPlaceholder is null);
-            }
-
-            if (this.CollectionTypeKind == CollectionExpressionTypeKind.CollectionBuilder)
-            {
-                Debug.Assert(collectionCreation is BoundCall);
                 Debug.Assert(this.CollectionCreation is not null);
                 Debug.Assert(this.CollectionBuilderMethod is not null);
                 Debug.Assert(collectionBuilderElementsPlaceholder is not null);
+                Debug.Assert(collectionBuilderElementsPlaceholder.Type is not null);
+
+                Debug.Assert(boundCall.Arguments is [.., BoundCollectionBuilderElementsPlaceholder placeholder] &&
+                    placeholder == collectionBuilderElementsPlaceholder);
+                Debug.Assert(collectionBuilderElementsPlaceholder.Type.IsReadOnlySpan());
             }
             else
             {
+                Debug.Assert(this.CollectionTypeKind != CollectionExpressionTypeKind.CollectionBuilder);
+                Debug.Assert(this.CollectionBuilderMethod is null);
                 Debug.Assert(collectionBuilderElementsPlaceholder is null);
             }
         }
