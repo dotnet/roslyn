@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (collectionCreation is BoundCall boundCall)
             {
                 Debug.Assert(this.CollectionTypeKind == CollectionExpressionTypeKind.CollectionBuilder);
-                Debug.Assert(boundCall.Arguments is [.., BoundCollectionBuilderElementsPlaceholder placeHolder] &&
-                    placeHolder == collectionBuilderElementsPlaceholder);
+                Debug.Assert(boundCall.Arguments is [.., BoundCollectionBuilderElementsPlaceholder placeholder] &&
+                    placeholder == collectionBuilderElementsPlaceholder);
                 Debug.Assert(collectionBuilderElementsPlaceholder.Type!.IsReadOnlySpan());
             }
             else
