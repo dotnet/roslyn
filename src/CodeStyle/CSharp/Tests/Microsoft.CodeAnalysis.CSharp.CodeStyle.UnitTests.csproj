@@ -14,7 +14,7 @@
     <Compile Include="..\..\..\Features\CSharpTest\Diagnostics\AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor.cs" Link="AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" />
     <PackageReference Include="Basic.Reference.Assemblies.Net60" />
   </ItemGroup>
   <ItemGroup Label="Project References">
