@@ -51,7 +51,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         foreach (var libUpdatedRef in libUpdatedRefs)
         {
-            var libAssemblySymbol = CreateCompilation([caller, .. additionalSources], [libUpdatedRef],
+            var libAssemblySymbol = CreateCompilation(caller, [libUpdatedRef],
                 parseOptions: parseOptions,
                 options: optionsExe.WithUpdatedMemorySafetyRules())
                 .VerifyDiagnostics(expectedDiagnostics)
@@ -76,7 +76,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics()
             .GetImageReference();
 
-        CreateCompilation([caller, .. additionalSources], [libLegacy],
+        CreateCompilation(caller, [libLegacy],
             parseOptions: parseOptions,
             options: optionsExe.WithUpdatedMemorySafetyRules())
             .VerifyEmitDiagnostics();
@@ -3146,6 +3146,39 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (7,18): error CS4004: Cannot await in an unsafe context
             //         unsafe { await new Task(); }
             Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await new Task()").WithLocation(7, 18));
+    }
+
+    [Fact]
+    public void Member_CollectionBuilder()
+    {
+        CompileAndVerifyUnsafe(
+            lib: """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                [CollectionBuilder(typeof(C), nameof(Create))]
+                public class C : IEnumerable<int>
+                {
+                    public static unsafe C Create(ReadOnlySpan<int> s) => new C();
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                """,
+            caller: """
+                C c = [1, 2, 3];
+                """,
+            additionalSources: [TestSources.Span, CollectionBuilderAttributeDefinition],
+            verify: Verification.Skipped,
+            expectedUnsafeSymbols: ["C.Create"],
+            expectedSafeSymbols: ["C"],
+            expectedDiagnostics:
+            [
+                // (1,7): error CS9502: 'C.Create(ReadOnlySpan<int>)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // C c = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "[1, 2, 3]").WithArguments("C.Create(System.ReadOnlySpan<int>)").WithLocation(1, 7),
+            ]);
     }
 
     [Fact]
