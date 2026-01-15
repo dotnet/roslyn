@@ -110,7 +110,7 @@ The `TextChange` describes what region of the old text was replaced and with wha
 information, the incremental parser can identify which parts of the old tree are still valid and can
 be reused.
 
-### Token Reuse via the Blender
+### Token Reuse via the blender
 
 At the heart of incremental parsing is a component called the **blender**
 ([`Blender.cs`](https://github.com/dotnet/roslyn/blob/b2cfaaf967aaad26cd58e7b2cc3f2d9fcede96f4/src/Compilers/CSharp/Portable/Parser/Blender.cs),
@@ -199,7 +199,8 @@ subtrees that are entirely before or after the edit remain intact.
 
 The output of this process is captured in a
 [`BlendedNode`](https://github.com/dotnet/roslyn/blob/b2cfaaf967aaad26cd58e7b2cc3f2d9fcede96f4/src/Compilers/CSharp/Portable/Parser/BlendedNode.cs)
-structure that carries either a reused node or a freshly lexed token back to the parser.
+structure that carries either a reused node, a reused token, or a freshly lexed token back to the
+parser.
 
 ### Node Reuse at Strategic Points
 
@@ -213,6 +214,9 @@ high-level constructs:
 - **Compilation unit members**: namespaces, top-level types, global statements
 - **Type members**: methods, properties, fields, nested types, etc.
 - **Statements**: the contents of method bodies and blocks
+
+These points were chosen not only because they represent natural list boundaries, but also because
+they are unaffected by lookahead concerns (explained below in [Why Not Expressions?](#why-not-expressions)).
 
 Prime examples of this are:
 - [`TryReuseStatement`](https://github.com/dotnet/roslyn/blob/b2cfaaf967aaad26cd58e7b2cc3f2d9fcede96f4/src/Compilers/CSharp/Portable/Parser/LanguageParser.cs#L8334)
@@ -228,8 +232,9 @@ context matches the context in which the candidate node was originally parsed.
 ### Why Not Expressions?
 
 You might notice that expressions are conspicuously absent from the list of reusable constructs.
-This is deliberate. Expression parsing in C# involves significant lookahead, lookbehind, and context
-sensitivity:
+This is deliberate, and relates to lookahead in the parser.
+
+Expression parsing in C# involves significant lookahead, lookbehind, and context sensitivity:
 
 - Is `<` the start of a generic argument list or a less-than operator?
 - Is `(` a cast, a parenthesized expression, a tuple, a lambda, a deconstruction, or possibly more
@@ -241,11 +246,19 @@ edit is surprisingly difficult. An edit *after* an expression might retroactivel
 expression should have been parsed. Rather than building elaborate (and error-prone) logic to detect
 these cases, Roslyn takes the conservative approach: expressions are always reparsed.
 
-This is a practical tradeoff. Expressions are typically small, so reparsing them is cheap. The big
-wins come from reusing statements and member declarations, which can be arbitrarily large. (See
-[Caveats](#caveats) for edge cases where this assumption breaks down.)
+In contrast, the strategic reuse points (members, statements) were chosen precisely because they
+*don't* suffer from these lookahead issues. If a statement parsed without errors before (and thus
+can be reused), it would not change to something else due to an edit that happens after that
+statement. Validating this involved understanding the grammar and the parser implementation, then
+informally verifying that lookahead is never needed past the termination point of these constructs.
 
-## A Worked Example
+Expressions being reparsed is a practical tradeoff. They are typically small, so reparsing them is
+cheap. The big wins come from reusing statements and member declarations, which can be arbitrarily
+large. (See [Caveats](#caveats) for edge cases where this assumption breaks down.)
+
+## Worked Examples
+
+### A Typical Edit
 
 Consider a large class being edited:
 
@@ -298,7 +311,7 @@ The result: out of potentially thousands of nodes and tens of thousands of token
 are actually reparsed. The new tree shares almost all of its green nodes (the actual objects in
 memory) with the old tree.
 
-## A More Impactful Edit
+### A More Impactful Edit
 
 Not all edits are so localized. Consider what happens when someone types `/*` inside Method 250,
 where there happens to be a matching `*/` inside Method 750:
@@ -393,6 +406,15 @@ but not found) are never reused. They're synthetic artifacts of the parsing proc
 representations of actual source text. The behavior is effectively the same as with skipped tokens:
 we don't reuse nodes containing them for the same reasons.
 
+### Other Diagnostics
+
+Technically, the parser can produce other kinds of diagnostics beyond skipped and missing tokens.
+These are rare, and we are actively working to move them out of the parser and into the binding
+phase (as discussed in
+[`Parser.md`](https://github.com/dotnet/roslyn/blob/b2cfaaf967aaad26cd58e7b2cc3f2d9fcede96f4/docs/compilers/Design/Parser.md)).
+Regardless, they are handled the same way: nodes containing any diagnostics are not reused and are
+crumbled further.
+
 ### Context Sensitivity: Parser Flags
 
 As mentioned earlier, C# has some context-sensitive parsing. For example:
@@ -448,6 +470,17 @@ Generated files (source generators, T4 templates, etc.) are not a concern for in
 performance. Users don't edit generated files in real time, so we won't be receiving incremental
 edits for them. Full parses of generated files are acceptable since they happen infrequently
 (typically only when the generator runs).
+
+Razor files are a notable exception. Although Razor uses source generation, the generated C# code
+regenerates on every keystroke as the user edits. This means Razor files are fully reparsed each
+time rather than incrementally parsed. For small Razor files, this is not noticeable. However, as
+users write larger Razor pages, full reparses could become a bottleneck.
+
+A potential path forward would be for Razor to avoid reparsing the full generated file in isolation.
+Instead, it could first perform a very fast diff (linearly comparing the matching prefix and suffix
+of the old and new text to detect the start of the first change and the end of the last change),
+then feed that change region into an incremental parse. Since most edits affect a small region of
+the generated output, this could significantly reduce parsing costs for large Razor files.
 
 ### Deeply Nested Constructs
 
