@@ -600,6 +600,43 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 27));
     }
 
+    [Fact]
+    public void CollectionBuilderInferenceIncorrectArity()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+            }
+            class MyBuilder
+            {
+                // This is incorrect as the arity doesn't match MyCollection<T>
+                public static MyCollection<TElement> Create<TElement, TOther>(TOther arg, ReadOnlySpan<TElement> elements) => default!;
+            }
+            """;
+        string sourceB = """
+            #nullable enable
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<string> x = [with(""), "goo"];
+                }
+            }
+            """;
+
+        // PROTOTYPE: Need to update this diagnostic message to not state that it's a single ROS parameter.
+        // But it needs to have a final ROS parameter.
+        CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+            // (6,34): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            //         MyCollection<string> x = [with(""), "goo"];
+            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, @"[with(""""), ""goo""]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 34));
+    }
+
     #region AllowNull
 
     [Fact]
