@@ -246,6 +246,14 @@ the pre-cached node.
 These optimizations are invisible to users of the red API, but they significantly reduce memory
 usage and allocation pressure during parsing.
 
+### Pre-Cached Trivia
+
+The same caching strategy applies to trivia. Common patterns like a single space, a newline, or
+typical indentation sequences (two spaces, four spaces, eight spaces, tab sequences, etc.) appear
+countless times within a file and across files. Rather than allocating a new green trivia node 
+each time, Roslyn pre-caches these common patterns. Every occurrence of a single space trivia in
+a solution points to the same green node instance.
+
 ## Red Node Creation: Lazy and Cached
 
 Red nodes are created on-demand when you traverse the syntax tree. If you never access a particular
