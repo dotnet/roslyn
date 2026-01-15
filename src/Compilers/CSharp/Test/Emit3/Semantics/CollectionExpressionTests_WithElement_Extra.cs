@@ -9523,10 +9523,11 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
 
         var compilation = CreateRuntimeAsyncCompilation(sourceA, TestOptions.ReleaseExe);
         CompileAndVerify(compilation,
-            expectedOutput: IncludeExpectedOutput("""
-            42
-            0, 1
-            """), verify: Verification.Fails with { ILVerifyMessage = "[Main]: Return value missing on the stack. { Offset = 0x53 }" })
+            expectedOutput: ExecutionConditionUtil.IsCoreClr && RuntimeAsyncTestHelpers.IsRuntimeAsyncEnabled ? """
+                42
+                0, 1
+                """ : null,
+            verify: Verification.Fails with { ILVerifyMessage = "[Main]: Return value missing on the stack. { Offset = 0x53 }" })
             .VerifyDiagnostics().VerifyIL("Program.Main", """
             {
               // Code size       84 (0x54)
