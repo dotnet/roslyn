@@ -43,11 +43,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         [Conditional("DEBUG")]
         internal static void AssertNotUnsafeMemberAccess(Symbol symbol)
         {
-            Debug.Assert(symbol.CallerUnsafeMode is CallerUnsafeMode.None,
-                $"Symbol {symbol} has {nameof(symbol.CallerUnsafeMode)}={symbol.CallerUnsafeMode}.");
+            // Resolving `symbol.ToString()` can lead to errors in some cases
+            // and `Debug.Assert` on .NET Framework evaluates all interpolated values eagerly,
+            // so avoid evaluating that unless we are going to fail anyway.
 
-            Debug.Assert(symbol.Kind is not (SymbolKind.Method or SymbolKind.Property or SymbolKind.Event),
-                $"Symbol {symbol} has {nameof(symbol.Kind)}={symbol.Kind}.");
+            if (symbol.CallerUnsafeMode is not CallerUnsafeMode.None)
+            {
+                Debug.Fail($"Symbol {symbol} has {nameof(symbol.CallerUnsafeMode)}={symbol.CallerUnsafeMode}.");
+            }
+
+            if (symbol.Kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Event)
+            {
+                Debug.Fail($"Symbol {symbol} has {nameof(symbol.Kind)}={symbol.Kind}.");
+            }
         }
 
         /// <param name="disallowedUnder">
