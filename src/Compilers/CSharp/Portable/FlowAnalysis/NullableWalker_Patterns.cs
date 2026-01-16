@@ -866,6 +866,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 indexerAccess.ArgsToParamsOpt,
                                 indexerAccess.DefaultArguments,
                                 indexerAccess.Expanded,
+                                delayCompletionForType: false,
                                 firstArgumentResult: null);
 
                             property = reinferrenceResult.Member;
