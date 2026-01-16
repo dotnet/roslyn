@@ -40,4 +40,12 @@
     <FileSignInfo Include="Newtonsoft.Json.dll" CertificateName="3PartySHA2" />
     <FileSignInfo Include="Validation.dll" CertificateName="3PartySHA2" />
   </ItemGroup>
+
+  <!--
+    VS cloudbuild fails to restore when using test signed nuget packages due to certificate errors.
+    To avoid this issue, we sign the package contents, but skip signing the actual package file.
+  -->
+  <ItemGroup Condition="'$(PreReleaseVersionLabel)' == 'pr-validation' And '$(DotNetSignType)' == 'test'">
+    <FileExtensionSignInfo Update=".nupkg" CertificateName="None" />
+  </ItemGroup>
 </Project>
