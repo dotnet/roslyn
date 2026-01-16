@@ -22,12 +22,14 @@ internal abstract class AbstractSolutionExplorerSymbolTreeItemProvider<
     TMemberDeclarationSyntax,
     TNamespaceDeclarationSyntax,
     TEnumDeclarationSyntax,
-    TTypeDeclarationSyntax>
+    TTypeDeclarationSyntax,
+    TMemberStatement>
     : ISolutionExplorerSymbolTreeItemProvider
     where TCompilationUnitSyntax : SyntaxNode
     where TMemberDeclarationSyntax : SyntaxNode
     where TNamespaceDeclarationSyntax : TMemberDeclarationSyntax
     where TEnumDeclarationSyntax : TMemberDeclarationSyntax
+    where TMemberStatement : SyntaxNode
 {
     protected static void AppendCommaSeparatedList<TArgumentList, TArgument>(
         StringBuilder builder,
@@ -68,6 +70,10 @@ internal abstract class AbstractSolutionExplorerSymbolTreeItemProvider<
     protected abstract void AddMemberDeclaration(DocumentId documentId, TMemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder);
     protected abstract void AddEnumDeclarationMembers(DocumentId documentId, TEnumDeclarationSyntax enumDeclaration, ArrayBuilder<SymbolTreeItemData> items, CancellationToken cancellationToken);
 
+    protected virtual ImmutableArray<TMemberStatement> GetMemberDeclarationMembers(TMemberDeclarationSyntax memberDeclaration) => [];
+    protected virtual ImmutableArray<TMemberStatement> GetMemberStatementMembers(TMemberStatement memberDeclaration) => [];
+    protected virtual void AddMemberStatement(DocumentId documentId, TMemberStatement statement, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder) { }
+
     public ImmutableArray<SymbolTreeItemData> GetItems(DocumentId documentId, SyntaxNode node, CancellationToken cancellationToken)
     {
         using var _1 = ArrayBuilder<SymbolTreeItemData>.GetInstance(out var items);
@@ -86,6 +92,12 @@ internal abstract class AbstractSolutionExplorerSymbolTreeItemProvider<
             case TTypeDeclarationSyntax typeDeclaration:
                 AddTypeDeclarationMembers(typeDeclaration);
                 break;
+            case TMemberDeclarationSyntax memberDeclaration:
+                AddMemberDeclarationMembers(memberDeclaration);
+                break;
+            case TMemberStatement statement:
+                AddMemberStatementMembers(statement);
+                break;
         }
 
         return items.ToImmutableAndClear();
@@ -100,6 +112,24 @@ internal abstract class AbstractSolutionExplorerSymbolTreeItemProvider<
                     continue;
 
                 AddMemberDeclaration(documentId, member, items, nameBuilder);
+            }
+        }
+
+        void AddMemberDeclarationMembers(TMemberDeclarationSyntax memberDeclaration)
+        {
+            foreach (var statement in GetMemberDeclarationMembers(memberDeclaration))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                AddMemberStatement(documentId, statement, items, nameBuilder);
+            }
+        }
+
+        void AddMemberStatementMembers(TMemberStatement memberDeclaration)
+        {
+            foreach (var statement in GetMemberStatementMembers(memberDeclaration))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                AddMemberStatement(documentId, statement, items, nameBuilder);
             }
         }
     }

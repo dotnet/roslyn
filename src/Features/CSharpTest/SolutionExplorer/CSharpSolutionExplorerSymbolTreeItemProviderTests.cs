@@ -279,4 +279,165 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
             """, """
             Name="M() : void" Glyph=ExtensionMethodPublic HasItems=False
             """);
+
+    [Fact]
+    public Task TestMemberSetsHasItemsForLocalFunction()
+        => TestNode<ClassDeclarationSyntax>("""
+            class C
+            {
+                private void [|M|]()
+                {
+                    void MethodLocal() { }
+                }
+            }
+            """, """
+            Name="M() : void" Glyph=MethodPrivate HasItems=True
+            """);
+
+    [Fact]
+    public Task TestLocalFunctionSetsHasItemsForNestedLocalFunction()
+        => TestNode<MethodDeclarationSyntax>("""
+            class C
+            {
+                private void M()
+                {
+                    void [|MethodLocal|]()
+                    {
+                        void NestedLocal() { }
+                    }
+                }
+            }
+            """, """
+            Name="MethodLocal() : void" Glyph=MethodPrivate HasItems=True
+            """);
+
+    [Fact]
+    public Task TestLocalFunctionReturnsNestedLocalFunction()
+        => TestNode<LocalFunctionStatementSyntax>("""
+            class C
+            {
+                void M()
+                {
+                    void MethodLocal()
+                    {
+                        void [|NestedLocal|]() { }
+                    }
+                }
+            }
+            """, """
+            Name="NestedLocal() : void" Glyph=MethodPrivate HasItems=False
+            """);
+
+    [Fact]
+    public Task TestPropertyReturnsLocalFunctions()
+        => TestNode<PropertyDeclarationSyntax>("""
+            class C
+            {
+                public P Prop
+                {
+                    get
+                    {
+                        void [|GetLocal|]() { }
+                        return default;
+                    }
+                    set
+                    {
+                        void [|SetLocal|]() { }
+                    }
+                }
+            }
+            """, """
+            Name="GetLocal() : void" Glyph=MethodPrivate HasItems=False
+            Name="SetLocal() : void" Glyph=MethodPrivate HasItems=False
+            """);
+
+    [Fact]
+    public Task TestConstructorReturnsLocalFunction()
+        => TestNode<ConstructorDeclarationSyntax>("""
+            class C
+            {
+                internal C()
+                {
+                    void [|CtorLocal|]() { }
+                }
+            }
+            """, """
+            Name="CtorLocal() : void" Glyph=MethodPrivate HasItems=False
+            """);
+
+    [Fact]
+    public Task TestDestructorReturnsLocalFunction()
+        => TestNode<DestructorDeclarationSyntax>("""
+            class C
+            {
+                ~C()
+                {
+                    void [|DtorLocal|]() { }
+                }
+            }
+            """, """
+            Name="DtorLocal() : void" Glyph=MethodPrivate HasItems=False
+            """);
+
+    [Fact]
+    public Task TestMethodReturnsLocalFunction()
+        => TestNode<MethodDeclarationSyntax>("""
+            class C
+            {
+                void M<T>(int a)
+                {
+                    void [|MethodLocal|]()
+                    {
+                    }
+                }
+            }
+            """, """
+            Name="MethodLocal() : void" Glyph=MethodPrivate HasItems=False
+            """);
+
+    [Fact]
+    public Task TestOperatorReturnsLocalFunction()
+        => TestNode<OperatorDeclarationSyntax>("""
+            class C
+            {
+                public static C operator +(C c1, int a)
+                {
+                    void [|OperatorLocal|]() { }
+                    return default;
+                }
+            }
+            """, """
+            Name="OperatorLocal() : void" Glyph=MethodPrivate HasItems=False
+            """);
+
+    [Fact]
+    public Task TestConversionOperatorReturnsLocalFunction()
+        => TestNode<ConversionOperatorDeclarationSyntax>("""
+            class C
+            {
+                internal static implicit operator int(C c1)
+                {
+                    void [|ConversionLocal|]() { }
+                    return default;
+                }
+            }
+            """, """
+            Name="ConversionLocal() : void" Glyph=MethodPrivate HasItems=False
+            """);
+
+    [Fact]
+    public Task TestLocalFunctionWithParameters()
+        => TestNode<MethodDeclarationSyntax>("""
+            class C
+            {
+                void M<T>(int a)
+                {
+                    int [|MethodLocal|](string input)
+                    {
+                    }
+                }
+            }
+            """, """
+            Name="MethodLocal(string) : int" Glyph=MethodPrivate HasItems=False
+            """);
 }

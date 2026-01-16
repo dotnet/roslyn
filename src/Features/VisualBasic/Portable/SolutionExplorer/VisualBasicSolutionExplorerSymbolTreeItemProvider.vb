@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Text
 Imports System.Threading
@@ -20,7 +21,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SolutionExplorer
             StatementSyntax,
             NamespaceBlockSyntax,
             EnumBlockSyntax,
-            TypeBlockSyntax)
+            TypeBlockSyntax,
+            VisualBasicSyntaxNode)
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
