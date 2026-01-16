@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.HiddenExplicitCast;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.HiddenExplicitCast;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.HiddenExplicitCast;
@@ -859,6 +860,791 @@ public sealed class HiddenExplicitCastTests
                 class C
                 {
                     IEnumerable<int> M(IEnumerable<Value> values) => values.Select(v => (int)(long)v);
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInTupleLiteral()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                    struct Value
+                    {
+                        public static explicit operator long(Value v) => 100L;
+                    }
+
+                    class C
+                    {
+                        (int, int) M(Value v) => ([|(int)v|], 0);
+                    }
+                    """,
+            FixedCode = """
+                    struct Value
+                    {
+                        public static explicit operator long(Value v) => 100L;
+                    }
+
+                    class C
+                    {
+                        (int, int) M(Value v) => ((int)(long)v, 0);
+                    }
+                    """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInForLoopInitializer()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    void M(Value v)
+                    {
+                        for (int i = [|(int)v|]; i < 10; i++) { }
+                    }
+                }
+                """,
+            FixedCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    void M(Value v)
+                    {
+                        for (int i = (int)(long)v; i < 10; i++) { }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInYieldReturn()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    IEnumerable<int> M(Value v)
+                    {
+                        yield return [|(int)v|];
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    IEnumerable<int> M(Value v)
+                    {
+                        yield return (int)(long)v;
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInCheckedExpression()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    int M(Value v) => checked([|(int)v|]);
+                }
+                """,
+            FixedCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    int M(Value v) => checked((int)(long)v);
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInUncheckedExpression()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    int M(Value v) => unchecked([|(int)v|]);
+                }
+                """,
+            FixedCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    int M(Value v) => unchecked((int)(long)v);
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInBinaryExpression()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    int M(Value v) => [|(int)v|] + 1;
+                }
+                """,
+            FixedCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    int M(Value v) => (int)(long)v + 1;
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInComparisonExpression()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    bool M(Value v) => [|(int)v|] > 5;
+                }
+                """,
+            FixedCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    bool M(Value v) => (int)(long)v > 5;
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInArrayIndex()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 0L;
+                }
+
+                class C
+                {
+                    int M(Value v, int[] arr) => arr[[|(int)v|]];
+                }
+                """,
+            FixedCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 0L;
+                }
+
+                class C
+                {
+                    int M(Value v, int[] arr) => arr[(int)(long)v];
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInNullCoalescingExpression()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct Value
+                {
+                    public static explicit operator long?(Value v) => 100L;
+                }
+
+                class C
+                {
+                    int M(Value v) => [|(int?)v|] ?? 0;
+                }
+                """,
+            FixedCode = """
+                struct Value
+                {
+                    public static explicit operator long?(Value v) => 100L;
+                }
+
+                class C
+                {
+                    int M(Value v) => (int?)(long?)v ?? 0;
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInDiscard()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    void M(Value v)
+                    {
+                        _ = [|(int)v|];
+                    }
+                }
+                """,
+            FixedCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    void M(Value v)
+                    {
+                        _ = (int)(long)v;
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInConstructorArgument()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class Target
+                {
+                    public Target(int x) { }
+                }
+
+                class C
+                {
+                    Target M(Value v) => new Target([|(int)v|]);
+                }
+                """,
+            FixedCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class Target
+                {
+                    public Target(int x) { }
+                }
+
+                class C
+                {
+                    Target M(Value v) => new Target((int)(long)v);
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInIndexerArgument()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 0L;
+                }
+
+                class C
+                {
+                    string M(Value v, Dictionary<int, string> dict) => dict[[|(int)v|]];
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 0L;
+                }
+
+                class C
+                {
+                    string M(Value v, Dictionary<int, string> dict) => dict[(int)(long)v];
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInStringConcatenation()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    string M(Value v) => "Value: " + [|(int)v|];
+                }
+                """,
+            FixedCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    string M(Value v) => "Value: " + (int)(long)v;
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInRangeExpression()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 0L;
+                }
+
+                class C
+                {
+                    int[] M(Value v, int[] arr) => arr[[|(int)v|]..];
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 0L;
+                }
+
+                class C
+                {
+                    int[] M(Value v, int[] arr) => arr[(int)(long)v..];
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInQueryExpression()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+                using System.Linq;
+
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    IEnumerable<int> M(IEnumerable<Value> values) =>
+                        from v in values
+                        select [|(int)v|];
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+                using System.Linq;
+
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    IEnumerable<int> M(IEnumerable<Value> values) =>
+                        from v in values
+                        select (int)(long)v;
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInParenthesizedExpression()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    int M(Value v) => ([|(int)v|]);
+                }
+                """,
+            FixedCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    int M(Value v) => ((int)(long)v);
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInThrowExpression()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class MyException : Exception
+                {
+                    public MyException(int code) { }
+                }
+
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    void M(Value v) => throw new MyException([|(int)v|]);
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class MyException : Exception
+                {
+                    public MyException(int code) { }
+                }
+
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    void M(Value v) => throw new MyException((int)(long)v);
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInAwaitExpression()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Threading.Tasks;
+
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    async Task<int> M(Value v) => await Task.FromResult([|(int)v|]);
+                }
+                """,
+            FixedCode = """
+                using System.Threading.Tasks;
+
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    async Task<int> M(Value v) => await Task.FromResult((int)(long)v);
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInNestedCast()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    object M(Value v) => (object)[|(int)v|];
+                }
+                """,
+            FixedCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    object M(Value v) => (object)(int)(long)v;
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInWhileCondition()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    void M(Value v)
+                    {
+                        while ([|(int)v|] > 0) { break; }
+                    }
+                }
+                """,
+            FixedCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    void M(Value v)
+                    {
+                        while ((int)(long)v > 0) { break; }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInIfCondition()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    void M(Value v)
+                    {
+                        if ([|(int)v|] > 0) { }
+                    }
+                }
+                """,
+            FixedCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    void M(Value v)
+                    {
+                        if ((int)(long)v > 0) { }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInSwitchStatement()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    string M(Value v)
+                    {
+                        switch ([|(int)v|])
+                        {
+                            case 0: return "zero";
+                            default: return "other";
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    string M(Value v)
+                    {
+                        switch ((int)(long)v)
+                        {
+                            case 0: return "zero";
+                            default: return "other";
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInLocalFunctionReturn()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    void M(Value v)
+                    {
+                        int Local() => [|(int)v|];
+                    }
+                }
+                """,
+            FixedCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    void M(Value v)
+                    {
+                        int Local() => (int)(long)v;
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInUsingDeclaration()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.IO;
+
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    void M(Value v, MemoryStream[] streams)
+                    {
+                        using var s = streams[[|(int)v|]];
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.IO;
+
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    void M(Value v, MemoryStream[] streams)
+                    {
+                        using var s = streams[(int)(long)v];
+                    }
                 }
                 """,
         }.RunAsync();
