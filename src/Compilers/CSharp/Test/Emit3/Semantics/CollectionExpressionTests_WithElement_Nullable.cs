@@ -587,7 +587,9 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             using System;
             using System.Collections.Generic;
 
-            var v = true ? [with(null), "a", "b"] : new MyCollection<string>("");
+            var v = true
+                ? [with(null), "a", "b"]
+                : new MyCollection<string>("");
             Console.WriteLine(string.Join(", ", v));
 
             class MyCollection<T> : List<T>
@@ -599,9 +601,9 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             """;
 
         var verifier = CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("a, b")).VerifyDiagnostics(
-            // (5,22): warning CS8625: Cannot convert null literal to non-nullable reference type.
-            // var v = true ? [with(null), "a", "b"] : new MyCollection<string>("");
-            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 22));
+            // (6,13): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            //     ? [with(null), "a", "b"]
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 13));
 
         AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.String!>.MyCollection(System.String! arg)");
     }
@@ -614,7 +616,9 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             using System;
             using System.Collections.Generic;
 
-            var v = true ? [with(""), null] : new MyCollection<string>("");
+            var v = true
+                ? [with(""), null]
+                : new MyCollection<string>("");
             Console.WriteLine(string.Join(", ", v));
 
             class MyCollection<T> : List<T>
@@ -626,9 +630,9 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             """;
 
         var verifier = CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("")).VerifyDiagnostics(
-            // (5,27): warning CS8625: Cannot convert null literal to non-nullable reference type.
-            // var v = true ? [with(""), null] : new MyCollection<string>("");
-            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 27));
+                // (6,18): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //     ? [with(""), null]
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 18));
 
         AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.String!>.MyCollection(System.String! arg)");
     }
@@ -641,7 +645,9 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             using System;
             using System.Collections.Generic;
 
-            var v = true ? Goo([with(""), null]) : Goo([with(""), ""]);
+            var v = true
+                ? Goo([with(""), null])
+                : Goo([with(""), ""]);
             Console.WriteLine(string.Join(", ", v));
 
             MyCollection<T> Goo<T>(MyCollection<T> c) { return c; }
@@ -655,9 +661,9 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             """;
 
         CreateCompilation(source).VerifyDiagnostics(
-            // (5,16): error CS0411: The type arguments for method 'Goo<T>(MyCollection<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-            // var v = true ? Goo([with(""), null]) : Goo([with(""), ""]);
-            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Goo").WithArguments("Goo<T>(MyCollection<T>)").WithLocation(5, 16));
+            // (6,7): error CS0411: The type arguments for method 'Goo<T>(MyCollection<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+            //     ? Goo([with(""), null])
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Goo").WithArguments("Goo<T>(MyCollection<T>)").WithLocation(6, 7));
     }
 
     [Fact]
@@ -668,7 +674,9 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             using System;
             using System.Collections.Generic;
 
-            var v = true ? Goo([with(""), null]) : Goo([with(null), ""]);
+            var v = true
+                ? Goo([with(""), null])
+                : Goo([with(null), ""]);
             Console.WriteLine(string.Join(", ", v));
             
             MyCollection<T> Goo<T>(MyCollection<T> c) { return c; }
@@ -682,9 +690,9 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             """;
 
         CreateCompilation(source).VerifyDiagnostics(
-            // (5,16): error CS0411: The type arguments for method 'Goo<T>(MyCollection<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-            // var v = true ? Goo([with(""), null]) : Goo([with(null), ""]);
-            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Goo").WithArguments("Goo<T>(MyCollection<T>)").WithLocation(5, 16));
+            // (6,7): error CS0411: The type arguments for method 'Goo<T>(MyCollection<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+            //     ? Goo([with(""), null])
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Goo").WithArguments("Goo<T>(MyCollection<T>)").WithLocation(6, 7));
     }
 
     [Fact]
@@ -695,7 +703,9 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             using System;
             using System.Collections.Generic;
 
-            var v = true ? Goo([with(null), null, ""]) : Goo([with(null), ""]);
+            var v = true
+                ? Goo([with(null), null, ""])
+                : Goo([with(null), ""]);
             Console.WriteLine(string.Join(", ", v));
             
             MyCollection<T> Goo<T>(MyCollection<T> c) { return c; }
@@ -708,10 +718,10 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             }
             """;
 
-        var verifier = CompileAndVerify(source, expectedOutput: IncludeExpectedOutput(",")).VerifyDiagnostics(
-            // (5,16): warning CS8619: Nullability of reference types in value of type 'MyCollection<string?>' doesn't match target type 'MyCollection<string>'.
-            // var v = true ? Goo([with(null), null, ""]) : Goo([with(null), ""]);
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, @"Goo([with(null), null, """"])").WithArguments("MyCollection<string?>", "MyCollection<string>").WithLocation(5, 16));
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput(",")).VerifyDiagnostics(
+            // (6,7): warning CS8619: Nullability of reference types in value of type 'MyCollection<string?>' doesn't match target type 'MyCollection<string>'.
+            //     ? Goo([with(null), null, ""])
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, @"Goo([with(null), null, """"])").WithArguments("MyCollection<string?>", "MyCollection<string>").WithLocation(6, 7));
     }
 
     [Fact]
@@ -722,7 +732,9 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             using System;
             using System.Collections.Generic;
 
-            var v = true ? Goo([with(null), null, ""]) : Goo([with(null), "", null]);
+            var v = true
+                ? Goo([with(null), null, ""])
+                : Goo([with(null), "", null]);
             Console.WriteLine(string.Join(", ", v));
             
             MyCollection<T> Goo<T>(MyCollection<T> c) { return c; }
@@ -735,10 +747,10 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             }
             """;
 
-        var verifier = CompileAndVerify(source, expectedOutput: IncludeExpectedOutput(",")).VerifyDiagnostics(
-            // (5,16): warning CS8619: Nullability of reference types in value of type 'MyCollection<string?>' doesn't match target type 'MyCollection<string>'.
-            // var v = true ? Goo([with(null), null, ""]) : Goo([with(null), "", null]);
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, @"Goo([with(null), null, """"])").WithArguments("MyCollection<string?>", "MyCollection<string>").WithLocation(5, 16));
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput(",")).VerifyDiagnostics(
+            // (6,7): warning CS8619: Nullability of reference types in value of type 'MyCollection<string?>' doesn't match target type 'MyCollection<string>'.
+            //     ? Goo([with(null), null, ""])
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, @"Goo([with(null), null, """"])").WithArguments("MyCollection<string?>", "MyCollection<string>").WithLocation(6, 7));
     }
 
     [Fact]
