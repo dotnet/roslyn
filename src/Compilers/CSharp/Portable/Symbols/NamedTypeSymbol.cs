@@ -624,6 +624,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract FileIdentifier? AssociatedFileIdentifier { get; }
 
+        /// <summary>Returns true if the type is 'closed', i.e. an abstract class where subtyping is only permitted in the current module.</summary>
+        internal abstract bool IsClosed { get; }
+
         [MemberNotNullWhen(true, nameof(ExtensionGroupingName), nameof(ExtensionMarkerName))]
         public virtual bool IsExtension
             => TypeKind == TypeKind.Extension;

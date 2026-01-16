@@ -150,6 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal ThreeState lazyHasCompilerLoweringPreserveAttribute = ThreeState.Unknown;
             internal ThreeState lazyHasInterpolatedStringHandlerAttribute = ThreeState.Unknown;
             internal ThreeState lazyHasRequiredMembers = ThreeState.Unknown;
+            internal ThreeState lazyIsClosed = ThreeState.Unknown;
 
             internal ImmutableArray<byte> lazyFilePathChecksum = default;
             internal string lazyDisplayFileName;
@@ -170,6 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     !lazyHasEmbeddedAttribute.HasValue() &&
                     !lazyHasInterpolatedStringHandlerAttribute.HasValue() &&
                     !lazyHasRequiredMembers.HasValue() &&
+                    !lazyIsClosed.HasValue() &&
                     (object)lazyCollectionBuilderAttributeData == CollectionBuilderAttributeData.Uninitialized &&
                     lazyFilePathChecksum.IsDefault &&
                     lazyDisplayFileName == null &&
@@ -617,6 +619,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        internal sealed override bool IsClosed => GetUncommonProperties().lazyHasRequiredMembers throw new NotImplementedException();
+
         internal abstract int MetadataArity
         {
             get;
@@ -942,6 +946,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
                 else
                 {
+                    TemporaryArray<CustomAttributeHandle> handles;
                     loadedCustomAttributes = ContainingPEModule.GetCustomAttributesForToken(
                         Handle,
                         out _,
