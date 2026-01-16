@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If this fails, call <see cref="ReportDiagnosticsIfUnsafeMemberAccess"/> for the <paramref name="symbol"/> instead and add corresponding tests.
         /// </summary>
         [Conditional("DEBUG")]
-        private void AssertNotUnsafeMemberAccess(Symbol symbol)
+        internal static void AssertNotUnsafeMemberAccess(Symbol symbol)
         {
             Debug.Assert(symbol.CallerUnsafeMode is CallerUnsafeMode.None,
                 $"Symbol {symbol} has {nameof(symbol.CallerUnsafeMode)}={symbol.CallerUnsafeMode}.");

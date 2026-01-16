@@ -276,6 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool hasBaseReceiver = node.ReceiverOpt != null && node.ReceiverOpt.Kind == BoundKind.BaseReference;
                 Binder.ReportDiagnosticsIfObsolete(_diagnostics, node.EventSymbol.AssociatedField, node.Syntax, hasBaseReceiver, _containingSymbol, _containingSymbol.ContainingType, BinderFlags.None);
+                Binder.AssertNotUnsafeMemberAccess(node.EventSymbol.AssociatedField);
             }
             CheckReceiverIfField(node.ReceiverOpt);
             return base.VisitEventAccess(node);
