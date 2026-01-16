@@ -50,6 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly BindingDiagnosticBag _diagnostics;
         private readonly BoundStatement _rootStatement;
 
+        private readonly TransientInlineArrayAllocator _transientInlineArrayAllocator;
+        private ArrayBuilder<(TypeSymbol type, int length)>? _allocatedTransientInlineArrays;
+
         private Dictionary<BoundValuePlaceholderBase, BoundExpression>? _placeholderReplacementMapDoNotUseDirectly;
 
         private LocalRewriter(
@@ -61,6 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntheticBoundNodeFactory factory,
             SynthesizedSubmissionFields previousSubmissionFields,
             bool allowOmissionOfConditionalCalls,
+            TransientInlineArrayAllocator transientInlineArrayAllocator,
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(factory.InstrumentationState != null);
@@ -76,6 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _topLevelMethodOrdinal = containingMethodOrdinal;
             _diagnostics = diagnostics;
             _rootStatement = rootStatement;
+            _transientInlineArrayAllocator = transientInlineArrayAllocator;
         }
 
         /// <summary>
@@ -139,9 +144,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 instrumentationState.Instrumenter = DebugInfoInjector.Create(instrumenter);
 
+                var transientInlineArrayAllocator = new TransientInlineArrayAllocator();
+
                 // We don't want IL to differ based upon whether we write the PDB to a file/stream or not.
                 // Presence of sequence points in the tree affects final IL, therefore, we always generate them.
-                var localRewriter = new LocalRewriter(compilation, method, methodOrdinal, statement, containingType, factory, previousSubmissionFields, allowOmissionOfConditionalCalls, diagnostics);
+                var localRewriter = new LocalRewriter(compilation, method, methodOrdinal, statement, containingType, factory, previousSubmissionFields, allowOmissionOfConditionalCalls, transientInlineArrayAllocator, diagnostics);
                 statement.CheckLocalsDefined();
                 var loweredStatement = localRewriter.VisitStatement(statement);
                 Debug.Assert(loweredStatement is { });
@@ -155,6 +162,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sawLambdas = localRewriter._sawLambdas;
                 sawLocalFunctions = localRewriter._availableLocalFunctionOrdinal != 0;
                 sawAwaitInExceptionHandler = localRewriter._sawAwaitInExceptionHandler;
+
+                var transientInlineArrays = transientInlineArrayAllocator.ToAllocatedArraysAndFree();
+                if (transientInlineArrays.Length > 0)
+                {
+                    var inlineArrayReplacedStatement = TransientInlineArrayRewriter.Rewrite(loweredStatement, transientInlineArrays, factory, diagnostics);
+                    inlineArrayReplacedStatement.CheckLocalsDefined();
+                    loweredStatement = inlineArrayReplacedStatement;
+                }
 
                 if (localRewriter._needsSpilling && !loweredStatement.HasErrors)
                 {
