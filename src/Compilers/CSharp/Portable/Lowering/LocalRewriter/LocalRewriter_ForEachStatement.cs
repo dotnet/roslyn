@@ -346,11 +346,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _diagnostics.Add(forEachSyntax, useSiteInfo);
             }
 
-            Binder.ReportDiagnosticsIfObsolete(_diagnostics, disposeMethod, forEachSyntax,
-                                               hasBaseReceiver: false,
-                                               containingMember: _factory.CurrentFunction,
-                                               containingType: _factory.CurrentType,
-                                               location: enumeratorInfo.Location);
+            //Binder.ReportDiagnosticsIfObsolete(_diagnostics, disposeMethod, forEachSyntax,
+            //                                   hasBaseReceiver: false,
+            //                                   containingMember: _factory.CurrentFunction,
+            //                                   containingType: _factory.CurrentType,
+            //                                   location: enumeratorInfo.Location);
 
             if (implementsInterface || !(enumeratorInfo.PatternDisposeInfo is null))
             {
