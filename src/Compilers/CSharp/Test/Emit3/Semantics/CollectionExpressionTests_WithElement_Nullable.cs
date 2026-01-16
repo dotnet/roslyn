@@ -28,7 +28,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             Console.WriteLine(list.Count);
             """;
 
-        var verifier = CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("1")).VerifyDiagnostics(
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("1")).VerifyDiagnostics(
             // (4,22): warning CS8625: Cannot convert null literal to non-nullable reference type.
             // List<string> list = [null];
             Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 22));
