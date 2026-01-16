@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -86,14 +87,7 @@ internal sealed class DocumentSymbolsHandler() : ILspServiceDocumentRequestHandl
         if (items.IsEmpty)
             return [];
 
-        using var _ = ArrayBuilder<RoslynDocumentSymbol>.GetInstance(items.Length, out var symbols);
-        foreach (var item in items)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            symbols.Add(ConvertToDocumentSymbol(item, text, documentId, provider, cancellationToken));
-        }
-
-        return symbols.ToArray();
+        return items.Select(i => ConvertToDocumentSymbol(i, text, documentId, provider, cancellationToken)).ToArray();
     }
 
     private static RoslynDocumentSymbol ConvertToDocumentSymbol(
@@ -103,6 +97,7 @@ internal sealed class DocumentSymbolsHandler() : ILspServiceDocumentRequestHandl
         ISolutionExplorerSymbolTreeItemProvider provider,
         CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var itemKey = item.ItemKey;
         var itemSyntax = item.ItemSyntax;
 

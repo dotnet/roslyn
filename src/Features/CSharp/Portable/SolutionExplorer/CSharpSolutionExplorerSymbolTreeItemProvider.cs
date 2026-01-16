@@ -421,7 +421,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
     {
         var localFunctions = node.DescendantNodes(descendIntoChildren: (n) =>
             // Always descend from the original node even if its a local function, but do not descend further into descendent local functions.
-            n == node || n is not LocalFunctionStatementSyntax).Where(n => n is LocalFunctionStatementSyntax).Cast<LocalFunctionStatementSyntax>().ToImmutableArray();
+            n == node || n is not LocalFunctionStatementSyntax).OfType<LocalFunctionStatementSyntax>().ToImmutableArray();
         return localFunctions;
     }
 
