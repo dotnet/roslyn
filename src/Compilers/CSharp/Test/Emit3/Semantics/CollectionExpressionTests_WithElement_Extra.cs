@@ -6996,7 +6996,8 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 }
                 """;
         var comp = CreateCompilation(source);
-        // PROTO TYPE: Handle collection arguments in flow analysis: report CS8620 for 'with(c3)'.
+        // https://github.com/dotnet/roslyn/issues/81860
+        // Handle collection arguments in flow analysis: report CS8620 for 'with(c3)'.
         comp.VerifyEmitDiagnostics(
             // (17,45): warning CS8620: Argument of type 'IEqualityComparer<K>' cannot be used for parameter 'comparer' of type 'IEqualityComparer<K?>' in 'Dictionary<K?, V>.Dictionary(IEqualityComparer<K?> comparer)' due to differences in the nullability of reference types.
             //         if (b) return new Dictionary<K?, V>(c3);
