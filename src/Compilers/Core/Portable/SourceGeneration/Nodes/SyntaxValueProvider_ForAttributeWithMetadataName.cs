@@ -155,6 +155,17 @@ public partial struct SyntaxValueProvider
             addMatchingAttributes(symbol.GetAttributes());
             addMatchingAttributes((symbol as IMethodSymbol)?.GetReturnTypeAttributes());
 
+            if (symbol is INamedTypeSymbol namedTypeSymbol)
+            {
+                var attrs = namedTypeSymbol
+                    .InstanceConstructors
+                    .Where(c => c.DeclaringSyntaxReferences.Any(r => r.GetSyntax() == attributeTarget))
+                    .SelectMany(c => c.GetAttributes())
+                    .ToImmutableArray();
+
+                addMatchingAttributes(attrs);
+            }
+
             if (symbol is IAssemblySymbol assemblySymbol)
             {
                 foreach (var module in assemblySymbol.Modules)
