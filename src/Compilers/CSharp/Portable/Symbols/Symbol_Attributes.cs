@@ -428,6 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 Binder.CheckRequiredMembersInObjectInitializer(ctor, ImmutableArray<BoundExpression>.CastUp(boundAttribute.NamedArguments), boundAttribute.Syntax, diagnostics);
                                 attributeBinder.ReportDiagnosticsIfObsolete(diagnostics, ctor, boundAttribute.Syntax, hasBaseReceiver: false);
+                                attributeBinder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, ctor, boundAttribute.Syntax);
                             }
                             NullableWalker.AnalyzeIfNeeded(attributeBinder, boundAttribute, boundAttribute.Syntax, diagnostics.DiagnosticBag);
                         }

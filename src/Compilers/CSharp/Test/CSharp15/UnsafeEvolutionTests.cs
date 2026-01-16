@@ -4252,6 +4252,34 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Member_Constructor_Attribute()
+    {
+        CompileAndVerifyUnsafe(
+            lib: """
+                public class A : System.Attribute
+                {
+                    public unsafe A() { }
+                    public A(int x) { }
+                }
+                """,
+            caller: """
+                #pragma warning disable CS8321 // unused local function
+                [A] void M1() { }
+                [A(0)] void M2() { }
+                unsafe { [A] void M3() { } }
+                [A] unsafe void M4() { }
+                """,
+            expectedUnsafeSymbols: [Overload("A..ctor", parameterCount: 0)],
+            expectedSafeSymbols: ["A", Overload("A..ctor", parameterCount: 1)],
+            expectedDiagnostics:
+            [
+                // (2,2): error CS9502: 'A.A()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // [A] void M1() { }
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "A").WithArguments("A.A()").WithLocation(2, 2),
+            ]);
+    }
+
+    [Fact]
     public void Member_Destructor()
     {
         var lib = """

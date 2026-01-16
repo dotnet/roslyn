@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Flags.Includes(BinderFlags.UnsafeRegion); }
         }
 
-        protected void ReportDiagnosticsIfUnsafeMemberAccess(BindingDiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node)
+        internal void ReportDiagnosticsIfUnsafeMemberAccess(BindingDiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node)
         {
             var callerUnsafeMode = symbol.CallerUnsafeMode;
             if (callerUnsafeMode != CallerUnsafeMode.None)
