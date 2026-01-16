@@ -4287,7 +4287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
-                                    VisitObjectElementInitializer(containingSlot, containingType, assignment, placeholder);
+                                    VisitObjectElementInitializer(containingSlot, containingType, placeholder, assignment);
                                 }
 
                                 break;
@@ -4304,14 +4304,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         switch (initializer.Kind)
                         {
                             case BoundKind.CollectionElementInitializer:
-                                var collectionElementInitializer = (BoundCollectionElementInitializer)initializer;
                                 if (delayCompletionForType)
                                 {
-                                    completion += visitCollectionElementInitializerAsContinuation(collectionElementInitializer, placeholder);
+                                    completion += visitCollectionElementInitializerAsContinuation(placeholder, initializer);
                                 }
                                 else
                                 {
-                                    VisitCollectionElementInitializer(containingType, collectionElementInitializer, placeholder);
+                                    VisitCollectionElementInitializer((BoundCollectionElementInitializer)initializer, containingType, placeholder);
                                 }
                                 break;
                             default:
@@ -4331,17 +4330,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             InitializerCompletionAfterTargetType visitObjectCreationInitializerAsContinuation(BoundAssignmentOperator assignment, BoundObjectOrCollectionValuePlaceholder placeholder)
             {
                 // This logic is in a local function so that we only capture when delayed completion is needed
-                return (int containingSlot, TypeSymbol containingType) => { VisitObjectElementInitializer(containingSlot, containingType, assignment, placeholder); };
+                return (int containingSlot, TypeSymbol containingType) => { VisitObjectElementInitializer(containingSlot, containingType, placeholder, assignment); };
             }
 
-            InitializerCompletionAfterTargetType visitCollectionElementInitializerAsContinuation(BoundCollectionElementInitializer initializer, BoundObjectOrCollectionValuePlaceholder placeholder)
+            InitializerCompletionAfterTargetType visitCollectionElementInitializerAsContinuation(BoundObjectOrCollectionValuePlaceholder placeholder, BoundExpression initializer)
             {
                 // This logic is in a local function so that we only capture when delayed completion is needed
-                return (int containingSlot, TypeSymbol containingType) => { VisitCollectionElementInitializer(containingType, initializer, placeholder); };
+                return (int slot, TypeSymbol containingType) => { VisitCollectionElementInitializer((BoundCollectionElementInitializer)initializer, containingType, placeholder); };
             }
         }
 
-        private void VisitObjectElementInitializer(int containingSlot, TypeSymbol containingType, BoundAssignmentOperator node, BoundObjectOrCollectionValuePlaceholder placeholder)
+        private void VisitObjectElementInitializer(int containingSlot, TypeSymbol containingType, BoundObjectOrCollectionValuePlaceholder placeholder, BoundAssignmentOperator node)
         {
             TakeIncrementalSnapshot(node);
             AddPlaceholderReplacement(placeholder, expression: placeholder, new VisitResult(containingType, NullableAnnotation.NotAnnotated, NullableFlowState.NotNull));
@@ -4496,7 +4495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable();
         }
 
-        private void VisitCollectionElementInitializer(TypeSymbol containingType, BoundCollectionElementInitializer node, BoundObjectOrCollectionValuePlaceholder placeholder)
+        private void VisitCollectionElementInitializer(BoundCollectionElementInitializer node, TypeSymbol containingType, BoundObjectOrCollectionValuePlaceholder placeholder)
         {
             MethodSymbol addMethod = node.AddMethod;
             if (!addMethod.IsExtensionBlockMember())
@@ -7137,6 +7136,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool invokedAsExtensionMethod)
         {
             var reinferenceResult = VisitArgumentsCore(node, arguments, refKindsOpt, method is null ? default : method.Parameters, argsToParamsOpt, defaultArguments, expanded, invokedAsExtensionMethod, method, delayCompletionForTargetMember: false);
+            Debug.Assert(reinferenceResult.Completion is null);
+        }
+
+        private void VisitPropertyArguments(
+            BoundExpression node,
+            ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<RefKind> refKindsOpt,
+            PropertySymbol? property,
+            ImmutableArray<int> argsToParamsOpt,
+            BitVector defaultArguments,
+            bool expanded)
+        {
+            var reinferenceResult = VisitArgumentsCore(node, arguments, refKindsOpt, parametersOpt: property is null ? default : property.Parameters, argsToParamsOpt, defaultArguments, expanded, usesExtensionReceiver: false, member: property, delayCompletionForTargetMember: false);
             Debug.Assert(reinferenceResult.Completion is null);
         }
 
@@ -11441,9 +11453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Update indexer based on inferred receiver type
                 indexer = (PropertySymbol)AsMemberOfType(receiverType, indexer);
 
-                var reinferenceResult = VisitArgumentsCore(node, node.Arguments, node.ArgumentRefKindsOpt, indexer.Parameters,
-                    node.ArgsToParamsOpt, node.DefaultArguments, node.Expanded, usesExtensionReceiver: false, indexer, delayCompletionForTargetMember: false);
-                Debug.Assert(reinferenceResult.Completion is null);
+                VisitPropertyArguments(node, node.Arguments, node.ArgumentRefKindsOpt, indexer, node.ArgsToParamsOpt, node.DefaultArguments, node.Expanded);
             }
 
             var resultType = ApplyUnconditionalAnnotations(indexer.TypeWithAnnotations.ToTypeWithState(), GetRValueAnnotations(indexer));

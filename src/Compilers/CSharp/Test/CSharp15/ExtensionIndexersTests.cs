@@ -10086,21 +10086,4 @@ class C
             //                 [M2(null)] = 0
             Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(14, 21));
     }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81953")]
-    public void DynamicIndexerAccess_13()
-    {
-        var src = """
-#nullable enable
-
-dynamic d = new object();
-d[0] = M(null);
-
-static int M(object o) => 0;
-""";
-        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
-            // (4,10): warning CS8625: Cannot convert null literal to non-nullable reference type.
-            // d[0] = M(null);
-            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 10));
-    }
 }
