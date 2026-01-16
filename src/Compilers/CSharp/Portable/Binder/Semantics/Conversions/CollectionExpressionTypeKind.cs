@@ -25,5 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </list>
         /// </summary>
         ArrayInterface,
+        ImplementsIEnumerableWithIndexer,
+        DictionaryInterface,
     }
 }

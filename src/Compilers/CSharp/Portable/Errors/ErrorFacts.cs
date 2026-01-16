@@ -2557,6 +2557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_CollectionArgumentsMustBeEmpty
                 or ErrorCode.ERR_CollectionRefLikeElementType
                 or ErrorCode.ERR_BadCollectionArgumentsArgCount
+                or ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported
                 or ErrorCode.ERR_AmbigExtension
                 or ErrorCode.ERR_SingleInapplicableBinaryOperator
                 or ErrorCode.ERR_SingleInapplicableUnaryOperator

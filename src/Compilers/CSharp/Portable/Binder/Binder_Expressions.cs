@@ -5371,6 +5371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     ExpressionElementSyntax { Expression: CollectionExpressionSyntax nestedCollectionExpression } => @this.BindCollectionExpression(nestedCollectionExpression, diagnostics, nestingLevel + 1),
                     ExpressionElementSyntax expressionElementSyntax => @this.BindValue(expressionElementSyntax.Expression, diagnostics, BindValueKind.RValue),
+                    KeyValuePairElementSyntax keyValuePairElementSyntax => @this.BindKeyValuePairElement(keyValuePairElementSyntax, diagnostics),
                     SpreadElementSyntax spreadElementSyntax => bindSpreadElement(spreadElementSyntax, diagnostics, @this),
                     _ => throw ExceptionUtilities.UnexpectedValue(syntax.Kind())
                 };
@@ -5498,6 +5499,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedArguments.Free();
                 return (withElement, badExpression);
             }
+        }
+
+        private BoundNode BindKeyValuePairElement(KeyValuePairElementSyntax syntax, BindingDiagnosticBag diagnostics)
+        {
+            MessageID.IDS_FeatureDictionaryExpressions.CheckFeatureAvailability(diagnostics, syntax, syntax.ColonToken.GetLocation());
+            var key = BindValue(syntax.KeyExpression, diagnostics, BindValueKind.RValue);
+            var value = BindValue(syntax.ValueExpression, diagnostics, BindValueKind.RValue);
+            return new BoundKeyValuePairElement(syntax, key, value);
         }
 #nullable disable
 
