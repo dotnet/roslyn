@@ -86,7 +86,7 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckDiag
             return;
 
         // Don't offer the refactoring if the if-statement has directives that would be lost when we remove it.
-        if (HasDirectives(ifStatement))
+        if (ifStatement.GetFirstToken().ContainsDirectives)
             return;
 
         TExpressionSyntax? expressionToCoalesce;
@@ -270,29 +270,6 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckDiag
             {
                 syntaxFacts.GetPartsOfAssignmentStatement(whenTrueStatement, out var innerAssignmentLeft, out _);
                 return syntaxFacts.AreEquivalent(innerAssignmentLeft, checkedExpression);
-            }
-
-            return false;
-        }
-
-        bool HasDirectives(SyntaxNode node)
-        {
-            // Check if the node has any preprocessor directives in its trivia.
-            // We want to avoid removing the if-statement if it has directives,
-            // as this would cause the directives to be lost.
-            foreach (var token in node.DescendantTokens())
-            {
-                foreach (var trivia in token.LeadingTrivia)
-                {
-                    if (syntaxFacts.IsPreprocessorDirective(trivia))
-                        return true;
-                }
-
-                foreach (var trivia in token.TrailingTrivia)
-                {
-                    if (syntaxFacts.IsPreprocessorDirective(trivia))
-                        return true;
-                }
             }
 
             return false;

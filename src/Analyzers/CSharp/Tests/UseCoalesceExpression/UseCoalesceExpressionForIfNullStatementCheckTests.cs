@@ -716,7 +716,7 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
             """
         }.RunAsync();
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82037")]
     public Task TestNotOfferedWithDirectivesOnIfStatement_LeadingPragma()
         => new VerifyCS.Test
         {
@@ -741,7 +741,7 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
             """
         }.RunAsync();
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82037")]
     public Task TestNotOfferedWithDirectivesOnIfStatement_LeadingRegion()
         => new VerifyCS.Test
         {
@@ -765,7 +765,7 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
             """
         }.RunAsync();
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82037")]
     public Task TestNotOfferedWithDirectivesOnIfStatement_TrailingDefine()
         => new VerifyCS.Test
         {
