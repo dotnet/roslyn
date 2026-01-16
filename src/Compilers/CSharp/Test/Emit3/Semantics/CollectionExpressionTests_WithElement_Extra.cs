@@ -1398,7 +1398,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             // (6,9): error CS0411: The type arguments for method 'Program.Identity<T>(MyCollection<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             //         Identity([with(default, 2), default]);
             Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Identity").WithArguments("Program.Identity<T>(MyCollection<T>)").WithLocation(6, 9),
-            // (7,18): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (7,18): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         Identity([with(default), default, 3]);
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(default), default, 3]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 18),
             // (7,24): error CS8716: There is no target type for the default literal.
@@ -2205,10 +2205,10 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceB, s_collectionExtensions],
             references: [compilation1.ToMetadataReference()],
             targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-            // (14,49): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (14,49): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> EmptyArgs<T>(T t) => [with(), t];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(), t]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(14, 49),
-            // (15,52): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (15,52): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(t), t]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(15, 52));
     }
@@ -2305,10 +2305,10 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         CreateCompilation(
             [sourceA, sourceB, s_collectionExtensions],
             targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-            // (14,49): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (14,49): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> EmptyArgs<T>(T t) => [with(), t];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(), t]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(14, 49),
-            // (15,52): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (15,52): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(t), t]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(15, 52));
     }
@@ -2347,7 +2347,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 // (5,26): error CS9404: Element type of this collection may not be a ref struct or a type parameter allowing ref structs
                 //         MyCollection c = [];
                 Diagnostic(ErrorCode.ERR_CollectionRefLikeElementType, "[]").WithLocation(5, 26),
-                // (5,26): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<System.ReadOnlySpan<int>>' and return type 'MyCollection'.
+                // (5,26): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<System.ReadOnlySpan<int>>' and return type 'MyCollection'.
                 //         MyCollection c = [];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "System.ReadOnlySpan<int>", "MyCollection"));
     }
@@ -2382,13 +2382,13 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (4,46): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (4,46): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> EmptyArgs<T>() => [with()];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with()]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(4, 46),
-            // (5,52): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (5,52): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(t)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(5, 52),
-            // (6,38): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (6,38): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 38));
     }
@@ -2426,7 +2426,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             // (4,47): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of 'MyBuilder.Create<T>(T, ReadOnlySpan<T>)'
             //     static MyCollection<T> EmptyArgs<T>() => [with()];
             Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "with()").WithArguments("arg", "MyBuilder.Create<T>(T, System.ReadOnlySpan<T>)").WithLocation(4, 47),
-            // (6,38): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (6,38): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 38));
     }
@@ -2471,16 +2471,16 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (8,27): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (8,27): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         Console.WriteLine(Params(3, 4).Arg);
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Params(3, 4)").WithArguments("Create", "T", "MyCollection<T>").WithLocation(8, 27),
-            // (10,46): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (10,46): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> EmptyArgs<T>() => [with()];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with()]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(10, 46),
-            // (11,52): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (11,52): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(t)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(11, 52),
-            // (12,38): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (12,38): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(12, 38));
     }
@@ -2525,7 +2525,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (12,38): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (12,38): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(12, 38));
     }
@@ -2573,22 +2573,22 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB, s_collectionExtensions],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (9,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (9,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         Params(6).Args.Report();
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Params(6)").WithArguments("Create", "T", "MyCollection<T>").WithLocation(9, 9),
-            // (11,46): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (11,46): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> EmptyArgs<T>() => [with()];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with()]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(11, 46),
-            // (12,46): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (12,46): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> OneArg<T>(T t) => [with(t)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(t)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(12, 46),
-            // (13,52): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (13,52): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> TwoArgs<T>(T x, T y) => [with(x, y)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(x, y)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(13, 52),
-            // (14,57): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (14,57): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> MultipleArgs<T>(T[] args) => [with(args)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(args)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(14, 57),
-            // (15,38): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (15,38): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(15, 38));
     }
@@ -4299,43 +4299,43 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (2,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (2,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             // c = [with(items: default)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(items: default)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(2, 5),
             // (2,18): error CS8716: There is no target type for the default literal.
             // c = [with(items: default)];
             Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(2, 18),
-            // (3,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (3,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             // c = [with(items: default, 1)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(items: default, 1)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(3, 5),
             // (3,18): error CS8716: There is no target type for the default literal.
             // c = [with(items: default, 1)];
             Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(3, 18),
-            // (4,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (4,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             // c = [with(items: default, arg: 2)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(items: default, arg: 2)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(4, 5),
             // (4,18): error CS8716: There is no target type for the default literal.
             // c = [with(items: default, arg: 2)];
             Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(4, 18),
-            // (5,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (5,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             // c = [with(3, items: default)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(3, items: default)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(5, 5),
             // (5,21): error CS8716: There is no target type for the default literal.
             // c = [with(3, items: default)];
             Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(5, 21),
-            // (6,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (6,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             // c = [with(arg: 4, items: default)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(arg: 4, items: default)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 5),
             // (6,26): error CS8716: There is no target type for the default literal.
             // c = [with(arg: 4, items: default)];
             Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 26),
-            // (7,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (7,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             // c = [with(default, 5)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(default, 5)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 5),
             // (7,11): error CS8716: There is no target type for the default literal.
             // c = [with(default, 5)];
             Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 11),
-            // (8,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (8,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             // c = [with(default, arg: 6)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(default, arg: 6)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(8, 5),
             // (8,11): error CS8716: There is no target type for the default literal.
@@ -4649,22 +4649,22 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 13),
-            // (7,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (7,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [with()];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with()]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 13),
-            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [with(default)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(default)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(8, 13),
             // (8,19): error CS8716: There is no target type for the default literal.
             //         c = [with(default)];
             Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(8, 19),
-            // (9,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (9,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = F(1, 2);
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F(1, 2)").WithArguments("Create", "T", "MyCollection<T>").WithLocation(9, 13),
-            // (11,33): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (11,33): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> F<T>(params MyCollection<T> c) => c;
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(11, 33));
     }
@@ -4789,22 +4789,22 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 13),
-            // (7,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (7,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [with()];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with()]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 13),
-            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [with(default)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(default)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(8, 13),
             // (8,19): error CS8716: There is no target type for the default literal.
             //         c = [with(default)];
             Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(8, 19),
-            // (9,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (9,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = F(1, 2);
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F(1, 2)").WithArguments("Create", "T", "MyCollection<T>").WithLocation(9, 13),
-            // (11,33): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (11,33): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> F<T>(params MyCollection<T> c) => c;
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(11, 33));
     }
@@ -4857,7 +4857,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             // (9,13): warning CS0612: 'MyBuilder.Create<T>(T, ReadOnlySpan<T>)' is obsolete
             //         c = F(1, 2);
             Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "F(1, 2)").WithArguments("MyBuilder.Create<T>(T, System.ReadOnlySpan<T>)").WithLocation(9, 13),
-            // (11,33): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (11,33): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> F<T>(params MyCollection<T> c) => c;
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(11, 33));
     }
@@ -4899,19 +4899,19 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<int>' and return type 'MyCollection'.
+            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<int>' and return type 'MyCollection'.
             //         c = [];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "int", "MyCollection").WithLocation(6, 13),
-            // (7,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<int>' and return type 'MyCollection'.
+            // (7,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<int>' and return type 'MyCollection'.
             //         c = [with()];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with()]").WithArguments("Create", "int", "MyCollection").WithLocation(7, 13),
-            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<int>' and return type 'MyCollection'.
+            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<int>' and return type 'MyCollection'.
             //         c = [with(0)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(0)]").WithArguments("Create", "int", "MyCollection").WithLocation(8, 13),
-            // (9,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<int>' and return type 'MyCollection'.
+            // (9,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<int>' and return type 'MyCollection'.
             //         c = F(1, 2);
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F(1, 2)").WithArguments("Create", "int", "MyCollection").WithLocation(9, 13),
-            // (11,27): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<int>' and return type 'MyCollection'.
+            // (11,27): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<int>' and return type 'MyCollection'.
             //     static MyCollection F(params MyCollection c) => c;
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection c").WithArguments("Create", "int", "MyCollection").WithLocation(11, 27),
             // (15,19): error CS8894: Cannot use 'MyCollection' as a return type on a method attributed with 'UnmanagedCallersOnly'.
@@ -5133,25 +5133,25 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB1, s_collectionExtensions],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 13),
-            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [with(), 1];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(), 1]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(8, 13),
-            // (10,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (10,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [with(2)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(2)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(10, 13),
-            // (12,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (12,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         F<int>();
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F<int>()").WithArguments("Create", "T", "MyCollection<T>").WithLocation(12, 9),
-            // (13,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (13,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         F(3);
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F(3)").WithArguments("Create", "T", "MyCollection<T>").WithLocation(13, 9),
-            // (14,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (14,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         F(4, 5);
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F(4, 5)").WithArguments("Create", "T", "MyCollection<T>").WithLocation(14, 9),
-            // (16,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (16,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static void F<T>(params MyCollection<T> c) where T : struct
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(16, 22));
 
@@ -5176,22 +5176,22 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB2],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 13),
-            // (7,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (7,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [with(), 1];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(), 1]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 13),
-            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [with(2)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(2)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(8, 13),
-            // (9,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (9,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         F<object>();
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F<object>()").WithArguments("Create", "T", "MyCollection<T>").WithLocation(9, 9),
-            // (10,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (10,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         F((object)3);
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F((object)3)").WithArguments("Create", "T", "MyCollection<T>").WithLocation(10, 9),
-            // (12,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (12,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static void F<T>(params MyCollection<T> c)
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(12, 22));
     }
@@ -5249,7 +5249,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB1, s_collectionExtensions],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (16,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (16,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static void F<T>(params MyCollection<T> c) where T : struct
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(16, 22));
 
@@ -5289,7 +5289,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             // (10,9): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(T, ReadOnlySpan<T>)'
             //         F((object)3);
             Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F((object)3)").WithArguments("MyBuilder.Create<T>(T, System.ReadOnlySpan<T>)", "T", "object").WithLocation(10, 9),
-            // (12,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (12,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static void F<T>(params MyCollection<T> c)
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(12, 22));
     }
@@ -5346,22 +5346,22 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB1, s_collectionExtensions],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 13),
-            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [with(), 1];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(), 1]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(8, 13),
-            // (10,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (10,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [with(2, 3)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(2, 3)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(10, 13),
-            // (12,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (12,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         F<int>();
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F<int>()").WithArguments("Create", "T", "MyCollection<T>").WithLocation(12, 9),
-            // (13,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (13,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         F(4, 5);
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F(4, 5)").WithArguments("Create", "T", "MyCollection<T>").WithLocation(13, 9),
-            // (15,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (15,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static void F<T>(params MyCollection<T> c) where T : struct
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(15, 22));
 
@@ -5386,22 +5386,22 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB2],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 13),
-            // (7,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (7,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [with(), 1];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(), 1]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 13),
-            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [with(2, 3)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(2, 3)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(8, 13),
-            // (9,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (9,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         F<object>();
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F<object>()").WithArguments("Create", "T", "MyCollection<T>").WithLocation(9, 9),
-            // (10,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (10,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         F((object)4, 5);
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F((object)4, 5)").WithArguments("Create", "T", "MyCollection<T>").WithLocation(10, 9),
-            // (12,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (12,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static void F<T>(params MyCollection<T> c)
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(12, 22));
     }
@@ -5570,13 +5570,13 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB, s_collectionExtensions],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (10,65): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (10,65): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> NoArguments<T>(ReadOnlySpan<T> s) => [..s];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[..s]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(10, 65),
-            // (11,68): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (11,68): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> EmptyArguments<T>(ReadOnlySpan<T> s) => [with(), ..s];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(), ..s]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(11, 68),
-            // (12,84): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (12,84): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> WithArguments<T>(ReadOnlySpan<T> s, params T[] args) => [with(args), ..s];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(args), ..s]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(12, 84));
     }
@@ -5630,13 +5630,13 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB, s_collectionExtensions],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (11,64): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'ImmutableArray<T>'.
+            // (11,64): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'ImmutableArray<T>'.
             //     static ImmutableArray<T> ImmutableArrayNoArguments<T>() => [];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "System.Collections.Immutable.ImmutableArray<T>").WithLocation(11, 64),
-            // (12,67): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'ImmutableArray<T>'.
+            // (12,67): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'ImmutableArray<T>'.
             //     static ImmutableArray<T> ImmutableArrayEmptyArguments<T>() => [with()];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with()]").WithArguments("Create", "T", "System.Collections.Immutable.ImmutableArray<T>").WithLocation(12, 67),
-            // (13,81): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'ImmutableArray<T>'.
+            // (13,81): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'ImmutableArray<T>'.
             //     static ImmutableArray<T> ImmutableArrayWithArguments<T>(params T[] args) => [with(args)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(args)]").WithArguments("Create", "T", "System.Collections.Immutable.ImmutableArray<T>").WithLocation(13, 81));
     }
@@ -5690,13 +5690,13 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB, s_collectionExtensions],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (12,81): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'ImmutableArray<T>'.
+            // (12,81): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'ImmutableArray<T>'.
             //     static ImmutableArray<T> ImmutableArrayNoArguments<T>(ReadOnlySpan<T> s) => [..s];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[..s]").WithArguments("Create", "T", "System.Collections.Immutable.ImmutableArray<T>").WithLocation(12, 81),
-            // (13,84): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'ImmutableArray<T>'.
+            // (13,84): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'ImmutableArray<T>'.
             //     static ImmutableArray<T> ImmutableArrayEmptyArguments<T>(ReadOnlySpan<T> s) => [with(), ..s];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(), ..s]").WithArguments("Create", "T", "System.Collections.Immutable.ImmutableArray<T>").WithLocation(13, 84),
-            // (14,100): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'ImmutableArray<T>'.
+            // (14,100): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'ImmutableArray<T>'.
             //     static ImmutableArray<T> ImmutableArrayWithArguments<T>(ReadOnlySpan<T> s, params T[] args) => [with(args), ..s];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(args), ..s]").WithArguments("Create", "T", "System.Collections.Immutable.ImmutableArray<T>").WithLocation(14, 100));
     }
@@ -5798,7 +5798,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         if (scopedInParameter || scopedOutArgument)
         {
             comp.VerifyEmitDiagnostics(
-                // (9,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+                // (9,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
                 //         c = [with(out s), x, y];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(out s), x, y]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(9, 13));
         }
@@ -5811,7 +5811,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 // (8,30): error CS9203: A collection expression of type 'ReadOnlySpan<T>' cannot be used in this context because it may be exposed outside of the current scope.
                 //         c = MyBuilder.Create([x, y], out s);
                 Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[x, y]").WithArguments("System.ReadOnlySpan<T>").WithLocation(8, 30),
-                // (9,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+                // (9,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
                 //         c = [with(out s), x, y];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(out s), x, y]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(9, 13));
         }
@@ -6126,7 +6126,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB, sourceC],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (7,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (7,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [with(y: Identity(1), x: Identity(2)), Identity(3), Identity(4)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(y: Identity(1), x: Identity(2)), Identity(3), Identity(4)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 13));
     }

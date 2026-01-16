@@ -773,7 +773,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         // PROTOTYPE: Need to update this diagnostic message to not state that it's a single ROS parameter.
         // But it needs to have a final ROS parameter.
         CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-            // (6,34): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a final parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (6,34): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         MyCollection<string> x = [with(""), "goo"];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, @"[with(""""), ""goo""]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 34));
     }
