@@ -3569,6 +3569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var method = overloadResolutionResult.ValidResult.Member;
 
                     ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node);
                     ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, method, node, isDelegateConversion: false);
 
                     BoundValuePlaceholder? operandPlaceholder = null;

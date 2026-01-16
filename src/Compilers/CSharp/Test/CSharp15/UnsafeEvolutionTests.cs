@@ -4208,6 +4208,34 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Member_Operator_Instance_Unary()
+    {
+        CompileAndVerifyUnsafe(
+            lib: """
+                public class C
+                {
+                    public void operator ++() { }
+                    public unsafe void operator --() { }
+                }
+                """,
+            caller: """
+                var c = new C();
+                c++;
+                c--;
+                unsafe { c--; }
+                """,
+            additionalSources: [CompilerFeatureRequiredAttribute],
+            expectedUnsafeSymbols: ["C.op_DecrementAssignment"],
+            expectedSafeSymbols: ["C.op_IncrementAssignment"],
+            expectedDiagnostics:
+            [
+                // (3,1): error CS9502: 'C.operator --()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // c--;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c--").WithArguments("C.operator --()").WithLocation(3, 1),
+            ]);
+    }
+
+    [Fact]
     public void Member_Operator_Conversion()
     {
         CompileAndVerifyUnsafe(
