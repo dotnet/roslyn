@@ -468,36 +468,40 @@ public sealed class HiddenExplicitCastTests
         }.RunAsync();
 
     [Fact]
-    public Task TestUserDefinedToObject_ThenObjectToDerived()
-        => new VerifyCS.Test
-        {
-            TestCode = """
-                class SpecificType { }
+    public Task TestUserDefinedToGrandparent_ThenGrandparentToGrandchild()
+           => new VerifyCS.Test
+           {
+               TestCode = """
+                class GrandParent { }
+                class Parent : GrandParent { }
+                class Child : Parent { }
 
-                struct BoxedValue
+                struct Wrapper
                 {
-                    public static explicit operator object(BoxedValue b) => new SpecificType();
+                    public static explicit operator GrandParent(Wrapper w) => new Child();
                 }
 
                 class C
                 {
-                    SpecificType M(BoxedValue b) => [|(SpecificType)b|];
+                    Child M(Wrapper w) => [|(Child)w|];
                 }
                 """,
-            FixedCode = """
-                class SpecificType { }
+               FixedCode = """
+                class GrandParent { }
+                class Parent : GrandParent { }
+                class Child : Parent { }
 
-                struct BoxedValue
+                struct Wrapper
                 {
-                    public static explicit operator object(BoxedValue b) => new SpecificType();
+                    public static explicit operator GrandParent(Wrapper w) => new Child();
                 }
 
                 class C
                 {
-                    SpecificType M(BoxedValue b) => (SpecificType)(object)b;
+                    Child M(Wrapper w) => (Child)(GrandParent)w;
                 }
                 """,
-        }.RunAsync();
+           }.RunAsync();
 
     #endregion
 
@@ -618,34 +622,6 @@ public sealed class HiddenExplicitCastTests
     #endregion
 
     #region Explicit unboxing conversions with user-defined operators
-
-    [Fact]
-    public Task TestUserDefinedToObject_ThenUnboxToInt()
-        => new VerifyCS.Test
-        {
-            TestCode = """
-                struct Boxed
-                {
-                    public static explicit operator object(Boxed b) => 42;
-                }
-
-                class C
-                {
-                    int M(Boxed b) => [|(int)b|];
-                }
-                """,
-            FixedCode = """
-                struct Boxed
-                {
-                    public static explicit operator object(Boxed b) => 42;
-                }
-
-                class C
-                {
-                    int M(Boxed b) => (int)(object)b;
-                }
-                """,
-        }.RunAsync();
 
     #endregion
 
