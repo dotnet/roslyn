@@ -3425,6 +3425,79 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Member_Current_Property()
+    {
+        CompileAndVerifyUnsafe(
+            lib: """
+                public class C
+                {
+                    public C GetEnumerator() => this;
+                    public bool MoveNext() => false;
+                    public unsafe int Current => 0;
+                }
+                """,
+            caller: """
+                foreach (var x in new C()) { }
+                unsafe { foreach (var x in new C()) { } }
+                """,
+            expectedUnsafeSymbols: ["C.Current", "C.get_Current"],
+            expectedSafeSymbols: ["C"],
+            expectedDiagnostics:
+            [
+                // (1,1): error CS9502: 'C.Current.get' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // foreach (var x in new C()) { }
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "foreach").WithArguments("C.Current.get").WithLocation(1, 1),
+            ]);
+    }
+
+    [Fact]
+    public void Member_Current_Getter()
+    {
+        CompileAndVerifyUnsafe(
+            lib: """
+                public class C
+                {
+                    public C GetEnumerator() => this;
+                    public bool MoveNext() => false;
+                    public int Current { unsafe get => 0; }
+                }
+                """,
+            caller: """
+                foreach (var x in new C()) { }
+                unsafe { foreach (var x in new C()) { } }
+                """,
+            expectedUnsafeSymbols: ["C.get_Current"],
+            expectedSafeSymbols: ["C", "C.Current"],
+            expectedDiagnostics:
+            [
+                // (1,1): error CS9502: 'C.Current.get' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // foreach (var x in new C()) { }
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "foreach").WithArguments("C.Current.get").WithLocation(1, 1),
+            ]);
+    }
+
+    [Fact]
+    public void Member_Current_Setter()
+    {
+        CompileAndVerifyUnsafe(
+            lib: """
+                public class C
+                {
+                    public C GetEnumerator() => this;
+                    public bool MoveNext() => false;
+                    public int Current { get => 0; unsafe set { } }
+                }
+                """,
+            caller: """
+                foreach (var x in new C()) { }
+                unsafe { foreach (var x in new C()) { } }
+                """,
+            expectedUnsafeSymbols: ["C.set_Current"],
+            expectedSafeSymbols: ["C", "C.Current", "C.get_Current"],
+            expectedDiagnostics: []);
+    }
+
+    [Fact]
     public void Member_LocalFunction()
     {
         var source = """
