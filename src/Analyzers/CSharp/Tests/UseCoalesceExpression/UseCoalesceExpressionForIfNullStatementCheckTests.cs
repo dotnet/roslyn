@@ -721,6 +721,7 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
         => new VerifyCS.Test
         {
             TestCode = """
+            #nullable enable
             class C
             {
                 public void M()
@@ -745,6 +746,7 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
         => new VerifyCS.Test
         {
             TestCode = """
+            #nullable enable
             class C
             {
                 public void M()
@@ -768,15 +770,17 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
         => new VerifyCS.Test
         {
             TestCode = """
+            #nullable enable
             class C
             {
                 public void M()
                 {
                     var value = M2();
                     if (value == null)
-            #define TEST
                     {
+            #if DEBUG
                         throw new System.InvalidOperationException();
+            #endif
                     }
                 }
 
