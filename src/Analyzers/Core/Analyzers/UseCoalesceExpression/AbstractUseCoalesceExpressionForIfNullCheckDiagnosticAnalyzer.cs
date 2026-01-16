@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -83,6 +84,10 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckDiag
         }
 
         if (syntaxFacts.ContainsInterleavedDirective([previousStatement, ifStatement], cancellationToken))
+            return;
+
+        // Don't offer the refactoring if the if-statement has directives that would be lost when we remove it.
+        if (HasDirectives(ifStatement))
             return;
 
         TExpressionSyntax? expressionToCoalesce;
@@ -266,6 +271,23 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckDiag
             {
                 syntaxFacts.GetPartsOfAssignmentStatement(whenTrueStatement, out var innerAssignmentLeft, out _);
                 return syntaxFacts.AreEquivalent(innerAssignmentLeft, checkedExpression);
+            }
+
+            return false;
+        }
+
+        bool HasDirectives(SyntaxNode node)
+        {
+            // Check if the node has any preprocessor directives in its trivia.
+            // We want to avoid removing the if-statement if it has directives,
+            // as this would cause the directives to be lost.
+            foreach (var token in node.DescendantTokens())
+            {
+                foreach (var trivia in token.LeadingTrivia.Concat(token.TrailingTrivia))
+                {
+                    if (syntaxFacts.IsPreprocessorDirective(trivia))
+                        return true;
+                }
             }
 
             return false;

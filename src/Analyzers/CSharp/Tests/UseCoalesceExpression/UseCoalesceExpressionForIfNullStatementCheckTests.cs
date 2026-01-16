@@ -715,4 +715,73 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
             }
             """
         }.RunAsync();
+
+    [Fact]
+    public Task TestNotOfferedWithDirectivesOnIfStatement_LeadingPragma()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class C
+            {
+                public void M()
+                {
+            #pragma warning disable
+                    var value = M2();
+                    // Test
+            #pragma warning restore
+                    if (value == null)
+                    {
+                        throw new System.InvalidOperationException();
+                    }
+                }
+
+                string? M2() => null;
+            }
+            """
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotOfferedWithDirectivesOnIfStatement_LeadingRegion()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class C
+            {
+                public void M()
+                {
+                    var value = M2();
+            #region Test
+                    if (value == null)
+                    {
+                        throw new System.InvalidOperationException();
+                    }
+            #endregion
+                }
+
+                string? M2() => null;
+            }
+            """
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotOfferedWithDirectivesOnIfStatement_TrailingDefine()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class C
+            {
+                public void M()
+                {
+                    var value = M2();
+                    if (value == null)
+            #define TEST
+                    {
+                        throw new System.InvalidOperationException();
+                    }
+                }
+
+                string? M2() => null;
+            }
+            """
+        }.RunAsync();
 }
