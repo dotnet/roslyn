@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -33,16 +34,41 @@ internal sealed class CSharpHiddenExplicitCastDiagnosticAnalyzer()
         CastExpressionSyntax castExpression,
         CancellationToken cancellationToken)
     {
-        if (semanticModel.GetOperation(castExpression, cancellationToken) is IConversionOperation conversionOperation1)
-            return conversionOperation1;
-
-        if (castExpression.Parent is EqualsValueClauseSyntax equalsValue &&
-            semanticModel.GetOperation(equalsValue, cancellationToken) is IVariableInitializerOperation { Value: IConversionOperation conversionOperation2 })
+        var currentExpression = castExpression.Expression;
+        while (true)
         {
-            return conversionOperation2;
+            var inner = currentExpression.WalkDownParentheses().WalkDownSuppressions();
+            if (inner == currentExpression)
+                break;
+
+            currentExpression = inner;
         }
 
-        return null;
+        var innerOperation = semanticModel.GetOperation(currentExpression, cancellationToken);
+        if (innerOperation is null)
+            return null;
+
+        IConversionOperation? highestExplicitConversion = null;
+        for (var current = innerOperation.Parent; current != null; current = current.Parent)
+        {
+            if (current is not IConversionOperation conversionOperation)
+                break;
+
+            if (conversionOperation.GetConversion().IsExplicit && conversionOperation.Syntax == castExpression)
+                highestExplicitConversion = conversionOperation;
+        }
+
+        return highestExplicitConversion;
+        //if (semanticModel.GetOperation(castExpression, cancellationToken) is IConversionOperation conversionOperation1)
+        //    return conversionOperation1;
+
+        //if (castExpression.Parent is EqualsValueClauseSyntax equalsValue &&
+        //    semanticModel.GetOperation(equalsValue, cancellationToken) is IVariableInitializerOperation { Value: IConversionOperation conversionOperation2 })
+        //{
+        //    return conversionOperation2;
+        //}
+
+        //return null;
     }
 
     private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
