@@ -2720,7 +2720,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "+=").WithArguments("updated memory safety rules").WithLocation(13, 33));
     }
 
-    // PROTOTYPE: Test also implicit methods used in patterns like GetEnumerator in foreach.
     // PROTOTYPE: Should some synthesized members be unsafe (like state machine methods that are declared unsafe)?
     [Theory, CombinatorialData]
     public void Member_Method_Invocation(
@@ -3368,6 +3367,34 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (16,1): error CS9502: 'M3(params C)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // M3(1, 2, 3);
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M3(1, 2, 3)").WithArguments("M3(params C)").WithLocation(16, 1),
+            ]);
+    }
+
+    [Fact]
+    public void Member_GetEnumerator()
+    {
+        CompileAndVerifyUnsafe(
+            lib: """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                public class C : IEnumerable<int>
+                {
+                    public unsafe IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                """,
+            caller: """
+                foreach (var c in new C()) { }
+                unsafe { foreach (var c in new C()) { } }
+                """,
+            expectedUnsafeSymbols: ["C.GetEnumerator"],
+            expectedSafeSymbols: ["C"],
+            expectedDiagnostics:
+            [
+                // (1,1): error CS9502: 'C.GetEnumerator()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // foreach (var c in new C()) { }
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "foreach").WithArguments("C.GetEnumerator()").WithLocation(1, 1),
             ]);
     }
 

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Flags.Includes(BinderFlags.UnsafeRegion); }
         }
 
-        private void ReportDiagnosticsIfUnsafeMemberAccess(BindingDiagnosticBag diagnostics, Symbol symbol, SyntaxNode node)
+        protected void ReportDiagnosticsIfUnsafeMemberAccess(BindingDiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node)
         {
             var callerUnsafeMode = symbol.CallerUnsafeMode;
             if (callerUnsafeMode != CallerUnsafeMode.None)
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </param>
         /// <returns>True if a diagnostic was reported</returns>
         internal bool ReportUnsafeIfNotAllowed(
-            SyntaxNode node,
+            SyntaxNodeOrToken node,
             BindingDiagnosticBag diagnostics,
             TypeSymbol? sizeOfTypeOpt = null,
             MemorySafetyRules disallowedUnder = MemorySafetyRules.Legacy,
@@ -70,11 +70,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            diagnostics.Add(new CSDiagnostic(diagnosticInfo, node.Location));
+            diagnostics.Add(new CSDiagnostic(diagnosticInfo, node.GetLocation()));
             return true;
         }
 
-        /// <inheritdoc cref="ReportUnsafeIfNotAllowed(SyntaxNode, BindingDiagnosticBag, TypeSymbol?, MemorySafetyRules, ErrorCode?, object[])"/>
+        /// <inheritdoc cref="ReportUnsafeIfNotAllowed(SyntaxNodeOrToken, BindingDiagnosticBag, TypeSymbol?, MemorySafetyRules, ErrorCode?, object[])"/>
         internal bool ReportUnsafeIfNotAllowed(Location location, BindingDiagnosticBag diagnostics, MemorySafetyRules disallowedUnder = MemorySafetyRules.Legacy)
         {
             var diagnosticInfo = GetUnsafeDiagnosticInfo(sizeOfTypeOpt: null, disallowedUnder);

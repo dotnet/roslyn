@@ -463,6 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var foreachKeyword = _syntax.ForEachKeyword;
             ReportDiagnosticsIfObsolete(diagnostics, getEnumeratorMethod, foreachKeyword, hasBaseReceiver: false);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, getEnumeratorMethod, foreachKeyword);
             ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, getEnumeratorMethod, foreachKeyword, isDelegateConversion: false);
             Debug.Assert(!IsDisallowedExtensionInOlderLangVer(getEnumeratorMethod));
 
