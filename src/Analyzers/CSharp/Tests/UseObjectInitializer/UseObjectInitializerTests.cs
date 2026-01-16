@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -518,21 +517,14 @@ public sealed partial class UseObjectInitializerTests
 
                 void M()
                 {
-                    var v = {|#1:{[|new|] C(() => {
-                        var v2 = {|#5:{|#4:new|} C()|};
-                        {|#6:v2.|}i = 1{|#7:;|}
-                    })|};
-                    {|#2:v.|}j = 2;
+                    var v = [|new|] C(() => {
+                        var v2 = [|new|] C();
+                        [|v2.|]i = 1;
+                    });
+                    [|v.|]j = 2;
                 }
             }
             """,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(11,17): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
-                // /0/Test0.cs(12,22): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(4).WithLocation(5).WithLocation(6).WithLocation(7),
-            },
             FixedCode = """
             class C
             {
@@ -573,20 +565,13 @@ public sealed partial class UseObjectInitializerTests
                 void M()
                 {
                     var v = [|new|] C();
-                    {|#2:v.|}j = () => {
-                        var v2 = {|#5:{|#4:new|} C()|};
-                        {|#6:v2.|}i = 1{|#7:;|}
+                    [|v.|]j = () => {
+                        var v2 = [|new|] C();
+                        [|v2.|]i = 1;
                     };
                 }
             }
             """,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(8,17): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
-                // /0/Test0.cs(10,22): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(4).WithLocation(5).WithLocation(6).WithLocation(7),
-            },
             FixedCode = """
             class C
             {
@@ -626,19 +611,12 @@ public sealed partial class UseObjectInitializerTests
                     array[0] = [|new|] C();
                     [|array[0].|]i = 1;
                     [|array[0].|]j = 2;
-                    array[1] = {|#7:{|#6:new|} C()|};
-                    {|#8:array[1].|}i = 3{|#9:;|}
-                    {|#10:array[1].|}j = 4{|#11:;|}
+                    array[1] = [|new|] C();
+                    [|array[1].|]i = 3;
+                    [|array[1].|]j = 4;
                 }
             }
             """,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(8,20): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3).WithLocation(4).WithLocation(5),
-                // /0/Test0.cs(11,20): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(6).WithLocation(7).WithLocation(8).WithLocation(9).WithLocation(10).WithLocation(11),
-            },
             FixedCode = """
             class C
             {
@@ -719,11 +697,6 @@ public sealed partial class UseObjectInitializerTests
                 }
             }
             """,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(7,17): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3).WithLocation(4).WithLocation(5),
-            },
             FixedCode = """
             class C
             {
@@ -1069,7 +1042,7 @@ public sealed partial class UseObjectInitializerTests
                     void M()
                     {
                         var c = [|new|] C();
-                        [|c.|]i = 1;
+                        c.i = 1;
                     }
                 }
                 """;
@@ -1132,13 +1105,6 @@ public sealed partial class UseObjectInitializerTests
             LanguageVersion = LanguageVersion.CSharp12,
         };
 
-        if (enabled)
-        {
-            test.ExpectedDiagnostics.Add(
-                // /0/Test0.cs(7,17): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3));
-        }
-
         await test.RunAsync();
     }
 
@@ -1180,11 +1146,6 @@ public sealed partial class UseObjectInitializerTests
             TestState =
             {
                 Sources = { testCode },
-                ExpectedDiagnostics =
-                {
-                    // /0/Test0.cs(7,17): warning IDE0017: Object initialization can be simplified
-                    VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Warning).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
-                },
                 AnalyzerConfigFiles =
                 {
                     ("/.globalconfig", $"""
