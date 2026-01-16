@@ -1388,5 +1388,184 @@ class C
 
             Await VerifyParamHints(input, output)
         End Function
+
+        <WpfFact>
+        Public Async Function TestSuppressForParametersThatMatchArgumentName_IgnoresCase() As Task
+            ' The hint should be suppressed because argument "MyParam" matches parameter "myParam" ignoring case
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Goo(int myParam)
+    {
+    }
+
+    void Main()
+    {
+        var MyParam = 5;
+        Goo(MyParam);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input, input)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestSuppressForParametersThatMatchArgumentName_IgnoresUnderscores() As Task
+            ' The hint should be suppressed because argument "_my_param" matches parameter "myParam" ignoring underscores
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Goo(int myParam)
+    {
+    }
+
+    void Main()
+    {
+        var _my_param = 5;
+        Goo(_my_param);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input, input)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestSuppressForParametersThatMatchArgumentName_IgnoresCaseAndUnderscores() As Task
+            ' The hint should be suppressed because argument "_My_Param_" matches parameter "myParam" ignoring case and underscores
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Goo(int myParam)
+    {
+    }
+
+    void Main()
+    {
+        var _My_Param_ = 5;
+        Goo(_My_Param_);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input, input)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestSuppressForParametersThatDifferOnlyBySuffix_ArgumentsWithAlphaSuffix() As Task
+            ' The hint should be suppressed because arguments objA, objB, objC differ only by alpha suffix
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Goo(int x, int y, int z)
+    {
+    }
+
+    void Main()
+    {
+        var objA = 1;
+        var objB = 2;
+        var objC = 3;
+        Goo(objA, objB, objC);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input, input)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestSuppressForParametersThatDifferOnlyBySuffix_ArgumentsWithNumericSuffix() As Task
+            ' The hint should be suppressed because arguments point1, point2, point3 differ only by numeric suffix
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Goo(int x, int y, int z)
+    {
+    }
+
+    void Main()
+    {
+        var point1 = 1;
+        var point2 = 2;
+        var point3 = 3;
+        Goo(point1, point2, point3);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input, input)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestNoSuppressForArgumentsThatDontDifferOnlyBySuffix() As Task
+            ' The hint should NOT be suppressed because arguments don't all share the same prefix
+            ' Using literals since ForOtherParameters is false by default
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Goo(int x, int y, int z)
+    {
+    }
+
+    void Main()
+    {
+        Goo({|x:|}1, {|y:|}2, {|z:|}3);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Goo(int x, int y, int z)
+    {
+    }
+
+    void Main()
+    {
+        Goo(x: 1, y: 2, z: 3);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input, output)
+        End Function
     End Class
 End Namespace
