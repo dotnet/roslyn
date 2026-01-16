@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
@@ -614,13 +615,16 @@ namespace Microsoft.CodeAnalysis
         /// the number of children could be large (lists) this function is overridden with more
         /// efficient implementations.
         /// </summary>
-        internal virtual int GetChildPosition(int index)
-        {
-            if (this.GetCachedSlot(index) is { } node)
-            {
-                return node.Position;
-            }
+        internal virtual int GetChildPosition(int index) => GetChildPositionFromStart(index);
 
+        /// <inheritdoc cref="GetChildPosition"/>
+        /// <remarks>
+        /// Sealed classes that call this method instead of GetChildPosition() benefit from devirtualized calls to GetCachedSlot().
+        /// </remarks>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal int GetChildPositionFromStart(int index)
+        {
+            // Since we call GetChildPosition() when the child is an uncached node, a token or a separator, we should optimize for those scenarios only.
             int offset = 0;
             var green = this.Green;
             while (index > 0)
@@ -645,11 +649,6 @@ namespace Microsoft.CodeAnalysis
         // following siblings rather than previous siblings.
         internal int GetChildPositionFromEnd(int index)
         {
-            if (this.GetCachedSlot(index) is { } node)
-            {
-                return node.Position;
-            }
-
             var green = this.Green;
             int offset = green.GetSlot(index)?.FullWidth ?? 0;
             int slotCount = green.SlotCount;
@@ -750,6 +749,33 @@ namespace Microsoft.CodeAnalysis
         public ChildSyntaxList ChildNodesAndTokens()
         {
             return new ChildSyntaxList(this);
+        }
+
+        internal ChildSyntaxList.Segment SiblingsAfterSelf()
+        {
+            int initialIndex = 0;
+            int terminalIndex = 0;
+            if (_parent != null)
+            {
+                initialIndex = _parent.GetIndexOfChild(this);
+                Debug.Assert(initialIndex >= 0, "Node couldn't be found in its parent.");
+                initialIndex &= int.MaxValue; // Doesn't affect non-negative numbers.
+                                              // Turns the not-found index (-1) into a virtually unreachable number, causing the segment to be empty.
+
+                terminalIndex = ChildSyntaxList.CountNodes(_parent.Green);
+            }
+            return new ChildSyntaxList.Segment(_parent!, initialIndex, terminalIndex);
+        }
+
+        internal ChildSyntaxList.Reversed SiblingsBeforeSelf()
+        {
+            int initialIndex = 0;
+            if (_parent != null)
+            {
+                initialIndex = _parent.GetIndexOfChild(this);
+                Debug.Assert(initialIndex >= 0, "Node couldn't be found in its parent.");
+            }
+            return new ChildSyntaxList.Reversed(_parent!, initialIndex);
         }
 
         public virtual SyntaxNodeOrToken ChildThatContainsPosition(int position)
@@ -1657,6 +1683,180 @@ recurse:
             clone._syntaxTree = syntaxTree;
 
             return clone;
+        }
+
+        /// <summary>
+        /// Gets the index of the given <paramref name="targetNode"/> in the current SyntaxNode.
+        /// </summary>
+        /// <returns>
+        /// <c>-1</c> if <paramref name="targetNode"/> isn't a direct child.
+        /// </returns>
+        internal int GetIndexOfChild(SyntaxNode targetNode)
+        {
+            // Since we bypass the enumeration of a ChildSyntaxList,
+            // maintaining a binary search for as long as we can is best,
+            // in order to minimize the number of virtual calls, etc.
+            // Note: performs 4 times as fast as Blender.Cursor.IndexOfNodeInParent while maintaining the same results.
+            int index = 0;
+            int slotIndex = -1;
+            int slotCount = this.SlotCount;
+            while (++slotIndex < slotCount)
+            {
+                int targetEndPosition = targetNode.Position + targetNode.FullWidth;
+                GreenNode? greenChild;
+                var red = this.GetCachedSlot(slotIndex); // searching for a node that's already been created
+                if (red != null)
+                {
+                    // Search for the first slot whose end is at or beyond the end of our target child.
+                    if (red.Position + red.FullWidth >= targetEndPosition)
+                    {
+                        if (red.IsList)
+                        {
+                            if (red.TryGetSlotOfListChild(targetNode, out int j))
+                            {
+                                return index + j;
+                            }
+                            else if (targetNode.Position < red.Position)
+                            {
+                                // End the search if the current slot no longer "contains" the child node.
+                                break;
+                            }
+                        }
+                        else if (red == targetNode)
+                        {
+                            return index;
+                        }
+                    }
+                    greenChild = red.Green;
+                }
+                else
+                {
+                    greenChild = this.Green.GetSlot(slotIndex);
+                    if (greenChild == null)
+                    {
+                        continue;
+                    }
+                }
+
+                if (greenChild.IsList)
+                {
+                    index += greenChild.SlotCount;
+                }
+                else
+                {
+                    ++index;
+                }
+            }
+            return -1;
+        }
+
+        private enum ParsingDirection
+        {
+            Unknown,
+            Forward,
+            Backward
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool TryGetSlotOfListChild(SyntaxNode targetNode, out int minSlotIndex)
+        {
+            const int BitMaskForAnyNumber = ~0;
+            const int BitMaskForEvenNumbers = ~1;
+
+            var parsingDirection = ParsingDirection.Unknown;
+            int nodeIndexMask = BitMaskForAnyNumber;
+
+            minSlotIndex = 0;
+            int slotCount = this.SlotCount;
+            int upperBoundExclusive = slotCount;
+
+            if (this is Syntax.SyntaxList.SeparatedWithManyChildren) // not checking for SyntaxList.SeparatedWithManyWeakChildren because it's uncommon
+            {
+                // Try to determine if we're still parsing nodes and in what direction.
+                bool firstNodeIsCached = this.GetCachedSlot(0) is not null;
+                bool lastNodeIsCached = this.GetCachedSlot((slotCount - 1) & BitMaskForEvenNumbers) is not null;
+                if (firstNodeIsCached != lastNodeIsCached)
+                {
+                    if (firstNodeIsCached)
+                    {
+                        parsingDirection = ParsingDirection.Forward;
+                    }
+                    else
+                    {
+                        parsingDirection = ParsingDirection.Backward;
+                    }
+                }
+
+                // Since this list is separated, we only need to look through even numbers.
+                nodeIndexMask = BitMaskForEvenNumbers;
+            }
+
+            while (minSlotIndex < upperBoundExclusive)
+            {
+                int i = (minSlotIndex + upperBoundExclusive >>> 1) & nodeIndexMask;
+                var pivot = this.GetCachedSlot(i);
+                if (pivot != null)
+                {
+                    int targetOffset = targetNode.Position - pivot.Position;
+                    if (targetOffset < 0)
+                    {
+                        upperBoundExclusive = i;
+                    }
+                    else if (targetOffset > 0)
+                    {
+                        // When a bit mask is for the +/- factors of a power of two,
+                        // we can simply negate it to get that power of two.
+                        const bool BitMasksAreValid = -BitMaskForAnyNumber == 1 && -BitMaskForEvenNumbers == 2;
+                        const int ZeroIfBitMasksAreValid = 0 / (BitMasksAreValid ? 1 : 0); // static assert
+
+                        // Add the minimum distance between nodes (to get the next possible node after the current pivot).
+                        minSlotIndex = i + (-nodeIndexMask) + ZeroIfBitMasksAreValid;
+                    }
+                    else if (pivot == targetNode)
+                    {
+                        // Eureka! We've struck gold and found the right bed and bowl of porridge!
+                        minSlotIndex = i;
+                        return true;
+                    }
+                    else
+                    {
+                        // If we happen to hit a different node with the same position (unexpected).
+                        goto LinearSearch;
+                    }
+                }
+                else
+                {
+                    // If we happen to hit an uncached node, we've gone too far...
+                    // If we happen to hit a token, that's okay too.
+                    if (parsingDirection == ParsingDirection.Unknown)
+                    {
+                        goto LinearSearch;
+                    }
+                    else if (parsingDirection != ParsingDirection.Backward)
+                    {
+                        // Gone too far forward; exclude the pivot and nodes after
+                        upperBoundExclusive = i;
+                    }
+                    else
+                    {
+                        // Gone too far backward; exclude the pivot and nodes before
+                        minSlotIndex = i + 2; // since we only set the parsing direction for separated lists
+                    }
+                }
+            }
+
+            return false;
+
+LinearSearch:
+            do
+            {
+                if (this.GetCachedSlot(minSlotIndex) == targetNode)
+                {
+                    return true;
+                }
+            } while (++minSlotIndex < upperBoundExclusive);
+
+            return false;
         }
     }
 }
