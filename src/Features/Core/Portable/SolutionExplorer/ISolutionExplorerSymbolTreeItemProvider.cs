@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.SolutionExplorer;
 
 internal interface ISolutionExplorerSymbolTreeItemProvider : ILanguageService
 {
-    ImmutableArray<SymbolTreeItemData> GetItems(DocumentId documentId, SyntaxNode declarationNode, bool returnNamespaces, CancellationToken cancellationToken);
+    ImmutableArray<SymbolTreeItemData> GetItems(DocumentId documentId, SyntaxNode declarationNode, bool includeNamespaces, CancellationToken cancellationToken);
 }
 
 internal abstract class AbstractSolutionExplorerSymbolTreeItemProvider<
@@ -97,9 +97,11 @@ internal abstract class AbstractSolutionExplorerSymbolTreeItemProvider<
             case TTypeDeclarationSyntax typeDeclaration:
                 AddTypeDeclarationMembers(typeDeclaration);
                 break;
+
             case TMemberDeclarationSyntax memberDeclaration:
                 AddMemberDeclarationMembers(memberDeclaration);
                 break;
+
             case TMemberStatement statement:
                 AddMemberStatementMembers(statement);
                 break;

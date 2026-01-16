@@ -14,21 +14,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SolutionExplorer
             Return TestWorkspace.CreateVisualBasic(code)
         End Function
 
-        Private Function TestCompilationUnit(
-        code As String, expected As String) As Task
-
+        Private Function TestCompilationUnit(code As String, expected As String) As Task
             Return TestNode(Of CompilationUnitSyntax)(code, expected)
         End Function
 
-        Private Function TestCompilationUnitWithNamespaces(
-        code As String, expected As String) As Task
-
+        Private Function TestCompilationUnitWithNamespaces(code As String, expected As String) As Task
             Return TestNode(Of CompilationUnitSyntax)(code, expected, returnNamespaces:=True)
         End Function
 
-        Private Function TestNamespaceBlock(
-        code As String, expected As String) As Task
-
+        Private Function TestNamespaceBlock(code As String, expected As String) As Task
             Return TestNode(Of NamespaceBlockSyntax)(code, expected, returnNamespaces:=True)
         End Function
 

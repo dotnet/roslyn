@@ -83,11 +83,8 @@ internal sealed class DocumentSymbolsHandler() : ILspServiceDocumentRequestHandl
         ISolutionExplorerSymbolTreeItemProvider provider,
         CancellationToken cancellationToken)
     {
-        var items = provider.GetItems(documentId, node, returnNamespaces: true, cancellationToken);
-        if (items.IsEmpty)
-            return [];
-
-        return items.Select(i => ConvertToDocumentSymbol(i, text, documentId, provider, cancellationToken)).ToArray();
+        var items = provider.GetItems(documentId, node, includeNamespaces: true, cancellationToken);
+        return [.. items.Select(i => ConvertToDocumentSymbol(i, text, documentId, provider, cancellationToken))];
     }
 
     private static RoslynDocumentSymbol ConvertToDocumentSymbol(
