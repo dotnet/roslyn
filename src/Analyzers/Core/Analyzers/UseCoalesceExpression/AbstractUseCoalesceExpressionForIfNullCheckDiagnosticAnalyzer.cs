@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -283,7 +282,13 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckDiag
             // as this would cause the directives to be lost.
             foreach (var token in node.DescendantTokens())
             {
-                foreach (var trivia in token.LeadingTrivia.Concat(token.TrailingTrivia))
+                foreach (var trivia in token.LeadingTrivia)
+                {
+                    if (syntaxFacts.IsPreprocessorDirective(trivia))
+                        return true;
+                }
+
+                foreach (var trivia in token.TrailingTrivia)
                 {
                     if (syntaxFacts.IsPreprocessorDirective(trivia))
                         return true;
