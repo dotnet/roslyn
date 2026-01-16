@@ -229,9 +229,20 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
                 AppendType(fieldDeclaration.Declaration.Type, nameBuilder);
 
                 var accessibility = GetAccessibility(fieldDeclaration.GetRequiredParent(), fieldDeclaration.Modifiers);
-                var kind = fieldDeclaration is EventFieldDeclarationSyntax
-                    ? DeclaredSymbolInfoKind.Event
-                    : DeclaredSymbolInfoKind.Field;
+                var isConst = fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword);
+                DeclaredSymbolInfoKind kind;
+                if (fieldDeclaration is EventFieldDeclarationSyntax)
+                {
+                    kind = DeclaredSymbolInfoKind.Event;
+                }
+                else if (isConst)
+                {
+                    kind = DeclaredSymbolInfoKind.Constant;
+                }
+                else
+                {
+                    kind = DeclaredSymbolInfoKind.Field;
+                }
 
                 items.Add(new(
                     documentId,
