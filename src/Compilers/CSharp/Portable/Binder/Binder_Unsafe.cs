@@ -37,6 +37,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// If this fails, call <see cref="ReportDiagnosticsIfUnsafeMemberAccess"/> for the <paramref name="symbol"/> instead and add corresponding tests.
+        /// </summary>
+        [Conditional("DEBUG")]
+        private void AssertNotUnsafeMemberAccess(Symbol symbol)
+        {
+            Debug.Assert(symbol.CallerUnsafeMode is CallerUnsafeMode.None,
+                $"Symbol {symbol} has {nameof(symbol.CallerUnsafeMode)}={symbol.CallerUnsafeMode}.");
+
+            Debug.Assert(symbol.Kind is not (SymbolKind.Method or SymbolKind.Property or SymbolKind.Event),
+                $"Symbol {symbol} has {nameof(symbol.Kind)}={symbol.Kind}.");
+        }
+
         /// <param name="disallowedUnder">
         /// Memory safety rules which the current location is disallowed under.
         /// PROTOTYPE: Consider removing the default parameter value.

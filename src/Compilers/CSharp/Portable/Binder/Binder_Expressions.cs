@@ -2058,6 +2058,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (symbol.Kind is not (SymbolKind.Event or SymbolKind.Property))
             {
                 ReportDiagnosticsIfObsolete(diagnostics, symbol, node, hasBaseReceiver: false);
+                AssertNotUnsafeMemberAccess(symbol);
             }
 
             switch (symbol.Kind)
@@ -7969,6 +7970,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         ReportDiagnosticsIfObsolete(diagnostics, type, node, hasBaseReceiver: false);
+                        AssertNotUnsafeMemberAccess(type);
 
                         return new BoundTypeExpression(node, null, type);
                     }
@@ -8574,6 +8576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (symbol.Kind is not (SymbolKind.Event or SymbolKind.Property))
                 {
                     ReportDiagnosticsIfObsolete(diagnostics, symbol, node, hasBaseReceiver: left.Kind == BoundKind.BaseReference);
+                    AssertNotUnsafeMemberAccess(symbol);
                 }
 
                 switch (symbol.Kind)
@@ -9189,6 +9192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors)
         {
             ReportDiagnosticsIfObsolete(diagnostics, propertySymbol, node, hasBaseReceiver: receiver?.Kind == BoundKind.BaseReference);
+            // Unsafe member access is checked on the accessor only to avoid duplicate diagnostics.
 
             bool hasError = this.CheckInstanceOrStatic(node, receiver, propertySymbol, ref lookupResult, diagnostics);
 
@@ -10364,6 +10368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PropertySymbol property = resolutionResult.Member;
 
                 ReportDiagnosticsIfObsolete(diagnostics, property, syntax, hasBaseReceiver: receiver != null && receiver.Kind == BoundKind.BaseReference);
+                // Unsafe member access is checked on the accessor only to avoid duplicate diagnostics.
 
                 // Make sure that the result of overload resolution is valid.
                 var gotError = MemberGroupFinalValidationAccessibilityChecks(receiver, property, syntax, diagnostics, invokedAsExtensionMethod: false);
