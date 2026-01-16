@@ -3915,6 +3915,69 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Member_Constructor_Base()
+    {
+        CompileAndVerifyUnsafe(
+            lib: """
+                public class B
+                {
+                    public unsafe B() { }
+                }
+                """,
+            caller: """
+                _ = new C1();
+                _ = new C2();
+                _ = new C3();
+                _ = new C4();
+                _ = new C5();
+                unsafe { _ = new C5(); }
+
+                class C1 : B;
+                class C2 : B
+                {
+                    public C2() { }
+                    public C2(int x) : base() { }
+                }
+
+                unsafe class C3 : B;
+                unsafe class C4 : B
+                {
+                    public C4() { }
+                    public C4(int x) : base() { }
+                }
+
+                class C5 : B
+                {
+                    public unsafe C5() { }
+                    public unsafe C5(int x) : base() { }
+                }
+                """,
+            expectedUnsafeSymbols: ["B..ctor"],
+            expectedSafeSymbols: ["B"],
+            expectedDiagnostics:
+            [
+                // (5,5): error CS9502: 'C5.C5()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // _ = new C5();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "new C5()").WithArguments("C5.C5()").WithLocation(5, 5),
+                // (8,1): error CS9502: 'B.B()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // class C1 : B;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "class C1 : B;").WithArguments("B.B()").WithLocation(8, 1),
+                // (11,5): error CS9502: 'B.B()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                //     public C2() { }
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "public C2() { }").WithArguments("B.B()").WithLocation(11, 5),
+                // (12,22): error CS9502: 'B.B()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                //     public C2(int x) : base() { }
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, ": base()").WithArguments("B.B()").WithLocation(12, 22),
+            ],
+            expectedDiagnosticsWhenReferencingLegacyLib:
+            [
+                // (5,5): error CS9502: 'C5.C5()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // _ = new C5();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "new C5()").WithArguments("C5.C5()").WithLocation(5, 5),
+            ]);
+    }
+
+    [Fact]
     public void Member_Constructor_Static()
     {
         var lib = """

@@ -5102,6 +5102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 ReportDiagnosticsIfObsolete(diagnostics, resultMember, nonNullSyntax, hasBaseReceiver: isBaseConstructorInitializer);
+                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, resultMember, nonNullSyntax);
 
                 var expanded = memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
 
