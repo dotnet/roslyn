@@ -6324,6 +6324,28 @@ public static class E
     }
 
     [Fact]
+    public void Nullability_ObjectInitializer_22()
+    {
+        // NullableWalked must visit in evaluation order, so the side-effects of `x = null` are visible to later expressions
+        string source = """
+#nullable enable
+
+string? x = "";
+
+M(new() { [x = null] = 1 }, M2(x.ToString()));
+
+void M<T>(T t, T t2) { }
+C M2(string? s) => throw null!;
+
+class C
+{
+    public int this[string? s] { set { } }
+}
+""";
+        CreateCompilation(source).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
     public void Nullability_Increment_01()
     {
         string source = """
