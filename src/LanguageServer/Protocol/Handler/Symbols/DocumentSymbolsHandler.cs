@@ -18,10 +18,6 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-/// <summary>
-/// TODO - This must be moved to the MS.CA.LanguageServer.Protocol project once
-/// we no longer reference VS icon types.
-/// </summary>
 [ExportCSharpVisualBasicStatelessLspService(typeof(DocumentSymbolsHandler)), Shared]
 [Method(Methods.TextDocumentDocumentSymbolName)]
 [method: ImportingConstructor]
