@@ -7,8 +7,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.HiddenExplicitCast;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.HiddenExplicitCast;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Testing;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.HiddenExplicitCast;
@@ -335,8 +333,6 @@ public sealed class HiddenExplicitCastTests
                 """,
         }.RunAsync();
 
-    #region Explicit numeric conversions with user-defined operators
-
     [Fact]
     public Task TestUserDefinedToDouble_ThenDoubleToFloat()
         => new VerifyCS.Test
@@ -429,10 +425,6 @@ public sealed class HiddenExplicitCastTests
                 """,
         }.RunAsync();
 
-    #endregion
-
-    #region Explicit reference conversions with user-defined operators
-
     [Fact]
     public Task TestUserDefinedToBaseClass_ThenBaseToDerived()
         => new VerifyCS.Test
@@ -502,10 +494,6 @@ public sealed class HiddenExplicitCastTests
                 }
                 """,
            }.RunAsync();
-
-    #endregion
-
-    #region Explicit nullable conversions with user-defined operators
 
     [Fact]
     public Task TestUserDefinedToNullableInt_ThenNullableIntToInt()
@@ -618,14 +606,6 @@ public sealed class HiddenExplicitCastTests
                 }
                 """,
         }.RunAsync();
-
-    #endregion
-
-    #region Explicit unboxing conversions with user-defined operators
-
-    #endregion
-
-    #region Complex expression contexts
 
     [Fact]
     public Task TestInArrayInitializer()
@@ -817,10 +797,6 @@ public sealed class HiddenExplicitCastTests
                 """,
         }.RunAsync();
 
-    #endregion
-
-    #region Generic and collection contexts
-
     [Fact]
     public Task TestInCollectionInitializer()
         => new VerifyCS.Test
@@ -886,6 +862,4 @@ public sealed class HiddenExplicitCastTests
                 }
                 """,
         }.RunAsync();
-
-    #endregion
 }
