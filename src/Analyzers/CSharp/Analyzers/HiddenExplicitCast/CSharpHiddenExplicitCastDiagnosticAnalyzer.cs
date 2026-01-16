@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -18,11 +20,30 @@ internal sealed class CSharpHiddenExplicitCastDiagnosticAnalyzer()
           title: new LocalizableResourceString(nameof(AnalyzersResources.Add_explicit_cast), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
           messageFormat: new LocalizableResourceString(nameof(AnalyzersResources._0_implicitly_converts_1_to_2_Add_an_explicit_cast_to_make_intent_clearer_as_it_may_fail_at_runtime), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
 {
+    public const string Type = nameof(Type);
+
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
     protected override void InitializeWorker(AnalysisContext context)
         => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.CastExpression);
+
+    private static IConversionOperation? GetInitialOperation(
+        SemanticModel semanticModel,
+        CastExpressionSyntax castExpression,
+        CancellationToken cancellationToken)
+    {
+        if (semanticModel.GetOperation(castExpression, cancellationToken) is IConversionOperation conversionOperation1)
+            return conversionOperation1;
+
+        if (castExpression.Parent is EqualsValueClauseSyntax equalsValue &&
+            semanticModel.GetOperation(equalsValue, cancellationToken) is IVariableInitializerOperation { Value: IConversionOperation conversionOperation2 })
+        {
+            return conversionOperation2;
+        }
+
+        return null;
+    }
 
     private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
     {
@@ -37,7 +58,8 @@ internal sealed class CSharpHiddenExplicitCastDiagnosticAnalyzer()
             return;
         }
 
-        if (semanticModel.GetOperation(castExpression, cancellationToken) is not IConversionOperation outerConversionOperation)
+        var outerConversionOperation = GetInitialOperation(semanticModel, castExpression, cancellationToken);
+        if (outerConversionOperation is null)
             return;
 
         var outerConversion = outerConversionOperation.GetConversion();
@@ -57,15 +79,16 @@ internal sealed class CSharpHiddenExplicitCastDiagnosticAnalyzer()
         if (!innerConversionOperation.IsImplicit)
             return;
 
+        var typeToInsertCastFor = innerConversionOperation.Type.ToMinimalDisplayString(semanticModel, castExpression.SpanStart);
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
             castExpression.GetLocation(),
             option.Notification,
             context.Options,
             additionalLocations: null,
-            properties: null,
+            properties: ImmutableDictionary<string, string?>.Empty.Add(Type, typeToInsertCastFor),
             $"({outerConversionOperation.Type.ToMinimalDisplayString(semanticModel, castExpression.SpanStart)})",
-            innerConversionOperation.Operand.Type,
-            innerConversionOperation.Type));
+            innerConversionOperation.Operand.Type.ToMinimalDisplayString(semanticModel, castExpression.SpanStart),
+            typeToInsertCastFor));
     }
 }
