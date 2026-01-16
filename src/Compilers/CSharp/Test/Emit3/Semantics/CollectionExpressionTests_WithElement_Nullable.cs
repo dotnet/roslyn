@@ -207,7 +207,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             // (16,19): warning CS8625: Cannot convert null literal to non-nullable reference type.
             //         Goo([with(null), ""]);
             Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(16, 19));
-        BindWithElement(verifier.Compilation, "MyList<System.String>.MyList(System.String arg)");
+        BindWithElement(verifier.Compilation, "MyList<System.String!>.MyList(System.String! arg)");
     }
 
     [Fact]
@@ -252,7 +252,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         var symbolInfo = semanticModel.GetSymbolInfo(invocation);
         AssertEx.Equal("System.String! C.Goo<System.String!>(MyList<System.String!>! list)", symbolInfo.Symbol.ToTestDisplayString(true));
 
-        BindWithElement(verifier.Compilation, "MyList<System.String>.MyList(System.String? arg)");
+        BindWithElement(verifier.Compilation, "MyList<System.String!>.MyList(System.String? arg)");
     }
 
     [Fact]
@@ -517,7 +517,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         var symbolInfo = semanticModel.GetSymbolInfo(invocation);
         AssertEx.Equal("void Program.Goo<System.String!>(MyCollection<System.String!>! list)", symbolInfo.Symbol.ToTestDisplayString(true));
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.String>! MyBuilder.Create<System.String>(System.String value, System.ReadOnlySpan<System.String> items)");
+        BindWithElement(verifier.Compilation, "MyCollection<System.String!>! MyBuilder.Create<System.String!>(System.String! value, System.ReadOnlySpan<System.String!> items)");
     }
 
     [Fact]
@@ -576,7 +576,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         var symbolInfo = semanticModel.GetSymbolInfo(invocation);
         AssertEx.Equal("void Program.Goo<System.String!>(MyCollection<System.String!>! list)", symbolInfo.Symbol.ToTestDisplayString(true));
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.String>! MyBuilder.Create<System.String>(System.String? value, System.ReadOnlySpan<System.String> items)");
+        BindWithElement(verifier.Compilation, "MyCollection<System.String!>! MyBuilder.Create<System.String!>(System.String? value, System.ReadOnlySpan<System.String!> items)");
     }
 
     [Fact]

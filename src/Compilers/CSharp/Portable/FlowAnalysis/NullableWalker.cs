@@ -3937,6 +3937,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // collection expression.
                         var constructor = (MethodSymbol)AsMemberOfType(collectionFinalType, objectCreation.Constructor);
                         completion(argumentResults, constructor.Parameters, constructor);
+
+                        if (!ReferenceEquals(objectCreation.Constructor, constructor))
+                            SetUpdatedSymbol(objectCreation, objectCreation.Constructor, constructor);
                     };
                 }
                 else if (collectionCreation is BoundCall call)
@@ -3988,6 +3991,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var constructed = call.Method.Arity == 0 ? call.Method : call.Method.ConstructedFrom.Construct(allTypeArguments);
                         completion(argumentResults, constructed.Parameters, constructed);
+
+                        if (!ReferenceEquals(call.Method, constructed))
+                            SetUpdatedSymbol(call, call.Method, constructed);
                     };
                 }
                 else
