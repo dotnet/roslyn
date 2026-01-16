@@ -34,7 +34,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 22));
     }
 
-    private void BindWithElement(Compilation compilation, string expected)
+    private void AssertExpectedWithElementSymbol(Compilation compilation, string expected)
     {
         var syntaxTree = compilation.SyntaxTrees.Last();
         var root = syntaxTree.GetRoot();
@@ -74,7 +74,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         MyList<int> list = [with(null), 1, 2];
             Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(16, 34));
 
-        BindWithElement(verifier.Compilation, "MyList<System.Int32>.MyList(System.String! arg)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.Int32>.MyList(System.String! arg)");
     }
 
     [Fact]
@@ -108,7 +108,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         MyList<int> list = [with(s), 1, 2];
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("arg", "MyList<int>.MyList(string arg)").WithLocation(17, 34));
 
-        BindWithElement(verifier.Compilation, "MyList<System.Int32>.MyList(System.String! arg)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.Int32>.MyList(System.String! arg)");
     }
 
     [Fact]
@@ -138,7 +138,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             """;
 
         var verifier = CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("2")).VerifyDiagnostics();
-        BindWithElement(verifier.Compilation, "MyList<System.Int32>.MyList(System.String! arg)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.Int32>.MyList(System.String! arg)");
     }
 
     [Fact]
@@ -171,7 +171,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             // (16,17): warning CS0219: The variable 's' is assigned but its value is never used
             //         string? s = null;
             Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s").WithArguments("s").WithLocation(16, 17));
-        BindWithElement(verifier.Compilation, "MyList<System.Int32>.MyList(System.String! arg)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.Int32>.MyList(System.String! arg)");
     }
 
     [Fact]
@@ -207,7 +207,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             // (16,19): warning CS8625: Cannot convert null literal to non-nullable reference type.
             //         Goo([with(null), ""]);
             Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(16, 19));
-        BindWithElement(verifier.Compilation, "MyList<System.String!>.MyList(System.String! arg)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.String!>.MyList(System.String! arg)");
     }
 
     [Fact]
@@ -252,7 +252,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         var symbolInfo = semanticModel.GetSymbolInfo(invocation);
         AssertEx.Equal("System.String! C.Goo<System.String!>(MyList<System.String!>! list)", symbolInfo.Symbol.ToTestDisplayString(true));
 
-        BindWithElement(verifier.Compilation, "MyList<System.String!>.MyList(System.String? arg)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.String!>.MyList(System.String? arg)");
     }
 
     [Fact]
@@ -302,7 +302,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             // (7,37): warning CS8625: Cannot convert null literal to non-nullable reference type.
             //         MyCollection<int> c = [with(null), 1, 2];
             Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 37));
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String! value, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String! value, System.ReadOnlySpan<System.Int32> items)");
     }
 
     [Fact]
@@ -354,7 +354,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         MyCollection<int> c = [with(s), 1, 2];
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("value", "MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)").WithLocation(8, 37));
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String! value, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String! value, System.ReadOnlySpan<System.Int32> items)");
     }
 
     [Fact]
@@ -403,7 +403,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             targetFramework: TargetFramework.Net80,
             verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String! value, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String! value, System.ReadOnlySpan<System.Int32> items)");
     }
 
     [Fact]
@@ -455,7 +455,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         string? s = null;
             Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s").WithArguments("s").WithLocation(7, 17));
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String! value, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String! value, System.ReadOnlySpan<System.Int32> items)");
     }
 
     [Fact]
@@ -517,7 +517,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         var symbolInfo = semanticModel.GetSymbolInfo(invocation);
         AssertEx.Equal("void Program.Goo<System.String!>(MyCollection<System.String!>! list)", symbolInfo.Symbol.ToTestDisplayString(true));
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.String!>! MyBuilder.Create<System.String!>(System.String! value, System.ReadOnlySpan<System.String!> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.String!>! MyBuilder.Create<System.String!>(System.String! value, System.ReadOnlySpan<System.String!> items)");
     }
 
     [Fact]
@@ -576,7 +576,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
         var symbolInfo = semanticModel.GetSymbolInfo(invocation);
         AssertEx.Equal("void Program.Goo<System.String!>(MyCollection<System.String!>! list)", symbolInfo.Symbol.ToTestDisplayString(true));
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.String!>! MyBuilder.Create<System.String!>(System.String? value, System.ReadOnlySpan<System.String!> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.String!>! MyBuilder.Create<System.String!>(System.String? value, System.ReadOnlySpan<System.String!> items)");
     }
 
     [Fact]
@@ -603,7 +603,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             // var v = true ? [with(null), "a", "b"] : new MyCollection<string>("");
             Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 22));
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.String!>.MyCollection(System.String! arg)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.String!>.MyCollection(System.String! arg)");
     }
 
     [Fact]
@@ -630,7 +630,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             // var v = true ? [with(""), null] : new MyCollection<string>("");
             Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 27));
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.String!>.MyCollection(System.String! arg)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.String!>.MyCollection(System.String! arg)");
     }
 
     [Fact]
@@ -813,7 +813,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         Goo(s);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void C.Goo(string s)").WithLocation(18, 13));
 
-        BindWithElement(verifier.Compilation, "MyList<System.Int32>.MyList(System.String! arg)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.Int32>.MyList(System.String! arg)");
     }
 
     [Fact]
@@ -846,7 +846,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
 
         var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        BindWithElement(verifier.Compilation, "MyList<System.Int32>.MyList(System.String! arg)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.Int32>.MyList(System.String! arg)");
     }
 
     [Fact]
@@ -882,7 +882,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         Goo(s);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void C.Goo(string s)").WithLocation(18, 13));
 
-        BindWithElement(verifier.Compilation, "MyList<System.Int32>.MyList(System.String? arg)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.Int32>.MyList(System.String? arg)");
     }
 
     [Fact]
@@ -915,7 +915,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
 
         var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        BindWithElement(verifier.Compilation, "MyList<System.Int32>.MyList(System.String? arg)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.Int32>.MyList(System.String? arg)");
     }
 
     [Fact]
@@ -963,7 +963,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         Goo(s);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(8, 13));
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String! value, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String! value, System.ReadOnlySpan<System.Int32> items)");
     }
 
     [Fact]
@@ -1008,7 +1008,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             targetFramework: TargetFramework.Net80,
             verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String! value, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String! value, System.ReadOnlySpan<System.Int32> items)");
     }
 
     [Fact]
@@ -1057,7 +1057,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         Goo(s);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(9, 13));
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String? value, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String? value, System.ReadOnlySpan<System.Int32> items)");
     }
 
     [Fact]
@@ -1103,7 +1103,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             targetFramework: TargetFramework.Net80,
             verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String? value, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String? value, System.ReadOnlySpan<System.Int32> items)");
     }
 
     #endregion
@@ -1144,7 +1144,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         MyList<int> list = [with(s), 1, 2];
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("arg", "MyList<int>.MyList(string arg)").WithLocation(18, 34));
 
-        BindWithElement(verifier.Compilation, "MyList<System.Int32>.MyList(System.String! arg)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.Int32>.MyList(System.String! arg)");
     }
 
     [Fact]
@@ -1178,7 +1178,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
 
         var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        BindWithElement(verifier.Compilation, "MyList<System.Int32>.MyList(System.String! arg)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.Int32>.MyList(System.String! arg)");
     }
 
     [Fact]
@@ -1215,7 +1215,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         MyList<int> list = [with(s), 1, 2];
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("arg", "MyList<int>.MyList(string? arg)").WithLocation(18, 34));
 
-        BindWithElement(verifier.Compilation, "MyList<System.Int32>.MyList(System.String? arg)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.Int32>.MyList(System.String? arg)");
     }
 
     [Fact]
@@ -1249,7 +1249,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
 
         var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        BindWithElement(verifier.Compilation, "MyList<System.Int32>.MyList(System.String? arg)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.Int32>.MyList(System.String? arg)");
     }
 
     [Fact]
@@ -1298,7 +1298,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         MyCollection<int> c = [with(s), 1, 2];
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("value", "MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)").WithLocation(8, 37));
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String! value, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String! value, System.ReadOnlySpan<System.Int32> items)");
     }
 
     [Fact]
@@ -1344,7 +1344,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             targetFramework: TargetFramework.Net80,
             verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String! value, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String! value, System.ReadOnlySpan<System.Int32> items)");
     }
 
     [Fact]
@@ -1393,7 +1393,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         MyCollection<int> c = [with(s), 1, 2];
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("value", "MyCollection<int> MyBuilder.Create<int>(string? value, ReadOnlySpan<int> items)").WithLocation(8, 37));
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String? value, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String? value, System.ReadOnlySpan<System.Int32> items)");
     }
 
     [Fact]
@@ -1439,7 +1439,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             targetFramework: TargetFramework.Net80,
             verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String? value, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String? value, System.ReadOnlySpan<System.Int32> items)");
     }
 
     #endregion
@@ -1482,7 +1482,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         Goo(s);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void C.Goo(string s)").WithLocation(18, 13));
 
-        BindWithElement(verifier.Compilation, "MyList<System.Int32>.MyList(System.String! arg)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.Int32>.MyList(System.String! arg)");
     }
 
     [Fact]
@@ -1518,7 +1518,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         Goo(s);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void C.Goo(string s)").WithLocation(18, 13));
 
-        BindWithElement(verifier.Compilation, "MyList<System.Int32>.MyList(System.String! arg)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.Int32>.MyList(System.String! arg)");
     }
 
     [Fact]
@@ -1554,7 +1554,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         Goo(s);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void C.Goo(string s)").WithLocation(18, 13));
 
-        BindWithElement(verifier.Compilation, "MyList<System.Int32>.MyList(System.String? arg)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.Int32>.MyList(System.String? arg)");
     }
 
     [Fact]
@@ -1590,7 +1590,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         Goo(s);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void C.Goo(string s)").WithLocation(18, 13));
 
-        BindWithElement(verifier.Compilation, "MyList<System.Int32>.MyList(System.String? arg)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.Int32>.MyList(System.String? arg)");
     }
 
     [Fact]
@@ -1641,7 +1641,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         Goo(s);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(8, 13));
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String! value, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String! value, System.ReadOnlySpan<System.Int32> items)");
     }
 
     [Fact]
@@ -1689,7 +1689,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         Goo(s);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(8, 13));
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String! value, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String! value, System.ReadOnlySpan<System.Int32> items)");
     }
 
     [Fact]
@@ -1737,7 +1737,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         Goo(s);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(8, 13));
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String? value, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String? value, System.ReadOnlySpan<System.Int32> items)");
     }
 
     [Fact]
@@ -1785,7 +1785,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         Goo(s);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(8, 13));
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String? value, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String? value, System.ReadOnlySpan<System.Int32> items)");
     }
 
     #endregion
@@ -1823,7 +1823,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
 
         var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        BindWithElement(verifier.Compilation, "MyList<System.Int32>.MyList(System.String? arg)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.Int32>.MyList(System.String? arg)");
     }
 
     [Fact]
@@ -1857,7 +1857,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
 
         var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        BindWithElement(verifier.Compilation, "MyList<System.Int32>.MyList(System.String? arg)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.Int32>.MyList(System.String? arg)");
     }
 
     [Fact]
@@ -1894,7 +1894,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         MyList<int> list = [with(s), 1, 2];
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("arg", "MyList<int>.MyList(string arg)").WithLocation(18, 34));
 
-        BindWithElement(verifier.Compilation, "MyList<System.Int32>.MyList(System.String! arg)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.Int32>.MyList(System.String! arg)");
     }
 
     [Fact]
@@ -1928,7 +1928,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
 
         var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        BindWithElement(verifier.Compilation, "MyList<System.Int32>.MyList(System.String! arg)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.Int32>.MyList(System.String! arg)");
     }
 
     [Fact]
@@ -1977,7 +1977,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             targetFramework: TargetFramework.Net80,
             verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String? value, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String? value, System.ReadOnlySpan<System.Int32> items)");
     }
 
     [Fact]
@@ -2026,7 +2026,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             targetFramework: TargetFramework.Net80,
             verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String? value, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String? value, System.ReadOnlySpan<System.Int32> items)");
     }
 
     [Fact]
@@ -2078,7 +2078,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         MyCollection<int> c = [with(s), 1, 2];
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("value", "MyCollection<int> MyBuilder.Create<int>(string value, ReadOnlySpan<int> items)").WithLocation(7, 37));
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String! value, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String! value, System.ReadOnlySpan<System.Int32> items)");
     }
 
     [Fact]
@@ -2127,7 +2127,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             targetFramework: TargetFramework.Net80,
             verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String! value, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String! value, System.ReadOnlySpan<System.Int32> items)");
     }
 
     #endregion
@@ -2172,7 +2172,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         Goo(other);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "other").WithArguments("s", "void C.Goo(string s)").WithLocation(20, 13));
 
-        BindWithElement(verifier.Compilation, "MyList<System.Int32>.MyList(System.String? arg, System.String? other)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.Int32>.MyList(System.String? arg, System.String? other)");
     }
 
     [Fact]
@@ -2210,7 +2210,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         Goo(arg);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "arg").WithArguments("s", "void C.Goo(string s)").WithLocation(19, 13));
 
-        BindWithElement(verifier.Compilation, "MyList<System.Int32>.MyList(System.String? arg, System.String? other)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.Int32>.MyList(System.String? arg, System.String? other)");
     }
 
     [Fact]
@@ -2248,7 +2248,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         Goo(other);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "other").WithArguments("s", "void C.Goo(string s)").WithLocation(20, 13));
 
-        BindWithElement(verifier.Compilation, "MyList<System.Int32>.MyList(System.String? arg, System.String? other)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.Int32>.MyList(System.String? arg, System.String? other)");
     }
 
     [Fact]
@@ -2283,7 +2283,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
 
         var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        BindWithElement(verifier.Compilation, "MyList<System.Int32>.MyList(System.String? arg, System.String? other)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.Int32>.MyList(System.String? arg, System.String? other)");
     }
 
     [Fact]
@@ -2337,7 +2337,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         Goo(other);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "other").WithArguments("s", "void Program.Goo(string s)").WithLocation(10, 13));
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String? value, System.String? other, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String? value, System.String? other, System.ReadOnlySpan<System.Int32> items)");
     }
 
     [Fact]
@@ -2388,7 +2388,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         Goo(arg);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "arg").WithArguments("s", "void Program.Goo(string s)").WithLocation(9, 13));
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String? value, System.String? other, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String? value, System.String? other, System.ReadOnlySpan<System.Int32> items)");
     }
 
     [Fact]
@@ -2439,7 +2439,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
                 //         Goo(other);
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "other").WithArguments("s", "void Program.Goo(string s)").WithLocation(10, 13));
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String? value, System.String? other, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String? value, System.String? other, System.ReadOnlySpan<System.Int32> items)");
     }
 
     [Fact]
@@ -2487,7 +2487,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             targetFramework: TargetFramework.Net80,
             verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String? value, System.String? other, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.String? value, System.String? other, System.ReadOnlySpan<System.Int32> items)");
     }
 
     #endregion
@@ -2524,7 +2524,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
 
         var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        BindWithElement(verifier.Compilation, "MyList<System.Int32>.MyList(System.Boolean b)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.Int32>.MyList(System.Boolean b)");
     }
 
     [Fact]
@@ -2560,7 +2560,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         Goo(s);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void C.Goo(string s)").WithLocation(18, 13));
 
-        BindWithElement(verifier.Compilation, "MyList<System.Int32>.MyList(System.Boolean b)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.Int32>.MyList(System.Boolean b)");
     }
 
     [Fact]
@@ -2593,7 +2593,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
 
         var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        BindWithElement(verifier.Compilation, "MyList<System.Int32>.MyList(System.Boolean b)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.Int32>.MyList(System.Boolean b)");
     }
 
     [Fact]
@@ -2629,7 +2629,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         Goo(s);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void C.Goo(string s)").WithLocation(18, 13));
 
-        BindWithElement(verifier.Compilation, "MyList<System.Int32>.MyList(System.Boolean b)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyList<System.Int32>.MyList(System.Boolean b)");
     }
 
     [Fact]
@@ -2671,7 +2671,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             targetFramework: TargetFramework.Net80,
             verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.Boolean value, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.Boolean value, System.ReadOnlySpan<System.Int32> items)");
     }
 
     [Fact]
@@ -2716,7 +2716,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         Goo(s);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(8, 13));
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.Boolean value, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.Boolean value, System.ReadOnlySpan<System.Int32> items)");
     }
 
     [Fact]
@@ -2758,7 +2758,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             targetFramework: TargetFramework.Net80,
             verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.Boolean value, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.Boolean value, System.ReadOnlySpan<System.Int32> items)");
     }
 
     [Fact]
@@ -2803,7 +2803,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         Goo(s);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void Program.Goo(string s)").WithLocation(8, 13));
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.Boolean value, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.Boolean value, System.ReadOnlySpan<System.Int32> items)");
     }
 
     #endregion
@@ -2883,7 +2883,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
 
         var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.ReadOnlySpan<System.Int32> items)");
     }
 
     [Fact]
@@ -2922,7 +2922,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
 
         var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.Boolean b, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.Boolean b, System.ReadOnlySpan<System.Int32> items)");
     }
 
     #endregion
@@ -2990,7 +2990,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             //         Goo(MyBuilder.Singleton);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "MyBuilder.Singleton").WithArguments("s", "void C.Goo(string s)").WithLocation(36, 13));
 
-        BindWithElement(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.Boolean b, System.ReadOnlySpan<System.Int32> items)");
+        AssertExpectedWithElementSymbol(verifier.Compilation, "MyCollection<System.Int32>! MyBuilder.Create<System.Int32>(System.Boolean b, System.ReadOnlySpan<System.Int32> items)");
     }
 
     #endregion
