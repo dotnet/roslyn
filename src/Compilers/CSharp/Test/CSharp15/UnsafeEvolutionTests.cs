@@ -6709,10 +6709,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             [RequiresUnsafeAttribute] class C
             {
                 [RequiresUnsafeAttribute] void M() { }
-                [RequiresUnsafeAttribute] int P { get; set; }
+                [RequiresUnsafeAttribute] [field: RequiresUnsafeAttribute] int P { get; set; }
                 int P2 { [RequiresUnsafeAttribute] get; [RequiresUnsafeAttribute] set; }
             #pragma warning disable CS0067 // unused event
-                [RequiresUnsafeAttribute] event System.Action E1;
+                [RequiresUnsafeAttribute] [field: RequiresUnsafeAttribute] event System.Action E1;
                 event System.Action E2 { [RequiresUnsafeAttribute] add { } [RequiresUnsafeAttribute] remove { } }
                 [RequiresUnsafeAttribute] int this[int i] { get => i; set { } }
                 [RequiresUnsafeAttribute] C() { }
