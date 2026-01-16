@@ -543,8 +543,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeMethodNotFound">
-        <source>Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
-        <target state="translated">找不到具有預期簽章的可存取 '{0}' 方法：具有類型 'ReadOnlySpan&lt;{1}&gt;' 的單一參數，且傳回類型 '{2}' 的靜態方法。</target>
+        <source>Could not find an accessible '{0}' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
+        <target state="needs-review-translation">找不到具有預期簽章的可存取 '{0}' 方法：具有類型 'ReadOnlySpan&lt;{1}&gt;' 的單一參數，且傳回類型 '{2}' 的靜態方法。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderNoElementType">

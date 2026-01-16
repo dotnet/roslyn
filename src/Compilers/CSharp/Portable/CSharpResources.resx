@@ -6789,7 +6789,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>There is no target type for the collection expression.</value>
   </data>
   <data name="ERR_CollectionBuilderAttributeMethodNotFound" xml:space="preserve">
-    <value>Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</value>
+    <value>Could not find an accessible '{0}' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</value>
   </data>
   <data name="ERR_CollectionBuilderNoElementType" xml:space="preserve">
     <value>'{0}' has a CollectionBuilderAttribute but no element type.</value>

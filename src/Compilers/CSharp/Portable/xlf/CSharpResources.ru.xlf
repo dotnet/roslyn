@@ -543,8 +543,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeMethodNotFound">
-        <source>Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
-        <target state="translated">Не удалось найти доступный метод "{0}" с ожидаемой подписью: статический метод с одним параметром типа "ReadOnlySpan&lt;{1}&gt;" и типом возвращаемого значения "{2}".</target>
+        <source>Could not find an accessible '{0}' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
+        <target state="needs-review-translation">Не удалось найти доступный метод "{0}" с ожидаемой подписью: статический метод с одним параметром типа "ReadOnlySpan&lt;{1}&gt;" и типом возвращаемого значения "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderNoElementType">

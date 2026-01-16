@@ -31642,10 +31642,10 @@ static class E
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (5,24): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (5,24): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             // MyCollection<int> c1 = [];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(5, 24),
-            // (6,24): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (6,24): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             // MyCollection<int> c2 = [1];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 24));
     }

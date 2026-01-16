@@ -782,10 +782,8 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             }
             """;
 
-        // PROTOTYPE: Need to update this diagnostic message to not state that it's a single ROS parameter.
-        // But it needs to have a final ROS parameter.
         CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-            // (6,34): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (6,34): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         MyCollection<string> x = [with(""), "goo"];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, @"[with(""""), ""goo""]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 34));
     }
@@ -2941,7 +2939,7 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
 
     #region MemberNotNull
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82029")]
     public void CollectionBuilderWithMemberNotNull()
     {
         var source = """
@@ -2987,10 +2985,13 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
             }
             """;
 
-        // PROTOTYPE: MemberNotNull analysis does not flow across calls to collection builders yet. This is probably
+        // MemberNotNull analysis does not flow across calls to collection builders yet. This is probably
         // because we lack a way to track that the collection builder affects 'MyBuilder' state, and thus the member
         // access to MyBuilder.Singleton.  This is unlike the normal static call case on 'Other' where both the method
         // call and the member access are off of the same 'Other' type in the code directly.
+        //
+        // https://github.com/dotnet/roslyn/issues/82029 tracks determining if this is even a bug, or is the
+        // expected behavior.
         var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyDiagnostics(
             // (14,27): warning CS0649: Field 'MyBuilder.Singleton' is never assigned to, and will always have its default value null
             //     public static string? Singleton;
