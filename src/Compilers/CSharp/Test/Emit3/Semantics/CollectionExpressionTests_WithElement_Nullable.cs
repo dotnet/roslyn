@@ -635,6 +635,114 @@ public sealed class CollectionExpressionTests_WithElement_Nullable : CSharpTestB
     }
 
     [Fact]
+    public void TestTernaryInference1()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+
+            var v = true ? Goo([with(""), null]) : Goo([with(""), ""]);
+            Console.WriteLine(string.Join(", ", v));
+
+            MyCollection<T> Goo<T>(MyCollection<T> c) { return c; }
+
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection(T arg)
+                {
+                }
+            }
+            """;
+
+        CreateCompilation(source).VerifyDiagnostics(
+            // (5,16): error CS0411: The type arguments for method 'Goo<T>(MyCollection<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+            // var v = true ? Goo([with(""), null]) : Goo([with(""), ""]);
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Goo").WithArguments("Goo<T>(MyCollection<T>)").WithLocation(5, 16));
+    }
+
+    [Fact]
+    public void TestTernaryInference2()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+
+            var v = true ? Goo([with(""), null]) : Goo([with(null), ""]);
+            Console.WriteLine(string.Join(", ", v));
+            
+            MyCollection<T> Goo<T>(MyCollection<T> c) { return c; }
+
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection(T arg)
+                {
+                }
+            }
+            """;
+
+        CreateCompilation(source).VerifyDiagnostics(
+            // (5,16): error CS0411: The type arguments for method 'Goo<T>(MyCollection<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+            // var v = true ? Goo([with(""), null]) : Goo([with(null), ""]);
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Goo").WithArguments("Goo<T>(MyCollection<T>)").WithLocation(5, 16));
+    }
+
+    [Fact]
+    public void TestTernaryInference3()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+
+            var v = true ? Goo([with(null), null, ""]) : Goo([with(null), ""]);
+            Console.WriteLine(string.Join(", ", v));
+            
+            MyCollection<T> Goo<T>(MyCollection<T> c) { return c; }
+
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection(T arg)
+                {
+                }
+            }
+            """;
+
+        var verifier = CompileAndVerify(source, expectedOutput: IncludeExpectedOutput(",")).VerifyDiagnostics(
+            // (5,16): warning CS8619: Nullability of reference types in value of type 'MyCollection<string?>' doesn't match target type 'MyCollection<string>'.
+            // var v = true ? Goo([with(null), null, ""]) : Goo([with(null), ""]);
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, @"Goo([with(null), null, """"])").WithArguments("MyCollection<string?>", "MyCollection<string>").WithLocation(5, 16));
+    }
+
+    [Fact]
+    public void TestTernaryInference4()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+
+            var v = true ? Goo([with(null), null, ""]) : Goo([with(null), "", null]);
+            Console.WriteLine(string.Join(", ", v));
+            
+            MyCollection<T> Goo<T>(MyCollection<T> c) { return c; }
+
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection(T arg)
+                {
+                }
+            }
+            """;
+
+        var verifier = CompileAndVerify(source, expectedOutput: IncludeExpectedOutput(",")).VerifyDiagnostics(
+            // (5,16): warning CS8619: Nullability of reference types in value of type 'MyCollection<string?>' doesn't match target type 'MyCollection<string>'.
+            // var v = true ? Goo([with(null), null, ""]) : Goo([with(null), "", null]);
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, @"Goo([with(null), null, """"])").WithArguments("MyCollection<string?>", "MyCollection<string>").WithLocation(5, 16));
+    }
+
+    [Fact]
     public void CollectionBuilderInferenceIncorrectArity()
     {
         string sourceA = """
