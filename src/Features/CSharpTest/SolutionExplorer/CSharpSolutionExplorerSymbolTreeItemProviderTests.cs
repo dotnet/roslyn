@@ -27,6 +27,18 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
         return TestNode<CompilationUnitSyntax>(code, expected);
     }
 
+    private Task TestCompilationUnitWithNamespaces(
+        string code, string expected)
+    {
+        return TestNode<CompilationUnitSyntax>(code, expected, returnNamespaces: true);
+    }
+
+    private Task TestNamespaceDeclaration(
+        string code, string expected)
+    {
+        return TestNode<BaseNamespaceDeclarationSyntax>(code, expected, returnNamespaces: true);
+    }
+
     [Fact]
     public Task TestEmptyFile()
         => TestCompilationUnit("", "");
@@ -440,4 +452,194 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
             """, """
             Name="MethodLocal(string) : int" Glyph=MethodPrivate HasItems=False
             """);
+
+    #region Namespace Tests (returnNamespaces: true)
+
+    [Fact]
+    public Task TestBlockNamespace()
+        => TestCompilationUnitWithNamespaces("""
+            namespace [|N|]
+            {
+                class C
+                {
+                }
+            }
+            """, """
+            Name="N" Glyph=Namespace HasItems=True
+            """);
+
+    [Fact]
+    public Task TestBlockNamespaceEmpty()
+        => TestCompilationUnitWithNamespaces("""
+            namespace [|N|]
+            {
+            }
+            """, """
+            Name="N" Glyph=Namespace HasItems=False
+            """);
+
+    [Fact]
+    public Task TestFileScopedNamespace()
+        => TestCompilationUnitWithNamespaces("""
+            namespace [|N|];
+
+            class C
+            {
+            }
+            """, """
+            Name="N" Glyph=Namespace HasItems=True
+            """);
+
+    [Fact]
+    public Task TestFileScopedNamespaceEmpty()
+        => TestCompilationUnitWithNamespaces("""
+            namespace [|N|];
+            """, """
+            Name="N" Glyph=Namespace HasItems=False
+            """);
+
+    [Fact]
+    public Task TestMultipleBlockNamespaces()
+        => TestCompilationUnitWithNamespaces("""
+            namespace [|N1|]
+            {
+                class C { }
+            }
+
+            namespace [|N2|]
+            {
+                class D { }
+            }
+            """, """
+            Name="N1" Glyph=Namespace HasItems=True
+            Name="N2" Glyph=Namespace HasItems=True
+            """);
+
+    [Fact]
+    public Task TestQualifiedNamespace()
+        => TestCompilationUnitWithNamespaces("""
+            namespace [|A|].B.C
+            {
+                class D { }
+            }
+            """, """
+            Name="A.B.C" Glyph=Namespace HasItems=True
+            """);
+
+    [Fact]
+    public Task TestNamespaceNextToTopLevelType()
+        => TestCompilationUnitWithNamespaces("""
+            class [|C|]
+            {
+            }
+
+            namespace [|N|]
+            {
+                class D { }
+            }
+            """, """
+            Name="C" Glyph=ClassInternal HasItems=False
+            Name="N" Glyph=Namespace HasItems=True
+            """);
+
+    [Fact]
+    public Task TestNestedBlockNamespaces()
+        => TestCompilationUnitWithNamespaces("""
+            namespace [|Outer|]
+            {
+                namespace Inner
+                {
+                    class C { }
+                }
+            }
+            """, """
+            Name="Outer" Glyph=Namespace HasItems=True
+            """);
+
+    [Fact]
+    public Task TestNestedNamespaceMembers()
+        => TestNamespaceDeclaration("""
+            namespace Outer
+            {
+                namespace [|Inner|]
+                {
+                    class C { }
+                }
+            }
+            """, """
+            Name="Inner" Glyph=Namespace HasItems=True
+            """);
+
+    [Fact]
+    public Task TestNamespaceMembersWithTypes()
+        => TestNamespaceDeclaration("""
+            namespace N
+            {
+                class [|C|]
+                {
+                }
+
+                struct [|S|]
+                {
+                }
+            }
+            """, """
+            Name="C" Glyph=ClassInternal HasItems=False
+            Name="S" Glyph=StructureInternal HasItems=False
+            """);
+
+    [Fact]
+    public Task TestNamespaceMembersWithNestedNamespaceAndTypes()
+        => TestNamespaceDeclaration("""
+            namespace N
+            {
+                class [|C|]
+                {
+                }
+
+                namespace [|Inner|]
+                {
+                    class D { }
+                }
+            }
+            """, """
+            Name="C" Glyph=ClassInternal HasItems=False
+            Name="Inner" Glyph=Namespace HasItems=True
+            """);
+
+    [Fact]
+    public Task TestFileScopedNamespaceMembers()
+        => TestNamespaceDeclaration("""
+            namespace N;
+
+            class [|C|]
+            {
+            }
+
+            enum [|E|]
+            {
+            }
+            """, """
+            Name="C" Glyph=ClassInternal HasItems=False
+            Name="E" Glyph=EnumInternal HasItems=False
+            """);
+
+    [Fact]
+    public Task TestNamespaceWithDelegateAndEnum()
+        => TestNamespaceDeclaration("""
+            namespace N
+            {
+                delegate void [|D|]();
+
+                enum [|E|]
+                {
+                    A
+                }
+            }
+            """, """
+            Name="D() : void" Glyph=DelegateInternal HasItems=False
+            Name="E" Glyph=EnumInternal HasItems=True
+            """);
+
+    #endregion
 }

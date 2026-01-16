@@ -20,6 +20,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SolutionExplorer
             Return TestNode(Of CompilationUnitSyntax)(code, expected)
         End Function
 
+        Private Function TestCompilationUnitWithNamespaces(
+        code As String, expected As String) As Task
+
+            Return TestNode(Of CompilationUnitSyntax)(code, expected, returnNamespaces:=True)
+        End Function
+
+        Private Function TestNamespaceBlock(
+        code As String, expected As String) As Task
+
+            Return TestNode(Of NamespaceBlockSyntax)(code, expected, returnNamespaces:=True)
+        End Function
+
         <Fact>
         Public Async Function TestEmptyFile() As Task
             Await TestCompilationUnit("", "")
@@ -249,5 +261,155 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SolutionExplorer
             Name=""x As Y"" Glyph=FieldPrivate HasItems=False
             ")
         End Function
+
+#Region "Namespace Tests (returnNamespaces: True)"
+
+        <Fact>
+        Public Async Function TestBlockNamespace() As Task
+            Await TestCompilationUnitWithNamespaces("
+            namespace [|N|]
+                class C
+                end class
+            end namespace
+            ", "
+            Name=""N"" Glyph=Namespace HasItems=True
+            ")
+        End Function
+
+        <Fact>
+        Public Async Function TestBlockNamespaceEmpty() As Task
+            Await TestCompilationUnitWithNamespaces("
+            namespace [|N|]
+            end namespace
+            ", "
+            Name=""N"" Glyph=Namespace HasItems=False
+            ")
+        End Function
+
+        <Fact>
+        Public Async Function TestMultipleBlockNamespaces() As Task
+            Await TestCompilationUnitWithNamespaces("
+            namespace [|N1|]
+                class C
+                end class
+            end namespace
+
+            namespace [|N2|]
+                class D
+                end class
+            end namespace
+            ", "
+            Name=""N1"" Glyph=Namespace HasItems=True
+            Name=""N2"" Glyph=Namespace HasItems=True
+            ")
+        End Function
+
+        <Fact>
+        Public Async Function TestQualifiedNamespace() As Task
+            Await TestCompilationUnitWithNamespaces("
+            namespace [|A|].B.C
+                class D
+                end class
+            end namespace
+            ", "
+            Name=""A.B.C"" Glyph=Namespace HasItems=True
+            ")
+        End Function
+
+        <Fact>
+        Public Async Function TestNamespaceNextToTopLevelType() As Task
+            Await TestCompilationUnitWithNamespaces("
+            class [|C|]
+            end class
+
+            namespace [|N|]
+                class D
+                end class
+            end namespace
+            ", "
+            Name=""C"" Glyph=ClassInternal HasItems=False
+            Name=""N"" Glyph=Namespace HasItems=True
+            ")
+        End Function
+
+        <Fact>
+        Public Async Function TestNestedBlockNamespaces() As Task
+            Await TestCompilationUnitWithNamespaces("
+            namespace [|Outer|]
+                namespace Inner
+                    class C
+                    end class
+                end namespace
+            end namespace
+            ", "
+            Name=""Outer"" Glyph=Namespace HasItems=True
+            ")
+        End Function
+
+        <Fact>
+        Public Async Function TestNestedNamespaceMembers() As Task
+            Await TestNamespaceBlock("
+            namespace Outer
+                namespace [|Inner|]
+                    class C
+                    end class
+                end namespace
+            end namespace
+            ", "
+            Name=""Inner"" Glyph=Namespace HasItems=True
+            ")
+        End Function
+
+        <Fact>
+        Public Async Function TestNamespaceMembersWithTypes() As Task
+            Await TestNamespaceBlock("
+            namespace N
+                class [|C|]
+                end class
+
+                structure [|S|]
+                end structure
+            end namespace
+            ", "
+            Name=""C"" Glyph=ClassInternal HasItems=False
+            Name=""S"" Glyph=StructureInternal HasItems=False
+            ")
+        End Function
+
+        <Fact>
+        Public Async Function TestNamespaceMembersWithNestedNamespaceAndTypes() As Task
+            Await TestNamespaceBlock("
+            namespace N
+                class [|C|]
+                end class
+
+                namespace [|Inner|]
+                    class D
+                    end class
+                end namespace
+            end namespace
+            ", "
+            Name=""C"" Glyph=ClassInternal HasItems=False
+            Name=""Inner"" Glyph=Namespace HasItems=True
+            ")
+        End Function
+
+        <Fact>
+        Public Async Function TestNamespaceWithDelegateAndEnum() As Task
+            Await TestNamespaceBlock("
+            namespace N
+                delegate sub [|D|]()
+
+                enum [|E|]
+                    A
+                end enum
+            end namespace
+            ", "
+            Name=""D()"" Glyph=DelegateInternal HasItems=False
+            Name=""E"" Glyph=EnumInternal HasItems=True
+            ")
+        End Function
+
+#End Region
     End Class
 End Namespace

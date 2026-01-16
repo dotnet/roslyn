@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.SolutionExplorer;
 
 internal interface ISolutionExplorerSymbolTreeItemProvider : ILanguageService
 {
-    ImmutableArray<SymbolTreeItemData> GetItems(DocumentId documentId, SyntaxNode declarationNode, CancellationToken cancellationToken);
+    ImmutableArray<SymbolTreeItemData> GetItems(DocumentId documentId, SyntaxNode declarationNode, bool returnNamespaces, CancellationToken cancellationToken);
 }
 
 internal abstract class AbstractSolutionExplorerSymbolTreeItemProvider<
@@ -66,6 +66,7 @@ internal abstract class AbstractSolutionExplorerSymbolTreeItemProvider<
     protected abstract SyntaxList<TMemberDeclarationSyntax> GetMembers(TNamespaceDeclarationSyntax baseNamespace);
     protected abstract SyntaxList<TMemberDeclarationSyntax> GetMembers(TTypeDeclarationSyntax typeDeclaration);
 
+    protected abstract bool TryAddNamespace(DocumentId documentId, TMemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder);
     protected abstract bool TryAddType(DocumentId documentId, TMemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder);
     protected abstract void AddMemberDeclaration(DocumentId documentId, TMemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder);
     protected abstract void AddEnumDeclarationMembers(DocumentId documentId, TEnumDeclarationSyntax enumDeclaration, ArrayBuilder<SymbolTreeItemData> items, CancellationToken cancellationToken);
@@ -74,7 +75,7 @@ internal abstract class AbstractSolutionExplorerSymbolTreeItemProvider<
     protected virtual ImmutableArray<TMemberStatement> GetMemberStatementMembers(TMemberStatement memberDeclaration) => [];
     protected virtual void AddMemberStatement(DocumentId documentId, TMemberStatement statement, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder) { }
 
-    public ImmutableArray<SymbolTreeItemData> GetItems(DocumentId documentId, SyntaxNode node, CancellationToken cancellationToken)
+    public ImmutableArray<SymbolTreeItemData> GetItems(DocumentId documentId, SyntaxNode node, bool returnNamespaces, CancellationToken cancellationToken)
     {
         using var _1 = ArrayBuilder<SymbolTreeItemData>.GetInstance(out var items);
         using var _2 = PooledStringBuilder.GetInstance(out var nameBuilder);
@@ -82,11 +83,15 @@ internal abstract class AbstractSolutionExplorerSymbolTreeItemProvider<
         switch (node)
         {
             case TCompilationUnitSyntax compilationUnit:
-                AddTopLevelTypes(documentId, compilationUnit, items, nameBuilder, cancellationToken);
+                AddTopLevelMembers(documentId, compilationUnit, items, nameBuilder, returnNamespaces, cancellationToken);
                 break;
 
             case TEnumDeclarationSyntax enumDeclaration:
                 AddEnumDeclarationMembers(documentId, enumDeclaration, items, cancellationToken);
+                break;
+
+            case TNamespaceDeclarationSyntax namespaceDeclaration:
+                AddNamespaceDeclarationMembers(namespaceDeclaration);
                 break;
 
             case TTypeDeclarationSyntax typeDeclaration:
@@ -101,6 +106,19 @@ internal abstract class AbstractSolutionExplorerSymbolTreeItemProvider<
         }
 
         return items.ToImmutableAndClear();
+
+        void AddNamespaceDeclarationMembers(TNamespaceDeclarationSyntax namespaceDeclaration)
+        {
+            foreach (var member in GetMembers(namespaceDeclaration))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (returnNamespaces && TryAddNamespace(documentId, member, items, nameBuilder))
+                    continue;
+
+                TryAddType(documentId, member, items, nameBuilder);
+            }
+        }
 
         void AddTypeDeclarationMembers(TTypeDeclarationSyntax typeDeclaration)
         {
@@ -134,11 +152,12 @@ internal abstract class AbstractSolutionExplorerSymbolTreeItemProvider<
         }
     }
 
-    private void AddTopLevelTypes(
+    private void AddTopLevelMembers(
         DocumentId documentId,
         TCompilationUnitSyntax root,
         ArrayBuilder<SymbolTreeItemData> items,
         StringBuilder nameBuilder,
+        bool returnNamespaces,
         CancellationToken cancellationToken)
     {
         foreach (var member in GetMembers(root))
@@ -150,15 +169,20 @@ internal abstract class AbstractSolutionExplorerSymbolTreeItemProvider<
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (member is TNamespaceDeclarationSyntax baseNamespace)
+            if (returnNamespaces)
+            {
+                if (TryAddNamespace(documentId, member, items, nameBuilder))
+                    return;
+            }
+            else if (member is TNamespaceDeclarationSyntax baseNamespace)
             {
                 foreach (var childMember in GetMembers(baseNamespace))
                     RecurseIntoMemberDeclaration(childMember);
+
+                return;
             }
-            else
-            {
-                TryAddType(documentId, member, items, nameBuilder);
-            }
+
+            TryAddType(documentId, member, items, nameBuilder);
         }
     }
 }

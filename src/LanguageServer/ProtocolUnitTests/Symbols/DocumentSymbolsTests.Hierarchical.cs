@@ -39,9 +39,9 @@ public sealed partial class DocumentSymbolsTests
         LSP.DocumentSymbol[] expected = [
         Symbol(LSP.SymbolKind.Namespace, "Test", "Test", "namespace", "namespaceSelection", testLspServer,
             Symbol(LSP.SymbolKind.Class, "A", "A", "class", "classSelection", testLspServer,
-                Symbol(LSP.SymbolKind.Constructor, "A", "A()", "constructor", "constructorSelection", testLspServer),
-                Symbol(LSP.SymbolKind.Method, "M", "M()", "method", "methodSelection", testLspServer),
-                Symbol(LSP.SymbolKind.Operator, "operator +", "operator +(A a1, A a2)", "operator", "operatorSelection", testLspServer)))
+                Symbol(LSP.SymbolKind.Method, "A()", "A()", "constructor", "constructorSelection", testLspServer),
+                Symbol(LSP.SymbolKind.Method, "M() : void", "M() : void", "method", "methodSelection", testLspServer),
+                Symbol(LSP.SymbolKind.Operator, "operator +(A, A) : A", "operator +(A, A) : A", "operator", "operatorSelection", testLspServer)))
         ];
 
         var results = await RunGetDocumentSymbolsAsync<LSP.DocumentSymbol[]>(testLspServer);
@@ -78,9 +78,9 @@ public sealed partial class DocumentSymbolsTests
         var markup =
             """
 
-            {|namespace:namespace
-            {|namespaceSelection:|}{
-            }|}
+            {|namespace:{|namespaceSelection:namespace
+            {
+            }|}|}
             """;
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, HierarchicalDocumentSymbolCapabilities);
@@ -99,7 +99,7 @@ public sealed partial class DocumentSymbolsTests
     {
         var markup =
             """
-            {|namespace:namespace {|namespaceSelection:One.Two.Three|}
+            {|namespace:namespace {|namespaceSelection:One|}.Two.Three
             {
             }|}
             """;
@@ -194,7 +194,7 @@ public sealed partial class DocumentSymbolsTests
 
         LSP.DocumentSymbol[] expected = [
             Symbol(LSP.SymbolKind.Class, "A", "A", "class", "classSelection", testLspServer,
-                Symbol(LSP.SymbolKind.Method, "M", "M()", "method", "methodSelection", testLspServer))
+                Symbol(LSP.SymbolKind.Method, "M() : void", "M() : void", "method", "methodSelection", testLspServer))
         ];
 
         var results = await RunGetDocumentSymbolsAsync<LSP.DocumentSymbol[]>(testLspServer);

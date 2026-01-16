@@ -41,6 +41,26 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
     protected override SyntaxList<MemberDeclarationSyntax> GetMembers(TypeDeclarationSyntax typeDeclaration)
         => typeDeclaration.Members;
 
+    protected override bool TryAddNamespace(
+        DocumentId documentId, MemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder)
+    {
+        if (member is not BaseNamespaceDeclarationSyntax namespaceDeclaration)
+            return false;
+
+        var name = namespaceDeclaration.Name;
+        nameBuilder.Append(name.ToString());
+
+        items.Add(new(
+            documentId,
+            nameBuilder.ToStringAndClear(),
+            Glyph.Namespace,
+            hasItems: namespaceDeclaration.Members.Count > 0,
+            namespaceDeclaration,
+            name.GetFirstToken()));
+
+        return true;
+    }
+
     protected override bool TryAddType(
         DocumentId documentId, MemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder)
     {

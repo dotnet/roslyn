@@ -82,7 +82,7 @@ internal sealed class DocumentSymbolsHandler() : ILspServiceDocumentRequestHandl
         ISolutionExplorerSymbolTreeItemProvider provider,
         CancellationToken cancellationToken)
     {
-        var items = provider.GetItems(documentId, node, cancellationToken);
+        var items = provider.GetItems(documentId, node, returnNamespaces: true, cancellationToken);
         if (items.IsEmpty)
             return [];
 
@@ -108,7 +108,8 @@ internal sealed class DocumentSymbolsHandler() : ILspServiceDocumentRequestHandl
 
         // Get the full span from the declaration node and the selection span from the navigation token
         var fullSpan = itemSyntax.DeclarationNode.Span;
-        var selectionSpan = itemSyntax.NavigationToken.Span;
+        // If we're in the middle of typing, the navigation token (typically identifier) may be missing and this will be a SyntaxKind.None (0)
+        var selectionSpan = itemSyntax.NavigationToken.RawKind == 0 ? itemSyntax.DeclarationNode.Span : itemSyntax.NavigationToken.Span;
 
         // Recursively get children if this item has child items
         var children = itemKey.HasItems
