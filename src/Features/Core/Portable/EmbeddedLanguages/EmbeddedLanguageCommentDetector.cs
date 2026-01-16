@@ -25,7 +25,7 @@ internal readonly struct EmbeddedLanguageCommentDetector
     public EmbeddedLanguageCommentDetector(ImmutableArray<string> identifiers)
     {
         var namePortion = string.Join("|", identifiers.Select(n => $"({Regex.Escape(n)})"));
-        _regex = new Regex($@"^((//)|(')|(/\*))\s*lang(uage)?\s*=\s*(?<identifier>{namePortion})\b((\s*,\s*)(?<option>[a-zA-Z]+))*",
+        _regex = new Regex($@"^((//)|(')|(/\*))\s*lang(uage)?\s*=\s*(?<identifier>{namePortion})(?!\w)((\s*,\s*)(?<option>[a-z]+))*",
             RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase | RegexOptions.Compiled);
     }
 
