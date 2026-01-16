@@ -334,4 +334,582 @@ public sealed class HiddenExplicitCastTests
                 }
                 """,
         }.RunAsync();
+
+    #region Explicit numeric conversions with user-defined operators
+
+    [Fact]
+    public Task TestUserDefinedToDouble_ThenDoubleToFloat()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct Value
+                {
+                    public static explicit operator double(Value v) => 1.0;
+                }
+
+                class C
+                {
+                    void M()
+                    {
+                        var v = new Value();
+                        float f = [|(float)v|];
+                    }
+                }
+                """,
+            FixedCode = """
+                struct Value
+                {
+                    public static explicit operator double(Value v) => 1.0;
+                }
+
+                class C
+                {
+                    void M()
+                    {
+                        var v = new Value();
+                        float f = (float)(double)v;
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestUserDefinedToLong_ThenLongToShort()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct BigNumber
+                {
+                    public static explicit operator long(BigNumber b) => 100L;
+                }
+
+                class C
+                {
+                    short M(BigNumber b) => [|(short)b|];
+                }
+                """,
+            FixedCode = """
+                struct BigNumber
+                {
+                    public static explicit operator long(BigNumber b) => 100L;
+                }
+
+                class C
+                {
+                    short M(BigNumber b) => (short)(long)b;
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestUserDefinedToDecimal_ThenDecimalToInt()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct Money
+                {
+                    public static explicit operator decimal(Money m) => 100.50m;
+                }
+
+                class C
+                {
+                    int M(Money m) => [|(int)m|];
+                }
+                """,
+            FixedCode = """
+                struct Money
+                {
+                    public static explicit operator decimal(Money m) => 100.50m;
+                }
+
+                class C
+                {
+                    int M(Money m) => (int)(decimal)m;
+                }
+                """,
+        }.RunAsync();
+
+    #endregion
+
+    #region Explicit reference conversions with user-defined operators
+
+    [Fact]
+    public Task TestUserDefinedToBaseClass_ThenBaseToDerived()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class Animal { }
+                class Dog : Animal { }
+
+                class AnimalFactory
+                {
+                    public static explicit operator Animal(AnimalFactory f) => new Dog();
+                }
+
+                class C
+                {
+                    Dog M(AnimalFactory f) => [|(Dog)f|];
+                }
+                """,
+            FixedCode = """
+                class Animal { }
+                class Dog : Animal { }
+
+                class AnimalFactory
+                {
+                    public static explicit operator Animal(AnimalFactory f) => new Dog();
+                }
+
+                class C
+                {
+                    Dog M(AnimalFactory f) => (Dog)(Animal)f;
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestUserDefinedToObject_ThenObjectToDerived()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class SpecificType { }
+
+                struct BoxedValue
+                {
+                    public static explicit operator object(BoxedValue b) => new SpecificType();
+                }
+
+                class C
+                {
+                    SpecificType M(BoxedValue b) => [|(SpecificType)b|];
+                }
+                """,
+            FixedCode = """
+                class SpecificType { }
+
+                struct BoxedValue
+                {
+                    public static explicit operator object(BoxedValue b) => new SpecificType();
+                }
+
+                class C
+                {
+                    SpecificType M(BoxedValue b) => (SpecificType)(object)b;
+                }
+                """,
+        }.RunAsync();
+
+    #endregion
+
+    #region Explicit nullable conversions with user-defined operators
+
+    [Fact]
+    public Task TestUserDefinedToNullableInt_ThenNullableIntToInt()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct OptionalNumber
+                {
+                    public static explicit operator int?(OptionalNumber o) => 42;
+                }
+
+                class C
+                {
+                    int M(OptionalNumber o) => [|(int)o|];
+                }
+                """,
+            FixedCode = """
+                struct OptionalNumber
+                {
+                    public static explicit operator int?(OptionalNumber o) => 42;
+                }
+
+                class C
+                {
+                    int M(OptionalNumber o) => (int)(int?)o;
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestUserDefinedToNullableLong_ThenNullableLongToShort()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct LargeOptional
+                {
+                    public static explicit operator long?(LargeOptional l) => 1000L;
+                }
+
+                class C
+                {
+                    short M(LargeOptional l) => [|(short)l|];
+                }
+                """,
+            FixedCode = """
+                struct LargeOptional
+                {
+                    public static explicit operator long?(LargeOptional l) => 1000L;
+                }
+
+                class C
+                {
+                    short M(LargeOptional l) => (short)(long?)l;
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNullableSourceToUserDefinedFromInt()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct Target
+                {
+                    public static explicit operator Target(int i) => default;
+                }
+
+                class C
+                {
+                    Target M(long? l) => [|(Target)l|];
+                }
+                """,
+            FixedCode = """
+                struct Target
+                {
+                    public static explicit operator Target(int i) => default;
+                }
+
+                class C
+                {
+                    Target M(long? l) => (Target)(int)l;
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestUserDefinedToNullableDouble_ThenToFloat()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct PreciseValue
+                {
+                    public static explicit operator double?(PreciseValue p) => 3.14159;
+                }
+
+                class C
+                {
+                    float M(PreciseValue p) => [|(float)p|];
+                }
+                """,
+            FixedCode = """
+                struct PreciseValue
+                {
+                    public static explicit operator double?(PreciseValue p) => 3.14159;
+                }
+
+                class C
+                {
+                    float M(PreciseValue p) => (float)(double?)p;
+                }
+                """,
+        }.RunAsync();
+
+    #endregion
+
+    #region Explicit unboxing conversions with user-defined operators
+
+    [Fact]
+    public Task TestUserDefinedToObject_ThenUnboxToInt()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct Boxed
+                {
+                    public static explicit operator object(Boxed b) => 42;
+                }
+
+                class C
+                {
+                    int M(Boxed b) => [|(int)b|];
+                }
+                """,
+            FixedCode = """
+                struct Boxed
+                {
+                    public static explicit operator object(Boxed b) => 42;
+                }
+
+                class C
+                {
+                    int M(Boxed b) => (int)(object)b;
+                }
+                """,
+        }.RunAsync();
+
+    #endregion
+
+    #region Complex expression contexts
+
+    [Fact]
+    public Task TestInArrayInitializer()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    int[] M(Value v) => new int[] { [|(int)v|] };
+                }
+                """,
+            FixedCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    int[] M(Value v) => new int[] { (int)(long)v };
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInConditionalExpression()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    int M(Value v, bool b) => b ? [|(int)v|] : 0;
+                }
+                """,
+            FixedCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    int M(Value v, bool b) => b ? (int)(long)v : 0;
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInInterpolatedString()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct Value
+                {
+                    public static explicit operator double(Value v) => 3.14;
+                }
+
+                class C
+                {
+                    string M(Value v) => $"Result: {[|(int)v|]}";
+                }
+                """,
+            FixedCode = """
+                struct Value
+                {
+                    public static explicit operator double(Value v) => 3.14;
+                }
+
+                class C
+                {
+                    string M(Value v) => $"Result: {(int)(double)v}";
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInLambdaExpression()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    Func<Value, int> M() => v => [|(int)v|];
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    Func<Value, int> M() => v => (int)(long)v;
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInObjectInitializer()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class Target
+                {
+                    public int Number { get; set; }
+                }
+
+                class C
+                {
+                    Target M(Value v) => new Target { Number = [|(int)v|] };
+                }
+                """,
+            FixedCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class Target
+                {
+                    public int Number { get; set; }
+                }
+
+                class C
+                {
+                    Target M(Value v) => new Target { Number = (int)(long)v };
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInSwitchExpression()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    string M(Value v) => [|(int)v|] switch
+                    {
+                        0 => "zero",
+                        _ => "other"
+                    };
+                }
+                """,
+            FixedCode = """
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    string M(Value v) => (int)(long)v switch
+                    {
+                        0 => "zero",
+                        _ => "other"
+                    };
+                }
+                """,
+        }.RunAsync();
+
+    #endregion
+
+    #region Generic and collection contexts
+
+    [Fact]
+    public Task TestInCollectionInitializer()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    List<int> M(Value v) => new List<int> { [|(int)v|] };
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    List<int> M(Value v) => new List<int> { (int)(long)v };
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInLinqSelect()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+                using System.Linq;
+
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    IEnumerable<int> M(IEnumerable<Value> values) => values.Select(v => [|(int)v|]);
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+                using System.Linq;
+
+                struct Value
+                {
+                    public static explicit operator long(Value v) => 100L;
+                }
+
+                class C
+                {
+                    IEnumerable<int> M(IEnumerable<Value> values) => values.Select(v => (int)(long)v);
+                }
+                """,
+        }.RunAsync();
+
+    #endregion
 }
