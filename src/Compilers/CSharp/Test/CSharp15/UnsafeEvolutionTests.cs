@@ -2610,7 +2610,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             {
                 unsafe void M() { }
                 unsafe int P { get; set; }
-            #pragma warning disable CS0067 // unused event
+
                 unsafe event System.Action E { add { } remove { } }
                 unsafe int this[int i] { get => i; set { } }
                 unsafe C() { }
@@ -3946,7 +3946,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     public void Member_Event()
     {
         var lib = """
-            #pragma warning disable CS0067 // unused event
             public class C
             {
                 public event System.Action E1 { add { } remove { } }
@@ -3973,15 +3972,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation([lib, MemorySafetyRulesAttributeDefinition],
             options: TestOptions.ReleaseModule.WithAllowUnsafe(true).WithUpdatedMemorySafetyRules())
             .VerifyEmitDiagnostics(
-            // (5,39): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresUnsafeAttribute' is not defined or imported
+            // (4,39): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresUnsafeAttribute' is not defined or imported
             //     public unsafe event System.Action E2 { add { } remove { } }
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E2").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(5, 39),
-            // (5,44): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresUnsafeAttribute' is not defined or imported
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E2").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(4, 39),
+            // (4,44): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresUnsafeAttribute' is not defined or imported
             //     public unsafe event System.Action E2 { add { } remove { } }
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "add").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(5, 44),
-            // (5,52): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresUnsafeAttribute' is not defined or imported
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "add").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(4, 44),
+            // (4,52): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresUnsafeAttribute' is not defined or imported
             //     public unsafe event System.Action E2 { add { } remove { } }
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "remove").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(5, 52));
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "remove").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(4, 52));
 
         CreateCompilation("""
             class C
@@ -4047,7 +4046,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     public void Member_Event_NoAccessors()
     {
         var lib = """
-            #pragma warning disable CS0067 // unused event
             public class C
             {
                 public unsafe event System.Action E { }
@@ -4057,12 +4055,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation([lib, MemorySafetyRulesAttributeDefinition],
             options: TestOptions.ReleaseModule.WithAllowUnsafe(true).WithUpdatedMemorySafetyRules())
             .VerifyEmitDiagnostics(
-            // (4,39): error CS0065: 'C.E': event property must have both add and remove accessors
+            // (3,39): error CS0065: 'C.E': event property must have both add and remove accessors
             //     public unsafe event System.Action E { }
-            Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E").WithArguments("C.E").WithLocation(4, 39),
-            // (4,39): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresUnsafeAttribute' is not defined or imported
+            Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E").WithArguments("C.E").WithLocation(3, 39),
+            // (3,39): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresUnsafeAttribute' is not defined or imported
             //     public unsafe event System.Action E { }
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(4, 39));
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(3, 39));
     }
 
     [Fact]
