@@ -595,8 +595,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DeconstructValuePlaceholder:
                 case BoundKind.InterpolatedStringHandlerPlaceholder:
                 case BoundKind.InterpolatedStringArgumentPlaceholder:
-                case BoundKind.ObjectOrCollectionValuePlaceholder:
                 case BoundKind.AwaitableValuePlaceholder:
+                case BoundKind.ObjectOrCollectionValuePlaceholder:
                     return;
 
                 case BoundKind.ImplicitIndexerValuePlaceholder:
@@ -4349,9 +4349,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (left.Kind)
             {
                 case BoundKind.ObjectInitializerMember:
-                    TakeIncrementalSnapshot(left);
-                    visitMemberInitializer(containingSlot, containingType, node);
-                    break;
+                    {
+                        TakeIncrementalSnapshot(left);
+                        visitMemberInitializer(containingSlot, containingType, node);
+                        break;
+                    }
 
                 default:
                     VisitRvalue(node);
@@ -4476,7 +4478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type = ApplyLValueAnnotations(GetTypeOrReturnTypeWithAnnotations(symbol), GetObjectInitializerMemberLValueAnnotations(symbol));
 
                 (TypeWithState resultType, var conversionCompletion) =
-                    VisitOptionalImplicitConversion(node.Right, type, useLegacyWarnings: false, trackMembers: true, AssignmentKind.Assignment, delayCompletionForTargetType: false);
+                        VisitOptionalImplicitConversion(node.Right, type, useLegacyWarnings: false, trackMembers: true, AssignmentKind.Assignment, delayCompletionForTargetType: false);
 
                 Unsplit();
 
