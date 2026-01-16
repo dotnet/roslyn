@@ -418,7 +418,7 @@ public sealed partial class UseObjectInitializerTests
 
                 void M()
                 {
-                    var c = {[|new|] C()
+                    var c = [|new|] C()
                     {
                         i = 1,
                     };
@@ -426,11 +426,6 @@ public sealed partial class UseObjectInitializerTests
                 }
             }
             """,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(8,17): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
-            },
             FixedCode = """
             class C
             {
@@ -681,15 +676,10 @@ public sealed partial class UseObjectInitializerTests
                 {
                     var c = [|new|] C();
                     [|c.|]i = 1; // Goo
-                    {|#4:c.|}j = 2{|#5:;|} // Bar
+                    [|c.|]j = 2; // Bar
                 }
             }
             """,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(7,17): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3).WithLocation(4).WithLocation(5),
-            },
             FixedCode = """
             class C
             {
@@ -725,7 +715,7 @@ public sealed partial class UseObjectInitializerTests
                     [|c.|]i = 1;
 
                     //Bar
-                    {|#4:c.|}j = 2{|#5:;|}
+                    [|c.|]j = 2;
                 }
             }
             """,
@@ -854,18 +844,13 @@ public sealed partial class UseObjectInitializerTests
             {
                 public void Main()
                 {
-                    var goo = {|#1:{[|new|] Goo()|};
-                    {|#2:goo.|}Bar = 1;
+                    var goo = [|new|] Goo();
+                    [|goo.|]Bar = 1;
 
                     int horse = 1;
                 }
             }
             """,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(6,19): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
-            },
             FixedCode = """
             class Goo
             {
@@ -1271,10 +1256,10 @@ public sealed partial class UseObjectInitializerTests
                     void M(int i)
                     {
                         var c = [|new|] C();
-                        c.S = i
+                        [|c.|]S = i
                             .ToString()
                             .ToString();
-                        c.T = i.
+                        [|c.|]T = i.
                             ToString().
                             ToString();
                     }
@@ -1316,9 +1301,9 @@ public sealed partial class UseObjectInitializerTests
                     void M(int i)
                     {
                         var c = [|new|] C();
-                        c.S =
+                        [|c.|]S =
                             i.ToString();
-                        c.T =
+                        [|c.|]T =
                             i.ToString();
                     }
                 }
@@ -1357,10 +1342,10 @@ public sealed partial class UseObjectInitializerTests
                     void M(int i)
                     {
                         var c = [|new|] C();
-                        c.S =
+                        [|c.|]S =
                             i.ToString()
                              .ToString();
-                        c.T =
+                        [|c.|]T =
                             i.ToString()
                              .ToString();
                     }
