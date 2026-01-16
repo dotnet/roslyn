@@ -766,7 +766,43 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82037")]
-    public Task TestNotOfferedWithDirectivesOnIfStatement_TrailingDefine()
+    public Task TestPreprocessorInBlock1()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            #nullable enable
+            class C
+            {
+                public void M()
+                {
+                    var value = M2();
+                    [|if|] (value == null)
+                    {
+            #if true
+                        throw new System.InvalidOperationException();
+            #endif
+                    }
+                }
+
+                string? M2() => null;
+            }
+            """,
+            FixedCode = """
+            #nullable enable
+            class C
+            {
+                public void M()
+                {
+                    var value = M2() ?? throw new System.InvalidOperationException();
+                }
+            
+                string? M2() => null;
+            }
+            """,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82037")]
+    public Task TestPreprocessorInBlock2()
         => new VerifyCS.Test
         {
             TestCode = """
@@ -778,7 +814,7 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
                     var value = M2();
                     if (value == null)
                     {
-            #if DEBUG
+            #if false
                         throw new System.InvalidOperationException();
             #endif
                     }
@@ -786,6 +822,6 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
 
                 string? M2() => null;
             }
-            """
+            """,
         }.RunAsync();
 }
