@@ -2073,6 +2073,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     ReportDiagnosticsIfObsolete(diagnostics, setMethod, node, receiver?.Kind == BoundKind.BaseReference);
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, setMethod, node);
 
                     var setValueKind = setMethod.IsEffectivelyReadOnly ? BindValueKind.RValue : BindValueKind.Assignable;
                     if (RequiresVariableReceiver(receiver, setMethod) && !CheckIsValidReceiverForVariable(node, receiver, setValueKind, diagnostics))
@@ -2123,6 +2124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     CheckImplicitThisCopyInReadOnlyMember(receiver, getMethod, diagnostics);
                     ReportDiagnosticsIfObsolete(diagnostics, getMethod, node, receiver?.Kind == BoundKind.BaseReference);
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, getMethod, node);
 
                     if (IsBadBaseAccess(node, receiver, getMethod, diagnostics, propertySymbol) ||
                         reportUseSite(getMethod))

@@ -310,6 +310,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
+
         internal abstract bool HasImportedFromTypeLibAttribute { get; }
 
         internal abstract bool HasPrimaryInteropAssemblyAttribute { get; }

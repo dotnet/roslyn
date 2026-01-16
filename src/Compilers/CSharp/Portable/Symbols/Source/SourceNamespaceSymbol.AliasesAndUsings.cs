@@ -810,6 +810,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     else
                                     {
                                         declarationBinder.ReportDiagnosticsIfObsolete(diagnostics, importedType, usingDirective.NamespaceOrType, hasBaseReceiver: false);
+                                        Binder.AssertNotUnsafeMemberAccess(importedType);
 
                                         getOrCreateUsingsBuilder(ref usings, globalUsingNamespacesOrTypes).Add(new NamespaceOrTypeAndUsingDirective(importedType, usingDirective, directiveDiagnostics.DependenciesBag.ToImmutableArray()));
                                     }

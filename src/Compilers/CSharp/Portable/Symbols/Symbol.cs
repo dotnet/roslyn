@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Whether this member is considered unsafe under the updated memory safety rules.
         /// See <see cref="CSharp.CallerUnsafeMode"/> for more details.
         /// </summary>
-        internal virtual CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None; // PROTOTYPE: should be abstract (then unnecessary abstract overrides should be removed)
+        internal abstract CallerUnsafeMode CallerUnsafeMode { get; }
 
         /// <summary>
         /// Returns true if this symbol can be referenced by its name in code. Examples of symbols

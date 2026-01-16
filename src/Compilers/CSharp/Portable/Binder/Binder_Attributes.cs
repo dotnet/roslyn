@@ -537,6 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (setMethod != null)
                 {
                     ReportDiagnosticsIfObsolete(diagnostics, setMethod, namedArgument, hasBaseReceiver: false);
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, setMethod, namedArgument);
 
                     if (setMethod.IsInitOnly && setMethod.DeclaringCompilation != this.Compilation)
                     {
@@ -544,6 +545,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         CheckFeatureAvailability(namedArgument, MessageID.IDS_FeatureInitOnlySetters, diagnostics);
                     }
                 }
+            }
+            else
+            {
+                AssertNotUnsafeMemberAccess(namedArgumentNameSymbol);
             }
 
             Debug.Assert(resultKind == LookupResultKind.Viable || wasError);
