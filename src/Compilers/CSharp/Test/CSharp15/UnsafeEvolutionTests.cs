@@ -3399,6 +3399,32 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Member_MoveNext()
+    {
+        CompileAndVerifyUnsafe(
+            lib: """
+                public class C
+                {
+                    public C GetEnumerator() => this;
+                    public unsafe bool MoveNext() => false;
+                    public int Current => 0;
+                }
+                """,
+            caller: """
+                foreach (var x in new C()) { }
+                unsafe { foreach (var x in new C()) { } }
+                """,
+            expectedUnsafeSymbols: ["C.MoveNext"],
+            expectedSafeSymbols: ["C"],
+            expectedDiagnostics:
+            [
+                // (1,1): error CS9502: 'C.MoveNext()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // foreach (var x in new C()) { }
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "foreach").WithArguments("C.MoveNext()").WithLocation(1, 1),
+            ]);
+    }
+
+    [Fact]
     public void Member_LocalFunction()
     {
         var source = """
