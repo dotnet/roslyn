@@ -2720,7 +2720,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "+=").WithArguments("updated memory safety rules").WithLocation(13, 33));
     }
 
-    // PROTOTYPE: Should some synthesized members be unsafe (like state machine methods that are declared unsafe)?
     [Theory, CombinatorialData]
     public void Member_Method_Invocation(
         bool apiUpdatedRules,
@@ -3551,6 +3550,50 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // using (var s = new S()) { }
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "var s = new S()").WithArguments("S.Dispose()").WithLocation(2, 8),
             ]);
+    }
+
+    [Fact]
+    public void Member_Iterator()
+    {
+        var lib = """
+            using System.Collections.Generic;
+
+            public static class C
+            {
+                public unsafe static IEnumerable<int> M()
+                {
+                    yield return 1;
+                }
+            }
+            """;
+
+        CompileAndVerifyUnsafe(
+            lib: lib,
+            caller: """
+                foreach (var x in C.M()) { }
+                unsafe { foreach (var y in C.M()) { } }
+                """,
+            expectedUnsafeSymbols: ["C.M"],
+            expectedSafeSymbols: ["C"],
+            expectedDiagnostics:
+            [
+                // (1,19): error CS9502: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // foreach (var x in C.M()) { }
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "C.M()").WithArguments("C.M()").WithLocation(1, 19),
+            ]);
+
+        // Test symbols that are only in PE image (hence cannot test them via the helper above).
+        var libRef = CreateCompilation(
+            lib,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All))
+            .EmitToImageReference();
+        var libAssemblySymbol = CreateCompilation("", [libRef]).GetReferencedAssemblySymbol(libRef);
+        VerifyRequiresUnsafeAttribute(
+            libAssemblySymbol.Modules.Single(),
+            includesAttributeDefinition: true,
+            isSynthesized: true,
+            expectedUnsafeSymbols: ["C.M"],
+            expectedSafeSymbols: ["C", "C.<M>d__0", "C.<M>d__0.MoveNext"]);
     }
 
     [Fact]
