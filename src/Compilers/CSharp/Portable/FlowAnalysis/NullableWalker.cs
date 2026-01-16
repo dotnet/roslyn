@@ -3880,7 +3880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var (collectionKind, targetElementType) = getCollectionDetails(node, node.Type);
 
             var resultBuilder = ArrayBuilder<VisitResult>.GetInstance(node.Elements.Length);
-            var elementConversionCompletions = ArrayBuilder<Func<TypeWithAnnotations /*targetElementType*/, TypeSymbol /*targetCollectionType*/, TypeWithState>>.GetInstance();
+            var elementConversionCompletions = ArrayBuilder<Action<TypeWithAnnotations /*targetElementType*/, TypeSymbol /*targetCollectionType*/>>.GetInstance();
             foreach (var element in node.Elements)
             {
                 visitElement(element, node, targetElementType, elementConversionCompletions);
@@ -3937,6 +3937,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // collection expression.
                         var constructor = (MethodSymbol)AsMemberOfType(collectionFinalType, objectCreation.Constructor);
                         completion(argumentResults, constructor.Parameters, constructor);
+
+                        if (!ReferenceEquals(objectCreation.Constructor, constructor))
+                            SetUpdatedSymbol(objectCreation, objectCreation.Constructor, constructor);
                     };
                 }
                 else if (collectionCreation is BoundCall call)
@@ -3988,6 +3991,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var constructed = call.Method.Arity == 0 ? call.Method : call.Method.ConstructedFrom.Construct(allTypeArguments);
                         completion(argumentResults, constructed.Parameters, constructed);
+
+                        if (!ReferenceEquals(call.Method, constructed))
+                            SetUpdatedSymbol(call, call.Method, constructed);
                     };
                 }
                 else
@@ -4011,7 +4017,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            void visitElement(BoundNode element, BoundCollectionExpression node, TypeWithAnnotations targetElementType, ArrayBuilder<Func<TypeWithAnnotations, TypeSymbol, TypeWithState>> elementConversionCompletions)
+            void visitElement(BoundNode element, BoundCollectionExpression node, TypeWithAnnotations targetElementType, ArrayBuilder<Action<TypeWithAnnotations, TypeSymbol>> elementConversionCompletions)
             {
                 switch (element)
                 {
@@ -4045,7 +4051,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             var reinferredParameter = reinferredAddMethod.Parameters[argIndex];
-                            var resultType = VisitConversion(
+                            VisitConversion(
                                 conversionOpt: null,
                                 addArgument,
                                 Conversion.Identity, // as only a nullable reinference is being done we expect an identity conversion
@@ -4059,7 +4065,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 reportTopLevelWarnings: true,
                                 reportRemainingWarnings: true,
                                 trackMembers: false);
-                            return resultType;
                         });
 
                         break;
@@ -4107,7 +4112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundCollectionExpression node,
                 TypeWithAnnotations targetCollectionType,
                 Action<TypeSymbol>? collectionCreationCompletion,
-                ArrayBuilder<Func<TypeWithAnnotations, TypeSymbol, TypeWithState>> completions)
+                ArrayBuilder<Action<TypeWithAnnotations, TypeSymbol>> completions)
             {
                 var strippedTargetCollectionType = targetCollectionType.Type.StrippedType();
                 Debug.Assert(TypeSymbol.Equals(strippedTargetCollectionType, node.Type, TypeCompareKind.AllIgnoreOptions));
@@ -4124,7 +4129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var completion in completions)
                 {
-                    _ = completion(targetElementType, strippedTargetCollectionType);
+                    completion(targetElementType, strippedTargetCollectionType);
                 }
                 completions.Free();
 
