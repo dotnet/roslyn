@@ -3994,6 +3994,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     E2();
                     E3();
                     E4();
+
+                    E1 = null;
+                    E2 = null;
+                    E3 = null;
+                    E4 = null;
                 }
             }
             """,
@@ -4004,7 +4009,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "E3").WithArguments("C.E3").WithLocation(9, 9),
             // (10,9): error CS9502: 'C.E4' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
             //         E4();
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "E4").WithArguments("C.E4").WithLocation(10, 9));
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "E4").WithArguments("C.E4").WithLocation(10, 9),
+            // (14,9): error CS9502: 'C.E3' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+            //         E3 = null;
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "E3").WithArguments("C.E3").WithLocation(14, 9),
+            // (15,9): error CS9502: 'C.E4' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+            //         E4 = null;
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "E4").WithArguments("C.E4").WithLocation(15, 9));
     }
 
     [Fact]
