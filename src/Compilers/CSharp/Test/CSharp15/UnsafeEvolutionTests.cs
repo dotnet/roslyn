@@ -3498,6 +3498,62 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Member_Dispose_Class()
+    {
+        // Obsolete doesn't produce any diagnostics here, and so unsafe doesn't either.
+        CompileAndVerifyUnsafe(
+            lib: """
+                public class C : System.IDisposable
+                {
+                    public C GetEnumerator() => this;
+                    public bool MoveNext() => false;
+                    public int Current => 0;
+                    [System.Obsolete] public unsafe void Dispose() { }
+                }
+                """,
+            caller: """
+                foreach (var x in new C()) { }
+                using (var c = new C()) { }
+                """,
+            expectedUnsafeSymbols: ["C.Dispose"],
+            expectedSafeSymbols: ["C"],
+            expectedDiagnostics: []);
+    }
+
+    [Fact]
+    public void Member_Dispose_RefStruct()
+    {
+        CompileAndVerifyUnsafe(
+            lib: """
+                public ref struct S
+                {
+                    public S GetEnumerator() => this;
+                    public bool MoveNext() => false;
+                    public int Current => 0;
+                    public unsafe void Dispose() { }
+                }
+                """,
+            caller: """
+                foreach (var x in new S()) { }
+                using (var s = new S()) { }
+                unsafe { foreach (var y in new S()) { } }
+                unsafe { using (var s = new S()) { } }
+                """,
+            verify: Verification.Skipped,
+            expectedUnsafeSymbols: ["S.Dispose"],
+            expectedSafeSymbols: ["S"],
+            expectedDiagnostics:
+            [
+                // (1,1): error CS9502: 'S.Dispose()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // foreach (var x in new S()) { }
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "foreach (var x in new S()) { }").WithArguments("S.Dispose()").WithLocation(1, 1),
+                // (2,8): error CS9502: 'S.Dispose()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // using (var s = new S()) { }
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "var s = new S()").WithArguments("S.Dispose()").WithLocation(2, 8),
+            ]);
+    }
+
+    [Fact]
     public void Member_LocalFunction()
     {
         var source = """
