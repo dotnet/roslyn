@@ -3625,6 +3625,33 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Member_Property_CompoundAssignment()
+    {
+        CompileAndVerifyUnsafe(
+            lib: """
+                public class C
+                {
+                    public unsafe int P { get; set; }
+                }
+                """,
+            caller: """
+                var c = new C();
+                c.P += 123;
+                """,
+            expectedUnsafeSymbols: ["C.P", "C.get_P", "C.set_P"],
+            expectedSafeSymbols: ["C"],
+            expectedDiagnostics:
+            [
+                // (2,1): error CS9502: 'C.P.set' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // c.P += 123;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P").WithArguments("C.P.set").WithLocation(2, 1),
+                // (2,1): error CS9502: 'C.P.get' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // c.P += 123;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P").WithArguments("C.P.get").WithLocation(2, 1),
+            ]);
+    }
+
+    [Fact]
     public void Member_Property_Extension()
     {
         CompileAndVerifyUnsafe(
@@ -3830,6 +3857,33 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (7,47): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresUnsafeAttribute' is not defined or imported
             //     public unsafe int this[int i] { get => i; set { } }
             Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "set").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute").WithLocation(7, 47));
+    }
+
+    [Fact]
+    public void Member_Indexer_CompoundAssignment()
+    {
+        CompileAndVerifyUnsafe(
+            lib: """
+                public class C
+                {
+                    public unsafe int this[int i] { get => i; set { } }
+                }
+                """,
+            caller: """
+                var c = new C();
+                c[0] += 123;
+                """,
+            expectedUnsafeSymbols: ["C.this[]", "C.get_Item", "C.set_Item"],
+            expectedSafeSymbols: ["C"],
+            expectedDiagnostics:
+            [
+                // (2,1): error CS9502: 'C.this[int].set' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // c[0] += 123;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c[0]").WithArguments("C.this[int].set").WithLocation(2, 1),
+                // (2,1): error CS9502: 'C.this[int].get' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // c[0] += 123;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c[0]").WithArguments("C.this[int].get").WithLocation(2, 1),
+            ]);
     }
 
     [Fact]
