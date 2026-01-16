@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Obsolete alias targets are reported in UnwrapAlias, but if it was a type (not an
                     // alias to a type) we report the obsolete type here.
                     symbol.TypeWithAnnotations.ReportDiagnosticsIfObsolete(this, syntax, diagnostics);
-                    AssertNotUnsafeMemberAccess(symbol.TypeWithAnnotations.Type);
+                    if (symbol.TypeWithAnnotations.IsResolved) AssertNotUnsafeMemberAccess(symbol.TypeWithAnnotations.Type);
                 }
 
                 return symbol;
