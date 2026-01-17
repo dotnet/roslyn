@@ -4330,7 +4330,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TakeIncrementalSnapshot(node);
             var left = node.Left;
-            InitializerCompletionAfterTargetType? result = null;
             switch (left.Kind)
             {
                 case BoundKind.ObjectInitializerMember:
