@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using ICSharpCode.Decompiler.IL;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
