@@ -368,7 +368,7 @@ internal sealed partial class AutomaticLineEnderCommandHandler
         // e.g.
         // case 1: 'var c = new Bar' becomes 'var c = new Bar()'
         // case 2: 'Bar b = new' becomes 'Bar b = new()'
-        var objectCreationNodeWithArgumentList = WithArgumentListIfNeeded(baseObjectCreationExpressionNode);
+        var objectCreationNodeWithArgumentList = WithArgumentListIfNeeded(baseObjectCreationExpressionNode, addOrRemoveInitializer);
 
         // 2. Add or remove initializer
         // e.g. var c = new Bar() => var c = new Bar() { }
@@ -412,7 +412,7 @@ internal sealed partial class AutomaticLineEnderCommandHandler
     /// Add argument list to the objectCreationExpression if needed.
     /// e.g. new Bar; => new Bar();
     /// </summary>
-    private static BaseObjectCreationExpressionSyntax WithArgumentListIfNeeded(BaseObjectCreationExpressionSyntax baseObjectCreationExpressionNode)
+    private static BaseObjectCreationExpressionSyntax WithArgumentListIfNeeded(BaseObjectCreationExpressionSyntax baseObjectCreationExpressionNode, bool addingInitializer)
     {
         var argumentList = baseObjectCreationExpressionNode.ArgumentList;
         if (argumentList is { IsMissing: false })
@@ -434,6 +434,15 @@ internal sealed partial class AutomaticLineEnderCommandHandler
             }
             else
             {
+                if (addingInitializer)
+                {
+                    // If we are adding an initializer and user didn't type constructor parenthesis,
+                    // in which case argument list might be missing due to incompletely typed statement,
+                    // replace it with null so we keep user's intent by not forcing parenthesis on one side
+                    // and produce expected tree shape on the other
+                    return baseObjectCreationExpressionNode.WithArgumentList(null);
+                }
+
                 // Make sure the trailing trivia is passed to the argument list
                 // like var l = new List\r\n =>
                 // var l = new List()\r\r

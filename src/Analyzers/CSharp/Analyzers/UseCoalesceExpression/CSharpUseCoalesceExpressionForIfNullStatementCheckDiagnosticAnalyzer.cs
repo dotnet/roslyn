@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression;
 using Microsoft.CodeAnalysis.CSharp.Extensions;

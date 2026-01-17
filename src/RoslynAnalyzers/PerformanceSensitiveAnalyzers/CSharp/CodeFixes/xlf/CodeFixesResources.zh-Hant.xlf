@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="AvoidAllocationByUsingArrayEmpty">
         <source>Avoid allocation by using 'Array.Empty&lt;T&gt;()'</source>
-        <target state="new">Avoid allocation by using 'Array.Empty&lt;T&gt;()'</target>
+        <target state="translated">使用 'Array.Empty&lt;T&gt;()' 來避免配置</target>
         <note />
       </trans-unit>
     </body>

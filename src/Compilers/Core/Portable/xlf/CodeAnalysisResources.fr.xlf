@@ -175,7 +175,7 @@
       </trans-unit>
       <trans-unit id="MissingTokenListItem">
         <source>The specified token must be a direct element of a SyntaxTokenList (such as a modifier in a list of modifiers). The token cannot be an arbitrary token from the syntax tree.</source>
-        <target state="new">The specified token must be a direct element of a SyntaxTokenList (such as a modifier in a list of modifiers). The token cannot be an arbitrary token from the syntax tree.</target>
+        <target state="translated">Le jeton spécifié doit être un élément direct d’une SyntaxTokenList (tel qu’un modificateur dans une liste de modificateurs). Le jeton ne peut pas être un jeton arbitraire de l’arborescence syntaxique.</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasInvalidAttributes">
@@ -225,12 +225,12 @@
       </trans-unit>
       <trans-unit id="SeparatorTokenMustHaveSameLanguage">
         <source>New separator must have the same Language as the separator being replaced.</source>
-        <target state="new">New separator must have the same Language as the separator being replaced.</target>
+        <target state="translated">Le nouveau séparateur doit avoir le même Langage que le séparateur remplacé.</target>
         <note />
       </trans-unit>
       <trans-unit id="SeparatorTokenMustHaveSameRawKind">
         <source>New separator must have the same RawKind as the separator being replaced.</source>
-        <target state="new">New separator must have the same RawKind as the separator being replaced.</target>
+        <target state="translated">Le nouveau séparateur doit avoir le même RawKind que le séparateur remplacé.</target>
         <note />
       </trans-unit>
       <trans-unit id="SigningTempPathUnavailable">

@@ -320,6 +320,20 @@ public sealed class SolutionTests : TestBase
         Assert.Throws<InvalidOperationException>(() => solution.WithDocumentSyntaxRoot(s_unrelatedDocumentId, root));
     }
 
+    [Fact]
+    public void GetRequiredDocument_ThrowsWithDocumentPath()
+    {
+        using var workspace = CreateWorkspaceWithProjectAndDocuments();
+        var solution = workspace.CurrentSolution;
+
+        // Create a document ID with a debug name to verify it appears in the exception message
+        var projectId = solution.Projects.Single().Id;
+        var documentId = DocumentId.CreateNewId(projectId, debugName: "MyTestDocument.cs");
+
+        var exception = Assert.Throws<InvalidOperationException>(() => solution.GetRequiredDocument(documentId));
+        Assert.Contains("MyTestDocument.cs", exception.Message);
+    }
+
     [Fact, WorkItem(37125, "https://github.com/dotnet/roslyn/issues/41940")]
     public async Task WithDocumentSyntaxRoot_AnalyzerConfigWithoutFilePath()
     {

@@ -639,4 +639,189 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
                 }
                 """,
         }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81987")]
+    public Task TestPointer1_A()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class C
+            {
+                unsafe void M()
+                {
+                    var item = FindItem();
+                    if (item == null)
+                        throw new System.InvalidOperationException();
+                }
+
+                unsafe int* FindItem() => null;
+            }
+            """
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81987")]
+    public Task TestPointer1_B()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class C
+            {
+                unsafe void M(int* item)
+                {
+                    item = FindItem();
+                    if (item == null)
+                        throw new System.InvalidOperationException();
+                }
+
+                unsafe int* FindItem() => null;
+            }
+            """
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81987")]
+    public Task TestPointer2_A()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class C
+            {
+                unsafe void M()
+                {
+                    var item = FindItem();
+                    if (item == null)
+                        throw new System.InvalidOperationException();
+                }
+
+                unsafe void* FindItem() => null;
+            }
+            """
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81987")]
+    public Task TestPointer2_B()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class C
+            {
+                unsafe void M(void* item)
+                {
+                    item = FindItem();
+                    if (item == null)
+                        throw new System.InvalidOperationException();
+                }
+
+                unsafe void* FindItem() => null;
+            }
+            """
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82037")]
+    public Task TestNotOfferedWithDirectivesOnIfStatement_LeadingPragma()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            #nullable enable
+            class C
+            {
+                public void M()
+                {
+            #pragma warning disable
+                    var value = M2();
+                    // Test
+            #pragma warning restore
+                    if (value == null)
+                    {
+                        throw new System.InvalidOperationException();
+                    }
+                }
+
+                string? M2() => null;
+            }
+            """
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82037")]
+    public Task TestNotOfferedWithDirectivesOnIfStatement_LeadingRegion()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            #nullable enable
+            class C
+            {
+                public void M()
+                {
+                    var value = M2();
+            #region Test
+                    if (value == null)
+                    {
+                        throw new System.InvalidOperationException();
+                    }
+            #endregion
+                }
+
+                string? M2() => null;
+            }
+            """
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82037")]
+    public Task TestPreprocessorInBlock1()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            #nullable enable
+            class C
+            {
+                public void M()
+                {
+                    var value = M2();
+                    [|if|] (value == null)
+                    {
+            #if true
+                        throw new System.InvalidOperationException();
+            #endif
+                    }
+                }
+
+                string? M2() => null;
+            }
+            """,
+            FixedCode = """
+            #nullable enable
+            class C
+            {
+                public void M()
+                {
+                    var value = M2() ?? throw new System.InvalidOperationException();
+                }
+            
+                string? M2() => null;
+            }
+            """,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82037")]
+    public Task TestPreprocessorInBlock2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            #nullable enable
+            class C
+            {
+                public void M()
+                {
+                    var value = M2();
+                    if (value == null)
+                    {
+            #if false
+                        throw new System.InvalidOperationException();
+            #endif
+                    }
+                }
+
+                string? M2() => null;
+            }
+            """,
+        }.RunAsync();
 }
