@@ -624,8 +624,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract FileIdentifier? AssociatedFileIdentifier { get; }
 
-        /// <summary>Returns true if the type is 'closed', i.e. an abstract class where subtyping is only permitted in the current module.</summary>
-        internal abstract bool IsClosed { get; }
 
         [MemberNotNullWhen(true, nameof(ExtensionGroupingName), nameof(ExtensionMarkerName))]
         public virtual bool IsExtension
@@ -675,6 +673,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// True if this type declares any required members. It does not recursively check up the tree for _all_ required members.
         /// </summary>
         internal abstract bool HasDeclaredRequiredMembers { get; }
+
+        /// <summary>Returns true if the type is 'closed', i.e. an abstract class where subtyping is only permitted in the current module.</summary>
+        internal abstract bool IsClosed { get; }
 
 #nullable enable
         /// <summary>

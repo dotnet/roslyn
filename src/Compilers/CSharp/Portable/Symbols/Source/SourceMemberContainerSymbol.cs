@@ -885,6 +885,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsFileLocal => HasFlag(DeclarationModifiers.File);
 
+        internal sealed override bool IsClosed => HasFlag(DeclarationModifiers.Closed);
+
         internal bool IsUnsafe => HasFlag(DeclarationModifiers.Unsafe);
 
         /// <summary>

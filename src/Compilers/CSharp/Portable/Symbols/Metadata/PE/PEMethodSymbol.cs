@@ -1022,22 +1022,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 bool isReadOnly = false;
                 if (checkForExtension || checkForIsReadOnly || checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator || isExtensionBlockMember)
                 {
-                    attributeData = containingPEModuleSymbol.GetCustomAttributesForToken(_handle,
-                        filteredOutAttribute1: out CustomAttributeHandle extensionAttribute,
-                        filterOut1: AttributeDescription.CaseSensitiveExtensionAttribute,
-                        filteredOutAttribute2: out CustomAttributeHandle isReadOnlyAttribute,
-                        filterOut2: AttributeDescription.IsReadOnlyAttribute,
-                        filteredOutAttribute3: out _,
-                        filterOut3: ((checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator) && DeriveCompilerFeatureRequiredDiagnostic() is null) ? AttributeDescription.CompilerFeatureRequiredAttribute : default,
-                        filteredOutAttribute4: out _,
-                        filterOut4: (checkForRequiredMembers && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default,
-                        filteredOutAttribute5: out _,
-                        filterOut5: AttributeDescription.ExtensionMarkerAttribute,
-                        filteredOutAttribute6: out _,
-                        filterOut6: default);
-
-                    isExtensionMethod = !extensionAttribute.IsNil;
-                    isReadOnly = !isReadOnlyAttribute.IsNil;
+                    ReadOnlySpan<AttributeDescription> filterOut = [
+                        AttributeDescription.CaseSensitiveExtensionAttribute,
+                        AttributeDescription.IsReadOnlyAttribute,
+                        AttributeDescription.ExtensionMarkerAttribute,
+                        ((checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator) && DeriveCompilerFeatureRequiredDiagnostic() is null) ? AttributeDescription.CompilerFeatureRequiredAttribute : default,
+                        (checkForRequiredMembers && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default
+                    ];
+                    Span<CustomAttributeHandle> filteredOut = stackalloc CustomAttributeHandle[filterOut.Length];
+                    attributeData = containingPEModuleSymbol.GetCustomAttributesForToken(_handle, filterOut, filteredOut);
+                    isExtensionMethod = !filteredOut[0].IsNil;
+                    isReadOnly = !filteredOut[1].IsNil;
                 }
                 else
                 {

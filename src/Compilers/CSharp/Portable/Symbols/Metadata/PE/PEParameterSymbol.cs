@@ -1116,26 +1116,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 bool filterIsReadOnlyAttribute = this.RefKind == RefKind.In;
                 bool filterRequiresLocationAttribute = this.RefKind == RefKind.RefReadOnlyParameter;
-
-                CustomAttributeHandle paramArrayAttribute;
-                CustomAttributeHandle paramCollectionAttribute;
-                CustomAttributeHandle constantAttribute;
-
+                ReadOnlySpan<AttributeDescription> filterOut = [
+                    filterOutParamArrayAttribute ? AttributeDescription.ParamArrayAttribute : default,
+                    filterOutParamCollectionAttribute ? AttributeDescription.ParamCollectionAttribute : default,
+                    filterOutConstantAttributeDescription,
+                    filterIsReadOnlyAttribute ? AttributeDescription.IsReadOnlyAttribute : default,
+                    filterRequiresLocationAttribute ? AttributeDescription.RequiresLocationAttribute : default,
+                    AttributeDescription.ScopedRefAttribute
+                    ];
+                Span<CustomAttributeHandle> filteredOut = stackalloc CustomAttributeHandle[filterOut.Length];
                 ImmutableArray<CSharpAttributeData> attributes =
                     containingPEModuleSymbol.GetCustomAttributesForToken(
-                        _handle,
-                        out paramArrayAttribute,
-                        filterOutParamArrayAttribute ? AttributeDescription.ParamArrayAttribute : default,
-                        out paramCollectionAttribute,
-                        filterOutParamCollectionAttribute ? AttributeDescription.ParamCollectionAttribute : default,
-                        out constantAttribute,
-                        filterOutConstantAttributeDescription,
-                        out _,
-                        filterIsReadOnlyAttribute ? AttributeDescription.IsReadOnlyAttribute : default,
-                        out _,
-                        filterRequiresLocationAttribute ? AttributeDescription.RequiresLocationAttribute : default,
-                        out _,
-                        AttributeDescription.ScopedRefAttribute);
+                        _handle, filterOut, filteredOut);
+                CustomAttributeHandle paramArrayAttribute = filteredOut[0];
+                CustomAttributeHandle paramCollectionAttribute = filteredOut[1];
+                CustomAttributeHandle constantAttribute = filteredOut[2];
 
                 if (!paramArrayAttribute.IsNil || !constantAttribute.IsNil || !paramCollectionAttribute.IsNil)
                 {
