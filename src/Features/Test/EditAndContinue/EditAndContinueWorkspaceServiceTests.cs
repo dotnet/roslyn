@@ -176,9 +176,16 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var results = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.None, results.ModuleUpdates.Status);
         Assert.Empty(results.ModuleUpdates.Updates);
+
+        var message = string.Format(
+            FeaturesResources.Changing_source_file_0_in_a_stale_project_1_has_no_effect_until_the_project_is_rebuilt_2,
+            document1.FilePath,
+            "proj",
+            FeaturesResources.the_project_has_not_been_built);
+
         AssertEx.Equal(
         [
-            $"proj: {document1.FilePath}: (0,0)-(0,0): Warning ENC1008: {string.Format(FeaturesResources.Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit, document1.FilePath)}"
+            $"proj: {document1.FilePath}: (0,0)-(0,0): Warning ENC1008: {message}"
         ], InspectDiagnostics(results.Diagnostics));
 
         EndDebuggingSession(debuggingSession);
@@ -3187,9 +3194,16 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         sourceFile.WriteAllText(source1, Encoding.UTF8);
 
         results = await EmitSolutionUpdateAsync(debuggingSession, solution);
+
+        var message = string.Format(
+            FeaturesResources.Changing_source_file_0_in_a_stale_project_1_has_no_effect_until_the_project_is_rebuilt_2,
+            document3.FilePath,
+            "test",
+            FeaturesResources.the_project_has_not_been_built);
+
         AssertEx.Equal(
         [
-            $"test: {document3.FilePath}: (0,0)-(0,0): Warning ENC1008: {string.Format(FeaturesResources.Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit, sourceFile.Path)}"
+            $"test: {document3.FilePath}: (0,0)-(0,0): Warning ENC1008: {message}"
         ], InspectDiagnostics(results.Diagnostics));
 
         // the content actually hasn't changed:
@@ -4516,13 +4530,19 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var text2 = CreateText(source2);
         solution = solution.WithDocumentText(documentA.Id, text2).WithDocumentText(documentB.Id, text2);
 
+        var message = string.Format(
+            FeaturesResources.Changing_source_file_0_in_a_stale_project_1_has_no_effect_until_the_project_is_rebuilt_2,
+            sourcePath,
+            "A",
+            FeaturesResources.the_content_of_the_document_is_stale);
+
         // no updates
         var results = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.None, results.ModuleUpdates.Status);
         AssertEx.Equal(
         [
-            $"A: {documentA.FilePath}: (0,0)-(0,0): Warning ENC1008: {string.Format(FeaturesResources.Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit, sourcePath)}",
-            $"B: {documentB.FilePath}: (0,0)-(0,0): Warning ENC1008: {string.Format(FeaturesResources.Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit, sourcePath)}"
+            $"A: {documentA.FilePath}: (0,0)-(0,0): Warning ENC1008: {message}",
+            $"B: {documentB.FilePath}: (0,0)-(0,0): Warning ENC1008: {message}"
         ], InspectDiagnostics(results.Diagnostics));
 
         EndDebuggingSession(debuggingSession);
