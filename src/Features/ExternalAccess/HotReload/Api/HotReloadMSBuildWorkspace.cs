@@ -50,8 +50,6 @@ internal sealed partial class HotReloadMSBuildWorkspace : Workspace
     {
         Contract.ThrowIfFalse(Path.IsPathFullyQualified(projectPath));
 
-        var oldSolution = CurrentSolution;
-
         var projectMap = ProjectMap.Create();
 
         var projectInfos = await _loader.LoadInfosAsync(
@@ -61,6 +59,13 @@ internal sealed partial class HotReloadMSBuildWorkspace : Workspace
             progress: null,
             cancellationToken).ConfigureAwait(false);
 
+        return UpdateSolution(projectInfos);
+    }
+
+    // internal for testing
+    internal Solution UpdateSolution(ImmutableArray<ProjectInfo> projectInfos)
+    {
+        var oldSolution = CurrentSolution;
         var oldProjectIdsByPath = oldSolution.Projects.ToDictionary(keySelector: static p => (p.FilePath!, p.Name), elementSelector: static p => p.Id);
 
         // Map new project id to the corresponding old one based on file path and project name (includes TFM), if it exists, and null for added projects.
@@ -100,6 +105,7 @@ internal sealed partial class HotReloadMSBuildWorkspace : Workspace
                 isSubmission: false,
                 hostObjectType: null,
                 outputRefFilePath: newProjectInfo.OutputRefFilePath)
+                .WithChecksumAlgorithm(newProjectInfo.ChecksumAlgorithm)
                 .WithAnalyzerConfigDocuments(MapDocuments(oldProjectId, newProjectInfo.AnalyzerConfigDocuments))
                 .WithCompilationOutputInfo(newProjectInfo.CompilationOutputInfo));
         }
