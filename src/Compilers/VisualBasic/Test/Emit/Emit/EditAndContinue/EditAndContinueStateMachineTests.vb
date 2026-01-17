@@ -257,7 +257,7 @@ End Class
   // Code size        9 (0x9)
   .maxstack  8
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.s   -2
+  IL_0001:  ldc.i4.s   -3
   IL_0003:  stfld      0x04000005
   IL_0008:  ret
 }
@@ -4983,7 +4983,7 @@ End Try</N:3>
         <forwardIterator name=""VB$StateMachine_9_F"" />
         <encStateMachineStateMap>
           <state number=""1"" offset=""0"" />
-          <state number=""-3"" offset=""25"" />
+          <state number=""-4"" offset=""25"" />
           <state number=""2"" offset=""39"" />
           <state number=""3"" offset=""105"" />
         </encStateMachineStateMap>
@@ -5008,7 +5008,7 @@ End Try</N:3>
   IL_0009:  beq.s      IL_000d
   IL_000b:  br.s       IL_0017
   IL_000d:  ldarg.0
-  IL_000e:  ldc.i4.s   -3
+  IL_000e:  ldc.i4.s   -4
   IL_0010:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
   IL_0015:  br.s       IL_001e
   IL_0017:  ldarg.0
@@ -5018,7 +5018,7 @@ End Try</N:3>
   IL_001f:  call       ""Function C.VB$StateMachine_9_F.MoveNext() As Boolean""
   IL_0024:  pop
   IL_0025:  ldarg.0
-  IL_0026:  ldc.i4.s   -2
+  IL_0026:  ldc.i4.s   -3
   IL_0028:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
   IL_002d:  ret
 }")
@@ -5040,15 +5040,15 @@ End Try</N:3>
         IL_0035)
   IL_001f:  br.s       IL_003f
   IL_0021:  ldarg.0
-  IL_0022:  ldc.i4.s   -4
+  IL_0022:  ldc.i4.s   -5
   IL_0024:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
   IL_0029:  br.s       IL_0046
   IL_002b:  ldarg.0
-  IL_002c:  ldc.i4.s   -3
+  IL_002c:  ldc.i4.s   -4
   IL_002e:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
   IL_0033:  br.s       IL_0046
   IL_0035:  ldarg.0
-  IL_0036:  ldc.i4.s   -5
+  IL_0036:  ldc.i4.s   -6
   IL_0038:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
   IL_003d:  br.s       IL_0046
   IL_003f:  ldarg.0
@@ -5058,13 +5058,13 @@ End Try</N:3>
   IL_0047:  call       ""Function C.VB$StateMachine_9_F.MoveNext() As Boolean""
   IL_004c:  pop
   IL_004d:  ldarg.0
-  IL_004e:  ldc.i4.s   -2
+  IL_004e:  ldc.i4.s   -3
   IL_0050:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
   IL_0055:  ret
 }")
                 v0.VerifyIL("C.VB$StateMachine_9_F.MoveNext", "
-  {
-  // Code size      226 (0xe2)
+{
+  // Code size      230 (0xe6)
   .maxstack  3
   .locals init (Boolean V_0,
                 Integer V_1)
@@ -5072,123 +5072,124 @@ End Try</N:3>
   IL_0001:  ldfld      ""C.VB$StateMachine_9_F.$State As Integer""
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
-  IL_0008:  ldc.i4.s   -3
+  IL_0008:  ldc.i4.s   -4
   IL_000a:  sub
   IL_000b:  switch    (
-        IL_002e,
-        IL_0039,
-        IL_0039,
-        IL_0030,
         IL_0032,
-        IL_002e,
-        IL_0034)
-  IL_002c:  br.s       IL_0039
-  IL_002e:  br.s       IL_0064
-  IL_0030:  br.s       IL_003b
-  IL_0032:  br.s       IL_005b
-  IL_0034:  br         IL_00cf
-  IL_0039:  ldc.i4.0
-  IL_003a:  ret
-  IL_003b:  ldarg.0
-  IL_003c:  ldc.i4.m1
-  IL_003d:  dup
-  IL_003e:  stloc.1
-  IL_003f:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
-  IL_0044:  nop
-  IL_0045:  ldarg.0
-  IL_0046:  call       ""Function C.M1() As Integer""
-  IL_004b:  stfld      ""C.VB$StateMachine_9_F.$Current As Integer""
-  IL_0050:  ldarg.0
-  IL_0051:  ldc.i4.1
-  IL_0052:  dup
-  IL_0053:  stloc.1
-  IL_0054:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
-  IL_0059:  ldc.i4.1
-  IL_005a:  ret
-  IL_005b:  ldarg.0
-  IL_005c:  ldc.i4.m1
-  IL_005d:  dup
-  IL_005e:  stloc.1
-  IL_005f:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
-  IL_0064:  nop
+        IL_003d,
+        IL_003d,
+        IL_003d,
+        IL_0034,
+        IL_0036,
+        IL_0032,
+        IL_0038)
+  IL_0030:  br.s       IL_003d
+  IL_0032:  br.s       IL_0068
+  IL_0034:  br.s       IL_003f
+  IL_0036:  br.s       IL_005f
+  IL_0038:  br         IL_00d3
+  IL_003d:  ldc.i4.0
+  IL_003e:  ret
+  IL_003f:  ldarg.0
+  IL_0040:  ldc.i4.m1
+  IL_0041:  dup
+  IL_0042:  stloc.1
+  IL_0043:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
+  IL_0048:  nop
+  IL_0049:  ldarg.0
+  IL_004a:  call       ""Function C.M1() As Integer""
+  IL_004f:  stfld      ""C.VB$StateMachine_9_F.$Current As Integer""
+  IL_0054:  ldarg.0
+  IL_0055:  ldc.i4.1
+  IL_0056:  dup
+  IL_0057:  stloc.1
+  IL_0058:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
+  IL_005d:  ldc.i4.1
+  IL_005e:  ret
+  IL_005f:  ldarg.0
+  IL_0060:  ldc.i4.m1
+  IL_0061:  dup
+  IL_0062:  stloc.1
+  IL_0063:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
+  IL_0068:  nop
   .try
   {
-    IL_0065:  ldloc.1
-    IL_0066:  ldc.i4.s   -3
-    IL_0068:  beq.s      IL_0072
-    IL_006a:  br.s       IL_006c
-    IL_006c:  ldloc.1
-    IL_006d:  ldc.i4.2
-    IL_006e:  beq.s      IL_0074
-    IL_0070:  br.s       IL_0076
-    IL_0072:  br.s       IL_0078
-    IL_0074:  br.s       IL_009e
-    IL_0076:  br.s       IL_0085
-    IL_0078:  ldarg.0
-    IL_0079:  ldc.i4.m1
-    IL_007a:  dup
-    IL_007b:  stloc.1
-    IL_007c:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
-    IL_0081:  ldc.i4.1
-    IL_0082:  stloc.0
-    IL_0083:  leave.s    IL_00e0
-    IL_0085:  nop
-    IL_0086:  ldarg.0
-    IL_0087:  call       ""Function C.M2() As Integer""
-    IL_008c:  stfld      ""C.VB$StateMachine_9_F.$Current As Integer""
-    IL_0091:  ldarg.0
-    IL_0092:  ldc.i4.2
-    IL_0093:  dup
-    IL_0094:  stloc.1
-    IL_0095:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
-    IL_009a:  ldc.i4.1
-    IL_009b:  stloc.0
-    IL_009c:  leave.s    IL_00e0
-    IL_009e:  ldarg.0
-    IL_009f:  ldc.i4.m1
-    IL_00a0:  dup
-    IL_00a1:  stloc.1
-    IL_00a2:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
-    IL_00a7:  leave.s    IL_00b8
+    IL_0069:  ldloc.1
+    IL_006a:  ldc.i4.s   -4
+    IL_006c:  beq.s      IL_0076
+    IL_006e:  br.s       IL_0070
+    IL_0070:  ldloc.1
+    IL_0071:  ldc.i4.2
+    IL_0072:  beq.s      IL_0078
+    IL_0074:  br.s       IL_007a
+    IL_0076:  br.s       IL_007c
+    IL_0078:  br.s       IL_00a2
+    IL_007a:  br.s       IL_0089
+    IL_007c:  ldarg.0
+    IL_007d:  ldc.i4.m1
+    IL_007e:  dup
+    IL_007f:  stloc.1
+    IL_0080:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
+    IL_0085:  ldc.i4.1
+    IL_0086:  stloc.0
+    IL_0087:  leave.s    IL_00e4
+    IL_0089:  nop
+    IL_008a:  ldarg.0
+    IL_008b:  call       ""Function C.M2() As Integer""
+    IL_0090:  stfld      ""C.VB$StateMachine_9_F.$Current As Integer""
+    IL_0095:  ldarg.0
+    IL_0096:  ldc.i4.2
+    IL_0097:  dup
+    IL_0098:  stloc.1
+    IL_0099:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
+    IL_009e:  ldc.i4.1
+    IL_009f:  stloc.0
+    IL_00a0:  leave.s    IL_00e4
+    IL_00a2:  ldarg.0
+    IL_00a3:  ldc.i4.m1
+    IL_00a4:  dup
+    IL_00a5:  stloc.1
+    IL_00a6:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
+    IL_00ab:  leave.s    IL_00bc
   }
   finally
   {
-    IL_00a9:  ldloc.1
-    IL_00aa:  ldc.i4.0
-    IL_00ab:  bge.s      IL_00b7
-    IL_00ad:  nop
+    IL_00ad:  ldloc.1
     IL_00ae:  ldc.i4.0
-    IL_00af:  call       ""Sub C.Finally1(Integer)""
-    IL_00b4:  nop
-    IL_00b5:  br.s       IL_00b7
-    IL_00b7:  endfinally
+    IL_00af:  bge.s      IL_00bb
+    IL_00b1:  nop
+    IL_00b2:  ldc.i4.0
+    IL_00b3:  call       ""Sub C.Finally1(Integer)""
+    IL_00b8:  nop
+    IL_00b9:  br.s       IL_00bb
+    IL_00bb:  endfinally
   }
-  IL_00b8:  nop
-  IL_00b9:  ldarg.0
-  IL_00ba:  call       ""Function C.M3() As Integer""
-  IL_00bf:  stfld      ""C.VB$StateMachine_9_F.$Current As Integer""
-  IL_00c4:  ldarg.0
-  IL_00c5:  ldc.i4.3
-  IL_00c6:  dup
-  IL_00c7:  stloc.1
-  IL_00c8:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
-  IL_00cd:  ldc.i4.1
-  IL_00ce:  ret
-  IL_00cf:  ldarg.0
-  IL_00d0:  ldc.i4.m1
-  IL_00d1:  dup
-  IL_00d2:  stloc.1
-  IL_00d3:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
-  IL_00d8:  call       ""Sub C.End()""
-  IL_00dd:  nop
-  IL_00de:  ldc.i4.0
-  IL_00df:  ret
-  IL_00e0:  ldloc.0
-  IL_00e1:  ret
+  IL_00bc:  nop
+  IL_00bd:  ldarg.0
+  IL_00be:  call       ""Function C.M3() As Integer""
+  IL_00c3:  stfld      ""C.VB$StateMachine_9_F.$Current As Integer""
+  IL_00c8:  ldarg.0
+  IL_00c9:  ldc.i4.3
+  IL_00ca:  dup
+  IL_00cb:  stloc.1
+  IL_00cc:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
+  IL_00d1:  ldc.i4.1
+  IL_00d2:  ret
+  IL_00d3:  ldarg.0
+  IL_00d4:  ldc.i4.m1
+  IL_00d5:  dup
+  IL_00d6:  stloc.1
+  IL_00d7:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
+  IL_00dc:  call       ""Sub C.End()""
+  IL_00e1:  nop
+  IL_00e2:  ldc.i4.0
+  IL_00e3:  ret
+  IL_00e4:  ldloc.0
+  IL_00e5:  ret
 }")
                 diff1.VerifyIL("C.VB$StateMachine_9_F.MoveNext", "
 {
-  // Code size      409 (0x199)
+  // Code size      413 (0x19d)
   .maxstack  3
   .locals init (Boolean V_0,
                 Integer V_1)
@@ -5196,227 +5197,228 @@ End Try</N:3>
   IL_0001:  ldfld      ""C.VB$StateMachine_9_F.$State As Integer""
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
-  IL_0008:  ldc.i4.s   -5
+  IL_0008:  ldc.i4.s   -6
   IL_000a:  sub
   IL_000b:  switch    (
-        IL_003a,
-        IL_003c,
-        IL_003a,
-        IL_0045,
-        IL_0045,
         IL_003e,
-        IL_003c,
-        IL_003a,
         IL_0040,
-        IL_003a)
-  IL_0038:  br.s       IL_0045
-  IL_003a:  br.s       IL_00ac
-  IL_003c:  br.s       IL_0051
-  IL_003e:  br.s       IL_0047
-  IL_0040:  br         IL_0186
-  IL_0045:  ldc.i4.0
-  IL_0046:  ret
-  IL_0047:  ldarg.0
-  IL_0048:  ldc.i4.m1
-  IL_0049:  dup
-  IL_004a:  stloc.1
-  IL_004b:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
-  IL_0050:  nop
-  IL_0051:  nop
+        IL_003e,
+        IL_0049,
+        IL_0049,
+        IL_0049,
+        IL_0042,
+        IL_0040,
+        IL_003e,
+        IL_0044,
+        IL_003e)
+  IL_003c:  br.s       IL_0049
+  IL_003e:  br.s       IL_00b0
+  IL_0040:  br.s       IL_0055
+  IL_0042:  br.s       IL_004b
+  IL_0044:  br         IL_018a
+  IL_0049:  ldc.i4.0
+  IL_004a:  ret
+  IL_004b:  ldarg.0
+  IL_004c:  ldc.i4.m1
+  IL_004d:  dup
+  IL_004e:  stloc.1
+  IL_004f:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
+  IL_0054:  nop
+  IL_0055:  nop
   .try
   {
-    IL_0052:  ldloc.1
-    IL_0053:  ldc.i4.s   -4
-    IL_0055:  beq.s      IL_005f
-    IL_0057:  br.s       IL_0059
-    IL_0059:  ldloc.1
-    IL_005a:  ldc.i4.1
-    IL_005b:  beq.s      IL_0061
-    IL_005d:  br.s       IL_0063
-    IL_005f:  br.s       IL_0065
-    IL_0061:  br.s       IL_0091
-    IL_0063:  br.s       IL_0075
-    IL_0065:  ldarg.0
-    IL_0066:  ldc.i4.m1
-    IL_0067:  dup
-    IL_0068:  stloc.1
-    IL_0069:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
-    IL_006e:  ldc.i4.1
-    IL_006f:  stloc.0
-    IL_0070:  leave      IL_0197
-    IL_0075:  nop
-    IL_0076:  ldarg.0
-    IL_0077:  call       ""Function C.M1() As Integer""
-    IL_007c:  stfld      ""C.VB$StateMachine_9_F.$Current As Integer""
-    IL_0081:  ldarg.0
-    IL_0082:  ldc.i4.1
-    IL_0083:  dup
-    IL_0084:  stloc.1
-    IL_0085:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
-    IL_008a:  ldc.i4.1
-    IL_008b:  stloc.0
-    IL_008c:  leave      IL_0197
-    IL_0091:  ldarg.0
-    IL_0092:  ldc.i4.m1
-    IL_0093:  dup
-    IL_0094:  stloc.1
-    IL_0095:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
-    IL_009a:  leave.s    IL_00ab
+    IL_0056:  ldloc.1
+    IL_0057:  ldc.i4.s   -5
+    IL_0059:  beq.s      IL_0063
+    IL_005b:  br.s       IL_005d
+    IL_005d:  ldloc.1
+    IL_005e:  ldc.i4.1
+    IL_005f:  beq.s      IL_0065
+    IL_0061:  br.s       IL_0067
+    IL_0063:  br.s       IL_0069
+    IL_0065:  br.s       IL_0095
+    IL_0067:  br.s       IL_0079
+    IL_0069:  ldarg.0
+    IL_006a:  ldc.i4.m1
+    IL_006b:  dup
+    IL_006c:  stloc.1
+    IL_006d:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
+    IL_0072:  ldc.i4.1
+    IL_0073:  stloc.0
+    IL_0074:  leave      IL_019b
+    IL_0079:  nop
+    IL_007a:  ldarg.0
+    IL_007b:  call       ""Function C.M1() As Integer""
+    IL_0080:  stfld      ""C.VB$StateMachine_9_F.$Current As Integer""
+    IL_0085:  ldarg.0
+    IL_0086:  ldc.i4.1
+    IL_0087:  dup
+    IL_0088:  stloc.1
+    IL_0089:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
+    IL_008e:  ldc.i4.1
+    IL_008f:  stloc.0
+    IL_0090:  leave      IL_019b
+    IL_0095:  ldarg.0
+    IL_0096:  ldc.i4.m1
+    IL_0097:  dup
+    IL_0098:  stloc.1
+    IL_0099:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
+    IL_009e:  leave.s    IL_00af
   }
   finally
   {
-    IL_009c:  ldloc.1
-    IL_009d:  ldc.i4.0
-    IL_009e:  bge.s      IL_00aa
-    IL_00a0:  nop
-    IL_00a1:  ldc.i4.1
-    IL_00a2:  call       ""Sub C.Finally2(Integer)""
-    IL_00a7:  nop
-    IL_00a8:  br.s       IL_00aa
-    IL_00aa:  endfinally
+    IL_00a0:  ldloc.1
+    IL_00a1:  ldc.i4.0
+    IL_00a2:  bge.s      IL_00ae
+    IL_00a4:  nop
+    IL_00a5:  ldc.i4.1
+    IL_00a6:  call       ""Sub C.Finally2(Integer)""
+    IL_00ab:  nop
+    IL_00ac:  br.s       IL_00ae
+    IL_00ae:  endfinally
   }
-  IL_00ab:  nop
-  IL_00ac:  nop
+  IL_00af:  nop
+  IL_00b0:  nop
   .try
   {
-    IL_00ad:  ldloc.1
-    IL_00ae:  ldc.i4.s   -3
-    IL_00b0:  bgt.s      IL_00c0
-    IL_00b2:  ldloc.1
-    IL_00b3:  ldc.i4.s   -5
-    IL_00b5:  beq.s      IL_00cc
-    IL_00b7:  br.s       IL_00b9
-    IL_00b9:  ldloc.1
-    IL_00ba:  ldc.i4.s   -3
-    IL_00bc:  beq.s      IL_00ce
-    IL_00be:  br.s       IL_00d2
-    IL_00c0:  ldloc.1
-    IL_00c1:  ldc.i4.2
-    IL_00c2:  beq.s      IL_00d0
-    IL_00c4:  br.s       IL_00c6
-    IL_00c6:  ldloc.1
-    IL_00c7:  ldc.i4.4
-    IL_00c8:  beq.s      IL_00cc
-    IL_00ca:  br.s       IL_00d2
-    IL_00cc:  br.s       IL_0109
-    IL_00ce:  br.s       IL_00d4
-    IL_00d0:  br.s       IL_0100
-    IL_00d2:  br.s       IL_00e4
-    IL_00d4:  ldarg.0
-    IL_00d5:  ldc.i4.m1
-    IL_00d6:  dup
-    IL_00d7:  stloc.1
-    IL_00d8:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
-    IL_00dd:  ldc.i4.1
-    IL_00de:  stloc.0
-    IL_00df:  leave      IL_0197
-    IL_00e4:  nop
-    IL_00e5:  ldarg.0
-    IL_00e6:  call       ""Function C.M2() As Integer""
-    IL_00eb:  stfld      ""C.VB$StateMachine_9_F.$Current As Integer""
-    IL_00f0:  ldarg.0
-    IL_00f1:  ldc.i4.2
-    IL_00f2:  dup
-    IL_00f3:  stloc.1
-    IL_00f4:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
-    IL_00f9:  ldc.i4.1
-    IL_00fa:  stloc.0
-    IL_00fb:  leave      IL_0197
-    IL_0100:  ldarg.0
-    IL_0101:  ldc.i4.m1
-    IL_0102:  dup
-    IL_0103:  stloc.1
-    IL_0104:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
-    IL_0109:  nop
+    IL_00b1:  ldloc.1
+    IL_00b2:  ldc.i4.s   -4
+    IL_00b4:  bgt.s      IL_00c4
+    IL_00b6:  ldloc.1
+    IL_00b7:  ldc.i4.s   -6
+    IL_00b9:  beq.s      IL_00d0
+    IL_00bb:  br.s       IL_00bd
+    IL_00bd:  ldloc.1
+    IL_00be:  ldc.i4.s   -4
+    IL_00c0:  beq.s      IL_00d2
+    IL_00c2:  br.s       IL_00d6
+    IL_00c4:  ldloc.1
+    IL_00c5:  ldc.i4.2
+    IL_00c6:  beq.s      IL_00d4
+    IL_00c8:  br.s       IL_00ca
+    IL_00ca:  ldloc.1
+    IL_00cb:  ldc.i4.4
+    IL_00cc:  beq.s      IL_00d0
+    IL_00ce:  br.s       IL_00d6
+    IL_00d0:  br.s       IL_010d
+    IL_00d2:  br.s       IL_00d8
+    IL_00d4:  br.s       IL_0104
+    IL_00d6:  br.s       IL_00e8
+    IL_00d8:  ldarg.0
+    IL_00d9:  ldc.i4.m1
+    IL_00da:  dup
+    IL_00db:  stloc.1
+    IL_00dc:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
+    IL_00e1:  ldc.i4.1
+    IL_00e2:  stloc.0
+    IL_00e3:  leave      IL_019b
+    IL_00e8:  nop
+    IL_00e9:  ldarg.0
+    IL_00ea:  call       ""Function C.M2() As Integer""
+    IL_00ef:  stfld      ""C.VB$StateMachine_9_F.$Current As Integer""
+    IL_00f4:  ldarg.0
+    IL_00f5:  ldc.i4.2
+    IL_00f6:  dup
+    IL_00f7:  stloc.1
+    IL_00f8:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
+    IL_00fd:  ldc.i4.1
+    IL_00fe:  stloc.0
+    IL_00ff:  leave      IL_019b
+    IL_0104:  ldarg.0
+    IL_0105:  ldc.i4.m1
+    IL_0106:  dup
+    IL_0107:  stloc.1
+    IL_0108:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
+    IL_010d:  nop
     .try
     {
-      IL_010a:  ldloc.1
-      IL_010b:  ldc.i4.s   -5
-      IL_010d:  beq.s      IL_0117
-      IL_010f:  br.s       IL_0111
-      IL_0111:  ldloc.1
-      IL_0112:  ldc.i4.4
-      IL_0113:  beq.s      IL_0119
-      IL_0115:  br.s       IL_011b
-      IL_0117:  br.s       IL_011d
-      IL_0119:  br.s       IL_0143
-      IL_011b:  br.s       IL_012a
-      IL_011d:  ldarg.0
-      IL_011e:  ldc.i4.m1
-      IL_011f:  dup
-      IL_0120:  stloc.1
-      IL_0121:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
-      IL_0126:  ldc.i4.1
-      IL_0127:  stloc.0
-      IL_0128:  leave.s    IL_0197
-      IL_012a:  nop
-      IL_012b:  ldarg.0
-      IL_012c:  call       ""Function C.M4() As Integer""
-      IL_0131:  stfld      ""C.VB$StateMachine_9_F.$Current As Integer""
-      IL_0136:  ldarg.0
-      IL_0137:  ldc.i4.4
-      IL_0138:  dup
-      IL_0139:  stloc.1
-      IL_013a:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
-      IL_013f:  ldc.i4.1
-      IL_0140:  stloc.0
-      IL_0141:  leave.s    IL_0197
-      IL_0143:  ldarg.0
-      IL_0144:  ldc.i4.m1
-      IL_0145:  dup
-      IL_0146:  stloc.1
-      IL_0147:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
-      IL_014c:  leave.s    IL_015d
+      IL_010e:  ldloc.1
+      IL_010f:  ldc.i4.s   -6
+      IL_0111:  beq.s      IL_011b
+      IL_0113:  br.s       IL_0115
+      IL_0115:  ldloc.1
+      IL_0116:  ldc.i4.4
+      IL_0117:  beq.s      IL_011d
+      IL_0119:  br.s       IL_011f
+      IL_011b:  br.s       IL_0121
+      IL_011d:  br.s       IL_0147
+      IL_011f:  br.s       IL_012e
+      IL_0121:  ldarg.0
+      IL_0122:  ldc.i4.m1
+      IL_0123:  dup
+      IL_0124:  stloc.1
+      IL_0125:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
+      IL_012a:  ldc.i4.1
+      IL_012b:  stloc.0
+      IL_012c:  leave.s    IL_019b
+      IL_012e:  nop
+      IL_012f:  ldarg.0
+      IL_0130:  call       ""Function C.M4() As Integer""
+      IL_0135:  stfld      ""C.VB$StateMachine_9_F.$Current As Integer""
+      IL_013a:  ldarg.0
+      IL_013b:  ldc.i4.4
+      IL_013c:  dup
+      IL_013d:  stloc.1
+      IL_013e:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
+      IL_0143:  ldc.i4.1
+      IL_0144:  stloc.0
+      IL_0145:  leave.s    IL_019b
+      IL_0147:  ldarg.0
+      IL_0148:  ldc.i4.m1
+      IL_0149:  dup
+      IL_014a:  stloc.1
+      IL_014b:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
+      IL_0150:  leave.s    IL_0161
     }
     finally
     {
-      IL_014e:  ldloc.1
-      IL_014f:  ldc.i4.0
-      IL_0150:  bge.s      IL_015c
-      IL_0152:  nop
-      IL_0153:  ldc.i4.1
-      IL_0154:  call       ""Sub C.Finally3(Integer)""
-      IL_0159:  nop
-      IL_015a:  br.s       IL_015c
-      IL_015c:  endfinally
+      IL_0152:  ldloc.1
+      IL_0153:  ldc.i4.0
+      IL_0154:  bge.s      IL_0160
+      IL_0156:  nop
+      IL_0157:  ldc.i4.1
+      IL_0158:  call       ""Sub C.Finally3(Integer)""
+      IL_015d:  nop
+      IL_015e:  br.s       IL_0160
+      IL_0160:  endfinally
     }
-    IL_015d:  nop
-    IL_015e:  leave.s    IL_016f
+    IL_0161:  nop
+    IL_0162:  leave.s    IL_0173
   }
   finally
   {
-    IL_0160:  ldloc.1
-    IL_0161:  ldc.i4.0
-    IL_0162:  bge.s      IL_016e
-    IL_0164:  nop
-    IL_0165:  ldc.i4.1
-    IL_0166:  call       ""Sub C.Finally1(Integer)""
-    IL_016b:  nop
-    IL_016c:  br.s       IL_016e
-    IL_016e:  endfinally
+    IL_0164:  ldloc.1
+    IL_0165:  ldc.i4.0
+    IL_0166:  bge.s      IL_0172
+    IL_0168:  nop
+    IL_0169:  ldc.i4.1
+    IL_016a:  call       ""Sub C.Finally1(Integer)""
+    IL_016f:  nop
+    IL_0170:  br.s       IL_0172
+    IL_0172:  endfinally
   }
-  IL_016f:  nop
-  IL_0170:  ldarg.0
-  IL_0171:  call       ""Function C.M3() As Integer""
-  IL_0176:  stfld      ""C.VB$StateMachine_9_F.$Current As Integer""
-  IL_017b:  ldarg.0
-  IL_017c:  ldc.i4.3
-  IL_017d:  dup
-  IL_017e:  stloc.1
-  IL_017f:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
-  IL_0184:  ldc.i4.1
-  IL_0185:  ret
-  IL_0186:  ldarg.0
-  IL_0187:  ldc.i4.m1
-  IL_0188:  dup
-  IL_0189:  stloc.1
-  IL_018a:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
-  IL_018f:  call       ""Sub C.End()""
-  IL_0194:  nop
-  IL_0195:  ldc.i4.0
-  IL_0196:  ret
-  IL_0197:  ldloc.0
-  IL_0198:  ret
+  IL_0173:  nop
+  IL_0174:  ldarg.0
+  IL_0175:  call       ""Function C.M3() As Integer""
+  IL_017a:  stfld      ""C.VB$StateMachine_9_F.$Current As Integer""
+  IL_017f:  ldarg.0
+  IL_0180:  ldc.i4.3
+  IL_0181:  dup
+  IL_0182:  stloc.1
+  IL_0183:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
+  IL_0188:  ldc.i4.1
+  IL_0189:  ret
+  IL_018a:  ldarg.0
+  IL_018b:  ldc.i4.m1
+  IL_018c:  dup
+  IL_018d:  stloc.1
+  IL_018e:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
+  IL_0193:  call       ""Sub C.End()""
+  IL_0198:  nop
+  IL_0199:  ldc.i4.0
+  IL_019a:  ret
+  IL_019b:  ldloc.0
+  IL_019c:  ret
 }")
             End Using
         End Sub
@@ -5494,7 +5496,7 @@ End Using
           <slot kind=""0"" offset=""31"" />
         </encLocalSlotMap>
         <encStateMachineStateMap>
-          <state number=""-3"" offset=""31"" />
+          <state number=""-4"" offset=""31"" />
           <state number=""1"" offset=""58"" />
         </encStateMachineStateMap>
       </customDebugInfo>
@@ -5518,7 +5520,7 @@ End Using
   IL_0009:  beq.s      IL_000d
   IL_000b:  br.s       IL_0017
   IL_000d:  ldarg.0
-  IL_000e:  ldc.i4.s   -3
+  IL_000e:  ldc.i4.s   -4
   IL_0010:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
   IL_0015:  br.s       IL_001e
   IL_0017:  ldarg.0
@@ -5528,7 +5530,7 @@ End Using
   IL_001f:  call       ""Function C.VB$StateMachine_6_F.MoveNext() As Boolean""
   IL_0024:  pop
   IL_0025:  ldarg.0
-  IL_0026:  ldc.i4.s   -2
+  IL_0026:  ldc.i4.s   -3
   IL_0028:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
   IL_002d:  ret
 }")
@@ -5547,7 +5549,7 @@ End Using
   IL_000b:  ble.un.s   IL_000f
   IL_000d:  br.s       IL_0019
   IL_000f:  ldarg.0
-  IL_0010:  ldc.i4.s   -3
+  IL_0010:  ldc.i4.s   -4
   IL_0012:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
   IL_0017:  br.s       IL_0020
   IL_0019:  ldarg.0
@@ -5557,13 +5559,13 @@ End Using
   IL_0021:  call       ""Function C.VB$StateMachine_6_F.MoveNext() As Boolean""
   IL_0026:  pop
   IL_0027:  ldarg.0
-  IL_0028:  ldc.i4.s   -2
+  IL_0028:  ldc.i4.s   -3
   IL_002a:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
   IL_002f:  ret
 }")
                 v0.VerifyIL("C.VB$StateMachine_6_F.MoveNext", "
 {
-  // Code size      229 (0xe5)
+  // Code size      216 (0xd8)
   .maxstack  3
   .locals init (Boolean V_0,
                 Integer V_1)
@@ -5571,138 +5573,129 @@ End Using
   IL_0001:  ldfld      ""C.VB$StateMachine_6_F.$State As Integer""
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
-  IL_0008:  ldc.i4.s   -3
-  IL_000a:  sub
-  IL_000b:  switch    (
-        IL_0026,
-        IL_002a,
-        IL_002a,
-        IL_0028,
-        IL_0026)
-  IL_0024:  br.s       IL_002a
-  IL_0026:  br.s       IL_0042
-  IL_0028:  br.s       IL_002c
-
-  IL_002a:  ldc.i4.0
-  IL_002b:  ret
-
-  IL_002c:  ldarg.0
-  IL_002d:  ldc.i4.m1
-  IL_002e:  dup
-  IL_002f:  stloc.1
-  IL_0030:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
+  IL_0008:  ldc.i4.s   -4
+  IL_000a:  beq.s      IL_0019
+  IL_000c:  br.s       IL_000e
+  IL_000e:  ldloc.1
+  IL_000f:  brfalse.s  IL_001b
+  IL_0011:  br.s       IL_0013
+  IL_0013:  ldloc.1
+  IL_0014:  ldc.i4.1
+  IL_0015:  beq.s      IL_0019
+  IL_0017:  br.s       IL_001d
+  IL_0019:  br.s       IL_0035
+  IL_001b:  br.s       IL_001f
+  IL_001d:  ldc.i4.0
+  IL_001e:  ret
+  IL_001f:  ldarg.0
+  IL_0020:  ldc.i4.m1
+  IL_0021:  dup
+  IL_0022:  stloc.1
+  IL_0023:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
+  IL_0028:  nop
+  IL_0029:  nop
+  IL_002a:  ldarg.0
+  IL_002b:  call       ""Function C.D() As System.IDisposable""
+  IL_0030:  stfld      ""C.VB$StateMachine_6_F.$VB$ResumableLocal_x$0 As System.IDisposable""
   IL_0035:  nop
-  IL_0036:  nop
-  IL_0037:  ldarg.0
-  IL_0038:  call       ""Function C.D() As System.IDisposable""
-  IL_003d:  stfld      ""C.VB$StateMachine_6_F.$VB$ResumableLocal_x$0 As System.IDisposable""
-
-  IL_0042:  nop
   .try
   {
-    IL_0043:  ldloc.1
-    IL_0044:  ldc.i4.s   -3
-    IL_0046:  beq.s      IL_0050
-    IL_0048:  br.s       IL_004a
-
-    IL_004a:  ldloc.1
-    IL_004b:  ldc.i4.1
-    IL_004c:  beq.s      IL_0050
-    IL_004e:  br.s       IL_0052
-    IL_0050:  br.s       IL_005d
-
-    IL_0052:  ldarg.0
-    IL_0053:  newobj     ""Sub C..ctor()""
-    IL_0058:  stfld      ""C.VB$StateMachine_6_F.$VB$ResumableLocal_y$1 As C""
-
-    IL_005d:  nop
+    IL_0036:  ldloc.1
+    IL_0037:  ldc.i4.s   -4
+    IL_0039:  beq.s      IL_0043
+    IL_003b:  br.s       IL_003d
+    IL_003d:  ldloc.1
+    IL_003e:  ldc.i4.1
+    IL_003f:  beq.s      IL_0043
+    IL_0041:  br.s       IL_0045
+    IL_0043:  br.s       IL_0050
+    IL_0045:  ldarg.0
+    IL_0046:  newobj     ""Sub C..ctor()""
+    IL_004b:  stfld      ""C.VB$StateMachine_6_F.$VB$ResumableLocal_y$1 As C""
+    IL_0050:  nop
     .try
     {
-      IL_005e:  ldloc.1
-      IL_005f:  ldc.i4.s   -3
-      IL_0061:  beq.s      IL_006b
-      IL_0063:  br.s       IL_0065
-      IL_0065:  ldloc.1
-      IL_0066:  ldc.i4.1
-      IL_0067:  beq.s      IL_006d
-      IL_0069:  br.s       IL_006f
-      IL_006b:  br.s       IL_0071
-      IL_006d:  br.s       IL_0096
-      IL_006f:  br.s       IL_007e
-
+      IL_0051:  ldloc.1
+      IL_0052:  ldc.i4.s   -4
+      IL_0054:  beq.s      IL_005e
+      IL_0056:  br.s       IL_0058
+      IL_0058:  ldloc.1
+      IL_0059:  ldc.i4.1
+      IL_005a:  beq.s      IL_0060
+      IL_005c:  br.s       IL_0062
+      IL_005e:  br.s       IL_0064
+      IL_0060:  br.s       IL_0089
+      IL_0062:  br.s       IL_0071
+      IL_0064:  ldarg.0
+      IL_0065:  ldc.i4.m1
+      IL_0066:  dup
+      IL_0067:  stloc.1
+      IL_0068:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
+      IL_006d:  ldc.i4.1
+      IL_006e:  stloc.0
+      IL_006f:  leave.s    IL_00d6
       IL_0071:  ldarg.0
-      IL_0072:  ldc.i4.m1
-      IL_0073:  dup
-      IL_0074:  stloc.1
-      IL_0075:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
-      IL_007a:  ldc.i4.1
-      IL_007b:  stloc.0
-      IL_007c:  leave.s    IL_00e3
-
-      IL_007e:  ldarg.0
-      IL_007f:  call       ""Function C.M2() As Integer""
-      IL_0084:  stfld      ""C.VB$StateMachine_6_F.$Current As Integer""
+      IL_0072:  call       ""Function C.M2() As Integer""
+      IL_0077:  stfld      ""C.VB$StateMachine_6_F.$Current As Integer""
+      IL_007c:  ldarg.0
+      IL_007d:  ldc.i4.1
+      IL_007e:  dup
+      IL_007f:  stloc.1
+      IL_0080:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
+      IL_0085:  ldc.i4.1
+      IL_0086:  stloc.0
+      IL_0087:  leave.s    IL_00d6
       IL_0089:  ldarg.0
-      IL_008a:  ldc.i4.1
+      IL_008a:  ldc.i4.m1
       IL_008b:  dup
       IL_008c:  stloc.1
       IL_008d:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
-      IL_0092:  ldc.i4.1
-      IL_0093:  stloc.0
-      IL_0094:  leave.s    IL_00e3
-
-      IL_0096:  ldarg.0
-      IL_0097:  ldc.i4.m1
-      IL_0098:  dup
-      IL_0099:  stloc.1
-      IL_009a:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
-      IL_009f:  leave.s    IL_00bd
+      IL_0092:  leave.s    IL_00b0
     }
     finally
     {
-      IL_00a1:  ldloc.1
-      IL_00a2:  ldc.i4.0
-      IL_00a3:  bge.s      IL_00bc
-      IL_00a5:  nop
-      IL_00a6:  ldarg.0
-      IL_00a7:  ldfld      ""C.VB$StateMachine_6_F.$VB$ResumableLocal_y$1 As C""
-      IL_00ac:  brfalse.s  IL_00ba
-      IL_00ae:  ldarg.0
-      IL_00af:  ldfld      ""C.VB$StateMachine_6_F.$VB$ResumableLocal_y$1 As C""
-      IL_00b4:  callvirt   ""Sub System.IDisposable.Dispose()""
-      IL_00b9:  nop
-      IL_00ba:  br.s       IL_00bc
-      IL_00bc:  endfinally
+      IL_0094:  ldloc.1
+      IL_0095:  ldc.i4.0
+      IL_0096:  bge.s      IL_00af
+      IL_0098:  nop
+      IL_0099:  ldarg.0
+      IL_009a:  ldfld      ""C.VB$StateMachine_6_F.$VB$ResumableLocal_y$1 As C""
+      IL_009f:  brfalse.s  IL_00ad
+      IL_00a1:  ldarg.0
+      IL_00a2:  ldfld      ""C.VB$StateMachine_6_F.$VB$ResumableLocal_y$1 As C""
+      IL_00a7:  callvirt   ""Sub System.IDisposable.Dispose()""
+      IL_00ac:  nop
+      IL_00ad:  br.s       IL_00af
+      IL_00af:  endfinally
     }
-    IL_00bd:  leave.s    IL_00db
+    IL_00b0:  leave.s    IL_00ce
   }
   finally
   {
-    IL_00bf:  ldloc.1
-    IL_00c0:  ldc.i4.0
-    IL_00c1:  bge.s      IL_00da
-    IL_00c3:  nop
-    IL_00c4:  ldarg.0
-    IL_00c5:  ldfld      ""C.VB$StateMachine_6_F.$VB$ResumableLocal_x$0 As System.IDisposable""
-    IL_00ca:  brfalse.s  IL_00d8
-    IL_00cc:  ldarg.0
-    IL_00cd:  ldfld      ""C.VB$StateMachine_6_F.$VB$ResumableLocal_x$0 As System.IDisposable""
-    IL_00d2:  callvirt   ""Sub System.IDisposable.Dispose()""
-    IL_00d7:  nop
-    IL_00d8:  br.s       IL_00da
-    IL_00da:  endfinally
+    IL_00b2:  ldloc.1
+    IL_00b3:  ldc.i4.0
+    IL_00b4:  bge.s      IL_00cd
+    IL_00b6:  nop
+    IL_00b7:  ldarg.0
+    IL_00b8:  ldfld      ""C.VB$StateMachine_6_F.$VB$ResumableLocal_x$0 As System.IDisposable""
+    IL_00bd:  brfalse.s  IL_00cb
+    IL_00bf:  ldarg.0
+    IL_00c0:  ldfld      ""C.VB$StateMachine_6_F.$VB$ResumableLocal_x$0 As System.IDisposable""
+    IL_00c5:  callvirt   ""Sub System.IDisposable.Dispose()""
+    IL_00ca:  nop
+    IL_00cb:  br.s       IL_00cd
+    IL_00cd:  endfinally
   }
-  IL_00db:  call       ""Sub C.End()""
-  IL_00e0:  nop
-  IL_00e1:  ldc.i4.0
-  IL_00e2:  ret
-
-  IL_00e3:  ldloc.0
-  IL_00e4:  ret
+  IL_00ce:  call       ""Sub C.End()""
+  IL_00d3:  nop
+  IL_00d4:  ldc.i4.0
+  IL_00d5:  ret
+  IL_00d6:  ldloc.0
+  IL_00d7:  ret
 }")
                 diff1.VerifyIL("C.VB$StateMachine_6_F.MoveNext", "
 {
-  // Code size      279 (0x117)
+  // Code size      283 (0x11b)
   .maxstack  3
   .locals init (Boolean V_0,
                 Integer V_1)
@@ -5710,158 +5703,149 @@ End Using
   IL_0001:  ldfld      ""C.VB$StateMachine_6_F.$State As Integer""
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
-  IL_0008:  ldc.i4.s   -3
+  IL_0008:  ldc.i4.s   -4
   IL_000a:  sub
   IL_000b:  switch    (
-        IL_002a,
         IL_002e,
+        IL_0032,
+        IL_0032,
+        IL_0032,
+        IL_0030,
         IL_002e,
-        IL_002c,
-        IL_002a,
-        IL_002a)
-  IL_0028:  br.s       IL_002e
-  IL_002a:  br.s       IL_0046
-  IL_002c:  br.s       IL_0030
-
-  IL_002e:  ldc.i4.0
-  IL_002f:  ret
-
-  IL_0030:  ldarg.0
-  IL_0031:  ldc.i4.m1
-  IL_0032:  dup
-  IL_0033:  stloc.1
-  IL_0034:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
-  IL_0039:  nop
-  IL_003a:  nop
-  IL_003b:  ldarg.0
-  IL_003c:  call       ""Function C.D() As System.IDisposable""
-  IL_0041:  stfld      ""C.VB$StateMachine_6_F.$VB$ResumableLocal_x$0 As System.IDisposable""
-
-  IL_0046:  nop
+        IL_002e)
+  IL_002c:  br.s       IL_0032
+  IL_002e:  br.s       IL_004a
+  IL_0030:  br.s       IL_0034
+  IL_0032:  ldc.i4.0
+  IL_0033:  ret
+  IL_0034:  ldarg.0
+  IL_0035:  ldc.i4.m1
+  IL_0036:  dup
+  IL_0037:  stloc.1
+  IL_0038:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
+  IL_003d:  nop
+  IL_003e:  nop
+  IL_003f:  ldarg.0
+  IL_0040:  call       ""Function C.D() As System.IDisposable""
+  IL_0045:  stfld      ""C.VB$StateMachine_6_F.$VB$ResumableLocal_x$0 As System.IDisposable""
+  IL_004a:  nop
   .try
   {
-    IL_0047:  ldloc.1
-    IL_0048:  ldc.i4.s   -3
-    IL_004a:  beq.s      IL_0056
-    IL_004c:  br.s       IL_004e
-
-    IL_004e:  ldloc.1
-    IL_004f:  ldc.i4.1
-    IL_0050:  sub
-    IL_0051:  ldc.i4.1
-    IL_0052:  ble.un.s   IL_0056
-    IL_0054:  br.s       IL_0058
-    IL_0056:  br.s       IL_0063
-
-    IL_0058:  ldarg.0
-    IL_0059:  newobj     ""Sub C..ctor()""
-    IL_005e:  stfld      ""C.VB$StateMachine_6_F.$VB$ResumableLocal_y$1 As C""
-
-    IL_0063:  nop
+    IL_004b:  ldloc.1
+    IL_004c:  ldc.i4.s   -4
+    IL_004e:  beq.s      IL_005a
+    IL_0050:  br.s       IL_0052
+    IL_0052:  ldloc.1
+    IL_0053:  ldc.i4.1
+    IL_0054:  sub
+    IL_0055:  ldc.i4.1
+    IL_0056:  ble.un.s   IL_005a
+    IL_0058:  br.s       IL_005c
+    IL_005a:  br.s       IL_0067
+    IL_005c:  ldarg.0
+    IL_005d:  newobj     ""Sub C..ctor()""
+    IL_0062:  stfld      ""C.VB$StateMachine_6_F.$VB$ResumableLocal_y$1 As C""
+    IL_0067:  nop
     .try
     {
-      IL_0064:  ldloc.1
-      IL_0065:  ldc.i4.s   -3
-      IL_0067:  beq.s      IL_0077
-      IL_0069:  br.s       IL_006b
-      IL_006b:  ldloc.1
-      IL_006c:  ldc.i4.1
-      IL_006d:  beq.s      IL_0079
-      IL_006f:  br.s       IL_0071
-      IL_0071:  ldloc.1
-      IL_0072:  ldc.i4.2
-      IL_0073:  beq.s      IL_007b
-      IL_0075:  br.s       IL_007d
-      IL_0077:  br.s       IL_007f
-      IL_0079:  br.s       IL_00a7
-      IL_007b:  br.s       IL_00c8
-      IL_007d:  br.s       IL_008f
-
-      IL_007f:  ldarg.0
-      IL_0080:  ldc.i4.m1
-      IL_0081:  dup
-      IL_0082:  stloc.1
-      IL_0083:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
-      IL_0088:  ldc.i4.1
-      IL_0089:  stloc.0
-      IL_008a:  leave      IL_0115
-
-      IL_008f:  ldarg.0
-      IL_0090:  call       ""Function C.M2() As Integer""
-      IL_0095:  stfld      ""C.VB$StateMachine_6_F.$Current As Integer""
-      IL_009a:  ldarg.0
-      IL_009b:  ldc.i4.1
-      IL_009c:  dup
-      IL_009d:  stloc.1
-      IL_009e:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
-      IL_00a3:  ldc.i4.1
-      IL_00a4:  stloc.0
-      IL_00a5:  leave.s    IL_0115
-
-      IL_00a7:  ldarg.0
-      IL_00a8:  ldc.i4.m1
-      IL_00a9:  dup
-      IL_00aa:  stloc.1
-      IL_00ab:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
-      IL_00b0:  ldarg.0
-      IL_00b1:  call       ""Function C.M3() As Integer""
-      IL_00b6:  stfld      ""C.VB$StateMachine_6_F.$Current As Integer""
-      IL_00bb:  ldarg.0
-      IL_00bc:  ldc.i4.2
-      IL_00bd:  dup
-      IL_00be:  stloc.1
-      IL_00bf:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
-      IL_00c4:  ldc.i4.1
-      IL_00c5:  stloc.0
-      IL_00c6:  leave.s    IL_0115
-
-      IL_00c8:  ldarg.0
-      IL_00c9:  ldc.i4.m1
-      IL_00ca:  dup
-      IL_00cb:  stloc.1
-      IL_00cc:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
-      IL_00d1:  leave.s    IL_00ef
+      IL_0068:  ldloc.1
+      IL_0069:  ldc.i4.s   -4
+      IL_006b:  beq.s      IL_007b
+      IL_006d:  br.s       IL_006f
+      IL_006f:  ldloc.1
+      IL_0070:  ldc.i4.1
+      IL_0071:  beq.s      IL_007d
+      IL_0073:  br.s       IL_0075
+      IL_0075:  ldloc.1
+      IL_0076:  ldc.i4.2
+      IL_0077:  beq.s      IL_007f
+      IL_0079:  br.s       IL_0081
+      IL_007b:  br.s       IL_0083
+      IL_007d:  br.s       IL_00ab
+      IL_007f:  br.s       IL_00cc
+      IL_0081:  br.s       IL_0093
+      IL_0083:  ldarg.0
+      IL_0084:  ldc.i4.m1
+      IL_0085:  dup
+      IL_0086:  stloc.1
+      IL_0087:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
+      IL_008c:  ldc.i4.1
+      IL_008d:  stloc.0
+      IL_008e:  leave      IL_0119
+      IL_0093:  ldarg.0
+      IL_0094:  call       ""Function C.M2() As Integer""
+      IL_0099:  stfld      ""C.VB$StateMachine_6_F.$Current As Integer""
+      IL_009e:  ldarg.0
+      IL_009f:  ldc.i4.1
+      IL_00a0:  dup
+      IL_00a1:  stloc.1
+      IL_00a2:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
+      IL_00a7:  ldc.i4.1
+      IL_00a8:  stloc.0
+      IL_00a9:  leave.s    IL_0119
+      IL_00ab:  ldarg.0
+      IL_00ac:  ldc.i4.m1
+      IL_00ad:  dup
+      IL_00ae:  stloc.1
+      IL_00af:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
+      IL_00b4:  ldarg.0
+      IL_00b5:  call       ""Function C.M3() As Integer""
+      IL_00ba:  stfld      ""C.VB$StateMachine_6_F.$Current As Integer""
+      IL_00bf:  ldarg.0
+      IL_00c0:  ldc.i4.2
+      IL_00c1:  dup
+      IL_00c2:  stloc.1
+      IL_00c3:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
+      IL_00c8:  ldc.i4.1
+      IL_00c9:  stloc.0
+      IL_00ca:  leave.s    IL_0119
+      IL_00cc:  ldarg.0
+      IL_00cd:  ldc.i4.m1
+      IL_00ce:  dup
+      IL_00cf:  stloc.1
+      IL_00d0:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
+      IL_00d5:  leave.s    IL_00f3
     }
     finally
     {
-      IL_00d3:  ldloc.1
-      IL_00d4:  ldc.i4.0
-      IL_00d5:  bge.s      IL_00ee
-      IL_00d7:  nop
-      IL_00d8:  ldarg.0
-      IL_00d9:  ldfld      ""C.VB$StateMachine_6_F.$VB$ResumableLocal_y$1 As C""
-      IL_00de:  brfalse.s  IL_00ec
-      IL_00e0:  ldarg.0
-      IL_00e1:  ldfld      ""C.VB$StateMachine_6_F.$VB$ResumableLocal_y$1 As C""
-      IL_00e6:  callvirt   ""Sub System.IDisposable.Dispose()""
-      IL_00eb:  nop
-      IL_00ec:  br.s       IL_00ee
-      IL_00ee:  endfinally
+      IL_00d7:  ldloc.1
+      IL_00d8:  ldc.i4.0
+      IL_00d9:  bge.s      IL_00f2
+      IL_00db:  nop
+      IL_00dc:  ldarg.0
+      IL_00dd:  ldfld      ""C.VB$StateMachine_6_F.$VB$ResumableLocal_y$1 As C""
+      IL_00e2:  brfalse.s  IL_00f0
+      IL_00e4:  ldarg.0
+      IL_00e5:  ldfld      ""C.VB$StateMachine_6_F.$VB$ResumableLocal_y$1 As C""
+      IL_00ea:  callvirt   ""Sub System.IDisposable.Dispose()""
+      IL_00ef:  nop
+      IL_00f0:  br.s       IL_00f2
+      IL_00f2:  endfinally
     }
-    IL_00ef:  leave.s    IL_010d
+    IL_00f3:  leave.s    IL_0111
   }
   finally
   {
-    IL_00f1:  ldloc.1
-    IL_00f2:  ldc.i4.0
-    IL_00f3:  bge.s      IL_010c
-    IL_00f5:  nop
-    IL_00f6:  ldarg.0
-    IL_00f7:  ldfld      ""C.VB$StateMachine_6_F.$VB$ResumableLocal_x$0 As System.IDisposable""
-    IL_00fc:  brfalse.s  IL_010a
-    IL_00fe:  ldarg.0
-    IL_00ff:  ldfld      ""C.VB$StateMachine_6_F.$VB$ResumableLocal_x$0 As System.IDisposable""
-    IL_0104:  callvirt   ""Sub System.IDisposable.Dispose()""
-    IL_0109:  nop
-    IL_010a:  br.s       IL_010c
-    IL_010c:  endfinally
+    IL_00f5:  ldloc.1
+    IL_00f6:  ldc.i4.0
+    IL_00f7:  bge.s      IL_0110
+    IL_00f9:  nop
+    IL_00fa:  ldarg.0
+    IL_00fb:  ldfld      ""C.VB$StateMachine_6_F.$VB$ResumableLocal_x$0 As System.IDisposable""
+    IL_0100:  brfalse.s  IL_010e
+    IL_0102:  ldarg.0
+    IL_0103:  ldfld      ""C.VB$StateMachine_6_F.$VB$ResumableLocal_x$0 As System.IDisposable""
+    IL_0108:  callvirt   ""Sub System.IDisposable.Dispose()""
+    IL_010d:  nop
+    IL_010e:  br.s       IL_0110
+    IL_0110:  endfinally
   }
-  IL_010d:  call       ""Sub C.End()""
-  IL_0112:  nop
-  IL_0113:  ldc.i4.0
-  IL_0114:  ret
-  IL_0115:  ldloc.0
-  IL_0116:  ret
+  IL_0111:  call       ""Sub C.End()""
+  IL_0116:  nop
+  IL_0117:  ldc.i4.0
+  IL_0118:  ret
+  IL_0119:  ldloc.0
+  IL_011a:  ret
 }")
             End Using
         End Sub
@@ -5920,7 +5904,7 @@ End SyncLock</N:0>
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
                 v0.VerifyPdb("C.F", "
- <symbols>
+<symbols>
   <files>
     <file id=""1"" name="""" language=""VB"" />
   </files>
@@ -5936,7 +5920,7 @@ End SyncLock</N:0>
           <slot kind=""0"" offset=""69"" />
         </encLocalSlotMap>
         <encStateMachineStateMap>
-          <state number=""-3"" offset=""69"" />
+          <state number=""-4"" offset=""69"" />
           <state number=""1"" offset=""123"" />
         </encStateMachineStateMap>
       </customDebugInfo>
@@ -5945,7 +5929,7 @@ End SyncLock</N:0>
 </symbols>")
                 v0.VerifyIL("C.VB$StateMachine_3_F.MoveNext", "
 {
-  // Code size      345 (0x159)
+  // Code size      332 (0x14c)
   .maxstack  3
   .locals init (Boolean V_0,
                 Integer V_1,
@@ -5954,183 +5938,184 @@ End SyncLock</N:0>
   IL_0001:  ldfld      ""C.VB$StateMachine_3_F.$State As Integer""
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
-  IL_0008:  ldc.i4.s   -3
-  IL_000a:  sub
-  IL_000b:  switch    (
-        IL_0026,
-        IL_002a,
-        IL_002a,
-        IL_0028,
-        IL_0026)
-  IL_0024:  br.s       IL_002a
-  IL_0026:  br.s       IL_0049
-  IL_0028:  br.s       IL_002c
-  IL_002a:  ldc.i4.0
-  IL_002b:  ret
-  IL_002c:  ldarg.0
-  IL_002d:  ldc.i4.m1
-  IL_002e:  dup
-  IL_002f:  stloc.1
-  IL_0030:  stfld      ""C.VB$StateMachine_3_F.$State As Integer""
-  IL_0035:  nop
-  IL_0036:  nop
-  IL_0037:  ldarg.0
-  IL_0038:  call       ""Function C.D() As System.IDisposable""
-  IL_003d:  stfld      ""C.VB$StateMachine_3_F.$S0 As Object""
-  IL_0042:  ldarg.0
-  IL_0043:  ldc.i4.0
-  IL_0044:  stfld      ""C.VB$StateMachine_3_F.$S1 As Boolean""
-  IL_0049:  nop
+  IL_0008:  ldc.i4.s   -4
+  IL_000a:  beq.s      IL_0019
+  IL_000c:  br.s       IL_000e
+  IL_000e:  ldloc.1
+  IL_000f:  brfalse.s  IL_001b
+  IL_0011:  br.s       IL_0013
+  IL_0013:  ldloc.1
+  IL_0014:  ldc.i4.1
+  IL_0015:  beq.s      IL_0019
+  IL_0017:  br.s       IL_001d
+  IL_0019:  br.s       IL_003c
+  IL_001b:  br.s       IL_001f
+  IL_001d:  ldc.i4.0
+  IL_001e:  ret
+  IL_001f:  ldarg.0
+  IL_0020:  ldc.i4.m1
+  IL_0021:  dup
+  IL_0022:  stloc.1
+  IL_0023:  stfld      ""C.VB$StateMachine_3_F.$State As Integer""
+  IL_0028:  nop
+  IL_0029:  nop
+  IL_002a:  ldarg.0
+  IL_002b:  call       ""Function C.D() As System.IDisposable""
+  IL_0030:  stfld      ""C.VB$StateMachine_3_F.$S0 As Object""
+  IL_0035:  ldarg.0
+  IL_0036:  ldc.i4.0
+  IL_0037:  stfld      ""C.VB$StateMachine_3_F.$S1 As Boolean""
+  IL_003c:  nop
   .try
   {
-    IL_004a:  ldloc.1
-    IL_004b:  ldc.i4.s   -3
-    IL_004d:  beq.s      IL_0057
-    IL_004f:  br.s       IL_0051
-    IL_0051:  ldloc.1
-    IL_0052:  ldc.i4.1
-    IL_0053:  beq.s      IL_0057
-    IL_0055:  br.s       IL_0059
-    IL_0057:  br.s       IL_0077
-    IL_0059:  ldarg.0
-    IL_005a:  ldfld      ""C.VB$StateMachine_3_F.$S0 As Object""
+    IL_003d:  ldloc.1
+    IL_003e:  ldc.i4.s   -4
+    IL_0040:  beq.s      IL_004a
+    IL_0042:  br.s       IL_0044
+    IL_0044:  ldloc.1
+    IL_0045:  ldc.i4.1
+    IL_0046:  beq.s      IL_004a
+    IL_0048:  br.s       IL_004c
+    IL_004a:  br.s       IL_006a
+    IL_004c:  ldarg.0
+    IL_004d:  ldfld      ""C.VB$StateMachine_3_F.$S0 As Object""
+    IL_0052:  ldarg.0
+    IL_0053:  ldflda     ""C.VB$StateMachine_3_F.$S1 As Boolean""
+    IL_0058:  call       ""Sub System.Threading.Monitor.Enter(Object, ByRef Boolean)""
+    IL_005d:  nop
+    IL_005e:  nop
     IL_005f:  ldarg.0
-    IL_0060:  ldflda     ""C.VB$StateMachine_3_F.$S1 As Boolean""
-    IL_0065:  call       ""Sub System.Threading.Monitor.Enter(Object, ByRef Boolean)""
+    IL_0060:  call       ""Function C.D() As System.IDisposable""
+    IL_0065:  stfld      ""C.VB$StateMachine_3_F.$S2 As System.IDisposable""
     IL_006a:  nop
-    IL_006b:  nop
-    IL_006c:  ldarg.0
-    IL_006d:  call       ""Function C.D() As System.IDisposable""
-    IL_0072:  stfld      ""C.VB$StateMachine_3_F.$S2 As System.IDisposable""
-    IL_0077:  nop
     .try
     {
-      IL_0078:  ldloc.1
-      IL_0079:  ldc.i4.s   -3
-      IL_007b:  beq.s      IL_0085
-      IL_007d:  br.s       IL_007f
-      IL_007f:  ldloc.1
-      IL_0080:  ldc.i4.1
-      IL_0081:  beq.s      IL_0085
-      IL_0083:  br.s       IL_0087
-      IL_0085:  br.s       IL_0087
-      IL_0087:  nop
+      IL_006b:  ldloc.1
+      IL_006c:  ldc.i4.s   -4
+      IL_006e:  beq.s      IL_0078
+      IL_0070:  br.s       IL_0072
+      IL_0072:  ldloc.1
+      IL_0073:  ldc.i4.1
+      IL_0074:  beq.s      IL_0078
+      IL_0076:  br.s       IL_007a
+      IL_0078:  br.s       IL_007a
+      IL_007a:  nop
       .try
       {
-        IL_0088:  ldloc.1
-        IL_0089:  ldc.i4.s   -3
-        IL_008b:  beq.s      IL_0095
-        IL_008d:  br.s       IL_008f
-        IL_008f:  ldloc.1
-        IL_0090:  ldc.i4.1
-        IL_0091:  beq.s      IL_0097
-        IL_0093:  br.s       IL_0099
-        IL_0095:  br.s       IL_009b
-        IL_0097:  br.s       IL_00e2
-        IL_0099:  br.s       IL_00ab
-        IL_009b:  ldarg.0
-        IL_009c:  ldc.i4.m1
-        IL_009d:  dup
-        IL_009e:  stloc.1
-        IL_009f:  stfld      ""C.VB$StateMachine_3_F.$State As Integer""
-        IL_00a4:  ldc.i4.1
-        IL_00a5:  stloc.0
-        IL_00a6:  leave      IL_0157
-        IL_00ab:  ldarg.0
-        IL_00ac:  call       ""Function C.E() As System.Collections.Generic.IEnumerable(Of Integer)""
-        IL_00b1:  callvirt   ""Function System.Collections.Generic.IEnumerable(Of Integer).GetEnumerator() As System.Collections.Generic.IEnumerator(Of Integer)""
-        IL_00b6:  stfld      ""C.VB$StateMachine_3_F.$S3 As System.Collections.Generic.IEnumerator(Of Integer)""
-        IL_00bb:  br.s       IL_00ec
-        IL_00bd:  ldarg.0
-        IL_00be:  ldarg.0
-        IL_00bf:  ldfld      ""C.VB$StateMachine_3_F.$S3 As System.Collections.Generic.IEnumerator(Of Integer)""
-        IL_00c4:  callvirt   ""Function System.Collections.Generic.IEnumerator(Of Integer).get_Current() As Integer""
-        IL_00c9:  stfld      ""C.VB$StateMachine_3_F.$VB$ResumableLocal_y$4 As Integer""
-        IL_00ce:  ldarg.0
-        IL_00cf:  ldc.i4.1
-        IL_00d0:  stfld      ""C.VB$StateMachine_3_F.$Current As Integer""
+        IL_007b:  ldloc.1
+        IL_007c:  ldc.i4.s   -4
+        IL_007e:  beq.s      IL_0088
+        IL_0080:  br.s       IL_0082
+        IL_0082:  ldloc.1
+        IL_0083:  ldc.i4.1
+        IL_0084:  beq.s      IL_008a
+        IL_0086:  br.s       IL_008c
+        IL_0088:  br.s       IL_008e
+        IL_008a:  br.s       IL_00d5
+        IL_008c:  br.s       IL_009e
+        IL_008e:  ldarg.0
+        IL_008f:  ldc.i4.m1
+        IL_0090:  dup
+        IL_0091:  stloc.1
+        IL_0092:  stfld      ""C.VB$StateMachine_3_F.$State As Integer""
+        IL_0097:  ldc.i4.1
+        IL_0098:  stloc.0
+        IL_0099:  leave      IL_014a
+        IL_009e:  ldarg.0
+        IL_009f:  call       ""Function C.E() As System.Collections.Generic.IEnumerable(Of Integer)""
+        IL_00a4:  callvirt   ""Function System.Collections.Generic.IEnumerable(Of Integer).GetEnumerator() As System.Collections.Generic.IEnumerator(Of Integer)""
+        IL_00a9:  stfld      ""C.VB$StateMachine_3_F.$S3 As System.Collections.Generic.IEnumerator(Of Integer)""
+        IL_00ae:  br.s       IL_00df
+        IL_00b0:  ldarg.0
+        IL_00b1:  ldarg.0
+        IL_00b2:  ldfld      ""C.VB$StateMachine_3_F.$S3 As System.Collections.Generic.IEnumerator(Of Integer)""
+        IL_00b7:  callvirt   ""Function System.Collections.Generic.IEnumerator(Of Integer).get_Current() As Integer""
+        IL_00bc:  stfld      ""C.VB$StateMachine_3_F.$VB$ResumableLocal_y$4 As Integer""
+        IL_00c1:  ldarg.0
+        IL_00c2:  ldc.i4.1
+        IL_00c3:  stfld      ""C.VB$StateMachine_3_F.$Current As Integer""
+        IL_00c8:  ldarg.0
+        IL_00c9:  ldc.i4.1
+        IL_00ca:  dup
+        IL_00cb:  stloc.1
+        IL_00cc:  stfld      ""C.VB$StateMachine_3_F.$State As Integer""
+        IL_00d1:  ldc.i4.1
+        IL_00d2:  stloc.0
+        IL_00d3:  leave.s    IL_014a
         IL_00d5:  ldarg.0
-        IL_00d6:  ldc.i4.1
+        IL_00d6:  ldc.i4.m1
         IL_00d7:  dup
         IL_00d8:  stloc.1
         IL_00d9:  stfld      ""C.VB$StateMachine_3_F.$State As Integer""
-        IL_00de:  ldc.i4.1
-        IL_00df:  stloc.0
-        IL_00e0:  leave.s    IL_0157
-        IL_00e2:  ldarg.0
-        IL_00e3:  ldc.i4.m1
-        IL_00e4:  dup
-        IL_00e5:  stloc.1
-        IL_00e6:  stfld      ""C.VB$StateMachine_3_F.$State As Integer""
-        IL_00eb:  nop
-        IL_00ec:  ldarg.0
-        IL_00ed:  ldfld      ""C.VB$StateMachine_3_F.$S3 As System.Collections.Generic.IEnumerator(Of Integer)""
-        IL_00f2:  callvirt   ""Function System.Collections.IEnumerator.MoveNext() As Boolean""
-        IL_00f7:  stloc.2
-        IL_00f8:  ldloc.2
-        IL_00f9:  brtrue.s   IL_00bd
-        IL_00fb:  leave.s    IL_0118
+        IL_00de:  nop
+        IL_00df:  ldarg.0
+        IL_00e0:  ldfld      ""C.VB$StateMachine_3_F.$S3 As System.Collections.Generic.IEnumerator(Of Integer)""
+        IL_00e5:  callvirt   ""Function System.Collections.IEnumerator.MoveNext() As Boolean""
+        IL_00ea:  stloc.2
+        IL_00eb:  ldloc.2
+        IL_00ec:  brtrue.s   IL_00b0
+        IL_00ee:  leave.s    IL_010b
       }
       finally
       {
-        IL_00fd:  ldloc.1
-        IL_00fe:  ldc.i4.0
-        IL_00ff:  bge.s      IL_0117
-        IL_0101:  ldarg.0
-        IL_0102:  ldfld      ""C.VB$StateMachine_3_F.$S3 As System.Collections.Generic.IEnumerator(Of Integer)""
-        IL_0107:  brfalse.s  IL_0115
-        IL_0109:  ldarg.0
-        IL_010a:  ldfld      ""C.VB$StateMachine_3_F.$S3 As System.Collections.Generic.IEnumerator(Of Integer)""
-        IL_010f:  callvirt   ""Sub System.IDisposable.Dispose()""
-        IL_0114:  nop
-        IL_0115:  br.s       IL_0117
-        IL_0117:  endfinally
+        IL_00f0:  ldloc.1
+        IL_00f1:  ldc.i4.0
+        IL_00f2:  bge.s      IL_010a
+        IL_00f4:  ldarg.0
+        IL_00f5:  ldfld      ""C.VB$StateMachine_3_F.$S3 As System.Collections.Generic.IEnumerator(Of Integer)""
+        IL_00fa:  brfalse.s  IL_0108
+        IL_00fc:  ldarg.0
+        IL_00fd:  ldfld      ""C.VB$StateMachine_3_F.$S3 As System.Collections.Generic.IEnumerator(Of Integer)""
+        IL_0102:  callvirt   ""Sub System.IDisposable.Dispose()""
+        IL_0107:  nop
+        IL_0108:  br.s       IL_010a
+        IL_010a:  endfinally
       }
-      IL_0118:  leave.s    IL_0136
+      IL_010b:  leave.s    IL_0129
     }
     finally
     {
-      IL_011a:  ldloc.1
-      IL_011b:  ldc.i4.0
-      IL_011c:  bge.s      IL_0135
-      IL_011e:  nop
-      IL_011f:  ldarg.0
-      IL_0120:  ldfld      ""C.VB$StateMachine_3_F.$S2 As System.IDisposable""
-      IL_0125:  brfalse.s  IL_0133
-      IL_0127:  ldarg.0
-      IL_0128:  ldfld      ""C.VB$StateMachine_3_F.$S2 As System.IDisposable""
-      IL_012d:  callvirt   ""Sub System.IDisposable.Dispose()""
-      IL_0132:  nop
-      IL_0133:  br.s       IL_0135
-      IL_0135:  endfinally
+      IL_010d:  ldloc.1
+      IL_010e:  ldc.i4.0
+      IL_010f:  bge.s      IL_0128
+      IL_0111:  nop
+      IL_0112:  ldarg.0
+      IL_0113:  ldfld      ""C.VB$StateMachine_3_F.$S2 As System.IDisposable""
+      IL_0118:  brfalse.s  IL_0126
+      IL_011a:  ldarg.0
+      IL_011b:  ldfld      ""C.VB$StateMachine_3_F.$S2 As System.IDisposable""
+      IL_0120:  callvirt   ""Sub System.IDisposable.Dispose()""
+      IL_0125:  nop
+      IL_0126:  br.s       IL_0128
+      IL_0128:  endfinally
     }
-    IL_0136:  leave.s    IL_0154
+    IL_0129:  leave.s    IL_0147
   }
   finally
   {
-    IL_0138:  ldloc.1
-    IL_0139:  ldc.i4.0
-    IL_013a:  bge.s      IL_0153
-    IL_013c:  ldarg.0
-    IL_013d:  ldfld      ""C.VB$StateMachine_3_F.$S1 As Boolean""
-    IL_0142:  brfalse.s  IL_0150
-    IL_0144:  ldarg.0
-    IL_0145:  ldfld      ""C.VB$StateMachine_3_F.$S0 As Object""
-    IL_014a:  call       ""Sub System.Threading.Monitor.Exit(Object)""
-    IL_014f:  nop
-    IL_0150:  nop
-    IL_0151:  br.s       IL_0153
-    IL_0153:  endfinally
+    IL_012b:  ldloc.1
+    IL_012c:  ldc.i4.0
+    IL_012d:  bge.s      IL_0146
+    IL_012f:  ldarg.0
+    IL_0130:  ldfld      ""C.VB$StateMachine_3_F.$S1 As Boolean""
+    IL_0135:  brfalse.s  IL_0143
+    IL_0137:  ldarg.0
+    IL_0138:  ldfld      ""C.VB$StateMachine_3_F.$S0 As Object""
+    IL_013d:  call       ""Sub System.Threading.Monitor.Exit(Object)""
+    IL_0142:  nop
+    IL_0143:  nop
+    IL_0144:  br.s       IL_0146
+    IL_0146:  endfinally
   }
-  IL_0154:  nop
-  IL_0155:  ldc.i4.0
-  IL_0156:  ret
-  IL_0157:  ldloc.0
-  IL_0158:  ret
+  IL_0147:  nop
+  IL_0148:  ldc.i4.0
+  IL_0149:  ret
+  IL_014a:  ldloc.0
+  IL_014b:  ret
 }")
                 diff1.VerifyIL("C.VB$StateMachine_3_F.MoveNext", "
 {
-  // Code size      393 (0x189)
+  // Code size      397 (0x18d)
   .maxstack  3
   .locals init (Boolean V_0,
                 Integer V_1,
@@ -6139,205 +6124,206 @@ End SyncLock</N:0>
   IL_0001:  ldfld      ""C.VB$StateMachine_3_F.$State As Integer""
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
-  IL_0008:  ldc.i4.s   -3
+  IL_0008:  ldc.i4.s   -4
   IL_000a:  sub
   IL_000b:  switch    (
-        IL_002a,
         IL_002e,
+        IL_0032,
+        IL_0032,
+        IL_0032,
+        IL_0030,
         IL_002e,
-        IL_002c,
-        IL_002a,
-        IL_002a)
-  IL_0028:  br.s       IL_002e
-  IL_002a:  br.s       IL_004d
-  IL_002c:  br.s       IL_0030
-  IL_002e:  ldc.i4.0
-  IL_002f:  ret
-  IL_0030:  ldarg.0
-  IL_0031:  ldc.i4.m1
-  IL_0032:  dup
-  IL_0033:  stloc.1
-  IL_0034:  stfld      ""C.VB$StateMachine_3_F.$State As Integer""
-  IL_0039:  nop
-  IL_003a:  nop
-  IL_003b:  ldarg.0
-  IL_003c:  call       ""Function C.D() As System.IDisposable""
-  IL_0041:  stfld      ""C.VB$StateMachine_3_F.$S0 As Object""
-  IL_0046:  ldarg.0
-  IL_0047:  ldc.i4.0
-  IL_0048:  stfld      ""C.VB$StateMachine_3_F.$S1 As Boolean""
-  IL_004d:  nop
+        IL_002e)
+  IL_002c:  br.s       IL_0032
+  IL_002e:  br.s       IL_0051
+  IL_0030:  br.s       IL_0034
+  IL_0032:  ldc.i4.0
+  IL_0033:  ret
+  IL_0034:  ldarg.0
+  IL_0035:  ldc.i4.m1
+  IL_0036:  dup
+  IL_0037:  stloc.1
+  IL_0038:  stfld      ""C.VB$StateMachine_3_F.$State As Integer""
+  IL_003d:  nop
+  IL_003e:  nop
+  IL_003f:  ldarg.0
+  IL_0040:  call       ""Function C.D() As System.IDisposable""
+  IL_0045:  stfld      ""C.VB$StateMachine_3_F.$S0 As Object""
+  IL_004a:  ldarg.0
+  IL_004b:  ldc.i4.0
+  IL_004c:  stfld      ""C.VB$StateMachine_3_F.$S1 As Boolean""
+  IL_0051:  nop
   .try
   {
-    IL_004e:  ldloc.1
-    IL_004f:  ldc.i4.s   -3
-    IL_0051:  beq.s      IL_005d
-    IL_0053:  br.s       IL_0055
-    IL_0055:  ldloc.1
-    IL_0056:  ldc.i4.1
-    IL_0057:  sub
-    IL_0058:  ldc.i4.1
-    IL_0059:  ble.un.s   IL_005d
-    IL_005b:  br.s       IL_005f
-    IL_005d:  br.s       IL_007d
-    IL_005f:  ldarg.0
-    IL_0060:  ldfld      ""C.VB$StateMachine_3_F.$S0 As Object""
-    IL_0065:  ldarg.0
-    IL_0066:  ldflda     ""C.VB$StateMachine_3_F.$S1 As Boolean""
-    IL_006b:  call       ""Sub System.Threading.Monitor.Enter(Object, ByRef Boolean)""
-    IL_0070:  nop
-    IL_0071:  nop
-    IL_0072:  ldarg.0
-    IL_0073:  call       ""Function C.D() As System.IDisposable""
-    IL_0078:  stfld      ""C.VB$StateMachine_3_F.$S2 As System.IDisposable""
-    IL_007d:  nop
+    IL_0052:  ldloc.1
+    IL_0053:  ldc.i4.s   -4
+    IL_0055:  beq.s      IL_0061
+    IL_0057:  br.s       IL_0059
+    IL_0059:  ldloc.1
+    IL_005a:  ldc.i4.1
+    IL_005b:  sub
+    IL_005c:  ldc.i4.1
+    IL_005d:  ble.un.s   IL_0061
+    IL_005f:  br.s       IL_0063
+    IL_0061:  br.s       IL_0081
+    IL_0063:  ldarg.0
+    IL_0064:  ldfld      ""C.VB$StateMachine_3_F.$S0 As Object""
+    IL_0069:  ldarg.0
+    IL_006a:  ldflda     ""C.VB$StateMachine_3_F.$S1 As Boolean""
+    IL_006f:  call       ""Sub System.Threading.Monitor.Enter(Object, ByRef Boolean)""
+    IL_0074:  nop
+    IL_0075:  nop
+    IL_0076:  ldarg.0
+    IL_0077:  call       ""Function C.D() As System.IDisposable""
+    IL_007c:  stfld      ""C.VB$StateMachine_3_F.$S2 As System.IDisposable""
+    IL_0081:  nop
     .try
     {
-      IL_007e:  ldloc.1
-      IL_007f:  ldc.i4.s   -3
-      IL_0081:  beq.s      IL_008d
-      IL_0083:  br.s       IL_0085
-      IL_0085:  ldloc.1
-      IL_0086:  ldc.i4.1
-      IL_0087:  sub
-      IL_0088:  ldc.i4.1
-      IL_0089:  ble.un.s   IL_008d
-      IL_008b:  br.s       IL_008f
-      IL_008d:  br.s       IL_008f
-      IL_008f:  nop
+      IL_0082:  ldloc.1
+      IL_0083:  ldc.i4.s   -4
+      IL_0085:  beq.s      IL_0091
+      IL_0087:  br.s       IL_0089
+      IL_0089:  ldloc.1
+      IL_008a:  ldc.i4.1
+      IL_008b:  sub
+      IL_008c:  ldc.i4.1
+      IL_008d:  ble.un.s   IL_0091
+      IL_008f:  br.s       IL_0093
+      IL_0091:  br.s       IL_0093
+      IL_0093:  nop
       .try
       {
-        IL_0090:  ldloc.1
-        IL_0091:  ldc.i4.s   -3
-        IL_0093:  beq.s      IL_00a3
-        IL_0095:  br.s       IL_0097
-        IL_0097:  ldloc.1
-        IL_0098:  ldc.i4.1
-        IL_0099:  beq.s      IL_00a5
-        IL_009b:  br.s       IL_009d
-        IL_009d:  ldloc.1
-        IL_009e:  ldc.i4.2
-        IL_009f:  beq.s      IL_00a7
-        IL_00a1:  br.s       IL_00a9
-        IL_00a3:  br.s       IL_00ab
-        IL_00a5:  br.s       IL_00f5
-        IL_00a7:  br.s       IL_0112
-        IL_00a9:  br.s       IL_00bb
-        IL_00ab:  ldarg.0
-        IL_00ac:  ldc.i4.m1
-        IL_00ad:  dup
-        IL_00ae:  stloc.1
-        IL_00af:  stfld      ""C.VB$StateMachine_3_F.$State As Integer""
-        IL_00b4:  ldc.i4.1
-        IL_00b5:  stloc.0
-        IL_00b6:  leave      IL_0187
-        IL_00bb:  ldarg.0
-        IL_00bc:  call       ""Function C.E() As System.Collections.Generic.IEnumerable(Of Integer)""
-        IL_00c1:  callvirt   ""Function System.Collections.Generic.IEnumerable(Of Integer).GetEnumerator() As System.Collections.Generic.IEnumerator(Of Integer)""
-        IL_00c6:  stfld      ""C.VB$StateMachine_3_F.$S3 As System.Collections.Generic.IEnumerator(Of Integer)""
-        IL_00cb:  br.s       IL_011c
-        IL_00cd:  ldarg.0
-        IL_00ce:  ldarg.0
-        IL_00cf:  ldfld      ""C.VB$StateMachine_3_F.$S3 As System.Collections.Generic.IEnumerator(Of Integer)""
-        IL_00d4:  callvirt   ""Function System.Collections.Generic.IEnumerator(Of Integer).get_Current() As Integer""
-        IL_00d9:  stfld      ""C.VB$StateMachine_3_F.$VB$ResumableLocal_y$4 As Integer""
-        IL_00de:  ldarg.0
-        IL_00df:  ldc.i4.1
-        IL_00e0:  stfld      ""C.VB$StateMachine_3_F.$Current As Integer""
-        IL_00e5:  ldarg.0
-        IL_00e6:  ldc.i4.1
-        IL_00e7:  dup
-        IL_00e8:  stloc.1
-        IL_00e9:  stfld      ""C.VB$StateMachine_3_F.$State As Integer""
-        IL_00ee:  ldc.i4.1
-        IL_00ef:  stloc.0
-        IL_00f0:  leave      IL_0187
-        IL_00f5:  ldarg.0
-        IL_00f6:  ldc.i4.m1
-        IL_00f7:  dup
-        IL_00f8:  stloc.1
-        IL_00f9:  stfld      ""C.VB$StateMachine_3_F.$State As Integer""
-        IL_00fe:  ldarg.0
-        IL_00ff:  ldc.i4.2
-        IL_0100:  stfld      ""C.VB$StateMachine_3_F.$Current As Integer""
-        IL_0105:  ldarg.0
-        IL_0106:  ldc.i4.2
-        IL_0107:  dup
-        IL_0108:  stloc.1
-        IL_0109:  stfld      ""C.VB$StateMachine_3_F.$State As Integer""
-        IL_010e:  ldc.i4.1
-        IL_010f:  stloc.0
-        IL_0110:  leave.s    IL_0187
-        IL_0112:  ldarg.0
-        IL_0113:  ldc.i4.m1
-        IL_0114:  dup
-        IL_0115:  stloc.1
-        IL_0116:  stfld      ""C.VB$StateMachine_3_F.$State As Integer""
-        IL_011b:  nop
-        IL_011c:  ldarg.0
-        IL_011d:  ldfld      ""C.VB$StateMachine_3_F.$S3 As System.Collections.Generic.IEnumerator(Of Integer)""
-        IL_0122:  callvirt   ""Function System.Collections.IEnumerator.MoveNext() As Boolean""
-        IL_0127:  stloc.2
-        IL_0128:  ldloc.2
-        IL_0129:  brtrue.s   IL_00cd
-        IL_012b:  leave.s    IL_0148
+        IL_0094:  ldloc.1
+        IL_0095:  ldc.i4.s   -4
+        IL_0097:  beq.s      IL_00a7
+        IL_0099:  br.s       IL_009b
+        IL_009b:  ldloc.1
+        IL_009c:  ldc.i4.1
+        IL_009d:  beq.s      IL_00a9
+        IL_009f:  br.s       IL_00a1
+        IL_00a1:  ldloc.1
+        IL_00a2:  ldc.i4.2
+        IL_00a3:  beq.s      IL_00ab
+        IL_00a5:  br.s       IL_00ad
+        IL_00a7:  br.s       IL_00af
+        IL_00a9:  br.s       IL_00f9
+        IL_00ab:  br.s       IL_0116
+        IL_00ad:  br.s       IL_00bf
+        IL_00af:  ldarg.0
+        IL_00b0:  ldc.i4.m1
+        IL_00b1:  dup
+        IL_00b2:  stloc.1
+        IL_00b3:  stfld      ""C.VB$StateMachine_3_F.$State As Integer""
+        IL_00b8:  ldc.i4.1
+        IL_00b9:  stloc.0
+        IL_00ba:  leave      IL_018b
+        IL_00bf:  ldarg.0
+        IL_00c0:  call       ""Function C.E() As System.Collections.Generic.IEnumerable(Of Integer)""
+        IL_00c5:  callvirt   ""Function System.Collections.Generic.IEnumerable(Of Integer).GetEnumerator() As System.Collections.Generic.IEnumerator(Of Integer)""
+        IL_00ca:  stfld      ""C.VB$StateMachine_3_F.$S3 As System.Collections.Generic.IEnumerator(Of Integer)""
+        IL_00cf:  br.s       IL_0120
+        IL_00d1:  ldarg.0
+        IL_00d2:  ldarg.0
+        IL_00d3:  ldfld      ""C.VB$StateMachine_3_F.$S3 As System.Collections.Generic.IEnumerator(Of Integer)""
+        IL_00d8:  callvirt   ""Function System.Collections.Generic.IEnumerator(Of Integer).get_Current() As Integer""
+        IL_00dd:  stfld      ""C.VB$StateMachine_3_F.$VB$ResumableLocal_y$4 As Integer""
+        IL_00e2:  ldarg.0
+        IL_00e3:  ldc.i4.1
+        IL_00e4:  stfld      ""C.VB$StateMachine_3_F.$Current As Integer""
+        IL_00e9:  ldarg.0
+        IL_00ea:  ldc.i4.1
+        IL_00eb:  dup
+        IL_00ec:  stloc.1
+        IL_00ed:  stfld      ""C.VB$StateMachine_3_F.$State As Integer""
+        IL_00f2:  ldc.i4.1
+        IL_00f3:  stloc.0
+        IL_00f4:  leave      IL_018b
+        IL_00f9:  ldarg.0
+        IL_00fa:  ldc.i4.m1
+        IL_00fb:  dup
+        IL_00fc:  stloc.1
+        IL_00fd:  stfld      ""C.VB$StateMachine_3_F.$State As Integer""
+        IL_0102:  ldarg.0
+        IL_0103:  ldc.i4.2
+        IL_0104:  stfld      ""C.VB$StateMachine_3_F.$Current As Integer""
+        IL_0109:  ldarg.0
+        IL_010a:  ldc.i4.2
+        IL_010b:  dup
+        IL_010c:  stloc.1
+        IL_010d:  stfld      ""C.VB$StateMachine_3_F.$State As Integer""
+        IL_0112:  ldc.i4.1
+        IL_0113:  stloc.0
+        IL_0114:  leave.s    IL_018b
+        IL_0116:  ldarg.0
+        IL_0117:  ldc.i4.m1
+        IL_0118:  dup
+        IL_0119:  stloc.1
+        IL_011a:  stfld      ""C.VB$StateMachine_3_F.$State As Integer""
+        IL_011f:  nop
+        IL_0120:  ldarg.0
+        IL_0121:  ldfld      ""C.VB$StateMachine_3_F.$S3 As System.Collections.Generic.IEnumerator(Of Integer)""
+        IL_0126:  callvirt   ""Function System.Collections.IEnumerator.MoveNext() As Boolean""
+        IL_012b:  stloc.2
+        IL_012c:  ldloc.2
+        IL_012d:  brtrue.s   IL_00d1
+        IL_012f:  leave.s    IL_014c
       }
       finally
       {
-        IL_012d:  ldloc.1
-        IL_012e:  ldc.i4.0
-        IL_012f:  bge.s      IL_0147
-        IL_0131:  ldarg.0
-        IL_0132:  ldfld      ""C.VB$StateMachine_3_F.$S3 As System.Collections.Generic.IEnumerator(Of Integer)""
-        IL_0137:  brfalse.s  IL_0145
-        IL_0139:  ldarg.0
-        IL_013a:  ldfld      ""C.VB$StateMachine_3_F.$S3 As System.Collections.Generic.IEnumerator(Of Integer)""
-        IL_013f:  callvirt   ""Sub System.IDisposable.Dispose()""
-        IL_0144:  nop
-        IL_0145:  br.s       IL_0147
-        IL_0147:  endfinally
+        IL_0131:  ldloc.1
+        IL_0132:  ldc.i4.0
+        IL_0133:  bge.s      IL_014b
+        IL_0135:  ldarg.0
+        IL_0136:  ldfld      ""C.VB$StateMachine_3_F.$S3 As System.Collections.Generic.IEnumerator(Of Integer)""
+        IL_013b:  brfalse.s  IL_0149
+        IL_013d:  ldarg.0
+        IL_013e:  ldfld      ""C.VB$StateMachine_3_F.$S3 As System.Collections.Generic.IEnumerator(Of Integer)""
+        IL_0143:  callvirt   ""Sub System.IDisposable.Dispose()""
+        IL_0148:  nop
+        IL_0149:  br.s       IL_014b
+        IL_014b:  endfinally
       }
-      IL_0148:  leave.s    IL_0166
+      IL_014c:  leave.s    IL_016a
     }
     finally
     {
-      IL_014a:  ldloc.1
-      IL_014b:  ldc.i4.0
-      IL_014c:  bge.s      IL_0165
-      IL_014e:  nop
-      IL_014f:  ldarg.0
-      IL_0150:  ldfld      ""C.VB$StateMachine_3_F.$S2 As System.IDisposable""
-      IL_0155:  brfalse.s  IL_0163
-      IL_0157:  ldarg.0
-      IL_0158:  ldfld      ""C.VB$StateMachine_3_F.$S2 As System.IDisposable""
-      IL_015d:  callvirt   ""Sub System.IDisposable.Dispose()""
-      IL_0162:  nop
-      IL_0163:  br.s       IL_0165
-      IL_0165:  endfinally
+      IL_014e:  ldloc.1
+      IL_014f:  ldc.i4.0
+      IL_0150:  bge.s      IL_0169
+      IL_0152:  nop
+      IL_0153:  ldarg.0
+      IL_0154:  ldfld      ""C.VB$StateMachine_3_F.$S2 As System.IDisposable""
+      IL_0159:  brfalse.s  IL_0167
+      IL_015b:  ldarg.0
+      IL_015c:  ldfld      ""C.VB$StateMachine_3_F.$S2 As System.IDisposable""
+      IL_0161:  callvirt   ""Sub System.IDisposable.Dispose()""
+      IL_0166:  nop
+      IL_0167:  br.s       IL_0169
+      IL_0169:  endfinally
     }
-    IL_0166:  leave.s    IL_0184
+    IL_016a:  leave.s    IL_0188
   }
   finally
   {
-    IL_0168:  ldloc.1
-    IL_0169:  ldc.i4.0
-    IL_016a:  bge.s      IL_0183
-    IL_016c:  ldarg.0
-    IL_016d:  ldfld      ""C.VB$StateMachine_3_F.$S1 As Boolean""
-    IL_0172:  brfalse.s  IL_0180
-    IL_0174:  ldarg.0
-    IL_0175:  ldfld      ""C.VB$StateMachine_3_F.$S0 As Object""
-    IL_017a:  call       ""Sub System.Threading.Monitor.Exit(Object)""
-    IL_017f:  nop
-    IL_0180:  nop
-    IL_0181:  br.s       IL_0183
-    IL_0183:  endfinally
+    IL_016c:  ldloc.1
+    IL_016d:  ldc.i4.0
+    IL_016e:  bge.s      IL_0187
+    IL_0170:  ldarg.0
+    IL_0171:  ldfld      ""C.VB$StateMachine_3_F.$S1 As Boolean""
+    IL_0176:  brfalse.s  IL_0184
+    IL_0178:  ldarg.0
+    IL_0179:  ldfld      ""C.VB$StateMachine_3_F.$S0 As Object""
+    IL_017e:  call       ""Sub System.Threading.Monitor.Exit(Object)""
+    IL_0183:  nop
+    IL_0184:  nop
+    IL_0185:  br.s       IL_0187
+    IL_0187:  endfinally
   }
-  IL_0184:  nop
-  IL_0185:  ldc.i4.0
-  IL_0186:  ret
-  IL_0187:  ldloc.0
-  IL_0188:  ret
+  IL_0188:  nop
+  IL_0189:  ldc.i4.0
+  IL_018a:  ret
+  IL_018b:  ldloc.0
+  IL_018c:  ret
 }")
             End Using
         End Sub
