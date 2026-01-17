@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override bool AreInternalsVisibleToThisAssembly(AssemblySymbol potentialGiverOfAccess)
         {
-            IVTConclusion conclusion = MakeFinalIVTDetermination(potentialGiverOfAccess);
+            IVTConclusion conclusion = MakeFinalIVTDetermination(potentialGiverOfAccess, assertUnexpectedGiver: true);
             return conclusion == IVTConclusion.Match || conclusion == IVTConclusion.OneSignedOneNot;
         }
 
