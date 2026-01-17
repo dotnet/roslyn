@@ -4280,7 +4280,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             InitializerCompletionAfterTargetType? completion = null;
 
             TakeIncrementalSnapshot(node);
-            BoundObjectOrCollectionValuePlaceholder placeholder = node.Placeholder;
             switch (node)
             {
                 case BoundObjectInitializerExpression objectInitializer:
@@ -4289,7 +4288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         switch (initializer.Kind)
                         {
                             case BoundKind.AssignmentOperator:
-                                completion += VisitObjectElementInitializer(containingSlot, containingType, (BoundAssignmentOperator)initializer, placeholder, delayCompletionForType);
+                                completion += VisitObjectElementInitializer(containingSlot, containingType, (BoundAssignmentOperator)initializer, delayCompletionForType);
                                 break;
                             default:
                                 VisitRvalue(initializer);
@@ -4325,7 +4324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If <paramref name="delayCompletionForType"/>, <paramref name="containingSlot"/> is known only within returned delegate.
         /// </summary>
         /// <returns>A delegate to complete the element initializer analysis.</returns>
-        private InitializerCompletionAfterTargetType? VisitObjectElementInitializer(int containingSlot, TypeSymbol containingType, BoundAssignmentOperator node, BoundObjectOrCollectionValuePlaceholder placeholder, bool delayCompletionForType)
+        private InitializerCompletionAfterTargetType? VisitObjectElementInitializer(int containingSlot, TypeSymbol containingType, BoundAssignmentOperator node, bool delayCompletionForType)
         {
             Debug.Assert(!delayCompletionForType || containingSlot == -1);
 
@@ -4336,16 +4335,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.ObjectInitializerMember:
                     TakeIncrementalSnapshot(left);
-                    result = visitMemberInitializer(containingSlot, containingType, node, delayCompletionForType);
-                    break;
+                    return visitMemberInitializer(containingSlot, containingType, node, delayCompletionForType);
 
                 default:
                     VisitRvalue(node);
-                    result = null;
-                    break;
+                    return null;
             }
-
-            return result;
 
             InitializerCompletionAfterTargetType? visitMemberInitializer(int containingSlot, TypeSymbol containingType, BoundAssignmentOperator node, bool delayCompletionForType)
             {

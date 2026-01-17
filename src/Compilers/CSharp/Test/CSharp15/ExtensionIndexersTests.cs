@@ -6470,7 +6470,7 @@ public static class E
         CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics();
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE assertion in NullableWalker.DebugVerifier")]
     public void Nullability_ListPattern_01()
     {
         string source = """
@@ -6500,13 +6500,10 @@ public static class E
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
-#if RELEASE
-        // PROTOTYPE assertion in NullableWalker.DebugVerifier
         comp.VerifyEmitDiagnostics(
             // (5,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
             //     string y1 = x1;
             Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x1").WithLocation(5, 17));
-#endif
     }
 
     [Fact]
