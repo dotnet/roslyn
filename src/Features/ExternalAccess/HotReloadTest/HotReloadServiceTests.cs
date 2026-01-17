@@ -326,9 +326,15 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         Assert.Empty(result.ProjectsToRestart);
         Assert.Empty(result.ProjectsToRebuild);
 
+        var message = string.Format(
+            FeaturesResources.Changing_source_file_0_in_a_stale_project_1_has_no_effect_until_the_project_is_rebuilt_2,
+            sourceFileA.Path,
+            "P",
+            FeaturesResources.the_content_of_the_document_is_stale);
+
         AssertEx.Equal(
         [
-            $"P: {sourceFileA.Path}: (0,0)-(0,0): Warning ENC1008: {string.Format(FeaturesResources.Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit, sourceFileA.Path)}",
+            $"P: {sourceFileA.Path}: (0,0)-(0,0): Warning ENC1008: {message}",
         ], InspectDiagnostics(result.TransientDiagnostics));
     }
 

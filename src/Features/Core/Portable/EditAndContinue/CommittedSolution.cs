@@ -21,6 +21,18 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 /// <summary>
+/// Stale project details.
+/// </summary>
+/// <param name="Mvid">Module ID of the built output binary.</param>
+/// <param name="StaleDocumentPath">
+/// Path of one of the stale documents that caused the project staleness.
+/// 
+/// Use path instead of <see cref="DocumentId"/> so that a diagnostic describing the reason of the staleness can be reported 
+/// even if the document is removed from the project.
+/// </param>
+internal readonly record struct StaleProjectInfo(Guid Mvid, string StaleDocumentPath);
+
+/// <summary>
 /// Encapsulates access to the last committed solution.
 /// We don't want to expose the solution directly since access to documents must be gated by out-of-sync checks.
 /// </summary>
@@ -74,7 +86,7 @@ internal sealed class CommittedSolution(DebuggingSession debuggingSession, Solut
     /// 
     /// Lock <see cref="_guard"/> to update.
     /// </summary>
-    private ImmutableDictionary<ProjectId, Guid> _staleProjects = ImmutableDictionary<ProjectId, Guid>.Empty;
+    private ImmutableDictionary<ProjectId, StaleProjectInfo> _staleProjects = ImmutableDictionary<ProjectId, StaleProjectInfo>.Empty;
 
     /// <summary>
     /// Implements workaround for https://github.com/dotnet/project-system/issues/5457.
@@ -132,7 +144,7 @@ internal sealed class CommittedSolution(DebuggingSession debuggingSession, Solut
     public Project GetRequiredProject(ProjectId id)
         => _solution.GetRequiredProject(id);
 
-    public ImmutableDictionary<ProjectId, Guid> StaleProjects
+    public ImmutableDictionary<ProjectId, StaleProjectInfo> StaleProjects
         => _staleProjects;
 
     public ImmutableArray<DocumentId> GetDocumentIdsWithFilePath(string path)
@@ -382,7 +394,7 @@ internal sealed class CommittedSolution(DebuggingSession debuggingSession, Solut
         }
     }
 
-    public void CommitChanges(Solution solution, ImmutableDictionary<ProjectId, Guid> staleProjects)
+    public void CommitChanges(Solution solution, ImmutableDictionary<ProjectId, StaleProjectInfo> staleProjects)
     {
         lock (_guard)
         {

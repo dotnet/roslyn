@@ -197,7 +197,7 @@ internal static class EditAndContinueDiagnosticDescriptors
         AddGeneralDiagnostic(EditAndContinueErrorCode.DocumentIsOutOfSyncWithDebuggee, nameof(FeaturesResources.DocumentIsOutOfSyncWithDebuggee), DiagnosticSeverity.Warning);
         AddGeneralDiagnostic(EditAndContinueErrorCode.UnableToReadSourceFileOrPdb, nameof(FeaturesResources.UnableToReadSourceFileOrPdb));
         AddGeneralDiagnostic(EditAndContinueErrorCode.AddingTypeRuntimeCapabilityRequired, nameof(FeaturesResources.ChangesRequiredSynthesizedType));
-        AddGeneralDiagnostic(EditAndContinueErrorCode.UpdatingDocumentInStaleProject, nameof(FeaturesResources.Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit), DiagnosticSeverity.Warning, noEffect: true);
+        AddGeneralDiagnostic(EditAndContinueErrorCode.UpdatingDocumentInStaleProject, nameof(FeaturesResources.Changing_source_file_0_in_a_stale_project_1_has_no_effect_until_the_project_is_rebuilt_2), DiagnosticSeverity.Warning, noEffect: true);
 
         // Project setting rude edits. Defines a distinct error code per setting to simplify telemetry tracking even though some errors share the same message.
 
