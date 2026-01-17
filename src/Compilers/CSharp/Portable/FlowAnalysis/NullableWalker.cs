@@ -4280,6 +4280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             InitializerCompletionAfterTargetType? completion = null;
 
             TakeIncrementalSnapshot(node);
+            BoundObjectOrCollectionValuePlaceholder placeholder = node.Placeholder;
             switch (node)
             {
                 case BoundObjectInitializerExpression objectInitializer:
@@ -4288,7 +4289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         switch (initializer.Kind)
                         {
                             case BoundKind.AssignmentOperator:
-                                completion += VisitObjectElementInitializer(containingSlot, containingType, (BoundAssignmentOperator)initializer, delayCompletionForType);
+                                completion += VisitObjectElementInitializer(containingSlot, containingType, (BoundAssignmentOperator)initializer, placeholder, delayCompletionForType);
                                 break;
                             default:
                                 VisitRvalue(initializer);
@@ -4324,24 +4325,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If <paramref name="delayCompletionForType"/>, <paramref name="containingSlot"/> is known only within returned delegate.
         /// </summary>
         /// <returns>A delegate to complete the element initializer analysis.</returns>
-        private InitializerCompletionAfterTargetType? VisitObjectElementInitializer(int containingSlot, TypeSymbol containingType, BoundAssignmentOperator node, bool delayCompletionForType)
+        private InitializerCompletionAfterTargetType? VisitObjectElementInitializer(int containingSlot, TypeSymbol containingType, BoundAssignmentOperator node, BoundObjectOrCollectionValuePlaceholder placeholder, bool delayCompletionForType)
         {
             Debug.Assert(!delayCompletionForType || containingSlot == -1);
 
             TakeIncrementalSnapshot(node);
             var left = node.Left;
+            InitializerCompletionAfterTargetType? result = null;
             switch (left.Kind)
             {
                 case BoundKind.ObjectInitializerMember:
-                    {
-                        TakeIncrementalSnapshot(left);
-                        return visitMemberInitializer(containingSlot, containingType, node, delayCompletionForType);
-                    }
+                    TakeIncrementalSnapshot(left);
+                    result = visitMemberInitializer(containingSlot, containingType, node, delayCompletionForType);
+                    break;
 
                 default:
                     VisitRvalue(node);
-                    return null;
+                    result = null;
+                    break;
             }
+
+            return result;
 
             InitializerCompletionAfterTargetType? visitMemberInitializer(int containingSlot, TypeSymbol containingType, BoundAssignmentOperator node, bool delayCompletionForType)
             {
@@ -4423,28 +4427,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (int containingSlot, TypeSymbol containingType) =>
                 {
                     var objectInitializer = (BoundObjectInitializerMember)node.Left;
-                    var symbol = objectInitializer.MemberSymbol;
-                    Symbol? updatedSymbol = null;
-                    if (symbol is PropertySymbol property && property.IsExtensionBlockMember())
+                    Symbol? updatedSymbol = objectInitializer.MemberSymbol;
+                    if (updatedSymbol?.IsExtensionBlockMember() == false)
                     {
-                        if (argumentsCompletion is not null)
+                        updatedSymbol = AsMemberOfType(containingType, updatedSymbol);
+                    }
+
+                    if (argumentsCompletion is not null)
+                    {
+                        var parameters = updatedSymbol.GetParameters();
+                        if (updatedSymbol?.IsExtensionBlockMember() == true)
                         {
-                            var parameters = AdjustParametersIfNeeded(property.Parameters, isExtensionBlockMember: true, property);
+                            parameters = AdjustParametersIfNeeded(parameters, isExtensionBlockMember: true, updatedSymbol);
+
+                            Debug.Assert(argumentResults[0].LValueType.Type.Equals(containingType, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
                             argumentResults = argumentResults.SetItem(0, new VisitResult(containingType, NullableAnnotation.NotAnnotated, NullableFlowState.NotNull));
-                            (updatedSymbol, _) = argumentsCompletion(argumentResults, parameters, property);
                         }
-                    }
-                    else if (symbol is null)
-                    {
-                        argumentsCompletion?.Invoke(argumentResults, parametersOpt: default, member: null);
-                    }
-                    else
-                    {
-                        updatedSymbol = AsMemberOfType(containingType, symbol);
-                        if (updatedSymbol is PropertySymbol nonExtensionProperty && !objectInitializer.Arguments.IsEmpty)
-                        {
-                            argumentsCompletion?.Invoke(argumentResults, nonExtensionProperty.Parameters, nonExtensionProperty);
-                        }
+
+                        (updatedSymbol, _) = argumentsCompletion(argumentResults, parameters, updatedSymbol);
                     }
 
                     Debug.Assert(initializationCompletion is null || updatedSymbol is not null);
@@ -13091,7 +13091,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // These placeholders don't yet follow proper placeholder discipline
             AssertPlaceholderAllowedWithoutRegistration(node);
-            SetNotNullResult(node);
+            VisitPlaceholderWithReplacement(node);
             return null;
         }
 
