@@ -715,4 +715,113 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
             }
             """
         }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82037")]
+    public Task TestNotOfferedWithDirectivesOnIfStatement_LeadingPragma()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            #nullable enable
+            class C
+            {
+                public void M()
+                {
+            #pragma warning disable
+                    var value = M2();
+                    // Test
+            #pragma warning restore
+                    if (value == null)
+                    {
+                        throw new System.InvalidOperationException();
+                    }
+                }
+
+                string? M2() => null;
+            }
+            """
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82037")]
+    public Task TestNotOfferedWithDirectivesOnIfStatement_LeadingRegion()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            #nullable enable
+            class C
+            {
+                public void M()
+                {
+                    var value = M2();
+            #region Test
+                    if (value == null)
+                    {
+                        throw new System.InvalidOperationException();
+                    }
+            #endregion
+                }
+
+                string? M2() => null;
+            }
+            """
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82037")]
+    public Task TestPreprocessorInBlock1()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            #nullable enable
+            class C
+            {
+                public void M()
+                {
+                    var value = M2();
+                    [|if|] (value == null)
+                    {
+            #if true
+                        throw new System.InvalidOperationException();
+            #endif
+                    }
+                }
+
+                string? M2() => null;
+            }
+            """,
+            FixedCode = """
+            #nullable enable
+            class C
+            {
+                public void M()
+                {
+                    var value = M2() ?? throw new System.InvalidOperationException();
+                }
+            
+                string? M2() => null;
+            }
+            """,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82037")]
+    public Task TestPreprocessorInBlock2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            #nullable enable
+            class C
+            {
+                public void M()
+                {
+                    var value = M2();
+                    if (value == null)
+                    {
+            #if false
+                        throw new System.InvalidOperationException();
+            #endif
+                    }
+                }
+
+                string? M2() => null;
+            }
+            """,
+        }.RunAsync();
 }
