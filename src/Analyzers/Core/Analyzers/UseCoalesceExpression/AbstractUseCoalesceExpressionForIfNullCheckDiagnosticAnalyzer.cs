@@ -89,6 +89,10 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckDiag
         if (ifStatement.GetFirstToken().ContainsDirectives)
             return;
 
+        // Same with the inner statement we're removing.
+        if (whenTrueStatement.GetFirstToken().ContainsDirectives)
+            return;
+
         TExpressionSyntax? expressionToCoalesce;
 
         if (syntaxFacts.IsLocalDeclarationStatement(previousStatement))
