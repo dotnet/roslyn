@@ -3691,6 +3691,40 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
     }
 
     [Fact]
+    public void TestErrorRecovery_Constructor_FullyTypedLambdaArg()
+    {
+        string sourceA = $$"""
+            using System.Collections.Generic;
+
+            class MyList<T> : List<T> { }
+
+            class Program
+            {
+                static void Main()
+                {
+                    MyList<int> s = [with(int (int a) => a)];
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+            // (9,26): error CS1729: 'MyList<int>' does not contain a constructor that takes 1 arguments
+            //         MyList<int> s = [with(int (int a) => a)];
+            Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with(int (int a) => a)").WithArguments("MyList<int>", "1").WithLocation(9, 26));
+
+        comp.VerifyOperationTree(comp.SyntaxTrees.Single().FindNodeOrTokenByKind(SyntaxKind.CollectionExpression).AsNode(), """
+            ICollectionExpressionOperation (0 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: MyList<System.Int32>, IsInvalid) (Syntax: '[with(int (int a) => a)]')
+              ConstructArguments(1):
+                  IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: 'int (int a) => a')
+                    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'a')
+                      IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'a')
+                        ReturnedValue:
+                          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'a')
+              Elements(0)
+            """);
+    }
+
+    [Fact]
     public void TestErrorRecovery_Constructor_SwitchArg()
     {
         string sourceA = $$"""
@@ -3978,6 +4012,49 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                         ReturnedValue:
                           IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'a')
                   ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElementsPlaceholder, Type: System.ReadOnlySpan<System.Int32>, IsInvalid, IsImplicit) (Syntax: 'with((int a) => a)')
+              Elements(0)
+            """);
+    }
+
+    [Fact]
+    public void TestErrorRecovery_CollectionBuilder_FullyTypedLambdaArg()
+    {
+        string sourceA = $$"""
+            using System;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyList<T> : List<T> { }
+            
+            class MyBuilder
+            {
+                public static MyList<T> Create<T>(ReadOnlySpan<T> items) => new();
+            }
+
+            class Program
+            {
+                static void Main()
+                {
+                    MyList<int> s = [with(int (int a) => a)];
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+            // (17,26): error CS9358: No overload for method 'Create' takes 1 'with(...)' element arguments
+            //         MyList<int> s = [with(int (int a) => a)];
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(int (int a) => a)").WithArguments("Create", "1").WithLocation(17, 26));
+
+        comp.VerifyOperationTree(comp.SyntaxTrees.Single().FindNodeOrTokenByKind(SyntaxKind.CollectionExpression).AsNode(), """
+            ICollectionExpressionOperation (0 elements, ConstructMethod: MyList<System.Int32> MyBuilder.Create<System.Int32>(System.ReadOnlySpan<System.Int32> items)) (OperationKind.CollectionExpression, Type: MyList<System.Int32>, IsInvalid) (Syntax: '[with(int (int a) => a)]')
+              ConstructArguments(2):
+                  IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: 'int (int a) => a')
+                    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'a')
+                      IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'a')
+                        ReturnedValue:
+                          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'a')
+                  ICollectionExpressionElementsPlaceholderOperation (OperationKind.CollectionExpressionElementsPlaceholder, Type: System.ReadOnlySpan<System.Int32>, IsInvalid, IsImplicit) (Syntax: 'with(int (int a) => a)')
               Elements(0)
             """);
     }
