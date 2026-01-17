@@ -733,20 +733,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 var containingPEModuleSymbol = (PEModuleSymbol)this.ContainingModule;
 
-                ImmutableArray<CSharpAttributeData> attributes = containingPEModuleSymbol.GetCustomAttributesForToken(
-                      _handle,
-                      out _,
-                      this.RefKind == RefKind.RefReadOnly ? AttributeDescription.IsReadOnlyAttribute : default,
-                      out CustomAttributeHandle required,
-                      AttributeDescription.RequiredMemberAttribute,
-                      out _,
-                      this.IsExtensionBlockMember() ? AttributeDescription.ExtensionMarkerAttribute : default,
-                      out _,
-                      default,
-                      out _,
-                      default,
-                      out _,
-                      default);
+                ReadOnlySpan<AttributeDescription> filterOut = [
+                    AttributeDescription.RequiredMemberAttribute,
+                    this.RefKind == RefKind.RefReadOnly ? AttributeDescription.IsReadOnlyAttribute : default,
+                    this.IsExtensionBlockMember() ? AttributeDescription.ExtensionMarkerAttribute : default
+                    ];
+                Span<CustomAttributeHandle> filteredOut = stackalloc CustomAttributeHandle[filterOut.Length];
+                ImmutableArray<CSharpAttributeData> attributes = containingPEModuleSymbol.GetCustomAttributesForToken(_handle, filterOut, filteredOut);
 
                 if (!attributes.IsEmpty)
                 {
@@ -754,7 +747,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 _flags.SetCustomAttributesPopulated();
-                _flags.SetHasRequiredMemberAttribute(!required.IsNil);
+                _flags.SetHasRequiredMemberAttribute(!filteredOut[0].IsNil);
             }
 
             var uncommonFields = _uncommonFields;

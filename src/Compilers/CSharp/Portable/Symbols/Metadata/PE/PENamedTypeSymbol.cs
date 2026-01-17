@@ -150,6 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal ThreeState lazyHasCompilerLoweringPreserveAttribute = ThreeState.Unknown;
             internal ThreeState lazyHasInterpolatedStringHandlerAttribute = ThreeState.Unknown;
             internal ThreeState lazyHasRequiredMembers = ThreeState.Unknown;
+            internal ThreeState lazyIsClosed = ThreeState.Unknown;
 
             internal ImmutableArray<byte> lazyFilePathChecksum = default;
             internal string lazyDisplayFileName;
@@ -170,6 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     !lazyHasEmbeddedAttribute.HasValue() &&
                     !lazyHasInterpolatedStringHandlerAttribute.HasValue() &&
                     !lazyHasRequiredMembers.HasValue() &&
+                    !lazyIsClosed.HasValue() &&
                     (object)lazyCollectionBuilderAttributeData == CollectionBuilderAttributeData.Uninitialized &&
                     lazyFilePathChecksum.IsDefault &&
                     lazyDisplayFileName == null &&
@@ -932,46 +934,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (uncommon.lazyCustomAttributes.IsDefault)
             {
                 ImmutableArray<CSharpAttributeData> loadedCustomAttributes;
-                CustomAttributeHandle requiredHandle;
 
                 if (IsExtension)
                 {
                     // We do not recognize any attributes on extension blocks
                     loadedCustomAttributes = [];
-                    requiredHandle = default;
                 }
                 else
                 {
-                    loadedCustomAttributes = ContainingPEModule.GetCustomAttributesForToken(
-                        Handle,
-                        out _,
-                        // Filter out [Extension]
+                    ReadOnlySpan<AttributeDescription> filterOut = [
+                        AttributeDescription.RequiredMemberAttribute,
+                        AttributeDescription.ClosedAttribute,
                         MightContainExtensionMethods ? AttributeDescription.CaseSensitiveExtensionAttribute : default,
-                        out _,
-                        // Filter out [Obsolete], unless it was user defined
                         (IsRefLikeType && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default,
-                        out _,
-                        // Filter out [IsReadOnly]
                         IsReadOnly ? AttributeDescription.IsReadOnlyAttribute : default,
-                        out _,
-                        // Filter out [IsByRefLike]
                         IsRefLikeType ? AttributeDescription.IsByRefLikeAttribute : default,
-                        out _,
-                        // Filter out [CompilerFeatureRequired]
                         (IsRefLikeType && DeriveCompilerFeatureRequiredDiagnostic() is null) ? AttributeDescription.CompilerFeatureRequiredAttribute : default,
-                        out requiredHandle,
-                        // Filter out [RequiredMember]
-                        AttributeDescription.RequiredMemberAttribute);
+                        ];
+                    Span<CustomAttributeHandle> filteredOut = stackalloc CustomAttributeHandle[filterOut.Length];
+                    loadedCustomAttributes = ContainingPEModule.GetCustomAttributesForToken(Handle, filterOut, filteredOut);
+
+                    if (!uncommon.lazyHasRequiredMembers.HasValue())
+                    {
+                        uncommon.lazyHasRequiredMembers = (!filteredOut[0].IsNil).ToThreeState();
+                    }
+
+                    if (!uncommon.lazyIsClosed.HasValue())
+                    {
+                        uncommon.lazyIsClosed = (!filteredOut[1].IsNil).ToThreeState();
+                    }
                 }
 
                 ImmutableInterlocked.InterlockedInitialize(ref uncommon.lazyCustomAttributes, loadedCustomAttributes);
 
-                if (!uncommon.lazyHasRequiredMembers.HasValue())
-                {
-                    uncommon.lazyHasRequiredMembers = (!requiredHandle.IsNil).ToThreeState();
-                }
-
-                Debug.Assert(uncommon.lazyHasRequiredMembers.Value() != requiredHandle.IsNil);
             }
 
             return uncommon.lazyCustomAttributes;
@@ -1134,6 +1129,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var hasRequiredMemberAttribute = ContainingPEModule.Module.HasAttribute(_handle, AttributeDescription.RequiredMemberAttribute);
                 uncommon.lazyHasRequiredMembers = hasRequiredMemberAttribute.ToThreeState();
                 return hasRequiredMemberAttribute;
+            }
+        }
+
+        internal sealed override bool IsClosed
+        {
+            get
+            {
+                var uncommon = GetUncommonProperties();
+                if (uncommon == s_noUncommonProperties)
+                {
+                    return false;
+                }
+
+                if (uncommon.lazyIsClosed.HasValue())
+                {
+                    return uncommon.lazyIsClosed.Value();
+                }
+
+                var hasClosedAttribute = ContainingPEModule.Module.HasAttribute(_handle, AttributeDescription.ClosedAttribute);
+                uncommon.lazyIsClosed = hasClosedAttribute.ToThreeState();
+                return hasClosedAttribute;
             }
         }
 
