@@ -3918,7 +3918,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Walk into the arguments of the object creation, passing in 'delayCompletionForTargetMember: true'
                     // so that we reprocess the nullability of the arguments when we have the target-type for the
                     // collection expression.
-                    var (_, argumentResults, _, completion) = this.VisitArguments(
+                    var reinferenceResult = this.VisitArgumentsCore(
                         objectCreation,
                         objectCreation.Arguments,
                         objectCreation.ArgumentRefKindsOpt,
@@ -3926,17 +3926,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         objectCreation.ArgsToParamsOpt,
                         objectCreation.DefaultArguments,
                         objectCreation.Expanded,
-                        invokedAsExtensionMethod: false,
+                        usesExtensionReceiver: false,
                         objectCreation.Constructor,
                         delayCompletionForTargetMember: true);
-                    Debug.Assert(completion != null);
+                    Debug.Assert(reinferenceResult.Completion != null);
 
                     return collectionFinalType =>
                     {
                         // Find the actual constructor we are calling into now that we know the real target-type of the
                         // collection expression.
                         var constructor = (MethodSymbol)AsMemberOfType(collectionFinalType, objectCreation.Constructor);
-                        completion(argumentResults, constructor.Parameters, constructor);
+                        reinferenceResult.Completion(reinferenceResult.Results, constructor.Parameters, constructor);
 
                         if (!ReferenceEquals(objectCreation.Constructor, constructor))
                             SetUpdatedSymbol(objectCreation, objectCreation.Constructor, constructor);
@@ -3955,7 +3955,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             NullableAnnotation.NotAnnotated,
                             NullableFlowState.NotNull));
 
-                    var (_, argumentResults, _, completion) = this.VisitArguments(
+                    var reinferenceResult = this.VisitArgumentsCore(
                         call,
                         call.Arguments,
                         call.ArgumentRefKindsOpt,
@@ -3966,7 +3966,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         call.InvokedAsExtensionMethod,
                         call.Method,
                         delayCompletionForTargetMember: true);
-                    Debug.Assert(completion != null);
+                    Debug.Assert(reinferenceResult.Completion != null);
 
                     RemovePlaceholderReplacement(collectionBuilderElementsPlaceholder);
 
@@ -3990,7 +3990,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(allTypeArguments.Length == call.Method.Arity, "Guaranteed by GetCollectionBuilderMethods");
 
                         var constructed = call.Method.Arity == 0 ? call.Method : call.Method.ConstructedFrom.Construct(allTypeArguments);
-                        completion(argumentResults, constructed.Parameters, constructed);
+                        reinferenceResult.Completion(reinferenceResult.Results, constructed.Parameters, constructed);
 
                         if (!ReferenceEquals(call.Method, constructed))
                             SetUpdatedSymbol(call, call.Method, constructed);
