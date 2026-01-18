@@ -776,7 +776,7 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
                 public void M()
                 {
                     var value = M2();
-                    [|if|] (value == null)
+                    if (value == null)
                     {
             #if true
                         throw new System.InvalidOperationException();
@@ -784,18 +784,6 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
                     }
                 }
 
-                string? M2() => null;
-            }
-            """,
-            FixedCode = """
-            #nullable enable
-            class C
-            {
-                public void M()
-                {
-                    var value = M2() ?? throw new System.InvalidOperationException();
-                }
-            
                 string? M2() => null;
             }
             """,
@@ -821,6 +809,226 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
                 }
 
                 string? M2() => null;
+            }
+            """,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82060")]
+    public Task TestCommentMove1()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class C
+            {
+                public void M()
+                {
+                    var value = M2();
+
+                    // Comment
+                    [|if|] (value == null)
+                    {
+                        throw new System.InvalidOperationException();
+                    }
+                }
+
+                string M2() => null;
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                public void M()
+                {
+                    // Comment
+                    var value = M2() ?? throw new System.InvalidOperationException();
+                }
+            
+                string M2() => null;
+            }
+            """,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82060")]
+    public Task TestCommentMove2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class C
+            {
+                public void M()
+                {
+                    var value = M2();
+
+                    [|if|] (value == null)
+                    {
+                        // Comment
+                        throw new System.InvalidOperationException();
+                    }
+                }
+
+                string M2() => null;
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                public void M()
+                {
+                    // Comment
+                    var value = M2() ?? throw new System.InvalidOperationException();
+                }
+            
+                string M2() => null;
+            }
+            """,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82060")]
+    public Task TestCommentMove3()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class C
+            {
+                public void M()
+                {
+                    // Comment1
+                    var value = M2();
+
+                    // Comment2
+                    [|if|] (value == null)
+                    {
+                        throw new System.InvalidOperationException();
+                    }
+                }
+
+                string M2() => null;
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                public void M()
+                {
+                    // Comment1
+                    // Comment2
+                    var value = M2() ?? throw new System.InvalidOperationException();
+                }
+            
+                string M2() => null;
+            }
+            """,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82060")]
+    public Task TestCommentMove4()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class C
+            {
+                public void M()
+                {
+                    // Comment1
+                    var value = M2();
+
+                    [|if|] (value == null)
+                    {
+                        // Comment2
+                        throw new System.InvalidOperationException();
+                    }
+                }
+
+                string M2() => null;
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                public void M()
+                {
+                    // Comment1
+                    // Comment2
+                    var value = M2() ?? throw new System.InvalidOperationException();
+                }
+            
+                string M2() => null;
+            }
+            """,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82060")]
+    public Task TestCommentMove5()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class C
+            {
+                public void M()
+                {
+                    var value = M2();
+            
+                    // Comment1
+                    [|if|] (value == null)
+                    {
+                        // Comment2
+                        throw new System.InvalidOperationException();
+                    }
+                }
+
+                string M2() => null;
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                public void M()
+                {
+                    // Comment1
+                    // Comment2
+                    var value = M2() ?? throw new System.InvalidOperationException();
+                }
+            
+                string M2() => null;
+            }
+            """,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82060")]
+    public Task TestCommentMove6()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class C
+            {
+                public void M()
+                {
+                    // Comment1
+                    var value = M2();
+            
+                    // Comment2
+                    [|if|] (value == null)
+                    {
+                        // Comment3
+                        throw new System.InvalidOperationException();
+                    }
+                }
+
+                string M2() => null;
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                public void M()
+                {
+                    // Comment1
+                    // Comment2
+                    // Comment3
+                    var value = M2() ?? throw new System.InvalidOperationException();
+                }
+            
+                string M2() => null;
             }
             """,
         }.RunAsync();
