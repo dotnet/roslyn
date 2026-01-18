@@ -80,6 +80,10 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
     public bool SupportsNullConditionalAssignment(ParseOptions options)
         => options.LanguageVersion().IsCSharp14OrAbove();
 
+    public bool SupportsKeyValuePairElement(ParseOptions options)
+        // TODO: Enable once Dictionary-Expressions go in.
+        => false;
+
     public SyntaxToken ParseToken(string text)
         => SyntaxFactory.ParseToken(text);
 

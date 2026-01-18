@@ -1634,5 +1634,118 @@ partial class Program
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81767")>
+        Public Async Function CollectionExpression_Constructor1(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferencesNet9="true" LanguageVersion="preview">
+        <Document><![CDATA[
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+MyCollection<int> mc = [|[]|];
+
+public class MyCollection<T> : IEnumerable<T>
+{
+    public {|Definition:$$MyCollection|}() { }
+
+    public IEnumerator<T> GetEnumerator() => null;
+    public void Add(T item) { }
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81767")>
+        Public Async Function CollectionExpression_Constructor2(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferencesNet9="true" LanguageVersion="preview">
+        <Document><![CDATA[
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+MyCollection<int> mc1 = [];
+MyCollection<int> mc2 = [|[with(1)]|];
+
+public class MyCollection<T> : IEnumerable<T>
+{
+    public {|Definition:$$MyCollection|}(int capacity) { }
+
+    public IEnumerator<T> GetEnumerator() => null;
+    public void Add(T item) { }
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81767")>
+        Public Async Function CollectionExpression_Constructor3(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferencesNet9="true" LanguageVersion="preview">
+        <Document><![CDATA[
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+MyCollection<int> mc1 = [];
+MyCollection<int> mc2 = [|[with(1)]|];
+
+public class MyCollection<T> : IEnumerable<T>
+{
+    public MyCollection() { }
+    public {|Definition:$$MyCollection|}(int capacity) { }
+
+    public IEnumerator<T> GetEnumerator() => null;
+    public void Add(T item) { }
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81767")>
+        Public Async Function CollectionExpression_Constructor4(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferencesNet9="true" LanguageVersion="preview">
+        <Document><![CDATA[
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+MyCollection<int> mc1 = [|[]|];
+MyCollection<int> mc2 = [with(1)];
+
+public class MyCollection<T> : IEnumerable<T>
+{
+    public {|Definition:$$MyCollection|}() { }
+    public MyCollection(int capacity) { }
+
+    public IEnumerator<T> GetEnumerator() => null;
+    public void Add(T item) { }
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
     End Class
 End Namespace

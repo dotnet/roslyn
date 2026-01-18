@@ -1207,6 +1207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CheckSimpleAssignmentValueKind(node, assignment, valueKind, diagnostics);
 
                 case BoundKind.ValuePlaceholder:
+                case BoundKind.CollectionBuilderElementsPlaceholder:
                     // Strict RValue
                     break;
 
@@ -4404,6 +4405,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DeconstructValuePlaceholder:
                 case BoundKind.InterpolatedStringArgumentPlaceholder:
                 case BoundKind.AwaitableValuePlaceholder:
+                case BoundKind.ValuePlaceholder:
+                case BoundKind.CollectionBuilderElementsPlaceholder:
                     return GetPlaceholderScope((BoundValuePlaceholderBase)expr);
 
                 case BoundKind.Local:
@@ -4598,9 +4601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (conversion.ConversionKind == ConversionKind.CollectionExpression)
                     {
-                        return HasLocalScope((BoundCollectionExpression)conversion.Operand) ?
-                            _localScopeDepth :
-                            SafeContext.CallingMethod;
+                        return GetCollectionExpressionSafeContext((BoundCollectionExpression)conversion.Operand);
                     }
 
                     if (conversion.Conversion.IsInlineArray)
@@ -4772,50 +4773,58 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private bool HasLocalScope(BoundCollectionExpression expr)
+        private SafeContext GetCollectionExpressionSafeContext(BoundCollectionExpression expr)
         {
-            // A non-empty collection expression with span type may be stored
-            // on the stack. In those cases the expression may have local scope.
+            // Don't need to consider safety context if it's not a ref-like type.
+            if (expr.Type?.IsRefLikeType != true)
+                return SafeContext.CallingMethod;
 
-            if (expr.Type?.IsRefLikeType != true || expr.Elements.Length == 0)
-            {
-                return false;
-            }
+            // An empty collection expression (so no elements or `with(...)` arguments ) does not need to be stored on
+            // the stack, as it has no way to capture anything local that could leak out.  So it is safe to return to
+            // the caller.
+            if (!expr.HasWithElement && expr.Elements.IsEmpty)
+                return SafeContext.CallingMethod;
 
+            // Otherwise, we need to do deeper analysis to decide if this collection expression can escape, or if it has
+            // to stay local.
             var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(_compilation, expr.Type, out var elementType);
-
             switch (collectionTypeKind)
             {
                 case CollectionExpressionTypeKind.ReadOnlySpan:
                     Debug.Assert(elementType.Type is { });
-                    return !LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, elementType.Type);
+
+                    // An empty ReadOnlySpan can always be returned outwards.  Similarly if this is a span we're going
+                    // to create out of a readonly-data segment of the program.
+                    return LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, elementType.Type)
+                        ? SafeContext.CallingMethod
+                        : _localScopeDepth;
+
                 case CollectionExpressionTypeKind.Span:
-                    return true;
+                    Debug.Assert(elementType.Type is { });
+                    return _localScopeDepth;
+
                 case CollectionExpressionTypeKind.CollectionBuilder:
-                    // For a ref struct type with a builder method, the scope of the collection
-                    // expression is the scope of an invocation of the builder method with the
-                    // collection expression as the span argument. That is, `R r = [x, y, z];`
-                    // is equivalent to `R r = Builder.Create((ReadOnlySpan<...>)[x, y, z]);`.
-                    var constructMethod = expr.CollectionBuilderMethod;
-                    if (constructMethod is not { Parameters: [{ RefKind: RefKind.None } parameter] })
-                    {
-                        // Unexpected construct method. Restrict the collection to local scope.
-                        return true;
-                    }
-                    Debug.Assert(constructMethod.ReturnType.Equals(expr.Type, TypeCompareKind.AllIgnoreOptions));
-                    Debug.Assert(parameter.Type.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
-                    if (parameter.EffectiveScope == ScopedKind.ScopedValue)
-                    {
-                        return false;
-                    }
-                    if (LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, ((NamedTypeSymbol)parameter.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type))
-                    {
-                        return false;
-                    }
-                    return true;
+                    Debug.Assert(expr.CollectionCreation is not null);
+
+                    // For a ref struct type with a builder method, the scope of the collection expression is the scope
+                    // of an invocation of the builder method with the collection expression as the span argument. That
+                    // is, `R r = [x, y, z];` is equivalent to `R r = Builder.Create((ReadOnlySpan<...>)[x, y, z]);`.
+                    //
+                    // expr.CollectionCreation contains this call, including anything affected by its 'with(...)'
+                    // element, and the place-holder representing the elements.
+                    return GetValEscape(expr.CollectionCreation);
+
                 case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                    // Error cases. Restrict the collection to local scope.
-                    return true;
+                    // Restrict the collection to local scope if not empty.  Note: this is inaccurate.  What we should
+                    // be doing here is examining the arguments passed to the collection constructor (from the
+                    // `with(...)` element), intersected well as any arguments passed to `Add` methods to determine the
+                    // final safety context.  However, the latter is highly challenging as we do not know that
+                    // information until the lowering phase.  We'll need to pull out that logic to do things properly
+                    // here.
+                    //
+                    // Tracked with: https://github.com/dotnet/roslyn/issues/81520
+                    return _localScopeDepth;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(collectionTypeKind); // ref struct collection type with unexpected type kind
             }
@@ -5051,6 +5060,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DeconstructValuePlaceholder:
                 case BoundKind.AwaitableValuePlaceholder:
                 case BoundKind.InterpolatedStringArgumentPlaceholder:
+                case BoundKind.ValuePlaceholder:
+                case BoundKind.CollectionBuilderElementsPlaceholder:
                     if (!GetPlaceholderScope((BoundValuePlaceholderBase)expr).IsConvertibleTo(escapeTo))
                     {
                         Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
@@ -5328,7 +5339,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (conversion.ConversionKind == ConversionKind.CollectionExpression)
                     {
-                        if (HasLocalScope((BoundCollectionExpression)conversion.Operand) && !_localScopeDepth.IsConvertibleTo(escapeTo))
+                        var safeContext = GetCollectionExpressionSafeContext((BoundCollectionExpression)conversion.Operand);
+                        if (!safeContext.IsConvertibleTo(escapeTo))
                         {
                             Error(diagnostics, ErrorCode.ERR_CollectionExpressionEscape, node, expr.Type);
                             return false;

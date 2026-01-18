@@ -970,6 +970,9 @@ internal static class ISyntaxFactsExtensions
     public static bool IsClassDeclaration(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
         => node != null && node.RawKind == syntaxFacts.SyntaxKinds.ClassDeclaration;
 
+    public static bool IsCollectionExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+        => node != null && node.RawKind == syntaxFacts.SyntaxKinds.CollectionExpression;
+
     public static bool IsConstructorDeclaration(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
         => node != null && node.RawKind == syntaxFacts.SyntaxKinds.ConstructorDeclaration;
 

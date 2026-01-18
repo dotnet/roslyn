@@ -1280,7 +1280,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     || slot.operationOpt.Kind == OperationKind.FlowCaptureReference
                     || slot.operationOpt.Kind == OperationKind.DeclarationExpression
                     || slot.operationOpt.Kind == OperationKind.Discard
-                    || slot.operationOpt.Kind == OperationKind.OmittedArgument));
+                    || slot.operationOpt.Kind == OperationKind.OmittedArgument
+                    || slot.operationOpt.Kind == OperationKind.CollectionExpressionElementsPlaceholder));
 #endif
             if (statement == null)
             {
@@ -1849,7 +1850,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 if (operationOpt.Kind != OperationKind.FlowCaptureReference
                     && operationOpt.Kind != OperationKind.DeclarationExpression
                     && operationOpt.Kind != OperationKind.Discard
-                    && operationOpt.Kind != OperationKind.OmittedArgument)
+                    && operationOpt.Kind != OperationKind.OmittedArgument
+                    && operationOpt.Kind != OperationKind.CollectionExpressionElementsPlaceholder)
                 {
                     // Here we need to decide what region should own the new capture. Due to the spilling operations occurred before,
                     // we currently might be in a region that is not associated with the stack frame we are in, but it is one of its
@@ -6542,6 +6544,23 @@ oneMoreTime:
         public override IOperation? VisitCollectionExpression(ICollectionExpressionOperation operation, int? argument)
         {
             EvalStackFrame frame = PushStackFrame();
+
+            if (operation.ConstructArguments.Any(a => a is IArgumentOperation) && !operation.ConstructArguments.All(a => a is IArgumentOperation))
+                throw ExceptionUtilities.UnexpectedValue("Mixed argument operations and non-argument operations in ConstructArguments");
+
+            // If we bound successfully, we'll have an array of IArgumentOperation.  We want to call through to
+            // VisitArguments to handle it properly.  So attempt to cast to that type first, but fallback to just
+            // visiting the array of expressions if we didn't bind successfully.
+            var arguments = operation.ConstructArguments.As<IArgumentOperation>();
+            if (arguments.IsDefault)
+            {
+                VisitAndPushArray(operation.ConstructArguments);
+            }
+            else
+            {
+                VisitAndPushArguments(arguments, instancePushed: false);
+            }
+
             var elements = VisitArray(
                 operation.Elements,
                 unwrapper: static (IOperation element) =>
@@ -6562,14 +6581,19 @@ oneMoreTime:
                             IsImplicit(spread)) :
                         operation;
                 });
-            PopStackFrame(frame);
-            return new CollectionExpressionOperation(
+
+            var creationArguments = arguments.IsDefault
+                ? PopArray(operation.ConstructArguments)
+                : ImmutableArray<IOperation>.CastUp(PopArray(arguments, RewriteArgumentFromArray));
+
+            return PopStackFrame(frame, new CollectionExpressionOperation(
                 operation.ConstructMethod,
+                creationArguments,
                 elements,
                 semanticModel: null,
                 operation.Syntax,
                 operation.Type,
-                IsImplicit(operation));
+                IsImplicit(operation)));
         }
 
         public override IOperation? VisitSpread(ISpreadOperation operation, int? argument)
@@ -7417,6 +7441,12 @@ oneMoreTime:
 
             Debug.Fail("All placeholders should be handled above. Have we introduced a new scenario where placeholders are used?");
             return new PlaceholderOperation(operation.PlaceholderKind, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
+        }
+
+        public override IOperation? VisitCollectionExpressionElementsPlaceholder(ICollectionExpressionElementsPlaceholderOperation operation, int? argument)
+        {
+            // Leave collection builder element placeholder alone. It itself doesn't affect flow control.
+            return new CollectionExpressionElementsPlaceholderOperation(semanticModel: null, operation.Syntax, operation.Type, operation.IsImplicit);
         }
 
         public override IOperation VisitConversion(IConversionOperation operation, int? captureIdForResult)

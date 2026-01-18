@@ -2073,6 +2073,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCollectionExpression(BoundCollectionExpression node)
         {
+            Visit(node.CollectionCreation);
             VisitCollectionExpression(node.Elements);
             return null;
         }
@@ -3698,6 +3699,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
+        {
+            return null;
+        }
+
+        public override BoundNode VisitValuePlaceholder(BoundValuePlaceholder node)
+        {
+            return null;
+        }
+
+        public override BoundNode VisitCollectionBuilderElementsPlaceholder(BoundCollectionBuilderElementsPlaceholder node)
         {
             return null;
         }

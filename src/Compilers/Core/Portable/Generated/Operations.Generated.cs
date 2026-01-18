@@ -3943,13 +3943,31 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         /// <summary>
         /// Method used to construct the collection.
-        /// <para>
-        ///   If the collection type is an array, span, array interface, or type parameter, the method is null;
-        ///   if the collection type has a [CollectionBuilder] attribute, the method is the builder method;
-        ///   otherwise, the method is the collection type constructor.
-        /// </para>
+        /// <para />
+        /// <list type="number">
+        /// <item>If the collection type is an array, span, or type parameter, the method is null.</item>
+        /// <item>If the collection type has a [CollectionBuilder] attribute, the method is the builder method.</item>
+        /// <item>If the collection type is a mutable array interface and the collection was initialized with arguments,
+        /// the method is the constructor of <see cref="List{T}" /> that was used.  If this is read-only array interface,
+        /// or no arguments were provided, the method is null</item>
+        /// <item>Otherwise, the method is the collection type constructor.</item>
+        /// </list>
         /// </summary>
         IMethodSymbol? ConstructMethod { get; }
+        /// <summary>
+        /// Arguments passed to to <see cref="ConstructMethod" />, if present. Arguments are in evaluation order. This can
+        /// be an empty array. Will never be <see langword="default" />.  If the arguments successfully bound, these will all be
+        /// <see cref="IArgumentOperation" />; otherwise, they can be any operation.
+        /// </summary>
+        /// <remarks>
+        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays.
+        /// Default values are supplied for optional arguments missing in source. <para />
+        /// If this is a collection builder method, this will include all arguments to the method,
+        /// except for the final <c>ReadOnlySpan</c> argument that receives the collection elements.
+        /// That final argument will be represented by an <see cref="ICollectionExpressionElementsPlaceholderOperation" />.
+        /// The actual elements passed to the creation method are contained in <see cref="Elements" />.
+        /// </remarks>
+        ImmutableArray<IOperation> ConstructArguments { get; }
         /// <summary>
         /// Collection expression elements.
         /// <para>
@@ -3992,6 +4010,24 @@ namespace Microsoft.CodeAnalysis.Operations
         /// of the containing collection expression.
         /// </summary>
         CommonConversion ElementConversion { get; }
+    }
+    /// <summary>
+    /// Represents the elements of a collection expression as they are passed to some construction method
+    /// specified by a <c>[CollectionBuilder]</c> attribute.  This is distinct from <see cref="ICollectionExpressionOperation.Elements" />
+    /// which contains the elements as they appear in source.  This will appear in <see cref="ICollectionExpressionOperation.ConstructArguments" />
+    /// when the construction method is a collection builder method, representing the final <c>ReadOnlySpan</c> passed to that
+    /// construction method containing the fully evaluated elements of the collection expression.
+    /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following operation kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="OperationKind.CollectionExpressionElementsPlaceholder"/></description></item>
+    /// </list>
+    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.</para>
+    /// </remarks>
+    public interface ICollectionExpressionElementsPlaceholderOperation : IOperation
+    {
     }
     #endregion
 
@@ -10668,21 +10704,26 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class CollectionExpressionOperation : Operation, ICollectionExpressionOperation
     {
-        internal CollectionExpressionOperation(IMethodSymbol? constructMethod, ImmutableArray<IOperation> elements, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+        internal CollectionExpressionOperation(IMethodSymbol? constructMethod, ImmutableArray<IOperation> constructArguments, ImmutableArray<IOperation> elements, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
             ConstructMethod = constructMethod;
+            ConstructArguments = SetParentOperation(constructArguments, this);
             Elements = SetParentOperation(elements, this);
             Type = type;
         }
         public IMethodSymbol? ConstructMethod { get; }
+        public ImmutableArray<IOperation> ConstructArguments { get; }
         public ImmutableArray<IOperation> Elements { get; }
         internal override int ChildOperationsCount =>
+            ConstructArguments.Length +
             Elements.Length;
         internal override IOperation GetCurrent(int slot, int index)
             => slot switch
             {
-                0 when index < Elements.Length
+                0 when index < ConstructArguments.Length
+                    => ConstructArguments[index],
+                1 when index < Elements.Length
                     => Elements[index],
                 _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
             };
@@ -10691,13 +10732,18 @@ namespace Microsoft.CodeAnalysis.Operations
             switch (previousSlot)
             {
                 case -1:
-                    if (!Elements.IsEmpty) return (true, 0, 0);
+                    if (!ConstructArguments.IsEmpty) return (true, 0, 0);
                     else goto case 0;
-                case 0 when previousIndex + 1 < Elements.Length:
+                case 0 when previousIndex + 1 < ConstructArguments.Length:
                     return (true, 0, previousIndex + 1);
                 case 0:
+                    if (!Elements.IsEmpty) return (true, 1, 0);
+                    else goto case 1;
+                case 1 when previousIndex + 1 < Elements.Length:
+                    return (true, 1, previousIndex + 1);
                 case 1:
-                    return (false, 1, 0);
+                case 2:
+                    return (false, 2, 0);
                 default:
                     throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
@@ -10707,7 +10753,12 @@ namespace Microsoft.CodeAnalysis.Operations
             switch (previousSlot)
             {
                 case int.MaxValue:
-                    if (!Elements.IsEmpty) return (true, 0, Elements.Length - 1);
+                    if (!Elements.IsEmpty) return (true, 1, Elements.Length - 1);
+                    else goto case 1;
+                case 1 when previousIndex > 0:
+                    return (true, 1, previousIndex - 1);
+                case 1:
+                    if (!ConstructArguments.IsEmpty) return (true, 0, ConstructArguments.Length - 1);
                     else goto case 0;
                 case 0 when previousIndex > 0:
                     return (true, 0, previousIndex - 1);
@@ -10779,6 +10830,23 @@ namespace Microsoft.CodeAnalysis.Operations
         public override OperationKind Kind => OperationKind.Spread;
         public override void Accept(OperationVisitor visitor) => visitor.VisitSpread(this);
         public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitSpread(this, argument);
+    }
+    internal sealed partial class CollectionExpressionElementsPlaceholderOperation : Operation, ICollectionExpressionElementsPlaceholderOperation
+    {
+        internal CollectionExpressionElementsPlaceholderOperation(SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Type = type;
+        }
+        internal override int ChildOperationsCount => 0;
+        internal override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.CollectionExpressionElementsPlaceholder;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitCollectionExpressionElementsPlaceholder(this);
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitCollectionExpressionElementsPlaceholder(this, argument);
     }
     #endregion
     #region Cloner
@@ -11396,12 +11464,17 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitCollectionExpression(ICollectionExpressionOperation operation, object? argument)
         {
             var internalOperation = (CollectionExpressionOperation)operation;
-            return new CollectionExpressionOperation(internalOperation.ConstructMethod, VisitArray(internalOperation.Elements), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+            return new CollectionExpressionOperation(internalOperation.ConstructMethod, VisitArray(internalOperation.ConstructArguments), VisitArray(internalOperation.Elements), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitSpread(ISpreadOperation operation, object? argument)
         {
             var internalOperation = (SpreadOperation)operation;
             return new SpreadOperation(Visit(internalOperation.Operand), internalOperation.ElementType, internalOperation.ElementConversionConvertible, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitCollectionExpressionElementsPlaceholder(ICollectionExpressionElementsPlaceholderOperation operation, object? argument)
+        {
+            var internalOperation = (CollectionExpressionElementsPlaceholderOperation)operation;
+            return new CollectionExpressionElementsPlaceholderOperation(internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
     }
     #endregion
@@ -11545,6 +11618,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual void VisitInlineArrayAccess(IInlineArrayAccessOperation operation) => DefaultVisit(operation);
         public virtual void VisitCollectionExpression(ICollectionExpressionOperation operation) => DefaultVisit(operation);
         public virtual void VisitSpread(ISpreadOperation operation) => DefaultVisit(operation);
+        public virtual void VisitCollectionExpressionElementsPlaceholder(ICollectionExpressionElementsPlaceholderOperation operation) => DefaultVisit(operation);
     }
     public abstract partial class OperationVisitor<TArgument, TResult>
     {
@@ -11684,6 +11758,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual TResult? VisitInlineArrayAccess(IInlineArrayAccessOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitCollectionExpression(ICollectionExpressionOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitSpread(ISpreadOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult? VisitCollectionExpressionElementsPlaceholder(ICollectionExpressionElementsPlaceholderOperation operation, TArgument argument) => DefaultVisit(operation, argument);
     }
     #endregion
 }
