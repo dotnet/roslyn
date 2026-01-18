@@ -255,7 +255,10 @@ public sealed class CollectionExpressionParsingTests : ParsingTests
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(1, 11),
             // (1,14): error CS1003: Syntax error, ',' expected
             // [return: A, B].C();
-            Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",").WithLocation(1, 14));
+            Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",").WithLocation(1, 14),
+            // (1,16): error CS1002: ; expected
+            // [return: A, B].C();
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "C").WithLocation(1, 16));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -301,6 +304,25 @@ public sealed class CollectionExpressionParsingTests : ParsingTests
                         N(SyntaxKind.VariableDeclarator);
                         {
                             N(SyntaxKind.IdentifierToken, "B");
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "C");
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
                         }
                     }
                     N(SyntaxKind.SemicolonToken);
@@ -520,7 +542,10 @@ public sealed class CollectionExpressionParsingTests : ParsingTests
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(1, 11),
             // (1,11): error CS1003: Syntax error, ',' expected
             // [return: A].C();
-            Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",").WithLocation(1, 11));
+            Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",").WithLocation(1, 11),
+            // (1,13): error CS1002: ; expected
+            // [return: A].C();
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "C").WithLocation(1, 13));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -561,6 +586,25 @@ public sealed class CollectionExpressionParsingTests : ParsingTests
                         M(SyntaxKind.VariableDeclarator);
                         {
                             M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "C");
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
                         }
                     }
                     N(SyntaxKind.SemicolonToken);
