@@ -7821,7 +7821,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
                     _deserializeHelpers.GetOrAdd(type, key => CreateDeserializeDelegate(key));
                 }
 
-                private static Func<JToken, object> CreateDeserializeDelegate(JToken key)
+                private static object CreateDeserializeDelegate(JToken key)
                 {
                     throw new NotImplementedException();
                 }
