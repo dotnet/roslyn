@@ -2,7 +2,6 @@
 
 Imports System.Reflection
 
-
 Namespace Global.TestProject.First
     ''' <summary>
     '''   A strongly-typed resource class, for looking up localized strings, etc.
