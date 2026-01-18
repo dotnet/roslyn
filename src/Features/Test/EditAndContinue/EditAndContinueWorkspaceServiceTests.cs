@@ -1493,36 +1493,40 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         ], _telemetryLog);
     }
 
-    public static TheoryData<bool, Encoding> EncodingsTestCases()
+    public enum EncodingTestCase
     {
-        var data = new TheoryData<bool, Encoding>();
-        foreach (var encoding in new[]
-        {
-            new UTF8Encoding(encoderShouldEmitUTF8Identifier: true),
-            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
-            Encoding.Unicode,
-            Encoding.BigEndianUnicode,
-
-            // TODO: https://github.com/dotnet/roslyn/issues/81930
-            // We do not currently account for CodePage property value and thus an encoding such as Shift-JIS that can't be detected
-            // from the file content does not work.
-            // Encoding.GetEncoding("SJIS");
-        })
-        {
-            data.Add(true, encoding);
-            data.Add(false, encoding);
-        }
-
-        return data;
+        Utf8,
+        Utf8WithBom,
+        Unicode,
+        BigEndianUnicode,
+        ShiftJis,
     }
 
     [Theory]
-    [MemberData(nameof(EncodingsTestCases))]
+    [CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/81930")]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2067885")]
-    public async Task Encodings(bool matchingContent, Encoding compilerEncoding)
+    public async Task Encodings(bool matchingContent, EncodingTestCase encodingTestCase)
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+        var compilerEncoding = encodingTestCase switch
+        {
+            EncodingTestCase.Utf8 => new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
+            EncodingTestCase.Utf8WithBom => new UTF8Encoding(encoderShouldEmitUTF8Identifier: true),
+            EncodingTestCase.Unicode => Encoding.Unicode,
+            EncodingTestCase.BigEndianUnicode => Encoding.BigEndianUnicode,
+            EncodingTestCase.ShiftJis => Encoding.GetEncoding("SJIS"),
+            _ => throw ExceptionUtilities.Unreachable(),
+        };
+
+        var defaultEncoding = encodingTestCase switch
+        {
+            EncodingTestCase.ShiftJis => compilerEncoding,
+
+            // detect encoding from the file content:
+            _ => null
+        };
 
         var editorSource = "class C1 { public void こんにちは() {} }";
         var fileSource = matchingContent ? editorSource : "class C1 { public virtual void こんにちは() {} }";
@@ -1545,8 +1549,9 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             WithProjectChecksumAlgorithm(projectId, SourceHashAlgorithm.Sha1).
             AddDocument(documentId = DocumentId.CreateNewId(projectId), "test.cs", SourceText.From(editorSource, editorEncoding, SourceHashAlgorithm.Sha1), filePath: sourceFile.Path);
 
-        // use different checksum alg to trigger PdbMatchingSourceTextProvider call:
-        var moduleId = EmitAndLoadLibraryToDebuggee(projectId, fileSource, sourceFilePath: sourceFile.Path, encoding: compilerEncoding, checksumAlgorithm: SourceHashAlgorithm.Sha256);
+        // Use different checksum alg to trigger PdbMatchingSourceTextProvider call.
+        // Set defaultEncoding, which is written to the PDB.
+        var moduleId = EmitAndLoadLibraryToDebuggee(projectId, fileSource, sourceFilePath: sourceFile.Path, encoding: compilerEncoding, defaultEncoding: defaultEncoding, checksumAlgorithm: SourceHashAlgorithm.Sha256);
 
         var sourceTextProviderCalled = false;
         var sourceTextProvider = new MockPdbMatchingSourceTextProvider()

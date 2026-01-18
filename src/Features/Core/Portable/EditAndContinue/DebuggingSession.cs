@@ -395,7 +395,7 @@ internal sealed class DebuggingSession : IDisposable
                 throw new FileNotFoundException();
             }
 
-            var debugInfoReader = debugInfoReaderProvider.CreateEditAndContinueMethodDebugInfoReader();
+            var debugInfoReader = debugInfoReaderProvider.CreateEditAndContinueDebugInfoReader();
 
             fileBeingRead = compilationOutputs.AssemblyDisplayPath;
 
