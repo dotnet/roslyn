@@ -10,9 +10,9 @@
       "request": "launch",
       "preLaunchTask": "build",
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/artifacts/bin/BuildValidator/Debug/net9.0/BuildValidator.dll",
+      "program": "${workspaceFolder}/artifacts/bin/BuildValidator/Debug/net10.0/BuildValidator.dll",
       "args": [
-        "--assembliesPath", "./artifacts/obj/csc/Debug/net9.0",
+        "--assembliesPath", "./artifacts/obj/csc/Debug/net10.0",
         "--referencesPath", "./artifacts/bin",
         "--referencesPath", "C:/Program Files/dotnet/packs/Microsoft.AspNetCore.App.Ref",
         "--referencesPath", "C:/Program Files/dotnet/packs/Microsoft.NETCore.App.Ref",
@@ -29,7 +29,7 @@
       "request": "launch",
       "preLaunchTask": "build",
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/artifacts/bin/RunTests/Debug/net9.0/RunTests.dll",
+      "program": "${workspaceFolder}/artifacts/bin/RunTests/Debug/net10.0/RunTests.dll",
       "args": ["--runtime", "both", "--artifactspath", "${workspaceFolder}/artifacts/testPayload/artifacts"],
       "cwd": "${workspaceFolder}/artifacts/bin/RunTests",
       "stopAtEntry": false,
@@ -41,7 +41,7 @@
       "request": "launch",
       "preLaunchTask": "build",
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/artifacts/bin/PrepareTests/Debug/net9.0/PrepareTests.dll",
+      "program": "${workspaceFolder}/artifacts/bin/PrepareTests/Debug/net10.0/PrepareTests.dll",
       "args": [
         "--source", "${workspaceFolder}",
         "--destination", "${workspaceFolder}/artifacts/testPayload"
@@ -56,7 +56,7 @@
       "request": "launch",
       "preLaunchTask": "build current project",
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/artifacts/bin/Replay/Debug/net9.0/Replay.dll",
+      "program": "${workspaceFolder}/artifacts/bin/Replay/Debug/net10.0/Replay.dll",
       "args": [],
       "cwd": "${workspaceFolder}/artifacts/bin/Replay",
       "stopAtEntry": false,
@@ -137,7 +137,7 @@
       "request": "launch",
       "preLaunchTask": "build",
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/artifacts/bin/csc/Debug/net9.0/csc.dll",
+      "program": "${workspaceFolder}/artifacts/bin/csc/Debug/net10.0/csc.dll",
       "args": [],
       "cwd": "${workspaceFolder}/src/Compilers/CSharp/csc",
       // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console

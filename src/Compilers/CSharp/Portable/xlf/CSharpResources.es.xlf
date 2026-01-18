@@ -69,12 +69,12 @@
       </trans-unit>
       <trans-unit id="ERR_AmbigExtension">
         <source>The extension resolution is ambiguous between the following members: '{0}' and '{1}'</source>
-        <target state="new">The extension resolution is ambiguous between the following members: '{0}' and '{1}'</target>
+        <target state="translated">La resolución de la extensión es ambigua entre los siguientes miembros: “{0}” y “{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbigOperator">
         <source>Operator resolution is ambiguous between the following members: '{0}' and '{1}'</source>
-        <target state="new">Operator resolution is ambiguous between the following members: '{0}' and '{1}'</target>
+        <target state="translated">La resolución del operador es ambigua entre los siguientes miembros: “{0}” y “{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver">
@@ -139,7 +139,7 @@
       </trans-unit>
       <trans-unit id="ERR_AttributeCannotBeAppliedManually">
         <source>'{0}' cannot be applied manually.</source>
-        <target state="new">'{0}' cannot be applied manually.</target>
+        <target state="translated">“{0}” no se puede aplicar manualmente.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeNotOnEventAccessor">
@@ -239,7 +239,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadCompoundAssignmentOpArgs">
         <source>Overloaded compound assignment operator '{0}' takes one parameter</source>
-        <target state="new">Overloaded compound assignment operator '{0}' takes one parameter</target>
+        <target state="translated">El operador compuesto sobrecargado “{0}” toma un parámetro</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
@@ -249,27 +249,27 @@
       </trans-unit>
       <trans-unit id="ERR_BadExtensionBinaryOperatorSignature">
         <source>One of the parameters of a binary operator must be the extended type.</source>
-        <target state="new">One of the parameters of a binary operator must be the extended type.</target>
+        <target state="translated">Uno de los parámetros de un operador binario debe ser el tipo extendido.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadExtensionContainingType">
         <source>Extensions must be declared in a top-level, non-generic, static class</source>
-        <target state="new">Extensions must be declared in a top-level, non-generic, static class</target>
+        <target state="translated">Las extensiones deben declararse en una clase estática de nivel superior, no genérica</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadExtensionIncDecSignature">
         <source>The parameter type for ++ or -- operator must be the extended type.</source>
-        <target state="new">The parameter type for ++ or -- operator must be the extended type.</target>
+        <target state="translated">El tipo de parámetro para el operador ++ o -- debe ser el tipo extendido.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadExtensionShiftOperatorSignature">
         <source>The first operand of an overloaded shift operator must have the same type as the extended type</source>
-        <target state="new">The first operand of an overloaded shift operator must have the same type as the extended type</target>
+        <target state="translated">El primer operando de un operador de desplazamiento sobrecargado debe tener el mismo tipo que el tipo extendido</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadExtensionUnaryOperatorSignature">
         <source>The parameter of a unary operator must be the extended type.</source>
-        <target state="new">The parameter of a unary operator must be the extended type.</target>
+        <target state="translated">El parámetro de un operador unario debe ser el tipo extendido.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFieldTypeInRecord">
@@ -349,7 +349,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadSpreadInCatchFilter">
         <source>Cannot use '..' spread operator in the filter expression of a catch clause</source>
-        <target state="new">Cannot use '..' spread operator in the filter expression of a catch clause</target>
+        <target state="translated">No se puede usar el operador de propagación “..” en la expresión de filtro de una cláusula catch</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadStaticAfterUnsafe">
@@ -374,7 +374,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadVisBaseType">
         <source>Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </source>
-        <target state="new">Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </target>
+        <target state="translated">Incoherencia de accesibilidad: el tipo “{1}” es menos accesible que la clase “{0}” </target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadYieldInUnsafe">
@@ -429,7 +429,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotMatchOnINumberBase">
         <source>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.</source>
-        <target state="new">Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.</target>
+        <target state="translated">No se puede usar una constante numérica o un patrón relacional en “{0}” porque hereda o extiende “INumberBase&lt;T&gt;”. Considere la posibilidad de usar un patrón de tipo para restringir a un tipo numérico específico.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -504,7 +504,7 @@
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberOperatorMismatch">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because one of them is not an operator.</source>
-        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because one of them is not an operator.</target>
+        <target state="translated">“{0}” no implementa el miembro de interfaz “{1}”. “{2}” no puede implementar “{1}” porque uno de ellos no es un operador.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongInitOnly">
@@ -599,7 +599,7 @@
       </trans-unit>
       <trans-unit id="ERR_CompilationUnitUnexpected">
         <source>A compilation unit cannot directly contain members such as fields, methods or properties</source>
-        <target state="new">A compilation unit cannot directly contain members such as fields, methods or properties</target>
+        <target state="translated">Una unidad de compilación no puede contener directamente miembros como campos, métodos o propiedades</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -634,7 +634,7 @@
       </trans-unit>
       <trans-unit id="ERR_DataSectionStringLiteralHashCollision">
         <source>Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</source>
-        <target state="new">Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</target>
+        <target state="translated">No se puede emitir este literal de cadena en la sección de datos porque tiene una colisión XXHash128 con otro literal de cadena: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
@@ -669,7 +669,7 @@
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeforePropertyPattern">
         <source>A variable designator must come after a property pattern.</source>
-        <target state="new">A variable designator must come after a property pattern.</target>
+        <target state="translated">Un designador de variable debe ir después de un patrón de propiedad.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
@@ -744,7 +744,7 @@
       </trans-unit>
       <trans-unit id="ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime">
         <source>Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</source>
-        <target state="new">Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</target>
+        <target state="translated">La actualización requiere emitir una implementación explícita de interfaz, lo cual no es compatible con el runtime sin reiniciar la aplicación.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
@@ -759,7 +759,7 @@
       </trans-unit>
       <trans-unit id="ERR_EqualityOperatorInPatternNotSupported">
         <source>The '==' operator is not supported in a pattern.</source>
-        <target state="new">The '==' operator is not supported in a pattern.</target>
+        <target state="translated">El operador “==” no es compatible con un patrón.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeVariable">
@@ -779,12 +779,12 @@
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceMemberReturnTypeMismatch">
         <source>'{0}': return type must be '{1}' to match implemented member '{2}'</source>
-        <target state="new">'{0}': return type must be '{1}' to match implemented member '{2}'</target>
+        <target state="translated">“{0}”: el tipo de retorno debe ser “{1}” para coincidir con el miembro implementado “{2}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceMemberTypeMismatch">
         <source>'{0}': type must be '{1}' to match implemented member '{2}'</source>
-        <target state="new">'{0}': type must be '{1}' to match implemented member '{2}'</target>
+        <target state="translated">“{0}”: el tipo debe ser “{1}” para coincidir con el miembro implementado “{2}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
@@ -839,12 +839,12 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionBasedConditionalLogicalOperator">
         <source>An expression tree may not contain '&amp;&amp;' or '||' operators that use extension user defined operators.</source>
-        <target state="new">An expression tree may not contain '&amp;&amp;' or '||' operators that use extension user defined operators.</target>
+        <target state="translated">Un árbol de expresión no puede contener operadores “&amp;&amp;” o “||” que usen operadores de extensión definidos por el usuario.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
         <source>An expression tree may not contain an extension property access</source>
-        <target state="new">An expression tree may not contain an extension property access</target>
+        <target state="translated">Un árbol de expresión no puede contener un acceso a una propiedad de extensión</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -864,7 +864,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsNamedArgumentOutOfPosition">
         <source>An expression tree may not contain a named argument specification out of position</source>
-        <target state="new">An expression tree may not contain a named argument specification out of position</target>
+        <target state="translated">Un árbol de expresión no puede contener una especificación de argumento con nombre fuera de lugar</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsPatternImplicitIndexer">
@@ -894,37 +894,37 @@
       </trans-unit>
       <trans-unit id="ERR_ExtensionBlockCollision">
         <source>This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</source>
-        <target state="new">This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</target>
+        <target state="translated">Este bloque de extensión entra en conflicto con otro bloque de extensión. Generan nombres de tipo basados en contenido que chocan en los metadatos, por lo que deben estar en clases estáticas envolventes separadas.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsMember">
         <source>This member is not allowed in an extension block</source>
-        <target state="new">This member is not allowed in an extension block</target>
+        <target state="translated">No se permite este miembro en un bloque de extensión</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsName">
         <source>Extension declarations may not have a name.</source>
-        <target state="new">Extension declarations may not have a name.</target>
+        <target state="translated">Las declaraciones de extensión no pueden tener nombre.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionParameterDisallowsDefaultValue">
         <source>The receiver parameter of an extension cannot have a default value</source>
-        <target state="new">The receiver parameter of an extension cannot have a default value</target>
+        <target state="translated">El parámetro receptor de una extensión no puede tener un valor predeterminado</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionParameterInStaticContext">
         <source>Static members cannot access the value of extension parameter '{0}'.</source>
-        <target state="new">Static members cannot access the value of extension parameter '{0}'.</target>
+        <target state="translated">Los miembros estáticos no pueden acceder al valor del parámetro de extensión “{0}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionResolutionFailed">
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension member '{1}' for receiver of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
-        <target state="new">'{0}' does not contain a definition for '{1}' and no accessible extension member '{1}' for receiver of type '{0}' could be found (are you missing a using directive or an assembly reference?)</target>
+        <target state="translated">"{0}" no contiene una definición para "{1}" ni se encontró un miembro de extensión accesible "{1}" para el tipo de receptor "{0}" (¿falta alguna directiva using o una referencia de ensamblado?)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionTypeNameDisallowed">
         <source>Types and aliases cannot be named 'extension'.</source>
-        <target state="new">Types and aliases cannot be named 'extension'.</target>
+        <target state="translated">Los tipos y alias no se pueden denominar “extension”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
@@ -964,7 +964,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion14">
         <source>Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</source>
-        <target state="new">Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</target>
+        <target state="translated">La característica "{0}" no está disponible en C# 14.0. Use la versión de lenguaje {1} u otra superior.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -1149,12 +1149,12 @@
       </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedParamsParameter">
         <source>Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</source>
-        <target state="new">Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</target>
+        <target state="translated">El parámetro lambda con tipo implícito “{0}” no puede tener el modificador “params”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedVariableUsedInForbiddenZone">
         <source>Reference to an implicitly-typed variable '{0}' is not permitted in this location.</source>
-        <target state="new">Reference to an implicitly-typed variable '{0}' is not permitted in this location.</target>
+        <target state="translated">No se permite la referencia a una variable con tipo implícito “{0}” en esta ubicación.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -1164,12 +1164,12 @@
       </trans-unit>
       <trans-unit id="ERR_InExtensionParameterMustBeValueType">
         <source>The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</source>
-        <target state="new">The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</target>
+        <target state="translated">El parámetro receptor “in” o “ref readonly” de la extensión debe ser un tipo de valor concreto (no genérico).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InequalityOperatorInPatternNotSupported">
         <source>The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.</source>
-        <target state="new">The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.</target>
+        <target state="translated">El operador “!=” no es compatible con un patrón. Use “not” para representar un patrón negado.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
@@ -1184,7 +1184,7 @@
       </trans-unit>
       <trans-unit id="ERR_InitInExtension">
         <source>'{0}': cannot declare init-only accessors in an extension block</source>
-        <target state="new">'{0}': cannot declare init-only accessors in an extension block</target>
+        <target state="translated">“{0}”: no se pueden declarar descriptores de acceso de solo inicialización en un bloque de extensión</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InlineArrayAttributeOnRecord">
@@ -1224,17 +1224,17 @@
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberWithUnnamedExtensionsParameter">
         <source>'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</source>
-        <target state="new">'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</target>
+        <target state="translated">“{0}”: no se pueden declarar miembros de instancia en un bloque de extensión con un parámetro receptor sin nombre</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceOperatorExtensionWrongReceiverType">
         <source>Cannot declare instance extension operator for a type that is not known to be a struct and is not known to be a class</source>
-        <target state="new">Cannot declare instance extension operator for a type that is not known to be a struct and is not known to be a class</target>
+        <target state="translated">No se puede declarar un operador de extensión de instancia para un tipo que no se sabe si es struct ni si es clase</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceOperatorStructExtensionWrongReceiverRefKind">
         <source>Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter</source>
-        <target state="new">Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter</target>
+        <target state="translated">No se puede declarar un operador de instancia para un struct a menos que el parámetro receptor del bloque de extensión que lo contiene sea un parámetro “ref”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
@@ -1409,7 +1409,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterpolatedStringHandlerArgumentDisallowed">
         <source>Interpolated string handler arguments are not allowed in this context.</source>
-        <target state="new">Interpolated string handler arguments are not allowed in this context.</target>
+        <target state="translated">No se permiten argumentos de controlador de cadena interpolada en este contexto.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterpolatedStringHandlerArgumentLocatedAfterInterpolatedString">
@@ -1447,14 +1447,19 @@
         <target state="translated">El argumento diagnosticId del atributo "Experimental" debe ser un identificador válido.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
+        <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</source>
+        <target state="new">'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</target>
+        <note>'await foreach' is not localizable</note>
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
         <source>The target runtime does not support extended layout types.</source>
-        <target state="new">The target runtime does not support extended layout types.</target>
+        <target state="translated">El runtime de destino no admite tipos con diseño extendido.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidExtensionParameterReference">
         <source>Cannot use extension parameter '{0}' in this context.</source>
-        <target state="new">Cannot use extension parameter '{0}' in this context.</target>
+        <target state="translated">No se puede usar el parámetro de extensión “{0}” en este contexto.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
@@ -1494,7 +1499,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidModifierAfterScoped">
         <source>The '{0}' modifier cannot immediately follow the 'scoped' modifier.</source>
-        <target state="new">The '{0}' modifier cannot immediately follow the 'scoped' modifier.</target>
+        <target state="translated">El modificador “{0}” no puede seguir inmediatamente al modificador “scoped”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidModifierForLanguageVersion">
@@ -1604,17 +1609,17 @@
       </trans-unit>
       <trans-unit id="ERR_LocalSameNameAsExtensionParameter">
         <source>'{0}': a parameter, local variable, or local function cannot have the same name as an extension parameter</source>
-        <target state="new">'{0}': a parameter, local variable, or local function cannot have the same name as an extension parameter</target>
+        <target state="translated">“{0}”: un parámetro o una variable o función local no pueden tener el mismo nombre que un parámetro de extensión</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalSameNameAsExtensionTypeParameter">
         <source>'{0}': a parameter, local variable, or local function cannot have the same name as an extension container type parameter</source>
-        <target state="new">'{0}': a parameter, local variable, or local function cannot have the same name as an extension container type parameter</target>
+        <target state="translated">“{0}”: un parámetro o una variable o función local no pueden tener el mismo nombre que un parámetro de tipo de contenedor de extensión</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsExtendedType">
         <source>'{0}': extension member names cannot be the same as their extended type</source>
-        <target state="new">'{0}': extension member names cannot be the same as their extended type</target>
+        <target state="translated">“{0}”: los nombres de miembros de extensión no pueden ser iguales que el tipo que extienden</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
@@ -1624,12 +1629,12 @@
       </trans-unit>
       <trans-unit id="ERR_MethodImplAttributeAsyncCannotBeUsed">
         <source>'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.</source>
-        <target state="new">'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.</target>
+        <target state="translated">“MethodImplAttribute.Async” no se puede aplicar manualmente a los métodos. Marca el método como “async”.</target>
         <note>'MethodImplAttribute.Async' and 'async' are not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_MisplacedExtension">
         <source>An extension member syntax is disallowed in nested position within an extension member syntax</source>
-        <target state="new">An extension member syntax is disallowed in nested position within an extension member syntax</target>
+        <target state="translated">No se permite la sintaxis de miembro de extensión anidada dentro de otra sintaxis de miembro de extensión</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MisplacedRecord">
@@ -1659,7 +1664,7 @@
       </trans-unit>
       <trans-unit id="ERR_ModifierOnUnnamedReceiverParameter">
         <source>Cannot use modifiers on the unnamed receiver parameter of extension block</source>
-        <target state="new">Cannot use modifiers on the unnamed receiver parameter of extension block</target>
+        <target state="translated">No se pueden usar modificadores en el parámetro receptor sin nombre del bloque de extensión</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerCannotBeUnmanagedCallersOnly">
@@ -1714,7 +1719,7 @@
       </trans-unit>
       <trans-unit id="ERR_NameofExtensionMember">
         <source>Extension members are not allowed as an argument to 'nameof'.</source>
-        <target state="new">Extension members are not allowed as an argument to 'nameof'.</target>
+        <target state="translated">Los miembros de extensión como argumento de “nameof” no están permitidos.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -1809,7 +1814,7 @@
       </trans-unit>
       <trans-unit id="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName">
         <source>'{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.</source>
-        <target state="new">'{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.</target>
+        <target state="translated">"{0}" no es un método de instancia, el receptor o el parámetro del receptor de la extensión no puede ser un argumento de controlador de cadena interpolada.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotOverridableAPIInRecord">
@@ -1859,27 +1864,27 @@
       </trans-unit>
       <trans-unit id="ERR_OperatorInExtensionOfStaticClass">
         <source>An extension block extending a static class cannot contain user-defined operators</source>
-        <target state="new">An extension block extending a static class cannot contain user-defined operators</target>
+        <target state="translated">Un bloque de extensión que extiende una clase estática no puede contener operadores definidos por el usuario</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorMismatchOnOverride">
         <source>'{0}': cannot override inherited member '{1}' because one of them is not an operator.</source>
-        <target state="new">'{0}': cannot override inherited member '{1}' because one of them is not an operator.</target>
+        <target state="translated">“{0}”: no se puede sobrescribir el miembro heredado “{1}” porque uno de ellos no es un operador.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorMustReturnVoid">
         <source>The return type for this operator must be void</source>
-        <target state="new">The return type for this operator must be void</target>
+        <target state="translated">El tipo de retorno de este operador debe ser void</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorsMustBePublic">
         <source>User-defined operator '{0}' must be declared public</source>
-        <target state="new">User-defined operator '{0}' must be declared public</target>
+        <target state="translated">El operador “{0}” definido por el usuario debe declararse público</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorsMustBeStaticAndPublic">
         <source>User-defined operator '{0}' must be declared static and public</source>
-        <target state="new">User-defined operator '{0}' must be declared static and public</target>
+        <target state="translated">El operador '{0}' definido por el usuario debe declararse estático y público</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OutAttrOnRefReadonlyParam">
@@ -1914,22 +1919,22 @@
       </trans-unit>
       <trans-unit id="ERR_PPIgnoredFollowsIf">
         <source>'#:' directives cannot be after '#if' directive</source>
-        <target state="new">'#:' directives cannot be after '#if' directive</target>
+        <target state="translated">Las directivas “#:” no pueden ir después de la directiva “#if”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PPIgnoredFollowsToken">
         <source>'#:' directives cannot be after first token in file</source>
-        <target state="new">'#:' directives cannot be after first token in file</target>
+        <target state="translated">Las directivas “#:” no pueden aparecer después del primer token en el archivo</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PPIgnoredNeedsFileBasedProgram">
         <source>'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</source>
-        <target state="new">'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</target>
+        <target state="translated">Las directivas “#:” solo se pueden usar en programas basados en archivos (“-features:FileBasedProgram”)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PPShebangInProjectBasedProgram">
         <source>'#!' directives can be only used in scripts or file-based programs</source>
-        <target state="new">'#!' directives can be only used in scripts or file-based programs</target>
+        <target state="translated">Las directivas “#!” solo se pueden usar en scripts o programas basados en archivos</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
@@ -1969,12 +1974,12 @@
       </trans-unit>
       <trans-unit id="ERR_PartialConstructorInitializer">
         <source>'{0}': only the implementing declaration of a partial constructor can have an initializer</source>
-        <target state="new">'{0}': only the implementing declaration of a partial constructor can have an initializer</target>
+        <target state="translated">“{0}”: solo la declaración de implementación de un constructor parcial puede tener un inicializador</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialEventInitializer">
         <source>'{0}': partial event cannot have initializer</source>
-        <target state="new">'{0}': partial event cannot have initializer</target>
+        <target state="translated">"{0}": un evento parcial no puede tener un inicializador</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberAccessibilityDifference">
@@ -1989,12 +1994,12 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMemberDuplicateDefinition">
         <source>Partial member '{0}' may not have multiple defining declarations.</source>
-        <target state="new">Partial member '{0}' may not have multiple defining declarations.</target>
+        <target state="translated">Un método parcial “{0}” no puede tener varias declaraciones de definición.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberDuplicateImplementation">
         <source>Partial member '{0}' may not have multiple implementing declarations.</source>
-        <target state="new">Partial member '{0}' may not have multiple implementing declarations.</target>
+        <target state="translated">Un miembro parcial “{0}” no puede tener varias declaraciones de implementación.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberInconsistentTupleNames">
@@ -2004,12 +2009,12 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMemberMissingDefinition">
         <source>Partial member '{0}' must have a definition part.</source>
-        <target state="new">Partial member '{0}' must have a definition part.</target>
+        <target state="translated">El miembro parcial “{0}” debe tener una parte de definición.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberMissingImplementation">
         <source>Partial member '{0}' must have an implementation part.</source>
-        <target state="new">Partial member '{0}' must have an implementation part.</target>
+        <target state="translated">El miembro parcial “{0}” debe tener una parte de implementación.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberOnlyInPartialClass">
@@ -2039,7 +2044,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMemberTypeDifference">
         <source>Both partial member declarations must have the same type.</source>
-        <target state="new">Both partial member declarations must have the same type.</target>
+        <target state="translated">Ambas declaraciones de miembro parcial deben tener el mismo tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberUnsafeDifference">
@@ -2144,7 +2149,7 @@
       </trans-unit>
       <trans-unit id="ERR_ProtectedInExtension">
         <source>'{0}': new protected member declared in an extension block</source>
-        <target state="new">'{0}': new protected member declared in an extension block</target>
+        <target state="translated">“{0}”: nuevo miembro protegido declarado en un bloque de extensión</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RawStringDelimiterOnOwnLine">
@@ -2179,12 +2184,12 @@
       </trans-unit>
       <trans-unit id="ERR_ReceiverParameterOnlyOne">
         <source>An extension container can have only one receiver parameter</source>
-        <target state="new">An extension container can have only one receiver parameter</target>
+        <target state="translated">Un contenedor de extensión solo puede tener un parámetro receptor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReceiverParameterSameNameAsTypeParameter">
         <source>'{0}': a receiver parameter cannot have the same name as an extension container type parameter</source>
-        <target state="new">'{0}': a receiver parameter cannot have the same name as an extension container type parameter</target>
+        <target state="translated">“{0}”: un parámetro receptor no puede tener el mismo nombre que un parámetro de tipo del contenedor de extensión</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RecordAmbigCtor">
@@ -2214,7 +2219,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne">
         <source>The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.</source>
-        <target state="new">The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.</target>
+        <target state="translated">El primer receptor “ref” de un bloque de extensión debe ser un tipo de valor o un tipo genérico restringido a struct.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
@@ -2349,7 +2354,7 @@
       </trans-unit>
       <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
         <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
-        <target state="new">The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</target>
+        <target state="translated">El tipo “Microsoft.CodeAnalysis.EmbeddedAttribute” debe ser no genérico, interno, no de archivo, sellado, no estático, tener un constructor sin parámetros, heredar de System.Attribute y poder aplicarse a cualquier tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
@@ -2399,7 +2404,7 @@
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
         <source>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</source>
-        <target state="new">The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</target>
+        <target state="translated">El modificador “scoped” no puede aparecer después de un modificador “in”, “out”, “ref” o “readonly”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedDiscard">
@@ -2469,12 +2474,12 @@
       </trans-unit>
       <trans-unit id="ERR_SingleInapplicableBinaryOperator">
         <source>Operator cannot be applied to operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'</source>
-        <target state="new">Operator cannot be applied to operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'</target>
+        <target state="translated">El operador no se puede aplicar a operandos del tipo “{0}” y “{1}”. El candidato inaplicable más cercano es “{2}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SingleInapplicableUnaryOperator">
         <source>Operator cannot be applied to operand of type '{0}'. The closest inapplicable candidate is '{1}'</source>
-        <target state="new">Operator cannot be applied to operand of type '{0}'. The closest inapplicable candidate is '{1}'</target>
+        <target state="translated">El operador no se puede aplicar al operando del tipo “{0}”. El candidato inaplicable más cercano es “{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SpreadMissingMember">
@@ -2529,7 +2534,7 @@
       </trans-unit>
       <trans-unit id="ERR_StructLayoutAndExtendedLayout">
         <source>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</source>
-        <target state="new">Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</target>
+        <target state="translated">No está permitido usar “StructLayoutAttribute” y “ExtendedLayoutAttribute” en el mismo tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructLayoutCyclePrimaryConstructorParameter">
@@ -2579,7 +2584,7 @@
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings_RestartRequired">
         <source>Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</source>
-        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</target>
+        <target state="translated">La longitud combinada de las cadenas de usuario que el programa utiliza supera el límite permitido. Para agregar un literal de cadena, es necesario reiniciar la aplicación.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
@@ -2619,12 +2624,12 @@
       </trans-unit>
       <trans-unit id="ERR_TypeParameterSameNameAsExtensionParameter">
         <source>Type parameter '{0}' has the same name as an extension parameter</source>
-        <target state="new">Type parameter '{0}' has the same name as an extension parameter</target>
+        <target state="translated">El parámetro de tipo “{0}” tiene el mismo nombre que un parámetro extensiones</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeParameterSameNameAsExtensionTypeParameter">
         <source>Type parameter '{0}' has the same name as an extension container type parameter</source>
-        <target state="new">Type parameter '{0}' has the same name as an extension container type parameter</target>
+        <target state="translated">El parámetro de tipo “{0}” tiene el mismo nombre que un parámetro de tipo del contenedor de extensiones</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnassignedThisAutoPropertyUnsupportedVersion">
@@ -2639,12 +2644,12 @@
       </trans-unit>
       <trans-unit id="ERR_UnderspecifiedExtension">
         <source>The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</source>
-        <target state="new">The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</target>
+        <target state="translated">El parámetro de tipo “{0}” no tiene una referencia hecha por el parámetro de extensión ni por ningún parámetro de este miembro</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList">
         <source>Cannot pass arguments to the base type without a parameter list on the type declaration.</source>
-        <target state="new">Cannot pass arguments to the base type without a parameter list on the type declaration.</target>
+        <target state="translated">No se pueden pasar argumentos al tipo base sin una lista de parámetros en la declaración del tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">
@@ -2694,7 +2699,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedFeatureInRuntimeAsync">
         <source>Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
-        <target state="new">Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</target>
+        <target state="translated">El método “{0}” usa una característica que actualmente no es compatible con la ejecución asincrónica en tiempo de ejecución. Excluya el método de la ejecución asincrónica en tiempo de ejecución atribuyéndolo con “System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
@@ -2739,17 +2744,17 @@
       </trans-unit>
       <trans-unit id="ERR_ValueParameterSameNameAsExtensionParameter">
         <source>'value': an automatically-generated parameter name conflicts with an extension parameter name</source>
-        <target state="new">'value': an automatically-generated parameter name conflicts with an extension parameter name</target>
+        <target state="translated">“value”: un nombre de parámetro generado automáticamente entra en conflicto con un nombre de parámetro de extensión</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ValueParameterSameNameAsExtensionTypeParameter">
         <source>'value': an automatically-generated parameter name conflicts with an extension type parameter name</source>
-        <target state="new">'value': an automatically-generated parameter name conflicts with an extension type parameter name</target>
+        <target state="translated">“value”: un nombre de parámetro generado automáticamente entra en conflicto con un nombre de parámetro de tipo de extensión</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VariableDeclarationNamedField">
         <source>In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</source>
-        <target state="new">In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</target>
+        <target state="translated">En la versión de lenguaje {0}, “field” es una palabra clave dentro de un descriptor de acceso de la propiedad. Cambie el nombre de la variable o use el identificador “@field”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
@@ -2769,22 +2774,22 @@
       </trans-unit>
       <trans-unit id="HDN_RedundantPattern">
         <source>The pattern is redundant.</source>
-        <target state="new">The pattern is redundant.</target>
+        <target state="translated">El patrón es redundante.</target>
         <note />
       </trans-unit>
       <trans-unit id="HDN_RedundantPatternStackGuard">
         <source>The pattern is too complex to analyze for redundancy.</source>
-        <target state="new">The pattern is too complex to analyze for redundancy.</target>
+        <target state="translated">El patrón es demasiado complejo para analizar la redundancia.</target>
         <note />
       </trans-unit>
       <trans-unit id="HDN_RedundantPatternStackGuard_Title">
         <source>The pattern is too complex to analyze for redundancy.</source>
-        <target state="new">The pattern is too complex to analyze for redundancy.</target>
+        <target state="translated">El patrón es demasiado complejo para analizar la redundancia.</target>
         <note />
       </trans-unit>
       <trans-unit id="HDN_RedundantPattern_Title">
         <source>The pattern is redundant.</source>
-        <target state="new">The pattern is redundant.</target>
+        <target state="translated">El patrón es redundante.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
@@ -2799,7 +2804,7 @@
       </trans-unit>
       <trans-unit id="IDS_CollectionExpression">
         <source>collection expression</source>
-        <target state="new">collection expression</target>
+        <target state="translated">expresión de colección</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAllowsRefStructConstraint">
@@ -2849,7 +2854,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensions">
         <source>extensions</source>
-        <target state="new">extensions</target>
+        <target state="translated">extensiones</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureFieldKeyword">
@@ -2949,7 +2954,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureNullConditionalAssignment">
         <source>null conditional assignment</source>
-        <target state="new">null conditional assignment</target>
+        <target state="translated">asignación condicional nula</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureOverloadResolutionPriority">
@@ -2969,7 +2974,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeaturePartialEventsAndConstructors">
         <source>partial events and constructors</source>
-        <target state="new">partial events and constructors</target>
+        <target state="translated">eventos y constructores parciales</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
@@ -3029,7 +3034,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureSimpleLambdaParameterModifiers">
         <source>simple lambda parameter modifiers</source>
-        <target state="new">simple lambda parameter modifiers</target>
+        <target state="translated">modificadores simples de parámetros lambda</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStringEscapeCharacter">
@@ -3054,7 +3059,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUserDefinedCompoundAssignmentOperators">
         <source>user-defined compound assignment operators</source>
-        <target state="new">user-defined compound assignment operators</target>
+        <target state="translated">operadores de asignación compuesta definidos por el usuario</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUtf8StringLiterals">
@@ -3134,17 +3139,17 @@
       </trans-unit>
       <trans-unit id="NodeIsNotAwaitUsingDeclaration">
         <source>'node' is not an 'await using' declaration</source>
-        <target state="new">'node' is not an 'await using' declaration</target>
+        <target state="translated">“node” no es una declaración “await using”</target>
         <note>node and await using are not localizable</note>
       </trans-unit>
       <trans-unit id="NodeIsNotAwaitUsingStatement">
         <source>'node' is not an 'await using' statement</source>
-        <target state="new">'node' is not an 'await using' statement</target>
+        <target state="translated">“node” no es una instrucción “await using”</target>
         <note>node and await using are not localizable</note>
       </trans-unit>
       <trans-unit id="ParameterRequiresTypeOrIdentifier">
         <source>ParameterSyntax requires either a type or an identifier.</source>
-        <target state="new">ParameterSyntax requires either a type or an identifier.</target>
+        <target state="translated">ParameterSyntax requiere un tipo o un identificador.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AccessorDoesNotUseBackingField">
@@ -3179,12 +3184,12 @@
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
         <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="new">Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
+        <target state="translated">El ensamblado del analizador “{0}” no se puede usar porque hace referencia a la versión “{1}” del compilador, que es más reciente que la versión “{2}” que se está ejecutando actualmente.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
         <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
-        <target state="new">Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</target>
+        <target state="translated">El ensamblado del analizador no se puede usar porque hace referencia a una versión más reciente del compilador que la que se está ejecutando.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedIn">
@@ -3609,12 +3614,12 @@
       </trans-unit>
       <trans-unit id="WRN_PartialMemberSignatureDifference">
         <source>Partial member declarations '{0}' and '{1}' have signature differences.</source>
-        <target state="new">Partial member declarations '{0}' and '{1}' have signature differences.</target>
+        <target state="translated">Las declaraciones de método parcial "{0}" y "{1}" tienen diferencias de signatura.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PartialMemberSignatureDifference_Title">
         <source>Partial member declarations have signature differences.</source>
-        <target state="new">Partial member declarations have signature differences.</target>
+        <target state="translated">Las declaraciones de miembro parcial tienen diferencias de signatura.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
@@ -3664,12 +3669,12 @@
       </trans-unit>
       <trans-unit id="WRN_RedundantPattern">
         <source>The pattern is redundant.</source>
-        <target state="new">The pattern is redundant.</target>
+        <target state="translated">El patrón es redundante.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RedundantPattern_Title">
         <source>The pattern is redundant.</source>
-        <target state="new">The pattern is redundant.</target>
+        <target state="translated">El patrón es redundante.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignNarrower">
@@ -4123,165 +4128,165 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="new">
-                             Visual C# Compiler Options
+        <target state="translated">
+                             Opciones de compilador de Visual C#
 
-                       - OUTPUT FILES -
--out:&lt;file&gt;                   Specify output file name (default: base name of
-                              file with main class or first file)
--target:exe                   Build a console executable (default) (Short
-                              form: -t:exe)
--target:winexe                Build a Windows executable (Short form:
+                       - ARCHIVOS DE SALIDA -
+-out:&lt;archivo&gt;                   Especificar el nombre del archivo de salida (valor predeterminado: nombre base del
+                              archivo con clase principal o primer archivo)
+-target:exe                   Compilar un archivo ejecutable de consola (valor predeterminado) (forma
+                              corta: -t:exe)
+-target:winexe                Compilar un archivo ejecutable de Windows (forma corta:
                               -t:winexe)
--target:library               Build a library (Short form: -t:library)
--target:module                Build a module that can be added to another
-                              assembly (Short form: -t:module)
--target:appcontainerexe       Build an Appcontainer executable (Short form:
+-target:library               Compilar una biblioteca (forma corta: -t:library)
+-target:module                Compilar un módulo que se pueda agregar a otro
+                              ensamblado (forma corta: -t:module)
+-target:appcontainerexe       Compilar un archivo ejecutable de Appcontainer (forma corta:
                               -t:appcontainerexe)
--target:winmdobj              Build a Windows Runtime intermediate file that
-                              is consumed by WinMDExp (Short form: -t:winmdobj)
--doc:&lt;file&gt;                   XML Documentation file to generate
--refout:&lt;file&gt;                Reference assembly output to generate
--platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
-                              Itanium, x64, arm, arm64, anycpu32bitpreferred, or
-                              anycpu. The default is anycpu.
+-target:winmdobj              Compilar un archivo intermedio de Windows Runtime que
+                              WinMDExp consume (forma corta: -t:winmdobj)
+-doc:&lt;file&gt;                       Archivo de documentación XML que se va a generar
+-refout:&lt;file&gt;                    Salida del ensamblado de referencia que se va a generar
+-platform:&lt;string&gt;                Limitar en qué plataformas se puede ejecutar este código: x86,
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred o
+                              anycpu. El valor predeterminado es anycpu.
 
-                       - INPUT FILES -
--recurse:&lt;wildcard&gt;           Include all files in the current directory and
-                              subdirectories according to the wildcard
-                              specifications
--reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly
-                              file using the given alias (Short form: -r)
--reference:&lt;file list&gt;        Reference metadata from the specified assembly
-                              files (Short form: -r)
--addmodule:&lt;file list&gt;        Link the specified modules into this assembly
--link:&lt;file list&gt;             Embed metadata from the specified interop
-                              assembly files (Short form: -l)
--analyzer:&lt;file list&gt;         Run the analyzers from this assembly
-                              (Short form: -a)
--additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
-                              generation but may be used by analyzers for producing
-                              errors or warnings.
--embed                        Embed all source files in the PDB.
--embed:&lt;file list&gt;            Embed specific files in the PDB.
+                       - ARCHIVOS DE ENTRADA -
+-recurse:&lt;wildcard&gt;               Incluir todos los archivos del directorio y
+                              y subdirectorios actuales según las especificaciones del carácter
+                              comodín
+-reference:&lt;alias&gt;=&lt;file&gt;     Metadatos de referencia del archivo de ensamblado especificado
+                              con el alias proporcionado (forma corta: -r)
+/reference:&lt;file list&gt;        Metadatos de referencia de los archivos de ensamblado
+                              especificados (Forma corta: -r)
+-addmodule:&lt;file list&gt;        Vincular los módulos especificados a este ensamblado
+-link:&lt;file list&gt;             Insertar metadatos de los archivos de ensamblado de la interoperabilidad
+                              especificada (Forma corta: -r)
+-analyzer:&lt;file list&gt;         Ejecutar los analizadores desde este ensamblado
+                              (Forma corta: -a)
+-additionalfile:&lt;file list&gt;    Archivos adicionales que no afectan directamente a la generación de
+                              código, pero los analizadores pueden usarse para producir
+                              errores o advertencias.
+-embed                        Insertar todos los archivos de código fuente en el archivo PDB.
+-embed:&lt;file list&gt;            Insertar archivos específicos en el archivo PDB.
 
-                       - RESOURCES -
--win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
--win32icon:&lt;file&gt;             Use this icon for the output
--win32manifest:&lt;file&gt;         Specify a Win32 manifest file (.xml)
--nowin32manifest              Do not include the default Win32 manifest
--resource:&lt;resinfo&gt;           Embed the specified resource (Short form: -res)
--linkresource:&lt;resinfo&gt;       Link the specified resource to this assembly
-                              (Short form: -linkres) Where the resinfo format
-                              is &lt;file&gt;[,&lt;string name&gt;[,public|private]]
+                       - RECURSOS -
+-win32res:&lt;file&gt;              Especificar el archivo de recursos Win32 (.res)
+-win32icon:&lt;file&gt;             Usar este icono para la salida
+-win32manifest:&lt;file&gt;         Especificar un archivo de manifiesto win32 (.xml)
+-nowin32manifest              No incluir el manifiesto Win32 predeterminado
+-resource:&lt;resinfo&gt;           Insertar el recurso especificado (forma corta: /res)
+-linkresource:&lt;resinfo&gt;       Vincular el recurso especificado a este ensamblado
+                              (Forma corta: -linkres) En la que el formato de resinfo
+                              es &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
-                       - CODE GENERATION -
--debug[+|-]                   Emit debugging information
+                       - GENERACIÓN DE CÓDIGO -
+-debug[+|-]                       Emitir información de depuración
 -debug:{full|pdbonly|portable|embedded}
-                              Specify debugging type ('full' is default,
-                              'portable' is a cross-platform format,
-                              'embedded' is a cross-platform format embedded into
-                              the target .dll or .exe)
--optimize[+|-]                Enable optimizations (Short form: -o)
--deterministic                Produce a deterministic assembly
-                              (including module version GUID and timestamp)
--refonly                      Produce a reference assembly in place of the main output
--instrument:TestCoverage      Produce an assembly instrumented to collect
-                              coverage information
--sourcelink:&lt;file&gt;            Source link info to embed into PDB.
+                              Especifique el tipo de depuración ("full" es el valor predeterminado,
+                              "portable" es un formato multiplataforma,
+                              "embedded" es un formato multiplataforma incrustado en
+                              el archivo .dll o .exe de destino)
+-optimize[+|-]                Habilitar optimizaciones (forma corta: -o)
+-deterministic                    Producir un ensamblado determinista
+                              (incluyendo el GUID de la versión del módulo y la marca de tiempo)
+-refonly                          Generar un ensamblado de referencia en lugar de la salida principal
+-instrument:TestCoverage          Producir un ensamblado instrumentado para recopilar
+                              información de cobertura
+-sourcelink:&lt;file&gt;                Información del vínculo de origen para insertar en el archivo PDB.
 
-                       - ERRORS AND WARNINGS -
--warnaserror[+|-]             Report all warnings as errors
--warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
-                              (use "nullable" for all nullability warnings)
--warn:&lt;n&gt;                     Set warning level (0 or higher) (Short form: -w)
--nowarn:&lt;warn list&gt;           Disable specific warning messages
-                              (use "nullable" for all nullability warnings)
--ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
-                              diagnostics.
+                       - ERRORES Y ADVERTENCIAS -
+-warnaserror[+|-]             Notificar todas las advertencias como errores
+-warnaserror[+|-]:&lt;warn list&gt; Notificar advertencias específicas como errores
+                              (use "nullable" para todas las advertencias que acepten valores NULL)
+-warn:&lt;n&gt;                     Establecer el nivel de advertencia (0 o superior) (forma corta: -w)
+-nowarn:&lt;warn list&gt;           Deshabilitar mensajes de advertencia específicos
+                              (use "nullable" para todas las advertencias que acepten valores NULL)
+-ruleset:&lt;file&gt;                   Especificar un archivo de conjunto de reglas que deshabilite
+                              diagnósticos específicos.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
-                              Specify a file to log all compiler and analyzer
-                              diagnostics.
-                              sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
-                              both mean SARIF version 2.1.0.
--reportanalyzer               Report additional analyzer information, such as
-                              execution time.
--skipanalyzers[+|-]           Skip execution of diagnostic analyzers.
+                              Especifique un archivo para registrar todos los diagnósticos del compilador
+                              y el analizador.
+                              sarif_version:{1|2|2.1} El valor predeterminado es 1.2 y 2.1
+                              ambos hacen referencia a la versión 2.1.0 de SARIF.
+-reportanalyzer                   Notificar información adicional del analizador, como
+                              hora de ejecución.
+-skipanalyzers[+|-]               Omitir la ejecución de los analizadores de diagnóstico.
 
-                       - LANGUAGE -
--checked[+|-]                 Generate overflow checks
--unsafe[+|-]                  Allow 'unsafe' code
--define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
-                              form: -d)
--langversion:?                Display the allowed values for language version
--langversion:&lt;string&gt;         Specify language version such as
-                              `latest` (latest version, including minor versions),
-                              `default` (same as `latest`),
-                              `latestmajor` (latest version, excluding minor versions),
-                              `preview` (latest version, including features in unsupported preview),
-                              or specific versions like `6` or `7.1`
--nullable[+|-]                Specify nullable context option enable|disable.
+                       - LENGUAJE -
+-checked[+|-]                 Generar comprobaciones de desbordamiento
+-unsafe[+|-]                  Permitir código no seguro
+-define:&lt;symbol list&gt;         Definir los símbolos de la compilación condicional (forma
+                              corta: -d)
+-langversion:?                Muestra los valores permitidos para la versión del lenguaje
+-langversion:&lt;string&gt;             Especificar la versión de lenguaje como
+                              "latest" (versión más reciente, incluidas las versiones secundarias),
+                              "default" (igual que "más reciente"),
+                              “latestmajor” (versión más reciente, incluidas las versiones secundarias),
+                              "preview" (versión más reciente, incluidas las características de la versión preliminar no admitida)
+                              o versiones específicas, como "6" o "7.1"
+-nullable[+|-]                Especificar la opción de contexto que acepta valores NULL: habilitar|deshabilitar.
 -nullable:{enable|disable|warnings|annotations}
-                              Specify nullable context option enable|disable|warnings|annotations.
+                              Especifique la opción de contexto que acepta valores NULL: enable|disable|warnings|annotations.
 
-                       - SECURITY -
--delaysign[+|-]               Delay-sign the assembly using only the public
-                              portion of the strong name key
--publicsign[+|-]              Public-sign the assembly using only the public
-                              portion of the strong name key
--keyfile:&lt;file&gt;               Specify a strong name key file
--keycontainer:&lt;string&gt;        Specify a strong name key container
--highentropyva[+|-]           Enable high-entropy ASLR
+                       - SEGURIDAD -
+-delaysign[+|-]                   Retrasar la firma del ensamblado usando solo la parte pública
+                              de la clave de nombre seguro
+-publicsign[+|-]                  Firmar públicamente el ensamblado usando solo la parte pública
+                              de la clave de nombre seguro
+-keyfile:&lt;file&gt;                   Especificar un archivo de clave de nombre seguro
+-keycontainer:&lt;string&gt;            Especificar un contenedor de claves de nombre seguro
+-highentropyva[+|-]               Habilitar ASLR de alta entropía
 
-                       - MISCELLANEOUS -
-@&lt;file&gt;                       Read response file for more options
--help                         Display this usage message (Short form: -?)
--nologo                       Suppress compiler copyright message
--noconfig                     Do not auto include CSC.RSP file
--parallel[+|-]                Concurrent build.
--version                      Display the compiler version number and exit.
+                       - VARIOS -
+@&lt;file&gt;                       Leer el archivo de respuesta para obtener más opciones
+-help                         Mostrar este mensaje de uso  (forma corta: -?)
+-nologo                       Suprimir el mensaje de copyright del compilador
+-noconfig                         No incluir automáticamente el archivo CSC.RSP
+-parallel[+|-]                    Compilación simultánea.
+-version                          Mostrar el número de versión del compilador y salir.
 
-                       - ADVANCED -
--baseaddress:&lt;address&gt;        Base address for the library to be built
--checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
-                              checksum stored in PDB. Supported values are:
-                              SHA1 or SHA256 (default).
--codepage:&lt;n&gt;                 Specify the codepage to use when opening source
-                              files
--utf8output                   Output compiler messages in UTF-8 encoding
--main:&lt;type&gt;                  Specify the type that contains the entry point
-                              (ignore all other possible entry points) (Short
-                              form: -m)
--fullpaths                    Compiler generates fully qualified paths
--filealign:&lt;n&gt;                Specify the alignment used for output file
-                              sections
+                       - AVANZADO -
+-baseaddress:&lt;address&gt;        Dirección base para la biblioteca que se compilará
+-checksumalgorithm:&lt;alg&gt;      Especificar el algoritmo para calcular la suma de comprobación
+                              del archivo de origen almacenada en PDB. Los valores admitidos son:
+                              SHA1 o SHA256 (valor predeterminado).
+-codepage:&lt;n&gt;                 Especificar la página de códigos que se va a utilizar cuando se abren los archivos de código
+                              fuente
+-utf8output                   Salida de mensajes del compilador en codificación UTF-8
+-main:&lt;type&gt;                  Especificar el tipo que contiene el punto de entrada
+                              (omitir todos los demás puntos de entrada posibles) (forma
+                              corta: -m)
+-fullpaths                    El compilador genera rutas de acceso completas
+-filealign:&lt;n&gt;                Especificar la alineación utilizada para las secciones
+                              del archivo de salida
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                              Specify a mapping for source path names output by
-                              the compiler.
--pdb:&lt;file&gt;                   Specify debug information file name (default:
-                              output file name with .pdb extension)
--errorendlocation             Output line and column of the end location of
-                              each error
--preferreduilang              Specify the preferred output language name.
--nosdkpath                    Disable searching the default SDK path for standard library assemblies.
--sdkpath:&lt;path&gt;         Path used to search for standard library assemblies.
--nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
--subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
--lib:&lt;file list&gt;              Specify additional directories to search in for
-                              references
--errorreport:&lt;string&gt;         Specify how to handle internal compiler errors:
-                              prompt, send, queue, or none. The default is
-                              queue.
--appconfig:&lt;file&gt;             Specify an application configuration file
-                              containing assembly binding settings
--moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
-                              a part of
--modulename:&lt;string&gt;          Specify the name of the source module
--generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
-                              specified directory.
--reportivts[+|-]                    Output information on all IVTs granted to this
-                              assembly by all dependencies, and annotate foreign assembly
-                              accessibility errors with what assembly they came from.
+                              Especifique una asignación para los nombres de ruta de acceso de origen generados por
+                              el compilador.
+-pdb:&lt;file&gt;                   Especificar el nombre del archivo de información de depuración (predeterminado:
+                              nombre de archivo de salida con extensión .pdb)
+-errorendlocation             Línea de salida y columna de la ubicación final de
+                              cada error
+-preferreduilang                  Especificar el nombre del idioma de salida preferido.
+-nosdkpath                        Deshabilitar la búsqueda de rutas de acceso SDK predeterminadas para los ensamblados de biblioteca estándar.
+-sdkpath:&lt;path&gt;             Ruta de acceso usada para buscar ensamblados de biblioteca estándar.
+-nostdlib                         No hacer referencia a bibliotecas estándar (mscorlib.dll)
+-subsystemversion:&lt;string&gt;    Especificar versión del subsistema de este ensamblado
+-lib:&lt;file list&gt;              Especificar directorios adicionales en los que buscar
+                              referencias
+-errorreport:&lt;string&gt;             Especificar cómo controlar los errores del compilador interno:
+                              solicitar, enviar, poner en cola o ninguno. El valor predeterminado es 
+                              en cola.
+-appconfig:&lt;file&gt;             Especificar un archivo de configuración de la aplicación
+                              que contiene la configuración de enlace del ensamblado
+-moduleassemblyname:&lt;string&gt;  Nombre del ensamblado del que formará parte
+                              este módulo
+-modulename:&lt;string&gt;          Especificar el nombre del módulo de origen
+-generatedfilesout:&lt;dir&gt;      Colocar archivos generados durante la compilación en el
+                              directorio especificado.
+-reportivts[+|-]                  Información de salida sobre todos los IVT concedidos a este
+                              ensamblado por todas las dependencias y anotar los errores de accesibilidad de ensamblados
+                              externos con el ensamblado del que proceden.
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -5787,12 +5792,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField">
         <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
-        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</target>
+        <target state="translated">El elemento {0} “{1}” que no acepta valores NULL debe contener un valor distinto de NULL al salir del constructor. Considere agregar el modificador “required”, declarar {0} como que no acepta valores null o manejar de forma segura el caso en que “field” sea null en el accesor “get”.</target>
         <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField_Title">
         <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
-        <target state="new">Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</target>
+        <target state="translated">La propiedad que admite valores NULL debe contener un valor que no sea null al salir del constructor. Considere agregar el modificador “required”, declarar la propiedad como que no acepta valores null o manejar de forma segura el caso en que “field” sea null en el accesor “get”.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
@@ -6207,7 +6212,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadVisIndexerParam">
         <source>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</source>
-        <target state="new">Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</target>
+        <target state="translated">Incoherencia de accesibilidad: el tipo de parámetro “{1}” es menos accesible que el indizador o la propiedad “{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisOpReturn">
@@ -7132,7 +7137,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
         <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</source>
-        <target state="new">The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</target>
+        <target state="translated">El modificador “partial” solo puede aparecer inmediatamente antes de “class”, “record”, “struct”, “interface”, un nombre de constructor de instancia, o un método o tipo de valor devuelto de propiedad.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -7791,7 +7796,7 @@ Si se utiliza una clase de este tipo como clase base y si la clase derivada defi
       </trans-unit>
       <trans-unit id="ERR_PredefinedTypeAmbiguous">
         <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
-        <target state="new">Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</target>
+        <target state="translated">El tipo "{0}" predefinido se declara en varios ensamblados a los que se hace referencia: "{1}" y "{2}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructWithBaseConstructorCall">
@@ -8106,7 +8111,7 @@ Si se utiliza una clase de este tipo como clase base y si la clase derivada defi
       </trans-unit>
       <trans-unit id="ERR_DllImportOnInvalidMethod">
         <source>The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member</source>
-        <target state="new">The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member</target>
+        <target state="translated">El atributo DllImport debe especificarse en un método marcado como “extern” que sea “static” o un miembro de extensión</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
@@ -9205,7 +9210,7 @@ Un bloque catch() después de un bloque catch (System.Exception e) puede abarcar
       </trans-unit>
       <trans-unit id="ERR_BadTypeforThis">
         <source>The receiver parameter of an extension cannot be of type '{0}'</source>
-        <target state="new">The receiver parameter of an extension cannot be of type '{0}'</target>
+        <target state="translated">El parámetro receptor de una extensión no puede ser del tipo “{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamModThis">
@@ -9235,7 +9240,7 @@ Un bloque catch() después de un bloque catch (System.Exception e) puede abarcar
       </trans-unit>
       <trans-unit id="ERR_ExtensionAttrNotFound">
         <source>Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
-        <target state="new">Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</target>
+        <target state="translated">No se puede definir una nueva extensión porque no se encontró el tipo “{0}” requerido por el compilador. ¿Falta alguna referencia a System.Core.dll?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitExtension">
@@ -9330,7 +9335,7 @@ Un bloque catch() después de un bloque catch (System.Exception e) puede abarcar
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
         <source>Invalid token '{0}' in a member declaration</source>
-        <target state="new">Invalid token '{0}' in a member declaration</target>
+        <target state="translated">Token “{0}” no válido en una declaración de miembro</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">
@@ -11910,7 +11915,7 @@ Considere la posibilidad de suprimir la advertencia solo si tiene la seguridad d
       </trans-unit>
       <trans-unit id="ERR_InvalidDynamicCondition">
         <source>Expression must be implicitly convertible to Boolean or its type '{0}' must not be an interface and must define operator '{1}'.</source>
-        <target state="new">Expression must be implicitly convertible to Boolean or its type '{0}' must not be an interface and must define operator '{1}'.</target>
+        <target state="translated">La expresión se debe poder convertir implícitamente en booleano o su tipo “{0}” no debe ser una interfaz y debe definir el operador “{1}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MixingWinRTEventWithRegular">
@@ -13333,7 +13338,7 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
       </trans-unit>
       <trans-unit id="ERR_CompilerAndLanguageVersion">
         <source>Compiler version: '{0}'. Language version: {1}. Compiler path: '{2}'.</source>
-        <target state="new">Compiler version: '{0}'. Language version: {1}. Compiler path: '{2}'.</target>
+        <target state="translated">Versión del compilador: “{0}”. Versión de lenguaje: {1}. Ruta de acceso del compilador: “{2}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAsyncMain">

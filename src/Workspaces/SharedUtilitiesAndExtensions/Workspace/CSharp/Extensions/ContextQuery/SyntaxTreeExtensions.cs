@@ -1128,7 +1128,7 @@ internal static partial class SyntaxTreeExtensions
         static bool IsSuitableParameterList(ParameterListSyntax parameterList, bool includeOperators)
             => parameterList.Parent switch
             {
-                MethodDeclarationSyntax or LocalFunctionStatementSyntax or ConstructorDeclarationSyntax or DelegateDeclarationSyntax or TypeDeclarationSyntax => true,
+                MethodDeclarationSyntax or LocalFunctionStatementSyntax or ConstructorDeclarationSyntax or DelegateDeclarationSyntax or TypeDeclarationSyntax or ParenthesizedLambdaExpressionSyntax or AnonymousMethodExpressionSyntax => true,
                 OperatorDeclarationSyntax or ConversionOperatorDeclarationSyntax when includeOperators => true,
                 _ => false,
             };

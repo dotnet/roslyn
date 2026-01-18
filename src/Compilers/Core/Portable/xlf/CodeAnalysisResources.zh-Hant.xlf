@@ -175,7 +175,7 @@
       </trans-unit>
       <trans-unit id="MissingTokenListItem">
         <source>The specified token must be a direct element of a SyntaxTokenList (such as a modifier in a list of modifiers). The token cannot be an arbitrary token from the syntax tree.</source>
-        <target state="new">The specified token must be a direct element of a SyntaxTokenList (such as a modifier in a list of modifiers). The token cannot be an arbitrary token from the syntax tree.</target>
+        <target state="translated">指定的權杖必須是 SyntaxTokenList 的直接元素 (例如修飾元清單中的修飾元)。該權杖不能是語法樹中的任意權杖。</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasInvalidAttributes">
@@ -225,12 +225,12 @@
       </trans-unit>
       <trans-unit id="SeparatorTokenMustHaveSameLanguage">
         <source>New separator must have the same Language as the separator being replaced.</source>
-        <target state="new">New separator must have the same Language as the separator being replaced.</target>
+        <target state="translated">新的分隔符號必須與被替換的分隔符號擁有相同的語言。</target>
         <note />
       </trans-unit>
       <trans-unit id="SeparatorTokenMustHaveSameRawKind">
         <source>New separator must have the same RawKind as the separator being replaced.</source>
-        <target state="new">New separator must have the same RawKind as the separator being replaced.</target>
+        <target state="translated">新的分隔符號必須與被替換的分隔符號擁有相同的 RawKind。</target>
         <note />
       </trans-unit>
       <trans-unit id="SigningTempPathUnavailable">

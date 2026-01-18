@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -15,9 +15,12 @@ internal static partial class EditAndContinueDiagnosticSource
 {
     private sealed class OpenDocumentSource(Document document) : AbstractDocumentDiagnosticSource<Document>(document)
     {
-        public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
+        public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
+            => GetDiagnosticsAsync(Document, cancellationToken);
+
+        public static async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Document document, CancellationToken cancellationToken)
         {
-            var solution = Document.Project.Solution;
+            var solution = document.Project.Solution;
             var services = solution.Services;
 
             // Do not report EnC diagnostics for a non-host workspace, or if Hot Reload/EnC session is not active.
@@ -27,7 +30,7 @@ internal static partial class EditAndContinueDiagnosticSource
                 return [];
             }
 
-            var applyDiagnostics = sessionStateTracker.ApplyChangesDiagnostics.WhereAsArray(static (data, id) => data.DocumentId == id, Document.Id);
+            var applyDiagnostics = sessionStateTracker.ApplyChangesDiagnostics.WhereAsArray(static (data, id) => data.DocumentId == id, document.Id);
 
             var proxy = new RemoteEditAndContinueServiceProxy(services);
             var spanLocator = services.GetService<IActiveStatementSpanLocator>();
@@ -36,7 +39,7 @@ internal static partial class EditAndContinueDiagnosticSource
                 ? new ActiveStatementSpanProvider((documentId, filePath, cancellationToken) => spanLocator.GetSpansAsync(solution, documentId, filePath, cancellationToken))
                 : static async (_, _, _) => ImmutableArray<ActiveStatementSpan>.Empty;
 
-            var rudeEditDiagnostics = await proxy.GetDocumentDiagnosticsAsync(Document, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+            var rudeEditDiagnostics = await proxy.GetDocumentDiagnosticsAsync(document, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
             return applyDiagnostics.AddRange(rudeEditDiagnostics);
         }
@@ -44,4 +47,7 @@ internal static partial class EditAndContinueDiagnosticSource
 
     public static IDiagnosticSource CreateOpenDocumentSource(Document document)
         => new OpenDocumentSource(document);
+
+    internal static Task<ImmutableArray<DiagnosticData>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+        => OpenDocumentSource.GetDiagnosticsAsync(document, cancellationToken);
 }

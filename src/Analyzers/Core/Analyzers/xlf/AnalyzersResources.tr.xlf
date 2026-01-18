@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Accessibility_modifiers_unnecessary">
         <source>Accessibility modifiers unnecessary</source>
-        <target state="new">Accessibility modifiers unnecessary</target>
+        <target state="translated">Erişilebilirlik değiştiricileri gereksiz</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
@@ -198,7 +198,7 @@
       </trans-unit>
       <trans-unit id="Make_method_synchronous">
         <source>Make method synchronous</source>
-        <target state="new">Make method synchronous</target>
+        <target state="translated">Metodu zaman uyumlu hale getir</target>
         <note />
       </trans-unit>
       <trans-unit id="Member_access_should_be_qualified">
@@ -218,7 +218,7 @@
       </trans-unit>
       <trans-unit id="Method_can_be_made_synchronous">
         <source>Method can be made synchronous</source>
-        <target state="new">Method can be made synchronous</target>
+        <target state="translated">Yöntem zaman uyumlu yapılabilir</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifiers_are_not_ordered">
@@ -343,7 +343,7 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_unsafe_modifier">
         <source>Remove unnecessary 'unsafe' modifier</source>
-        <target state="new">Remove unnecessary 'unsafe' modifier</target>
+        <target state="translated">Gereksiz 'unsafe' değiştiricisini kaldırın</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unread_private_members">
@@ -428,7 +428,7 @@
       </trans-unit>
       <trans-unit id="Suppression_is_unnecessary">
         <source>Suppression is unnecessary</source>
-        <target state="new">Suppression is unnecessary</target>
+        <target state="translated">Engelleme gereksiz</target>
         <note />
       </trans-unit>
       <trans-unit id="The_file_header_does_not_match_the_required_text">
@@ -501,14 +501,14 @@
         <target state="translated">'throw' ifadesi kullan</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_statement_implicitly_converts_1_to_2_Add_an_explicit_cast_to_make_intent_clearer_as_it_may_fail_at_runtime">
-        <source>'{0}' statement implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</source>
-        <target state="translated">'{0}' deyimi örtük olarak '{1}' öğesini '{2}' öğesine dönüştürür. Çalışma zamanında başarısız olabileceğinden amacı daha net hale getirmek için açık bir tür dönüştürme ekleyin</target>
+      <trans-unit id="_0_implicitly_converts_1_to_2_Add_an_explicit_cast_to_make_intent_clearer_as_it_may_fail_at_runtime">
+        <source>'{0}' implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</source>
+        <target state="new">'{0}' implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</target>
         <note />
       </trans-unit>
       <trans-unit id="unsafe_modifier_is_unnecessary">
         <source>'unsafe' modifier is unnecessary</source>
-        <target state="new">'unsafe' modifier is unnecessary</target>
+        <target state="translated">'unsafe' değiştiricisi gereksiz</target>
         <note />
       </trans-unit>
     </body>
