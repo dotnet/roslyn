@@ -798,6 +798,27 @@ Highlights all references to a symbol (e.g., regex capture group references).
 
 **Capture tracking**: Tree maintains dictionaries mapping capture names/numbers to their definition spans
 
+#### 6.1.1 Regular Expression Parser Implementation Details
+
+The regex parser is built through deep introspection of the .NET runtime's `System.Text.RegularExpressions.RegexParser`
+implementation. The goal is to replicate its parsing behavior as precisely as possible, matching both its acceptance of
+valid patterns and its rejection of invalid ones with identical error messages. However, there's a critical difference
+in what the parsers produce. The .NET runtime parser builds an interpreter or bytecode execution system for pattern
+matching at runtime. In contrast, the Roslyn regex parser produces a concrete syntax tree that represents the structure
+of the pattern without any execution capability. This syntax tree serves as the foundation for IDE features like syntax
+highlighting, brace matching, and diagnostics. To validate this faithful reproduction of .NET's parsing behavior, the
+implementation leverages the entire suite of regex tests from the .NET runtime repository. These tests verify two
+critical properties:
+
+- Acceptance parity: Any regex pattern that the .NET parser accepts without errors must also be parsed successfully by
+the Roslyn parser without producing diagnostics. Rejection parity: Any regex pattern that causes the .NET parser to
+report an error must also produce a diagnostic from the Roslyn parser, ideally with the same error message text.
+
+- This rigorous testing approach has proven valuable beyond just validating the Roslyn implementation. During
+development, the team discovered several parsing bugs in the .NET runtime regex parser itself. These bugs were reported
+to the .NET team and subsequently fixed. While the original goal was to achieve feature parity, the implementation now
+focuses on matching the current, corrected behavior of the .NET runtime parser.
+
 ### 6.2 JSON
 
 **Parser structure**: `JsonCompilationUnit` → `JsonObjectNode` / `JsonArrayNode` → properties/elements
@@ -822,6 +843,34 @@ JsonCompilationUnit
 ```
 
 **Separated lists**: Properties in objects, elements in arrays use `EmbeddedSeparatedSyntaxNodeList`
+
+#### 6.2.1 JSON Parser Implementation Details
+
+The JSON parser handles multiple dialects of JSON to accommodate different usage scenarios:
+
+*Strict RFC 8259 Mode*: When
+operating in strict mode, the parser enforces the exact requirements of RFC 8259 (the official JSON specification). This
+includes restrictions on numeric format, disallowing comments, requiring double-quoted strings, and other strict
+conformance requirements.
+
+*Lenient Modes*: The parser also supports several relaxed variants:
+
+- &System.Text.Json extensions*: Including support for comments (both `//` single-line and `/* */` multi-line), trailing
+commas, and other features from Microsoft's modern JSON library. 
+- *Json.NET compatibility*: Full support for the extensive set of JSON extensions provided by Newtonsoft.Json, including
+JavaScript-style constructors (`new Date(...)`), unquoted property names, single-quoted strings, special numeric values
+like `NaN` and `Infinity`, and other non-standard constructs.
+
+The implementation uses a two-phase approach. First, the parser builds a syntax tree that accepts a superset of all
+supported JSON dialects—essentially accepting anything that would be valid in any mode. Then, validation passes walk
+this permissive tree and report diagnostics based on the selected parsing mode. This design keeps the core parsing logic
+simple while allowing precise error reporting for each dialect. 
+
+The strict mode validation is particularly comprehensive, using a regular expression to validate numeric format against
+the RFC 8259 grammar and checking character-by-character for illegal constructs like improperly quoted strings or
+invalid whitespace characters. The Json.NET validation pass, on the other hand, enforces that mode's looser but still
+well-defined rules, such as ensuring numeric literal formats that Json.NET can successfully parse and validating
+constructor name syntax.
 
 ### 6.3 C# and C#-Test
 
