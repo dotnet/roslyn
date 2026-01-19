@@ -13,26 +13,22 @@ to what the user actually typed.
 
 ### 1.2 Examples Demonstrating the Need
 
-**Normal Strings**
-- Source: `"Hello\tWorld"`
-- Logical: `"Hello	World"` (with actual tab character)
-- Challenge: `\t` (two chars) → tab (one logical char)
-- Need: Map tab back to its source span [5, 7)
+Consider a normal string like `"Hello\tWorld"`. In source, the tab character appears as the two-character escape
+sequence `\t`, but the logical string value contains an actual tab character. When the IDE needs to provide features
+like completion or diagnostics, it must be able to map that single logical tab character back to its two-character
+source representation at span [5, 7).
 
-**Verbatim Strings**
-- Source: `@"He said ""Hello"""`
-- Logical: `"He said "Hello""`
-- Challenge: `""` (two chars) → `"` (one logical char)
+Verbatim strings present a different challenge. In `@"He said ""Hello"""`, the double-quote character in the logical
+string `"He said "Hello""` comes from a doubled quote `""` in the source. Again, we need bidirectional mapping between
+the single logical character and its two-character source representation.
 
-**Unicode Escapes**
-- Source: `"Test\u0041B"`
-- Logical: `"TestAB"`
-- Challenge: `\u0041` (six chars) → `A` (one logical char)
+Unicode escapes add yet another layer of complexity. In `"Test\u0041B"`, the six-character escape sequence `\u0041`
+represents a single `A` character. The logical string is `"TestAB"`, but features must be able to map the `A` back to
+its full six-character escape sequence in the source.
 
-**XML Documentation**
-- Source: `<code>int x &lt; 5;</code>`
-- Logical: `"int x < 5;"`
-- Challenge: `&lt;` (four chars) → `<` (one logical char)
+Even XML documentation uses character escaping. Inside a `<code>int x &lt; 5;</code>` block, the entity reference `&lt;`
+(four characters) represents a single less-than character. When parsing C# code from documentation, we need to map that
+logical `<` back to the `&lt;` entity reference.
 
 ### 1.3 Supported Embedded Languages
 
@@ -64,37 +60,76 @@ The VirtualChar system follows Roslyn's green/red architecture pattern for memor
 #### VirtualCharGreen (Position-Independent)
 
 **Design characteristics**:
-- **Immutable**: Never modified after construction
-- **Position-independent**: Offset is relative to token start, not absolute
-- **Shareable**: Can be reused across different contexts
-- **Memory-optimized**: Packs offset and width into single integer
+
+The VirtualCharGreen is designed to be immutable and position-independent. Once created, it's never modified, and its
+offset is stored relative to the token start rather than as an absolute file position. This makes instances shareable
+across different contexts and enables efficient caching. The structure is also highly memory-optimized, packing both the
+offset and width into a single integer field.
 
 **Key fields**:
-- `char Char`: The logical character
-- `int _offsetAndWidth`: Packed offset (28 bits) + width (4 bits)
+```csharp
+internal readonly record struct VirtualCharGreen
+{
+    private const int MaxWidth = 12;
+    private const int WidthMask = 0b1111;      // 4 bits for width (max 15)
+    private const int OffsetShift = 4;         // remaining 28 bits for offset
+    
+    public readonly char Char;                  // The logical character
+    private readonly int _offsetAndWidth;       // Packed offset + width
+    
+    public int Offset => _offsetAndWidth >> OffsetShift;
+    public int Width => _offsetAndWidth & WidthMask;
+    
+    public VirtualCharGreen(char ch, int offset, int width)
+    {
+        Char = ch;
+        _offsetAndWidth = (offset << OffsetShift) | width;
+    }
+}
+```
 
 **Packing details**:
-- Width limited to 4 bits (max value: 15)
-- Sufficient for longest escape: `\uXXXX\uXXXX` (12 characters)
-- Offset uses remaining 28 bits (supports tokens up to 268M chars)
+
+The width field is limited to 4 bits, allowing values from 0 to 15. This is sufficient because the longest possible
+escape sequence in C# is `\uXXXX\uXXXX` for a surrogate pair, which requires 12 characters. The remaining 28 bits are
+used for the offset, which supports tokens up to 268 million characters long—far more than any realistic string literal.
 
 **Examples**:
-- `'a'` in `"abc"`: offset=1, width=1
-- Tab in `"x\ty"`: char=`\t`, offset=2, width=2
-- `'A'` in `"x\u0041y"`: char=`A`, offset=2, width=6
+```csharp
+// Regular character 'a' in "abc"
+new VirtualCharGreen('a', offset: 1, width: 1)
+
+// Tab character from "\t" escape
+new VirtualCharGreen('\t', offset: 2, width: 2)
+
+// 'A' from Unicode escape "\u0041"
+new VirtualCharGreen('A', offset: 2, width: 6)
+```
 
 #### VirtualChar (Position-Aware)
 
 **Red wrapper properties**:
-- Contains `VirtualCharGreen Green` + `int TokenStart`
-- **Absolute positioning**: TokenStart provides file-level position context
-- **Computed span**: Combines token position with green offset/width
-- **Lightweight**: Just green reference + one integer
-- **Implicit conversion**: Can be used directly as `char`
+```csharp
+internal readonly record struct VirtualChar
+{
+    internal VirtualCharGreen Green { get; }
+    internal int TokenStart { get; }
+    
+    public char Value => Green.Char;
+    public TextSpan Span => new(TokenStart + Green.Offset, Green.Width);
+    
+    public static implicit operator char(VirtualChar ch) => ch.Value;
+}
+```
 
-**Design rationale**: Following Roslyn's green/red split:
-- Green: Immutable, shareable, position-independent (efficient for caching)
-- Red: Adds positional context on-demand (efficient for consumption)
+The VirtualChar structure wraps a VirtualCharGreen and adds a TokenStart field that provides absolute file position
+context. The span is computed on-demand by combining the token's absolute start position with the green node's relative
+offset and width. This wrapper is lightweight—just a green reference plus one integer—and supports implicit conversion
+to char for convenient usage.
+
+**Design rationale**: Following Roslyn's green/red split, the green component is immutable, shareable, and
+position-independent (efficient for caching), while the red wrapper adds positional context on-demand (efficient for
+consumption).
 
 ### 2.2 VirtualCharSequence & VirtualCharGreenSequence
 
@@ -103,8 +138,30 @@ The VirtualChar system follows Roslyn's green/red architecture pattern for memor
 Represents the complete processed contents of a string token as a sequence of VirtualChars.
 
 **Structure**:
-- Green version: position-independent, contains `Chunk` + `TextSpan` for slicing
-- Red version: adds `TokenStart` for absolute positioning
+```csharp
+internal partial struct VirtualCharGreenSequence
+{
+    private readonly Chunk _leafCharacters;    // The actual character storage
+    private readonly TextSpan _span;           // Slice into _leafCharacters [inclusive, exclusive)
+    
+    public int Length => _span.Length;
+    public VirtualCharGreen this[int index] => _leafCharacters[_span.Start + index];
+    
+    public VirtualCharGreenSequence Slice(int start, int length)
+        => new(_leafCharacters, new TextSpan(_span.Start + start, length));
+}
+
+internal readonly struct VirtualCharSequence
+{
+    private readonly int _tokenStart;
+    private readonly VirtualCharGreenSequence _sequence;
+    
+    public VirtualChar this[int index] => new(_sequence[index], _tokenStart);
+    
+    public VirtualCharSequence Slice(int start, int length)
+        => new(_tokenStart, _sequence.Slice(start, length));
+}
+```
 
 **Slicing support**: Efficient subsequence extraction without copying
 - Example: `"\"Hello\""` → slice `[1..^1]` → `"Hello"` (no allocation)
@@ -114,21 +171,38 @@ Represents the complete processed contents of a string token as a sequence of Vi
 Two implementations optimized for different scenarios:
 
 **StringChunk** (Common case: no escapes)
-- For tokens like `"Hello World"` (no escape sequences)
-- **Zero allocation**: No array materialized
-- **Direct indexing**: VirtualChar created on-demand from string
-- **Memory savings**: Typical case in most code
+```csharp
+// For tokens like "Hello World" (no escape sequences)
+VirtualCharGreenSequence.Create("Hello World")
+
+// Zero allocation: No array materialized
+// Direct indexing: VirtualChar created on-demand from string
+// Each character has width=1, offset matches string position
+```
 
 **ImmutableSegmentedListChunk** (Escapes present)
-- For tokens like `"Hello\tWorld"` (contains escapes)
-- **Materialized storage**: Array holds pre-computed VirtualCharGreens
-- **Preserves escape info**: Each element stores width for original escape sequence
-- **Only when needed**: Allocated only when escapes detected
+```csharp
+// For tokens like "Hello\tWorld" (contains escapes)
+var builder = ImmutableSegmentedList.CreateBuilder<VirtualCharGreen>();
+builder.Add(new VirtualCharGreen('H', 0, 1));
+builder.Add(new VirtualCharGreen('e', 1, 1));
+builder.Add(new VirtualCharGreen('l', 2, 1));
+builder.Add(new VirtualCharGreen('l', 3, 1));
+builder.Add(new VirtualCharGreen('o', 4, 1));
+builder.Add(new VirtualCharGreen('\t', 5, 2));  // \t spans 2 source chars
+builder.Add(new VirtualCharGreen('W', 7, 1));
+// ... etc
+VirtualCharGreenSequence.Create(builder.ToImmutable())
+
+// Materialized storage: Array holds pre-computed VirtualCharGreens
+// Preserves escape info: Each element stores width for original escape sequence
+```
 
 **Performance impact**: 
-- Unescaped strings: No heap allocation beyond the string token itself
-- Escaped strings: Single allocation for array
-- Slicing: Both support efficient slicing without copying
+
+For unescaped strings (the common case), there's no heap allocation beyond the string token itself. When escapes are
+present, we allocate a single array to hold the materialized VirtualCharGreens. Both implementations support efficient
+slicing without copying the underlying data.
 
 ### 2.3 Critical Invariants
 
@@ -160,10 +234,10 @@ Language-specific interface for converting string tokens to VirtualChar sequence
 - `bool TryGetEscapeCharacter(VirtualChar ch, out char escapeChar)`
 
 **Responsibilities**:
-1. Token validation (verify string literal without diagnostics)
-2. Escape processing (language-specific rules)
-3. VirtualChar generation (maintaining invariants)
-4. Reverse mapping (logical char → escape form)
+
+The service is responsible for validating that the token is a well-formed string literal without diagnostics, processing
+the language-specific escape sequences, generating the VirtualChar sequence while maintaining all invariants, and
+providing reverse mapping from logical characters back to their escape form.
 
 **Implementations**:
 - `CSharpVirtualCharService`: Handles C# string escaping rules
@@ -181,13 +255,10 @@ The most explicit detection mechanism uses .NET 7+ `System.Diagnostics.CodeAnaly
 
 **Example**: `void ProcessRegex([StringSyntax("Regex")] string pattern)`
 
-**Locations checked**:
-- Method/constructor parameters
-- Field declarations
-- Property declarations
-- Attribute constructor arguments
-
-**Algorithm**: Parse argument → resolve parameter symbol → check for attribute → extract language identifier
+The detector checks for this attribute in several locations: method and constructor parameters, field declarations,
+property declarations, and even attribute constructor arguments. The algorithm parses the argument syntax, resolves the
+parameter symbol via the semantic model, checks for the StringSyntax attribute, and extracts the language identifier
+from the first constructor argument.
 
 #### Strategy 2: Comment Annotations
 
@@ -199,14 +270,10 @@ Lightweight annotation using special comment syntax: `// lang=<identifier>[,<opt
 var pattern = "\\d+";
 ```
 
-**Scope rules**:
-- Applies to next statement or declaration
-- Scans leading trivia of statement
-- Also checks trailing trivia of previous token
-
-**Options support**: Comma-separated options passed to parser configuration
-
-**Precedence**: Comments override attribute detection (allows local override)
+The comment applies to the next statement or declaration. The detector scans both the leading trivia of the statement
+and the trailing trivia of the previous token to find these annotations. Comments can include comma-separated options
+that are passed to the parser configuration. Importantly, comments take precedence over attribute detection, allowing
+developers to override the default detection when needed.
 
 #### Strategy 3: Well-Known APIs
 
@@ -214,12 +281,10 @@ Recognition of framework types and methods known to accept embedded language str
 
 **Regex APIs**: `Regex.IsMatch`, `Regex.Replace`, `new Regex(...)`, etc.
 
-**Recognition logic**:
-1. Maintain hash set of method names
-2. Verify symbol belongs to known type
-3. Find parameter named `"pattern"` and match argument
-
-**API registry**: Built at compilation level from type members
+The recognition logic maintains a hash set of well-known method names, verifies that the invoked symbol belongs to the
+expected type (like `System.Text.RegularExpressions.Regex`), and then finds parameters with specific names (like
+`"pattern"`) to match against arguments. This API registry is built once at the compilation level from the type's
+members.
 
 #### Strategy 4: Interpolation Format String Analysis
 
@@ -235,25 +300,28 @@ Special handling for format strings in interpolated string expressions.
 
 ### 3.2 Language Detector Architecture
 
-Detectors are compilation-scoped services that efficiently identify embedded language tokens.
+Detectors are compilation-scoped services that efficiently identify embedded language tokens. They cache type symbols
+(like the `Regex` type) so they only need to be resolved once, and similarly cache the set of well-known method names
+computed from the type's members. The detectors don't cache parsed trees, however—those are built on-demand only for
+tokens that are currently visible in the editor.
 
-**Key components**:
-- Type symbol caching (e.g., `Regex` type resolved once)
-- Method name caching (well-known methods computed once)
-- No tree caching (trees built on-demand for visible tokens only)
-
-**Generic infrastructure**: `EmbeddedLanguageDetector` with language identifiers and detection strategies
+The system uses a generic `EmbeddedLanguageDetector` infrastructure that works with language identifiers and the various
+detection strategies described above.
 
 ### 3.3 Detection Flow Examples
 
-**Direct Parameter Annotation**: String literal → argument → parameter with `[StringSyntax]` → detected
+For direct parameter annotation, the flow is straightforward: a string literal appears as an argument, which maps to a
+parameter decorated with `[StringSyntax]`, and detection succeeds immediately.
 
-**Local Variable Flow Tracking**: Assignment (no detection) → usage in well-known API → backtrack to assignment → mark
-as embedded language
+Local variable flow tracking is more complex. When a string literal is assigned to a local variable, no detection occurs
+initially. Later, when that variable is passed to a well-known API like `Regex.IsMatch`, the detector backtracks from
+the usage site to the original assignment and marks the string literal as containing an embedded language.
 
-**Field with Const/Readonly**: Attribute on field → scan descendants for references → mark usage sites
+For fields with const or readonly modifiers, the detector finds the attribute on the field declaration, then scans the
+containing type for all references to that field and marks those usage sites as well.
 
-**Comment Override**: Comment takes precedence over all other detection strategies
+Comment overrides take precedence over all other strategies, allowing developers to explicitly specify the language when
+the automatic detection might be incorrect.
 
 ### 3.4 Detection Strategy Precedence
 
@@ -293,11 +361,26 @@ separation). See §7.1 for future optimization.
 Represents a token within an embedded language, backed by VirtualChars.
 
 **Core properties**:
-- `TSyntaxKind Kind`: Language-specific token type
-- `VirtualCharSequence VirtualChars`: The actual characters
-- `ImmutableArray<EmbeddedSyntaxTrivia> LeadingTrivia/TrailingTrivia`
-- `ImmutableArray<EmbeddedDiagnostic> Diagnostics`
-- `object Value`: Optional semantic interpretation (parsed numbers, capture names, etc.)
+```csharp
+internal readonly struct EmbeddedSyntaxToken<TSyntaxKind>
+{
+    public readonly TSyntaxKind Kind;
+    public readonly ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> LeadingTrivia;
+    public readonly VirtualCharSequence VirtualChars;
+    public readonly ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> TrailingTrivia;
+    internal readonly ImmutableArray<EmbeddedDiagnostic> Diagnostics;
+    public readonly object Value;  // Optional semantic interpretation
+    
+    public bool IsMissing => VirtualChars.IsEmpty();
+    
+    public TextSpan GetSpan() 
+        => VirtualChars.Length == 0 
+            ? default 
+            : TextSpan.FromBounds(
+                VirtualChars[0].Span.Start, 
+                VirtualChars[^1].Span.End);
+}
+```
 
 **Trivia handling**: Limited compared to Roslyn
 - Regex: Whitespace/comments only in `IgnorePatternWhitespace` mode
@@ -305,11 +388,62 @@ Represents a token within an embedded language, backed by VirtualChars.
 
 **Position**: Derived from VirtualChars (first char start to last char end)
 
+**Value examples**:
+- Number tokens: parsed `int` or `double`
+- Regex capture tokens: capture name as `string`
+- Missing tokens: `null`
+
 ### 4.3 EmbeddedSyntaxNode
 
 Abstract base for all non-terminal nodes in embedded syntax trees.
 
 **Key characteristics**:
+```csharp
+internal abstract class EmbeddedSyntaxNode<TSyntaxKind, TSyntaxNode>
+{
+    public readonly TSyntaxKind Kind;
+    
+    internal abstract int ChildCount { get; }
+    internal abstract EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode> ChildAt(int index);
+    
+    public TextSpan GetSpan()
+    {
+        var start = int.MaxValue;
+        var end = 0;
+        
+        foreach (var child in this)
+        {
+            if (child.IsNode)
+                child.Node.GetSpan(ref start, ref end);
+            else if (!child.Token.IsMissing)
+            {
+                start = Math.Min(child.Token.VirtualChars[0].Span.Start, start);
+                end = Math.Max(child.Token.VirtualChars[^1].Span.End, end);
+            }
+        }
+        
+        return TextSpan.FromBounds(start, end);
+    }
+    
+    public bool Contains(VirtualChar virtualChar)
+    {
+        foreach (var child in this)
+        {
+            if (child.IsNode)
+            {
+                if (child.Node.Contains(virtualChar))
+                    return true;
+            }
+            else if (child.Token.VirtualChars.Contains(virtualChar))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+```
+
 - Uniform child access: `ChildAt(index)` returns nodes or tokens
 - No parent pointers (simplifies immutability, not needed yet)
 - No Update methods (trees built once, never modified)
@@ -331,24 +465,161 @@ Specialized structure for comma-delimited (or bar-delimited) constructs.
 
 ### 4.5 Complete Tree Structure
 
-**Components**:
-- `VirtualCharSequence Text`: Source of truth for positions
-- `TCompilationUnitSyntax Root`: Top-level node (always present)
-- `ImmutableArray<EmbeddedDiagnostic> Diagnostics`: All errors/warnings (deduplicated)
+The root tree structure contains three main components. The `VirtualCharSequence Text` field is the source of truth for
+all position information. The `TCompilationUnitSyntax Root` is the top-level syntax node, which is always present (never
+null) and contains the entire parsed structure. Finally, `ImmutableArray<EmbeddedDiagnostic> Diagnostics` holds all
+errors and warnings found during parsing, deduplicated so that the same diagnostic doesn't appear twice at the same
+position.
 
-**Concrete instantiations**:
-- `RegexTree`: Includes `CaptureNames` and `CaptureNumbers` dictionaries
-- `JsonTree`: Pure tree without additional properties
+Concrete instantiations of this structure include `RegexTree`, which adds language-specific dictionaries for capture
+names and numbers, and `JsonTree`, which is a pure tree without additional properties.
 
 ### 4.6 Parsing Pipeline
 
-**Flow**: `SyntaxToken` → `IVirtualCharService` → `VirtualCharSequence` → `Parser.TryParse()` → `EmbeddedSyntaxTree`
+The parsing pipeline flows from a source `SyntaxToken` through `IVirtualCharService` to produce a `VirtualCharSequence`,
+which is then consumed by `Parser.TryParse()` to yield an `EmbeddedSyntaxTree`.
 
-**Parser characteristics**:
-- **Always succeed** (except stack overflow)
-- **Full fidelity**: Every VirtualChar represented in tree
-- **Error recovery**: Missing tokens synthesized, diagnostics attached
-- **Diagnostic matching**: Replicate native parser error messages exactly
+Parsers are designed to always succeed except in the rare case of stack overflow. They maintain full fidelity by
+representing every VirtualChar in the resulting tree. When errors are encountered, the parser synthesizes missing tokens
+and attaches diagnostics rather than failing. An important characteristic is that diagnostics precisely replicate the
+error messages that native parsers would produce, ensuring consistency with runtime behavior.
+
+#### Example: JSON Lexer & Parser (Simplified)
+
+**Lexer structure**:
+```csharp
+internal struct JsonLexer
+{
+    public readonly VirtualCharSequence Text;
+    public int Position;
+    
+    public JsonToken ScanNextToken()
+    {
+        var leadingTrivia = ScanTrivia(leading: true);
+        
+        if (Position == Text.Length)
+            return CreateToken(JsonKind.EndOfFile, leadingTrivia, 
+                VirtualCharSequence.Empty, []);
+        
+        var (chars, kind, diagnostic) = ScanNextTokenWorker();
+        var trailingTrivia = ScanTrivia(leading: false);
+        var token = CreateToken(kind, leadingTrivia, chars, trailingTrivia);
+        
+        return diagnostic == null 
+            ? token 
+            : token.AddDiagnosticIfNone(diagnostic.Value);
+    }
+    
+    private (VirtualCharSequence, JsonKind, EmbeddedDiagnostic?) ScanNextTokenWorker()
+    {
+        return this.CurrentChar.Value switch
+        {
+            '{' => ScanSingleCharToken(JsonKind.OpenBraceToken),
+            '}' => ScanSingleCharToken(JsonKind.CloseBraceToken),
+            '[' => ScanSingleCharToken(JsonKind.OpenBracketToken),
+            ']' => ScanSingleCharToken(JsonKind.CloseBracketToken),
+            ',' => ScanSingleCharToken(JsonKind.CommaToken),
+            ':' => ScanSingleCharToken(JsonKind.ColonToken),
+            '\'' or '"' => ScanString(),
+            _ => ScanText(),
+        };
+    }
+    
+    private (VirtualCharSequence, JsonKind, EmbeddedDiagnostic?) ScanString()
+    {
+        var start = Position;
+        var openChar = this.CurrentChar;
+        Position++;
+        
+        while (Position < Text.Length)
+        {
+            var ch = this.CurrentChar;
+            Position++;
+            
+            if (ch.Value == openChar.Value)
+                return (GetCharsToCurrentPosition(start), JsonKind.StringToken, null);
+            
+            if (ch.Value == '\\')
+                AdvanceToEndOfEscape();
+        }
+        
+        // Unterminated string
+        var chars = GetCharsToCurrentPosition(start);
+        return (chars, JsonKind.StringToken, 
+            new EmbeddedDiagnostic("Unterminated string", GetSpan(chars)));
+    }
+}
+```
+
+**Parser structure**:
+```csharp
+internal partial struct JsonParser
+{
+    private JsonLexer _lexer;
+    private JsonToken _currentToken;
+    
+    public static JsonTree? TryParse(VirtualCharSequence text, JsonOptions options)
+    {
+        try
+        {
+            if (text.IsDefaultOrEmpty())
+                return null;
+            
+            return new JsonParser(text).ParseTree(options);
+        }
+        catch (InsufficientExecutionStackException)
+        {
+            return null;
+        }
+    }
+    
+    private JsonTree ParseTree(JsonOptions options)
+    {
+        var sequence = this.ParseSequence();
+        var root = new JsonCompilationUnit(sequence, _currentToken);
+        
+        // Collect diagnostics from tree and run validation passes
+        var diagnostics = GetDiagnostics(root, options);
+        
+        return new JsonTree(_lexer.Text, root, diagnostics);
+    }
+    
+    private ImmutableArray<JsonValueNode> ParseSequence()
+    {
+        var result = ArrayBuilder<JsonValueNode>.GetInstance();
+        
+        while (ShouldConsumeSequenceElement())
+            result.Add(ParseValue());
+        
+        return result.ToImmutableAndFree();
+    }
+    
+    private JsonValueNode ParseValue()
+    {
+        return _currentToken.Kind switch
+        {
+            JsonKind.OpenBraceToken => ParseObject(),
+            JsonKind.OpenBracketToken => ParseArray(),
+            _ => ParseLiteral(),
+        };
+    }
+    
+    private JsonObjectNode ParseObject()
+    {
+        var openBrace = ConsumeCurrentToken();
+        var properties = ParseCommaSeparatedSequence();
+        var closeBrace = ConsumeToken(JsonKind.CloseBraceToken, "'}' expected");
+        
+        return new JsonObjectNode(openBrace, properties, closeBrace);
+    }
+}
+```
+
+The key patterns in this architecture are straightforward. The lexer consumes VirtualChars and produces tokens that
+carry VirtualChar spans for precise position tracking. The parser then consumes these tokens to build the tree
+structure. Diagnostics are attached during parsing as errors are encountered, then aggregated into the final tree. When
+required tokens are missing, the parser synthesizes them with attached diagnostics to enable error recovery while
+maintaining a complete tree structure.
 
 ## 5. Feature Integration
 
@@ -356,11 +627,87 @@ Specialized structure for comma-delimited (or bar-delimited) constructs.
 
 Highlights matching delimiters when cursor is adjacent.
 
-**Algorithm**:
-1. Position → VirtualChar (via `tree.Text.Find(position)`)
-2. VirtualChar → Node containing it (recursive descent)
-3. Extract open/close tokens from grouping/character class node
-4. Return span pair for highlighting
+The algorithm works in several steps. First, it converts the cursor position to a VirtualChar using
+`tree.Text.Find(position)`. Then it walks the tree to find the node containing that character through recursive descent.
+Once found, it extracts the open and close tokens from the grouping, character class, or other bracketed node, and
+returns the span pair for highlighting.
+
+**Example implementation (JSON)**:
+```csharp
+internal sealed class JsonBraceMatcher : IEmbeddedLanguageBraceMatcher
+{
+    public BraceMatchingResult? FindBraces(
+        SemanticModel semanticModel,
+        SyntaxToken token,
+        int position,
+        CancellationToken cancellationToken)
+    {
+        var tree = ParseJsonTree(token, semanticModel, cancellationToken);
+        if (tree == null)
+            return null;
+        
+        // Step 1: Find VirtualChar at cursor position
+        var virtualChar = tree.Text.Find(position);
+        if (virtualChar == null)
+            return null;
+        
+        var ch = virtualChar.Value;
+        
+        // Step 2: Only process brace-like characters
+        if (ch.Value is not ('{' or '[' or '(' or '}' or ']' or ')'))
+            return null;
+        
+        // Step 3: Find the node containing this character
+        return FindBraceMatchingResult(tree.Root, ch);
+    }
+    
+    private static BraceMatchingResult? FindBraceMatchingResult(
+        JsonNode node, VirtualChar ch)
+    {
+        // Check if this node's span contains the character
+        var fullSpan = node.GetFullSpan();
+        if (fullSpan == null || !fullSpan.Value.Contains(ch.Span.Start))
+            return null;
+        
+        // Check if this node is a matching construct
+        switch (node)
+        {
+            case JsonArrayNode array 
+                when Matches(array.OpenBracketToken, array.CloseBracketToken, ch):
+                return Create(array.OpenBracketToken, array.CloseBracketToken);
+            
+            case JsonObjectNode obj 
+                when Matches(obj.OpenBraceToken, obj.CloseBraceToken, ch):
+                return Create(obj.OpenBraceToken, obj.CloseBraceToken);
+            
+            case JsonConstructorNode cons 
+                when Matches(cons.OpenParenToken, cons.CloseParenToken, ch):
+                return Create(cons.OpenParenToken, cons.CloseParenToken);
+        }
+        
+        // Recursively search children
+        foreach (var child in node)
+        {
+            if (child.IsNode)
+            {
+                var result = FindBraceMatchingResult(child.Node, ch);
+                if (result != null)
+                    return result;
+            }
+        }
+        
+        return null;
+    }
+    
+    private static BraceMatchingResult? Create(JsonToken open, JsonToken close)
+        => open.IsMissing || close.IsMissing
+            ? null
+            : new BraceMatchingResult(open.GetSpan(), close.GetSpan());
+    
+    private static bool Matches(JsonToken openToken, JsonToken closeToken, VirtualChar ch)
+        => openToken.VirtualChars.Contains(ch) || closeToken.VirtualChars.Contains(ch);
+}
+```
 
 **Supported constructs**: Parentheses, brackets, braces, comment delimiters
 
@@ -368,23 +715,36 @@ Highlights matching delimiters when cursor is adjacent.
 
 Provides syntax highlighting within embedded language strings.
 
-**Process**:
-1. Walk all tokens in tree
-2. Map token kind → classification type (e.g., `RegexKind.NumberToken` → `"regex - quantifier"`)
-3. Extract VirtualChar spans → source TextSpans
-4. Publish classification spans to IDE
-
-**Granularity**: Individual constructs colored distinctly (escape sequences, keywords, operators, etc.)
+The classification process walks all tokens in the embedded syntax tree and maps each token's kind to a classification
+type (for example, `RegexKind.NumberToken` maps to `"regex - quantifier"`). The VirtualChar spans from each token are
+extracted to produce source TextSpans, which are then published to the IDE for colorization. This approach provides
+granular coloring where individual constructs like escape sequences, keywords, and operators each get distinct
+highlighting.
 
 ### 5.3 Diagnostics
 
 Errors and warnings reported with precise source spans.
 
-**Collection**: Diagnostics attached during parsing to tokens/trivia, then aggregated into tree
+Diagnostics are attached during parsing to tokens and trivia as they're created, then aggregated into the final tree.
+The aggregation process ensures deduplication so that the same diagnostic doesn't appear multiple times at the same
+position. These diagnostics integrate seamlessly with the IDE because the VirtualChar spans map directly to the
+locations where squiggles should appear.
 
-**Deduplication**: Same diagnostic at same position appears once
+**Example**:
+```csharp
+// During parsing:
+var token = ScanString();
+if (position == text.Length)  // Unterminated string
+{
+    token = token.AddDiagnosticIfNone(new EmbeddedDiagnostic(
+        "Unterminated string",
+        token.GetSpan()));
+}
 
-**IDE integration**: VirtualChar spans map directly to squiggle locations
+// Tree aggregation:
+var allDiagnostics = CollectDiagnostics(tree.Root);
+return new JsonTree(text, root, allDiagnostics);
+```
 
 ### 5.4 Completion
 
@@ -394,6 +754,23 @@ Context-sensitive suggestions within embedded language strings.
 - After `\` in regex: offer escape sequences
 - After `\k<` or `\<`: offer capture names from tree
 - Inside JSON: offer property names, keywords (future)
+
+**Example**:
+```csharp
+var virtualChar = tree.Text.Find(position);
+if (virtualChar == null)
+    return null;
+
+// Check if we're after a backslash
+if (virtualChar.Value == '\\')
+{
+    // Offer escape sequences
+    yield return new CompletionItem("\\d", "digit character");
+    yield return new CompletionItem("\\w", "word character");
+    yield return new CompletionItem("\\s", "whitespace character");
+    // etc.
+}
+```
 
 **VirtualChar role**: Precise replacement span calculation from character positions
 
@@ -427,7 +804,22 @@ Highlights all references to a symbol (e.g., regex capture group references).
 
 **Value types**: Literals (string, number, true, false, null), Objects, Arrays
 
-**Example**: `"{\"key\": 123}"` → `JsonObjectNode` with `JsonPropertyNode` containing string name and number value
+**Example tree structure**:
+```csharp
+// Input: {"key": 123}
+JsonCompilationUnit
+├─ Sequence
+│  └─ JsonObjectNode
+│     ├─ OpenBraceToken: '{'
+│     ├─ Sequence (separated list)
+│     │  ├─ JsonPropertyNode
+│     │  │  ├─ NameToken: "key"
+│     │  │  ├─ ColonToken: ':'
+│     │  │  └─ Value: JsonLiteralNode
+│     │  │     └─ LiteralToken: 123 (NumberToken)
+│     └─ CloseBraceToken: '}'
+└─ EndOfFileToken
+```
 
 **Separated lists**: Properties in objects, elements in arrays use `EmbeddedSeparatedSyntaxNodeList`
 
@@ -554,16 +946,14 @@ affect multiple strings
 
 ### 8.4 Correctness & Reliability
 
-**Invariant enforcement**: 1:1 correspondence, contiguous coverage, well-formed input
-
-**Error handling**: Parsers never throw, missing tokens synthesized, precise diagnostics
-
-**Testing**: Match native parser behavior, verify span mapping, round-trip validation
+The system enforces critical invariants including 1:1 character correspondence, contiguous span coverage, and
+well-formed input requirements. Error handling is designed to never throw exceptions—instead, parsers synthesize missing
+tokens and attach precise diagnostics. The testing strategy focuses on matching native parser behavior, verifying span
+mappings, and validating round-trip conversion.
 
 ### 8.5 User Experience Focus
 
-**Parity with native parsers**: Error messages identical to runtime
-
-**Feature quality**: Character-level precision, granular colorization, exact diagnostic spans
-
-**Performance**: Instant response for visible strings, non-blocking, incremental (future)
+The system aims for complete parity with native parsers, ensuring that error messages match exactly what the runtime
+would produce. Feature quality is measured by character-level precision, granular colorization, and exact diagnostic
+spans. From a performance perspective, features respond instantly for visible strings, run non-blocking on background
+threads, and are designed for incremental updates (planned for future).
