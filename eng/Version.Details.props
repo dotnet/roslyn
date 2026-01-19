@@ -6,11 +6,11 @@ This file should be imported by eng/Versions.props
 <Project>
   <PropertyGroup>
     <!-- dotnet/roslyn dependencies -->
-    <MicrosoftCodeAnalysisPackageVersion>5.4.0-2.26060.1</MicrosoftCodeAnalysisPackageVersion>
-    <MicrosoftCodeAnalysisAnalyzersPackageVersion>5.4.0-2.26060.1</MicrosoftCodeAnalysisAnalyzersPackageVersion>
-    <MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>5.4.0-2.26060.1</MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>
-    <MicrosoftNetCompilersToolsetPackageVersion>5.4.0-2.26060.1</MicrosoftNetCompilersToolsetPackageVersion>
-    <RoslynDiagnosticsAnalyzersPackageVersion>5.4.0-2.26060.1</RoslynDiagnosticsAnalyzersPackageVersion>
+    <MicrosoftCodeAnalysisPackageVersion>5.4.0-2.26068.1</MicrosoftCodeAnalysisPackageVersion>
+    <MicrosoftCodeAnalysisAnalyzersPackageVersion>5.4.0-2.26068.1</MicrosoftCodeAnalysisAnalyzersPackageVersion>
+    <MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>5.4.0-2.26068.1</MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>
+    <MicrosoftNetCompilersToolsetPackageVersion>5.4.0-2.26068.1</MicrosoftNetCompilersToolsetPackageVersion>
+    <RoslynDiagnosticsAnalyzersPackageVersion>5.4.0-2.26068.1</RoslynDiagnosticsAnalyzersPackageVersion>
     <!-- dotnet/dotnet dependencies -->
     <MicrosoftDotNetFileBasedProgramsPackageVersion>10.0.200-preview.0.25556.104</MicrosoftDotNetFileBasedProgramsPackageVersion>
     <SystemCommandLinePackageVersion>3.0.0-alpha.1.25619.109</SystemCommandLinePackageVersion>
