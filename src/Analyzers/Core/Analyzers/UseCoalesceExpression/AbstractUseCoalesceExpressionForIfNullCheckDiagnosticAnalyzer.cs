@@ -85,6 +85,10 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckDiag
         if (syntaxFacts.ContainsInterleavedDirective([previousStatement, ifStatement], cancellationToken))
             return;
 
+        // Don't offer the refactoring if the if-statement has directives that would be lost when we remove it.
+        if (ifStatement.GetFirstToken().ContainsDirectives)
+            return;
+
         TExpressionSyntax? expressionToCoalesce;
 
         if (syntaxFacts.IsLocalDeclarationStatement(previousStatement))

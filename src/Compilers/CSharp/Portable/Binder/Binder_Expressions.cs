@@ -8343,6 +8343,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(diagnostics, ErrorCode.ERR_NoSuchMemberOrExtensionNeedUsing, name, boundLeft.Type, plainName, "System");
                 }
+                else if (boundLeft.Kind == BoundKind.AwaitableValuePlaceholder && boundLeft.Type.IsIAsyncEnumerableType(Compilation))
+                {
+                    Error(diagnostics, ErrorCode.ERR_NoAwaitOnAsyncEnumerable, name, boundLeft.Type, plainName);
+                }
                 else
                 {
                     Error(diagnostics, ErrorCode.ERR_NoSuchMemberOrExtension, name, boundLeft.Type, plainName);
