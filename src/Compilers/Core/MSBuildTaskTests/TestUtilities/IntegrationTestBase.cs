@@ -200,6 +200,7 @@ public abstract class IntegrationTestBase : TestBase
 
         Assert.Equal(0, result.ExitCode);
         Assert.Contains(useSharedCompilation ? "server processed compilation" : "using command line tool by design", result.Output);
+        Assert.Equal(ManagedToolTask.IsBuiltinToolRunningOnCoreClr, result.Output.Contains("Setting DOTNET_ROOT to"));
 
         if (useAppHost)
         {
@@ -280,6 +281,7 @@ public abstract class IntegrationTestBase : TestBase
 
         Assert.Equal(0, result.ExitCode);
         Assert.Contains(useSharedCompilation ? "server processed compilation" : "using command line tool by design", result.Output);
+        Assert.Equal(ManagedToolTask.IsBuiltinToolRunningOnCoreClr, result.Output.Contains("Setting DOTNET_ROOT to"));
 
         if (useAppHost)
         {
