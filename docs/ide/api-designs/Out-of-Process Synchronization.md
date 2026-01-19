@@ -616,3 +616,152 @@ Understanding the synchronization system requires familiarity with several key f
 - `AssetProvider.cs`: OOP-side asset retrieval interface
 - `SolutionChecksumUpdater.cs`: Out-of-band edit notification system
 - `TemporaryStorage/`: Memory mapping infrastructure for closed files
+
+## Flow Diagrams:
+
+RPC call flow:
+
+```mermaid
+sequenceDiagram
+    participant VSFeature as VS Feature
+    participant VSStorage as VS Storage (SolutionAssetStorage)
+    participant VSOOI as VS Workspace
+    participant RPC as RPC Layer
+    participant OOPWorkspace as OOP RemoteWorkspace
+    participant OOPCache as OOP Asset Cache
+    participant OOPCreator as OOP SolutionCreator
+
+    Note over VSFeature,OOPCreator: Feature requests operation (e.g., colorization)
+    
+    VSFeature->>VSOOI: Get current solution
+    VSOOI-->>VSFeature: Solution snapshot
+    
+    VSFeature->>VSStorage: Pin solution snapshot
+    activate VSStorage
+    Note right of VSStorage: Ref-count = 1
+    
+    VSFeature->>RPC: Call OOP service with checksum
+    RPC->>OOPWorkspace: RunWithSolutionAsync(checksum)
+    
+    activate OOPWorkspace
+    Note right of OOPWorkspace: Acquire lock
+    
+    OOPWorkspace->>OOPWorkspace: Check _solutionChecksumToSolution
+    
+    alt Checksum in cache
+        Note right of OOPWorkspace: Found InFlightSolution<br/>Increment ref-count
+    else Checksum not in cache
+        OOPWorkspace->>OOPWorkspace: Create new InFlightSolution
+        Note right of OOPWorkspace: Ref-count = 1<br/>Start Task.Run
+        OOPWorkspace->>OOPCreator: Start CreateSolutionAsync
+        activate OOPCreator
+    end
+    
+    Note right of OOPWorkspace: Release lock
+    deactivate OOPWorkspace
+    
+    Note over OOPCreator,VSStorage: Merkle Tree Synchronization (outside lock)<br/>See merkle-tree-sync.mermaid for details
+    OOPCreator->>VSStorage: Sync solution via Merkle tree walk
+    VSStorage-->>OOPCreator: Stream assets as found
+    OOPCreator->>OOPCreator: Build solution incrementally
+    OOPCreator-->>OOPWorkspace: Solution ready
+    deactivate OOPCreator
+    
+    OOPWorkspace->>OOPWorkspace: Cache solution in LRU
+    
+    Note over OOPWorkspace: Execute feature implementation
+    activate OOPWorkspace
+    OOPWorkspace->>OOPWorkspace: Call implementation(solution)
+    Note right of OOPWorkspace: Feature logic runs with solution
+    deactivate OOPWorkspace
+    
+    Note right of OOPWorkspace: Acquire lock (non-cancellable)
+    activate OOPWorkspace
+    OOPWorkspace->>OOPWorkspace: Decrement InFlightSolution ref-count
+    
+    alt Ref-count reaches 0
+        OOPWorkspace->>OOPWorkspace: Cancel computation CTS
+        OOPWorkspace->>OOPWorkspace: Remove from cache
+        Note right of OOPWorkspace: Return computation tasks
+    end
+    
+    Note right of OOPWorkspace: Release lock
+    deactivate OOPWorkspace
+    
+    OOPWorkspace->>OOPWorkspace: Await computation tasks
+    Note right of OOPWorkspace: Ensure no host callbacks in flight
+    
+    OOPWorkspace-->>RPC: Return results
+    RPC-->>VSFeature: Return results
+    
+    VSFeature->>VSStorage: Unpin solution snapshot
+    Note right of VSStorage: Ref-count = 0
+    deactivate VSStorage
+    
+    Note over VSFeature,OOPCreator: Operation complete
+```
+
+Merkle synchronization:
+
+```mermaid
+sequenceDiagram
+    participant VSOOI as VS Workspace
+    participant VSStorage as VS Storage
+    participant RPC as RPC Layer
+    participant OOPCache as OOP Asset Cache
+    participant OOPCreator as OOP SolutionCreator
+
+    Note over VSOOI,OOPCreator: Detailed Merkle Tree Synchronization Flow
+
+    Note right of OOPCreator: Starting with solution checksum
+    
+    OOPCreator->>OOPCache: Check cache for SolutionCompilationStateChecksums
+    OOPCache-->>OOPCreator: Cache miss
+    
+    OOPCreator->>RPC: GetAsset(SolutionCompilationStateChecksums)
+    RPC->>VSStorage: Request asset with checksum
+    VSStorage->>VSOOI: Traverse to asset using AssetPath
+    Note right of VSOOI: AssetPath guides efficient lookup
+    VSOOI-->>VSStorage: SolutionCompilationStateChecksums
+    VSStorage-->>RPC: Return
+    RPC-->>OOPCreator: SolutionCompilationStateChecksums
+    OOPCreator->>OOPCache: Cache
+    
+    OOPCreator->>OOPCache: Check cache for SolutionStateChecksums
+    OOPCache-->>OOPCreator: Cache miss
+    
+    OOPCreator->>RPC: GetAsset(SolutionStateChecksums)
+    RPC->>VSStorage: Request asset
+    VSStorage->>VSOOI: Locate via AssetPath
+    VSOOI-->>VSStorage: SolutionStateChecksums
+    VSStorage-->>RPC: Return
+    RPC-->>OOPCreator: SolutionStateChecksums
+    OOPCreator->>OOPCache: Cache
+    
+    Note right of OOPCreator: Compare new vs old checksums<br/>Identify differences
+    
+    Note over VSOOI,OOPCreator: Sync only changed components
+    
+    Note right of OOPCreator: For each differing checksum,<br/>recursively sync that component
+    
+    OOPCreator->>RPC: GetAssetsAsync(changed checksums[])
+    Note right of RPC: Batch request for efficiency<br/>Can request multiple types in parallel
+    RPC->>VSStorage: Request assets
+    VSStorage->>VSOOI: Locate each via AssetPath
+    
+    loop Stream each asset as found
+        VSOOI-->>VSStorage: Asset (Project/Document/Reference/etc)
+        VSStorage-->>RPC: Stream
+        RPC-->>OOPCreator: Callback(checksum, asset)
+        OOPCreator->>OOPCache: Cache
+    end
+    
+    Note right of OOPCreator: Process continues recursively<br/>Projects → Documents<br/>Until all differences synced
+    
+    Note right of OOPCreator: All differences synced<br/>Build solution incrementally
+    
+    OOPCreator->>OOPCreator: Apply changes to base solution
+    Note right of OOPCreator: Reuse unchanged components<br/>Update only changed parts
+    
+    Note over VSOOI,OOPCreator: Solution synchronized and ready
+```
