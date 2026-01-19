@@ -5,6 +5,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -120,12 +124,24 @@ public abstract class IntegrationTestBase : TestBase
             additionalEnvironmentVars);
     }
 
+    private static async Task ShutdownCompilerServerAsync(ProcessResult result)
+    {
+        var pipeName = Regex.Match(result.Output, @"Named pipe '([^']+)' connected").Groups[1].Value;
+        using var logger = new CompilerServerLogger("test");
+        await BuildServerConnection.RunServerShutdownRequestAsync(
+            pipeName,
+            timeoutOverride: null,
+            waitForProcess: true,
+            logger,
+            CancellationToken.None);
+    }
+
     /// <param name="overrideToolExe">
     /// Setting ToolExe to "csc.exe" should use the built-in compiler regardless of apphost being used or not.
     /// </param>
     [Theory, CombinatorialData]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2615118")]
-    public void SdkBuild_Csc(bool useSharedCompilation, bool overrideToolExe, bool useAppHost)
+    public async Task SdkBuild_Csc(bool useSharedCompilation, bool overrideToolExe, bool useAppHost)
     {
         if (!ManagedToolTask.IsBuiltinToolRunningOnCoreClr && !useAppHost)
         {
@@ -177,6 +193,11 @@ public abstract class IntegrationTestBase : TestBase
 
         _output.WriteLine(result.Output);
 
+        if (useSharedCompilation)
+        {
+            await ShutdownCompilerServerAsync(result);
+        }
+
         Assert.Equal(0, result.ExitCode);
         Assert.Contains(useSharedCompilation ? "server processed compilation" : "using command line tool by design", result.Output);
 
@@ -197,7 +218,7 @@ public abstract class IntegrationTestBase : TestBase
     /// </param>
     [Theory, CombinatorialData]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2615118")]
-    public void SdkBuild_Vbc(bool useSharedCompilation, bool overrideToolExe, bool useAppHost)
+    public async Task SdkBuild_Vbc(bool useSharedCompilation, bool overrideToolExe, bool useAppHost)
     {
         if (!ManagedToolTask.IsBuiltinToolRunningOnCoreClr && !useAppHost)
         {
@@ -252,6 +273,11 @@ public abstract class IntegrationTestBase : TestBase
 
         _output.WriteLine(result.Output);
 
+        if (useSharedCompilation)
+        {
+            await ShutdownCompilerServerAsync(result);
+        }
+
         Assert.Equal(0, result.ExitCode);
         Assert.Contains(useSharedCompilation ? "server processed compilation" : "using command line tool by design", result.Output);
 
@@ -268,7 +294,7 @@ public abstract class IntegrationTestBase : TestBase
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
-    public void StdLib_Csc(bool useSharedCompilation, bool disableSdkPath, bool noConfig)
+    public async Task StdLib_Csc(bool useSharedCompilation, bool disableSdkPath, bool noConfig)
     {
         if (_msbuildExecutable == null) return;
 
@@ -292,6 +318,11 @@ public abstract class IntegrationTestBase : TestBase
                     """ },
             });
         _output.WriteLine(result.Output);
+
+        if (useSharedCompilation)
+        {
+            await ShutdownCompilerServerAsync(result);
+        }
 
         if (disableSdkPath || noConfig)
         {
@@ -321,7 +352,7 @@ public abstract class IntegrationTestBase : TestBase
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
-    public void StdLib_Vbc(bool useSharedCompilation, bool disableSdkPath, bool noConfig)
+    public async Task StdLib_Vbc(bool useSharedCompilation, bool disableSdkPath, bool noConfig)
     {
         if (_msbuildExecutable == null) return;
 
@@ -348,6 +379,11 @@ public abstract class IntegrationTestBase : TestBase
                     """ },
             });
         _output.WriteLine(result.Output);
+
+        if (useSharedCompilation)
+        {
+            await ShutdownCompilerServerAsync(result);
+        }
 
         if (disableSdkPath || noConfig)
         {
@@ -377,7 +413,7 @@ public abstract class IntegrationTestBase : TestBase
     /// and the custom RSP (which has <c>/warnaserror+</c> so we get an error for using an obsolete type).
     /// </summary>
     [Theory, CombinatorialData]
-    public void CustomRsp_Csc(bool includeCustomRsp, bool useSharedCompilation, bool noConfig)
+    public async Task CustomRsp_Csc(bool includeCustomRsp, bool useSharedCompilation, bool noConfig)
     {
         if (_msbuildExecutable == null) return;
 
@@ -404,6 +440,11 @@ public abstract class IntegrationTestBase : TestBase
             });
         _output.WriteLine(result.Output);
 
+        if (useSharedCompilation)
+        {
+            await ShutdownCompilerServerAsync(result);
+        }
+
         Assert.Equal(!includeCustomRsp && !noConfig, 0 == result.ExitCode);
         if (noConfig)
         {
@@ -421,7 +462,7 @@ public abstract class IntegrationTestBase : TestBase
 
     /// <inheritdoc cref="CustomRsp_Csc"/>
     [Theory, CombinatorialData]
-    public void CustomRsp_Vbc(bool includeCustomRsp, bool useSharedCompilation, bool noConfig)
+    public async Task CustomRsp_Vbc(bool includeCustomRsp, bool useSharedCompilation, bool noConfig)
     {
         if (_msbuildExecutable == null) return;
 
@@ -451,6 +492,11 @@ public abstract class IntegrationTestBase : TestBase
                     """ },
             });
         _output.WriteLine(result.Output);
+
+        if (useSharedCompilation)
+        {
+            await ShutdownCompilerServerAsync(result);
+        }
 
         Assert.Equal(!includeCustomRsp && !noConfig, 0 == result.ExitCode);
         if (noConfig)
