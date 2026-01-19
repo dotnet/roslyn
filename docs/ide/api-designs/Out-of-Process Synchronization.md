@@ -36,7 +36,8 @@ simple 128-bit checksum representing the root of the typed Merkle tree.
 
 ### Checksum Design
 
-The checksum type is defined in `Checksum.cs`. We use xxHash128, which was selected for several important properties:
+The checksum type is defined in [`Checksum.cs`](https://github.com/dotnet/roslyn/blob/bee340d2d6efa1d874c8a7b2ac9a8f9d3bd35c8a/src/Workspaces/Core/Portable/Workspace/Solution/Checksum.cs#L22).
+We use xxHash128, which was selected for several important properties:
 
 - 128-bit struct with no heap allocations
 - High computation performance
@@ -86,9 +87,9 @@ For example, if the `SolutionState` checksums differ between VS/OOP, we retrieve
 `SolutionStateChecksums` and identify which child checksums differ. This process continues recursively until reaching
 the actual data requiring synchronization.
 
-The code for this tree traversal is in `RemoteWorkspace.SolutionCreator.cs`, specifically the `Task<Solution>
-SolutionCreator.CreateSolutionAsync(Checksum newSolutionChecksum, CancellationToken cancellationToken)` method. The
-algorithm is as follows:
+The code for this tree traversal is in [`RemoteWorkspace.SolutionCreator.cs`](https://github.com/dotnet/roslyn/blob/bee340d2d6efa1d874c8a7b2ac9a8f9d3bd35c8a/src/Workspaces/Remote/ServiceHub/Host/RemoteWorkspace.SolutionCreator.cs#L35), 
+specifically the `Task<Solution> SolutionCreator.CreateSolutionAsync(Checksum newSolutionChecksum, CancellationToken cancellationToken)`
+method. The algorithm is as follows:
 
 1. **Request the checksum trees**: Retrieve both `SolutionCompilationStateChecksums` and `SolutionStateChecksums` for
    the new solution from the `AssetProvider`
@@ -162,8 +163,9 @@ When VS initiates a call to OOP, it pins the solution snapshot on the VS side as
 call. This ensures that if the OOP side requires data about that snapshot, it remains available on the VS side for
 querying.
 
-The pinning mechanism is implemented in `SolutionAssetStorage.cs` and `SolutionAssetStorage.Scope.cs`. The key type
-is `SolutionAssetStorage.Scope`, which implements reference-counted pinning. The storage maintains:
+The pinning mechanism is implemented in [`SolutionAssetStorage.cs`](https://github.com/dotnet/roslyn/blob/bee340d2d6efa1d874c8a7b2ac9a8f9d3bd35c8a/src/Workspaces/Remote/Core/SolutionAssetStorage.cs#L17)
+and [`SolutionAssetStorage.Scope.cs`](https://github.com/dotnet/roslyn/blob/bee340d2d6efa1d874c8a7b2ac9a8f9d3bd35c8a/src/Workspaces/Remote/Core/SolutionAssetStorage.Scope.cs#L16).
+The key type is `SolutionAssetStorage.Scope`, which implements reference-counted pinning. The storage maintains:
 
 ```csharp
 /// Mapping from operation checksum to the scope for the syncing operation that we've created for it.
@@ -203,14 +205,13 @@ private readonly Dictionary<Checksum, InFlightSolution> _solutionChecksumToSolut
 
 An `InFlightSolution` represents the in-flight computation of a solution for a specific checksum:
 
-1. **Creation**: A new instance initializes with `InFlightCount = 1` and immediately schedules background
-2.  computation via `Task.Run`.
-3. **Concurrent requests**: Additional requests for the same checksum locate the existing instance, increment its
+1. **Creation**: A new instance initializes with `InFlightCount = 1` and immediately schedules background computation via `Task.Run`.
+2. **Concurrent requests**: Additional requests for the same checksum locate the existing instance, increment its
    ref-count, and await the shared computation task.
-4. **Primary branch elevation**: When required, the solution can be promoted to become the workspace's
+3. **Primary branch elevation**: When required, the solution can be promoted to become the workspace's
    `CurrentSolution`, creating a second task that performs this elevation. Subsequent requests prefer the primary branch
    solution to maximize service and cache sharing.
-5. **Completion**: When the final request completes and the ref-count reaches zero, the instance cancels its work,
+4. **Completion**: When the final request completes and the ref-count reaches zero, the instance cancels its work,
    removes itself from the cache, and returns its computation tasks. The caller must await these tasks (which complete
    quickly due to cancellation) before returning to the host. This prevents race conditions where the host unpins the
    solution while OOP is still executing and potentially invoking host callbacks.
@@ -238,7 +239,7 @@ Beyond in-flight solutions, OOP employs two additional caching strategies:
    has non-concurrent background operations utilizing the same snapshot. The threshold of 4 was determined through
    telemetry analysis showing infrequent usage beyond this bound.
 
-The caching logic is in `RemoteWorkspace_SolutionCaching.cs`.
+The caching logic is in [`RemoteWorkspace_SolutionCaching.cs`](https://github.com/dotnet/roslyn/blob/bee340d2d6efa1d874c8a7b2ac9a8f9d3bd35c8a/src/Workspaces/Remote/ServiceHub/Host/RemoteWorkspace_SolutionCaching.cs#L13).
 
 ### Base Solution Selection
 
@@ -276,7 +277,7 @@ Key architectural properties:
 
 When the Merkle tree walk determines that data needs to be transferred from VS to OOP, the actual serialization is
 handled by code in the `Workspaces/Core/Portable/Serialization` directory. The core service is `ISerializerService`,
-implemented by `SerializerService.cs`.
+implemented by [`SerializerService.cs`](https://github.com/dotnet/roslyn/blob/bee340d2d6efa1d874c8a7b2ac9a8f9d3bd35c8a/src/Workspaces/Core/Portable/Serialization/SerializerService.cs#L24).
 
 ### Asset Request Flow
 
@@ -447,7 +448,8 @@ can be quite large, this could end up sending multiple megabytes of data over fo
 colorization often wake up before the next user edit even comes in).
 
 To make this more efficient, we have an out-of-band way of priming OOP for this. The implementation is in
-`SolutionChecksumUpdater.cs`, specifically the `SynchronizePrimaryWorkspaceAsync` method. When an edit happens on the VS
+[`SolutionChecksumUpdater.cs`](https://github.com/dotnet/roslyn/blob/bee340d2d6efa1d874c8a7b2ac9a8f9d3bd35c8a/src/EditorFeatures/Core/Remote/SolutionChecksumUpdater.cs#L139),
+specifically the `SynchronizePrimaryWorkspaceAsync` method. When an edit happens on the VS
 side, we send off information about that edit as quickly as we hear about the document edit event. We send the checksum
 of the document before the edit and the text change info.
 
@@ -464,7 +466,8 @@ Telemetry shows this optimization has approximately a 99.99% cache hit rate.
 
 ### SolutionAssetCache on OOP
 
-The `SolutionAssetCache` (defined in `SolutionAssetCache.cs`) is a weak cache of checksums to individual objects like
+The `SolutionAssetCache` (defined in [`SolutionAssetCache.cs`](https://github.com/dotnet/roslyn/blob/bee340d2d6efa1d874c8a7b2ac9a8f9d3bd35c8a/src/Workspaces/Remote/ServiceHub/Host/SolutionAssetCache.cs#L18))
+is a weak cache of checksums to individual objects like
 `SourceText`, `Document`, or `Project`. This is distinct from the pinned solutions (which pin the roots of trees).
 Whenever we read from this cache, we update a timestamp on the object.
 
