@@ -658,12 +658,8 @@ public class MyGenerator : ISourceGenerator
 
 The recommended approach is to use [Microsoft.CodeAnalysis.Testing](https://github.com/dotnet/roslyn-sdk/tree/main/src/Microsoft.CodeAnalysis.Testing#microsoftcodeanalysistesting) packages:
 
-- `Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.MSTest`
-- `Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.MSTest`
-- `Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.NUnit`
-- `Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.NUnit`
-- `Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.XUnit`
-- `Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.XUnit`
+- `Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing`
+- `Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing`
 
 This works in the same way as analyzers and codefix testing. You add a class like the following:
 
