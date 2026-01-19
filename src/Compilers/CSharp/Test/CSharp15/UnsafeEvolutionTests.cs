@@ -3014,6 +3014,48 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Member_Method_Attribute()
+    {
+        var commonDiagnostics = new[]
+        {
+            // (3,4): error CS0617: 'F' is not a valid named attribute argument. Named attribute arguments must be fields which are not readonly, static, or const, or read-write properties which are public and not static.
+            // [A(F = 0)] void M2() { }
+            Diagnostic(ErrorCode.ERR_BadNamedAttributeArgument, "F").WithArguments("F").WithLocation(3, 4),
+            // (4,13): error CS0617: 'F' is not a valid named attribute argument. Named attribute arguments must be fields which are not readonly, static, or const, or read-write properties which are public and not static.
+            // unsafe { [A(F = 0)] void M3() { } }
+            Diagnostic(ErrorCode.ERR_BadNamedAttributeArgument, "F").WithArguments("F").WithLocation(4, 13),
+            // (5,4): error CS0617: 'F' is not a valid named attribute argument. Named attribute arguments must be fields which are not readonly, static, or const, or read-write properties which are public and not static.
+            // [A(F = 0)] unsafe void M4() { }
+            Diagnostic(ErrorCode.ERR_BadNamedAttributeArgument, "F").WithArguments("F").WithLocation(5, 4),
+        };
+
+        CompileAndVerifyUnsafe(
+            lib: """
+                public class A : System.Attribute
+                {
+                    public unsafe void F(int x) { }
+                }
+                """,
+            caller: """
+                #pragma warning disable CS8321 // unused local function
+                [A] void M1() { }
+                [A(F = 0)] void M2() { }
+                unsafe { [A(F = 0)] void M3() { } }
+                [A(F = 0)] unsafe void M4() { }
+                """,
+            expectedUnsafeSymbols: ["A.F"],
+            expectedSafeSymbols: ["A"],
+            expectedDiagnostics:
+            [
+                // (3,4): error CS9502: 'A.F(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // [A(F = 0)] void M2() { }
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "F = 0").WithArguments("A.F(int)").WithLocation(3, 4),
+                .. commonDiagnostics,
+            ],
+            expectedDiagnosticsWhenReferencingLegacyLib: commonDiagnostics);
+    }
+
+    [Fact]
     public void Member_Await()
     {
         var lib = """

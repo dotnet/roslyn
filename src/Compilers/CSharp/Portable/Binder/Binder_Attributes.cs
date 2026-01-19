@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                AssertNotUnsafeMemberAccess(namedArgumentNameSymbol);
+                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, namedArgumentNameSymbol, namedArgument);
             }
 
             Debug.Assert(resultKind == LookupResultKind.Viable || wasError);
