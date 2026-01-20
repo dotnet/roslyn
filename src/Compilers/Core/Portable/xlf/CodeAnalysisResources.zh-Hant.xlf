@@ -305,8 +305,8 @@
       </trans-unit>
       <trans-unit id="Class1">
         <source>class</source>
-        <target state="translated">類別</target>
-        <note />
+        <target state="needs-review-translation">類別</target>
+        <note>Refers to a class type in programming (noun), not the verb "to classify"</note>
       </trans-unit>
       <trans-unit id="Constructor">
         <source>constructor</source>
@@ -315,18 +315,18 @@
       </trans-unit>
       <trans-unit id="Delegate1">
         <source>delegate</source>
-        <target state="translated">委派</target>
-        <note />
+        <target state="needs-review-translation">委派</target>
+        <note>Refers to a delegate type in programming (noun), not the verb "to delegate"</note>
       </trans-unit>
       <trans-unit id="Enum1">
         <source>enum</source>
-        <target state="translated">列舉</target>
-        <note />
+        <target state="needs-review-translation">列舉</target>
+        <note>Refers to an enumeration type in programming (noun)</note>
       </trans-unit>
       <trans-unit id="Event1">
         <source>event</source>
-        <target state="translated">事件</target>
-        <note />
+        <target state="needs-review-translation">事件</target>
+        <note>Refers to a programming event member (noun), not "to occur" or other verb meanings</note>
       </trans-unit>
       <trans-unit id="Field">
         <source>field</source>
@@ -340,8 +340,8 @@
       </trans-unit>
       <trans-unit id="Interface1">
         <source>interface</source>
-        <target state="translated">介面</target>
-        <note />
+        <target state="needs-review-translation">介面</target>
+        <note>Refers to an interface type in programming (noun), not the verb "to interface"</note>
       </trans-unit>
       <trans-unit id="Method">
         <source>method</source>
@@ -365,13 +365,13 @@
       </trans-unit>
       <trans-unit id="Return1">
         <source>return</source>
-        <target state="translated">返回</target>
-        <note />
+        <target state="needs-review-translation">返回</target>
+        <note>Refers to a method return value/type (noun), not the verb "to return"</note>
       </trans-unit>
       <trans-unit id="Struct1">
         <source>struct</source>
-        <target state="translated">結構</target>
-        <note />
+        <target state="needs-review-translation">結構</target>
+        <note>Refers to a structure type in programming (noun)</note>
       </trans-unit>
       <trans-unit id="CannotCreateReferenceToSubmission">
         <source>Can't create a reference to a submission.</source>

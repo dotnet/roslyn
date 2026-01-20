@@ -305,8 +305,8 @@
       </trans-unit>
       <trans-unit id="Class1">
         <source>class</source>
-        <target state="translated">Klasse</target>
-        <note />
+        <target state="needs-review-translation">Klasse</target>
+        <note>Refers to a class type in programming (noun), not the verb "to classify"</note>
       </trans-unit>
       <trans-unit id="Constructor">
         <source>constructor</source>
@@ -315,18 +315,18 @@
       </trans-unit>
       <trans-unit id="Delegate1">
         <source>delegate</source>
-        <target state="translated">Delegat</target>
-        <note />
+        <target state="needs-review-translation">Delegat</target>
+        <note>Refers to a delegate type in programming (noun), not the verb "to delegate"</note>
       </trans-unit>
       <trans-unit id="Enum1">
         <source>enum</source>
-        <target state="translated">Aufzählung</target>
-        <note />
+        <target state="needs-review-translation">Aufzählung</target>
+        <note>Refers to an enumeration type in programming (noun)</note>
       </trans-unit>
       <trans-unit id="Event1">
         <source>event</source>
-        <target state="translated">Ereignis</target>
-        <note />
+        <target state="needs-review-translation">Ereignis</target>
+        <note>Refers to a programming event member (noun), not "to occur" or other verb meanings</note>
       </trans-unit>
       <trans-unit id="Field">
         <source>field</source>
@@ -340,8 +340,8 @@
       </trans-unit>
       <trans-unit id="Interface1">
         <source>interface</source>
-        <target state="translated">Schnittstelle</target>
-        <note />
+        <target state="needs-review-translation">Schnittstelle</target>
+        <note>Refers to an interface type in programming (noun), not the verb "to interface"</note>
       </trans-unit>
       <trans-unit id="Method">
         <source>method</source>
@@ -365,13 +365,13 @@
       </trans-unit>
       <trans-unit id="Return1">
         <source>return</source>
-        <target state="translated">Zurück</target>
-        <note />
+        <target state="needs-review-translation">Zurück</target>
+        <note>Refers to a method return value/type (noun), not the verb "to return"</note>
       </trans-unit>
       <trans-unit id="Struct1">
         <source>struct</source>
-        <target state="translated">Struktur</target>
-        <note />
+        <target state="needs-review-translation">Struktur</target>
+        <note>Refers to a structure type in programming (noun)</note>
       </trans-unit>
       <trans-unit id="CannotCreateReferenceToSubmission">
         <source>Can't create a reference to a submission.</source>
