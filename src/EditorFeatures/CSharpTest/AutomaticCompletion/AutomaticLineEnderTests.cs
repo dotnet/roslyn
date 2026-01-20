@@ -1970,6 +1970,43 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             }
             """);
 
+    [WpfTheory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/80791")]
+    public void TestImplicitObjectCreationExpression(bool constructorParenthesis)
+    {
+        var firstResult = """
+            public class Bar
+            {
+                public void Bar2()
+                {
+                    Bar b = new()
+                    {
+                        $$
+                    };
+                }
+            }
+            """;
+        Test(firstResult, $$"""
+            public class Bar
+            {
+                public void Bar2()
+                {
+                    Bar b = new$${{(constructorParenthesis ? "($$)" : string.Empty)}}
+                }
+            }
+            """);
+        Test("""
+            public class Bar
+            {
+                public void Bar2()
+                {
+                    Bar b = new();
+                    $$
+                }
+            }
+            """, firstResult);
+    }
+
     [WpfFact]
     public void TestArrayInitializer1()
         => Test(
@@ -3161,55 +3198,6 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                     fin$$ally$$
                     {
                     }
-                }
-            }
-            """);
-
-    [WpfFact]
-    public void TestObjectCreationExpressionWithMissingType()
-        => Test("""
-            public class Bar
-            {
-                public void Bar2()
-                {
-                    Bar b = new()
-                    {
-                        $$
-                    };
-                }
-            }
-            """,
-            """
-            public class Bar
-            {
-                public void Bar2()
-                {
-                    Bar b = new$$
-                }
-            }
-            """);
-
-    [WpfFact]
-    public void TestRemoveInitializerForImplicitObjectCreationExpression()
-        => Test("""
-            public class Bar
-            {
-                public void Bar2()
-                {
-                    Bar b = new();
-                    $$
-                }
-            }
-            """,
-            """
-            public class Bar
-            {
-                public void Bar2()
-                {
-                    Bar b = new()
-                    {
-                        $$
-                    };
                 }
             }
             """);
