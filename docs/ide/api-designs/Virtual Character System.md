@@ -19,7 +19,7 @@ like completion or diagnostics, it must be able to map that single logical tab c
 source representation at span [5, 7).
 
 Verbatim strings present a different challenge. In `@"He said ""Hello"""`, the double-quote character in the logical
-string `"He said "Hello""` comes from a doubled quote `""` in the source. Again, we need bidirectional mapping between
+string `He said "Hello"` comes from a doubled quote `""` in the source. Again, we need bidirectional mapping between
 the single logical character and its two-character source representation.
 
 Unicode escapes add yet another layer of complexity. In `"Test\u0041B"`, the six-character escape sequence `\u0041`
