@@ -91,7 +91,7 @@ internal readonly record struct VirtualCharGreen
 **Packing details**:
 
 The width field is limited to 4 bits, allowing values from 0 to 15. This is sufficient because the longest possible
-escape sequence in C# is `\uXXXX\uXXXX` for a surrogate pair, which requires 12 characters. The remaining 28 bits are
+escape sequence in C# is `\UHHHHLLLL` for a surrogate pair, which requires 10 characters. The remaining 28 bits are
 used for the offset, which supports tokens up to 268 million characters long—far more than any realistic string literal.
 
 **Examples**:
