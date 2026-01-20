@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         internal static bool IsCompilerServerSupported => GetPipeName("") is object;
 
-        private static bool IsBuiltinToolRunningOnCoreClr =>
+        internal static bool IsBuiltinToolRunningOnCoreClr =>
 #if NETFRAMEWORK && SDK_TASK
                 true;
 #else
