@@ -181,18 +181,19 @@ VirtualCharGreenSequence.Create("Hello World")
 ```
 
 **ImmutableSegmentedListChunk** (Escapes present)
+
 ```csharp
 // For tokens like "Hello\tWorld" (contains escapes)
-var builder = ImmutableSegmentedList.CreateBuilder<VirtualCharGreen>();
-builder.Add(new VirtualCharGreen('H', 0, 1));
-builder.Add(new VirtualCharGreen('e', 1, 1));
-builder.Add(new VirtualCharGreen('l', 2, 1));
-builder.Add(new VirtualCharGreen('l', 3, 1));
-builder.Add(new VirtualCharGreen('o', 4, 1));
-builder.Add(new VirtualCharGreen('\t', 5, 2));  // \t spans 2 source chars
-builder.Add(new VirtualCharGreen('W', 7, 1));
-// ... etc
-VirtualCharGreenSequence.Create(builder.ToImmutable())
+ImmutableSegmentedList<VirtualCharGreen> sequence = [
+    new('H', 0, 1));
+    new('e', 1, 1));
+    new('l', 2, 1));
+    new('l', 3, 1));
+    new('o', 4, 1));
+    new('\t', 5, 2));  // \t spans 2 source chars
+    new('W', 7, 1));
+    // ... etc
+];
 
 // Materialized storage: Array holds pre-computed VirtualCharGreens
 // Preserves escape info: Each element stores width for original escape sequence
