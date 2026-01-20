@@ -4347,71 +4347,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<VisitResult> argumentResults = default;
                 ArgumentsCompletionDelegate<Symbol>? argumentsCompletion = null;
 
-                Symbol? symbol = objectInitializer.MemberSymbol;
-                Symbol? updatedSymbol;
-                if (symbol is PropertySymbol property && property.IsExtensionBlockMember())
-                {
-                    var reinferenceResult = ReInferAndVisitExtensionPropertyAccess<Symbol>(
-                        objectInitializer, objectInitializer, property, property.Parameters, objectInitializer.Arguments,
-                        objectInitializer.ArgumentRefKindsOpt, objectInitializer.ArgsToParamsOpt, objectInitializer.DefaultArguments, objectInitializer.Expanded, delayCompletionForType,
-                        firstArgumentResult: new VisitResult(containingType, NullableAnnotation.NotAnnotated, NullableFlowState.NotNull));
+                getSymbolAndParameters(objectInitializer, containingType, out Symbol? symbol, out ImmutableArray<ParameterSymbol> parameters);
 
-                    argumentResults = reinferenceResult.Results;
-                    argumentsCompletion = reinferenceResult.Completion;
-                    updatedSymbol = reinferenceResult.Member;
-                }
-                else if (symbol is null)
-                {
-                    VisitArgumentsCore<Symbol>(
-                        objectInitializer, objectInitializer.Arguments, objectInitializer.ArgumentRefKindsOpt,
-                        parametersOpt: default, objectInitializer.ArgsToParamsOpt,
-                        objectInitializer.DefaultArguments, objectInitializer.Expanded,
-                        usesExtensionReceiver: false, member: null, delayCompletionForTargetMember: delayCompletionForType);
+                getAdjustedArgumentsInfo(objectInitializer, containingType, symbol,
+                    out ImmutableArray<BoundExpression> arguments, out ImmutableArray<RefKind> refKindsOpt,
+                    out ImmutableArray<int> argsToParamsOpt, out BitVector defaultArguments, out bool usesExtensionReceiver, out VisitResult? firstArgumentResult);
 
-                    updatedSymbol = null;
-                }
-                else
-                {
-                    Debug.Assert(TypeSymbol.Equals(objectInitializer.Type, GetTypeOrReturnType(symbol), TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
-                    updatedSymbol = AsMemberOfType(containingType, symbol);
+                var reinferenceResult = VisitArgumentsCore(
+                    objectInitializer, arguments, refKindsOpt,
+                    parameters, argsToParamsOpt,
+                    defaultArguments, objectInitializer.Expanded,
+                    usesExtensionReceiver, member: symbol, delayCompletionForTargetMember: delayCompletionForType, firstArgumentResult);
 
-                    if (updatedSymbol is PropertySymbol nonExtensionProperty && !objectInitializer.Arguments.IsEmpty)
-                    {
-                        var reinferenceResult = VisitArgumentsCore(
-                            objectInitializer, objectInitializer.Arguments, objectInitializer.ArgumentRefKindsOpt,
-                            nonExtensionProperty.Parameters, objectInitializer.ArgsToParamsOpt,
-                            objectInitializer.DefaultArguments, objectInitializer.Expanded,
-                            usesExtensionReceiver: false, member: symbol, delayCompletionForTargetMember: delayCompletionForType);
-
-                        argumentResults = reinferenceResult.Results;
-                        argumentsCompletion = reinferenceResult.Completion;
-                    }
-                }
+                symbol = reinferenceResult.Member;
+                argumentResults = reinferenceResult.Results;
+                argumentsCompletion = reinferenceResult.Completion;
 
                 InitializerCompletionAfterUpdatedSymbol? initializationCompletion = null;
                 if (objectInitializer.MemberSymbol is not null)
                 {
-                    Debug.Assert(updatedSymbol is not null);
+                    Debug.Assert(symbol is not null);
                     if (node.Right is BoundObjectInitializerExpressionBase initializer)
                     {
-                        initializationCompletion = visitNestedInitializer(containingSlot, containingType, updatedSymbol, initializer, delayCompletionForType);
+                        initializationCompletion = visitNestedInitializer(containingSlot, containingType, symbol, initializer, delayCompletionForType);
                     }
                     else
                     {
                         TakeIncrementalSnapshot(node.Right);
-                        initializationCompletion = visitMemberAssignment(node, containingSlot, updatedSymbol, delayCompletionForType);
+                        initializationCompletion = visitMemberAssignment(node, containingSlot, symbol, delayCompletionForType);
                     }
                 }
 
-                if (delayCompletionForType)
-                {
-                    return visitMemberInitializerAsContinuation(node, argumentResults, argumentsCompletion, initializationCompletion);
-                }
-
-                Debug.Assert(argumentsCompletion is null);
-                Debug.Assert(initializationCompletion is null);
-                setAnalyzedNullabilityAndUpdateSymbol(node, objectInitializer, updatedSymbol);
-                return null;
+                return setAnalyzedNullabilityAsContinuation(node, objectInitializer, symbol, argumentResults, argumentsCompletion, initializationCompletion, delayCompletionForType);
             }
 
             InitializerCompletionAfterTargetType visitMemberInitializerAsContinuation(BoundAssignmentOperator node, ImmutableArray<VisitResult> argumentResults,
@@ -4421,35 +4388,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (int containingSlot, TypeSymbol containingType) =>
                 {
                     var objectInitializer = (BoundObjectInitializerMember)node.Left;
-                    Symbol? updatedSymbol = objectInitializer.MemberSymbol;
-                    if (updatedSymbol?.IsExtensionBlockMember() == false)
+                    getSymbolAndParameters(objectInitializer, containingType, out Symbol? symbol, out ImmutableArray<ParameterSymbol> parameters);
+
+                    if (symbol is PropertySymbol property && property.IsExtensionBlockMember() && !argumentResults.IsDefault)
                     {
-                        updatedSymbol = AsMemberOfType(containingType, updatedSymbol);
+                        Debug.Assert(argumentResults[0].LValueType.Type.Equals(containingType, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+                        argumentResults = argumentResults.SetItem(0, new VisitResult(containingType, NullableAnnotation.NotAnnotated, NullableFlowState.NotNull));
                     }
 
                     if (argumentsCompletion is not null)
                     {
-                        var parameters = updatedSymbol.GetParameters();
-                        if (updatedSymbol?.IsExtensionBlockMember() == true)
-                        {
-                            parameters = AdjustParametersIfNeeded(parameters, isExtensionBlockMember: true, updatedSymbol);
-
-                            Debug.Assert(argumentResults[0].LValueType.Type.Equals(containingType, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
-                            argumentResults = argumentResults.SetItem(0, new VisitResult(containingType, NullableAnnotation.NotAnnotated, NullableFlowState.NotNull));
-                        }
-
-                        (updatedSymbol, _) = argumentsCompletion(argumentResults, parameters, updatedSymbol);
+                        (symbol, _) = argumentsCompletion(argumentResults, parameters, member: symbol);
                     }
 
-                    Debug.Assert(initializationCompletion is null || updatedSymbol is not null);
-                    initializationCompletion?.Invoke(containingSlot, updatedSymbol!);
+                    Debug.Assert(initializationCompletion is null || symbol is not null);
+                    initializationCompletion?.Invoke(containingSlot, symbol!);
 
-                    setAnalyzedNullabilityAndUpdateSymbol(node, objectInitializer, updatedSymbol);
+                    var result = setAnalyzedNullabilityAsContinuation(node, objectInitializer, symbol, argumentResults, argumentsCompletion: null, initializationCompletion: null, delayCompletionForType: false);
+                    Debug.Assert(result is null);
                 };
             }
 
-            void setAnalyzedNullabilityAndUpdateSymbol(BoundAssignmentOperator node, BoundObjectInitializerMember objectInitializer, Symbol? updatedSymbol)
+            InitializerCompletionAfterTargetType? setAnalyzedNullabilityAsContinuation(BoundAssignmentOperator node, BoundObjectInitializerMember objectInitializer, Symbol? updatedSymbol, ImmutableArray<VisitResult> argumentResults,
+               ArgumentsCompletionDelegate<Symbol>? argumentsCompletion, InitializerCompletionAfterUpdatedSymbol? initializationCompletion, bool delayCompletionForType)
             {
+                if (delayCompletionForType)
+                {
+                    return visitMemberInitializerAsContinuation(node, argumentResults, argumentsCompletion, initializationCompletion);
+                }
+
+                Debug.Assert(argumentsCompletion is null);
+                Debug.Assert(initializationCompletion is null);
+
                 // https://github.com/dotnet/roslyn/issues/35040: Should likely be setting _resultType in VisitObjectCreationInitializer
                 // and using that value instead of reconstructing here
                 var result = new VisitResult(objectInitializer.Type, NullableAnnotation.NotAnnotated, NullableFlowState.NotNull);
@@ -4461,6 +4431,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(objectInitializer.MemberSymbol is not null);
                     SetUpdatedSymbol(objectInitializer, objectInitializer.MemberSymbol, updatedSymbol);
                 }
+
+                return null;
             }
 
             int getOrCreateSlot(int containingSlot, Symbol symbol)
@@ -4550,6 +4522,58 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var result = visitMemberAssignment(node, containingSlot, symbol, delayCompletionForType: false, conversionCompletion);
                     Debug.Assert(result is null);
                 };
+            }
+
+            void getAdjustedArgumentsInfo(BoundObjectInitializerMember objectInitializer, TypeSymbol containingType, Symbol? symbol,
+                out ImmutableArray<BoundExpression> arguments, out ImmutableArray<RefKind> refKindsOpt, out ImmutableArray<int> argsToParamsOpt,
+                out BitVector defaultArguments, out bool usesExtensionReceiver, out VisitResult? firstArgumentResult)
+            {
+                arguments = objectInitializer.Arguments;
+                argsToParamsOpt = objectInitializer.ArgsToParamsOpt;
+                defaultArguments = objectInitializer.DefaultArguments;
+                refKindsOpt = objectInitializer.ArgumentRefKindsOpt;
+                usesExtensionReceiver = false;
+                firstArgumentResult = null;
+
+                if (symbol is PropertySymbol property)
+                {
+                    Debug.Assert(TypeSymbol.Equals(objectInitializer.Type, GetTypeOrReturnType(symbol), TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+
+                    if (property.IsExtensionBlockMember())
+                    {
+                        refKindsOpt = AdjustArgumentRefKindsIfNeeded(refKindsOpt, adjustForExtensionBlockMethod: true, property, arguments.Length);
+                        arguments = AdjustArgumentsIfNeeded(arguments, isExtensionBlockMethod: true, objectInitializer);
+                        argsToParamsOpt = AdjustArgsToParamsOptIfNeeded(argsToParamsOpt, isExtensionBlockMethod: true);
+                        defaultArguments = AdjustDefaultArgumentsIfNeeded(defaultArguments, isExtensionBlockMember: true);
+                        firstArgumentResult = new VisitResult(containingType, NullableAnnotation.NotAnnotated, NullableFlowState.NotNull);
+                        usesExtensionReceiver = true;
+                    }
+                }
+            }
+
+            void getSymbolAndParameters(BoundObjectInitializerMember objectInitializer, TypeSymbol containingType,
+                out Symbol? symbol, out ImmutableArray<ParameterSymbol> parametersOpt)
+            {
+                symbol = objectInitializer.MemberSymbol;
+
+                if (symbol?.IsExtensionBlockMember() == false)
+                {
+                    symbol = AsMemberOfType(containingType, symbol);
+                }
+
+                parametersOpt = default;
+
+                if (symbol is PropertySymbol property)
+                {
+                    Debug.Assert(TypeSymbol.Equals(objectInitializer.Type, GetTypeOrReturnType(symbol), TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+
+                    parametersOpt = property.Parameters;
+
+                    if (property.IsExtensionBlockMember())
+                    {
+                        parametersOpt = AdjustParametersIfNeeded(parametersOpt, isExtensionBlockMember: true, property);
+                    }
+                }
             }
         }
 
