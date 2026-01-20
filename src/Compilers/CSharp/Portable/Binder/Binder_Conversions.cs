@@ -944,7 +944,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly BindingDiagnosticBag _diagnostics = diagnostics;
 
             private BoundCollectionExpression CreateCollectionExpression(
-                CollectionExpressionTypeKind collectionTypeKind, ImmutableArray<BoundNode> elements, BoundObjectOrCollectionValuePlaceholder? placeholder = null, BoundExpression? collectionCreation = null, MethodSymbol? collectionBuilderMethod = null, BoundCollectionBuilderElementsPlaceholder? collectionBuilderElementsPlaceholder = null)
+                CollectionExpressionTypeKind collectionTypeKind,
+                ImmutableArray<BoundNode> elements,
+                BoundObjectOrCollectionValuePlaceholder? placeholder = null,
+                BoundExpression? collectionCreation = null,
+                MethodSymbol? collectionBuilderMethod = null,
+                MethodSymbol? indexerSetMethod = null,
+                BoundCollectionBuilderElementsPlaceholder? collectionBuilderElementsPlaceholder = null)
             {
                 return new BoundCollectionExpression(
                     _node.Syntax,
@@ -953,6 +959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collectionCreation,
                     collectionBuilderMethod,
                     collectionBuilderElementsPlaceholder,
+                    indexerSetMethod,
                     wasTargetTyped: true,
                     hasWithElement: _node.WithElement != null,
                     _node,
@@ -979,6 +986,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // case, spans are not 'allows ref struct' for their T element.  So they don't allow them either.  Finally,
                 // collection builders need to take in a ReadOnlySpan<T> so they are restricted for the same reason.
                 Debug.Assert(elementType is { });
+                // PROTOTYPE: ImplementsIEnumerableWithIndexer? Also update the above comment for dictionary interfaces
                 if (collectionTypeKind != CollectionExpressionTypeKind.ImplementsIEnumerable &&
                     elementType.IsRefLikeOrAllowsRefLikeType())
                 {
@@ -1019,8 +1027,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Specialized handling for ienumerable-based normal collections.  These defer to the behavior we had
                 // since C# 3.0 where we will determine which .Add methods to call on an element by element basis.
-                if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
-                    return TryConvertCollectionExpressionImplementsIEnumerableType(constructor);
+                if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer)
+                    return TryConvertCollectionExpressionImplementsIEnumerableType(constructor, collectionTypeKind, elementType);
 
                 if (collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface ||
                     hasSpreadElements)
@@ -1070,11 +1078,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _diagnostics.Add(syntax, useSiteInfo);
                 if (!dictionaryConversion.IsImplicit)
                 {
-                    _binder.GenerateImplicitConversionError(_diagnostics, _binder.Compilation, syntax, dictionaryConversion, dictionaryType, _targetType);
+                    Binder.GenerateImplicitConversionError(_diagnostics, _binder.Compilation, syntax, dictionaryConversion, dictionaryType, _targetType);
                 }
 
                 _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor, _diagnostics, syntax: syntax);
-                _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__set_Item, _diagnostics, syntax: syntax);
+                var setMethod = (MethodSymbol?)_binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__set_Item, _diagnostics, syntax: syntax);
+                setMethod = (MethodSymbol?)setMethod?.SymbolAsMember(dictionaryType);
                 _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key, _diagnostics, syntax: syntax);
                 _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value, _diagnostics, syntax: syntax);
 
@@ -1095,7 +1104,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CollectionExpressionTypeKind.DictionaryInterface,
                     elements,
                     placeholder: null,
-                    collectionCreation: collectionCreation);
+                    collectionCreation: collectionCreation,
+                    indexerSetMethod: setMethod);
 
                 static BoundExpression bindDictionaryConstructorConstruction(ref readonly CollectionExpressionConverter @this, SyntaxNode syntax, NamedTypeSymbol dictionaryType)
                 {
@@ -1195,13 +1205,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            private readonly BoundCollectionExpression? TryConvertCollectionExpressionImplementsIEnumerableType(MethodSymbol? constructor)
+            private readonly BoundCollectionExpression? TryConvertCollectionExpressionImplementsIEnumerableType(MethodSymbol? constructor, CollectionExpressionTypeKind collectionTypeKind, TypeSymbol elementType)
             {
+                Debug.Assert(collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer);
                 var syntax = _node.Syntax;
                 var elementConversions = _conversion.UnderlyingConversions;
-                var elementKeyValueTypes = _conversion.GetCollectionExpressionTypeKind(out var elementType, out _, out _) != CollectionExpressionTypeKind.None
-                    ? ConversionsBase.TryGetCollectionKeyValuePairTypes(_binder.Compilation, elementType!)
-                    : null;
+                (TypeSymbol Key, TypeSymbol Value)? elementKeyValueTypes = null;
+                MethodSymbol? setMethod = null;
+
+                if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer)
+                {
+                    elementKeyValueTypes = ConversionsBase.TryGetCollectionKeyValuePairTypes(_binder.Compilation, elementType);
+                    Debug.Assert(elementKeyValueTypes is not null);
+                    var indexer = _binder.GetCollectionExpressionApplicableIndexer(syntax, _targetType, elementType, _diagnostics);
+                    setMethod = indexer.GetOwnOrInheritedSetMethod();
+                    Debug.Assert(setMethod is not null);
+                }
 
                 // Report an error if this is an ImmutableArray<T> target type and we don't have the collection builder
                 // for it. This is virtually guaranteed to not give the user the right experience as this will be
@@ -1265,7 +1284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var keyValuePairExpression = createKeyValuePairExpression(_binder, keyValuePairElement, key, value, elementType, _diagnostics);
                         builder.Add(_binder.BindCollectionInitializerElementAddMethod(
                             element.Syntax,
-                            ImmutableArray.Create(keyValuePairExpression),
+                            [keyValuePairExpression],
                             hasEnumerableInitializerType: true,
                             collectionInitializerAddMethodBinder,
                             _diagnostics,
@@ -1275,7 +1294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         builder.Add(_binder.BindCollectionInitializerElementAddMethod(
                             element.Syntax,
-                            ImmutableArray.Create((BoundExpression)element),
+                            [(BoundExpression)element],
                             hasEnumerableInitializerType: true,
                             collectionInitializerAddMethodBinder,
                             _diagnostics,
@@ -1284,10 +1303,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return CreateCollectionExpression(
-                    CollectionExpressionTypeKind.ImplementsIEnumerable,
+                    collectionTypeKind,
                     builder.ToImmutableAndFree(),
                     implicitReceiver,
-                    collectionCreation);
+                    collectionCreation,
+                    indexerSetMethod: setMethod);
 
                 static BoundExpression createKeyValuePairExpression(
                     Binder binder,
@@ -2666,6 +2686,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionCreation,
                 collectionBuilderMethod: null,
                 collectionBuilderElementsPlaceholder: null,
+                indexerSetMethod: null,
                 wasTargetTyped: inConversion,
                 // Regardless of whether there was a 'with' element, we are in an error recovery scenario, and we've
                 // converted the args into a BadExpression in collectionCreate.  So treat this as not having a 'with'

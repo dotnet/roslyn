@@ -196,8 +196,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Conversion.NoConversion;
                 }
 
-                if (elements.Length > 0 &&
-                    !_binder.HasCollectionExpressionApplicableAddMethod(syntax, targetType, addMethods: out _, BindingDiagnosticBag.Discarded))
+                if (_binder.GetCollectionExpressionApplicableIndexer(syntax, targetType, elementTypeWithAnnotations.Type, BindingDiagnosticBag.Discarded) is { })
+                {
+                    collectionTypeKind = CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer;
+                }
+                else if (elements.Length > 0 &&
+                         !_binder.HasCollectionExpressionApplicableAddMethod(syntax, targetType, addMethods: out _, BindingDiagnosticBag.Discarded))
                 {
                     return Conversion.NoConversion;
                 }
@@ -273,8 +277,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return elementConversion;
                         }
                         else if (expressionElement.Type is { } &&
-                            elementKeyValueTypes is (var keyType, var valueType) &&
-                            IsKeyValuePairType(Compilation, expressionElement.Type, out var elementKeyType, out var elementValueType))
+                                 elementKeyValueTypes is (var keyType, var valueType) &&
+                                 IsKeyValuePairType(Compilation, expressionElement.Type, out var elementKeyType, out var elementValueType))
                         {
                             var keyConversion = ClassifyImplicitConversionFromType(elementKeyType, keyType, ref useSiteInfo);
                             var valueConversion = ClassifyImplicitConversionFromType(elementValueType, valueType, ref useSiteInfo);

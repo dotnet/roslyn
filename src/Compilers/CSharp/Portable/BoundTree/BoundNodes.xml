@@ -1966,6 +1966,8 @@
          and will naturally be visited during all binding phases.  It is just the packaging and movement into the final
          arg that the lowering phase concerns itself with. -->
     <Field Name="CollectionBuilderElementsPlaceholder" Type="BoundCollectionBuilderElementsPlaceholder?" Null="allow" SkipInVisitor="true"/>
+    <!-- Indexer setter, if any. -->
+    <Field Name="IndexerSetMethod" Type="MethodSymbol?" Null="allow"/>
     <Field Name="WasTargetTyped" Type="bool" />
     <Field Name="HasWithElement" Type="bool" />
     <Field Name="UnconvertedCollectionExpression" Type="BoundUnconvertedCollectionExpression" Null="disallow" SkipInVisitor="true"/>
