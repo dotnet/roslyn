@@ -637,8 +637,8 @@ locations where squiggles should appear.
 Context-sensitive suggestions within embedded language strings.
 
 **Trigger scenarios**:
-- Inside Regex:
-- Inside Date/Time format strings:
+- Inside Regex: <img width="1317" height="644" alt="Image" src="https://github.com/user-attachments/assets/6e7ed126-e100-4508-a226-f8c940b7000b" />
+- Inside Date/Time format strings: <img width="929" height="628" alt="Image" src="https://github.com/user-attachments/assets/c486d2e2-01b8-49fa-a352-50a8cfb65d30" />
 
 **VirtualChar role**: Precise replacement span calculation from character positions
 
