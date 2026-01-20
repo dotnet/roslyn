@@ -638,7 +638,7 @@ Context-sensitive suggestions within embedded language strings.
 
 **Trigger scenarios**:
 - Inside Regex: <img src="https://github.com/user-attachments/assets/6e7ed126-e100-4508-a226-f8c940b7000b" />
-- Inside Date/Time format strings: <img src="https://github.com/user-attachments/assets/c486d2e2-01b8-49fa-a352-50a8cfb65d30" />
+- Inside Date/Time format strings: <img src="https://github.com/user-attachments/assets/d4cf8751-6f9f-4c70-827d-d1d09dcc3ea4" />
 
 **VirtualChar role**: Precise replacement span calculation from character positions
 
