@@ -13,6 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.UnitTests;
 
+[UseExportProvider]
 public class HotReloadMSBuildWorkspaceTests
 {
     private static HotReloadMSBuildWorkspace CreateWorkspace()
