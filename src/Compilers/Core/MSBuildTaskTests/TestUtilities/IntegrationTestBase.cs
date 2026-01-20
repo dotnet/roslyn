@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -124,9 +125,14 @@ public abstract class IntegrationTestBase : TestBase
             additionalEnvironmentVars);
     }
 
-    private static async Task ShutdownCompilerServerAsync(ProcessResult result)
+    /// <param name="sharedCompilationId">
+    /// Using custom shared compilation ID ensures tests don't interfere with each other
+    /// (when run in parallel or when another test fails and leaves the server open).
+    /// </param>
+    private static async Task ShutdownCompilerServerAsync(ProcessResult result, string sharedCompilationId)
     {
         var pipeName = Regex.Match(result.Output, @"Named pipe '([^']+)' connected").Groups[1].Value;
+        AssertEx.Equal(sharedCompilationId, pipeName);
         using var logger = new CompilerServerLogger("test");
         await BuildServerConnection.RunServerShutdownRequestAsync(
             pipeName,
@@ -157,12 +163,13 @@ public abstract class IntegrationTestBase : TestBase
             File.Move(originalAppHost, backupAppHost);
         }
 
+        var sharedCompilationId = Guid.NewGuid().ToString();
         ProcessResult? result;
 
         try
         {
             result = RunMsbuild(
-                "/v:n /m /nr:false /t:Build /restore Test.csproj" +
+                $"/v:n /m /nr:false /t:Build /restore Test.csproj /p:SharedCompilationId={sharedCompilationId}" +
                     (overrideToolExe ? $" /p:CscToolExe=csc{PlatformInformation.ExeExtension}" : ""),
                 _tempDirectory,
                 new Dictionary<string, string>
@@ -195,7 +202,7 @@ public abstract class IntegrationTestBase : TestBase
 
         if (useSharedCompilation)
         {
-            await ShutdownCompilerServerAsync(result);
+            await ShutdownCompilerServerAsync(result, sharedCompilationId);
         }
 
         Assert.Equal(0, result.ExitCode);
@@ -234,12 +241,13 @@ public abstract class IntegrationTestBase : TestBase
             File.Move(originalAppHost, backupAppHost);
         }
 
+        var sharedCompilationId = Guid.NewGuid().ToString();
         ProcessResult? result;
 
         try
         {
             result = RunMsbuild(
-                "/v:n /m /nr:false /t:Build /restore Test.vbproj" +
+                $"/v:n /m /nr:false /t:Build /restore Test.vbproj /p:SharedCompilationId={sharedCompilationId}" +
                     (overrideToolExe ? $" /p:VbcToolExe=vbc{PlatformInformation.ExeExtension}" : ""),
                 _tempDirectory,
                 new Dictionary<string, string>
@@ -276,7 +284,7 @@ public abstract class IntegrationTestBase : TestBase
 
         if (useSharedCompilation)
         {
-            await ShutdownCompilerServerAsync(result);
+            await ShutdownCompilerServerAsync(result, sharedCompilationId);
         }
 
         Assert.Equal(0, result.ExitCode);
@@ -300,6 +308,7 @@ public abstract class IntegrationTestBase : TestBase
     {
         if (_msbuildExecutable == null) return;
 
+        var sharedCompilationId = Guid.NewGuid().ToString();
         var result = RunCommandLineCompiler(
             _msbuildExecutable,
             "/m /nr:false /t:CustomTarget Test.csproj",
@@ -314,7 +323,7 @@ public abstract class IntegrationTestBase : TestBase
                     <Project>
                         <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc" AssemblyFile="{_buildTaskDll}" />
                         <Target Name="CustomTarget">
-                            <Csc Sources="File.cs" UseSharedCompilation="{useSharedCompilation}" DisableSdkPath="{disableSdkPath}" NoConfig="{noConfig}" />
+                            <Csc Sources="File.cs" UseSharedCompilation="{useSharedCompilation}" SharedCompilationId="{sharedCompilationId}" DisableSdkPath="{disableSdkPath}" NoConfig="{noConfig}" />
                         </Target>
                     </Project>
                     """ },
@@ -323,7 +332,7 @@ public abstract class IntegrationTestBase : TestBase
 
         if (useSharedCompilation)
         {
-            await ShutdownCompilerServerAsync(result);
+            await ShutdownCompilerServerAsync(result, sharedCompilationId);
         }
 
         if (disableSdkPath || noConfig)
@@ -358,6 +367,7 @@ public abstract class IntegrationTestBase : TestBase
     {
         if (_msbuildExecutable == null) return;
 
+        var sharedCompilationId = Guid.NewGuid().ToString();
         var result = RunCommandLineCompiler(
             _msbuildExecutable,
             "/m /nr:false /t:CustomTarget Test.vbproj",
@@ -375,7 +385,7 @@ public abstract class IntegrationTestBase : TestBase
                     <Project>
                         <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Vbc" AssemblyFile="{_buildTaskDll}" />
                         <Target Name="CustomTarget">
-                            <Vbc Sources="File.vb" UseSharedCompilation="{useSharedCompilation}" DisableSdkPath="{disableSdkPath}" NoConfig="{noConfig}" />
+                            <Vbc Sources="File.vb" UseSharedCompilation="{useSharedCompilation}" SharedCompilationId="{sharedCompilationId}" DisableSdkPath="{disableSdkPath}" NoConfig="{noConfig}" />
                         </Target>
                     </Project>
                     """ },
@@ -384,7 +394,7 @@ public abstract class IntegrationTestBase : TestBase
 
         if (useSharedCompilation)
         {
-            await ShutdownCompilerServerAsync(result);
+            await ShutdownCompilerServerAsync(result, sharedCompilationId);
         }
 
         if (disableSdkPath || noConfig)
@@ -419,6 +429,7 @@ public abstract class IntegrationTestBase : TestBase
     {
         if (_msbuildExecutable == null) return;
 
+        var sharedCompilationId = Guid.NewGuid().ToString();
         var result = RunCommandLineCompiler(
             _msbuildExecutable,
             "/m /nr:false /t:CustomTarget Test.csproj",
@@ -435,7 +446,7 @@ public abstract class IntegrationTestBase : TestBase
                     <Project>
                         <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc" AssemblyFile="{_buildTaskDll}" />
                         <Target Name="CustomTarget">
-                            <Csc Sources="File.cs" UseSharedCompilation="{useSharedCompilation}" ResponseFiles="{(includeCustomRsp ? "custom.rsp" : "")}" NoConfig="{noConfig}" />
+                            <Csc Sources="File.cs" UseSharedCompilation="{useSharedCompilation}" SharedCompilationId="{sharedCompilationId}" ResponseFiles="{(includeCustomRsp ? "custom.rsp" : "")}" NoConfig="{noConfig}" />
                         </Target>
                     </Project>
                     """ },
@@ -444,7 +455,7 @@ public abstract class IntegrationTestBase : TestBase
 
         if (useSharedCompilation)
         {
-            await ShutdownCompilerServerAsync(result);
+            await ShutdownCompilerServerAsync(result, sharedCompilationId);
         }
 
         Assert.Equal(!includeCustomRsp && !noConfig, 0 == result.ExitCode);
@@ -468,6 +479,7 @@ public abstract class IntegrationTestBase : TestBase
     {
         if (_msbuildExecutable == null) return;
 
+        var sharedCompilationId = Guid.NewGuid().ToString();
         var result = RunCommandLineCompiler(
             _msbuildExecutable,
             "/m /nr:false /t:CustomTarget Test.vbproj",
@@ -488,7 +500,7 @@ public abstract class IntegrationTestBase : TestBase
                     <Project>
                         <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Vbc" AssemblyFile="{_buildTaskDll}" />
                         <Target Name="CustomTarget">
-                            <Vbc Sources="File.vb" UseSharedCompilation="{useSharedCompilation}" ResponseFiles="{(includeCustomRsp ? "custom.rsp" : "")}" NoConfig="{noConfig}" />
+                            <Vbc Sources="File.vb" UseSharedCompilation="{useSharedCompilation}" SharedCompilationId="{sharedCompilationId}" ResponseFiles="{(includeCustomRsp ? "custom.rsp" : "")}" NoConfig="{noConfig}" />
                         </Target>
                     </Project>
                     """ },
@@ -497,7 +509,7 @@ public abstract class IntegrationTestBase : TestBase
 
         if (useSharedCompilation)
         {
-            await ShutdownCompilerServerAsync(result);
+            await ShutdownCompilerServerAsync(result, sharedCompilationId);
         }
 
         Assert.Equal(!includeCustomRsp && !noConfig, 0 == result.ExitCode);
