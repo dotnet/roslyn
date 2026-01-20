@@ -66,8 +66,8 @@ internal abstract class AbstractSolutionExplorerSymbolTreeItemProvider<
     protected abstract SyntaxList<TMemberDeclarationSyntax> GetMembers(TNamespaceDeclarationSyntax baseNamespace);
     protected abstract SyntaxList<TMemberDeclarationSyntax> GetMembers(TTypeDeclarationSyntax typeDeclaration);
 
-    protected abstract bool TryAddNamespace(DocumentId documentId, TMemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder);
     protected abstract bool TryAddType(DocumentId documentId, TMemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder);
+    protected abstract void AddNamespace(DocumentId documentId, TNamespaceDeclarationSyntax namespaceMember, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder);
     protected abstract void AddMemberDeclaration(DocumentId documentId, TMemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder);
     protected abstract void AddEnumDeclarationMembers(DocumentId documentId, TEnumDeclarationSyntax enumDeclaration, ArrayBuilder<SymbolTreeItemData> items, CancellationToken cancellationToken);
 
@@ -115,10 +115,14 @@ internal abstract class AbstractSolutionExplorerSymbolTreeItemProvider<
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (returnNamespaces && TryAddNamespace(documentId, member, items, nameBuilder))
-                    continue;
-
-                TryAddType(documentId, member, items, nameBuilder);
+                if (returnNamespaces && member is TNamespaceDeclarationSyntax namespaceMember)
+                {
+                    AddNamespace(documentId, namespaceMember, items, nameBuilder);
+                }
+                else
+                {
+                    TryAddType(documentId, member, items, nameBuilder);
+                }
             }
         }
 
@@ -171,10 +175,10 @@ internal abstract class AbstractSolutionExplorerSymbolTreeItemProvider<
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (returnNamespaces)
+            if (returnNamespaces && member is TNamespaceDeclarationSyntax namespaceMember)
             {
-                if (TryAddNamespace(documentId, member, items, nameBuilder))
-                    return;
+                AddNamespace(documentId, namespaceMember, items, nameBuilder);
+                return;
             }
             else if (member is TNamespaceDeclarationSyntax baseNamespace)
             {

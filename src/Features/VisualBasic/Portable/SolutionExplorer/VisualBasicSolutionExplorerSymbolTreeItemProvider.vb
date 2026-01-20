@@ -41,12 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SolutionExplorer
             Return typeDeclaration.Members
         End Function
 
-        Protected Overrides Function TryAddNamespace(documentId As DocumentId, member As StatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder) As Boolean
-            Dim namespaceBlock = TryCast(member, NamespaceBlockSyntax)
-            If namespaceBlock Is Nothing Then
-                Return False
-            End If
-
+        Protected Overrides Sub AddNamespace(documentId As DocumentId, namespaceBlock As NamespaceBlockSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder)
             Dim name = namespaceBlock.NamespaceStatement.Name
             nameBuilder.Append(name.ToString())
 
@@ -57,9 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SolutionExplorer
                 hasItems:=namespaceBlock.Members.Count > 0,
                 namespaceBlock,
                 name.GetFirstToken()))
-
-            Return True
-        End Function
+        End Sub
 
         Protected Overrides Function TryAddType(documentId As DocumentId, member As StatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder) As Boolean
             Dim typeBlock = TryCast(member, TypeBlockSyntax)

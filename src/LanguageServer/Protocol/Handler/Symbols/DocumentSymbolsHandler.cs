@@ -54,6 +54,7 @@ internal sealed class DocumentSymbolsHandler() : ILspServiceDocumentRequestHandl
         }
         else
         {
+            // The client does not support hierarchical symbols (for example, VS LiveShare navbar), so fall back to the navbar provider which provides a flatter list of symbols.
             var navBarService = document.Project.Services.GetRequiredService<INavigationBarItemService>();
             var navBarItems = await navBarService.GetItemsAsync(document, supportsCodeGeneration: false, frozenPartialSemantics: false, cancellationToken).ConfigureAwait(false);
             if (navBarItems.IsEmpty)
