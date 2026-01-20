@@ -360,7 +360,7 @@ On deserialization:
 - For in-memory text: OOP reconstructs the `SourceText` from serialized characters
 
 The `SerializableSourceText` maintains a weak reference to any computed text, enabling multiple requests for the same
-document to share the same `SourceText` instance while it remains reachable.
+text to share the same `SourceText` instance while it remains reachable.
 
 ## Optimization Strategies
 
