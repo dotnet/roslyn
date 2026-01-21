@@ -21,7 +21,7 @@
       </Group>
       
       <Group guid="guidRoslynGrpId" id="grpSolutionExplorerSymbolItemContextMenu" priority="0x000">
-        <Parent guid="guidRoslynGrpId" id="cmdidSolutionExplorerSymbolItemContextMenu"/>
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_PROJWIN_FILECONTENTS"/>
       </Group>
 
       <Group guid="guidRoslynGrpId" id="grpErrorListContextMenu" priority="0x0A01">
@@ -651,13 +651,6 @@
         </Strings>
       </Menu>
 
-      <Menu guid="guidRoslynGrpId" id="cmdidSolutionExplorerSymbolItemContextMenu" type="Context">
-        <Strings>
-          <MenuText>Solution Explorer Symbol Tree</MenuText>
-          <ButtonText>Solution Explorer Symbol Tree</ButtonText>
-        </Strings>
-      </Menu>
-
       <!-- Document Outline toolbar -->
       <Menu guid="guidRoslynGrpId" id="cmdidDocumentOutlineToolbar" type="Toolbar">
         <CommandFlag>NotInTBList</CommandFlag>
@@ -824,10 +817,9 @@
       <IDSymbol name="cmdidDocumentOutlineToolbarGroup" value="0x350" />
 
       <IDSymbol name="grpSolutionExplorerSymbolItemContextMenu"           value="0x0400" />
-      <IDSymbol name="cmdidSolutionExplorerSymbolItemContextMenu"         value="0x0401" />
-      <IDSymbol name="cmdidSolutionExplorerSymbolItemGoToBase"            value="0x0402" />
-      <IDSymbol name="cmdidSolutionExplorerSymbolItemGoToImplementation"  value="0x0403" />
-      <IDSymbol name="cmdidSolutionExplorerSymbolItemFindAllReferences"   value="0x0404" />
+      <IDSymbol name="cmdidSolutionExplorerSymbolItemGoToBase"            value="0x0401" />
+      <IDSymbol name="cmdidSolutionExplorerSymbolItemGoToImplementation"  value="0x0402" />
+      <IDSymbol name="cmdidSolutionExplorerSymbolItemFindAllReferences"   value="0x0403" />
     </GuidSymbol>
 
     <GuidSymbol name="guidCSharpInteractiveCommandSet" value="{1492db0a-85a2-4e43-bf0d-ce55b89a8cc6}">
