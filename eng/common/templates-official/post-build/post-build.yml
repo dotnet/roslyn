@@ -268,6 +268,7 @@ stages:
       - task: UseDotNet@2
         inputs:
           version: 8.0.x
+          installationPath: $(Build.SourcesDirectory)/.dotnet
 
       - task: AzureCLI@2
         displayName: Publish Using Darc
@@ -282,3 +283,4 @@ stages:
             -WaitPublishingFinish true
             -ArtifactsPublishingAdditionalParameters '${{ parameters.artifactsPublishingAdditionalParameters }}'
             -SymbolPublishingAdditionalParameters '${{ parameters.symbolPublishingAdditionalParameters }}'
+          workingDirectory: $(Build.SourcesDirectory)/eng/common/post-build/
