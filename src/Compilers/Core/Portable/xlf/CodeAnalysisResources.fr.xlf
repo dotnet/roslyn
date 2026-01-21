@@ -301,7 +301,7 @@
       <trans-unit id="Assembly">
         <source>assembly</source>
         <target state="needs-review-translation">assembly</target>
-        <note>Refers to a compiled assembly in programming (noun)</note>
+        <note />
       </trans-unit>
       <trans-unit id="Class1">
         <source>class</source>
@@ -311,7 +311,7 @@
       <trans-unit id="Constructor">
         <source>constructor</source>
         <target state="needs-review-translation">constructeur</target>
-        <note>Refers to a type constructor in programming (noun)</note>
+        <note />
       </trans-unit>
       <trans-unit id="Delegate1">
         <source>delegate</source>
@@ -331,12 +331,12 @@
       <trans-unit id="Field">
         <source>field</source>
         <target state="needs-review-translation">Champ</target>
-        <note>Refers to a field member in programming (noun)</note>
+        <note />
       </trans-unit>
       <trans-unit id="TypeParameter">
         <source>type parameter</source>
         <target state="needs-review-translation">paramètre de type</target>
-        <note>Refers to a generic type parameter in programming (noun)</note>
+        <note />
       </trans-unit>
       <trans-unit id="Interface1">
         <source>interface</source>
@@ -346,22 +346,22 @@
       <trans-unit id="Method">
         <source>method</source>
         <target state="needs-review-translation">méthode</target>
-        <note>Refers to a method/function in programming (noun)</note>
+        <note />
       </trans-unit>
       <trans-unit id="Module">
         <source>module</source>
         <target state="needs-review-translation">module</target>
-        <note>Refers to a code module in programming (noun)</note>
+        <note />
       </trans-unit>
       <trans-unit id="Parameter">
         <source>parameter</source>
         <target state="needs-review-translation">paramètre</target>
-        <note>Refers to a method parameter in programming (noun)</note>
+        <note />
       </trans-unit>
       <trans-unit id="Property">
         <source>property, indexer</source>
         <target state="needs-review-translation">propriété, indexeur</target>
-        <note>Refers to a property or indexer member in programming (noun)</note>
+        <note />
       </trans-unit>
       <trans-unit id="Return1">
         <source>return</source>
