@@ -1041,9 +1041,14 @@ internal sealed class EditSession
     /// <summary>
     /// Reason for document staleness.
     /// </summary>
-    /// <param name="StaleProject">One of the projects that the changed document included in or linked to.</param>
-    /// <param name="StaleDocumentPath">Path of one of the stale documents that caused the project to be stale, or null if the project is stale because it hasn't been built.</param>
-    private readonly record struct DocumentStalenessReason(Project StaleProject, string? StaleDocumentPath);
+    private readonly struct DocumentStalenessReason(Project staleProject, string? staleDocumentPath)
+    {
+        /// <summary>One of the projects that the changed document included in or linked to.</summary>
+        public Project StaleProject { get; } = staleProject;
+
+        /// <summary>Path of one of the stale documents that caused the project to be stale, or null if the project is stale because it hasn't been built.</summary>
+        public string? StaleDocumentPath { get; } = staleDocumentPath;
+    }
 
     public async ValueTask<SolutionUpdate> EmitSolutionUpdateAsync(
         Solution solution,
@@ -1159,7 +1164,7 @@ internal sealed class EditSession
                         }
 
                         // Track changed documents that are only included in stale or unbuilt projects:
-                        UpdateChangedDocumentsStaleness(new(newProject, StaleDocumentPath: null));
+                        UpdateChangedDocumentsStaleness(new(newProject, staleDocumentPath: null));
                         continue;
                     }
 

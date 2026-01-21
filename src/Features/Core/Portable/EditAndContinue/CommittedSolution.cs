@@ -21,18 +21,6 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 /// <summary>
-/// Stale project details.
-/// </summary>
-/// <param name="Mvid">Module ID of the built output binary.</param>
-/// <param name="StaleDocumentPath">
-/// Path of one of the stale documents that caused the project staleness.
-/// 
-/// Use path instead of <see cref="DocumentId"/> so that a diagnostic describing the reason of the staleness can be reported 
-/// even if the document is removed from the project.
-/// </param>
-internal readonly record struct StaleProjectInfo(Guid Mvid, string StaleDocumentPath);
-
-/// <summary>
 /// Encapsulates access to the last committed solution.
 /// We don't want to expose the solution directly since access to documents must be gated by out-of-sync checks.
 /// </summary>
