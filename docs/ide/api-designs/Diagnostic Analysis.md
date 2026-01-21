@@ -57,6 +57,23 @@ Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
     Project project, ...);
 ```
 
+**Method Selection Guide:**
+
+- **`GetDiagnosticsForSpanAsync`**: Use when you need diagnostics for a specific span or document. Returns only *local* 
+  diagnostics—those produced by analyzing the requested document in isolation. This is ideal for lightbulbs, error 
+  squiggles, and code fixes where you're working within a single document. Non-local diagnostics (reported at compilation 
+  end or from other files) are not included.
+
+- **`GetDiagnosticsForIdsAsync`**: Use when you need comprehensive document diagnostics for a project, including *non-local* 
+  diagnostics. Returns diagnostics from all documents, including those reported at compilation end or from different files. 
+  This is expensive as it requires running analyzers fully through compilation-end. Use this for error list population or 
+  when you need the complete diagnostic picture for one or more documents.
+
+- **`GetProjectDiagnosticsForIdsAsync`**: Use when you need only project-level diagnostics—diagnostics with no source 
+  location (not tied to any specific document). Does not return document diagnostics. Use this in conjunction with 
+  `GetDiagnosticsForIdsAsync` when you need both document and project diagnostics, or alone when only project diagnostics 
+  are required.
+
 These methods constitute the exclusive entry points features should utilize. Upon invocation:
 
 1. Attempts execution out-of-process (OOP) if a remote host is available
