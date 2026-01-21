@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis
                 // emulates not having the shadow copy layer
                 if (File.Exists(originalPath))
                 {
-                    File.Copy(originalPath, shadowCopyPath);
+                    File.Copy(originalPath, shadowCopyPath, overwrite: true);
                     ClearReadOnlyFlagOnFile(new FileInfo(shadowCopyPath));
                 }
             }

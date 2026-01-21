@@ -105,4 +105,24 @@ public sealed class ShadowCopyAnalyzerPathResolverTests : IDisposable
             return filePath;
         }
     }
+
+    [Fact]
+    public void GetRealPath_DestinationAlreadyExists_ShouldNotThrow()
+    {
+        var analyzerPath = TempRoot.CreateDirectory().CreateFile("analyzer.dll").Path;
+        File.WriteAllText(analyzerPath, "content");
+
+        var sharedBaseDir = TempRoot.CreateDirectory().Path;
+        var resolver = new ShadowCopyAnalyzerPathResolver(sharedBaseDir);
+
+        var expectedShadowDir = Path.Combine(resolver.ShadowDirectory, "1");
+        var expectedShadowPath = Path.Combine(expectedShadowDir, "analyzer.dll");
+        Directory.CreateDirectory(expectedShadowDir);
+        File.WriteAllText(expectedShadowPath, "stale");
+
+        var actualShadowPath = resolver.GetResolvedAnalyzerPath(analyzerPath);
+
+        Assert.True(File.Exists(actualShadowPath));
+        Assert.Equal("content", File.ReadAllText(actualShadowPath));
+    }
 }
