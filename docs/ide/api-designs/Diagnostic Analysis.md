@@ -79,16 +79,23 @@ The system distinguishes between two analyzer sources:
 - Installed as VS extensions (VSIX) or built into the IDE
 - Apply globally to all workspace projects
 - Loaded once per language and shared across projects
-- Utilize host analyzer options (IDE settings)
+- Utilize `.editorconfig` settings when available, falling back to IDE settings (Tools > Options) when no explicit
+  `.editorconfig` setting exists
+- Run exclusively in Visual Studio and may exhibit different behavior for different users when a codebase lacks
+  `.editorconfig` settings (since fallback IDE settings are per-user)
 
 #### Project Analyzers
 - Referenced via NuGet packages (`<PackageReference>`)
 - Scoped to individual projects
 - Each project may reference different analyzers or versions
-- Utilize project-specific analyzer options (`.editorconfig` settings without host fallback)
+- Utilize **exclusively** project-local `.editorconfig` settings without any fallback to IDE settings
+- Ensures identical behavior in Visual Studio and command-line builds, regardless of whether `.editorconfig` settings
+  are present (when absent, analyzers receive default values rather than user-specific IDE settings)
 
 This distinction enables isolation and versioning. Project analyzers from different projects must load simultaneously,
-even when representing different versions of the same assemblies.
+even when representing different versions of the same assemblies. The different option resolution strategies ensure
+project analyzers provide consistent, reproducible behavior across all build environments and users, while host
+analyzers can leverage user-specific IDE preferences for workspace-wide tooling.
 
 ### Analyzer Isolation and Assembly Load Contexts
 
@@ -465,9 +472,14 @@ return (
 ```
 
 **Rationale:**
-- Host analyzers utilize IDE-wide settings (Tools > Options, global `.editorconfig`)
-- Project analyzers utilize **exclusively** project-local `.editorconfig`, without host settings fallback
-- This ensures project analyzers exhibit identical behavior in the IDE and command-line builds
+- Host analyzers utilize `.editorconfig` settings when available, falling back to IDE-wide settings (Tools > Options)
+  when no explicit `.editorconfig` setting exists. This enables user-specific preferences for workspace-wide tooling
+  but may cause different behavior across users when `.editorconfig` settings are absent.
+- Project analyzers utilize **exclusively** project-local `.editorconfig` settings, without any fallback to IDE
+  settings. When no `.editorconfig` setting exists, analyzers receive default values rather than user-specific IDE
+  preferences.
+- This ensures project analyzers exhibit identical behavior in Visual Studio and command-line builds, providing
+  consistent, reproducible results across all build environments and users.
 
 ## Historical Context: The Solution Crawler
 
