@@ -236,5 +236,10 @@ namespace Analyzer.Utilities
         /// Boolean option whether to perform the analysis even if the assembly exposes its internals.
         /// </summary>
         public const string IgnoreInternalsVisibleTo = "ignore_internalsvisibleto";
+
+        /// <summary>
+        /// Boolean option to exclude generated code from analysis by the BannedApiAnalyzer.
+        /// </summary>
+        public const string ExcludeGeneratedCode = "exclude_generated_code";
     }
 }

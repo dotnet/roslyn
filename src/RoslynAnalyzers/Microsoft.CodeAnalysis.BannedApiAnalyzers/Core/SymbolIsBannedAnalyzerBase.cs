@@ -38,9 +38,23 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             context.EnableConcurrentExecution();
 
             // Analyzer needs to get callbacks for generated code, and might report diagnostics in generated code.
+            // However, this can be disabled via editorconfig option.
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
 
             context.RegisterCompilationStartAction(OnCompilationStart);
+        }
+
+        private static bool ShouldExcludeGeneratedCode(AnalyzerOptions options)
+        {
+            // Read the exclude_generated_code option from global editorconfig options
+            if (options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(
+                $"dotnet_diagnostic.{Analyzer.Utilities.EditorConfigOptionNames.ExcludeGeneratedCode}",
+                out var value))
+            {
+                return bool.TryParse(value, out var result) && result;
+            }
+
+            return false; // Default is to analyze generated code
         }
 
         private void OnCompilationStart(CompilationStartAnalysisContext compilationContext)
@@ -48,6 +62,9 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             var bannedApis = ReadBannedApis(compilationContext);
             if (bannedApis == null || bannedApis.Count == 0)
                 return;
+
+            // Check if we should exclude generated code
+            var excludeGeneratedCode = ShouldExcludeGeneratedCode(compilationContext.Options);
 
             if (ShouldAnalyzeAttributes())
             {
@@ -59,7 +76,13 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                     });
 
                 compilationContext.RegisterSymbolAction(
-                    context => VerifyAttributes(context.ReportDiagnostic, context.Symbol.GetAttributes(), context.CancellationToken),
+                    context =>
+                    {
+                        if (excludeGeneratedCode && context.IsGeneratedCode)
+                            return;
+
+                        VerifyAttributes(context.ReportDiagnostic, context.Symbol.GetAttributes(), context.CancellationToken);
+                    },
                     SymbolKind.NamedType,
                     SymbolKind.Method,
                     SymbolKind.Field,
@@ -70,6 +93,9 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             compilationContext.RegisterOperationAction(
                 context =>
                 {
+                    if (excludeGeneratedCode && context.IsGeneratedCode)
+                        return;
+
                     context.CancellationToken.ThrowIfCancellationRequested();
                     switch (context.Operation)
                     {
@@ -153,11 +179,23 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 OperationKind.TypeOf);
 
             compilationContext.RegisterSyntaxNodeAction(
-                context => VerifyDocumentationSyntax(context.ReportDiagnostic, GetReferenceSyntaxNodeFromXmlCref(context.Node), context),
+                context =>
+                {
+                    if (excludeGeneratedCode && context.IsGeneratedCode)
+                        return;
+
+                    VerifyDocumentationSyntax(context.ReportDiagnostic, GetReferenceSyntaxNodeFromXmlCref(context.Node), context);
+                },
                 XmlCrefSyntaxKind);
 
             compilationContext.RegisterSyntaxNodeAction(
-                context => VerifyBaseTypesSyntax(context.ReportDiagnostic, GetTypeSyntaxNodesFromBaseType(context.Node), context),
+                context =>
+                {
+                    if (excludeGeneratedCode && context.IsGeneratedCode)
+                        return;
+
+                    VerifyBaseTypesSyntax(context.ReportDiagnostic, GetTypeSyntaxNodesFromBaseType(context.Node), context);
+                },
                 BaseTypeSyntaxKinds);
 
             return;
