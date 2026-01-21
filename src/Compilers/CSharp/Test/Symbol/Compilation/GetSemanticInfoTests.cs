@@ -637,7 +637,8 @@ class C {
 
             Conversion conv = model.ClassifyConversion(expr1, info.ConvertedType);
             CheckIsAssignableTo(model, expr1);
-            Assert.Equal(impconv, conv);
+            Assert.Equal(impconv.Kind, conv.Kind);
+            Assert.Equal(impconv.Method, conv.Method);
             Assert.True(conv.IsImplicit);
             Assert.True(conv.IsUserDefined);
         }

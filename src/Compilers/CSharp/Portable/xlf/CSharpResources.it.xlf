@@ -69,12 +69,12 @@
       </trans-unit>
       <trans-unit id="ERR_AmbigExtension">
         <source>The extension resolution is ambiguous between the following members: '{0}' and '{1}'</source>
-        <target state="new">The extension resolution is ambiguous between the following members: '{0}' and '{1}'</target>
+        <target state="translated">La risoluzione dell'estensione è ambigua tra i membri seguenti: '{0}' e '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbigOperator">
         <source>Operator resolution is ambiguous between the following members: '{0}' and '{1}'</source>
-        <target state="new">Operator resolution is ambiguous between the following members: '{0}' and '{1}'</target>
+        <target state="translated">La risoluzione dell'operatore è ambigua tra i membri seguenti: '{0}' e '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver">
@@ -139,7 +139,7 @@
       </trans-unit>
       <trans-unit id="ERR_AttributeCannotBeAppliedManually">
         <source>'{0}' cannot be applied manually.</source>
-        <target state="new">'{0}' cannot be applied manually.</target>
+        <target state="translated">'{0}' non può essere applicato manualmente.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeNotOnEventAccessor">
@@ -232,9 +232,14 @@
         <target state="translated">Un braccio dell'espressione switch non inizia con una parola chiave 'case'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadCollectionArgumentsArgCount">
+        <source>No overload for method '{0}' takes {1} 'with(...)' element arguments</source>
+        <target state="new">No overload for method '{0}' takes {1} 'with(...)' element arguments</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadCompoundAssignmentOpArgs">
         <source>Overloaded compound assignment operator '{0}' takes one parameter</source>
-        <target state="new">Overloaded compound assignment operator '{0}' takes one parameter</target>
+        <target state="translated">L'operatore di assegnazione composta in overload '{0}' accetta un parametro</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
@@ -244,27 +249,27 @@
       </trans-unit>
       <trans-unit id="ERR_BadExtensionBinaryOperatorSignature">
         <source>One of the parameters of a binary operator must be the extended type.</source>
-        <target state="new">One of the parameters of a binary operator must be the extended type.</target>
+        <target state="translated">Uno dei parametri di un operatore binario deve essere il tipo esteso.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadExtensionContainingType">
         <source>Extensions must be declared in a top-level, non-generic, static class</source>
-        <target state="new">Extensions must be declared in a top-level, non-generic, static class</target>
+        <target state="translated">Le estensioni devono essere dichiarate in una classe statica di primo livello, non generica</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadExtensionIncDecSignature">
         <source>The parameter type for ++ or -- operator must be the extended type.</source>
-        <target state="new">The parameter type for ++ or -- operator must be the extended type.</target>
+        <target state="translated">Il tipo di parametro per l'operatore ++ o -- deve essere il tipo esteso.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadExtensionShiftOperatorSignature">
         <source>The first operand of an overloaded shift operator must have the same type as the extended type</source>
-        <target state="new">The first operand of an overloaded shift operator must have the same type as the extended type</target>
+        <target state="translated">Il primo operando di un operatore di spostamento sovraccaricato deve avere lo stesso tipo del tipo esteso</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadExtensionUnaryOperatorSignature">
         <source>The parameter of a unary operator must be the extended type.</source>
-        <target state="new">The parameter of a unary operator must be the extended type.</target>
+        <target state="translated">Il parametro di un operatore unario deve essere il tipo esteso.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFieldTypeInRecord">
@@ -344,7 +349,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadSpreadInCatchFilter">
         <source>Cannot use '..' spread operator in the filter expression of a catch clause</source>
-        <target state="new">Cannot use '..' spread operator in the filter expression of a catch clause</target>
+        <target state="translated">Non è possibile usare l'operatore spread '..' nell'espressione filtro di una clausola catch</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadStaticAfterUnsafe">
@@ -369,7 +374,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadVisBaseType">
         <source>Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </source>
-        <target state="new">Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </target>
+        <target state="translated">Accessibilità incoerente: il tipo '{1}' è meno accessibile della classe '{0}' </target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadYieldInUnsafe">
@@ -424,7 +429,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotMatchOnINumberBase">
         <source>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.</source>
-        <target state="needs-review-translation">Non è possibile usare una costante numerica o un modello relazionale su '{0}' perché eredita da o estende 'INumberBase&lt;T&gt;'. Provare a usare un modello di tipo per limitare a un tipo numerico specifico.</target>
+        <target state="translated">Non è possibile usare una costante numerica o un modello relazionale su '{0}' perché eredita da o estende 'INumberBase&lt;T&gt;'. Provare a usare un modello di tipo per limitare a un tipo numerico specifico.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -499,12 +504,32 @@
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberOperatorMismatch">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because one of them is not an operator.</source>
-        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because one of them is not an operator.</target>
+        <target state="translated">'{0}' non implementa il membro di interfaccia '{1}'. '{2}' non può implementare '{1}' perché uno dei due non è un operatore.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongInitOnly">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}'.</source>
         <target state="translated">'{0}' non implementa il membro di interfaccia '{1}'. '{2}' non può implementare '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsDynamicBinding">
+        <source>'with(...)' element arguments cannot be dynamic</source>
+        <target state="new">'with(...)' element arguments cannot be dynamic</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsMustBeEmpty">
+        <source>'with(...)' element for a read-only interface must be empty if present</source>
+        <target state="new">'with(...)' element for a read-only interface must be empty if present</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsMustBeFirst">
+        <source>'with(...)' element must be the first element</source>
+        <target state="new">'with(...)' element must be the first element</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsNotSupportedForType">
+        <source>'with(...)' elements are not supported for type '{0}'</source>
+        <target state="new">'with(...)' elements are not supported for type '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeInvalidMethodName">
@@ -518,8 +543,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeMethodNotFound">
-        <source>Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
-        <target state="translated">Non è stato possibile trovare un metodo accessibile '{0}' con la firma prevista: un metodo statico con un singolo parametro di tipo 'ReadOnlySpan&lt;{1}&gt;' e di tipo restituito '{2}'.</target>
+        <source>Could not find an accessible '{0}' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
+        <target state="needs-review-translation">Non è stato possibile trovare un metodo accessibile '{0}' con la firma prevista: un metodo statico con un singolo parametro di tipo 'ReadOnlySpan&lt;{1}&gt;' e di tipo restituito '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderNoElementType">
@@ -567,9 +592,14 @@
         <target state="translated">L'inizializzatore di raccolta genera una catena infinita di creazioni di istanze della raccolta '{0}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionRefLikeElementType">
+        <source>Element type of this collection may not be a ref struct or a type parameter allowing ref structs</source>
+        <target state="new">Element type of this collection may not be a ref struct or a type parameter allowing ref structs</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CompilationUnitUnexpected">
         <source>A compilation unit cannot directly contain members such as fields, methods or properties</source>
-        <target state="new">A compilation unit cannot directly contain members such as fields, methods or properties</target>
+        <target state="translated">Un'unità di compilazione non può contenere direttamente membri come campi, metodi o proprietà</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -604,7 +634,7 @@
       </trans-unit>
       <trans-unit id="ERR_DataSectionStringLiteralHashCollision">
         <source>Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</source>
-        <target state="new">Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</target>
+        <target state="translated">Non è possibile inserire questo valore letterale stringa nella sezione dati perché presenta una collisione di tipo XXHash128 con un altro valore letterale stringa: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
@@ -639,7 +669,7 @@
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeforePropertyPattern">
         <source>A variable designator must come after a property pattern.</source>
-        <target state="new">A variable designator must come after a property pattern.</target>
+        <target state="translated">Un indicatore di variabile deve seguire un modello di proprietà.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
@@ -714,7 +744,7 @@
       </trans-unit>
       <trans-unit id="ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime">
         <source>Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</source>
-        <target state="new">Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</target>
+        <target state="translated">L'aggiornamento richiede l'implementazione esplicita dell'interfaccia, operazione non supportata dal runtime senza il riavvio dell'applicazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
@@ -729,7 +759,7 @@
       </trans-unit>
       <trans-unit id="ERR_EqualityOperatorInPatternNotSupported">
         <source>The '==' operator is not supported in a pattern.</source>
-        <target state="new">The '==' operator is not supported in a pattern.</target>
+        <target state="translated">L'operatore '==' non è supportato in un modello.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeVariable">
@@ -749,12 +779,12 @@
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceMemberReturnTypeMismatch">
         <source>'{0}': return type must be '{1}' to match implemented member '{2}'</source>
-        <target state="new">'{0}': return type must be '{1}' to match implemented member '{2}'</target>
+        <target state="translated">'{0}': il tipo restituito deve essere '{1}' per corrispondere al membro implementato '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceMemberTypeMismatch">
         <source>'{0}': type must be '{1}' to match implemented member '{2}'</source>
-        <target state="new">'{0}': type must be '{1}' to match implemented member '{2}'</target>
+        <target state="translated">'{0}': il tipo deve essere '{1}' per corrispondere al membro implementato '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
@@ -809,12 +839,12 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionBasedConditionalLogicalOperator">
         <source>An expression tree may not contain '&amp;&amp;' or '||' operators that use extension user defined operators.</source>
-        <target state="new">An expression tree may not contain '&amp;&amp;' or '||' operators that use extension user defined operators.</target>
+        <target state="translated">Un albero delle espressioni non può contenere operatori '&amp;&amp;' o '||' che usano operatori di estensione definiti dall'utente.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
         <source>An expression tree may not contain an extension property access</source>
-        <target state="new">An expression tree may not contain an extension property access</target>
+        <target state="translated">Un albero delle espressioni non può contenere l'accesso alla proprietà di un'estensione</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -834,7 +864,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsNamedArgumentOutOfPosition">
         <source>An expression tree may not contain a named argument specification out of position</source>
-        <target state="new">An expression tree may not contain a named argument specification out of position</target>
+        <target state="translated">L'albero delle espressioni non può contenere una specifica di argomento fuori posizione</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsPatternImplicitIndexer">
@@ -864,37 +894,37 @@
       </trans-unit>
       <trans-unit id="ERR_ExtensionBlockCollision">
         <source>This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</source>
-        <target state="new">This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</target>
+        <target state="translated">Questo blocco di estensione entra in conflitto con un altro blocco di estensione. Ne risultano nomi di tipo basati sul contenuto in conflitto nei metadati, che devono trovarsi quindi in classi statiche di inclusione separate.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsMember">
         <source>This member is not allowed in an extension block</source>
-        <target state="new">This member is not allowed in an extension block</target>
+        <target state="translated">Questo membro non è consentito in un blocco di estensione</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsName">
         <source>Extension declarations may not have a name.</source>
-        <target state="new">Extension declarations may not have a name.</target>
+        <target state="translated">Le dichiarazioni di estensione non possono avere un nome.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionParameterDisallowsDefaultValue">
         <source>The receiver parameter of an extension cannot have a default value</source>
-        <target state="new">The receiver parameter of an extension cannot have a default value</target>
+        <target state="translated">Il parametro ricevitore di un'estensione non può avere un valore predefinito</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionParameterInStaticContext">
         <source>Static members cannot access the value of extension parameter '{0}'.</source>
-        <target state="new">Static members cannot access the value of extension parameter '{0}'.</target>
+        <target state="translated">I membri statici non possono accedere al valore del parametro di estensione '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionResolutionFailed">
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension member '{1}' for receiver of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
-        <target state="new">'{0}' does not contain a definition for '{1}' and no accessible extension member '{1}' for receiver of type '{0}' could be found (are you missing a using directive or an assembly reference?)</target>
+        <target state="translated">'{0}' non contiene una definizione di '{1}' e non è stato trovato alcun membro di estensione accessibile '{1}' per il ricevitore di tipo '{0}'. Probabilmente manca una direttiva using o un riferimento all'assembly.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionTypeNameDisallowed">
         <source>Types and aliases cannot be named 'extension'.</source>
-        <target state="new">Types and aliases cannot be named 'extension'.</target>
+        <target state="translated">I tipi e gli alias non possono essere denominati 'estensione'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
@@ -934,7 +964,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion14">
         <source>Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</source>
-        <target state="new">Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</target>
+        <target state="translated">La funzionalità '{0}' non è disponibile in C# 14.0. Usare la versione del linguaggio {1} o successiva.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -1119,12 +1149,12 @@
       </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedParamsParameter">
         <source>Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</source>
-        <target state="new">Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</target>
+        <target state="translated">Il parametro lambda tipizzato in modo implicito '{0}' non può avere il modificatore 'params'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedVariableUsedInForbiddenZone">
         <source>Reference to an implicitly-typed variable '{0}' is not permitted in this location.</source>
-        <target state="new">Reference to an implicitly-typed variable '{0}' is not permitted in this location.</target>
+        <target state="translated">Il riferimento a una variabile tipizzata in modo implicito '{0}' non è consentito in questa posizione.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -1134,12 +1164,12 @@
       </trans-unit>
       <trans-unit id="ERR_InExtensionParameterMustBeValueType">
         <source>The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</source>
-        <target state="new">The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</target>
+        <target state="translated">Il parametro ricevitore 'in' o 'ref readonly' di un'estensione deve essere un tipo valore concreto (non generico).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InequalityOperatorInPatternNotSupported">
         <source>The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.</source>
-        <target state="new">The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.</target>
+        <target state="translated">L'operatore '!=' non è supportato in un modello. Usare 'not' per rappresentare un modello negato.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
@@ -1154,7 +1184,7 @@
       </trans-unit>
       <trans-unit id="ERR_InitInExtension">
         <source>'{0}': cannot declare init-only accessors in an extension block</source>
-        <target state="new">'{0}': cannot declare init-only accessors in an extension block</target>
+        <target state="translated">'{0}': non è possibile dichiarare funzioni di accesso di sola inizializzazione in un blocco di estensione</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InlineArrayAttributeOnRecord">
@@ -1194,17 +1224,17 @@
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberWithUnnamedExtensionsParameter">
         <source>'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</source>
-        <target state="new">'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</target>
+        <target state="translated">'{0}': non è possibile dichiarare i membri di istanza in un blocco di estensione con un parametro ricevitore senza nome</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceOperatorExtensionWrongReceiverType">
         <source>Cannot declare instance extension operator for a type that is not known to be a struct and is not known to be a class</source>
-        <target state="new">Cannot declare instance extension operator for a type that is not known to be a struct and is not known to be a class</target>
+        <target state="translated">Non è possibile dichiarare un operatore di estensione di istanza per un tipo che non è noto come struct né come classe</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceOperatorStructExtensionWrongReceiverRefKind">
         <source>Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter</source>
-        <target state="new">Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter</target>
+        <target state="translated">Non è possibile dichiarare un operatore di istanza per uno struct a meno che il parametro ricevitore del blocco di estensione in cui è contenuto non sia un parametro 'ref'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
@@ -1379,7 +1409,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterpolatedStringHandlerArgumentDisallowed">
         <source>Interpolated string handler arguments are not allowed in this context.</source>
-        <target state="new">Interpolated string handler arguments are not allowed in this context.</target>
+        <target state="translated">In questo contesto non sono consentiti argomenti del gestore di stringhe interpolate.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterpolatedStringHandlerArgumentLocatedAfterInterpolatedString">
@@ -1417,9 +1447,19 @@
         <target state="translated">L'argomento diagnosticId dell'attributo 'Experimental' deve essere un identificatore valido</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
+        <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</source>
+        <target state="new">'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</target>
+        <note>'await foreach' is not localizable</note>
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
+        <source>The target runtime does not support extended layout types.</source>
+        <target state="translated">Il runtime di destinazione non supporta tipi di layout estesi.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidExtensionParameterReference">
         <source>Cannot use extension parameter '{0}' in this context.</source>
-        <target state="new">Cannot use extension parameter '{0}' in this context.</target>
+        <target state="translated">Non è possibile usare il parametro di estensione '{0}' in questo contesto.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
@@ -1459,7 +1499,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidModifierAfterScoped">
         <source>The '{0}' modifier cannot immediately follow the 'scoped' modifier.</source>
-        <target state="new">The '{0}' modifier cannot immediately follow the 'scoped' modifier.</target>
+        <target state="translated">Il modificatore '{0}' non può seguire immediatamente il modificatore 'scoped'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidModifierForLanguageVersion">
@@ -1569,17 +1609,17 @@
       </trans-unit>
       <trans-unit id="ERR_LocalSameNameAsExtensionParameter">
         <source>'{0}': a parameter, local variable, or local function cannot have the same name as an extension parameter</source>
-        <target state="new">'{0}': a parameter, local variable, or local function cannot have the same name as an extension parameter</target>
+        <target state="translated">'{0}': il nome di un parametro, di una variabile locale o di una funzione locale non può essere uguale a quello di un parametro di estensione</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalSameNameAsExtensionTypeParameter">
         <source>'{0}': a parameter, local variable, or local function cannot have the same name as an extension container type parameter</source>
-        <target state="new">'{0}': a parameter, local variable, or local function cannot have the same name as an extension container type parameter</target>
+        <target state="translated">'{0}': il nome di un parametro, di una variabile locale o di una funzione locale non può essere uguale a quello di un parametro del tipo di contenitore di estensione</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsExtendedType">
         <source>'{0}': extension member names cannot be the same as their extended type</source>
-        <target state="new">'{0}': extension member names cannot be the same as their extended type</target>
+        <target state="translated">'{0}': i nomi dei membri di estensione non possono essere uguali al tipo esteso</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
@@ -1589,12 +1629,12 @@
       </trans-unit>
       <trans-unit id="ERR_MethodImplAttributeAsyncCannotBeUsed">
         <source>'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.</source>
-        <target state="new">'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.</target>
+        <target state="translated">Non è possibile applicare manualmente 'MethodImplAttribute.Async' ai metodi. Contrassegnare il metodo come 'async'.</target>
         <note>'MethodImplAttribute.Async' and 'async' are not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_MisplacedExtension">
         <source>An extension member syntax is disallowed in nested position within an extension member syntax</source>
-        <target state="new">An extension member syntax is disallowed in nested position within an extension member syntax</target>
+        <target state="translated">La sintassi di un membro di estensione non è consentita in una posizione annidata all'interno di un'altra sintassi di un membro di estensione</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MisplacedRecord">
@@ -1624,7 +1664,7 @@
       </trans-unit>
       <trans-unit id="ERR_ModifierOnUnnamedReceiverParameter">
         <source>Cannot use modifiers on the unnamed receiver parameter of extension block</source>
-        <target state="new">Cannot use modifiers on the unnamed receiver parameter of extension block</target>
+        <target state="translated">Non è possibile usare modificatori nel parametro ricevitore senza nome del blocco di estensione</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerCannotBeUnmanagedCallersOnly">
@@ -1679,7 +1719,7 @@
       </trans-unit>
       <trans-unit id="ERR_NameofExtensionMember">
         <source>Extension members are not allowed as an argument to 'nameof'.</source>
-        <target state="new">Extension members are not allowed as an argument to 'nameof'.</target>
+        <target state="translated">Come argomento di 'nameof' non sono consentiti membri di estensione.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -1774,7 +1814,7 @@
       </trans-unit>
       <trans-unit id="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName">
         <source>'{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.</source>
-        <target state="translated">'{0}' non è un metodo di istanza. Il ricevitore non può essere un argomento del gestore di stringhe interpolate.</target>
+        <target state="translated">'{0}' non è un metodo di istanza. Il ricevitore o il parametro ricevitore di un'estensione non può essere un argomento del gestore di stringhe interpolate.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotOverridableAPIInRecord">
@@ -1824,27 +1864,27 @@
       </trans-unit>
       <trans-unit id="ERR_OperatorInExtensionOfStaticClass">
         <source>An extension block extending a static class cannot contain user-defined operators</source>
-        <target state="new">An extension block extending a static class cannot contain user-defined operators</target>
+        <target state="translated">Un blocco di estensione che estende una classe statica non può contenere operatori definiti dall'utente</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorMismatchOnOverride">
         <source>'{0}': cannot override inherited member '{1}' because one of them is not an operator.</source>
-        <target state="new">'{0}': cannot override inherited member '{1}' because one of them is not an operator.</target>
+        <target state="translated">'{0}': non è possibile eseguire l'override del membro ereditato '{1}' perché uno dei due non è un operatore.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorMustReturnVoid">
         <source>The return type for this operator must be void</source>
-        <target state="new">The return type for this operator must be void</target>
+        <target state="translated">Il tipo restituito per questo operatore deve essere 'void'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorsMustBePublic">
         <source>User-defined operator '{0}' must be declared public</source>
-        <target state="new">User-defined operator '{0}' must be declared public</target>
+        <target state="translated">L'operatore definito dall'utente '{0}' deve essere dichiarato come public</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorsMustBeStaticAndPublic">
         <source>User-defined operator '{0}' must be declared static and public</source>
-        <target state="new">User-defined operator '{0}' must be declared static and public</target>
+        <target state="translated">L'operatore definito dall'utente '{0}' deve essere dichiarato come static e public</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OutAttrOnRefReadonlyParam">
@@ -1879,22 +1919,22 @@
       </trans-unit>
       <trans-unit id="ERR_PPIgnoredFollowsIf">
         <source>'#:' directives cannot be after '#if' directive</source>
-        <target state="new">'#:' directives cannot be after '#if' directive</target>
+        <target state="translated">Le direttive '#:' non possono seguire la direttiva '#if'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PPIgnoredFollowsToken">
         <source>'#:' directives cannot be after first token in file</source>
-        <target state="new">'#:' directives cannot be after first token in file</target>
+        <target state="translated">Le direttive '#:' non possono seguire il primo token nel file</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PPIgnoredNeedsFileBasedProgram">
         <source>'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</source>
-        <target state="new">'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</target>
+        <target state="translated">Le direttive '#:' possono essere usate solo in programmi basati su file ('-features:FileBasedProgram')</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PPShebangInProjectBasedProgram">
         <source>'#!' directives can be only used in scripts or file-based programs</source>
-        <target state="new">'#!' directives can be only used in scripts or file-based programs</target>
+        <target state="translated">Le direttive '#!' possono essere usate solo in script o programmi basati su file</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
@@ -1934,12 +1974,12 @@
       </trans-unit>
       <trans-unit id="ERR_PartialConstructorInitializer">
         <source>'{0}': only the implementing declaration of a partial constructor can have an initializer</source>
-        <target state="new">'{0}': only the implementing declaration of a partial constructor can have an initializer</target>
+        <target state="translated">'{0}': solo la dichiarazione di implementazione di un costruttore parziale può avere un inizializzatore</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialEventInitializer">
         <source>'{0}': partial event cannot have initializer</source>
-        <target state="new">'{0}': partial event cannot have initializer</target>
+        <target state="translated">'{0}': l'evento parziale non può avere inizializzatori</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberAccessibilityDifference">
@@ -1954,12 +1994,12 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMemberDuplicateDefinition">
         <source>Partial member '{0}' may not have multiple defining declarations.</source>
-        <target state="new">Partial member '{0}' may not have multiple defining declarations.</target>
+        <target state="translated">Il membro parziale '{0}' non può avere più dichiarazioni di definizione.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberDuplicateImplementation">
         <source>Partial member '{0}' may not have multiple implementing declarations.</source>
-        <target state="new">Partial member '{0}' may not have multiple implementing declarations.</target>
+        <target state="translated">Il membro parziale '{0}' non può avere più dichiarazioni di implementazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberInconsistentTupleNames">
@@ -1969,12 +2009,12 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMemberMissingDefinition">
         <source>Partial member '{0}' must have a definition part.</source>
-        <target state="new">Partial member '{0}' must have a definition part.</target>
+        <target state="translated">Il membro parziale '{0}' deve avere una parte di definizione.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberMissingImplementation">
         <source>Partial member '{0}' must have an implementation part.</source>
-        <target state="new">Partial member '{0}' must have an implementation part.</target>
+        <target state="translated">Il membro parziale '{0}' deve avere una parte di implementazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberOnlyInPartialClass">
@@ -2004,7 +2044,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMemberTypeDifference">
         <source>Both partial member declarations must have the same type.</source>
-        <target state="new">Both partial member declarations must have the same type.</target>
+        <target state="translated">Il tipo deve essere identico in entrambe le dichiarazioni di membro parziale.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberUnsafeDifference">
@@ -2109,7 +2149,7 @@
       </trans-unit>
       <trans-unit id="ERR_ProtectedInExtension">
         <source>'{0}': new protected member declared in an extension block</source>
-        <target state="new">'{0}': new protected member declared in an extension block</target>
+        <target state="translated">'{0}': nuovo membro protetto dichiarato in un blocco di estensione</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RawStringDelimiterOnOwnLine">
@@ -2144,12 +2184,12 @@
       </trans-unit>
       <trans-unit id="ERR_ReceiverParameterOnlyOne">
         <source>An extension container can have only one receiver parameter</source>
-        <target state="new">An extension container can have only one receiver parameter</target>
+        <target state="translated">Un contenitore di estensione può avere un solo parametro ricevitore</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReceiverParameterSameNameAsTypeParameter">
         <source>'{0}': a receiver parameter cannot have the same name as an extension container type parameter</source>
-        <target state="new">'{0}': a receiver parameter cannot have the same name as an extension container type parameter</target>
+        <target state="translated">'{0}': un parametro ricevitore non può avere lo stesso nome di un parametro del tipo di contenitore di estensione</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RecordAmbigCtor">
@@ -2179,7 +2219,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne">
         <source>The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.</source>
-        <target state="new">The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.</target>
+        <target state="translated">Il parametro ricevitore 'ref' di un blocco di estensione deve essere un tipo valore o un tipo generico vincolato a struct.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
@@ -2314,7 +2354,7 @@
       </trans-unit>
       <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
         <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
-        <target state="needs-review-translation">Il tipo 'Microsoft.CodeAnalysis.EmbeddedAttribute' deve essere non generico, interno, sealed, non statico, avere un costruttore senza parametri, ereditare da System.Attribute e poter essere applicato a qualsiasi tipo.</target>
+        <target state="translated">Il tipo 'Microsoft.CodeAnalysis.EmbeddedAttribute' deve essere non generico, interno, non file, sealed, non statico, avere un costruttore senza parametri, ereditare da System.Attribute e poter essere applicato a qualsiasi tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
@@ -2364,7 +2404,7 @@
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
         <source>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</source>
-        <target state="new">The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</target>
+        <target state="translated">Il modificatore 'scoped' non può seguire un modificatore 'in', 'out', 'ref' o 'readonly'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedDiscard">
@@ -2434,12 +2474,12 @@
       </trans-unit>
       <trans-unit id="ERR_SingleInapplicableBinaryOperator">
         <source>Operator cannot be applied to operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'</source>
-        <target state="new">Operator cannot be applied to operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'</target>
+        <target state="translated">Non è possibile applicare l'operatore a operandi di tipo '{0}' e '{1}'. Il candidato non applicabile più vicino è '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SingleInapplicableUnaryOperator">
         <source>Operator cannot be applied to operand of type '{0}'. The closest inapplicable candidate is '{1}'</source>
-        <target state="new">Operator cannot be applied to operand of type '{0}'. The closest inapplicable candidate is '{1}'</target>
+        <target state="translated">Non è possibile applicare l'operatore all'operando di tipo '{0}'. Il candidato non applicabile più vicino è '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SpreadMissingMember">
@@ -2492,6 +2532,11 @@
         <target state="translated">Un elemento 'struct' con inizializzatori di campo deve includere un costruttore dichiarato in modo esplicito.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StructLayoutAndExtendedLayout">
+        <source>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</source>
+        <target state="translated">Non è consentito usare 'StructLayoutAttribute' e 'ExtendedLayoutAttribute' nello stesso tipo.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StructLayoutCyclePrimaryConstructorParameter">
         <source>Struct primary constructor parameter '{0}' of type '{1}' causes a cycle in the struct layout</source>
         <target state="translated">Il parametro del costruttore primario struct '{0}' di tipo '{1}' causa un ciclo nel layout dello struct</target>
@@ -2539,7 +2584,7 @@
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings_RestartRequired">
         <source>Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</source>
-        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</target>
+        <target state="translated">La lunghezza combinata delle stringhe utente usate dal programma supera il limite consentito. L'aggiunta di un valore letterale stringa richiede il riavvio dell'applicazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
@@ -2579,12 +2624,12 @@
       </trans-unit>
       <trans-unit id="ERR_TypeParameterSameNameAsExtensionParameter">
         <source>Type parameter '{0}' has the same name as an extension parameter</source>
-        <target state="new">Type parameter '{0}' has the same name as an extension parameter</target>
+        <target state="translated">Il parametro di tipo '{0}' ha lo stesso nome di un parametro di estensione</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeParameterSameNameAsExtensionTypeParameter">
         <source>Type parameter '{0}' has the same name as an extension container type parameter</source>
-        <target state="new">Type parameter '{0}' has the same name as an extension container type parameter</target>
+        <target state="translated">Il parametro di tipo '{0}' ha lo stesso nome di un parametro del tipo di contenitore di estensione</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnassignedThisAutoPropertyUnsupportedVersion">
@@ -2599,12 +2644,12 @@
       </trans-unit>
       <trans-unit id="ERR_UnderspecifiedExtension">
         <source>The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</source>
-        <target state="new">The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</target>
+        <target state="translated">Al parametro di tipo '{0}' non viene fatto riferimento né dal parametro di estensione né da un parametro di questo membro</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList">
         <source>Cannot pass arguments to the base type without a parameter list on the type declaration.</source>
-        <target state="new">Cannot pass arguments to the base type without a parameter list on the type declaration.</target>
+        <target state="translated">Non è possibile passare argomenti al tipo di base senza un elenco di parametri nella dichiarazione del tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">
@@ -2654,7 +2699,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedFeatureInRuntimeAsync">
         <source>Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
-        <target state="new">Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</target>
+        <target state="translated">Il metodo '{0}' usa una funzionalità attualmente non supportata dal runtime asincrono. Escludere il metodo dal runtime asincrono assegnando al metodo l'attributo 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
@@ -2699,17 +2744,17 @@
       </trans-unit>
       <trans-unit id="ERR_ValueParameterSameNameAsExtensionParameter">
         <source>'value': an automatically-generated parameter name conflicts with an extension parameter name</source>
-        <target state="new">'value': an automatically-generated parameter name conflicts with an extension parameter name</target>
+        <target state="translated">'value': un nome di parametro generato automaticamente è in conflitto con un nome di parametro di estensione</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ValueParameterSameNameAsExtensionTypeParameter">
         <source>'value': an automatically-generated parameter name conflicts with an extension type parameter name</source>
-        <target state="new">'value': an automatically-generated parameter name conflicts with an extension type parameter name</target>
+        <target state="translated">'value': un nome di parametro generato automaticamente è in conflitto con il nome di un tipo di parametro di estensione</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VariableDeclarationNamedField">
         <source>In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</source>
-        <target state="new">In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</target>
+        <target state="translated">Nella versione del linguaggio {0}, 'field' è una parola chiave all'interno di una funzione di accesso alle proprietà. Rinominare la variabile o usare l'identificatore '@field'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
@@ -2729,22 +2774,22 @@
       </trans-unit>
       <trans-unit id="HDN_RedundantPattern">
         <source>The pattern is redundant.</source>
-        <target state="new">The pattern is redundant.</target>
+        <target state="translated">Il modello è ridondante.</target>
         <note />
       </trans-unit>
       <trans-unit id="HDN_RedundantPatternStackGuard">
         <source>The pattern is too complex to analyze for redundancy.</source>
-        <target state="new">The pattern is too complex to analyze for redundancy.</target>
+        <target state="translated">Il modello è troppo complesso per l'analisi della ridondanza.</target>
         <note />
       </trans-unit>
       <trans-unit id="HDN_RedundantPatternStackGuard_Title">
         <source>The pattern is too complex to analyze for redundancy.</source>
-        <target state="new">The pattern is too complex to analyze for redundancy.</target>
+        <target state="translated">Il modello è troppo complesso per l'analisi della ridondanza.</target>
         <note />
       </trans-unit>
       <trans-unit id="HDN_RedundantPattern_Title">
         <source>The pattern is redundant.</source>
-        <target state="new">The pattern is redundant.</target>
+        <target state="translated">Il modello è ridondante.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
@@ -2759,7 +2804,7 @@
       </trans-unit>
       <trans-unit id="IDS_CollectionExpression">
         <source>collection expression</source>
-        <target state="new">collection expression</target>
+        <target state="translated">espressione di raccolta</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAllowsRefStructConstraint">
@@ -2775,6 +2820,11 @@
       <trans-unit id="IDS_FeatureCheckedUserDefinedOperators">
         <source>checked user-defined operators</source>
         <target state="translated">operatori definiti dall'utente controllati</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureCollectionExpressionArguments">
+        <source>collection expression arguments</source>
+        <target state="new">collection expression arguments</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressions">
@@ -2804,7 +2854,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensions">
         <source>extensions</source>
-        <target state="new">extensions</target>
+        <target state="translated">estensioni</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureFieldKeyword">
@@ -2904,7 +2954,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureNullConditionalAssignment">
         <source>null conditional assignment</source>
-        <target state="new">null conditional assignment</target>
+        <target state="translated">assegnazione condizionale Null</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureOverloadResolutionPriority">
@@ -2924,7 +2974,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeaturePartialEventsAndConstructors">
         <source>partial events and constructors</source>
-        <target state="new">partial events and constructors</target>
+        <target state="translated">costruttori ed eventi parziali</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
@@ -2984,7 +3034,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureSimpleLambdaParameterModifiers">
         <source>simple lambda parameter modifiers</source>
-        <target state="new">simple lambda parameter modifiers</target>
+        <target state="translated">modificatori parametri lambda semplici</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStringEscapeCharacter">
@@ -3009,7 +3059,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUserDefinedCompoundAssignmentOperators">
         <source>user-defined compound assignment operators</source>
-        <target state="new">user-defined compound assignment operators</target>
+        <target state="translated">operatori di assegnazione composta definiti dall'utente</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUtf8StringLiterals">
@@ -3089,17 +3139,17 @@
       </trans-unit>
       <trans-unit id="NodeIsNotAwaitUsingDeclaration">
         <source>'node' is not an 'await using' declaration</source>
-        <target state="new">'node' is not an 'await using' declaration</target>
+        <target state="translated">'node' non è una dichiarazione di tipo 'await using'</target>
         <note>node and await using are not localizable</note>
       </trans-unit>
       <trans-unit id="NodeIsNotAwaitUsingStatement">
         <source>'node' is not an 'await using' statement</source>
-        <target state="new">'node' is not an 'await using' statement</target>
+        <target state="translated">'node' non è un'istruzione di tipo 'await using'</target>
         <note>node and await using are not localizable</note>
       </trans-unit>
       <trans-unit id="ParameterRequiresTypeOrIdentifier">
         <source>ParameterSyntax requires either a type or an identifier.</source>
-        <target state="new">ParameterSyntax requires either a type or an identifier.</target>
+        <target state="translated">ParameterSyntax richiede un tipo o un identificatore.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AccessorDoesNotUseBackingField">
@@ -3134,12 +3184,12 @@
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
         <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="needs-review-translation">L'assembly dell'analizzatore '{0}' fa riferimento alla versione '{1}' del compilatore, che è più recente della versione attualmente in esecuzione '{2}'.</target>
+        <target state="translated">Non è possibile usare l'assembly dell'analizzatore '{0}' perché fa riferimento alla versione '{1}' del compilatore, che è più recente della versione attualmente in esecuzione '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
         <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
-        <target state="needs-review-translation">L'assembly dell'analizzatore fa riferimento alla versione del compilatore, che è più recente della versione attualmente in esecuzione.</target>
+        <target state="translated">Non è possibile usare l'assembly dell'analizzatore perché fa riferimento a una versione del compilatore più recente rispetto alla versione attualmente in esecuzione.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedIn">
@@ -3564,12 +3614,12 @@
       </trans-unit>
       <trans-unit id="WRN_PartialMemberSignatureDifference">
         <source>Partial member declarations '{0}' and '{1}' have signature differences.</source>
-        <target state="new">Partial member declarations '{0}' and '{1}' have signature differences.</target>
+        <target state="translated">Le dichiarazioni di membro parziale '{0}' e '{1}' presentano differenze di firma.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PartialMemberSignatureDifference_Title">
         <source>Partial member declarations have signature differences.</source>
-        <target state="new">Partial member declarations have signature differences.</target>
+        <target state="translated">Le dichiarazioni di membro parziale presentano differenze di firma.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
@@ -3619,12 +3669,12 @@
       </trans-unit>
       <trans-unit id="WRN_RedundantPattern">
         <source>The pattern is redundant.</source>
-        <target state="new">The pattern is redundant.</target>
+        <target state="translated">Il modello è ridondante.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RedundantPattern_Title">
         <source>The pattern is redundant.</source>
-        <target state="new">The pattern is redundant.</target>
+        <target state="translated">Il modello è ridondante.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignNarrower">
@@ -4078,7 +4128,7 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                              Opzioni del Compilatore Visual C#
 
                        - FILE DI OUTPUT -
@@ -4095,7 +4145,7 @@ target:module               Compila un modulo che può essere aggiunto ad altro
                               -t:appcontainerexe)
 -target:winmdobj               Consente di compilare un file intermedio Windows Runtime che
                               viene utilizzato da WinMDExp (forma breve: -t:winmdobj)
--doc:&lt;file&gt;                       Genera un file di documentazione XML per generare
+-doc:&lt;file&gt;                       Genera un file di documentazione XML per generare 
 -refout:&lt;file&gt;                    Output dell'assembly di riferimento da generare
 -platform:&lt;string&gt;                Limita le piattaforme in cui è possibile eseguire questo codice su x86,
                               Itanium, x64, arm, arm64, anycpu32bitpreferred o
@@ -4131,12 +4181,12 @@ target:module               Compila un modulo che può essere aggiunto ad altro
                               è &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
                        - GENERAZIONE DEL CODICE -
--debug[+|-]                       Crea le informazioni di debug.
+-debug[+|-]                       Crea le informazioni di debug
 -debug:{full|pdbonly|portable|embedded}
                               Specificare il tipo di debug ('full' è l'impostazione predefinita,
                               'portable' è un formato multipiattaforma,
                               'embedded' è un formato multipiattaforma incorporato in
-                              DLL o EXE di destinazione.
+                              DLL o EXE di destinazione
 -optimize[+|-]                Abilita le ottimizzazioni (forma breve: -o)
 -deterministic                    Produce un assembly deterministico
                               (che include GUID e timestamp della versione del modulo)
@@ -4146,17 +4196,17 @@ target:module               Compila un modulo che può essere aggiunto ad altro
 -sourcelink:&lt;file&gt;                Informazioni sul collegamento all'origine da incorporare nel file PDB.
 
                        - ERRORI E AVVISI -
--warnaserror[+|-]                 Segnala tutti gli avvisi come errori.
+-warnaserror[+|-]                 Segnala tutti gli avvisi come errori
 -warnaserror[+|-]:&lt;warn list&gt;Segnala determinati avvisi come errori
                               (usare "nullable" per tutti gli avvisi del supporto dei valori null)
 -warn:&lt;n&gt;                    Imposta il livello di avviso (0 o superiore) (forma breve: -w)
 -nowarn:&lt;warn list&gt;           Disabilita messaggi di avviso specifici
                               (usare "nullable" per tutti gli avvisi del supporto dei valori null)
 -ruleset:&lt;file&gt;                   Consente di specificare un file di set di regole che disabilita
-                              diagnostica specifica.
+                              del compilatore e dell'analizzatore.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
                               Consente di specificare un file in cui registrare la diagnostica
-                              del compilatore e dell'analizzatore
+                              del compilatore e dell'analizzatore.
                               sarif_version:{1|2|2.1} L'impostazione predefinita è 1. 2 e 2.1
                               si riferiscono entrambi a SARIF versione 2.1.0.
 -reportanalyzer                   Restituisce informazioni aggiuntive dell'analizzatore, ad
@@ -4181,18 +4231,18 @@ target:module               Compila un modulo che può essere aggiunto ad altro
 
                        - SICUREZZA -
 -delaysign[+|-]                   Ritarda la firma dell'assembly usando solo la parte pubblica della
-                              della chiave con nome sicuro.
+                              della chiave con nome sicuro
 -publicsign[+|-]                  Firma pubblicamente l'assembly usando solo la parte pubblica
-                              della chiave con nome sicuro.
--keyfile:&lt;file&gt;                   Consente di specificare un file di chiave con nome sicuro.
--keycontainer:&lt;string&gt;            Consente di specificare un contenitore di chiavi con nome sicuro.
--highentropyva[+|-]               Abilita ASLR a entropia elevata.
+                              della chiave con nome sicuro
+-keyfile:&lt;file&gt;                   Consente di specificare un file di chiave con nome sicuro
+-keycontainer:&lt;string&gt;            Consente di specificare un contenitore di chiavi con nome sicuro
+-highentropyva[+|-]               Abilita ASLR a entropia elevata
 
                        - VARIE -
 @&lt;file&gt;                       Legge il file di risposta per ulteriori opzioni
 /help                       Visualizza questo messaggio relativo all'uso. La forma breve è ?
 -nologo                       Non visualizza il messaggio di copyright del compilatore
--noconfig                         Non include automaticamente il file CSC.RSP.
+-noconfig                         Non include automaticamente il file CSC.RSP
 -parallel[+|-]                    Compilazione simultanea.
 -version                          Visualizza il numero di versione del compilatore ed esce.
 
@@ -4209,7 +4259,7 @@ target:module               Compila un modulo che può essere aggiunto ad altro
                               breve: -m)
 -fullpaths                     Il compilatore genera percorsi completi
 -filealign:&lt;n&gt;                Consente di specificare l'allineamento usato per le sezioni del
-                              file di output.
+                              file di output
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                               Consente di specificare un mapping per i nomi di percorso di origine
                               visualizzati dal compilatore.
@@ -4219,6 +4269,7 @@ target:module               Compila un modulo che può essere aggiunto ad altro
                               ogni di errore
 -preferreduilang                  Consente di specificare il nome del linguaggio di output preferito.
 -nosdkpath                        Disabilita la ricerca di assembly di librerie standard nel percorso predefinito dell'SDK.
+-sdkpath:&lt;path&gt;             Percorso usato per cercare assembly di librerie standard.
 -nostdlib[+|-]                 Omette i riferimenti alle librerie standard (mscorlib.dll)
 -subsystemversion:&lt;string&gt;    Consente di specificare la versione dell'assembly
 -lib:&lt;file list&gt;               Specifica directory aggiuntive in cui cercare
@@ -5741,12 +5792,12 @@ target:module               Compila un modulo che può essere aggiunto ad altro
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField">
         <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
-        <target state="translated">L'elemento {0} '{1}' che non ammette i valori Null deve contenere un valore non Null all'uscita dal costruttore. Prendere in considerazione l'aggiunta del modificatore 'required' o la dichiarazione come {0} che ammette i valori Null, oppure l'aggiunta di attributi '[field: MaybeNull, AllowNull]'.</target>
+        <target state="translated">L'elemento {0} '{1}' che non ammette i valori Null deve contenere un valore non Null all'uscita dal costruttore. Valutare l'opportunità di aggiungere il modificatore 'required', di dichiarare che {0} ammette valori Null o di gestire in sicurezza il caso in cui l'identificatore 'field' è Null nella funzione di accesso 'get'.</target>
         <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField_Title">
         <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
-        <target state="translated">La proprietà che non ammette i valori Null deve contenere un valore non Null all'uscita dal costruttore. Provare ad aggiungere il modificatore 'required', a dichiarare la proprietà come che ammette i valori Null, oppure ad aggiungere gli attributi '[field: MaybeNull, AllowNull]'.</target>
+        <target state="translated">La proprietà che non ammette i valori Null deve contenere un valore non Null all'uscita dal costruttore. Valutare l'opportunità di aggiungere il modificatore 'required', di dichiarare che la proprietà ammette valori Null o di gestire in sicurezza il caso in cui l'identificatore 'field' è Null nella funzione di accesso 'get'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
@@ -6161,7 +6212,7 @@ target:module               Compila un modulo che può essere aggiunto ad altro
       </trans-unit>
       <trans-unit id="ERR_BadVisIndexerParam">
         <source>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</source>
-        <target state="needs-review-translation">Accessibilità incoerente: il tipo parametro '{1}' è meno accessibile dell'indicizzatore '{0}'</target>
+        <target state="translated">Accessibilità incoerente: il tipo parametro '{1}' è meno accessibile rispetto all'indicizzatore o alla proprietà '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisOpReturn">
@@ -7086,7 +7137,7 @@ target:module               Compila un modulo che può essere aggiunto ad altro
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
         <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</source>
-        <target state="needs-review-translation">Il modificatore 'partial' può trovarsi solo immediatamente prima di 'class', 'record', 'struct', 'interface' o del tipo restituito di un metodo o di una proprietà.</target>
+        <target state="translated">Il modificatore 'partial' può trovarsi solo immediatamente prima di 'class', 'record', 'struct', 'interface, 'event', un nome di costruttore di istanza o il tipo restituito di un metodo o di una proprietà.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -7276,7 +7327,7 @@ target:module               Compila un modulo che può essere aggiunto ad altro
       </trans-unit>
       <trans-unit id="ERR_BadRetType">
         <source>'{1} {0}' has the wrong return type</source>
-        <target state="translated">'Il tipo restituito di '{1} {0}' è errato</target>
+        <target state="translated">Il tipo restituito di '{1} {0}' è errato</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DelegateRefMismatch">
@@ -8060,7 +8111,7 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       </trans-unit>
       <trans-unit id="ERR_DllImportOnInvalidMethod">
         <source>The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member</source>
-        <target state="needs-review-translation">L'attributo DllImport deve essere specificato in un metodo contrassegnato come 'static' ed 'extern'</target>
+        <target state="translated">L'attributo DllImport deve essere specificato in un metodo contrassegnato come 'extern' che sia 'static' o un membro di estensione</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
@@ -9159,7 +9210,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) può rilevare eccezi
       </trans-unit>
       <trans-unit id="ERR_BadTypeforThis">
         <source>The receiver parameter of an extension cannot be of type '{0}'</source>
-        <target state="needs-review-translation">Il primo parametro di un metodo di estensione non può essere di tipo '{0}'</target>
+        <target state="translated">Il parametro ricevitore di un'estensione non può essere di tipo '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamModThis">
@@ -9189,7 +9240,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) può rilevare eccezi
       </trans-unit>
       <trans-unit id="ERR_ExtensionAttrNotFound">
         <source>Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
-        <target state="needs-review-translation">Non è possibile definire un nuovo metodo di estensione perché non è stato trovato il tipo '{0}' richiesto dal compilatore. Probabilmente manca un riferimento.</target>
+        <target state="translated">Non è possibile definire una nuova estensione perché non è stato trovato il tipo '{0}' richiesto dal compilatore. Manca forse un riferimento a System.Core.dll?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitExtension">
@@ -9284,7 +9335,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) può rilevare eccezi
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
         <source>Invalid token '{0}' in a member declaration</source>
-        <target state="needs-review-translation">Il token '{0}' nella dichiarazione del membro di classe, record, struct o interfaccia non è valido</target>
+        <target state="translated">Token '{0}' non valido in una dichiarazione di membro</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">
@@ -11864,7 +11915,7 @@ Come procedura consigliata, è consigliabile attendere sempre la chiamata.
       </trans-unit>
       <trans-unit id="ERR_InvalidDynamicCondition">
         <source>Expression must be implicitly convertible to Boolean or its type '{0}' must not be an interface and must define operator '{1}'.</source>
-        <target state="needs-review-translation">L'espressione deve essere convertibile in modo implicito in un valore booleano oppure il relativo tipo '{0}' deve definire l'operatore '{1}'.</target>
+        <target state="translated">L'espressione deve essere convertibile in modo implicito in un valore booleano oppure il relativo tipo '{0}' non deve essere un'interfaccia e deve definire l'operatore '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MixingWinRTEventWithRegular">
@@ -13287,7 +13338,7 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       </trans-unit>
       <trans-unit id="ERR_CompilerAndLanguageVersion">
         <source>Compiler version: '{0}'. Language version: {1}. Compiler path: '{2}'.</source>
-        <target state="new">Compiler version: '{0}'. Language version: {1}. Compiler path: '{2}'.</target>
+        <target state="translated">Versione del compilatore: '{0}'. Versione del linguaggio: {1}. Percorso del compilatore: '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAsyncMain">

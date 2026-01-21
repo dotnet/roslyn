@@ -4,13 +4,6 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -19,6 +12,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -2833,7 +2833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GenerateExplicitConversionErrors(diagnostics, node, conversion, operand, targetType);
             }
 
-            return CreateConversion(node, operand, conversion, isCast: true, conversionGroupOpt: conversionGroup, wasCompilerGenerated: wasCompilerGenerated, destination: targetType, diagnostics: diagnostics, hasErrors: hasErrors | suppressErrors);
+            return CreateConversion(node, operand, conversion, isCast: true, conversionGroupOpt: conversionGroup, InConversionGroupFlags.Unspecified, wasCompilerGenerated: wasCompilerGenerated, destination: targetType, diagnostics: diagnostics, hasErrors: hasErrors | suppressErrors);
         }
 
         private void GenerateExplicitConversionErrors(
@@ -3579,7 +3579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     reportUnsafeIfNeeded(methodResult, diagnostics, argument, parameterTypeWithAnnotations);
 
-                    coercedArgument = CreateConversion(argument.Syntax, argument, kind, isCast: false, conversionGroupOpt: null, parameterTypeWithAnnotations.Type, diagnostics);
+                    coercedArgument = CreateConversion(argument.Syntax, argument, kind, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, parameterTypeWithAnnotations.Type, diagnostics);
                 }
                 else if (argument.Kind == BoundKind.OutVariablePendingInference)
                 {
@@ -3600,7 +3600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (argument is BoundTupleLiteral)
                     {
                         // CreateConversion reports tuple literal name mismatches, and constructs the expected pattern of bound nodes.
-                        coercedArgument = CreateConversion(argument.Syntax, argument, kind, isCast: false, conversionGroupOpt: null, parameterTypeWithAnnotations.Type, diagnostics);
+                        coercedArgument = CreateConversion(argument.Syntax, argument, kind, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, parameterTypeWithAnnotations.Type, diagnostics);
                     }
                     else
                     {
@@ -3765,6 +3765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         interpolatedStringConversion,
                         isCast: false,
                         conversionGroupOpt: null,
+                        InConversionGroupFlags.Unspecified,
                         handlerType,
                         diagnostics);
                 }
@@ -3781,6 +3782,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         interpolatedStringConversion,
                         isCast: false,
                         conversionGroupOpt: null,
+                        InConversionGroupFlags.Unspecified,
                         wasCompilerGenerated: false,
                         handlerType,
                         diagnostics,
@@ -3796,6 +3798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         interpolatedStringConversion,
                         isCast: false,
                         conversionGroupOpt: null,
+                        InConversionGroupFlags.Unspecified,
                         handlerType,
                         diagnostics);
                 }
@@ -3963,6 +3966,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: CheckOverflowAtRuntime,
                     explicitCastInCode: false,
                     conversionGroupOpt: null,
+                    InConversionGroupFlags.Unspecified,
                     constantValueOpt: null,
                     handlerType,
                     hasErrors || interpolatedString.HasErrors);
@@ -5337,12 +5341,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MessageID.IDS_FeatureCollectionExpressions.CheckFeatureAvailability(diagnostics, syntax, syntax.OpenBracketToken.GetLocation());
 
+            BoundUnconvertedWithElement? firstWithElement = null;
+
             var builder = ArrayBuilder<BoundNode>.GetInstance(syntax.Elements.Count);
             foreach (var element in syntax.Elements)
             {
-                builder.Add(bindElement(element, diagnostics, this, nestingLevel));
+                if (element is WithElementSyntax withElementSyntax)
+                {
+                    MessageID.IDS_FeatureCollectionExpressionArguments.CheckFeatureAvailability(diagnostics, syntax, withElementSyntax.WithKeyword.GetLocation());
+
+                    var (withElement, badElement) = bindWithElement(
+                        this, syntax, withElementSyntax, diagnostics);
+                    firstWithElement ??= withElement;
+                    builder.AddIfNotNull(badElement);
+                }
+                else
+                {
+                    builder.Add(bindElement(element, diagnostics, this, nestingLevel));
+                }
             }
-            return new BoundUnconvertedCollectionExpression(syntax, builder.ToImmutableAndFree());
+
+            return new BoundUnconvertedCollectionExpression(syntax, firstWithElement, builder.ToImmutableAndFree());
 
             static BoundNode bindElement(CollectionElementSyntax syntax, BindingDiagnosticBag diagnostics, Binder @this, int nestingLevel)
             {
@@ -5415,6 +5434,65 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elementPlaceholder: null,
                     iteratorBody: null,
                     hasErrors: false);
+            }
+
+            static (BoundUnconvertedWithElement? withElement, BoundBadExpression? badExpression) bindWithElement(
+                Binder @this,
+                CollectionExpressionSyntax syntax,
+                WithElementSyntax withElementSyntax,
+                BindingDiagnosticBag diagnostics)
+            {
+                // Report a withElement that is not first. Note: for the purposes of error recovery and diagnostics
+                // we still bind the arguments in those later with elements.  However, we only validate those
+                // arguments against the final arguments against the destination target type if the with element
+                // was in the proper position.
+
+                var analyzedArguments = AnalyzedArguments.GetInstance();
+
+                @this.BindArgumentsAndNames(withElementSyntax.ArgumentList, diagnostics, analyzedArguments, allowArglist: true);
+
+                var arguments = analyzedArguments.Arguments;
+                for (int i = 0; i < arguments.Count; i++)
+                {
+                    var arg = arguments[i];
+                    if (arg.Type is { TypeKind: TypeKind.Dynamic })
+                    {
+                        // Collection arguments cannot be dynamic
+                        diagnostics.Add(ErrorCode.ERR_CollectionArgumentsDynamicBinding, arg.Syntax);
+                        arguments[i] = new BoundBadExpression(
+                            arg.Syntax, LookupResultKind.Empty, symbols: [],
+                            childBoundNodes: [@this.BindToNaturalType(arg, diagnostics, reportNoTargetType: false)],
+                            type: @this.Compilation.GetSpecialType(SpecialType.System_Object));
+                    }
+                }
+
+                BoundUnconvertedWithElement? withElement;
+                BoundBadExpression? badExpression;
+
+                if (withElementSyntax == syntax.Elements.First())
+                {
+                    // Got a with-element, and it was in the right place.  Pass it along directly in
+                    // unconverted-collection-expression so that we can construct the collection properly.
+                    withElement = new BoundUnconvertedWithElement(
+                        withElementSyntax,
+                        analyzedArguments.Arguments.ToImmutable(),
+                        analyzedArguments.Names.ToImmutableOrNull(),
+                        analyzedArguments.RefKinds.ToImmutableOrNull());
+                    badExpression = null;
+                }
+                else
+                {
+                    // Improperly placed with-element.  Report an error and pass along the arguments so they remain
+                    // in the tree for further analysis, but replace the with-element itself with a bad node so that
+                    // it doesn't influence later transformations.
+                    diagnostics.Add(ErrorCode.ERR_CollectionArgumentsMustBeFirst, withElementSyntax.WithKeyword);
+
+                    withElement = null;
+                    badExpression = @this.BadExpression(withElementSyntax, @this.BuildArgumentsForErrorRecovery(analyzedArguments));
+                }
+
+                analyzedArguments.Free();
+                return (withElement, badExpression);
             }
         }
 #nullable disable
@@ -5676,7 +5754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <param name="typeSyntax">Shouldn't be null if <paramref name="initializerOpt"/> is not null.</param>
-        private BoundExpression MakeBadExpressionForObjectCreation(SyntaxNode node, TypeSymbol type, AnalyzedArguments analyzedArguments, InitializerExpressionSyntax? initializerOpt, SyntaxNode? typeSyntax, BindingDiagnosticBag diagnostics, bool wasCompilerGenerated = false)
+        private BoundBadExpression MakeBadExpressionForObjectCreation(SyntaxNode node, TypeSymbol type, AnalyzedArguments analyzedArguments, InitializerExpressionSyntax? initializerOpt, SyntaxNode? typeSyntax, BindingDiagnosticBag diagnostics, bool wasCompilerGenerated = false)
         {
             var children = ArrayBuilder<BoundExpression>.GetInstance();
             children.AddRange(BuildArgumentsForErrorRecovery(analyzedArguments));
@@ -7247,11 +7325,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             out CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             bool isParamsModifierValidation = false)
         {
-            // Get accessible constructors for performing overload resolution.
-            ImmutableArray<MethodSymbol> allInstanceConstructors;
+            // Get all accessible constructors for performing overload resolution.
             useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            candidateConstructors = GetAccessibleConstructorsForOverloadResolution(typeContainingConstructors, allowProtectedConstructorsOfBaseType, out allInstanceConstructors, ref useSiteInfo);
+            candidateConstructors = GetAccessibleConstructorsForOverloadResolution(
+                typeContainingConstructors,
+                allowProtectedConstructorsOfBaseType,
+                out var allInstanceConstructors, ref useSiteInfo);
 
+            // Then perform overload resolution with all the accessible constructors.
+            return TryPerformOverloadResolutionWithConstructorSubset(
+                typeContainingConstructors,
+                ref candidateConstructors,
+                allInstanceConstructors,
+                analyzedArguments,
+                errorName,
+                errorLocation,
+                suppressResultDiagnostics, diagnostics,
+                out memberResolutionResult,
+                ref useSiteInfo,
+                isParamsModifierValidation);
+        }
+
+        /// <summary>
+        /// Core implementation for <see cref="TryPerformConstructorOverloadResolution"/>, just with the ability for the
+        /// caller to specify the candidate constructors instead of computing them from <paramref
+        /// name="typeContainingConstructors"/>.
+        /// </summary>
+        private bool TryPerformOverloadResolutionWithConstructorSubset(
+            NamedTypeSymbol typeContainingConstructors,
+            ref ImmutableArray<MethodSymbol> candidateConstructors,
+            ImmutableArray<MethodSymbol> allInstanceConstructors,
+            AnalyzedArguments analyzedArguments,
+            string errorName,
+            Location errorLocation,
+            bool suppressResultDiagnostics,
+            BindingDiagnosticBag diagnostics,
+            out MemberResolutionResult<MethodSymbol> memberResolutionResult,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+            bool isParamsModifierValidation)
+        {
             OverloadResolutionResult<MethodSymbol> result = OverloadResolutionResult<MethodSymbol>.GetInstance();
 
             // Indicates whether overload resolution successfully chose an accessible constructor.
@@ -7755,7 +7867,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <remarks>
         /// If new checks are added to this method, they will also need to be added to
-        /// <see cref="MakeQueryInvocation(CSharpSyntaxNode, BoundExpression, bool, string, SeparatedSyntaxList{TypeSyntax}, ImmutableArray{TypeWithAnnotations}, ImmutableArray{BoundExpression}, BindingDiagnosticBag, string?)"/>.
+        /// <see cref="MakeQueryInvocation(CSharpSyntaxNode, BoundExpression, string, SeparatedSyntaxList{TypeSyntax}, ImmutableArray{TypeWithAnnotations}, ImmutableArray{BoundExpression}, BindingDiagnosticBag, string?)"/>.
         /// </remarks>
 #else
         /// <summary>
@@ -7764,7 +7876,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <remarks>
         /// If new checks are added to this method, they will also need to be added to
-        /// <see cref="MakeQueryInvocation(CSharpSyntaxNode, BoundExpression, bool, string, SeparatedSyntaxList{TypeSyntax}, ImmutableArray{TypeWithAnnotations}, ImmutableArray{BoundExpression}, BindingDiagnosticBag)"/>.
+        /// <see cref="MakeQueryInvocation(CSharpSyntaxNode, BoundExpression, string, SeparatedSyntaxList{TypeSyntax}, ImmutableArray{TypeWithAnnotations}, ImmutableArray{BoundExpression}, BindingDiagnosticBag)"/>.
         /// </remarks>
 #endif
         private BoundExpression BindMemberAccessWithBoundLeft(
@@ -8338,6 +8450,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (WouldUsingSystemFindExtension(boundLeft.Type, plainName))
                 {
                     Error(diagnostics, ErrorCode.ERR_NoSuchMemberOrExtensionNeedUsing, name, boundLeft.Type, plainName, "System");
+                }
+                else if (boundLeft.Kind == BoundKind.AwaitableValuePlaceholder && boundLeft.Type.IsIAsyncEnumerableType(Compilation))
+                {
+                    Error(diagnostics, ErrorCode.ERR_NoAwaitOnAsyncEnumerable, name, boundLeft.Type, plainName);
                 }
                 else
                 {
@@ -9116,6 +9232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: true,
                     explicitCastInCode: false,
                     conversionGroupOpt: null,
+                    InConversionGroupFlags.Unspecified,
                     constantValueOpt: expr.ConstantValueOpt,
                     type: underlyingType);
             }
@@ -9953,7 +10070,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GenerateImplicitConversionError(diagnostics, node, failedConversion, index, int32);
 
                 // Suppress any additional diagnostics
-                return CreateConversion(node, index, failedConversion, isCast: false, conversionGroupOpt: null, destination: int32, diagnostics: BindingDiagnosticBag.Discarded);
+                return CreateConversion(node, index, failedConversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, destination: int32, diagnostics: BindingDiagnosticBag.Discarded);
             }
 
             return result;
@@ -10015,7 +10132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversion = conversion.SetArrayIndexConversionForDynamic();
             }
 
-            BoundExpression result = CreateConversion(expr.Syntax, expr, conversion, isCast: false, conversionGroupOpt: null, destination: targetType, diagnostics); // UNDONE: was cast?
+            BoundExpression result = CreateConversion(expr.Syntax, expr, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, destination: targetType, diagnostics); // UNDONE: was cast?
             Debug.Assert(result != null); // If this ever fails (it shouldn't), then put a null-check around the diagnostics update.
 
             return result;

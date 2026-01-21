@@ -200,8 +200,8 @@ public abstract class TextLoader
         internal TextDocumentLoader(TextAndVersion textAndVersion)
             => _textAndVersion = textAndVersion;
 
-        public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
-            => Task.FromResult(_textAndVersion);
+        public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+            => _textAndVersion;
 
         internal override TextAndVersion LoadTextAndVersionSynchronously(LoadTextOptions options, CancellationToken cancellationToken)
             => _textAndVersion;
@@ -223,8 +223,8 @@ public abstract class TextLoader
         internal override string? FilePath
             => _filePath;
 
-        public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
-            => Task.FromResult(LoadTextAndVersionSynchronously(options, cancellationToken));
+        public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+            => LoadTextAndVersionSynchronously(options, cancellationToken);
 
         internal override TextAndVersion LoadTextAndVersionSynchronously(LoadTextOptions options, CancellationToken cancellationToken)
             => TextAndVersion.Create(_container.CurrentText, _version, _filePath);

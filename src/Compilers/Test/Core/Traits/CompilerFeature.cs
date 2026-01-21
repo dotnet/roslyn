@@ -44,5 +44,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         RequiredMembers,
         RefLifetime,
         Extensions,
+        CollectionExpressions,
     }
 }

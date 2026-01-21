@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Accessibility_modifiers_unnecessary">
         <source>Accessibility modifiers unnecessary</source>
-        <target state="new">Accessibility modifiers unnecessary</target>
+        <target state="translated">접근성 한정자가 필요하지 않음</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
@@ -196,6 +196,11 @@
         <target state="translated">필드를 읽기 전용으로 만들기</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_method_synchronous">
+        <source>Make method synchronous</source>
+        <target state="translated">메서드를 동기 메서드로 설정</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Member_access_should_be_qualified">
         <source>Member access should be qualified.</source>
         <target state="translated">멤버 액세스를 한정해야 합니다.</target>
@@ -209,6 +214,11 @@
       <trans-unit id="Member_name_can_be_simplified">
         <source>Member name can be simplified</source>
         <target state="translated">멤버 이름을 단순화할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Method_can_be_made_synchronous">
+        <source>Method can be made synchronous</source>
+        <target state="translated">메서드를 동기로 만들 수 있음</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifiers_are_not_ordered">
@@ -333,7 +343,7 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_unsafe_modifier">
         <source>Remove unnecessary 'unsafe' modifier</source>
-        <target state="new">Remove unnecessary 'unsafe' modifier</target>
+        <target state="translated">불필요한 'unsafe' 한정자 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unread_private_members">
@@ -418,7 +428,7 @@
       </trans-unit>
       <trans-unit id="Suppression_is_unnecessary">
         <source>Suppression is unnecessary</source>
-        <target state="new">Suppression is unnecessary</target>
+        <target state="translated">제거가 필요하지 않음</target>
         <note />
       </trans-unit>
       <trans-unit id="The_file_header_does_not_match_the_required_text">
@@ -491,14 +501,14 @@
         <target state="translated">throw' 식 사용</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_statement_implicitly_converts_1_to_2_Add_an_explicit_cast_to_make_intent_clearer_as_it_may_fail_at_runtime">
-        <source>'{0}' statement implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</source>
-        <target state="translated">'{0}' 문은 '{1}'을(를) '{2}'으로 암시적으로 변환합니다. 런타임에 실패할 수 있으므로 의도를 더 명확하게 하기 위해 명시적 캐스트를 추가합니다.</target>
+      <trans-unit id="_0_implicitly_converts_1_to_2_Add_an_explicit_cast_to_make_intent_clearer_as_it_may_fail_at_runtime">
+        <source>'{0}' implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</source>
+        <target state="new">'{0}' implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</target>
         <note />
       </trans-unit>
       <trans-unit id="unsafe_modifier_is_unnecessary">
         <source>'unsafe' modifier is unnecessary</source>
-        <target state="new">'unsafe' modifier is unnecessary</target>
+        <target state="translated">'unsafe' 한정자는 필요하지 않음</target>
         <note />
       </trans-unit>
     </body>
