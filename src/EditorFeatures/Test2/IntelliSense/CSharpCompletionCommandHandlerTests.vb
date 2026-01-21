@@ -13567,57 +13567,57 @@ class Program
             End Using
         End Function
 
-        Private Shared ReadOnly s_AsyncEnumerableMarkup As String = <![CDATA[
-        using System;
-        using System.Collections.Generic;
-        using System.Threading;
-        using System.Threading.Tasks;
+        Private Shared ReadOnly s_AsyncEnumerableMarkup As String = "
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
-        namespace System.Runtime.CompilerServices
-        {
-            public struct ValueTaskAwaiter<T> : INotifyCompletion
-            {
-                public bool IsCompleted => throw null;
-                public T GetResult() => throw null;
-                public void OnCompleted(Action continuation) => throw null;
-            }
+namespace System.Runtime.CompilerServices
+{
+    public struct ValueTaskAwaiter<T> : INotifyCompletion
+    {
+        public bool IsCompleted => throw null;
+        public T GetResult() => throw null;
+        public void OnCompleted(Action continuation) => throw null;
+    }
 
-            public interface INotifyCompletion
-            {
-                void OnCompleted(Action continuation);
-            }
-        }
+    public interface INotifyCompletion
+    {
+        void OnCompleted(Action continuation);
+    }
+}
 
-        namespace System.Threading.Tasks
-        {
-            public struct ValueTask<T>
-            {
-                public System.Runtime.CompilerServices.ValueTaskAwaiter<T> GetAwaiter() => throw null;   
-            }
-        }
+namespace System.Threading.Tasks
+{
+    public struct ValueTask<T>
+    {
+        public System.Runtime.CompilerServices.ValueTaskAwaiter<T> GetAwaiter() => throw null;   
+    }
+}
 
-        namespace System.Collections.Generic
-        {
-            public interface IAsyncEnumerable<out T>
-            {
-                IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken token = default);
-            }
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+        IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken token = default);
+    }
 
-            public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
-            {
-                ValueTask<bool> MoveNextAsync();
-                T Current { get; }
-            }
-        }
+    public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
+    {
+        ValueTask<bool> MoveNextAsync();
+        T Current { get; }
+    }
+}
 
-        namespace System
-        {
-            public interface IAsyncDisposable
-            {
-                ValueTask<bool> DisposeAsync();
-            }
-        }
-        ]]>.Value
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        ValueTask<bool> DisposeAsync();
+    }
+}
+"
 
         <WpfTheory, CombinatorialData>
         Public Async Function PreselectIEnumerablePropertyInForeach_Var(showCompletionInArgumentLists As Boolean) As Task
