@@ -1262,9 +1262,9 @@ internal partial class CSharpTypeInferenceService
 
             // foreach (int v = Goo())
             var variableTypes = GetTypes(forEachStatementSyntax.Type);
-            var typeInferenceInfos = variableTypes as TypeInferenceInfo[] ?? variableTypes.ToArray();
+            var typeInferenceInfos = variableTypes.ToImmutableArray();
 
-            if (typeInferenceInfos.Length != 0)
+            if (!typeInferenceInfos.IsEmpty)
                 return typeInferenceInfos.Select(v => new TypeInferenceInfo(enumerableType.Construct(v.InferredType)));
 
             var objectType = Compilation.GetSpecialType(SpecialType.System_Object);

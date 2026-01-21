@@ -82,7 +82,8 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
         }
     }
 
-    private static bool IsForEachEnumerableMatch(ITypeSymbol symbolType, ImmutableArray<ITypeSymbol> inferredTypes, INamedTypeSymbol enumerableOfObjectType, INamedTypeSymbol? asyncEnumerableOfObjectType, Compilation compilation)
+    private static bool IsForEachEnumerableMatch(ITypeSymbol symbolType, ImmutableArray<ITypeSymbol> inferredTypes, INamedTypeSymbol enumerableOfObjectType,
+        INamedTypeSymbol? asyncEnumerableOfObjectType, Compilation compilation)
     {
         foreach (var inferredType in inferredTypes)
         {
@@ -92,7 +93,7 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
                     return true;
             }
 
-            if (asyncEnumerableOfObjectType == null || !SymbolEqualityComparer.Default.Equals(inferredType, asyncEnumerableOfObjectType))
+            if (!SymbolEqualityComparer.Default.Equals(inferredType, asyncEnumerableOfObjectType))
                 continue;
             if (symbolType.CanBeAsynchronouslyEnumerated(compilation))
                 return true;
