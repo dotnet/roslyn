@@ -4378,10 +4378,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                return setAnalyzedNullabilityAsContinuation(node, objectInitializer, symbol, argumentResults, argumentsCompletion, initializationCompletion, delayCompletionForType);
+                return setAnalyzedNullability(node, objectInitializer, symbol, argumentResults, argumentsCompletion, initializationCompletion, delayCompletionForType);
             }
 
-            InitializerCompletionAfterTargetType visitMemberInitializerAsContinuation(BoundAssignmentOperator node, ImmutableArray<VisitResult> argumentResults,
+            InitializerCompletionAfterTargetType? setAnalyzedNullability(BoundAssignmentOperator node, BoundObjectInitializerMember objectInitializer, Symbol? updatedSymbol, ImmutableArray<VisitResult> argumentResults,
+               ArgumentsCompletionDelegate<Symbol>? argumentsCompletion, InitializerCompletionAfterUpdatedSymbol? initializationCompletion, bool delayCompletionForType)
+            {
+                if (delayCompletionForType)
+                {
+                    return setAnalyzedNullabilityAsContinuation(node, argumentResults, argumentsCompletion, initializationCompletion);
+                }
+
+                Debug.Assert(argumentsCompletion is null);
+                Debug.Assert(initializationCompletion is null);
+
+                // https://github.com/dotnet/roslyn/issues/35040: Should likely be setting _resultType in VisitObjectCreationInitializer
+                // and using that value instead of reconstructing here
+                var result = new VisitResult(objectInitializer.Type, NullableAnnotation.NotAnnotated, NullableFlowState.NotNull);
+                SetAnalyzedNullability(objectInitializer, result);
+                SetAnalyzedNullability(node, result);
+
+                if (updatedSymbol is not null)
+                {
+                    Debug.Assert(objectInitializer.MemberSymbol is not null);
+                    SetUpdatedSymbol(objectInitializer, objectInitializer.MemberSymbol, updatedSymbol);
+                }
+
+                return null;
+            }
+
+            InitializerCompletionAfterTargetType setAnalyzedNullabilityAsContinuation(BoundAssignmentOperator node, ImmutableArray<VisitResult> argumentResults,
                 ArgumentsCompletionDelegate<Symbol>? argumentsCompletion, InitializerCompletionAfterUpdatedSymbol? initializationCompletion)
             {
                 // This logic is in a local function so that we only capture when delayed completion is needed
@@ -4404,35 +4430,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(initializationCompletion is null || symbol is not null);
                     initializationCompletion?.Invoke(containingSlot, symbol!);
 
-                    var result = setAnalyzedNullabilityAsContinuation(node, objectInitializer, symbol, argumentResults, argumentsCompletion: null, initializationCompletion: null, delayCompletionForType: false);
+                    var result = setAnalyzedNullability(node, objectInitializer, symbol, argumentResults, argumentsCompletion: null, initializationCompletion: null, delayCompletionForType: false);
                     Debug.Assert(result is null);
                 };
-            }
-
-            InitializerCompletionAfterTargetType? setAnalyzedNullabilityAsContinuation(BoundAssignmentOperator node, BoundObjectInitializerMember objectInitializer, Symbol? updatedSymbol, ImmutableArray<VisitResult> argumentResults,
-               ArgumentsCompletionDelegate<Symbol>? argumentsCompletion, InitializerCompletionAfterUpdatedSymbol? initializationCompletion, bool delayCompletionForType)
-            {
-                if (delayCompletionForType)
-                {
-                    return visitMemberInitializerAsContinuation(node, argumentResults, argumentsCompletion, initializationCompletion);
-                }
-
-                Debug.Assert(argumentsCompletion is null);
-                Debug.Assert(initializationCompletion is null);
-
-                // https://github.com/dotnet/roslyn/issues/35040: Should likely be setting _resultType in VisitObjectCreationInitializer
-                // and using that value instead of reconstructing here
-                var result = new VisitResult(objectInitializer.Type, NullableAnnotation.NotAnnotated, NullableFlowState.NotNull);
-                SetAnalyzedNullability(objectInitializer, result);
-                SetAnalyzedNullability(node, result);
-
-                if (updatedSymbol is not null)
-                {
-                    Debug.Assert(objectInitializer.MemberSymbol is not null);
-                    SetUpdatedSymbol(objectInitializer, objectInitializer.MemberSymbol, updatedSymbol);
-                }
-
-                return null;
             }
 
             int getOrCreateSlot(int containingSlot, Symbol symbol)
@@ -11531,10 +11531,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return reinferenceResult;
         }
 
-        private ReinferenceResult<TSymbol> ReInferAndVisitExtensionPropertyAccess<TSymbol>(
+        private ReinferenceResult<PropertySymbol> ReInferAndVisitExtensionPropertyAccess(
             BoundNode node,
             BoundExpression receiver,
-            TSymbol property,
+            PropertySymbol property,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKindsOpt,
@@ -11543,9 +11543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool expanded,
             bool delayCompletionForType,
             VisitResult? firstArgumentResult)
-            where TSymbol : Symbol
         {
-            Debug.Assert(property is PropertySymbol);
             Debug.Assert(property.IsExtensionBlockMember());
             refKindsOpt = AdjustArgumentRefKindsIfNeeded(refKindsOpt, adjustForExtensionBlockMethod: true, property, arguments.Length);
 
