@@ -13567,58 +13567,6 @@ class Program
             End Using
         End Function
 
-        Private Shared ReadOnly s_AsyncEnumerableMarkup As String = "
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace System.Runtime.CompilerServices
-{
-    public struct ValueTaskAwaiter<T> : INotifyCompletion
-    {
-        public bool IsCompleted => throw null;
-        public T GetResult() => throw null;
-        public void OnCompleted(Action continuation) => throw null;
-    }
-
-    public interface INotifyCompletion
-    {
-        void OnCompleted(Action continuation);
-    }
-}
-
-namespace System.Threading.Tasks
-{
-    public struct ValueTask<T>
-    {
-        public System.Runtime.CompilerServices.ValueTaskAwaiter<T> GetAwaiter() => throw null;   
-    }
-}
-
-namespace System.Collections.Generic
-{
-    public interface IAsyncEnumerable<out T>
-    {
-        IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken token = default);
-    }
-
-    public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
-    {
-        ValueTask<bool> MoveNextAsync();
-        T Current { get; }
-    }
-}
-
-namespace System
-{
-    public interface IAsyncDisposable
-    {
-        ValueTask<bool> DisposeAsync();
-    }
-}
-"
-
         <WpfTheory, CombinatorialData>
         Public Async Function PreselectIEnumerablePropertyInForeach_Var(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -13685,9 +13633,9 @@ namespace NS
         <WpfTheory, CombinatorialData>
         Public Async Function PreselectIAsyncEnumerablePropertyInAwaitForEach_Var_ReferenceType(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
-                <Document>
-                    <%= s_AsyncEnumerableMarkup %>
-                    <![CDATA[
+                <Document><![CDATA[
+using System.Collections.Generic;
+using System.Threading.Tasks;
 namespace NS
 {
     public class C
@@ -13701,9 +13649,8 @@ namespace NS
         }
     }
 }
-                ]]>
-                </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+                ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12, commonReferencesAttribute:="CommonReferencesNet6")
 
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
@@ -13717,9 +13664,9 @@ namespace NS
         <WpfTheory, CombinatorialData>
         Public Async Function PreselectIAsyncEnumerablePropertyInAwaitForEach_Var_ValueType(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
-                <Document>
-                    <%= s_AsyncEnumerableMarkup %>
-                    <![CDATA[
+                <Document><![CDATA[
+using System.Collections.Generic;
+using System.Threading.Tasks;
 namespace NS
 {
     public class C
@@ -13733,9 +13680,8 @@ namespace NS
         }
     }
 }
-                ]]>
-                </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+                ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12, commonReferencesAttribute:="CommonReferencesNet6")
 
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
@@ -13749,9 +13695,9 @@ namespace NS
         <WpfTheory, CombinatorialData>
         Public Async Function PreselectIAsyncEnumerablePropertyInAwaitForEach_SpecifiedType(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
-                <Document>
-                    <%= s_AsyncEnumerableMarkup %>
-                    <![CDATA[
+                <Document><![CDATA[
+using System.Collections.Generic;
+using System.Threading.Tasks;
 namespace NS
 {
     public class C
@@ -13765,9 +13711,8 @@ namespace NS
         }
     }
 }
-                ]]>
-                </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+                ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12, commonReferencesAttribute:="CommonReferencesNet6")
 
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
