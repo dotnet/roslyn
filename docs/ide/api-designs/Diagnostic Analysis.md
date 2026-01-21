@@ -24,6 +24,20 @@ Two distinct higher-level systems consume this diagnostic analysis service:
    cached results until cleared or another analysis is initiated. This resembles executing a Build (retrieving only
    analysis results) from within VS itself.
 
+3. **Other Diagnostic Analysis Clients**: Beyond the LSP-based and explicit analysis systems, several other features
+   directly consume `IDiagnosticAnalyzerService`:
+   - **Inline/Inlay Hints**: These visual enhancements are not yet powered by LSP and directly query the diagnostic
+     service for analysis results.
+   - **CodeFixService**: This underlying system powers features like lightbulbs to determine which diagnostics are
+     present that could be fixed. Code fixes query the diagnostic service to obtain diagnostics for a specific span,
+     then match available fixes to those diagnostics.
+   - **Copilot**: AI-assisted code generation uses the diagnostic service to check if generated code would produce
+     diagnostics and whether those diagnostics can be automatically fixed before presenting suggestions to users.
+
+   This list is not exhaustive—other features and systems may also directly consume diagnostic analysis as needed.
+   Ideally, all of these scenarios would flow through LSP in the future for consistency, but the system is not yet at
+   that stage.
+
 For features requiring lower-level access, this system provides a consistent API with well-defined behavior.
 
 ## Architecture
