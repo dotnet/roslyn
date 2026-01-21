@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (visited != null &&
                 visited != node &&
-                node.Kind is not (BoundKind.ImplicitReceiver or BoundKind.ObjectOrCollectionValuePlaceholder or BoundKind.ValuePlaceholder))
+                node.Kind is not (BoundKind.ImplicitReceiver or BoundKind.ObjectOrCollectionValuePlaceholder or BoundKind.ValuePlaceholder or BoundKind.CollectionBuilderElementsPlaceholder))
             {
                 if (!CanBePassedByReference(node) && CanBePassedByReference(visited))
                 {
@@ -467,6 +467,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override BoundNode VisitValuePlaceholder(BoundValuePlaceholder node)
+        {
+            return PlaceholderReplacement(node);
+        }
+
+        public override BoundNode? VisitCollectionBuilderElementsPlaceholder(BoundCollectionBuilderElementsPlaceholder node)
         {
             return PlaceholderReplacement(node);
         }

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -122,7 +123,8 @@ internal readonly struct UpdateExpressionState<
         bool allowLinq,
         CancellationToken cancellationToken,
         [NotNullWhen(true)] out TExpressionSyntax? instance,
-        out bool useSpread)
+        out bool useSpread,
+        out bool useKeyValue)
     {
         // Look for a call to Add taking 1 arg
         if (this.TryAnalyzeAddInvocation(
@@ -130,7 +132,8 @@ internal readonly struct UpdateExpressionState<
                 requiredArgumentName: null,
                 forCollectionExpression: true,
                 cancellationToken,
-                out instance))
+                out instance,
+                out useKeyValue))
         {
             useSpread = false;
             return true;
@@ -166,8 +169,10 @@ internal readonly struct UpdateExpressionState<
         string? requiredArgumentName,
         bool forCollectionExpression,
         CancellationToken cancellationToken,
-        [NotNullWhen(true)] out TExpressionSyntax? instance)
+        [NotNullWhen(true)] out TExpressionSyntax? instance,
+        out bool useKeyValue)
     {
+        useKeyValue = false;
         if (!TryAnalyzeInvocation(
                 invocationExpression,
                 WellKnownMemberNames.CollectionInitializerAddMethodName,
@@ -179,10 +184,35 @@ internal readonly struct UpdateExpressionState<
             return false;
         }
 
-        // Collection expressions can only call the single argument Add method on a type. So if we don't have exactly
-        // one argument, fail out.
-        if (forCollectionExpression && arguments.Count != 1)
+        if (forCollectionExpression)
+        {
+            // A single-argument Add(x) can become a single expression element `x` in the collection expr.
+            if (arguments.Count == 1)
+                return true;
+
+            // A two-argument Add(x, y) can become a `x:y` element if the destination type has an indexer with
+            // complimentary type kinds as the Add method.
+            if (arguments.Count == 2 &&
+                this.SyntaxFacts.SupportsKeyValuePairElement(invocationExpression.SyntaxTree.Options) &&
+                this.SemanticModel.GetSymbolInfo(invocationExpression, cancellationToken).Symbol is IMethodSymbol
+                {
+                    Parameters: [var parameter1, var parameter2],
+                })
+            {
+                var instanceType = SemanticModel.GetTypeInfo(instance, cancellationToken).Type;
+                if (instanceType?
+                        .GetMembers(WellKnownMemberNames.Indexer)
+                        .Any(m => m is IPropertySymbol { Type: var propertyType, Parameters: [var propertyParameter] } &&
+                                  Equals(parameter1.Type, propertyParameter.Type) &&
+                                  Equals(parameter2.Type, propertyType)) is true)
+                {
+                    useKeyValue = true;
+                    return true;
+                }
+            }
+
             return false;
+        }
 
         return true;
     }
@@ -322,6 +352,54 @@ internal readonly struct UpdateExpressionState<
         return instance != null;
     }
 
+    public bool TryAnalyzeIndexAssignment(
+        TStatementSyntax statement,
+        CancellationToken cancellationToken,
+        [NotNullWhen(true)] out TExpressionSyntax? instance,
+        int supportedArgumentCount = -1)
+    {
+        instance = null;
+        if (!this.SyntaxFacts.SupportsIndexingInitializer(statement.SyntaxTree.Options))
+            return false;
+
+        if (!this.SyntaxFacts.IsSimpleAssignmentStatement(statement))
+            return false;
+
+        this.SyntaxFacts.GetPartsOfAssignmentStatement(statement, out var left, out var right);
+
+        if (!this.SyntaxFacts.IsElementAccessExpression(left))
+            return false;
+
+        // If we're initializing a variable, then we can't reference that variable on the right 
+        // side of the initialization.  Rewriting this into a collection initializer would lead
+        // to a definite-assignment error.
+        if (this.NodeContainsValuePatternOrReferencesInitializedSymbol(right, cancellationToken))
+            return false;
+
+        // Can't reference the variable being initialized in the arguments of the indexing expression.
+        this.SyntaxFacts.GetPartsOfElementAccessExpression(left, out var elementInstance, out var argumentList);
+        var elementAccessArguments = this.SyntaxFacts.GetArgumentsOfArgumentList(argumentList);
+        if (supportedArgumentCount >= 0 && elementAccessArguments.Count != supportedArgumentCount)
+            return false;
+
+        foreach (var argument in elementAccessArguments)
+        {
+            if (this.NodeContainsValuePatternOrReferencesInitializedSymbol(argument, cancellationToken))
+                return false;
+
+            // An index/range expression implicitly references the value being initialized.  So it cannot be used in the
+            // indexing expression.
+            var argExpression = this.SyntaxFacts.GetExpressionOfArgument(argument);
+            argExpression = this.SyntaxFacts.WalkDownParentheses(argExpression);
+
+            if (this.SyntaxFacts.IsIndexExpression(argExpression) || this.SyntaxFacts.IsRangeExpression(argExpression))
+                return false;
+        }
+
+        instance = elementInstance as TExpressionSyntax;
+        return instance != null;
+    }
+
     /// <summary>
     /// Analyze an statement to see if it it could be converted into elements for a new collection-expression.  This
     /// includes calls to <c>.Add</c> and <c>.AddRange</c>, as well as <c>foreach</c> statements that update the
@@ -350,10 +428,19 @@ internal readonly struct UpdateExpressionState<
             var expression = (TExpressionSyntax)@this.SyntaxFacts.GetExpressionOfExpressionStatement(expressionStatement);
 
             // Look for a call to Add or AddRange
-            if (@this.TryAnalyzeInvocationForCollectionExpression(expression, allowLinq: false, cancellationToken, out var instance, out var useSpread) &&
+            if (@this.TryAnalyzeInvocationForCollectionExpression(
+                    expression, allowLinq: false, cancellationToken, out var instance, out var useSpread, out var useKeyValue) &&
                 @this.ValuePatternMatches(instance))
             {
-                return new(expressionStatement, useSpread);
+                return new(expressionStatement, useSpread, useKeyValue);
+            }
+
+            // `x[y] = z` can be converted to `y:z` element if the destination type has an indexer with exactly 1 arg.
+            if (@this.SyntaxFacts.SupportsKeyValuePairElement(expression.SyntaxTree.Options) &&
+                @this.TryAnalyzeIndexAssignment(expressionStatement, cancellationToken, out instance, supportedArgumentCount: 1) &&
+                @this.ValuePatternMatches(instance))
+            {
+                return new(expressionStatement, UseSpread: false, UseKeyValue: true);
             }
 
             return null;
@@ -382,11 +469,12 @@ internal readonly struct UpdateExpressionState<
                     requiredArgumentName: identifier.Text,
                     forCollectionExpression: true,
                     cancellationToken,
-                    out var instance) &&
+                    out var instance,
+                    out var useKeyValue) &&
                 @this.ValuePatternMatches(instance))
             {
                 // `foreach` will become `..expr` when we make it into a collection expression.
-                return new(foreachStatement, UseSpread: true, needsCast);
+                return new(foreachStatement, UseSpread: true, UseCast: needsCast, UseKeyValue: useKeyValue);
             }
 
             return null;
@@ -416,14 +504,15 @@ internal readonly struct UpdateExpressionState<
                     requiredArgumentName: null,
                     forCollectionExpression: true,
                     cancellationToken,
-                    out var instance) &&
+                    out var instance,
+                    out var useKeyValue) &&
                 @this.ValuePatternMatches(instance))
             {
                 if (whenFalse is null)
                 {
                     // add the form `.. x ? [y] : []` to the result
                     return @this.SyntaxFacts.SupportsCollectionExpressionNaturalType(ifStatement.SyntaxTree.Options)
-                        ? new(ifStatement, UseSpread: true)
+                        ? new(ifStatement, UseSpread: true, useKeyValue)
                         : null;
                 }
 
@@ -435,11 +524,12 @@ internal readonly struct UpdateExpressionState<
                         requiredArgumentName: null,
                         forCollectionExpression: true,
                         cancellationToken,
-                        out instance) &&
+                        out instance,
+                        out useKeyValue) &&
                     @this.ValuePatternMatches(instance))
                 {
                     // add the form `x ? y : z` to the result
-                    return new(ifStatement, UseSpread: false);
+                    return new(ifStatement, UseSpread: false, useKeyValue);
                 }
             }
 
