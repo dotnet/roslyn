@@ -20,7 +20,7 @@
         <Parent guid="guidRoslynGrpId" id="cmdidAnalyzerFolderContextMenu"/>
       </Group>
       
-      <Group guid="guidRoslynGrpId" id="grpSolutionExplorerSymbolItemContextMenu" priority="0x000">
+      <Group guid="guidRoslynGrpId" id="grpSolutionExplorerSymbolItemContextMenu" priority="0x200">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_PROJWIN_FILECONTENTS"/>
       </Group>
 
