@@ -587,16 +587,6 @@
         <target state="translated">Vai all'implementazione</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidSolutionExplorerSymbolItemContextMenu|ButtonText">
-        <source>Solution Explorer Symbol Tree</source>
-        <target state="translated">Albero dei simboli di Esplora soluzioni</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidSolutionExplorerSymbolItemContextMenu|MenuText">
-        <source>Solution Explorer Symbol Tree</source>
-        <target state="translated">Albero dei simboli di Esplora soluzioni</target>
-        <note />
-      </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemFindAllReferences|ButtonText">
         <source>Find All References</source>
         <target state="translated">Trova tutti i riferimenti</target>
