@@ -632,7 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiver = new BoundLiteral(node, ConstantValue.Null, awaiterType);
             var name = WellKnownMemberNames.IsCompleted;
             var qualified = BindInstanceMemberAccess(node, node, receiver, name, 0, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeWithAnnotations>), invoked: false, indexed: false, diagnostics);
-            if (qualified.HasAnyErrors)
+            if (qualified.HasAnyErrors || (qualified = CheckValue(qualified, BindValueKind.RValue, diagnostics)).HasAnyErrors)
             {
                 isCompletedProperty = null;
                 return false;

@@ -3083,6 +3083,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (1,1): error CS9502: 'C.GetAwaiter()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // await new C();
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "await new C()").WithArguments("C.GetAwaiter()").WithLocation(1, 1),
+                // (1,1): error CS9502: 'C.IsCompleted.get' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // await new C();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "await new C()").WithArguments("C.IsCompleted.get").WithLocation(1, 1),
                 // (1,1): error CS9502: 'C.GetResult()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // await new C();
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "await new C()").WithArguments("C.GetResult()").WithLocation(1, 1),
