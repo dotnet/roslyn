@@ -15,12 +15,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                      Optional showCompletionInArgumentLists As Boolean = True,
                                                      Optional commonReferencesAttribute As String = "CommonReferences") As TestState
 
+            Dim projectElement = <Project Language="C#" LanguageVersion=<%= languageVersion.ToDisplayString() %>>
+                                     <Document>
+                                         <%= documentElement.Value %>
+                                     </Document>
+                                 </Project>
+
+            projectElement.SetAttributeValue(commonReferencesAttribute, "true")
+
             Dim testState = New TestState(<Workspace>
-                                              <Project Language="C#" <%= commonReferencesAttribute %>="true" LanguageVersion=<%= languageVersion.ToDisplayString() %>>
-                                                  <Document>
-                                                      <%= documentElement.Value %>
-                                                  </Document>
-                                              </Project>
+                                              <%= projectElement %>
                                           </Workspace>,
                                  excludedTypes, extraExportedTypes,
                                  includeFormatCommandHandler, workspaceKind:=Nothing)
