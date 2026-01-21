@@ -3548,18 +3548,31 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 public class C : IEnumerable<int>
                 {
                     public void Add(int x) { }
-                    public unsafe IEnumerator<int> GetEnumerator() => null;
+                    public unsafe C GetEnumerator() => this;
+                    public unsafe bool MoveNext() => false;
+                    public unsafe int Current => 0;
                     IEnumerator<int> IEnumerable<int>.GetEnumerator() => null;
                     IEnumerator IEnumerable.GetEnumerator() => null;
                 }
                 """,
             caller: """
-                C c = [.. new C()];
+                C c1 = [.. new C()];
+                unsafe { C c2 = [.. new C()]; }
                 """,
-            expectedUnsafeSymbols: ["C.GetEnumerator"],
+            expectedUnsafeSymbols: ["C.GetEnumerator", "C.MoveNext", "C.Current", "C.get_Current"],
             expectedSafeSymbols: ["C"],
-            // PROTOTYPE: An error for the unsafe GetEnumerator usage should be reported.
-            expectedDiagnostics: []);
+            expectedDiagnostics:
+            [
+                // (1,9): error CS9502: 'C.GetEnumerator()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // C c1 = [.. new C()];
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, ".. new C()").WithArguments("C.GetEnumerator()").WithLocation(1, 9),
+                // (1,9): error CS9502: 'C.MoveNext()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // C c1 = [.. new C()];
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, ".. new C()").WithArguments("C.MoveNext()").WithLocation(1, 9),
+                // (1,9): error CS9502: 'C.Current.get' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // C c1 = [.. new C()];
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, ".. new C()").WithArguments("C.Current.get").WithLocation(1, 9),
+            ]);
     }
 
     [Fact]

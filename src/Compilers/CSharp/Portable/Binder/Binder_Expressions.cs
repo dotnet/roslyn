@@ -5383,6 +5383,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors);
                 }
 
+                var getEnumeratorMethod = builder.GetEnumeratorInfo?.Method;
+                if (getEnumeratorMethod != null) @this.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, getEnumeratorMethod, syntax);
+                var moveNextMethod = builder.MoveNextInfo?.Method;
+                if (moveNextMethod != null) @this.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, moveNextMethod, syntax);
+                var currentPropertyGetter = builder.CurrentPropertyGetter;
+                if (currentPropertyGetter != null) @this.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, currentPropertyGetter, syntax);
+
                 Debug.Assert(expression.Type is { });
 
                 var expressionPlaceholder = new BoundCollectionExpressionSpreadExpressionPlaceholder(syntax.Expression, expression.Type);
