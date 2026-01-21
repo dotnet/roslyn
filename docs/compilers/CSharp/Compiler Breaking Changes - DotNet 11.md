@@ -176,7 +176,7 @@ parse properly.  Now, this is treated as a constant pattern `(X.Y)` followed by 
 
 ***Introduced in Visual Studio 2026 version 18.4***
 
-`with(...)` when used as an element in a collection expression, and when the LangVersion is set to 'Preview', is bound as arguments passed to constructor or
+`with(...)` when used as an element in a collection expression, and when the LangVersion is set to 15 or greater, is bound as arguments passed to constructor or
 factory method used to create the collection, rather than as an invocation expression of a method named `with`.
 
 To bind to a method named `with`, use `@with` instead.
@@ -185,7 +185,7 @@ To bind to a method named `with`, use `@with` instead.
 object x, y, z = ...;
 object[] items;
 
-items = [with(x, y), z];  // C#14: call to with() method; 'Preview': error args not supported for object[]
+items = [with(x, y), z];  // C# 14: call to with() method; C# 15: error args not supported for object[]
 items = [@with(x, y), z]; // call to with() method
 object with(object a, object b) { ... }
 ```
