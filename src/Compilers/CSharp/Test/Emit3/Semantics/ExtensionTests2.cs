@@ -16360,7 +16360,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_01()
     {
@@ -16558,7 +16558,7 @@ struct InterpolationHandler
             );
     }
 
-    [Theory(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Theory(Skip = "PROTOTYPE interpolation handlers")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
@@ -16747,7 +16747,7 @@ struct InterpolationHandler
             );
     }
 
-    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_03()
     {
@@ -16851,7 +16851,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_04()
     {
@@ -17112,7 +17112,7 @@ struct InterpolationHandler<TR>
             );
     }
 
-    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Fact(Skip = "PROTOTYPE interpolation handlers")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_05()
     {
@@ -17301,7 +17301,7 @@ struct InterpolationHandler<TR>
             );
     }
 
-    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_06()
     {
@@ -17494,7 +17494,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Fact(Skip = "PROTOTYPE interpolation handlers")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79415")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_07()
@@ -17615,7 +17615,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Fact(Skip = "PROTOTYPE interpolation handlers")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79415")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_08()
@@ -17777,7 +17777,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Fact(Skip = "PROTOTYPE interpolation handlers")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_WithInterpolationHandler_01()
     {
@@ -17961,7 +17961,7 @@ struct InterpolationHandler
             );
     }
 
-    [Theory(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Theory(Skip = "PROTOTYPE interpolation handlers")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
@@ -18128,7 +18128,7 @@ struct InterpolationHandler
             );
     }
 
-    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Fact(Skip = "PROTOTYPE interpolation handlers")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_WithInterpolationHandler_03()
     {
@@ -18221,7 +18221,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Fact(Skip = "PROTOTYPE interpolation handlers")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
     public void IndexerAccess_Set_WithInterpolationHandler_04()
@@ -18473,7 +18473,7 @@ struct InterpolationHandler<TR>
             );
     }
 
-    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Fact(Skip = "PROTOTYPE interpolation handlers")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_WithInterpolationHandler_05()
     {
@@ -18651,7 +18651,7 @@ struct InterpolationHandler<TR>
             );
     }
 
-    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Fact(Skip = "PROTOTYPE interpolation handlers")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
     public void IndexerAccess_Set_WithInterpolationHandler_06()
@@ -18830,7 +18830,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Fact(Skip = "PROTOTYPE interpolation handlers")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_WithInterpolationHandler_07()
     {
@@ -18936,7 +18936,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Fact(Skip = "PROTOTYPE interpolation handlers")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_WithInterpolationHandler_08()
     {
@@ -19072,7 +19072,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_LValueReceiver_01()
     {
@@ -19215,7 +19215,7 @@ class Program
 ");
     }
 
-    [Theory(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Theory(Skip = "PROTOTYPE interpolation handlers")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
@@ -19375,7 +19375,7 @@ struct InterpolationHandler
             );
     }
 
-    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_LValueReceiver_03()
     {
@@ -19463,7 +19463,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
     public void IndexerAccess_Get_WithInterpolationHandler_LValueReceiver_04()
@@ -19648,7 +19648,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Fact(Skip = "PROTOTYPE interpolation handlers")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_LValueReceiver_05()
     {
@@ -19820,7 +19820,7 @@ struct InterpolationHandler<TR>
             );
     }
 
-    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
     public void IndexerAccess_Get_WithInterpolationHandler_LValueReceiver_06()
@@ -19994,7 +19994,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_RValueReceiver_01()
     {
@@ -20078,7 +20078,7 @@ class Program
 ");
     }
 
-    [Theory(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Theory(Skip = "PROTOTYPE interpolation handlers")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
@@ -20169,7 +20169,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_RValueReceiver_03()
     {
@@ -20253,7 +20253,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_RValueReceiver_04()
     {
@@ -20386,7 +20386,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Fact(Skip = "PROTOTYPE interpolation handlers")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_RValueReceiver_05()
     {
@@ -20488,7 +20488,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_RValueReceiver_06()
     {
@@ -20620,7 +20620,7 @@ class Program
 ");
     }
 
-    [Theory(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Theory]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
@@ -20711,7 +20711,7 @@ class Program
 ");
     }
 
-    [Theory(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Theory]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
@@ -20804,7 +20804,7 @@ class Program
 ");
     }
 
-    [Theory(Skip = "PROTOTYPE assertion in NullableWalker")]
+    [Theory]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref readonly")]
     [InlineData("in")]
