@@ -9,8 +9,8 @@
       </trans-unit>
       <trans-unit id="Attribute">
         <source>attribute</source>
-        <target state="translated">atributo</target>
-        <note />
+        <target state="needs-review-translation">atributo</target>
+        <note>Refers to a programming attribute/annotation (noun), not the verb "to attribute"</note>
       </trans-unit>
       <trans-unit id="BadBuiltInOps1">
         <source>Illegal built-in operator name '{0}'</source>
@@ -300,8 +300,8 @@
       </trans-unit>
       <trans-unit id="Assembly">
         <source>assembly</source>
-        <target state="translated">ensamblado</target>
-        <note />
+        <target state="needs-review-translation">ensamblado</target>
+        <note>Refers to a compiled assembly in programming (noun)</note>
       </trans-unit>
       <trans-unit id="Class1">
         <source>class</source>
@@ -310,8 +310,8 @@
       </trans-unit>
       <trans-unit id="Constructor">
         <source>constructor</source>
-        <target state="translated">constructor</target>
-        <note />
+        <target state="needs-review-translation">constructor</target>
+        <note>Refers to a type constructor in programming (noun)</note>
       </trans-unit>
       <trans-unit id="Delegate1">
         <source>delegate</source>
@@ -330,13 +330,13 @@
       </trans-unit>
       <trans-unit id="Field">
         <source>field</source>
-        <target state="translated">Campo</target>
-        <note />
+        <target state="needs-review-translation">Campo</target>
+        <note>Refers to a field member in programming (noun)</note>
       </trans-unit>
       <trans-unit id="TypeParameter">
         <source>type parameter</source>
-        <target state="translated">parámetro de tipo</target>
-        <note />
+        <target state="needs-review-translation">parámetro de tipo</target>
+        <note>Refers to a generic type parameter in programming (noun)</note>
       </trans-unit>
       <trans-unit id="Interface1">
         <source>interface</source>
@@ -345,23 +345,23 @@
       </trans-unit>
       <trans-unit id="Method">
         <source>method</source>
-        <target state="translated">método</target>
-        <note />
+        <target state="needs-review-translation">método</target>
+        <note>Refers to a method/function in programming (noun)</note>
       </trans-unit>
       <trans-unit id="Module">
         <source>module</source>
-        <target state="translated">módulo</target>
-        <note />
+        <target state="needs-review-translation">módulo</target>
+        <note>Refers to a code module in programming (noun)</note>
       </trans-unit>
       <trans-unit id="Parameter">
         <source>parameter</source>
-        <target state="translated">parámetro</target>
-        <note />
+        <target state="needs-review-translation">parámetro</target>
+        <note>Refers to a method parameter in programming (noun)</note>
       </trans-unit>
       <trans-unit id="Property">
         <source>property, indexer</source>
-        <target state="translated">propiedad, indizador</target>
-        <note />
+        <target state="needs-review-translation">propiedad, indizador</target>
+        <note>Refers to a property or indexer member in programming (noun)</note>
       </trans-unit>
       <trans-unit id="Return1">
         <source>return</source>

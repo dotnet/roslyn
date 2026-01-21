@@ -131,6 +131,7 @@
   </data>
   <data name="Assembly" xml:space="preserve">
     <value>assembly</value>
+    <comment>Refers to a compiled assembly in programming (noun)</comment>
   </data>
   <data name="Class1" xml:space="preserve">
     <value>class</value>
@@ -138,9 +139,11 @@
   </data>
   <data name="Attribute" xml:space="preserve">
     <value>attribute</value>
+    <comment>Refers to a programming attribute/annotation (noun), not the verb "to attribute"</comment>
   </data>
   <data name="Constructor" xml:space="preserve">
     <value>constructor</value>
+    <comment>Refers to a type constructor in programming (noun)</comment>
   </data>
   <data name="Delegate1" xml:space="preserve">
     <value>delegate</value>
@@ -156,9 +159,11 @@
   </data>
   <data name="Field" xml:space="preserve">
     <value>field</value>
+    <comment>Refers to a field member in programming (noun)</comment>
   </data>
   <data name="TypeParameter" xml:space="preserve">
     <value>type parameter</value>
+    <comment>Refers to a generic type parameter in programming (noun)</comment>
   </data>
   <data name="Interface1" xml:space="preserve">
     <value>interface</value>
@@ -166,15 +171,19 @@
   </data>
   <data name="Method" xml:space="preserve">
     <value>method</value>
+    <comment>Refers to a method/function in programming (noun)</comment>
   </data>
   <data name="Module" xml:space="preserve">
     <value>module</value>
+    <comment>Refers to a code module in programming (noun)</comment>
   </data>
   <data name="Parameter" xml:space="preserve">
     <value>parameter</value>
+    <comment>Refers to a method parameter in programming (noun)</comment>
   </data>
   <data name="Property" xml:space="preserve">
     <value>property, indexer</value>
+    <comment>Refers to a property or indexer member in programming (noun)</comment>
   </data>
   <data name="Return1" xml:space="preserve">
     <value>return</value>
