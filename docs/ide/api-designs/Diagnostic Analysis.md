@@ -74,6 +74,25 @@ Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
   `GetDiagnosticsForIdsAsync` when you need both document and project diagnostics, or alone when only project diagnostics 
   are required.
 
+**Understanding Non-Local Diagnostics:**
+
+Non-local diagnostics are diagnostics that cannot be determined by analyzing a single document in isolation. These 
+diagnostics are reported by analyzers in one of two ways:
+
+1. **Compilation-end diagnostics**: Diagnostics reported during the compilation-end analysis phase, after all documents 
+   have been analyzed. These diagnostics may require information from the entire compilation to be computed correctly. 
+   For example, an analyzer might report unused type parameters only after analyzing all usages across all files in the 
+   compilation.
+
+2. **Cross-file diagnostics**: Diagnostics reported in a different file than where the analyzer callback was registered. 
+   For example, an analyzer registered on a method in File A might report a diagnostic on a caller of that method in 
+   File B.
+
+Because non-local diagnostics require analyzing the entire project to ensure completeness, they are excluded from 
+`GetDiagnosticsForSpanAsync` to keep that API fast and suitable for real-time features like error squiggles and 
+lightbulbs. To obtain non-local diagnostics for a document, you must use `GetDiagnosticsForIdsAsync`, which runs the 
+full compilation analysis.
+
 These methods constitute the exclusive entry points features should utilize. Upon invocation:
 
 1. Attempts execution out-of-process (OOP) if a remote host is available
