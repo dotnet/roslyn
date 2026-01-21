@@ -59,38 +59,45 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
             if (!shouldPreselectInferredTypes)
                 return recommendedSymbols.NamedSymbols.SelectAsArray(s => new SymbolAndSelectionInfo(Symbol: s, Preselect: false));
 
-            var inferredTypes = context.InferredTypes.Where(t => t.SpecialType != SpecialType.System_Void).Distinct(SymbolEqualityComparer.Default).Cast<ITypeSymbol>().ToImmutableArray();
-            var enumerableOfObjectType = context.SemanticModel.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(context.SemanticModel.Compilation.GetSpecialType(SpecialType.System_Object));
-            var asyncEnumerableOfObjectType = context.SemanticModel.Compilation.IAsyncEnumerableOfTType()?.Construct(context.SemanticModel.Compilation.GetSpecialType(SpecialType.System_Object));
+            var inferredTypes = context.InferredTypes.Where(t => t.SpecialType != SpecialType.System_Void).ToSet<ITypeSymbol>(SymbolEqualityComparer.Default);
+            var objectType = context.SemanticModel.Compilation.GetSpecialType(SpecialType.System_Object);
+            var enumerableOfObjectType = context.SemanticModel.Compilation.IEnumerableOfTType()?.Construct(objectType);
+            var asyncEnumerableOfObjectType = context.SemanticModel.Compilation.IAsyncEnumerableOfTType()?.Construct(objectType);
 
             return recommendedSymbols.NamedSymbols.SelectAsArray(
                 static (symbol, args) =>
                 {
+                    var (inferredTypes, compilation, self, enumerableOfObjectType, asyncEnumerableOfObjectType) = args;
+
                     // Don't preselect intrinsic type symbols so we can preselect their keywords instead. We will also
                     // ignore nullability for purposes of preselection -- if a method is returning a string? but we've
                     // inferred we're assigning to a string or vice versa we'll still count those as the same.
 
                     var symbolType = GetSymbolType(symbol);
-                    var preselect = !args.self.IsInstrinsic(symbol) &&
-                                    symbolType != null &&
-                                    args.inferredTypes.Length > 0 &&
-                                    (CompletionUtilities.IsTypeImplicitlyConvertible(args.compilation, symbolType, args.inferredTypes) ||
-                                     IsForEachEnumerableMatch(symbolType, args.inferredTypes, args.enumerableOfObjectType, args.asyncEnumerableOfObjectType, args.compilation));
+                    var preselect =
+                        !self.IsInstrinsic(symbol) &&
+                        symbolType != null &&
+                        inferredTypes.Count > 0 &&
+                        (CompletionUtilities.IsTypeImplicitlyConvertible(compilation, symbolType, inferredTypes) ||
+                         IsForEachEnumerableMatch(symbolType, inferredTypes, enumerableOfObjectType, asyncEnumerableOfObjectType));
                     return new SymbolAndSelectionInfo(symbol, preselect);
                 },
                 (inferredTypes, compilation: context.SemanticModel.Compilation, self: this, enumerableOfObjectType, asyncEnumerableOfObjectType));
         }
     }
 
-    private static bool IsForEachEnumerableMatch(ITypeSymbol symbolType, ImmutableArray<ITypeSymbol> inferredTypes, INamedTypeSymbol enumerableOfObjectType,
-        INamedTypeSymbol? asyncEnumerableOfObjectType, Compilation compilation)
+    private static bool IsForEachEnumerableMatch(
+        ITypeSymbol symbolType,
+        ISet<ITypeSymbol> inferredTypes,
+        INamedTypeSymbol? enumerableOfObjectType,
+        INamedTypeSymbol? asyncEnumerableOfObjectType)
     {
         foreach (var inferredType in inferredTypes)
         {
             if (SymbolEqualityComparer.Default.Equals(inferredType, enumerableOfObjectType) && symbolType.CanBeEnumerated())
                 return true;
 
-            if (SymbolEqualityComparer.Default.Equals(inferredType, asyncEnumerableOfObjectType) && symbolType.CanBeAsynchronouslyEnumerated(compilation))
+            if (SymbolEqualityComparer.Default.Equals(inferredType, asyncEnumerableOfObjectType) && symbolType.CanBeAsynchronouslyEnumerated(asyncEnumerableOfObjectType))
                 return true;
         }
 
