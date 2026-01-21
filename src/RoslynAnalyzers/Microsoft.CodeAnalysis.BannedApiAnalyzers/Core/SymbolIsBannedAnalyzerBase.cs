@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
         {
             // Read the exclude_generated_code option from global editorconfig options
             if (options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(
-                $"dotnet_diagnostic.{Analyzer.Utilities.EditorConfigOptionNames.ExcludeGeneratedCode}",
+                Analyzer.Utilities.EditorConfigOptionNames.ExcludeGeneratedCode,
                 out var value))
             {
                 return bool.TryParse(value, out var result) && result;
