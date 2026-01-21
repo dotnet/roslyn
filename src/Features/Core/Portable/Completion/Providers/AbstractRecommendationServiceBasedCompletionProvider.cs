@@ -59,7 +59,7 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
             if (!shouldPreselectInferredTypes)
                 return recommendedSymbols.NamedSymbols.SelectAsArray(s => new SymbolAndSelectionInfo(Symbol: s, Preselect: false));
 
-            var inferredTypes = context.InferredTypes.Where(t => t.SpecialType != SpecialType.System_Void).ToImmutableArray();
+            var inferredTypes = context.InferredTypes.Where(t => t.SpecialType != SpecialType.System_Void).Distinct(SymbolEqualityComparer.Default).Cast<ITypeSymbol>().ToImmutableArray();
             var enumerableOfObjectType = context.SemanticModel.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(context.SemanticModel.Compilation.GetSpecialType(SpecialType.System_Object));
             var asyncEnumerableOfObjectType = context.SemanticModel.Compilation.IAsyncEnumerableOfTType()?.Construct(context.SemanticModel.Compilation.GetSpecialType(SpecialType.System_Object));
 
@@ -87,15 +87,10 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
     {
         foreach (var inferredType in inferredTypes)
         {
-            if (SymbolEqualityComparer.Default.Equals(inferredType, enumerableOfObjectType))
-            {
-                if (symbolType.CanBeEnumerated())
-                    return true;
-            }
+            if (SymbolEqualityComparer.Default.Equals(inferredType, enumerableOfObjectType) && symbolType.CanBeEnumerated())
+                return true;
 
-            if (!SymbolEqualityComparer.Default.Equals(inferredType, asyncEnumerableOfObjectType))
-                continue;
-            if (symbolType.CanBeAsynchronouslyEnumerated(compilation))
+            if (SymbolEqualityComparer.Default.Equals(inferredType, asyncEnumerableOfObjectType) && symbolType.CanBeAsynchronouslyEnumerated(compilation))
                 return true;
         }
 
