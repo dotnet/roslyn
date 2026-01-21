@@ -5,7 +5,7 @@
     "rollForward": "major"
   },
   "tools": {
-    "dotnet": "6.0.133",
+    "dotnet": "8.0.123",
     "vs": {
       "version": "16.10"
     },
