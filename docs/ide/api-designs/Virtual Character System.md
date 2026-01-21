@@ -97,13 +97,13 @@ used for the offset, which supports tokens up to 268 million characters long—f
 **Examples**:
 ```csharp
 // Regular character 'a' in "abc"
-new VirtualCharGreen('a', offset: 1, width: 1)
+new VirtualCharGreen('a', offset: ..., width: 1)
 
 // Tab character from "\t" escape
-new VirtualCharGreen('\t', offset: 2, width: 2)
+new VirtualCharGreen('\t', offset: ..., width: 2)
 
 // 'A' from Unicode escape "\u0041"
-new VirtualCharGreen('A', offset: 2, width: 6)
+new VirtualCharGreen('A', offset: ..., width: 6)
 ```
 
 #### VirtualChar (Position-Aware)
