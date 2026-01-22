@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -44,17 +45,32 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             context.RegisterCompilationStartAction(OnCompilationStart);
         }
 
-        private static bool ShouldExcludeGeneratedCode(AnalyzerOptions options)
+        private static bool TryGetSyntaxTreeForSymbol(ISymbol symbol, [NotNullWhen(returnValue: true)] out SyntaxTree? tree)
         {
-            // Read the exclude_generated_code option from global editorconfig options
-            if (options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(
-                Analyzer.Utilities.EditorConfigOptionNames.ExcludeGeneratedCode,
-                out var value))
+            switch (symbol.Kind)
             {
-                return bool.TryParse(value, out var result) && result;
+                case SymbolKind.Assembly:
+                case SymbolKind.Namespace when ((INamespaceSymbol)symbol).IsGlobalNamespace:
+                    tree = null;
+                    return false;
+                case SymbolKind.Parameter:
+                    return TryGetSyntaxTreeForSymbol(symbol.ContainingSymbol, out tree);
+                default:
+                    tree = symbol.Locations.FirstOrDefault()?.SourceTree;
+                    return tree != null;
             }
+        }
 
-            return false; // Default is to analyze generated code
+        private bool ShouldExcludeGeneratedCode(AnalyzerOptions options, SyntaxTree tree, Compilation compilation)
+        {
+            // Read the exclude_generated_code option from editorconfig
+            // This is a rule-specific option: dotnet_code_quality.RS0030.exclude_generated_code = true
+            return options.GetBoolOptionValue(
+                Analyzer.Utilities.EditorConfigOptionNames.ExcludeGeneratedCode,
+                SymbolIsBannedRule,
+                tree,
+                compilation,
+                defaultValue: false);
         }
 
         private void OnCompilationStart(CompilationStartAnalysisContext compilationContext)
@@ -62,9 +78,6 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             var bannedApis = ReadBannedApis(compilationContext);
             if (bannedApis == null || bannedApis.Count == 0)
                 return;
-
-            // Check if we should exclude generated code
-            var excludeGeneratedCode = ShouldExcludeGeneratedCode(compilationContext.Options);
 
             if (ShouldAnalyzeAttributes())
             {
@@ -78,8 +91,13 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 compilationContext.RegisterSymbolAction(
                     context =>
                     {
-                        if (excludeGeneratedCode && context.IsGeneratedCode)
+                        // Check if we should exclude generated code for this specific file
+                        if (context.IsGeneratedCode &&
+                            TryGetSyntaxTreeForSymbol(context.Symbol, out var tree) &&
+                            ShouldExcludeGeneratedCode(context.Options, tree, context.Compilation))
+                        {
                             return;
+                        }
 
                         VerifyAttributes(context.ReportDiagnostic, context.Symbol.GetAttributes(), context.CancellationToken);
                     },
@@ -93,8 +111,12 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             compilationContext.RegisterOperationAction(
                 context =>
                 {
-                    if (excludeGeneratedCode && context.IsGeneratedCode)
+                    // Check if we should exclude generated code for this specific file
+                    if (context.IsGeneratedCode &&
+                        ShouldExcludeGeneratedCode(context.Options, context.Operation.Syntax.SyntaxTree, context.Compilation))
+                    {
                         return;
+                    }
 
                     context.CancellationToken.ThrowIfCancellationRequested();
                     switch (context.Operation)
@@ -181,8 +203,12 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             compilationContext.RegisterSyntaxNodeAction(
                 context =>
                 {
-                    if (excludeGeneratedCode && context.IsGeneratedCode)
+                    // Check if we should exclude generated code for this specific file
+                    if (context.IsGeneratedCode &&
+                        ShouldExcludeGeneratedCode(context.Options, context.Node.SyntaxTree, context.Compilation))
+                    {
                         return;
+                    }
 
                     VerifyDocumentationSyntax(context.ReportDiagnostic, GetReferenceSyntaxNodeFromXmlCref(context.Node), context);
                 },
@@ -191,8 +217,12 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             compilationContext.RegisterSyntaxNodeAction(
                 context =>
                 {
-                    if (excludeGeneratedCode && context.IsGeneratedCode)
+                    // Check if we should exclude generated code for this specific file
+                    if (context.IsGeneratedCode &&
+                        ShouldExcludeGeneratedCode(context.Options, context.Node.SyntaxTree, context.Compilation))
+                    {
                         return;
+                    }
 
                     VerifyBaseTypesSyntax(context.ReportDiagnostic, GetTypeSyntaxNodesFromBaseType(context.Node), context);
                 },
