@@ -6,8 +6,8 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -133,40 +133,26 @@ internal static class CollectionExpressionUtilities
             static a => a.AttributeClass.IsCollectionBuilderAttribute());
 
         // https://github.com/dotnet/csharplang/blob/main/proposals/collection-expression-arguments.md#create-method-candidates
-        // A [CollectionBuilder(...)] attribute specifies the builder type and method name of a method to be invoked
-        // to construct an instance of the collection type.
+        // A [CollectionBuilder(...)] attribute specifies the builder type and method name of a method to be invoked to
+        // construct an instance of the collection type.
         if (attribute is not { ConstructorArguments: [{ Value: INamedTypeSymbol builderType }, { Value: string builderMethodName }] })
             return null;
 
-        // Find all the methods in the builder type with the given name that have a ReadOnlySpan<T> as either their
-        // first or last parameter.
+        // Find all the static methods in the builder type with the given name that have a ReadOnlySpan<T> as their last
+        // parameter, matching the arity of the returned collection type.  Then construct the construction method if
+        // generic. And filter to only those that return the collection type being created.
+
         var builderMethods = builderType
-            // The method must have the name specified in the [CollectionBuilder(...)] attribute.
             .GetMembers(builderMethodName)
             .OfType<IMethodSymbol>()
             .Where(m =>
-                // The method must be static.
                 m.IsStatic &&
-                // The arity of the method must match the arity of the collection type.
                 m.Arity == collectionExpressionType.Arity &&
-                m.Parameters.Length >= 1 &&
-                // The method must have a first (or last) parameter of type System.ReadOnlySpan<E>, passed by value.
-                (Equals(m.Parameters[0].Type.OriginalDefinition, readonlySpanOfTType) ||
-                 Equals(m.Parameters.Last().Type.OriginalDefinition, readonlySpanOfTType)))
-            .ToImmutableArray();
+                m.Parameters is [.., var lastParameter] &&
+                Equals(lastParameter.Type.OriginalDefinition, readonlySpanOfTType))
+            .Select(m => m.Arity == 0 ? m : m.Construct(ImmutableCollectionsMarshal.AsArray(collectionExpressionType.TypeArguments)!))
+            .Where(m => compilation.ClassifyCommonConversion(m.ReturnType, collectionExpressionType).IsIdentityOrImplicitReference());
 
-        // Instance the construction method if generic. And filter to only those that return the collection type
-        // being created.
-        var constructedBuilderMethods = builderMethods
-            .Select(m => m.Construct([.. collectionExpressionType.TypeArguments]))
-            .Where(m =>
-            {
-                // There is an identity conversion, implicit reference conversion, or boxing conversion from the method return type to the collection type.
-                var conversion = compilation.ClassifyCommonConversion(m.ReturnType, collectionExpressionType);
-                return conversion.IsIdentity || (conversion.IsImplicit && conversion.IsReference);
-            })
-            .ToImmutableArray();
-
-        return constructedBuilderMethods;
+        return [.. builderMethods];
     }
 }
