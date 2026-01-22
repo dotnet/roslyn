@@ -478,6 +478,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsDisallowedExtensionInOlderLangVer(builder.MoveNextInfo.Method));
             Debug.Assert(!IsDisallowedExtensionInOlderLangVer(builder.CurrentPropertyGetter));
 
+            if (builder.NeedsDisposal)
+            {
+                MethodSymbol disposeMethod = builder.PatternDisposeInfo?.Method;
+                if (disposeMethod is null)
+                {
+                    LocalRewriter.TryGetDisposeMethod(Compilation, _syntax, builder.IsAsync, diagnostics, out disposeMethod);
+                }
+
+                if (disposeMethod is not null)
+                {
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, disposeMethod, foreachKeyword);
+                }
+            }
+
             // We want to convert from inferredType in the array/string case and builder.ElementType in the enumerator case,
             // but it turns out that these are equivalent (when both are available).
 

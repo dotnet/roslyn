@@ -32,26 +32,19 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CallerUnsafeMode expectedUnsafeMode = CallerUnsafeMode.Explicit,
         CSharpParseOptions? parseOptions = null,
         CSharpCompilationOptions? optionsDll = null,
-        DiagnosticDescription[]? expectedDiagnosticsWhenReferencingLegacyLib = null,
-        MetadataReference? corlib = null,
-        bool includesSynthesizedRequiresUnsafeAttributeDefinition = true)
+        TargetFramework targetFramework = TargetFramework.Standard,
+        DiagnosticDescription[]? expectedDiagnosticsWhenReferencingLegacyLib = null)
     {
         optionsDll ??= TestOptions.UnsafeReleaseDll;
         var optionsExe = optionsDll.WithOutputKind(OutputKind.ConsoleApplication);
 
-        var (targetFramework, references) = corlib is null
-            ? (TargetFramework.Standard, Enumerable.Empty<MetadataReference>())
-            : (TargetFramework.Empty, [corlib]);
-
         CreateCompilation([lib, caller, .. additionalSources],
-            references,
             targetFramework: targetFramework,
             parseOptions: parseOptions,
             options: optionsExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(expectedDiagnostics);
 
         var libUpdated = CompileAndVerify([lib, .. additionalSources],
-            references,
             targetFramework: targetFramework,
             parseOptions: parseOptions,
             options: optionsDll.WithUpdatedMemorySafetyRules(),
@@ -63,7 +56,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         foreach (var libUpdatedRef in libUpdatedRefs)
         {
-            var libAssemblySymbol = CreateCompilation(caller, [libUpdatedRef, .. references],
+            var libAssemblySymbol = CreateCompilation(caller, [libUpdatedRef],
                 targetFramework: targetFramework,
                 parseOptions: parseOptions,
                 options: optionsExe.WithUpdatedMemorySafetyRules())
@@ -74,7 +67,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         }
 
         var libLegacy = CompileAndVerify([lib, .. additionalSources],
-            references,
             targetFramework: targetFramework,
             parseOptions: parseOptions,
             options: optionsDll,
@@ -91,7 +83,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics()
             .GetImageReference();
 
-        CreateCompilation(caller, [libLegacy, .. references],
+        CreateCompilation(caller, [libLegacy],
             targetFramework: targetFramework,
             parseOptions: parseOptions,
             options: optionsExe.WithUpdatedMemorySafetyRules())
@@ -114,8 +106,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 VerifyMemorySafetyRulesAttribute(module, includesAttributeDefinition: true, includesAttributeUse: true, isSynthesized: true);
                 VerifyRequiresUnsafeAttribute(
                     module,
-                    includesAttributeDefinition: includesSynthesizedRequiresUnsafeAttributeDefinition,
-                    isSynthesized: includesSynthesizedRequiresUnsafeAttributeDefinition ? true : null,
+                    includesAttributeDefinition: true,
+                    isSynthesized: true,
                     expectedUnsafeSymbols: expectedUnsafeSymbols,
                     expectedSafeSymbols: expectedSafeSymbols,
                     expectedUnsafeMode: expectedUnsafeMode);
@@ -3702,52 +3694,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Dispose_Interface()
     {
-        var corlib = CreateEmptyCompilation("""
-            namespace System
-            {
-                public class Object;
-                public class ValueType;
-                public class Attribute;
-                public struct Void;
-                public struct Int32;
-                public struct Boolean;
-                public class AttributeUsageAttribute
-                {
-                    public AttributeUsageAttribute(AttributeTargets t) { }
-                    public bool AllowMultiple { get; set; }
-                    public bool Inherited { get; set; }
-                }
-                public class String;
-                public class Enum;
-                public enum AttributeTargets;
-                public interface IDisposable
-                {
-                    unsafe void Dispose();
-                }
-            }
-
-            namespace System.Runtime.CompilerServices
-            {
-                public class CompilerGeneratedAttribute;
-            }
-            """,
-            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics()
-            .EmitToImageReference();
-
-        var corlibModule = CreateEmptyCompilation("", [corlib]).GetReferencedAssemblySymbol(corlib).Modules.Single();
-        VerifyMemorySafetyRulesAttribute(
-            corlibModule,
-            includesAttributeDefinition: true,
-            isSynthesized: true,
-            includesAttributeUse: true);
-        VerifyRequiresUnsafeAttribute(
-            corlibModule,
-            includesAttributeDefinition: true,
-            isSynthesized: true,
-            expectedUnsafeSymbols: ["System.IDisposable.Dispose"],
-            expectedSafeSymbols: ["System.IDisposable"]);
-
         CompileAndVerifyUnsafe(
             lib: """
                 public class C : System.IDisposable
@@ -3757,19 +3703,52 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     public int Current => 0;
                     public void Dispose() { }
                 }
+
+                namespace System
+                {
+                    public class Object;
+                    public class ValueType;
+                    public class Attribute;
+                    public struct Void;
+                    public struct Int32;
+                    public struct Boolean;
+                    public class AttributeUsageAttribute
+                    {
+                        public AttributeUsageAttribute(AttributeTargets t) { }
+                        public bool AllowMultiple { get; set; }
+                        public bool Inherited { get; set; }
+                    }
+                    public class String;
+                    public class Enum;
+                    public enum AttributeTargets;
+                    public interface IDisposable
+                    {
+                        unsafe void Dispose();
+                    }
+                }
+
+                namespace System.Runtime.CompilerServices
+                {
+                    public class CompilerGeneratedAttribute;
+                }
                 """,
             caller: """
                 foreach (var x in new C()) { }
                 using (var c = new C()) { }
                 """,
-            expectedUnsafeSymbols: [],
-            expectedSafeSymbols: ["C", "C.Dispose"],
+            targetFramework: TargetFramework.Empty,
+            optionsDll: TestOptions.UnsafeDebugDll
+                // warning CS8021: No value for RuntimeMetadataVersion found
+                .WithSpecificDiagnosticOptions([KeyValuePair.Create("CS8021", ReportDiagnostic.Suppress)]),
+            expectedUnsafeSymbols: ["System.IDisposable.Dispose"],
+            expectedSafeSymbols: ["C", "C.Dispose", "System.IDisposable"],
             verify: Verification.FailsPEVerify,
-            // PROTOTYPE: An error for the unsafe Dispose usage should be reported.
-            expectedDiagnostics: [],
-            corlib: corlib,
-            // The RequiresUnsafe attribute is synthesized into corlib already, so our lib reuses that.
-            includesSynthesizedRequiresUnsafeAttributeDefinition: false);
+            expectedDiagnostics:
+            [
+                // (1,1): error CS9502: 'IDisposable.Dispose()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // foreach (var x in new C()) { }
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "foreach").WithArguments("System.IDisposable.Dispose()").WithLocation(1, 1),
+            ]);
     }
 
     [Fact]
