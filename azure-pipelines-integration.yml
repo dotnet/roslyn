@@ -34,16 +34,21 @@ pr:
       - docs/*
       - eng/config/OptProf.json
       - eng/config/PublishData.json
+      - eng/setup-pr-validation.ps1
+      - src/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework/README.md
       - .vscode/*
       - .github/*
       - .devcontainer/*
       - .git-blame-ignore-revs
       - .vsconfig
+      - azure-pipelines-compliance.yml
+      - azure-pipelines-integration-dartlab.yml
+      - azure-pipelines-integration-scouting.yml
+      - azure-pipelines-official.yml
+      - azure-pipelines-pr-validation.yml
       - CODE-OF-CONDUCT.md
       - CONTRIBUTING.md
       - README.md
-      - src/Compilers/*
-      - src/Features/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework/README.md
  
 parameters:
 - name: poolName
