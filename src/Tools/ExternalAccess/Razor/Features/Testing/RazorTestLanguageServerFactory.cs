@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
         private IRazorLanguageServerTarget CreateLanguageServerCore(JsonRpc jsonRpc, JsonSerializerOptions options, IRazorTestCapabilitiesProvider razorCapabilitiesProvider, HostServices hostServices, WellKnownLspServerKinds serverKind)
         {
-            // todo - create razor test provider that wraps IRazorTestCapabilitiesProvider
             razorTestCapabilitiesProvider.RazorTestCapabilities = razorCapabilitiesProvider;
             razorTestCapabilitiesProvider.JsonSerializerOptions = options;
             var languageServer = _languageServerFactory.Create(jsonRpc, options, serverKind, NoOpLspLogger.Instance, hostServices);
