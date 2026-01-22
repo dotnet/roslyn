@@ -1449,7 +1449,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</source>
-        <target state="new">'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</target>
+        <target state="translated">'{0}'에 '{1}'에 대한 정의가 없고, '{1}' 형식의 첫 번째 인수를 받는 액세스 가능한 확장 메서드 '{0}'을(를) 찾을 수 없습니다(대신 'await foreach'를 사용하여 비동기 컬렉션을 반복하려고 한 건가요?).</target>
         <note>'await foreach' is not localizable</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
