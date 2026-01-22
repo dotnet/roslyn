@@ -149,7 +149,6 @@
   </data>
   <data name="Enum1" xml:space="preserve">
     <value>enum</value>
-    <comment>Refers to an enumeration type in programming (noun)</comment>
   </data>
   <data name="Event1" xml:space="preserve">
     <value>event</value>
@@ -183,7 +182,6 @@
   </data>
   <data name="Struct1" xml:space="preserve">
     <value>struct</value>
-    <comment>Refers to a structure type in programming (noun)</comment>
   </data>
   <data name="CannotCreateReferenceToSubmission" xml:space="preserve">
     <value>Can't create a reference to a submission.</value>

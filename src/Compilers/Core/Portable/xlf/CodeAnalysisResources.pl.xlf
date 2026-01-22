@@ -321,7 +321,7 @@
       <trans-unit id="Enum1">
         <source>enum</source>
         <target state="needs-review-translation">wyliczenie</target>
-        <note>Refers to an enumeration type in programming (noun)</note>
+        <note />
       </trans-unit>
       <trans-unit id="Event1">
         <source>event</source>
@@ -371,7 +371,7 @@
       <trans-unit id="Struct1">
         <source>struct</source>
         <target state="needs-review-translation">struktura</target>
-        <note>Refers to a structure type in programming (noun)</note>
+        <note />
       </trans-unit>
       <trans-unit id="CannotCreateReferenceToSubmission">
         <source>Can't create a reference to a submission.</source>
