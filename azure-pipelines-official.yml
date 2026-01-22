@@ -277,7 +277,7 @@ extends:
             zipSources: false
             feedSource: https://dnceng.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json
             # Set ConnectedPMEServiceName if the build is a CI build, otherwise it is not needed
-            ${{ if or(eq(variables['Build.Reason'], 'IndividualCI'), parameters.PMEOverride) }}:
+            ${{ if or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'Schedule'), parameters.PMEOverride) }}:
               ConnectedPMEServiceName: 248d384a-b39b-46e3-8ad5-c2c210d5e7ca
           condition: and(succeeded(), in('${{ parameters.SignType }}', 'test', 'real'))
 
