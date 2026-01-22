@@ -198,7 +198,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\VirtualCharUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\AnalysisContextExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CollectionExpressionUtilities.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)extensions\CommonConversionExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\CommonConversionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DiagnosticAnalyzerExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DiagnosticDescriptorExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DiagnosticSeverityExtensions_Shared.cs" />
