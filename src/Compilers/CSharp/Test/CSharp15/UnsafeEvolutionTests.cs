@@ -3751,6 +3751,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 using (var c = new C()) { }
                 System.Collections.Generic.List<int> l = [.. new C()];
                 unsafe { foreach (var x in new C()) { } }
+                unsafe { using (var c = new C()) { } }
                 unsafe { System.Collections.Generic.List<int> l2 = [.. new C()]; }
                 """,
             targetFramework: TargetFramework.Empty,
@@ -3765,6 +3766,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (1,1): error CS9502: 'IDisposable.Dispose()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // foreach (var x in new C()) { }
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "foreach").WithArguments("System.IDisposable.Dispose()").WithLocation(1, 1),
+                // (2,8): error CS9502: 'IDisposable.Dispose()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // using (var c = new C()) { }
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "var c = new C()").WithArguments("System.IDisposable.Dispose()").WithLocation(2, 8),
                 // (3,43): error CS9502: 'IDisposable.Dispose()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // System.Collections.Generic.List<int> l = [.. new C()];
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "..").WithArguments("System.IDisposable.Dispose()").WithLocation(3, 43),
