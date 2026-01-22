@@ -239,7 +239,8 @@ namespace Analyzer.Utilities
 
         /// <summary>
         /// Boolean option to exclude generated code from analysis by the BannedApiAnalyzer.
+        /// Configurable rule: RS0030 (https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md).
         /// </summary>
-        public const string ExcludeGeneratedCode = "exclude_generated_code";
+        public const string BannedApiExcludeGeneratedCode = "banned_api_exclude_generated_code";
     }
 }

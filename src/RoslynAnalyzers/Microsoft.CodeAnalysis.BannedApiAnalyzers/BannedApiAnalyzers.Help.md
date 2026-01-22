@@ -79,11 +79,7 @@ The BannedApiAnalyzer supports configuration via `.editorconfig` files.
 You can exclude source-generated files from analysis by adding the following to your `.editorconfig`:
 
 ```ini
-# Apply to all rules in this analyzer
-dotnet_code_quality.exclude_generated_code = true
-
-# Or apply only to the RS0030 rule
-dotnet_code_quality.RS0030.exclude_generated_code = true
+banned_api_exclude_generated_code = true
 ```
 
 By default, the analyzer runs on all files, including generated code. Setting this option to `true` will skip analysis of files that are marked as generated code.
