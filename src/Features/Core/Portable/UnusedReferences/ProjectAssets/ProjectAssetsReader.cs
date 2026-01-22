@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences.ProjectAssets
         /// </summary>
         public static ImmutableArray<ReferenceInfo> AddDependencyHierarchies(
             ImmutableArray<ReferenceInfo> projectReferences,
-            ProjectAssetsFile projectAssets)
+            ProjectAssetsFile? projectAssets)
         {
             if (projectAssets is null ||
                 projectAssets.Version != 3)

@@ -99,7 +99,8 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var reader = solutionInfo.CreateReader();
             var serializer = JsonSerializer.Create(new JsonSerializerSettings() { Converters = new[] { AggregateJsonConverter.Instance }, DateParseHandling = DateParseHandling.None });
-            var pinnedSolutionInfo = serializer.Deserialize<PinnedSolutionInfo>(reader);
+            var pinnedSolutionInfo = serializer.Deserialize<PinnedSolutionInfo>(reader)
+                ?? throw new InvalidOperationException("Failed to deserialize json reader.");
 
             return GetSolutionAsync(pinnedSolutionInfo, cancellationToken);
         }
