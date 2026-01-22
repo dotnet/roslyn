@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 
@@ -125,6 +126,22 @@ internal static class CollectionExpressionUtilities
         }
     }
 
+    /// <summary>
+    /// Gets the collection builder factory methods for the given collection expression type, if any.  Or <see
+    /// langword="null"/> if the type does not have a valid <see cref="CollectionBuilderAttribute"/> that can be
+    /// resolved.  The returned methods are guaranteed to match the language rules about what a factory method
+    /// must look like.  That means, at a minimum:
+    /// <list type="number">
+    /// <item>they must be static</item>
+    /// <item>their <see cref="IMethodSymbol.Arity"/> must match that of <paramref
+    /// name="collectionExpressionType"/></item>
+    /// <item>They must have a final parameter that is the <see cref="ReadOnlySpan{T}"/> containing the elements of the
+    /// collection</item>
+    /// </list>
+    /// 
+    /// Generic factory methods will be appropriately constructed to match the type arguments of <paramref
+    /// name="collectionExpressionType"/>.
+    /// </summary>
     public static ImmutableArray<IMethodSymbol>? TryGetCollectionBuilderFactoryMethods(
         Compilation compilation, INamedTypeSymbol collectionExpressionType)
     {
