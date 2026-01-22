@@ -641,18 +641,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (_lazyCustomAttributes.IsDefault)
             {
-                var containingPEModuleSymbol = (PEModuleSymbol)this.ContainingModule;
-
-                var loadedCustomAttributes = containingPEModuleSymbol.GetCustomAttributesForToken(
-                    Handle,
-                    out _,
-                    // Filter out [IsUnmanagedAttribute]
-                    HasUnmanagedTypeConstraint ? AttributeDescription.IsUnmanagedAttribute : default);
-
-                ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, loadedCustomAttributes);
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, loadAndFilterAttributes());
             }
 
             return _lazyCustomAttributes;
+
+            ImmutableArray<CSharpAttributeData> loadAndFilterAttributes()
+            {
+                var containingModule = (PEModuleSymbol)this.ContainingModule;
+                if (!containingModule.TryGetNonEmptyCustomAttributes(Handle, out var customAttributeHandles))
+                    return [];
+
+                var filterIsUnmanagedAttribute = HasUnmanagedTypeConstraint;
+                var builder = TemporaryArray<CSharpAttributeData>.Empty;
+                foreach (var handle in customAttributeHandles)
+                {
+                    if (filterIsUnmanagedAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.IsUnmanagedAttribute))
+                        continue;
+
+                    builder.Add(new PEAttributeData(containingModule, handle));
+                }
+
+                return builder.ToImmutableAndClear();
+            }
         }
 
         private TypeParameterBounds GetBounds(ConsList<TypeParameterSymbol> inProgress)

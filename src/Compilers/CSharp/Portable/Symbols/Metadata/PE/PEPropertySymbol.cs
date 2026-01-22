@@ -14,6 +14,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -731,30 +732,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (!_flags.IsCustomAttributesPopulated)
             {
-                var containingPEModuleSymbol = (PEModuleSymbol)this.ContainingModule;
-
-                ImmutableArray<CSharpAttributeData> attributes = containingPEModuleSymbol.GetCustomAttributesForToken(
-                      _handle,
-                      out _,
-                      this.RefKind == RefKind.RefReadOnly ? AttributeDescription.IsReadOnlyAttribute : default,
-                      out CustomAttributeHandle required,
-                      AttributeDescription.RequiredMemberAttribute,
-                      out _,
-                      this.IsExtensionBlockMember() ? AttributeDescription.ExtensionMarkerAttribute : default,
-                      out _,
-                      default,
-                      out _,
-                      default,
-                      out _,
-                      default);
-
+                var attributes = LoadAndFilterAttributes(out var hasRequiredMemberAttribute);
                 if (!attributes.IsEmpty)
                 {
                     ImmutableInterlocked.InterlockedInitialize(ref AccessUncommonFields()._lazyCustomAttributes, attributes);
                 }
 
                 _flags.SetCustomAttributesPopulated();
-                _flags.SetHasRequiredMemberAttribute(!required.IsNil);
+                _flags.SetHasRequiredMemberAttribute(hasRequiredMemberAttribute);
             }
 
             var uncommonFields = _uncommonFields;
@@ -773,6 +758,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 return result;
             }
+        }
+
+        private ImmutableArray<CSharpAttributeData> LoadAndFilterAttributes(out bool hasRequiredMemberAttribute)
+        {
+            hasRequiredMemberAttribute = false;
+
+            var containingModule = (PEModuleSymbol)this.ContainingModule;
+            if (!containingModule.TryGetNonEmptyCustomAttributes(_handle, out var customAttributeHandles))
+            {
+                return [];
+            }
+
+            var filterIsReadOnlyAttribute = this.RefKind == RefKind.RefReadOnly;
+            var filterExtensionMarkerAttribute = this.IsExtensionBlockMember();
+
+            using var builder = TemporaryArray<CSharpAttributeData>.Empty;
+            foreach (var handle in customAttributeHandles)
+            {
+                if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.RequiredMemberAttribute))
+                {
+                    hasRequiredMemberAttribute = true;
+                    continue;
+                }
+
+                if (filterIsReadOnlyAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.IsReadOnlyAttribute))
+                    continue;
+
+                if (filterExtensionMarkerAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.ExtensionMarkerAttribute))
+                    continue;
+
+                builder.Add(new PEAttributeData(containingModule, handle));
+            }
+
+            return builder.ToImmutableAndClear();
         }
 
         internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)

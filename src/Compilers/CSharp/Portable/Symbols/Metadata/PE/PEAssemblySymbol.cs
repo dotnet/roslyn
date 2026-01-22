@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
@@ -141,18 +142,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (_lazyCustomAttributes.IsDefault)
             {
-                if (this.MightContainExtensionMethods)
-                {
-                    this.PrimaryModule.LoadCustomAttributesFilterExtensions(_assembly.Handle,
-                        ref _lazyCustomAttributes);
-                }
-                else
-                {
-                    this.PrimaryModule.LoadCustomAttributes(_assembly.Handle,
-                        ref _lazyCustomAttributes);
-                }
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, loadAndFilterAttributes());
             }
+
             return _lazyCustomAttributes;
+
+            ImmutableArray<CSharpAttributeData> loadAndFilterAttributes()
+            {
+                var containingModule = this.PrimaryModule;
+                if (!containingModule.TryGetNonEmptyCustomAttributes(_assembly.Handle, out var customAttributeHandles))
+                {
+                    return [];
+                }
+
+                using var builder = TemporaryArray<CSharpAttributeData>.Empty;
+                foreach (var handle in customAttributeHandles)
+                {
+                    if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.CaseSensitiveExtensionAttribute))
+                        continue;
+
+                    if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.IsReadOnlyAttribute))
+                        continue;
+
+                    builder.Add(new PEAttributeData(containingModule, handle));
+                }
+
+                return builder.ToImmutableAndClear();
+            }
         }
 
         /// <summary>

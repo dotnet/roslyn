@@ -12,6 +12,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -1091,95 +1092,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (_lazyCustomAttributes.IsDefault)
             {
-                Debug.Assert(!_handle.IsNil);
-                var containingPEModuleSymbol = (PEModuleSymbol)this.ContainingModule;
-
-                // Filter out Params attributes if necessary and cache
-                // the attribute handle for GetCustomAttributesToEmit
-                bool filterOutParamArrayAttribute = ((_lazyIsParams & (IsParamsValues.Initialized | IsParamsValues.Array)) is 0 or (IsParamsValues.Initialized | IsParamsValues.Array));
-                bool filterOutParamCollectionAttribute = ((_lazyIsParams & (IsParamsValues.Initialized | IsParamsValues.Collection)) is 0 or (IsParamsValues.Initialized | IsParamsValues.Collection));
-
-                ConstantValue defaultValue = this.ExplicitDefaultConstantValue;
-                AttributeDescription filterOutConstantAttributeDescription = default(AttributeDescription);
-
-                if ((object)defaultValue != null)
-                {
-                    if (defaultValue.Discriminator == ConstantValueTypeDiscriminator.DateTime)
-                    {
-                        filterOutConstantAttributeDescription = AttributeDescription.DateTimeConstantAttribute;
-                    }
-                    else if (defaultValue.Discriminator == ConstantValueTypeDiscriminator.Decimal)
-                    {
-                        filterOutConstantAttributeDescription = AttributeDescription.DecimalConstantAttribute;
-                    }
-                }
-
-                bool filterIsReadOnlyAttribute = this.RefKind == RefKind.In;
-                bool filterRequiresLocationAttribute = this.RefKind == RefKind.RefReadOnlyParameter;
-
-                CustomAttributeHandle paramArrayAttribute;
-                CustomAttributeHandle paramCollectionAttribute;
-                CustomAttributeHandle constantAttribute;
-
-                ImmutableArray<CSharpAttributeData> attributes =
-                    containingPEModuleSymbol.GetCustomAttributesForToken(
-                        _handle,
-                        out paramArrayAttribute,
-                        filterOutParamArrayAttribute ? AttributeDescription.ParamArrayAttribute : default,
-                        out paramCollectionAttribute,
-                        filterOutParamCollectionAttribute ? AttributeDescription.ParamCollectionAttribute : default,
-                        out constantAttribute,
-                        filterOutConstantAttributeDescription,
-                        out _,
-                        filterIsReadOnlyAttribute ? AttributeDescription.IsReadOnlyAttribute : default,
-                        out _,
-                        filterRequiresLocationAttribute ? AttributeDescription.RequiresLocationAttribute : default,
-                        out _,
-                        AttributeDescription.ScopedRefAttribute);
-
-                if (!paramArrayAttribute.IsNil || !constantAttribute.IsNil || !paramCollectionAttribute.IsNil)
-                {
-                    var builder = ArrayBuilder<CSharpAttributeData>.GetInstance();
-
-                    if (!paramArrayAttribute.IsNil)
-                    {
-                        builder.Add(new PEAttributeData(containingPEModuleSymbol, paramArrayAttribute));
-                    }
-
-                    if (!paramCollectionAttribute.IsNil)
-                    {
-                        builder.Add(new PEAttributeData(containingPEModuleSymbol, paramCollectionAttribute));
-                    }
-
-                    if (!constantAttribute.IsNil)
-                    {
-                        builder.Add(new PEAttributeData(containingPEModuleSymbol, constantAttribute));
-                    }
-
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyHiddenAttributes, builder.ToImmutableAndFree());
-                }
-                else
-                {
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyHiddenAttributes, ImmutableArray<CSharpAttributeData>.Empty);
-                }
+                var attributes = LoadAndFilterAttributes(out var hiddenAttributes, out var isParamArray, out var isParamCollection);
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyHiddenAttributes, hiddenAttributes);
 
                 if ((_lazyIsParams & IsParamsValues.Initialized) == 0)
                 {
-                    Debug.Assert(filterOutParamArrayAttribute);
-                    Debug.Assert(filterOutParamCollectionAttribute);
-
                     IsParamsValues result = IsParamsValues.Initialized;
 
-                    if (!paramArrayAttribute.IsNil)
+                    if (isParamArray)
                     {
                         result |= IsParamsValues.Array;
                     }
 
-                    if (!paramCollectionAttribute.IsNil)
+                    if (isParamCollection)
                     {
                         result |= IsParamsValues.Collection;
                     }
 
+                    Debug.Assert(_lazyIsParams == 0 || _lazyIsParams == result);
                     _lazyIsParams = result;
                 }
 
@@ -1190,6 +1120,110 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             Debug.Assert(!_lazyHiddenAttributes.IsDefault);
             return _lazyCustomAttributes;
+        }
+
+        private ImmutableArray<CSharpAttributeData> LoadAndFilterAttributes(out ImmutableArray<CSharpAttributeData> hiddenAttributes, out bool isParamArray, out bool isParamCollection)
+        {
+            hiddenAttributes = [];
+            isParamArray = false;
+            isParamCollection = false;
+
+            Debug.Assert(!_handle.IsNil);
+            var containingModule = (PEModuleSymbol)ContainingModule;
+            if (!containingModule.TryGetNonEmptyCustomAttributes(_handle, out var customAttributeHandles))
+            {
+                return [];
+            }
+
+            // Filter out Params attributes if necessary and cache
+            // the attribute handle for GetCustomAttributesToEmit
+            bool filterOutParamArrayAttribute = ((_lazyIsParams & (IsParamsValues.Initialized | IsParamsValues.Array)) is 0 or (IsParamsValues.Initialized | IsParamsValues.Array));
+            bool filterOutParamCollectionAttribute = ((_lazyIsParams & (IsParamsValues.Initialized | IsParamsValues.Collection)) is 0 or (IsParamsValues.Initialized | IsParamsValues.Collection));
+
+            ConstantValue defaultValue = this.ExplicitDefaultConstantValue;
+            AttributeDescription filterOutConstantAttributeDescription = default(AttributeDescription);
+
+            if ((object)defaultValue != null)
+            {
+                if (defaultValue.Discriminator == ConstantValueTypeDiscriminator.DateTime)
+                {
+                    filterOutConstantAttributeDescription = AttributeDescription.DateTimeConstantAttribute;
+                }
+                else if (defaultValue.Discriminator == ConstantValueTypeDiscriminator.Decimal)
+                {
+                    filterOutConstantAttributeDescription = AttributeDescription.DecimalConstantAttribute;
+                }
+            }
+
+            bool filterIsReadOnlyAttribute = this.RefKind == RefKind.In;
+            bool filterRequiresLocationAttribute = this.RefKind == RefKind.RefReadOnlyParameter;
+
+            using var builder = TemporaryArray<CSharpAttributeData>.Empty;
+            CustomAttributeHandle paramArrayAttribute = default;
+            CustomAttributeHandle paramCollectionAttribute = default;
+            CustomAttributeHandle constantAttribute = default;
+
+            foreach (var handle in customAttributeHandles)
+            {
+                if (filterOutParamArrayAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.ParamArrayAttribute))
+                {
+                    paramArrayAttribute = handle;
+                    continue;
+                }
+
+                if (filterOutParamCollectionAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.ParamCollectionAttribute))
+                {
+                    paramCollectionAttribute = handle;
+                    continue;
+                }
+
+                if (containingModule.AttributeMatchesFilter(handle, filterOutConstantAttributeDescription))
+                {
+                    constantAttribute = handle;
+                    continue;
+                }
+
+                if (filterIsReadOnlyAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.IsReadOnlyAttribute))
+                    continue;
+
+                if (filterRequiresLocationAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.RequiresLocationAttribute))
+                    continue;
+
+                if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.ScopedRefAttribute))
+                    continue;
+
+                builder.Add(new PEAttributeData(containingModule, handle));
+            }
+
+            isParamArray = !paramArrayAttribute.IsNil;
+            isParamCollection = !paramCollectionAttribute.IsNil;
+            var hiddenCount = (isParamArray ? 1 : 0)
+                + (!constantAttribute.IsNil ? 1 : 0)
+                + (isParamCollection ? 1 : 0);
+
+            if (hiddenCount != 0)
+            {
+                var hiddenBuilder = ArrayBuilder<CSharpAttributeData>.GetInstance(hiddenCount);
+
+                if (isParamArray)
+                {
+                    builder.Add(new PEAttributeData(containingModule, paramArrayAttribute));
+                }
+
+                if (isParamCollection)
+                {
+                    builder.Add(new PEAttributeData(containingModule, paramCollectionAttribute));
+                }
+
+                if (!constantAttribute.IsNil)
+                {
+                    builder.Add(new PEAttributeData(containingModule, constantAttribute));
+                }
+
+                hiddenAttributes = hiddenBuilder.ToImmutableAndFree();
+            }
+
+            return builder.ToImmutableAndClear();
         }
 
         internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
