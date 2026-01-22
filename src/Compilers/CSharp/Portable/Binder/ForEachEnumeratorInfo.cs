@@ -161,18 +161,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var currentPropertyGetter = this.CurrentPropertyGetter;
                 if (currentPropertyGetter != null) binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, currentPropertyGetter, node);
 
-                if (this.NeedsDisposal)
+                // Diagnostics for pattern-based Dispose method are reported elsewhere.
+                if (this.NeedsDisposal && this.PatternDisposeInfo?.Method == null &&
+                    LocalRewriter.TryGetDisposeMethod(binder.Compilation, syntax, this.IsAsync, diagnostics, out var disposeMethod))
                 {
-                    var disposeMethod = this.PatternDisposeInfo?.Method;
-                    if (disposeMethod == null)
-                    {
-                        LocalRewriter.TryGetDisposeMethod(binder.Compilation, syntax, this.IsAsync, diagnostics, out disposeMethod);
-                    }
-
-                    if (disposeMethod != null)
-                    {
-                        binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, disposeMethod, node);
-                    }
+                    binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, disposeMethod, node);
                 }
             }
         }
