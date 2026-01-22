@@ -8,11 +8,24 @@ trigger:
 
 # Branches that trigger builds on PR
 pr:
-- main
-- main-vs-deps
-- release/*
-- features/*
-- demos/*
+  branches:
+    include:
+    - main
+    - main-vs-deps
+    - release/*
+    - features/*
+    - demos/*
+  paths:
+    exclude:
+      - docs/*
+      - eng/config/OptProf.json
+      - eng/config/PublishData.json
+      - eng/setup-pr-validation.ps1
+      - .vscode/*
+      - .github/*
+      - azure-pipelines-official.yml
+      - azure-pipelines-pr-validation.yml
+      - CODE-OF-CONDUCT.md
 
 # Windows Build and Test Jobs
 jobs:
