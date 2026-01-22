@@ -151,6 +151,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public bool IsIncomplete
                 => GetEnumeratorInfo is null || MoveNextInfo is null || CurrentPropertyGetter is null;
+
+            public readonly void ReportDiagnosticsIfUnsafeMemberAccess(Binder binder, SyntaxNodeOrToken node, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
+            {
+                var getEnumeratorMethod = this.GetEnumeratorInfo?.Method;
+                if (getEnumeratorMethod != null) binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, getEnumeratorMethod, node);
+                var moveNextMethod = this.MoveNextInfo?.Method;
+                if (moveNextMethod != null) binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, moveNextMethod, node);
+                var currentPropertyGetter = this.CurrentPropertyGetter;
+                if (currentPropertyGetter != null) binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, currentPropertyGetter, node);
+
+                if (this.NeedsDisposal)
+                {
+                    var disposeMethod = this.PatternDisposeInfo?.Method;
+                    if (disposeMethod == null)
+                    {
+                        LocalRewriter.TryGetDisposeMethod(binder.Compilation, syntax, this.IsAsync, diagnostics, out disposeMethod);
+                    }
+
+                    if (disposeMethod != null)
+                    {
+                        binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, disposeMethod, node);
+                    }
+                }
+            }
         }
     }
 }

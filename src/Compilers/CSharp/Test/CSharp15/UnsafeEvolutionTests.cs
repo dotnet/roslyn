@@ -3557,13 +3557,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             [
                 // (1,9): error CS9502: 'C.GetEnumerator()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // C c1 = [.. new C()];
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, ".. new C()").WithArguments("C.GetEnumerator()").WithLocation(1, 9),
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "..").WithArguments("C.GetEnumerator()").WithLocation(1, 9),
                 // (1,9): error CS9502: 'C.MoveNext()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // C c1 = [.. new C()];
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, ".. new C()").WithArguments("C.MoveNext()").WithLocation(1, 9),
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "..").WithArguments("C.MoveNext()").WithLocation(1, 9),
                 // (1,9): error CS9502: 'C.Current.get' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // C c1 = [.. new C()];
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, ".. new C()").WithArguments("C.Current.get").WithLocation(1, 9),
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "..").WithArguments("C.Current.get").WithLocation(1, 9),
             ]);
     }
 
@@ -3767,7 +3767,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "foreach").WithArguments("System.IDisposable.Dispose()").WithLocation(1, 1),
                 // (3,43): error CS9502: 'IDisposable.Dispose()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // System.Collections.Generic.List<int> l = [.. new C()];
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, ".. new C()").WithArguments("System.IDisposable.Dispose()").WithLocation(3, 43),
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "..").WithArguments("System.IDisposable.Dispose()").WithLocation(3, 43),
             ]);
     }
 

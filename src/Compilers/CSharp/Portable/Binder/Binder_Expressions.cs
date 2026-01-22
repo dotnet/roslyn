@@ -5383,26 +5383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors);
                 }
 
-                var getEnumeratorMethod = builder.GetEnumeratorInfo?.Method;
-                if (getEnumeratorMethod != null) @this.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, getEnumeratorMethod, syntax);
-                var moveNextMethod = builder.MoveNextInfo?.Method;
-                if (moveNextMethod != null) @this.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, moveNextMethod, syntax);
-                var currentPropertyGetter = builder.CurrentPropertyGetter;
-                if (currentPropertyGetter != null) @this.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, currentPropertyGetter, syntax);
-
-                if (builder.NeedsDisposal)
-                {
-                    var disposeMethod = builder.PatternDisposeInfo?.Method;
-                    if (disposeMethod is null)
-                    {
-                        LocalRewriter.TryGetDisposeMethod(@this.Compilation, syntax, builder.IsAsync, diagnostics, out disposeMethod);
-                    }
-
-                    if (disposeMethod is not null)
-                    {
-                        @this.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, disposeMethod, syntax);
-                    }
-                }
+                builder.ReportDiagnosticsIfUnsafeMemberAccess(@this, syntax.OperatorToken, syntax, diagnostics);
 
                 Debug.Assert(expression.Type is { });
 

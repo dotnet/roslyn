@@ -463,7 +463,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var foreachKeyword = _syntax.ForEachKeyword;
             ReportDiagnosticsIfObsolete(diagnostics, getEnumeratorMethod, foreachKeyword, hasBaseReceiver: false);
-            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, getEnumeratorMethod, foreachKeyword);
             ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, getEnumeratorMethod, foreachKeyword, isDelegateConversion: false);
             Debug.Assert(!IsDisallowedExtensionInOlderLangVer(getEnumeratorMethod));
 
@@ -471,26 +470,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Either a diagnostic was reported at the declaration of the method (for the invalid attribute), or MoveNext
             // is marked as not supported and we won't get here in the first place (for metadata import).
             ReportDiagnosticsIfObsolete(diagnostics, builder.MoveNextInfo.Method, foreachKeyword, hasBaseReceiver: false);
-            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, builder.MoveNextInfo.Method, foreachKeyword);
             ReportDiagnosticsIfObsolete(diagnostics, builder.CurrentPropertyGetter, foreachKeyword, hasBaseReceiver: false);
-            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, builder.CurrentPropertyGetter, foreachKeyword);
             ReportDiagnosticsIfObsolete(diagnostics, builder.CurrentPropertyGetter.AssociatedSymbol, foreachKeyword, hasBaseReceiver: false);
             Debug.Assert(!IsDisallowedExtensionInOlderLangVer(builder.MoveNextInfo.Method));
             Debug.Assert(!IsDisallowedExtensionInOlderLangVer(builder.CurrentPropertyGetter));
 
-            if (builder.NeedsDisposal)
-            {
-                MethodSymbol disposeMethod = builder.PatternDisposeInfo?.Method;
-                if (disposeMethod is null)
-                {
-                    LocalRewriter.TryGetDisposeMethod(Compilation, _syntax, builder.IsAsync, diagnostics, out disposeMethod);
-                }
-
-                if (disposeMethod is not null)
-                {
-                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, disposeMethod, foreachKeyword);
-                }
-            }
+            builder.ReportDiagnosticsIfUnsafeMemberAccess(this, foreachKeyword, _syntax, diagnostics);
 
             // We want to convert from inferredType in the array/string case and builder.ElementType in the enumerator case,
             // but it turns out that these are equivalent (when both are available).
