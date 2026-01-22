@@ -7621,6 +7621,9 @@ return 11;
                 // (2,1): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 // await System.Threading.Tasks.Task.Factory.StartNew(() => 5L);
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await System.Threading.Tasks.Task.Factory.StartNew(() => 5L);").WithArguments("System.Int32").WithLocation(2, 1),
+                // (2,1): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                // await System.Threading.Tasks.Task.Factory.StartNew(() => 5L);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await System.Threading.Tasks.Task.Factory.StartNew(() => 5L);").WithArguments("System.Int32").WithLocation(2, 1),
                 // (3,8): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 // return 11;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "11").WithArguments("System.Int32").WithLocation(3, 8)

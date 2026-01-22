@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Diagnostics for pattern-based Dispose method are reported elsewhere.
                 if (this.NeedsDisposal && this.PatternDisposeInfo?.Method == null &&
-                    LocalRewriter.TryGetDisposeMethod(binder.Compilation, syntax, this.IsAsync, diagnostics, out var disposeMethod))
+                    LocalRewriter.TryGetDisposeMethod(binder.Compilation, syntax, this.IsAsync, BindingDiagnosticBag.Discarded, out var disposeMethod))
                 {
                     binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, disposeMethod, node);
                 }

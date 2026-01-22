@@ -632,7 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiver = new BoundLiteral(node, ConstantValue.Null, awaiterType);
             var name = WellKnownMemberNames.IsCompleted;
             var qualified = BindInstanceMemberAccess(node, node, receiver, name, 0, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeWithAnnotations>), invoked: false, indexed: false, diagnostics);
-            if (qualified.HasAnyErrors || (qualified = CheckValue(qualified, BindValueKind.RValue, diagnostics)).HasAnyErrors)
+            if (qualified.HasAnyErrors)
             {
                 isCompletedProperty = null;
                 return false;
@@ -641,6 +641,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (qualified is not BoundPropertyAccess { PropertySymbol: { } propertySymbol } || propertySymbol.IsExtensionBlockMember())
             {
                 Error(diagnostics, ErrorCode.ERR_NoSuchMember, node, awaiterType, WellKnownMemberNames.IsCompleted);
+                isCompletedProperty = null;
+                return false;
+            }
+
+            qualified = CheckValue(qualified, BindValueKind.RValue, diagnostics);
+            if (qualified.HasAnyErrors)
+            {
                 isCompletedProperty = null;
                 return false;
             }
