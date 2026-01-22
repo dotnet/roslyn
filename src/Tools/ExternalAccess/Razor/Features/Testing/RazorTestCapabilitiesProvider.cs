@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -16,7 +16,7 @@ using Roslyn.LanguageServer.Protocol;
 [Export(typeof(RazorTestCapabilitiesProvider))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class RazorTestCapabilitiesProvider() : ICapabilitiesProvider
+internal sealed class RazorTestCapabilitiesProvider() : ICapabilitiesProvider
 {
     public IRazorTestCapabilitiesProvider? RazorTestCapabilities { get; set; }
     public JsonSerializerOptions? JsonSerializerOptions { get; set; }

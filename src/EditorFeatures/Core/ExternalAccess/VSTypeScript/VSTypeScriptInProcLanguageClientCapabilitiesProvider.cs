@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 [Shared]
-internal class VSTypeScriptInProcLanguageClientCapabilitiesProvider() : ICapabilitiesProvider
+internal sealed class VSTypeScriptInProcLanguageClientCapabilitiesProvider() : ICapabilitiesProvider
 {
     public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
     {
