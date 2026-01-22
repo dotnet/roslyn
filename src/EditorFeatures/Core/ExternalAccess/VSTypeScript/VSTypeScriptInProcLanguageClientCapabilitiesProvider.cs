@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 /// Allows us to move features to LSP without being blocked by TS as well
 /// as ensures that TS LSP features use correct solution snapshots.
 /// </summary>
-[ExportLspServiceFactory(typeof(ICapabilitiesProvider), ProtocolConstants.TypeScriptLanguageContract, WellKnownLspServerKinds.RoslynTypeScriptLspServer)]
+[ExportStatelessLspService(typeof(ICapabilitiesProvider), ProtocolConstants.TypeScriptLanguageContract)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 [Shared]
