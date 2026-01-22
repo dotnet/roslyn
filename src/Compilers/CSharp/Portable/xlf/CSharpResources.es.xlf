@@ -234,7 +234,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadCollectionArgumentsArgCount">
         <source>No overload for method '{0}' takes {1} 'with(...)' element arguments</source>
-        <target state="new">No overload for method '{0}' takes {1} 'with(...)' element arguments</target>
+        <target state="translated">Ninguna sobrecarga del método '{0}' acepta argumentos del elemento 'with(...)' {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCompoundAssignmentOpArgs">
@@ -514,22 +514,22 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionArgumentsDynamicBinding">
         <source>'with(...)' element arguments cannot be dynamic</source>
-        <target state="new">'with(...)' element arguments cannot be dynamic</target>
+        <target state="translated">Los argumentos del elemento 'with(...)' no pueden ser dinámicos</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionArgumentsMustBeEmpty">
         <source>'with(...)' element for a read-only interface must be empty if present</source>
-        <target state="new">'with(...)' element for a read-only interface must be empty if present</target>
+        <target state="translated">El elemento 'with(...)' de una interfaz de solo lectura debe estar vacío si está presente</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionArgumentsMustBeFirst">
         <source>'with(...)' element must be the first element</source>
-        <target state="new">'with(...)' element must be the first element</target>
+        <target state="translated">El elemento 'with(...)' debe ser el primer elemento</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionArgumentsNotSupportedForType">
         <source>'with(...)' elements are not supported for type '{0}'</source>
-        <target state="new">'with(...)' elements are not supported for type '{0}'</target>
+        <target state="translated">No se admiten elementos 'with(...)' para el tipo '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeInvalidMethodName">
@@ -544,7 +544,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeMethodNotFound">
         <source>Could not find an accessible '{0}' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
-        <target state="needs-review-translation">No se encontró ningún método "{0}" accesible con la firma esperada: un método estático con un único parámetro de tipo "ReadOnlySpan&lt;{1}&gt;" y el tipo de valor devuelto "{2}".</target>
+        <target state="translated">No se pudo encontrar un método '{0}' accesible con la signatura esperada: un método estático cuyo último parámetro es de tipo 'ReadOnlySpan&lt;{1}&gt;' y tipo de valor devuelto '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderNoElementType">
@@ -594,7 +594,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionRefLikeElementType">
         <source>Element type of this collection may not be a ref struct or a type parameter allowing ref structs</source>
-        <target state="new">Element type of this collection may not be a ref struct or a type parameter allowing ref structs</target>
+        <target state="translated">El tipo de elemento de esta colección no puede ser una estructura de referencia ni un parámetro de tipo que permita estructuras de referencia</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilationUnitUnexpected">
@@ -2824,7 +2824,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressionArguments">
         <source>collection expression arguments</source>
-        <target state="new">collection expression arguments</target>
+        <target state="translated">argumentos de expresión de colección</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressions">
