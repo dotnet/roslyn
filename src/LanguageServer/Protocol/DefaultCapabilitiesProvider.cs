@@ -19,7 +19,11 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
+/// <summary>
+/// Implementation of <see cref="ICapabilitiesProvider"/> that provides all the capabilities that Roslyn supports via LSP. 
+/// </summary>
 [Export(typeof(DefaultCapabilitiesProvider)), Shared]
+[ExportStatelessLspService(typeof(ICapabilitiesProvider), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.Any)]
 internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
 {
     private readonly ImmutableArray<Lazy<CompletionProvider, CompletionProviderMetadata>> _completionProviders;

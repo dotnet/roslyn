@@ -9,7 +9,6 @@ using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -21,7 +20,6 @@ using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Nerdbank.Streams;
-using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
@@ -32,7 +30,7 @@ internal abstract partial class AbstractInProcLanguageClient(
     ILspServiceLoggerFactory lspLoggerFactory,
     ExportProvider exportProvider,
     AbstractLanguageClientMiddleLayer? middleLayer = null)
-        : ILanguageClient, ILanguageServerFactory, ICapabilitiesProvider, ILanguageClientCustomMessage2, IPropertyOwner
+        : ILanguageClient, ILanguageServerFactory, ILanguageClientCustomMessage2, IPropertyOwner
 {
     private readonly ILanguageClientMiddleLayer2<JsonElement>? _middleLayer = middleLayer;
     private readonly ILspServiceLoggerFactory _lspLoggerFactory = lspLoggerFactory;
@@ -191,7 +189,6 @@ internal abstract partial class AbstractInProcLanguageClient(
         var server = Create(
             jsonRpc,
             messageFormatter.JsonSerializerOptions,
-            languageClient,
             serverKind,
             logger,
             hostServices,
@@ -204,7 +201,6 @@ internal abstract partial class AbstractInProcLanguageClient(
     public virtual AbstractLanguageServer<RequestContext> Create(
         JsonRpc jsonRpc,
         JsonSerializerOptions options,
-        ICapabilitiesProvider capabilitiesProvider,
         WellKnownLspServerKinds serverKind,
         AbstractLspLogger logger,
         HostServices hostServices,
@@ -214,7 +210,6 @@ internal abstract partial class AbstractInProcLanguageClient(
             LspServiceProvider,
             jsonRpc,
             options,
-            capabilitiesProvider,
             logger,
             hostServices,
             SupportedLanguages,
@@ -223,8 +218,6 @@ internal abstract partial class AbstractInProcLanguageClient(
 
         return server;
     }
-
-    public abstract ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities);
 
     public async Task<InitializationFailureContext?> OnServerInitializeFailedAsync(ILanguageClientInitializationInfo initializationState)
     {

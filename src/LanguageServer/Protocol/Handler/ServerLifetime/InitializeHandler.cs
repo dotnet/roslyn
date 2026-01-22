@@ -12,25 +12,15 @@ using Roslyn.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 [Method(Methods.InitializeName)]
-internal sealed class InitializeHandler : ILspServiceRequestHandler<InitializeParams, InitializeResult>
+internal sealed class InitializeHandler() : ILspServiceRequestHandler<InitializeParams, InitializeResult>
 {
-    public InitializeHandler()
-    {
-    }
-
     public bool MutatesSolutionState => true;
     public bool RequiresLSPSolution => false;
 
     public async Task<InitializeResult> HandleRequestAsync(InitializeParams request, RequestContext context, CancellationToken cancellationToken)
     {
         var clientCapabilitiesManager = context.GetRequiredLspService<IInitializeManager>();
-        var clientCapabilities = clientCapabilitiesManager.TryGetClientCapabilities();
-        if (clientCapabilities != null)
-        {
-            throw new InvalidOperationException($"{nameof(Methods.InitializeName)} called multiple times");
-        }
-
-        clientCapabilities = request.Capabilities;
+        var clientCapabilities = request.Capabilities;
         clientCapabilitiesManager.SetInitializeParams(request);
 
         var capabilitiesProvider = context.GetRequiredLspService<ICapabilitiesProvider>();
