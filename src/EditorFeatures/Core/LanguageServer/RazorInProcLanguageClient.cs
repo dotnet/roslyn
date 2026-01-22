@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
 internal sealed class RazorInProcLanguageClient(
     CSharpVisualBasicLspServiceProvider lspServiceProvider,
     IGlobalOptionService globalOptions,
-    ExperimentalCapabilitiesProvider experimentalCapabilitiesProvider,
+    DefaultCapabilitiesProvider experimentalCapabilitiesProvider,
     IThreadingContext threadingContext,
     ILspServiceLoggerFactory lspLoggerFactory,
     ExportProvider exportProvider,
@@ -51,7 +51,7 @@ internal sealed class RazorInProcLanguageClient(
 {
     public const string ClientName = ProtocolConstants.RazorCSharp;
 
-    private readonly ExperimentalCapabilitiesProvider _experimentalCapabilitiesProvider = experimentalCapabilitiesProvider;
+    private readonly DefaultCapabilitiesProvider _experimentalCapabilitiesProvider = experimentalCapabilitiesProvider;
 
     protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
 

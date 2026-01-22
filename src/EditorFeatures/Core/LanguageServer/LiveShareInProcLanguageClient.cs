@@ -27,12 +27,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
 internal sealed class LiveShareInProcLanguageClient(
     CSharpVisualBasicLspServiceProvider lspServiceProvider,
     IGlobalOptionService globalOptions,
-    ExperimentalCapabilitiesProvider experimentalCapabilitiesProvider,
+    DefaultCapabilitiesProvider experimentalCapabilitiesProvider,
     ILspServiceLoggerFactory lspLoggerFactory,
     IThreadingContext threadingContext,
     ExportProvider exportProvider) : AbstractInProcLanguageClient(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
 {
-    private readonly ExperimentalCapabilitiesProvider _experimentalCapabilitiesProvider = experimentalCapabilitiesProvider;
+    private readonly DefaultCapabilitiesProvider _experimentalCapabilitiesProvider = experimentalCapabilitiesProvider;
 
     protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
 

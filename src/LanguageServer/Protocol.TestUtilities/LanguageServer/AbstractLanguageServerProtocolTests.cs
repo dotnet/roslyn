@@ -674,7 +674,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         protected virtual RoslynLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, WellKnownLspServerKinds serverKind, AbstractLspLogger logger)
         {
-            var capabilitiesProvider = TestWorkspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
+            var capabilitiesProvider = TestWorkspace.ExportProvider.GetExportedValue<DefaultCapabilitiesProvider>();
             var factory = TestWorkspace.ExportProvider.GetExportedValue<ILanguageServerFactory>();
 
             var jsonMessageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();

@@ -8,9 +8,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 
 internal sealed class ServerCapabilitiesProvider : ICapabilitiesProvider
 {
-    private readonly ExperimentalCapabilitiesProvider _roslynCapabilities;
+    private readonly DefaultCapabilitiesProvider _roslynCapabilities;
 
-    public ServerCapabilitiesProvider(ExperimentalCapabilitiesProvider roslynCapabilities)
+    public ServerCapabilitiesProvider(DefaultCapabilitiesProvider roslynCapabilities)
     {
         _roslynCapabilities = roslynCapabilities;
     }

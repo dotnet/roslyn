@@ -115,7 +115,7 @@ public sealed class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTes
 
         protected override RoslynLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, WellKnownLspServerKinds serverKind, AbstractLspLogger logger)
         {
-            var capabilitiesProvider = TestWorkspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
+            var capabilitiesProvider = TestWorkspace.ExportProvider.GetExportedValue<DefaultCapabilitiesProvider>();
             var servicesProvider = TestWorkspace.ExportProvider.GetExportedValue<VSTypeScriptLspServiceProvider>();
 
             var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();

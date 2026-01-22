@@ -19,8 +19,8 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-[Export(typeof(ExperimentalCapabilitiesProvider)), Shared]
-internal sealed class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
+[Export(typeof(DefaultCapabilitiesProvider)), Shared]
+internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
 {
     private readonly ImmutableArray<Lazy<CompletionProvider, CompletionProviderMetadata>> _completionProviders;
     private readonly ImmutableArray<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _signatureHelpProviders;
@@ -28,7 +28,7 @@ internal sealed class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ExperimentalCapabilitiesProvider(
+    public DefaultCapabilitiesProvider(
         [ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders,
         [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders,
         [ImportMany] IEnumerable<Lazy<ILspWillRenameListener, ILspWillRenameListenerMetadata>> renameListeners)
