@@ -72,11 +72,11 @@ namespace N
 
 ## Configuration
 
-The BannedApiAnalyzer supports configuration via `.editorconfig` files.
+The BannedApiAnalyzer supports configuration via `.globalconfig` files.
 
 ### Exclude Generated Code
 
-You can exclude source-generated files from analysis by adding the following to your `.editorconfig`:
+You can exclude source-generated files from analysis by adding the following to your `.globalconfig`:
 
 ```ini
 banned_api_analyzer.exclude_generated_code = true
