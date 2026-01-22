@@ -3731,10 +3731,27 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 {
                     public class CompilerGeneratedAttribute;
                 }
+
+                namespace System.Collections
+                {
+                    public interface IEnumerable;
+                }
+
+                namespace System.Collections.Generic
+                {
+                    public interface IEnumerable<T> : IEnumerable;
+                    public class List<T> : IEnumerable<T>
+                    {
+                        public void Add(T element) { }
+                    }
+                }
                 """,
             caller: """
                 foreach (var x in new C()) { }
                 using (var c = new C()) { }
+                System.Collections.Generic.List<int> l = [.. new C()];
+                unsafe { foreach (var x in new C()) { } }
+                unsafe { System.Collections.Generic.List<int> l2 = [.. new C()]; }
                 """,
             targetFramework: TargetFramework.Empty,
             optionsDll: TestOptions.UnsafeDebugDll
@@ -3748,6 +3765,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (1,1): error CS9502: 'IDisposable.Dispose()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // foreach (var x in new C()) { }
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "foreach").WithArguments("System.IDisposable.Dispose()").WithLocation(1, 1),
+                // (3,43): error CS9502: 'IDisposable.Dispose()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // System.Collections.Generic.List<int> l = [.. new C()];
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, ".. new C()").WithArguments("System.IDisposable.Dispose()").WithLocation(3, 43),
             ]);
     }
 

@@ -5390,6 +5390,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var currentPropertyGetter = builder.CurrentPropertyGetter;
                 if (currentPropertyGetter != null) @this.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, currentPropertyGetter, syntax);
 
+                if (builder.NeedsDisposal)
+                {
+                    var disposeMethod = builder.PatternDisposeInfo?.Method;
+                    if (disposeMethod is null)
+                    {
+                        LocalRewriter.TryGetDisposeMethod(@this.Compilation, syntax, builder.IsAsync, diagnostics, out disposeMethod);
+                    }
+
+                    if (disposeMethod is not null)
+                    {
+                        @this.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, disposeMethod, syntax);
+                    }
+                }
+
                 Debug.Assert(expression.Type is { });
 
                 var expressionPlaceholder = new BoundCollectionExpressionSpreadExpressionPlaceholder(syntax.Expression, expression.Type);
