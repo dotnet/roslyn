@@ -34,9 +34,8 @@ internal sealed class XamlInProcLanguageClient : AbstractInProcLanguageClient
         XamlLspServiceProvider lspServiceProvider,
         IGlobalOptionService globalOptions,
         ILspServiceLoggerFactory lspLoggerFactory,
-        IThreadingContext threadingContext,
         ExportProvider exportProvider)
-        : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
+        : base(lspServiceProvider, globalOptions, lspLoggerFactory, exportProvider)
     {
     }
 

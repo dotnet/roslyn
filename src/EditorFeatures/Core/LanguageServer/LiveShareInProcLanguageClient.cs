@@ -29,8 +29,7 @@ internal sealed class LiveShareInProcLanguageClient(
     IGlobalOptionService globalOptions,
     DefaultCapabilitiesProvider experimentalCapabilitiesProvider,
     ILspServiceLoggerFactory lspLoggerFactory,
-    IThreadingContext threadingContext,
-    ExportProvider exportProvider) : AbstractInProcLanguageClient(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
+    ExportProvider exportProvider) : AbstractInProcLanguageClient(lspServiceProvider, globalOptions, lspLoggerFactory, exportProvider)
 {
     private readonly DefaultCapabilitiesProvider _experimentalCapabilitiesProvider = experimentalCapabilitiesProvider;
 

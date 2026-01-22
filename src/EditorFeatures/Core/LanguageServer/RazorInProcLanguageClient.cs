@@ -44,23 +44,15 @@ internal sealed class RazorInProcLanguageClient(
     CSharpVisualBasicLspServiceProvider lspServiceProvider,
     IGlobalOptionService globalOptions,
     DefaultCapabilitiesProvider experimentalCapabilitiesProvider,
-    IThreadingContext threadingContext,
     ILspServiceLoggerFactory lspLoggerFactory,
     ExportProvider exportProvider,
-    [Import(AllowDefault = true)] AbstractLanguageClientMiddleLayer middleLayer) : AbstractInProcLanguageClient(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider, middleLayer)
+    [Import(AllowDefault = true)] AbstractLanguageClientMiddleLayer middleLayer) : AbstractInProcLanguageClient(lspServiceProvider, globalOptions, lspLoggerFactory, exportProvider, middleLayer)
 {
     public const string ClientName = ProtocolConstants.RazorCSharp;
 
     private readonly DefaultCapabilitiesProvider _experimentalCapabilitiesProvider = experimentalCapabilitiesProvider;
 
     protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
-
-    protected override void Activate_OffUIThread()
-    {
-        // Ensure we let the default capabilities provider initialize off the UI thread to avoid
-        // unnecessary MEF part loading during the GetCapabilities call, which is done on the UI thread
-        _experimentalCapabilitiesProvider.Initialize();
-    }
 
     public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
     {

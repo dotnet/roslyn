@@ -37,10 +37,9 @@ internal sealed class AlwaysActivateInProcLanguageClient(
     IGlobalOptionService globalOptions,
     DefaultCapabilitiesProvider defaultCapabilitiesProvider,
     ILspServiceLoggerFactory lspLoggerFactory,
-    IThreadingContext threadingContext,
     ExportProvider exportProvider,
     IDiagnosticSourceManager diagnosticSourceManager,
-    [ImportMany] IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> buildOnlyDiagnostics) : AbstractInProcLanguageClient(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
+    [ImportMany] IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> buildOnlyDiagnostics) : AbstractInProcLanguageClient(lspServiceProvider, globalOptions, lspLoggerFactory, exportProvider)
 {
     private readonly DefaultCapabilitiesProvider _experimentalCapabilitiesProvider = defaultCapabilitiesProvider;
     private readonly IDiagnosticSourceManager _diagnosticSourceManager = diagnosticSourceManager;

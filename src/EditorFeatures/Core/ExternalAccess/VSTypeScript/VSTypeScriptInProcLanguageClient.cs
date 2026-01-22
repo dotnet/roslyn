@@ -36,8 +36,7 @@ internal class VSTypeScriptInProcLanguageClient(
     VSTypeScriptLspServiceProvider lspServiceProvider,
     IGlobalOptionService globalOptions,
     ILspServiceLoggerFactory lspLoggerFactory,
-    IThreadingContext threadingContext,
-    ExportProvider exportProvider) : AbstractInProcLanguageClient(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
+    ExportProvider exportProvider) : AbstractInProcLanguageClient(lspServiceProvider, globalOptions, lspLoggerFactory, exportProvider)
 {
     private readonly IVSTypeScriptCapabilitiesProvider? _typeScriptCapabilitiesProvider = typeScriptCapabilitiesProvider;
 
