@@ -3902,9 +3902,16 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 """,
             verify: Verification.Skipped,
             expectedUnsafeSymbols: ["System.Threading.Lock.EnterScope", "System.Threading.Lock.Scope.Dispose"],
-            expectedSafeSymbols: ["System.Threading.Lock"],
-            // PROTOTYPE: An error for the unsafe Lock members usage should be reported.
-            expectedDiagnostics: []);
+            expectedSafeSymbols: ["System.Threading.Lock", "System.Threading.Lock.Scope"],
+            expectedDiagnostics:
+            [
+                // (1,7): error CS9502: 'Lock.EnterScope()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // lock (new System.Threading.Lock()) { }
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "new System.Threading.Lock()").WithArguments("System.Threading.Lock.EnterScope()").WithLocation(1, 7),
+                // (1,7): error CS9502: 'Lock.Scope.Dispose()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // lock (new System.Threading.Lock()) { }
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "new System.Threading.Lock()").WithArguments("System.Threading.Lock.Scope.Dispose()").WithLocation(1, 7),
+            ]);
     }
 
     [Fact]
