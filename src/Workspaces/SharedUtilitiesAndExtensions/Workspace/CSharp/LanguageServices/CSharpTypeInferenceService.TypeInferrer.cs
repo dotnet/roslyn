@@ -1327,22 +1327,26 @@ internal partial class CSharpTypeInferenceService
             if (expressionOpt != null && expressionOpt != forEachStatementSyntax.Expression)
                 return [];
 
-            var enumerableType = forEachStatementSyntax.AwaitKeyword == default
-                ? this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T)
-                : this.Compilation.GetTypeByMetadataName(typeof(IAsyncEnumerable<>).FullName);
+            var isAsync = forEachStatementSyntax.AwaitKeyword != default;
+            var enumerableType = isAsync
+                ? this.Compilation.IAsyncEnumerableOfTType()
+                : this.Compilation.IEnumerableOfTType();
 
             enumerableType ??= this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
 
             // foreach (int v = Goo())
-            var variableTypes = GetTypes(forEachStatementSyntax.Type);
-            if (!variableTypes.Any())
-            {
-                return CreateResult(
-                    enumerableType
-                        .Construct(Compilation.GetSpecialType(SpecialType.System_Object)));
-            }
+            var variableTypes = GetTypes(forEachStatementSyntax.Type).ToImmutableArray();
 
-            return variableTypes.Select(v => new TypeInferenceInfo(enumerableType.Construct(v.InferredType)));
+            if (!variableTypes.IsEmpty)
+                return variableTypes.Select(v => new TypeInferenceInfo(enumerableType.Construct(v.InferredType)));
+
+            var objectType = Compilation.GetSpecialType(SpecialType.System_Object);
+            var results = CreateResult(enumerableType.Construct(objectType));
+
+            // in the non-async case, add the non-generic IEnumerable in as well as a potential inferred type.
+            return isAsync
+                ? results
+                : results.Concat(CreateResult(Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable)));
         }
 
         private IEnumerable<TypeInferenceInfo> InferTypeInForStatement(ForStatementSyntax forStatement, ExpressionSyntax expressionOpt = null, SyntaxToken? previousToken = null)
