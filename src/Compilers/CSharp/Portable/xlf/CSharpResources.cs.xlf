@@ -224,7 +224,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadExtensionContainingType">
         <source>Extensions must be declared in a top-level, non-generic, static class</source>
-        <target state="new">Extensions must be declared in a top-level, non-generic, static class</target>
+        <target state="translated">Rozšíření musí být deklarovaná v negenerické statické třídě nejvyšší úrovně.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFieldTypeInRecord">
@@ -374,7 +374,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotMatchOnINumberBase">
         <source>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.</source>
-        <target state="new">Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.</target>
+        <target state="translated">Nelze použít číselnou konstantu ani relační vzor pro „{0}“, protože dědí z nebo rozšiřuje INumberBase&lt;T&gt;. Zvažte použití vzoru typu k zúžení na konkrétní číselný typ.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -544,7 +544,7 @@
       </trans-unit>
       <trans-unit id="ERR_DataSectionStringLiteralHashCollision">
         <source>Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</source>
-        <target state="new">Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</target>
+        <target state="translated">Tento řetězcový literál nelze generovat do datové části, protože má kolizi XXHash128 s jiným řetězcovým literálem: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
@@ -724,7 +724,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
         <source>An expression tree may not contain an extension property access</source>
-        <target state="new">An expression tree may not contain an extension property access</target>
+        <target state="translated">Strom výrazů nesmí obsahovat přístup k vlastnosti rozšíření.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -779,17 +779,17 @@
       </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsName">
         <source>Extension declarations may not have a name.</source>
-        <target state="new">Extension declarations may not have a name.</target>
+        <target state="translated">Deklarace rozšíření nesmí mít název.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionParameterDisallowsDefaultValue">
         <source>The receiver parameter of an extension cannot have a default value</source>
-        <target state="new">The receiver parameter of an extension cannot have a default value</target>
+        <target state="translated">Parametr příjemce rozšíření nemůže mít výchozí hodnotu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionResolutionFailed">
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension member '{1}' for receiver of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
-        <target state="new">'{0}' does not contain a definition for '{1}' and no accessible extension member '{1}' for receiver of type '{0}' could be found (are you missing a using directive or an assembly reference?)</target>
+        <target state="translated">{0} neobsahuje definici pro {1} a nebyl nalezen žádný přístupný člen rozšíření {1} pro příjemce typu {0} (nechybí direktiva using nebo odkaz na sestavení?)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
@@ -1014,7 +1014,7 @@
       </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedParamsParameter">
         <source>Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</source>
-        <target state="new">Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</target>
+        <target state="translated">Implicitně zadaný parametr lambda {0} nemůže mít modifikátor params.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -1279,7 +1279,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidExtensionParameterReference">
         <source>Cannot use extension parameter '{0}' in this context.</source>
-        <target state="new">Cannot use extension parameter '{0}' in this context.</target>
+        <target state="translated">V tomto kontextu nelze použít parametr rozšíření {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
@@ -1424,12 +1424,12 @@
       </trans-unit>
       <trans-unit id="ERR_LocalSameNameAsExtensionParameter">
         <source>'{0}': a parameter, local variable, or local function cannot have the same name as an extension parameter</source>
-        <target state="new">'{0}': a parameter, local variable, or local function cannot have the same name as an extension parameter</target>
+        <target state="translated">{0}: Parametr, místní proměnná nebo místní funkce nemůžou mít stejný název jako parametr rozšíření.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalSameNameAsExtensionTypeParameter">
         <source>'{0}': a parameter, local variable, or local function cannot have the same name as an extension container type parameter</source>
-        <target state="new">'{0}': a parameter, local variable, or local function cannot have the same name as an extension container type parameter</target>
+        <target state="translated">{0}: Parametr, místní proměnná nebo místní funkce nemůžou mít stejný název jako parametr typu kontejneru rozšíření.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
@@ -1684,12 +1684,12 @@
       </trans-unit>
       <trans-unit id="ERR_PPIgnoredFollowsIf">
         <source>'#:' directives cannot be after '#if' directive</source>
-        <target state="new">'#:' directives cannot be after '#if' directive</target>
+        <target state="translated">Direktivy #: nemůžou být za direktivou #if.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PPIgnoredFollowsToken">
         <source>'#:' directives cannot be after first token in file</source>
-        <target state="new">'#:' directives cannot be after first token in file</target>
+        <target state="translated">Direktivy #: nemůžou být za prvním tokenem v souboru.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PPIgnoredNeedsFileBasedProgram">
@@ -1734,12 +1734,12 @@
       </trans-unit>
       <trans-unit id="ERR_PartialConstructorInitializer">
         <source>'{0}': only the implementing declaration of a partial constructor can have an initializer</source>
-        <target state="new">'{0}': only the implementing declaration of a partial constructor can have an initializer</target>
+        <target state="translated">{0}: Pouze implementující deklarace částečného konstruktoru může mít inicializátor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialEventInitializer">
         <source>'{0}': partial event cannot have initializer</source>
-        <target state="new">'{0}': partial event cannot have initializer</target>
+        <target state="translated">{0}: Částečná událost nemůže mít inicializátor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberAccessibilityDifference">
@@ -1754,12 +1754,12 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMemberDuplicateDefinition">
         <source>Partial member '{0}' may not have multiple defining declarations.</source>
-        <target state="new">Partial member '{0}' may not have multiple defining declarations.</target>
+        <target state="translated">Částečný člen {0} nemůže mít více definujících deklarací.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberDuplicateImplementation">
         <source>Partial member '{0}' may not have multiple implementing declarations.</source>
-        <target state="new">Partial member '{0}' may not have multiple implementing declarations.</target>
+        <target state="translated">Částečný člen {0} nemůže mít více implementujících deklarací.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberInconsistentTupleNames">
@@ -1769,12 +1769,12 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMemberMissingDefinition">
         <source>Partial member '{0}' must have a definition part.</source>
-        <target state="new">Partial member '{0}' must have a definition part.</target>
+        <target state="translated">Částečný člen {0} musí mít část definice.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberMissingImplementation">
         <source>Partial member '{0}' must have an implementation part.</source>
-        <target state="new">Partial member '{0}' must have an implementation part.</target>
+        <target state="translated">Částečný člen {0} musí mít část implementace.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberOnlyInPartialClass">
@@ -1804,7 +1804,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMemberTypeDifference">
         <source>Both partial member declarations must have the same type.</source>
-        <target state="new">Both partial member declarations must have the same type.</target>
+        <target state="translated">Obě částečné deklarace členů musí mít stejný typ.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberUnsafeDifference">
@@ -1939,12 +1939,12 @@
       </trans-unit>
       <trans-unit id="ERR_ReceiverParameterOnlyOne">
         <source>An extension container can have only one receiver parameter</source>
-        <target state="new">An extension container can have only one receiver parameter</target>
+        <target state="translated">Kontejner rozšíření může mít pouze jeden parametr příjemce.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReceiverParameterSameNameAsTypeParameter">
         <source>'{0}': a receiver parameter cannot have the same name as an extension container type parameter</source>
-        <target state="new">'{0}': a receiver parameter cannot have the same name as an extension container type parameter</target>
+        <target state="translated">{0}: Parametr příjemce nemůže mít stejný název jako parametr typu kontejneru rozšíření.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RecordAmbigCtor">
@@ -2359,12 +2359,12 @@
       </trans-unit>
       <trans-unit id="ERR_TypeParameterSameNameAsExtensionParameter">
         <source>Type parameter '{0}' has the same name as an extension parameter</source>
-        <target state="new">Type parameter '{0}' has the same name as an extension parameter</target>
+        <target state="translated">Parametr typu {0} má stejný název jako parametr rozšíření.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeParameterSameNameAsExtensionTypeParameter">
         <source>Type parameter '{0}' has the same name as an extension container type parameter</source>
-        <target state="new">Type parameter '{0}' has the same name as an extension container type parameter</target>
+        <target state="translated">Parametr typu {0} má stejný název jako parametr typu kontejneru rozšíření.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnassignedThisAutoPropertyUnsupportedVersion">
@@ -2474,17 +2474,17 @@
       </trans-unit>
       <trans-unit id="ERR_ValueParameterSameNameAsExtensionParameter">
         <source>'value': an automatically-generated parameter name conflicts with an extension parameter name</source>
-        <target state="new">'value': an automatically-generated parameter name conflicts with an extension parameter name</target>
+        <target state="translated">value: Automaticky vygenerovaný název parametru je v konfliktu s názvem parametru rozšíření.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ValueParameterSameNameAsExtensionTypeParameter">
         <source>'value': an automatically-generated parameter name conflicts with an extension type parameter name</source>
-        <target state="new">'value': an automatically-generated parameter name conflicts with an extension type parameter name</target>
+        <target state="translated">value: Automaticky vygenerovaný název parametru je v konfliktu s názvem parametru typu rozšíření.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VariableDeclarationNamedField">
         <source>In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</source>
-        <target state="new">In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</target>
+        <target state="translated">Ve verzi {0} jazyka je field klíčové slovo v rámci přístupového objektu vlastnosti. Přejmenujte proměnnou nebo místo toho použijte identifikátor @field.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
@@ -2554,7 +2554,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensions">
         <source>extensions</source>
-        <target state="new">extensions</target>
+        <target state="translated">rozšíření</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureFieldKeyword">
@@ -2654,7 +2654,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureNullConditionalAssignment">
         <source>null conditional assignment</source>
-        <target state="new">null conditional assignment</target>
+        <target state="translated">podmíněné přiřazení null</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureOverloadResolutionPriority">
@@ -2674,7 +2674,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeaturePartialEventsAndConstructors">
         <source>partial events and constructors</source>
-        <target state="new">partial events and constructors</target>
+        <target state="translated">částečné události a konstruktory</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
@@ -2734,7 +2734,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureSimpleLambdaParameterModifiers">
         <source>simple lambda parameter modifiers</source>
-        <target state="new">simple lambda parameter modifiers</target>
+        <target state="translated">jednoduché modifikátory parametrů lambda</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStringEscapeCharacter">
@@ -2864,12 +2864,12 @@
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
         <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="new">Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
+        <target state="translated">Sestavení analyzátoru{0} nelze použít, protože odkazuje na verzi {1} kompilátoru, která je novější než aktuálně spuštěná verze {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
         <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
-        <target state="new">Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</target>
+        <target state="translated">Sestavení analyzátoru nelze použít, protože odkazuje na novější verzi kompilátoru než aktuálně spuštěná verze.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedIn">
@@ -3334,12 +3334,12 @@
       </trans-unit>
       <trans-unit id="WRN_PartialMemberSignatureDifference">
         <source>Partial member declarations '{0}' and '{1}' have signature differences.</source>
-        <target state="new">Partial member declarations '{0}' and '{1}' have signature differences.</target>
+        <target state="translated">Částečné deklarace členů {0} a {1} mají rozdíly v signaturách.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PartialMemberSignatureDifference_Title">
         <source>Partial member declarations have signature differences.</source>
-        <target state="new">Partial member declarations have signature differences.</target>
+        <target state="translated">Částečné deklarace metod mají rozdíly v signaturách.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
@@ -5500,12 +5500,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField">
         <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
-        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</target>
+        <target state="translated">Proměnná {0} {1}, která nemůže být null, musí při ukončování konstruktoru obsahovat hodnotu, která není null. Zvažte přidání modifikátoru required, deklarování vlastnosti {0} jako vlastnosti s možnou hodnotou null nebo bezpečné ošetření případu, kdy má field v přístupovém objektu get hodnotu null.</target>
         <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField_Title">
         <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
-        <target state="new">Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</target>
+        <target state="translated">Při ukončovacím konstruktoru musí vlastnost, která nemůže mít hodnotu null, obsahovat hodnotu, která není null. Zvažte přidání modifikátoru required, deklarování vlastnosti jako vlastnosti s možnou hodnotou null nebo bezpečné ošetření případu, kdy má field v přístupovém objektu get hodnotu null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
@@ -6850,7 +6850,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
         <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</source>
-        <target state="new">The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</target>
+        <target state="translated">Modifikátor partial se může objevit pouze bezprostředně před klíčovým slovem class, record, struct, interface, event, názvem konstruktoru instance nebo návratovým typem metody či vlastnosti.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -8958,7 +8958,7 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
       </trans-unit>
       <trans-unit id="ERR_ExtensionAttrNotFound">
         <source>Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
-        <target state="new">Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</target>
+        <target state="translated">Nejde definovat nové rozšíření, protože se nenašel vyžadovaný typ kompilátoru {0}. Nechybí odkaz na System.Core.dll?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitExtension">
@@ -9053,7 +9053,7 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
         <source>Invalid token '{0}' in a member declaration</source>
-        <target state="new">Invalid token '{0}' in a member declaration</target>
+        <target state="translated">Neplatný token {0} v deklaraci člena</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">
