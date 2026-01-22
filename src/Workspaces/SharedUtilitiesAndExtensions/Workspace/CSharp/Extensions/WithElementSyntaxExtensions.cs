@@ -68,20 +68,13 @@ internal static class WithElementSyntaxExtensions
             if (constructedBuilderMethods is null)
                 return null;
 
-            var readonlySpanOfTType = semanticModel.Compilation.ReadOnlySpanOfTType();
-            return constructedBuilderMethods.Value.SelectAsArray(constructedMethod =>
-            {
-                // Create a synthesized method with the ReadOnlySpan<T> parameter removed.  This corresponds to the parameters
-                // that actually have to be passed to the with element.
-                var slicedParameters = Equals(constructedMethod.Parameters[0].Type.OriginalDefinition, readonlySpanOfTType)
-                    ? constructedMethod.Parameters[1..]
-                    : constructedMethod.Parameters[..^1];
-
-                return CodeGenerationSymbolFactory.CreateMethodSymbol(
+            // Create a synthesized method with the ReadOnlySpan<T> parameter removed.  This corresponds to the parameters
+            // that actually have to be passed to the with element.
+            return constructedBuilderMethods.Value.SelectAsArray(
+                constructedMethod => CodeGenerationSymbolFactory.CreateMethodSymbol(
                     constructedMethod,
-                    parameters: slicedParameters,
-                    containingType: constructedMethod.ContainingType);
-            });
+                    parameters: constructedMethod.Parameters[..^1],
+                    containingType: constructedMethod.ContainingType));
         }
     }
 #endif

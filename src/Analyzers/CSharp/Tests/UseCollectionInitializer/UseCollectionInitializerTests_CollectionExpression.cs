@@ -23,10 +23,13 @@ using VerifyCS = CSharpCodeFixVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
 public sealed partial class UseCollectionInitializerTests_CollectionExpression
 {
-    private static Task TestInRegularAndScriptAsync([StringSyntax("C#-test")] string testCode, [StringSyntax("C#-test")] string fixedCode, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
+    private static Task TestInRegularAndScriptAsync(
+        [StringSyntax("C#-test")] string testCode,
+        [StringSyntax("C#-test")] string fixedCode,
+        OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
         => new VerifyCS.Test
         {
-            ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net100,
             TestCode = testCode,
             FixedCode = fixedCode,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -5784,7 +5787,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
 
-            """ + UseCollectionExpressionForEmptyTests.CollectionBuilderAttributeDefinition);
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70099")]
     public Task TestCollectionBuilderOutsideMethod()
@@ -5824,7 +5827,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
 
-            """ + UseCollectionExpressionForEmptyTests.CollectionBuilderAttributeDefinition,
+            """,
             """
             using System;
             using System.Collections;
@@ -5859,7 +5862,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
 
-            """ + UseCollectionExpressionForEmptyTests.CollectionBuilderAttributeDefinition);
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
     public Task TestObjectCreationArgument1_CSharp14()
@@ -5988,6 +5991,75 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
+
+    [Fact]
+    public Task TestNonGenericCollectionBuilder()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Collections.ObjectModel;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(Factory), nameof(Factory.Create))]
+            internal class MyCustomCollection : List<int>
+            {
+            }
+
+            internal static class Factory
+            {
+                public static MyCustomCollection Create(ReadOnlySpan<int> items)
+                {
+                    MyCustomCollection collection = new();
+                    foreach (var item in items)
+                        collection.Add(item);
+
+                    return collection;
+                }
+            }
+
+            class C
+            {
+                void M()
+                {
+                    MyCustomCollection c = [|new|]();
+                    [|c.Add(|]1);
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Collections.ObjectModel;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(Factory), nameof(Factory.Create))]
+            internal class MyCustomCollection : List<int>
+            {
+            }
+            
+            internal static class Factory
+            {
+                public static MyCustomCollection Create(ReadOnlySpan<int> items)
+                {
+                    MyCustomCollection collection = new();
+                    foreach (var item in items)
+                        collection.Add(item);
+            
+                    return collection;
+                }
+            }
+
+            class C
+            {
+                void M()
+                {
+                    MyCustomCollection c = [1];
+                }
+            }
+            """);
 
     // Enable when dictionary-expressions come online.
 #if false
