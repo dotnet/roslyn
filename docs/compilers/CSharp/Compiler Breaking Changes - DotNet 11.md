@@ -60,7 +60,6 @@ foreach (var x in new[] { 1, 2 })
 
 See also https://github.com/dotnet/csharplang/issues/9750.
 
-
 ## Scenarios requiring compiler to synthesize a `ref readonly` returning delegate now require availability of `System.Runtime.InteropServices.InAttribute` type.
 
 ***Introduced in Visual Studio 2026 version 18.3***
@@ -102,7 +101,6 @@ void Method()
 
 If your code is impacted by this breaking change, consider adding a reference to an assembly defining `System.Runtime.InteropServices.InAttribute` 
 to your project.
-
 
 ## Dynamic evaluation of `&&`/`||` operators is not allowed with the left operand statically typed as an interface.
 
@@ -173,3 +171,21 @@ x switch
 
 This was undesirable, and meant a simple `when` check of the pattern (like `(X.Y) when a > b =>`) would not
 parse properly.  Now, this is treated as a constant pattern `(X.Y)` followed by a `when clause`.
+
+## `with()` as a collection expression element is treated as collection construction *arguments*
+
+***Introduced in Visual Studio 2026 version 18.4***
+
+`with(...)` when used as an element in a collection expression, and when the LangVersion is set to 'Preview', is bound as arguments passed to constructor or
+factory method used to create the collection, rather than as an invocation expression of a method named `with`.
+
+To bind to a method named `with`, use `@with` instead.
+
+```cs
+object x, y, z = ...;
+object[] items;
+
+items = [with(x, y), z];  // C#14: call to with() method; 'Preview': error args not supported for object[]
+items = [@with(x, y), z]; // call to with() method
+object with(object a, object b) { ... }
+```

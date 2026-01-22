@@ -544,7 +544,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeMethodNotFound">
         <source>Could not find an accessible '{0}' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
-        <target state="new">Could not find an accessible '{0}' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</target>
+        <target state="needs-review-translation">필요한 시그니처가 있는 액세스 가능한 '{0}' 메서드(형식이 'ReadOnlySpan&lt;{1}&gt;'인 단일 매개 변수가 및 '{2}' 반환 형식이 있는 정적 메서드)를 찾을 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderNoElementType">

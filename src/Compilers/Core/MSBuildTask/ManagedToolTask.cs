@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// The reason this task is a different assembly is to allow both the MSBuild and .NET SDK copy to be loaded
         /// into the same MSBuild process.
         /// </remarks>
-        internal static bool IsSdkFrameworkToCoreBridgeTask { get; } =
+        internal static bool IsSdkFrameworkToCoreBridgeTask =>
 #if NETFRAMEWORK && SDK_TASK
             true;
 #else
@@ -57,6 +57,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Is the builtin tool executed by this task running on .NET Core?
         /// </summary>
+        /// <remarks>
+        /// Keep in sync with <see cref="Microsoft.CodeAnalysis.CommandLine.BuildServerConnection.IsBuiltinToolRunningOnCoreClr"/>.
+        /// </remarks>
         internal static bool IsBuiltinToolRunningOnCoreClr => RuntimeHostInfo.IsCoreClrRuntime || IsSdkFrameworkToCoreBridgeTask;
 
         internal string PathToBuiltInTool => Path.Combine(GetToolDirectory(), ToolName);
@@ -252,7 +255,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             // Set DOTNET_ROOT so that the apphost executables launch properly.
             // Unset all other DOTNET_ROOT* variables so for example DOTNET_ROOT_X64 does not override ours.
-            if (RuntimeHostInfo.GetToolDotNetRoot(Log.LogMessage) is { } dotNetRoot)
+            if (IsBuiltinToolRunningOnCoreClr && RuntimeHostInfo.GetToolDotNetRoot(Log.LogMessage) is { } dotNetRoot)
             {
                 Log.LogMessage("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
                 EnvironmentVariables =
