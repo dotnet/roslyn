@@ -133,7 +133,7 @@ public sealed class WithElementSignatureHelpProviderTests : AbstractCSharpSignat
 
             static class MyCollectionBuilder
             {
-                public static MyCollection<T> Create<T>(ReadOnlySpan<T> values, int capacity, int extra) => new System.NotImplementedException();
+                public static MyCollection<T> Create<T>(int capacity, int extra, ReadOnlySpan<T> values) => new System.NotImplementedException();
                 public static MyCollection<T> Create<T>(string capacity, string extra, ReadOnlySpan<T> values) => new System.NotImplementedException();
             }
 
