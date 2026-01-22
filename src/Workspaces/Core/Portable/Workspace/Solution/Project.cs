@@ -76,14 +76,19 @@ public partial class Project
     public CompilationOutputInfo CompilationOutputInfo => State.CompilationOutputInfo;
 
     /// <summary>
+    /// The target framework of the project, or null if it is not known.
+    /// </summary>
+    internal string? TargetFramework => State.TargetFramework;
+
+    /// <summary>
     /// The default namespace of the project ("" if not defined, which means global namespace),
-    /// or null if it is unknown or not applicable. 
+    /// or null if it is unknown or not applicable.
     /// </summary>
     /// <remarks>
-    /// Right now VB doesn't have the concept of "default namespace". But we conjure one in workspace 
-    /// by assigning the value of the project's root namespace to it. So various feature can choose to 
+    /// Right now VB doesn't have the concept of "default namespace". But we conjure one in workspace
+    /// by assigning the value of the project's root namespace to it. So various feature can choose to
     /// use it for their own purpose.
-    /// In the future, we might consider officially exposing "default namespace" for VB project 
+    /// In the future, we might consider officially exposing "default namespace" for VB project
     /// (e.g. through a "defaultnamespace" msbuild property)
     /// </remarks>
     public string? DefaultNamespace => State.DefaultNamespace;
@@ -91,7 +96,7 @@ public partial class Project
     /// <summary>
     /// <see langword="true"/> if this <see cref="Project"/> supports providing data through the
     /// <see cref="GetCompilationAsync(CancellationToken)"/> method.
-    /// 
+    ///
     /// If <see langword="false"/> then <see cref="GetCompilationAsync(CancellationToken)"/> method will return <see langword="null"/> instead.
     /// </summary>
     public bool SupportsCompilation => this.Services.GetService<ICompilationFactoryService>() != null;
@@ -136,7 +141,7 @@ public partial class Project
     public IEnumerable<ProjectReference> ProjectReferences => State.ProjectReferences.Where(pr => this.Solution.ContainsProject(pr.ProjectId));
 
     /// <summary>
-    /// The list of all other projects that this project references, including projects that 
+    /// The list of all other projects that this project references, including projects that
     /// are not part of the solution.
     /// </summary>
     public IReadOnlyList<ProjectReference> AllProjectReferences => State.ProjectReferences;
@@ -629,7 +634,7 @@ public partial class Project
         => this.Solution.RemoveProjectReference(this.Id, projectReference).GetRequiredProject(Id);
 
     /// <summary>
-    /// Creates a new instance of this project updated to replace existing project references 
+    /// Creates a new instance of this project updated to replace existing project references
     /// with the specified ones.
     /// </summary>
     public Project WithProjectReferences(IEnumerable<ProjectReference> projectReferences)
@@ -663,7 +668,7 @@ public partial class Project
         => this.Solution.WithProjectMetadataReferences(this.Id, metadataReferences).GetRequiredProject(Id);
 
     /// <summary>
-    /// Creates a new instance of this project updated to include the specified analyzer reference 
+    /// Creates a new instance of this project updated to include the specified analyzer reference
     /// in addition to already existing ones.
     /// </summary>
     public Project AddAnalyzerReference(AnalyzerReference analyzerReference)
@@ -683,14 +688,14 @@ public partial class Project
         => this.Solution.RemoveAnalyzerReference(this.Id, analyzerReference).GetRequiredProject(Id);
 
     /// <summary>
-    /// Creates a new instance of this project updated to replace existing analyzer references 
+    /// Creates a new instance of this project updated to replace existing analyzer references
     /// with the specified ones.
     /// </summary>
     public Project WithAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferencs)
         => this.Solution.WithProjectAnalyzerReferences(this.Id, analyzerReferencs).GetRequiredProject(Id);
 
     /// <summary>
-    /// Creates a new instance of this project updated to replace existing analyzer references 
+    /// Creates a new instance of this project updated to replace existing analyzer references
     /// with the specified ones.
     /// </summary>
     internal Project WithAttributes(ProjectInfo.ProjectAttributes attributes)

@@ -31,6 +31,7 @@ internal static class BuildPropertyNames
     public const string AssemblyName = nameof(AssemblyName);
     public const string CommandLineArgsForDesignTimeEvaluation = nameof(CommandLineArgsForDesignTimeEvaluation);
     public const string IntermediateAssembly = nameof(IntermediateAssembly);
+    public const string TargetFramework = nameof(TargetFramework);
 
     public static readonly ImmutableArray<string> InitialEvaluationPropertyNames = [MSBuildProjectFullPath, TargetPath, AssemblyName, CommandLineArgsForDesignTimeEvaluation];
 

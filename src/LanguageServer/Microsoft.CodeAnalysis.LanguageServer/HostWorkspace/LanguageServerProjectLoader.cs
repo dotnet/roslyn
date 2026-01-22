@@ -380,6 +380,7 @@ internal abstract class LanguageServerProjectLoader
                 AssemblyName = projectSystemName,
                 FilePath = projectPath,
                 CompilationOutputAssemblyFilePath = loadedProjectInfo.IntermediateOutputFilePath,
+                TargetFramework = loadedProjectInfo.TargetFramework
             };
 
             var projectSystemProject = await projectFactory.CreateAndAddToWorkspaceAsync(
