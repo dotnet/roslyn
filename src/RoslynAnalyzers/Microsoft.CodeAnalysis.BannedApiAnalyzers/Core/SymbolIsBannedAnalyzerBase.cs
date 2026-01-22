@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
         private static bool ShouldExcludeGeneratedCode(AnalyzerOptions options)
         {
-            // Read the banned_api_exclude_generated_code option from global editorconfig options
             if (options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(
                 Analyzer.Utilities.EditorConfigOptionNames.BannedApiExcludeGeneratedCode,
                 out var value))
@@ -54,7 +53,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 return bool.TryParse(value, out var result) && result;
             }
 
-            return false; // Default is to analyze generated code
+            return false;
         }
 
         private void OnCompilationStart(CompilationStartAnalysisContext compilationContext)
@@ -63,7 +62,6 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             if (bannedApis == null || bannedApis.Count == 0)
                 return;
 
-            // Check if we should exclude generated code
             var excludeGeneratedCode = ShouldExcludeGeneratedCode(compilationContext.Options);
 
             if (ShouldAnalyzeAttributes())
