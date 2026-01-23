@@ -3860,15 +3860,38 @@ public class Class1
                 // (33,51): error CS8389: Omitting the type argument is not allowed in the current context
                 //         System.Func<object> delegateConversion1 = "string literal".ExtensionMethod1<>;
                 Diagnostic(ErrorCode.ERR_OmittedTypeArgument, @"""string literal"".ExtensionMethod1<>").WithLocation(33, 51),
-                // (33,51): error CS0407: '? FooExtensions.ExtensionMethod1<?>(object)' has the wrong return type
-                //         System.Func<object> delegateConversion1 = "string literal".ExtensionMethod1<>;
-                Diagnostic(ErrorCode.ERR_BadRetType, @"""string literal"".ExtensionMethod1<>").WithArguments("FooExtensions.ExtensionMethod1<?>(object)", "?").WithLocation(33, 51),
                 // (34,51): error CS8389: Omitting the type argument is not allowed in the current context
                 //         System.Func<object> delegateConversion2 = "string literal".ExtensionMethod2<>;
                 Diagnostic(ErrorCode.ERR_OmittedTypeArgument, @"""string literal"".ExtensionMethod2<>").WithLocation(34, 51),
                 // (34,68): error CS1061: 'string' does not contain a definition for 'ExtensionMethod2' and no accessible extension method 'ExtensionMethod2' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         System.Func<object> delegateConversion2 = "string literal".ExtensionMethod2<>;
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod2<>").WithArguments("string", "ExtensionMethod2").WithLocation(34, 68));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16041")]
+        public void MissingTypeArgumentInGenericExtensionMethod_ParameterType()
+        {
+            var source =
+                """
+                public static class GooExtensions
+                {
+                    public static void ExtensionMethod1<T>(this object obj, T t) { }
+                }
+
+                public class Class1
+                {
+                    public void Test()
+                    {
+                        System.Action<object> delegateConversion1 = "literal".ExtensionMethod1<>;
+                    }
+                }
+                """;
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+
+            compilation.VerifyDiagnostics(
+                // (10,53): error CS8389: Omitting the type argument is not allowed in the current context
+                //         System.Action<object> delegateConversion1 = "literal".ExtensionMethod1<>;
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, @"""literal"".ExtensionMethod1<>").WithLocation(10, 53));
         }
 
         [WorkItem(22757, "https://github.com/dotnet/roslyn/issues/22757")]
