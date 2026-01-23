@@ -85,6 +85,44 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return c == Path.DirectorySeparatorChar || c == Path.AltDirectorySeparatorChar;
         }
 
+        private static bool ContainsRelativePathComponents(string path)
+        {
+            // Only canonicalize paths that are already rooted (absolute paths)
+            // Relative paths like "C:" on Linux should not be canonicalized
+            if (!Path.IsPathRooted(path))
+            {
+                return false;
+            }
+
+            // Check for ".." (parent directory reference)
+            if (path.Contains(".."))
+            {
+                return true;
+            }
+
+            // Check for "/." or "\." patterns (current directory reference)
+            // But exclude paths that just end with "." like "C:." 
+            int dotIndex = path.IndexOf('.');
+            while (dotIndex >= 0)
+            {
+                // Check if this is a path separator followed by dot
+                if (dotIndex > 0)
+                {
+                    char prevChar = path[dotIndex - 1];
+                    if (prevChar == Path.DirectorySeparatorChar || prevChar == Path.AltDirectorySeparatorChar)
+                    {
+                        // This is a "/." or "\." pattern - it's a relative component
+                        return true;
+                    }
+                }
+
+                // Look for next dot
+                dotIndex = path.IndexOf('.', dotIndex + 1);
+            }
+
+            return false;
+        }
+
         public override bool Execute()
         {
             // Canonicalize SourceRoot paths to ensure path comparisons work correctly downstream.
@@ -92,7 +130,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             foreach (var sourceRoot in SourceRoots)
             {
                 var itemSpec = sourceRoot.ItemSpec;
-                if (!string.IsNullOrEmpty(itemSpec))
+                if (!string.IsNullOrEmpty(itemSpec) && ContainsRelativePathComponents(itemSpec))
                 {
                     // Preserve the trailing separator type from the original path
                     char? trailingSeparator = null;
@@ -116,6 +154,34 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                     // Update the ItemSpec with the canonicalized path
                     sourceRoot.ItemSpec = canonicalPath;
+                }
+
+                // Also canonicalize the ContainingRoot metadata if it has relative components
+                var containingRoot = sourceRoot.GetMetadata(Names.ContainingRoot);
+                if (!string.IsNullOrEmpty(containingRoot) && ContainsRelativePathComponents(containingRoot))
+                {
+                    // Preserve the trailing separator type from the original path
+                    char? trailingSeparator = null;
+                    if (containingRoot.Length > 0)
+                    {
+                        char lastChar = containingRoot[containingRoot.Length - 1];
+                        if (lastChar == Path.DirectorySeparatorChar || lastChar == Path.AltDirectorySeparatorChar)
+                        {
+                            trailingSeparator = lastChar;
+                        }
+                    }
+
+                    // Canonicalize the path
+                    var canonicalContainingRoot = Utilities.GetFullPathNoThrow(containingRoot);
+
+                    // Restore the trailing separator if it was present
+                    if (trailingSeparator.HasValue && !EndsWithDirectorySeparator(canonicalContainingRoot))
+                    {
+                        canonicalContainingRoot += trailingSeparator.Value;
+                    }
+
+                    // Update the ContainingRoot metadata
+                    sourceRoot.SetMetadata(Names.ContainingRoot, canonicalContainingRoot);
                 }
             }
 
