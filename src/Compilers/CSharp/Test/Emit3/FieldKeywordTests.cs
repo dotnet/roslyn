@@ -12942,6 +12942,34 @@ class C<T>
                 expected: [Diagnostic("TEST_Invalid", "field").WithLocation(5, 16)]);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80504")]
+        public void SetsRequiredMembersInSubtype()
+        {
+            var source = """
+                #nullable enable
+                using System.Diagnostics.CodeAnalysis;
+
+                public class Foo {
+                    public required string Bar {
+                        get;
+                        init {
+                            field = value;
+                        }
+                    }
+                }
+
+                public class FooDerivative : Foo {
+
+                    [SetsRequiredMembers]
+                    public FooDerivative() {
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+            comp.VerifyEmitDiagnostics();
+        }
+
         private class TestAnalyzer1 : DiagnosticAnalyzer
         {
             public static readonly DiagnosticDescriptor Descriptor_Field = new(id: "TEST_Field", title: "Test", messageFormat: "", category: "", DiagnosticSeverity.Warning, isEnabledByDefault: true);
