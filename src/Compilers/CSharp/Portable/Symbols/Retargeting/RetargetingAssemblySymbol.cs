@@ -205,18 +205,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         internal override bool AreInternalsVisibleToThisAssembly(AssemblySymbol potentialGiverOfAccess)
         {
             IVTConclusion conclusion;
-            if (!AssembliesToWhichInternalAccessHasBeenDetermined.TryGetValue(potentialGiverOfAccess, out conclusion))
+            if (!AssembliesToWhichInternalAccessHasBeenDetermined.TryGetValue(potentialGiverOfAccess.Identity, out conclusion))
             {
                 conclusion = _underlyingAssembly.MakeFinalIVTDetermination(potentialGiverOfAccess, assertUnexpectedGiver: false);
-
-                if (IsDirectlyOrIndirectlyReferenced(potentialGiverOfAccess))
-                {
-                    AssembliesToWhichInternalAccessHasBeenDetermined.TryAdd(potentialGiverOfAccess, conclusion);
-                }
-                else
-                {
-                    Debug.Fail("We are performing a check for an unrelated assembly which likely indicates a bug.");
-                }
+                AssembliesToWhichInternalAccessHasBeenDetermined.TryAdd(potentialGiverOfAccess.Identity, conclusion);
             }
 
             return conclusion == IVTConclusion.Match || conclusion == IVTConclusion.OneSignedOneNot;

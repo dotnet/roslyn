@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal IVTConclusion MakeFinalIVTDetermination(AssemblySymbol potentialGiverOfAccess, bool assertUnexpectedGiver)
         {
             IVTConclusion result;
-            if (AssembliesToWhichInternalAccessHasBeenDetermined.TryGetValue(potentialGiverOfAccess, out result))
+            if (AssembliesToWhichInternalAccessHasBeenDetermined.TryGetValue(potentialGiverOfAccess.Identity, out result))
                 return result;
 
             result = IVTConclusion.NoRelationshipClaimed;
@@ -58,85 +58,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (IsDirectlyOrIndirectlyReferenced(potentialGiverOfAccess))
-            {
-                AssembliesToWhichInternalAccessHasBeenDetermined.TryAdd(potentialGiverOfAccess, result);
-            }
-            else
-            {
-                Debug.Assert(!assertUnexpectedGiver, "We are performing a check for an unrelated assembly which likely indicates a bug.");
-            }
+            AssembliesToWhichInternalAccessHasBeenDetermined.TryAdd(potentialGiverOfAccess.Identity, result);
 
             return result;
         }
 
-        protected bool IsDirectlyOrIndirectlyReferenced(AssemblySymbol potentialGiverOfAccess)
-        {
-            var checkedAssemblies = PooledHashSet<AssemblySymbol>.GetInstance();
-            var queue = ArrayBuilder<AssemblySymbol>.GetInstance(
-                this.Modules[0].ReferencedAssemblySymbols.Length +
-                (this is SourceAssemblySymbol { DeclaringCompilation.PreviousSubmission: { } } ? 1 : 0));
-
-            checkedAssemblies.Add(this);
-            bool found = checkReferences(this, potentialGiverOfAccess, checkedAssemblies, queue);
-
-            while (!found && queue.Count != 0)
-            {
-                found = checkReferences(queue.Pop(), potentialGiverOfAccess, checkedAssemblies, queue);
-            }
-
-            checkedAssemblies.Free();
-            queue.Free();
-            return found;
-
-            static bool checkReferences(AssemblySymbol current, AssemblySymbol potentialGiverOfAccess, PooledHashSet<AssemblySymbol> checkedAssemblies, ArrayBuilder<AssemblySymbol> queue)
-            {
-                foreach (var module in current.Modules)
-                {
-                    foreach (var referencedAssembly in module.ReferencedAssemblySymbols)
-                    {
-                        if (checkReference(referencedAssembly, potentialGiverOfAccess, checkedAssemblies, queue))
-                        {
-                            return true;
-                        }
-                    }
-                }
-
-                if (current is SourceAssemblySymbol { DeclaringCompilation.PreviousSubmission.Assembly: { } previous } &&
-                    checkReference(previous, potentialGiverOfAccess, checkedAssemblies, queue))
-                {
-                    return true;
-                }
-
-                return false;
-            }
-
-            static bool checkReference(AssemblySymbol referencedAssembly, AssemblySymbol potentialGiverOfAccess, PooledHashSet<AssemblySymbol> checkedAssemblies, ArrayBuilder<AssemblySymbol> queue)
-            {
-                if ((object)referencedAssembly == potentialGiverOfAccess)
-                {
-                    return true;
-                }
-
-                if (checkedAssemblies.Add(referencedAssembly))
-                {
-                    queue.Push(referencedAssembly);
-                }
-
-                return false;
-            }
-        }
-
         //EDMAURER This is a cache mapping from assemblies which we have analyzed whether or not they grant
         //internals access to us to the conclusion reached.
-        private ConcurrentDictionary<AssemblySymbol, IVTConclusion> _assembliesToWhichInternalAccessHasBeenAnalyzed;
+        private ConcurrentDictionary<AssemblyIdentity, IVTConclusion> _assembliesToWhichInternalAccessHasBeenAnalyzed;
 
-        internal ConcurrentDictionary<AssemblySymbol, IVTConclusion> AssembliesToWhichInternalAccessHasBeenDetermined
+        internal ConcurrentDictionary<AssemblyIdentity, IVTConclusion> AssembliesToWhichInternalAccessHasBeenDetermined
         {
             get
             {
                 if (_assembliesToWhichInternalAccessHasBeenAnalyzed == null)
-                    Interlocked.CompareExchange(ref _assembliesToWhichInternalAccessHasBeenAnalyzed, new ConcurrentDictionary<AssemblySymbol, IVTConclusion>(), null);
+                    Interlocked.CompareExchange(ref _assembliesToWhichInternalAccessHasBeenAnalyzed, new ConcurrentDictionary<AssemblyIdentity, IVTConclusion>(), null);
                 return _assembliesToWhichInternalAccessHasBeenAnalyzed;
             }
         }
