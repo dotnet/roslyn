@@ -416,7 +416,7 @@ internal sealed class ComponentGenericTypePass : ComponentIntermediateNodePassBa
         {
             var @namespace = documentNode.FindPrimaryNamespace().AssumeNotNull().Name;
             @namespace = string.IsNullOrEmpty(@namespace) ? "__Blazor" : "__Blazor." + @namespace;
-            @namespace += "." + documentNode.FindPrimaryClass().AssumeNotNull().Name;
+            @namespace += "." + documentNode.FindPrimaryClass().AssumeNotNull().Name.Content;
 
             using var genericTypeConstraints = new PooledArrayBuilder<string>();
 
@@ -460,12 +460,12 @@ internal sealed class ComponentGenericTypePass : ComponentIntermediateNodePassBa
 
             var classNode = namespaceNode.Children
                 .OfType<ClassDeclarationIntermediateNode>()
-                .FirstOrDefault(n => n.Name == "TypeInference");
+                .FirstOrDefault(n => n.Name.Content == "TypeInference");
             if (classNode == null)
             {
                 classNode = new ClassDeclarationIntermediateNode()
                 {
-                    Name = "TypeInference",
+                    Name = IntermediateNodeFactory.CSharpToken("TypeInference"),
                     Modifiers = CommonModifiers.InternalStatic
                 };
                 namespaceNode.Children.Add(classNode);

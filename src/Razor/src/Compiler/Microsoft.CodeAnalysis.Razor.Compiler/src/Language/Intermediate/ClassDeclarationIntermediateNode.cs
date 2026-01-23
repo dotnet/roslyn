@@ -8,7 +8,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 public sealed class ClassDeclarationIntermediateNode : MemberDeclarationIntermediateNode
 {
-    public string? Name { get; set; }
+    public required IntermediateToken Name { get; set; }
     public BaseTypeWithModel? BaseType { get; set; }
     public ImmutableArray<string> Modifiers { get; set => field = value.NullToEmpty(); } = [];
     public ImmutableArray<IntermediateToken> Interfaces { get; set => field = value.NullToEmpty(); } = [];
@@ -24,8 +24,8 @@ public sealed class ClassDeclarationIntermediateNode : MemberDeclarationIntermed
 
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {
-        formatter.WriteContent(Name);
-        formatter.WriteProperty(nameof(Name), Name);
+        formatter.WriteContent(Name?.Content);
+        formatter.WriteProperty(nameof(Name), Name?.Content);
         formatter.WriteProperty(nameof(Interfaces), string.Join(", ", Interfaces.Select(i => i.Content)));
         formatter.WriteProperty(nameof(Modifiers), string.Join(", ", Modifiers));
         formatter.WriteProperty(nameof(TypeParameters), string.Join(", ", TypeParameters.Select(t => t.Name.Content)));

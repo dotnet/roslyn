@@ -48,7 +48,7 @@ internal sealed class ComponentRenderModeDirectivePass : IntermediateNodePassBas
         // generate the inner attribute class
         var classDecl = new ClassDeclarationIntermediateNode
         {
-            Name = GeneratedRenderModeAttributeName,
+            Name = IntermediateNodeFactory.CSharpToken(GeneratedRenderModeAttributeName),
             BaseType = new BaseTypeWithModel($"global::{ComponentsApi.RenderModeAttribute.FullTypeName}"),
             Modifiers = useFileScopedClass
                 ? CommonModifiers.FileSealed
@@ -101,7 +101,7 @@ internal sealed class ComponentRenderModeDirectivePass : IntermediateNodePassBas
         var namespaceSeparator = string.IsNullOrEmpty(@namespace.Name) ? string.Empty : ".";
         var attributeContents = useFileScopedClass
             ? GeneratedRenderModeAttributeName
-            : $"global::{@namespace.Name}{namespaceSeparator}{@class.Name}.{GeneratedRenderModeAttributeName}";
+            : $"global::{@namespace.Name}{namespaceSeparator}{@class.Name.Content}.{GeneratedRenderModeAttributeName}";
         attributeNode.Children.Add(
             IntermediateNodeFactory.CSharpToken($"[{attributeContents}]"));
 

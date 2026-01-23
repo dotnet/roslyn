@@ -62,7 +62,7 @@ public static class ModelDirective
 
         if (document.DocumentKind == RazorPageDocumentClassifierPass.RazorPageDocumentKind)
         {
-            return IntermediateNodeFactory.CSharpToken(visitor.Class!.Name!);
+            return visitor.Class!.Name!;
         }
         else
         {

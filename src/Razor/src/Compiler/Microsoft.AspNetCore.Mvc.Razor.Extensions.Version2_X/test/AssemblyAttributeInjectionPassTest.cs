@@ -69,36 +69,6 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
     }
 
     [Fact]
-    public void Execute_NoOps_IfClassNameIsEmpty()
-    {
-        // Arrange
-        var codeDocument = ProjectEngine.CreateEmptyCodeDocument();
-        var documentNode = new DocumentIntermediateNode() { Options = codeDocument.CodeGenerationOptions };
-
-        var builder = IntermediateNodeBuilder.Create(documentNode);
-
-        var @namespace = new NamespaceDeclarationIntermediateNode()
-        {
-            Name = "SomeNamespace",
-            IsPrimaryNamespace = true,
-        };
-
-        builder.Push(@namespace);
-
-        builder.Add(new ClassDeclarationIntermediateNode
-        {
-            IsPrimaryClass = true,
-        });
-
-        // Act
-        ProjectEngine.ExecutePass<AssemblyAttributeInjectionPass>(codeDocument, documentNode);
-
-        // Assert
-        var node = Assert.Single(documentNode.Children);
-        Assert.Same(@namespace, node);
-    }
-
-    [Fact]
     public void Execute_NoOps_IfDocumentIsNotViewOrPage()
     {
         // Arrange
@@ -115,7 +85,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
 
         var @class = new ClassDeclarationIntermediateNode
         {
-            Name = "SomeName",
+            Name = IntermediateNodeFactory.CSharpToken("SomeName"),
             IsPrimaryClass = true,
         };
 
@@ -153,7 +123,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
 
         var @class = new ClassDeclarationIntermediateNode
         {
-            Name = "SomeName",
+            Name = IntermediateNodeFactory.CSharpToken("SomeName"),
             IsPrimaryClass = true,
         };
 
@@ -193,7 +163,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
         builder.Push(@namespace);
         var @class = new ClassDeclarationIntermediateNode
         {
-            Name = "SomeName",
+            Name = IntermediateNodeFactory.CSharpToken("SomeName"),
             IsPrimaryClass = true,
         };
 
@@ -240,7 +210,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
 
         var @class = new ClassDeclarationIntermediateNode
         {
-            Name = "SomeName",
+            Name = IntermediateNodeFactory.CSharpToken("SomeName"),
             IsPrimaryClass = true,
         };
 
@@ -294,7 +264,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
 
         var @class = new ClassDeclarationIntermediateNode
         {
-            Name = "SomeName",
+            Name = IntermediateNodeFactory.CSharpToken("SomeName"),
             IsPrimaryClass = true,
         };
 
@@ -341,7 +311,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
 
         var @class = new ClassDeclarationIntermediateNode
         {
-            Name = "SomeName",
+            Name = IntermediateNodeFactory.CSharpToken("SomeName"),
             IsPrimaryClass = true,
         };
 

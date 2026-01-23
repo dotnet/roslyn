@@ -86,7 +86,7 @@ public class MvcViewDocumentClassifierPassTest : RazorProjectEngineTestBase
         Assert.NotNull(baseNode.ModelType);
         Assert.Equal("TModel", baseNode.ModelType.Content);
         Assert.Equal<string>(["public"], classNode.Modifiers);
-        Assert.Equal("Test", classNode.Name);
+        Assert.Equal("Test", classNode.Name.Content);
     }
 
     [Fact]
@@ -109,7 +109,7 @@ public class MvcViewDocumentClassifierPassTest : RazorProjectEngineTestBase
         Assert.NotNull(baseNode.ModelType);
         Assert.Equal("TModel", baseNode.ModelType.Content);
         Assert.Equal<string>(["public"], classNode.Modifiers);
-        Assert.Equal("AspNetCore_ec563e63d931b806184cb02f79875e4f3b21d1ca043ad06699424459128b58c0", classNode.Name);
+        Assert.Equal("AspNetCore_ec563e63d931b806184cb02f79875e4f3b21d1ca043ad06699424459128b58c0", classNode.Name.Content);
     }
 
     [Theory]
@@ -129,7 +129,7 @@ public class MvcViewDocumentClassifierPassTest : RazorProjectEngineTestBase
         var documentNode = processor.GetDocumentNode();
         var classNode = documentNode.GetClassNode();
 
-        Assert.Equal(expected, classNode.Name);
+        Assert.Equal(expected, classNode.Name.Content);
     }
 
     [Fact]
@@ -147,7 +147,7 @@ public class MvcViewDocumentClassifierPassTest : RazorProjectEngineTestBase
         var documentNode = processor.GetDocumentNode();
         var classNode = documentNode.GetClassNode();
 
-        Assert.Equal("x___application_Views_Home_Index", classNode.Name);
+        Assert.Equal("x___application_Views_Home_Index", classNode.Name.Content);
     }
 
     [Fact]
@@ -165,7 +165,7 @@ public class MvcViewDocumentClassifierPassTest : RazorProjectEngineTestBase
         var documentNode = processor.GetDocumentNode();
         var classNode = documentNode.GetClassNode();
 
-        Assert.Equal("path_with_invalid_chars", classNode.Name);
+        Assert.Equal("path_with_invalid_chars", classNode.Name.Content);
     }
 
     [Fact]

@@ -33,15 +33,15 @@ public sealed class AssemblyAttributeInjectionPass : IntermediateNodePassBase, I
         }
 
         var @class = documentNode.FindPrimaryClass();
-        if (@class == null || string.IsNullOrEmpty(@class.Name))
+        if (@class == null || string.IsNullOrEmpty(@class.Name.Content))
         {
             // No class node or it's incomplete. Skip.
             return;
         }
 
         var generatedTypeName = string.IsNullOrEmpty(@namespace.Name)
-            ? @class.Name
-            : $"{@namespace.Name}.{@class.Name}";
+            ? @class.Name.Content
+            : $"{@namespace.Name}.{@class.Name.Content}";
 
         // The MVC attributes require a relative path to be specified so that we can make a view engine path.
         // We can't use a rooted path because we don't know what the project root is.

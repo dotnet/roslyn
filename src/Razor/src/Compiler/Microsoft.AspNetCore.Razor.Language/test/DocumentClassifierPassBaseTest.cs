@@ -200,7 +200,7 @@ public class DocumentClassifierPassBaseTest : RazorProjectEngineTestBase
         Assert.Equal("TestNamespace", @namespace.Name);
 
         var @class = SingleChild<ClassDeclarationIntermediateNode>(@namespace);
-        Assert.Equal("TestClass", @class.Name);
+        Assert.Equal("TestClass", @class.Name.Content);
 
         var method = SingleChild<MethodDeclarationIntermediateNode>(@class);
         Assert.Equal("TestMethod", method.Name);
@@ -262,6 +262,11 @@ public class DocumentClassifierPassBaseTest : RazorProjectEngineTestBase
             return ShouldMatch;
         }
 
+        protected override string GetClassName(RazorCodeDocument codeDocument)
+        {
+            return Class ?? "";
+        }
+
         protected override void OnDocumentStructureCreated(
             RazorCodeDocument codeDocument,
             NamespaceDeclarationIntermediateNode @namespace,
@@ -269,7 +274,6 @@ public class DocumentClassifierPassBaseTest : RazorProjectEngineTestBase
             MethodDeclarationIntermediateNode method)
         {
             @namespace.Name = Namespace;
-            @class.Name = Class;
             @method.Name = Method;
         }
 

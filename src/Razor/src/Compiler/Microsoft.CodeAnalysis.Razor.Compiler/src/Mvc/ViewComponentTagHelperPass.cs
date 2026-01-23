@@ -163,8 +163,8 @@ public sealed class ViewComponentTagHelperPass : IntermediateNodePassBase, IRazo
 
             var className = $"__Generated__{viewComponentName}ViewComponentTagHelper";
             var fullyQualifiedName = !Namespace.Name.IsNullOrEmpty()
-                ? $"{Namespace.Name}.{Class.Name}.{className}"
-                : $"{Namespace.Name}{Class.Name}.{className}";
+                ? $"{Namespace.Name}.{Class.Name.Content}.{className}"
+                : $"{Namespace.Name}{Class.Name.Content}.{className}";
             var fieldName = $"__{viewComponentName}ViewComponentTagHelper";
 
             _tagHelpers.Add(tagHelper, (className, fullyQualifiedName, fieldName));

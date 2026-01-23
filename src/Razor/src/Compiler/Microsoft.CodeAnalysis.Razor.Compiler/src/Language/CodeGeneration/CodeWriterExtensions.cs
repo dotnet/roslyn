@@ -682,7 +682,7 @@ internal static class CodeWriterExtensions
     public static CSharpCodeWritingScope BuildClassDeclaration(
         this CodeWriter writer,
         ImmutableArray<string> modifiers,
-        string name,
+        IntermediateToken name,
         BaseTypeWithModel baseType,
         ImmutableArray<IntermediateToken> interfaces,
         ImmutableArray<TypeParameter> typeParameters,
@@ -699,7 +699,7 @@ internal static class CodeWriterExtensions
         writer.WriteModifierList(modifiers);
 
         writer.Write("class ");
-        writer.Write(name);
+        WriteToken(name);
 
         if (!typeParameters.IsDefaultOrEmpty)
         {

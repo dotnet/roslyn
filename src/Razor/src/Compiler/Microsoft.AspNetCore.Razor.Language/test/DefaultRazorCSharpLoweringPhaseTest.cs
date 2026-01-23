@@ -276,7 +276,7 @@ public class DefaultRazorCSharpLoweringPhaseTest : RazorProjectEngineTestBase
                 new("TKey"),
                 new("TValue")
             ],
-            Name = "TestClass"
+            Name = IntermediateNodeFactory.CSharpToken("TestClass")
         });
 
         // Act
@@ -322,7 +322,7 @@ public class DefaultRazorCSharpLoweringPhaseTest : RazorProjectEngineTestBase
                 new("TKey"),
                 new("TValue")
             ],
-            Name = "TestClass",
+            Name = IntermediateNodeFactory.CSharpToken("TestClass"),
             NullableContext = true
         });
 
@@ -371,7 +371,7 @@ public class DefaultRazorCSharpLoweringPhaseTest : RazorProjectEngineTestBase
                 new("TKey", "where TKey : class"),
                 new("TValue", "where TValue : class")
             ],
-            Name = "TestClass"
+            Name = IntermediateNodeFactory.CSharpToken("TestClass")
         });
 
         // Act
