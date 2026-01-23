@@ -13,7 +13,6 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.CSharp.ExternalAccess.Pythia.Api
 Imports Microsoft.CodeAnalysis.CSharp.Formatting
-Imports Microsoft.CodeAnalysis.CSharp.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
@@ -7013,7 +7012,7 @@ namespace NS2
                 Dim completionService = document.GetLanguageService(Of CompletionService)()
                 completionService.GetTestAccessor().SuppressPartialSemantics()
 
-                Await ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None)
+                Await ExtensionMemberImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None)
                 Await state.WaitForAsynchronousOperationsAsync()
 
                 Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
@@ -7021,7 +7020,7 @@ namespace NS2
                 Await state.AssertCompletionItemsContain(displayText:="IntegerExtMethod", displayTextSuffix:="")
 
                 ' Make sure any background work would be completed.
-                Await ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None)
+                Await ExtensionMemberImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None)
                 Await state.WaitForAsynchronousOperationsAsync()
             End Using
         End Function
@@ -12694,6 +12693,38 @@ $$
         End Function
 
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/73120")>
+        Public Async Function TestLambdaParameterAfterAttribute(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+                f(([A] $$ name) => { });
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("int", displayTextSuffix:="")
+                Await state.AssertCompletionItemsContain("System", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/73120")>
+        Public Async Function TestAnonymousMethodParameterAfterAttribute(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+                f(delegate ([A] $$ name) { });
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("int", displayTextSuffix:="")
+                Await state.AssertCompletionItemsContain("System", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
         <WorkItem("https://github.com/dotnet/roslyn/issues/72872")>
         Public Async Function CompletionInsideImplicitObjectCreationInsideCollectionExpression(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -13349,6 +13380,407 @@ class C
 
                 state.SendTypeChars("tick")
                 Await state.AssertSelectedCompletionItem("ticks:")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81022")>
+        Public Async Function TestStartTypingInsideTargetTypedSwitchExpression(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class C
+{
+    public DateTime M(int i)
+    {
+        return i switch
+        {
+            1 => new($$),
+            _ => default,
+        };
+    }
+}
+            ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("tick")
+                Await state.AssertSelectedCompletionItem("ticks:")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/73894")>
+        Public Async Function TestStartTypingOnRightHandSideOfNullCoalescingExpression(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Collections.Generic;
+
+List<int> list = null;
+list ??= new($$);
+            ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("cap")
+                Await state.AssertSelectedCompletionItem("capacity:")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81405")>
+        Public Async Function ExtensionPropertyInObjectInitializer(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class MyClass { }
+
+public static class MyExtensions
+{
+    extension(MyClass myClass)
+    {
+        public int NewProperty { get => 0; set { } }
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        MyClass myClass = new MyClass()
+        {
+            $$
+        };
+    }
+}
+            ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("N")
+                Await state.AssertCompletionItemsContainAll("NewProperty")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81405")>
+        Public Async Function ExtensionPropertyInObjectInitializer_ReadOnlyNotShown(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class MyClass { }
+
+public static class MyExtensions
+{
+    extension(MyClass myClass)
+    {
+        public int ReadOnlyProp => 0;
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        MyClass myClass = new MyClass()
+        {
+            $$
+        };
+    }
+}
+            ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("R")
+                Await state.AssertCompletionItemsDoNotContainAny("ReadOnlyProp")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81405")>
+        Public Async Function ExtensionPropertyInObjectInitializer_ReadOnlyCollectionShown(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Collections.Generic;
+
+public class MyClass { }
+
+public static class MyExtensions
+{
+    extension(MyClass myClass)
+    {
+        public List<int> ReadOnlyListProp => new List<int>();
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        MyClass myClass = new MyClass()
+        {
+            $$
+        };
+    }
+}
+            ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("R")
+                Await state.AssertCompletionItemsContainAll("ReadOnlyListProp")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81405")>
+        Public Async Function ExtensionPropertyInObjectInitializer_MixedWithRegularProperties(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class MyClass
+{
+    public int RegularProperty { get; set; }
+}
+
+public static class MyExtensions
+{
+    extension(MyClass myClass)
+    {
+        public int ExtensionProperty { get => 0; set { } }
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        MyClass myClass = new MyClass()
+        {
+            $$
+        };
+    }
+}
+            ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars(" ")
+                Await state.AssertCompletionItemsContainAll("RegularProperty", "ExtensionProperty")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81405")>
+        Public Async Function ExtensionPropertyInObjectInitializer_HidePreviouslyTyped(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class MyClass { }
+
+public static class MyExtensions
+{
+    extension(MyClass myClass)
+    {
+        public int ExtProp1 { get => 0; set { } }
+        public int ExtProp2 { get => 0; set { } }
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        MyClass myClass = new MyClass()
+        {
+            ExtProp1 = 1,
+            $$
+        };
+    }
+}
+            ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("E")
+                Await state.AssertCompletionItemsContainAll("ExtProp2")
+                Await state.AssertCompletionItemsDoNotContainAny("ExtProp1")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function PreselectIEnumerablePropertyInForeach_Var(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Collections.Generic;
+namespace NS
+{
+    public class C
+    {
+        public object Prop { get; set; }
+        public IEnumerable<int> PropWithEnumerable { get; set; }
+
+        public void M(C c)
+        {
+            foreach (var x in c$$
+        }
+    }
+}
+                ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="PropWithEnumerable", isHardSelected:=True)
+
+                Dim item = state.GetSelectedItem()
+                Assert.Equal(SymbolMatchPriority.PreferFieldOrProperty, item.Rules.MatchPriority)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function PreselectIEnumerablePropertyInForeach_SpecifiedType(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Collections.Generic;
+namespace NS
+{
+    public class C
+    {
+        public object Prop { get; set; }
+        public IEnumerable<int> PropWithEnumerable { get; set; }
+        public IEnumerable<string> PropWithStringEnumerable { get; set; }
+
+        public void M(C c)
+        {
+            foreach (int x in c$$
+        }
+    }
+}
+                ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="PropWithEnumerable", isHardSelected:=True)
+
+                Dim item = state.GetSelectedItem()
+                Assert.Equal(SymbolMatchPriority.PreferFieldOrProperty, item.Rules.MatchPriority)
+
+                Await state.AssertCompletionItemsContain("PropWithStringEnumerable", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function PreselectIAsyncEnumerablePropertyInAwaitForEach_Var_ReferenceType(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Collections.Generic;
+using System.Threading.Tasks;
+namespace NS
+{
+    public class C
+    {
+        public object Prop { get; set; }
+        public IAsyncEnumerable<string> PropWithAsyncEnumerable { get; set; }
+
+        public async Task M(C c)
+        {
+            await foreach (var x in c$$
+        }
+    }
+}
+                ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12, commonReferencesAttribute:="CommonReferencesNet6")
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="PropWithAsyncEnumerable", isHardSelected:=True)
+
+                Dim item = state.GetSelectedItem()
+                Assert.Equal(SymbolMatchPriority.PreferFieldOrProperty, item.Rules.MatchPriority)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function PreselectIAsyncEnumerablePropertyInAwaitForEach_Var_ValueType(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Collections.Generic;
+using System.Threading.Tasks;
+namespace NS
+{
+    public class C
+    {
+        public object Prop { get; set; }
+        public IAsyncEnumerable<int> PropWithAsyncEnumerable { get; set; }
+
+        public async Task M(C c)
+        {
+            await foreach (var x in c$$
+        }
+    }
+}
+                ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12, commonReferencesAttribute:="CommonReferencesNet6")
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="PropWithAsyncEnumerable", isHardSelected:=True)
+
+                Dim item = state.GetSelectedItem()
+                Assert.Equal(SymbolMatchPriority.PreferFieldOrProperty, item.Rules.MatchPriority)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function PreselectIAsyncEnumerablePropertyInAwaitForEach_SpecifiedType(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Collections.Generic;
+using System.Threading.Tasks;
+namespace NS
+{
+    public class C
+    {
+        public object Prop { get; set; }
+        public IAsyncEnumerable<int> PropWithAsyncEnumerable { get; set; }
+
+        public async Task M(C c)
+        {
+            await foreach (int x in c$$
+        }
+    }
+}
+                ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12, commonReferencesAttribute:="CommonReferencesNet6")
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="PropWithAsyncEnumerable", isHardSelected:=True)
+
+                Dim item = state.GetSelectedItem()
+                Assert.Equal(SymbolMatchPriority.PreferFieldOrProperty, item.Rules.MatchPriority)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function PreselectSubtypeInAssignment(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Collections.Generic;
+namespace NS
+{
+    public class C
+    {
+        public List<int> PropWithList { get; set; }
+
+        public void M(C c)
+        {
+            IEnumerable<int> x = c$$
+        }
+    }
+}
+                ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="PropWithList", isHardSelected:=True)
+
+                Dim item = state.GetSelectedItem()
+                Assert.Equal(SymbolMatchPriority.PreferFieldOrProperty, item.Rules.MatchPriority)
             End Using
         End Function
     End Class

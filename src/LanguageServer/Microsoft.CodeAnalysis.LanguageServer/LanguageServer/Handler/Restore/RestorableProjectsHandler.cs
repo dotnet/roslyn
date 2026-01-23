@@ -25,7 +25,7 @@ internal sealed class RestorableProjectsHandler(ProjectTargetFrameworkManager pr
 
     public bool RequiresLSPSolution => true;
 
-    public Task<string[]> HandleRequestAsync(RequestContext context, CancellationToken cancellationToken)
+    public async Task<string[]> HandleRequestAsync(RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Solution);
 
@@ -43,6 +43,6 @@ internal sealed class RestorableProjectsHandler(ProjectTargetFrameworkManager pr
             }
         }
 
-        return Task.FromResult(projects.ToArray());
+        return projects.ToArray();
     }
 }

@@ -536,6 +536,10 @@ internal static partial class ISymbolExtensions
 
     public static bool IsOrContainsAccessibleAttribute(
         [NotNullWhen(true)] this ISymbol? symbol, ISymbol withinType, IAssemblySymbol withinAssembly, CancellationToken cancellationToken)
+        => IsOrContainsAccessibleAttribute(symbol, withinType, withinAssembly, AttributeTargets.All, cancellationToken);
+
+    public static bool IsOrContainsAccessibleAttribute(
+        [NotNullWhen(true)] this ISymbol? symbol, ISymbol withinType, IAssemblySymbol withinAssembly, AttributeTargets validTargets, CancellationToken cancellationToken)
     {
         var namespaceOrType = symbol is IAliasSymbol alias ? alias.Target : symbol as INamespaceOrTypeSymbol;
         if (namespaceOrType == null)
@@ -548,11 +552,41 @@ internal static partial class ISymbolExtensions
         {
             if (type.IsAttribute() && type.IsAccessibleWithin(withinType ?? withinAssembly))
             {
+                // Check if the attribute is valid for the specified targets
+                if (validTargets != AttributeTargets.All && !IsAttributeValidForTargets(type, validTargets))
+                {
+                    continue;
+                }
+
                 return true;
             }
         }
 
         return false;
+    }
+
+    private static bool IsAttributeValidForTargets(INamedTypeSymbol attributeType, AttributeTargets validTargets)
+    {
+        // Get the AttributeUsageAttribute applied to this attribute type
+        var attributeUsageAttribute = attributeType.GetAttributes()
+            .FirstOrDefault(attr => attr.AttributeClass is { Name: "AttributeUsageAttribute", ContainingNamespace: { Name: "System", ContainingNamespace.IsGlobalNamespace: true } });
+
+        if (attributeUsageAttribute == null)
+        {
+            // If no AttributeUsage is specified, the default is AttributeTargets.All
+            return true;
+        }
+
+        // The first constructor argument is the AttributeTargets value
+        if (attributeUsageAttribute.ConstructorArguments is [{ Value: int targetsValue }, ..])
+        {
+            var attributeTargets = (AttributeTargets)targetsValue;
+            // Check if there's any overlap between the attribute's targets and the valid targets
+            return (attributeTargets & validTargets) != 0;
+        }
+
+        // Default to allowing the attribute if we can't determine the targets
+        return true;
     }
 
     public static IEnumerable<IPropertySymbol> GetValidAnonymousTypeProperties(this ISymbol symbol)
@@ -679,7 +713,7 @@ internal static partial class ISymbolExtensions
         }
 
         // bool IsCompleted { get }
-        if (!returnType.GetMembers().OfType<IPropertySymbol>().Any(p => p.Name == WellKnownMemberNames.IsCompleted && p.Type.SpecialType == SpecialType.System_Boolean && p.GetMethod != null))
+        if (!returnType.GetMembers().OfType<IPropertySymbol>().Any(p => p is { Name: WellKnownMemberNames.IsCompleted, Type.SpecialType: SpecialType.System_Boolean, GetMethod: not null }))
         {
             return false;
         }
@@ -693,7 +727,7 @@ internal static partial class ISymbolExtensions
 
         // void OnCompleted(Action) 
         // Actions are delegates, so we'll just check for delegates.
-        if (!methods.Any(x => x.Name == WellKnownMemberNames.OnCompleted && x.ReturnsVoid && x.Parameters is [{ Type.TypeKind: TypeKind.Delegate }]))
+        if (!methods.Any(x => x is { Name: WellKnownMemberNames.OnCompleted, ReturnsVoid: true, Parameters: [{ Type.TypeKind: TypeKind.Delegate }] }))
             return false;
 
         // void GetResult() || T GetResult()
@@ -718,7 +752,7 @@ internal static partial class ISymbolExtensions
             .ToList();
 
         // T Current { get }
-        if (!members.OfType<IPropertySymbol>().Any(p => p.Name == WellKnownMemberNames.CurrentPropertyName && p.GetMethod != null))
+        if (!members.OfType<IPropertySymbol>().Any(p => p is { Name: WellKnownMemberNames.CurrentPropertyName, GetMethod: not null }))
         {
             return false;
         }
@@ -758,7 +792,7 @@ internal static partial class ISymbolExtensions
             .ToList();
 
         // T Current { get }
-        if (!members.OfType<IPropertySymbol>().Any(p => p.Name == WellKnownMemberNames.CurrentPropertyName && p.GetMethod != null))
+        if (!members.OfType<IPropertySymbol>().Any(p => p is { Name: WellKnownMemberNames.CurrentPropertyName, GetMethod: not null }))
         {
             return false;
         }

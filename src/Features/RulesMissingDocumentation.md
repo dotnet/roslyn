@@ -5,6 +5,7 @@ Rule ID | Missing Help Link | Title |
 IDE0005_gen |  | Imports statement is unnecessary. |
 IDE0043 |  | Invalid format string |
 IDE0121 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0121> | Simplify LINQ expression |
+IDE0221 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0221> | Add explicit cast |
 IDE0290 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0290> | Use primary constructor |
 IDE0300 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0300> | Simplify collection initialization |
 IDE0301 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0301> | Simplify collection initialization |
@@ -20,6 +21,8 @@ IDE0350 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-r
 IDE0360 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0360> | Simplify property accessor |
 IDE0370 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0370> | Remove unnecessary suppression |
 IDE0380 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0380> | Remove unnecessary 'unsafe' modifier |
+IDE0390 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0390> | Make method synchronous |
+IDE0391 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0391> | Make method synchronous |
 IDE1007 |  |  |
 IDE2000 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide2000> | Avoid multiple blank lines |
 IDE2001 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide2001> | Embedded statements must be on their own line |

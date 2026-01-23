@@ -239,7 +239,7 @@
       </trans-unit>
       <trans-unit id="Code_preview">
         <source>Code preview</source>
-        <target state="new">Code preview</target>
+        <target state="translated">Náhled kódu</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
@@ -324,7 +324,7 @@
       </trans-unit>
       <trans-unit id="Display_diagnostics_inline">
         <source>Display diagnostics inline</source>
-        <target state="new">Display diagnostics inline</target>
+        <target state="translated">Zobrazit vloženou diagnostiku</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
@@ -414,7 +414,7 @@
       </trans-unit>
       <trans-unit id="Error_encountered_updating_0">
         <source>Error encountered updating '{0}'</source>
-        <target state="new">Error encountered updating '{0}'</target>
+        <target state="translated">Při aktualizaci {0} došlo k chybě.</target>
         <note />
       </trans-unit>
       <trans-unit id="Error_updating_suppressions_0">
@@ -424,7 +424,7 @@
       </trans-unit>
       <trans-unit id="Experimental_feature">
         <source>Experimental feature</source>
-        <target state="new">Experimental feature</target>
+        <target state="translated">Experimentální funkce</target>
         <note>This is used by the settings UI to mark experimental features.</note>
       </trans-unit>
       <trans-unit id="External_sources">
@@ -469,7 +469,7 @@
       </trans-unit>
       <trans-unit id="Fix_text_pasted_into_string_literals">
         <source>Fix text pasted into string literals</source>
-        <target state="new">Fix text pasted into string literals</target>
+        <target state="translated">Opravit text vložený do řetězcových literálů</target>
         <note />
       </trans-unit>
       <trans-unit id="For_non_interface_members">
@@ -489,12 +489,12 @@
       </trans-unit>
       <trans-unit id="Generate_only_summary_tag">
         <source>Generate only &lt;summary&gt; tag</source>
-        <target state="new">Generate only &lt;summary&gt; tag</target>
+        <target state="translated">Generovat pouze značku &lt;summary&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_summary_on_single_line">
         <source>Generate &lt;summary&gt; on single line</source>
-        <target state="new">Generate &lt;summary&gt; on single line</target>
+        <target state="translated">Generovat &lt;summary&gt; na jednom řádku</target>
         <note />
       </trans-unit>
       <trans-unit id="Generator_running">
@@ -539,12 +539,12 @@
       </trans-unit>
       <trans-unit id="Ignore">
         <source>Ignore</source>
-        <target state="new">Ignore</target>
+        <target state="translated">Ignorovat</target>
         <note />
       </trans-unit>
       <trans-unit id="Ignore_including_future_errors">
         <source>Ignore (including future errors)</source>
-        <target state="new">Ignore (including future errors)</target>
+        <target state="translated">Ignorovat (včetně budoucích chyb)</target>
         <note />
       </trans-unit>
       <trans-unit id="Implemented_interfaces">
@@ -1134,7 +1134,7 @@
       </trans-unit>
       <trans-unit id="Prefer_simple_property_accessors">
         <source>Prefer simple property accessors</source>
-        <target state="new">Prefer simple property accessors</target>
+        <target state="translated">Preferovat jednoduché přístupové objekty vlastností</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_simple_using_statement">
@@ -1216,6 +1216,11 @@
         <source>Remove unnecessary usings</source>
         <target state="translated">Odebrat nepotřebné direktivy using</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Removed_0">
+        <source>Removed {0}</source>
+        <target state="translated">Povedlo se odebrat: {0}.</target>
+        <note>{0} is a modifier, type, and parameter name</note>
       </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
         <source>Report invalid JSON strings</source>
@@ -1304,7 +1309,7 @@
       </trans-unit>
       <trans-unit id="Search_members">
         <source>Search members</source>
-        <target state="new">Search members</target>
+        <target state="translated">Hledat členy</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">
@@ -1696,6 +1701,11 @@
         <source>Visual Studio Settings</source>
         <target state="translated">Nastavení sady Visual Studio</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Warning_0_does_not_bind_to_type">
+        <source>Warning {0} does not bind to type</source>
+        <target state="translated">Upozornění {0} není svázáno s typem.</target>
+        <note>{0} is a type name</note>
       </trans-unit>
       <trans-unit id="Warning_colon_duplicate_parameter_name">
         <source>Warning: duplicate parameter name</source>

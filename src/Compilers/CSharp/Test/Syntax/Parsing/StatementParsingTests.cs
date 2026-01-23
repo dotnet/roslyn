@@ -5993,6 +5993,43 @@ System.Console.WriteLine(true)";
             EOF();
         }
 
+        [Fact]
+        public void ObjectDeclaredInLock()
+        {
+            UsingTree("""
+                lock (Res d = new Res())
+                {
+                }
+                """, options: null,
+                // (1,11): error CS1073: Unexpected token 'd'
+                // lock (Res d = new Res())
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "d").WithArguments("d").WithLocation(1, 11));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LockStatement);
+                    {
+                        N(SyntaxKind.LockKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Res");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
         private sealed class TokenAndTriviaWalker : CSharpSyntaxWalker
         {
             public int Tokens;

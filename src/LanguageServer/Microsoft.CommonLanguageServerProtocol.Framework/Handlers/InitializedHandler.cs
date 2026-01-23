@@ -18,7 +18,7 @@ internal sealed class InitializedHandler<TRequest, TRequestContext> : INotificat
 
     public bool MutatesSolutionState => true;
 
-    public Task HandleNotificationAsync(TRequest request, TRequestContext requestContext, CancellationToken cancellationToken)
+    public async Task HandleNotificationAsync(TRequest request, TRequestContext requestContext, CancellationToken cancellationToken)
     {
         if (HasBeenInitialized)
         {
@@ -26,7 +26,5 @@ internal sealed class InitializedHandler<TRequest, TRequestContext> : INotificat
         }
 
         HasBeenInitialized = true;
-
-        return Task.CompletedTask;
     }
 }

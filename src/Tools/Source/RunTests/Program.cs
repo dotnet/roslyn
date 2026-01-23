@@ -19,14 +19,6 @@ namespace RunTests
 {
     internal sealed partial class Program
     {
-        private static readonly ImmutableHashSet<string> PrimaryProcessNames = ImmutableHashSet.Create(
-            StringComparer.OrdinalIgnoreCase,
-            "devenv",
-            "xunit.console",
-            "xunit.console.x86",
-            "ServiceHub.RoslynCodeAnalysisService",
-            "ServiceHub.RoslynCodeAnalysisService32");
-
         internal const int ExitSuccess = 0;
         internal const int ExitFailure = 1;
 

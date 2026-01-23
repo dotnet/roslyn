@@ -2721,7 +2721,7 @@ Punctuation.CloseCurly);
             """,
             testHost,
             Keyword("using"),
-            Identifier("X"),
+            Array("X"),
             Operators.Equals,
             Keyword("int"),
             Punctuation.OpenBracket,
@@ -2737,7 +2737,7 @@ Punctuation.CloseCurly);
             testHost,
             Keyword("using"),
             Keyword("unsafe"),
-            Identifier("X"),
+            Pointer("X"),
             Operators.Equals,
             Keyword("int"),
             Operators.Asterisk,
@@ -2752,7 +2752,7 @@ Punctuation.CloseCurly);
             testHost,
             Keyword("using"),
             Keyword("unsafe"),
-            Identifier("X"),
+            FunctionPointer("X"),
             Operators.Equals,
             Keyword("delegate"),
             Operators.Asterisk,
@@ -3266,4 +3266,22 @@ Punctuation.CloseCurly);
             XmlDoc.Delimiter("</"),
             XmlDoc.Name("code"),
             XmlDoc.Delimiter(">"));
+
+    [Theory, CombinatorialData]
+    public Task TestWithElement(TestHost testHost)
+        => TestAsync(
+            """
+            var v = [with(0)]
+            """,
+            testHost,
+            parseOptions: null,
+            Keyword("var"),
+            Local("v"),
+            Operators.Equals,
+            Punctuation.OpenBracket,
+            Keyword("with"),
+            Punctuation.OpenParen,
+            Number("0"),
+            Punctuation.CloseParen,
+            Punctuation.CloseBracket);
 }

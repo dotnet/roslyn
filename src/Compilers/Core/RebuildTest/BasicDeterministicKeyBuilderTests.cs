@@ -306,6 +306,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         [Fact]
         public void FeatureFlag()
         {
+            Assert.Equal("debug-determinism", CodeAnalysis.Feature.DebugDeterminism);
             var compiler = TestableCompiler.CreateBasicNetCoreApp("test.vb", @"-t:library", "-nologo", "-features:debug-determinism", "-deterministic", @"-define:_MYTYPE=""Empty""", "-debug:portable");
             var sourceFile = compiler.AddSourceFile("test.vb", @"' this is a test file");
             compiler.AddOutputFile("test.dll");
@@ -413,8 +414,10 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     ""pdbChecksumAlgorithm"": ""SHA256"",
     ""runtimeMetadataVersion"": null,
     ""defaultSourceFileEncoding"": null,
-    ""fallbackSourceFileEncoding"": null
-  }}
+    ""fallbackSourceFileEncoding"": null,
+    ""sourceLink"": null
+  }},
+  ""resources"": []
 }}
 ";
             AssertJson(expected, json, "toolsVersions", "references", "extensions");

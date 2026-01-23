@@ -85,6 +85,14 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckDiag
         if (syntaxFacts.ContainsInterleavedDirective([previousStatement, ifStatement], cancellationToken))
             return;
 
+        // Don't offer the refactoring if the if-statement has directives that would be lost when we remove it.
+        if (ifStatement.GetFirstToken().ContainsDirectives)
+            return;
+
+        // Same with the inner statement we're removing.
+        if (whenTrueStatement.GetFirstToken().ContainsDirectives)
+            return;
+
         TExpressionSyntax? expressionToCoalesce;
 
         if (syntaxFacts.IsLocalDeclarationStatement(previousStatement))
@@ -96,7 +104,7 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckDiag
             if (!AnalyzeLocalDeclarationForm(previousStatement, out expressionToCoalesce))
                 return;
         }
-        else if (syntaxFacts.IsAnyAssignmentStatement(previousStatement))
+        else if (syntaxFacts.IsSimpleAssignmentStatement(previousStatement))
         {
             // v = Expr();
             // if (v == null)
@@ -120,6 +128,26 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckDiag
             properties: null));
 
         return;
+
+        bool CheckExpression([NotNullWhen(true)] TExpressionSyntax? expression)
+        {
+            if (expression is null)
+                return false;
+
+            // if 'Expr()' is a value type, we can't use `??` on it.
+            var exprType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
+            if (exprType is null)
+                return false;
+
+            if (exprType.IsNonNullableValueType())
+                return false;
+
+            // ?? can't be used on a pointer of any sort.
+            if (exprType is IPointerTypeSymbol)
+                return false;
+
+            return true;
+        }
 
         bool AnalyzeLocalDeclarationForm(
             TStatementSyntax localDeclarationStatement,
@@ -157,9 +185,7 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckDiag
             if (conditionIdentifier != variableName)
                 return false;
 
-            // if 'Expr()' is a value type, we can't use `??` on it.
-            var exprType = semanticModel.GetTypeInfo(initializer, cancellationToken).Type;
-            if (exprType is null || exprType.IsNonNullableValueType())
+            if (!CheckExpression(initializer))
                 return false;
 
             if (!IsLegalWhenTrueStatementForAssignment(out var whenPartToAnalyze))
@@ -228,7 +254,7 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckDiag
                 return false;
 
             expressionToCoalesce = topAssignmentRight as TExpressionSyntax;
-            if (expressionToCoalesce is null)
+            if (!CheckExpression(expressionToCoalesce))
                 return false;
 
             // expr = Expr();

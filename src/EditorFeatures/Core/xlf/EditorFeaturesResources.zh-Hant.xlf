@@ -32,14 +32,14 @@
         <target state="translated">Copilot 思考中...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Describe_with_Copilot">
-        <source>Describe with Copilot</source>
-        <target state="translated">使用 Copilot 加以描述</target>
+      <trans-unit id="Describe">
+        <source>Describe</source>
+        <target state="translated">描述</target>
         <note />
       </trans-unit>
-      <trans-unit id="Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
-        <source>'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</source>
-        <target state="translated">無法使用 '使用 Copilot 描述'，因為貴組織已排除參照的文件。</target>
+      <trans-unit id="Describe_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
+        <source>'Describe' is unavailable since the referenced document is excluded by your organization.</source>
+        <target state="translated">無法使用 'Describe'，因為貴組織已排除參照的文件。</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
@@ -437,6 +437,11 @@
         <target state="translated">使用者成員 - 屬性</target>
         <note />
       </trans-unit>
+      <trans-unit id="User_Types_Arrays">
+        <source>User Types - Arrays</source>
+        <target state="translated">使用者類型 - 陣列</target>
+        <note />
+      </trans-unit>
       <trans-unit id="User_Types_Classes">
         <source>User Types - Classes</source>
         <target state="translated">使用者類型 - 類別</target>
@@ -452,9 +457,19 @@
         <target state="translated">使用者類型 - 列舉</target>
         <note />
       </trans-unit>
+      <trans-unit id="User_Types_Function_Pointers">
+        <source>User Types - Function Pointers</source>
+        <target state="translated">使用者類型 - 函式指標</target>
+        <note />
+      </trans-unit>
       <trans-unit id="User_Types_Interfaces">
         <source>User Types - Interfaces</source>
         <target state="translated">使用者類型 - 介面</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Pointers">
+        <source>User Types - Pointers</source>
+        <target state="translated">使用者類型 - 指標</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Record_Structs">
@@ -1059,7 +1074,7 @@
       </trans-unit>
       <trans-unit id="Change_Signature">
         <source>Change Signature</source>
-        <target state="needs-review-translation">變更簽章</target>
+        <target state="translated">變更簽章</target>
         <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Preview_Changes_0">
@@ -1094,7 +1109,7 @@
       </trans-unit>
       <trans-unit id="Change_Signature_colon">
         <source>Change Signature:</source>
-        <target state="needs-review-translation">變更簽章:</target>
+        <target state="translated">變更簽章:</target>
         <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Rename_0_to_1_colon">

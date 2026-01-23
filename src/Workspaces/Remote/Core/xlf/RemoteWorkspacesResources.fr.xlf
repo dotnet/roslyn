@@ -29,12 +29,12 @@
       </trans-unit>
       <trans-unit id="FeatureName_CopilotChangeAnalysis">
         <source>Copilot change analysis</source>
-        <target state="new">Copilot change analysis</target>
+        <target state="translated">Analyse des changements Copilot</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_CopilotProposalAdjuster">
         <source>Copilot proposal adjuster</source>
-        <target state="new">Copilot proposal adjuster</target>
+        <target state="translated">Ajusteur de propositions Copilot</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_DependentTypeFinder">
@@ -67,14 +67,14 @@
         <target state="translated">Refactorisation de l'encapsulation de champ</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_ExtensionMessageHandler">
-        <source>Extension message handler</source>
-        <target state="new">Extension message handler</target>
+      <trans-unit id="FeatureName_ExtensionMemberImportCompletion">
+        <source>Extension member import completion</source>
+        <target state="translated">Achèvement de l’importation du membre d’extension</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_ExtensionMethodImportCompletion">
-        <source>Extension method import completion</source>
-        <target state="translated">Exécution de l'importation de méthode d'extension</target>
+      <trans-unit id="FeatureName_ExtensionMessageHandler">
+        <source>Extension message handler</source>
+        <target state="translated">Gestionnaire des messages d’extension</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_FindUsages">
@@ -99,7 +99,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_Initialization">
         <source>Initialization</source>
-        <target state="new">Initialization</target>
+        <target state="translated">Initialisation</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_KeepAlive">

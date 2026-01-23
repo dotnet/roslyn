@@ -1639,7 +1639,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ArgumentNameInITuplePattern = 8522,
         ERR_DiscardPatternInSwitchStatement = 8523,
         WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue = 8524,
-        // available 8525-8596
+        ERR_DesignatorBeforePropertyPattern = 8525,
+        // available 8526-8596
         #endregion diagnostics introduced for recursive patterns
 
         WRN_ThrowPossibleNull = 8597,
@@ -2439,6 +2440,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_SingleInapplicableBinaryOperator = 9340,
         ERR_SingleInapplicableUnaryOperator = 9341,
         ERR_AmbigOperator = 9342,
+
+        ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList = 9343,
+        ERR_EqualityOperatorInPatternNotSupported = 9344,
+        ERR_InequalityOperatorInPatternNotSupported = 9345,
+        ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime = 9346,
+        ERR_ExtensionParameterInStaticContext = 9347,
+        ERR_CompilationUnitUnexpected = 9348,
+
+        ERR_ScopedAfterInOutRefReadonly = 9349,
+        ERR_InvalidModifierAfterScoped = 9350,
+
+        ERR_StructLayoutAndExtendedLayout = 9351,
+        ERR_RuntimeDoesNotSupportExtendedLayoutTypes = 9352,
+
+        ERR_NoAwaitOnAsyncEnumerable = 9353,
+
+        ERR_CollectionArgumentsMustBeFirst = 9354,
+        ERR_CollectionArgumentsNotSupportedForType = 9355,
+        ERR_CollectionArgumentsDynamicBinding = 9356,
+        ERR_CollectionArgumentsMustBeEmpty = 9357,
+        ERR_CollectionRefLikeElementType = 9358,
+        ERR_BadCollectionArgumentsArgCount = 9359,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

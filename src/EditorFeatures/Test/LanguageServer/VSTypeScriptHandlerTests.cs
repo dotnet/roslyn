@@ -178,12 +178,12 @@ public sealed class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTes
             return new TypeScriptTextDocumentIdentifier(request.Document.GetRequiredParsedUri(), request.Project);
         }
 
-        protected override Task<int> HandleRequestAsync(TSRequest request, TypeScriptRequestContext context, CancellationToken cancellationToken)
+        protected override async Task<int> HandleRequestAsync(TSRequest request, TypeScriptRequestContext context, CancellationToken cancellationToken)
         {
             Assert.NotNull(context.Solution);
             AssertEx.NotNull(context.Document);
             Assert.Equal(context.Document.GetURI(), request.Document);
-            return Task.FromResult(Response);
+            return Response;
         }
     }
 }

@@ -1863,6 +1863,10 @@ End Module").Path
             parsedArgs.Errors.Verify()
             Assert.Equal("Unicode (UTF-8)", parsedArgs.Encoding.EncodingName)
 
+            parsedArgs = DefaultParse({"/CodePage:1252", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(1252, parsedArgs.Encoding.CodePage)
+
             ' errors 
             parsedArgs = DefaultParse({"/codepage:0", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadCodepage).WithArguments("0"))
@@ -3675,6 +3679,7 @@ End Module
 
             ' Legacy feature flag
             Using dir As New DisposableDirectory(Temp)
+                Assert.Equal("pdb-path-determinism", Feature.PdbPathDeterminism)
                 Dim pePdbPath = Path.Combine(dir.Path, "a.pdb")
                 assertPdbEmit(dir, "a.pdb", {"/features:pdb-path-determinism"})
             End Using
@@ -7742,8 +7747,8 @@ End Class
             args = DefaultParse({"/features:Test", "a.vb", "/Features:Experiment"}, _baseDirectory)
             args.Errors.Verify()
             Assert.Equal(2, args.ParseOptions.Features.Count)
-            Assert.True(args.ParseOptions.Features.ContainsKey("Test"))
-            Assert.True(args.ParseOptions.Features.ContainsKey("Experiment"))
+            Assert.True(args.ParseOptions.HasFeature("Test"))
+            Assert.True(args.ParseOptions.HasFeature("Experiment"))
 
             args = DefaultParse({"/features:Test=false,Key=value", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
@@ -9670,7 +9675,7 @@ End Module
             ' Missing Microsoft.CodeAnalysis.VisualBasic.dll.
             Dim result = ProcessUtilities.Run(vbcPath, arguments:="/nologo /t:library unknown.vb", workingDirectory:=dir.Path)
             Assert.Equal(1, result.ExitCode)
-            Assert.Equal(
+            AssertEx.Equal(
                 $"Could not load file or assembly '{GetType(VisualBasicCompilation).Assembly.FullName}' or one of its dependencies. The system cannot find the file specified.",
                 result.Output.Trim())
 
@@ -9678,8 +9683,8 @@ End Module
             dir.CopyFile(GetType(VisualBasicCompilation).Assembly.Location)
             result = ProcessUtilities.Run(vbcPath, arguments:="/nologo /t:library unknown.vb", workingDirectory:=dir.Path)
             Assert.Equal(1, result.ExitCode)
-            Assert.Equal(
-                $"Could not load file or assembly '{GetType(ImmutableArray).Assembly.FullName}' or one of its dependencies. The system cannot find the file specified.",
+            AssertEx.Equal(
+                $"Could not load file or assembly '{GetType(ImmutableArray).Assembly.FullName.Replace(".1", ".0")}' or one of its dependencies. The system cannot find the file specified.",
                 result.Output.Trim())
         End Sub
 
@@ -10702,6 +10707,114 @@ End Class")
             Assert.[False](hostOutputRan)
             Assert.[True](sourceOutputRan)
             CleanupAllGeneratedFiles(src.Path)
+            Directory.Delete(dir.Path, True)
+        End Sub
+
+        <Theory>
+        <InlineData({"/out:checksum.exe", "/debug:portable", "/checksumAlgorithm:SHA256"})>
+        <InlineData({"/out:checksum.exe", "/debug:portable"})>
+        Public Sub SourceGenerators_ChecksumAlgorithm(ParamArray additionalFlags As String())
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("temp.vb")
+            src.WriteAllText("Class C : End Class")
+
+            Dim genPath1 = Path.Combine(dir.Path, "Microsoft.CodeAnalysis.Test.Utilities", "Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator", "hint1.vb")
+            Dim genPath2 = Path.Combine(dir.Path, "Microsoft.CodeAnalysis.Test.Utilities", "Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator", "hint2.vb")
+
+            Dim generator = New TestSourceGenerator() With {
+                .ExecuteImpl = Sub(context)
+                                   context.AddSource("hint1",
+"Class G1
+    Sub F()
+    End Sub
+End Class")
+                                   context.AddSource("hint2", SourceText.From(
+"Class G2
+    Sub F()
+    End Sub
+End Class", Encoding.UTF8, checksumAlgorithm:=SourceHashAlgorithm.Sha1))
+                               End Sub
+            }
+
+            VerifyOutput(
+                dir,
+                src,
+                includeCurrentAssemblyAsAnalyzerReference:=False,
+                additionalFlags:=additionalFlags,
+                generators:={generator},
+                analyzers:=Nothing)
+
+            Using peStream As Stream = File.OpenRead(Path.Combine(dir.Path, "checksum.exe")), pdbStream As Stream = File.OpenRead(Path.Combine(dir.Path, "checksum.pdb"))
+                PdbValidation.VerifyPdb(peStream, pdbStream, $"
+<symbols>
+  <files>
+    <file id=""1"" name=""{src.Path}"" language=""VB"" checksumAlgorithm=""SHA256"" checksum=""06-9C-3E-BB-78-B9-FA-FD-74-2B-65-88-0E-04-4D-DE-94-05-2C-30-B5-95-1E-A9-03-94-64-D0-BD-56-C3-B9"" />
+    <file id=""2"" name=""{genPath1}"" language=""VB"" checksumAlgorithm=""SHA256"" checksum=""99-23-2B-FF-51-23-DE-B6-19-58-ED-05-25-F7-1C-73-08-28-53-A3-04-98-F3-77-7A-69-C0-D6-98-E6-BF-30""><![CDATA[﻿Class G1
+    Sub F()
+    End Sub
+End Class]]></file>
+    <file id=""3"" name=""{genPath2}"" language=""VB"" checksumAlgorithm=""SHA256"" checksum=""FA-30-AB-86-18-EA-08-F8-C0-B8-9E-D2-46-A7-2E-D3-22-D3-91-8C-AB-DB-F4-FA-60-C3-9C-B5-3B-44-84-58""><![CDATA[﻿Class G2
+    Sub F()
+    End Sub
+End Class]]></file>
+    <file id=""4"" name="""" language=""VB"" />
+  </files>
+</symbols>", PdbValidationOptions.ExcludeMethods)
+            End Using
+
+            Directory.Delete(dir.Path, True)
+        End Sub
+
+        <Fact>
+        Public Sub SourceGenerators_ChecksumAlgorithm_Sha1()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("temp.vb")
+            src.WriteAllText("Class C : End Class")
+
+            Dim genPath1 = Path.Combine(dir.Path, "Microsoft.CodeAnalysis.Test.Utilities", "Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator", "hint1.vb")
+            Dim genPath2 = Path.Combine(dir.Path, "Microsoft.CodeAnalysis.Test.Utilities", "Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator", "hint2.vb")
+
+            Dim generator = New TestSourceGenerator() With {
+                .ExecuteImpl = Sub(context)
+                                   context.AddSource("hint1",
+"Class G1
+    Sub F()
+    End Sub
+End Class")
+                                   context.AddSource("hint2", SourceText.From(
+"Class G2
+    Sub F()
+    End Sub
+End Class", Encoding.UTF8, checksumAlgorithm:=SourceHashAlgorithm.Sha256))
+                               End Sub
+            }
+
+            VerifyOutput(
+                dir,
+                src,
+                includeCurrentAssemblyAsAnalyzerReference:=False,
+                additionalFlags:={"/out:checksum.exe", "/debug:portable", "/checksumAlgorithm:SHA1"},
+                generators:={generator},
+                analyzers:=Nothing)
+
+            Using peStream As Stream = File.OpenRead(Path.Combine(dir.Path, "checksum.exe")), pdbStream As Stream = File.OpenRead(Path.Combine(dir.Path, "checksum.pdb"))
+                PdbValidation.VerifyPdb(peStream, pdbStream, $"
+<symbols>
+  <files>
+    <file id=""1"" name=""{src.Path}"" language=""VB"" checksumAlgorithm=""SHA1"" checksum=""ED-80-C6-0D-E5-21-AE-E8-37-DF-7C-7E-CB-32-A5-3E-6E-5E-41-99"" />
+    <file id=""2"" name=""{genPath1}"" language=""VB"" checksumAlgorithm=""SHA1"" checksum=""33-BB-2D-D5-0D-9F-72-84-25-14-83-D7-5F-5F-34-B7-F1-36-5C-8B""><![CDATA[﻿Class G1
+    Sub F()
+    End Sub
+End Class]]></file>
+    <file id=""3"" name=""{genPath2}"" language=""VB"" checksumAlgorithm=""SHA1"" checksum=""58-43-AA-2E-95-BE-21-5B-C4-74-EF-BA-1D-82-DF-77-77-73-16-46""><![CDATA[﻿Class G2
+    Sub F()
+    End Sub
+End Class]]></file>
+    <file id=""4"" name="""" language=""VB"" />
+  </files>
+</symbols>", PdbValidationOptions.ExcludeMethods)
+            End Using
+
             Directory.Delete(dir.Path, True)
         End Sub
 

@@ -251,31 +251,31 @@ public partial class Solution
     /// <summary>
     /// Gets a document or a source generated document in this solution with the specified document ID.
     /// </summary>
-    internal ValueTask<Document?> GetDocumentAsync(DocumentId? documentId, bool includeSourceGenerated = false, CancellationToken cancellationToken = default)
+    internal async ValueTask<Document?> GetDocumentAsync(DocumentId? documentId, bool includeSourceGenerated = false, CancellationToken cancellationToken = default)
     {
         var project = GetProject(documentId?.ProjectId);
         if (project == null)
         {
-            return default;
+            return null;
         }
 
         Contract.ThrowIfNull(documentId);
-        return project.GetDocumentAsync(documentId, includeSourceGenerated, cancellationToken);
+        return await project.GetDocumentAsync(documentId, includeSourceGenerated, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Gets a document, additional document, analyzer config document or a source generated document in this solution with the specified document ID.
     /// </summary>
-    internal ValueTask<TextDocument?> GetTextDocumentAsync(DocumentId? documentId, CancellationToken cancellationToken = default)
+    internal async ValueTask<TextDocument?> GetTextDocumentAsync(DocumentId? documentId, CancellationToken cancellationToken = default)
     {
         var project = GetProject(documentId?.ProjectId);
         if (project == null)
         {
-            return default;
+            return null;
         }
 
         Contract.ThrowIfNull(documentId);
-        return project.GetTextDocumentAsync(documentId, cancellationToken);
+        return await project.GetTextDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -304,17 +304,17 @@ public partial class Solution
         return null;
     }
 
-    public ValueTask<SourceGeneratedDocument?> GetSourceGeneratedDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
+    public async ValueTask<SourceGeneratedDocument?> GetSourceGeneratedDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
     {
         var project = GetProject(documentId.ProjectId);
 
         if (project == null)
         {
-            return new(result: null);
+            return null;
         }
         else
         {
-            return project.GetSourceGeneratedDocumentAsync(documentId, cancellationToken);
+            return await project.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -519,6 +519,44 @@ public partial class Solution
     /// </summary>
     internal Solution WithFallbackAnalyzerOptions(ImmutableDictionary<string, StructuredAnalyzerConfigOptions> options)
         => WithCompilationState(CompilationState.WithFallbackAnalyzerOptions(options));
+
+    /// <summary>
+    /// Forks this solution to ensure that its <see cref="FallbackAnalyzerOptions"/> are updated with the latest values
+    /// from the host, provided via <see cref="IFallbackAnalyzerConfigOptionsProvider"/>, using <paramref
+    /// name="oldSolution"/> as the baseline solution that this solution was forked from.  Specifically, this will
+    /// ensure that if this solution no longer contains certain project in certain languages that those languages are
+    /// removed from <see cref="FallbackAnalyzerOptions"/>.  Similarly, if there are new languages in this solution not
+    /// present in the <paramref name="oldSolution"/>, those languages will be added to <see
+    /// cref="FallbackAnalyzerOptions"/>.
+    /// </summary>
+    internal Solution WithFallbackAnalyzerOptionValuesFromHost(Solution oldSolution)
+    {
+        var newFallbackOptions = this.FallbackAnalyzerOptions;
+
+        // Clear out languages that are no longer present in the solution.
+        // If we didn't, the workspace might clear the solution (which removes the fallback options)
+        // and we would never re-initialize them from global options.
+        foreach (var (language, _) in oldSolution.SolutionState.ProjectCountByLanguage)
+        {
+            if (!this.SolutionState.ProjectCountByLanguage.ContainsKey(language))
+                newFallbackOptions = newFallbackOptions.Remove(language);
+        }
+
+        // Update solution snapshot to include options for newly added languages:
+        foreach (var (language, _) in this.SolutionState.ProjectCountByLanguage)
+        {
+            if (oldSolution.SolutionState.ProjectCountByLanguage.ContainsKey(language))
+                continue;
+
+            if (newFallbackOptions.ContainsKey(language))
+                continue;
+
+            var provider = oldSolution.Services.GetRequiredService<IFallbackAnalyzerConfigOptionsProvider>();
+            newFallbackOptions = newFallbackOptions.Add(language, provider.GetOptions(language));
+        }
+
+        return this.WithFallbackAnalyzerOptions(newFallbackOptions);
+    }
 
     /// <summary>
     /// Create a new solution instance with the project specified updated to have
@@ -1659,17 +1697,6 @@ public partial class Solution
         => WithCompilationState(CompilationState.WithoutFrozenSourceGeneratedDocuments());
 
     /// <summary>
-    /// Returns a new Solution which represents the same state as before, but with the cached generator driver state from the given project updated to match.
-    /// </summary>
-    /// <remarks>
-    /// When generators are ran in a Solution snapshot, they may cache state to speed up future runs. For Razor, we only run their generator on forked
-    /// solutions that are thrown away; this API gives us a way to reuse that cached state in other forked solutions, since otherwise there's no way to reuse
-    /// the cached state.
-    /// </remarks>
-    internal Solution WithCachedSourceGeneratorState(ProjectId projectToUpdate, Project projectWithCachedGeneratorState)
-        => WithCompilationState(CompilationState.WithCachedSourceGeneratorState(projectToUpdate, projectWithCachedGeneratorState));
-
-    /// <summary>
     /// Gets an objects that lists the added, changed and removed projects between
     /// this solution and the specified solution.
     /// </summary>
@@ -1769,7 +1796,7 @@ public partial class Solution
             return;
         }
 
-        throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+        throw ISolutionExtensions.CreateDocumentNotFoundException(documentId);
 
         bool ContainsSourceGeneratedDocument(DocumentId documentId)
         {
@@ -1803,7 +1830,7 @@ public partial class Solution
 
         if (!ContainsAdditionalDocument(documentId))
         {
-            throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+            throw ISolutionExtensions.CreateDocumentNotFoundException(documentId);
         }
     }
 
@@ -1829,7 +1856,7 @@ public partial class Solution
 
         if (!ContainsAnalyzerConfigDocument(documentId))
         {
-            throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+            throw ISolutionExtensions.CreateDocumentNotFoundException(documentId);
         }
     }
 

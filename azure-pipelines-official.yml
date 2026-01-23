@@ -55,10 +55,10 @@ schedules:
   - cron: "0 8 23-29 * 0"
     displayName: "Monthly smoke test"
     branches:
-      include: 
+      include:
         - main
         - release/*
-      exclude: 
+      exclude:
         - ""
     always: true # Run even if there have been no source code changes since the last successful scheduled run
     batch: false # Do not run the pipeline if the previously scheduled run is in-progress
@@ -84,6 +84,9 @@ variables:
     value: $(dn-bot-devdiv-drop-rw-code-rw)
   - group: DotNet-Roslyn-Insertion-Variables
   - group: AzureDevOps-Artifact-Feeds-Pats
+
+  - name: BranchName
+    value: $[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]
 
   - name: BuildConfiguration
     value: release
@@ -125,7 +128,7 @@ extends:
       sbom:
         enabled: false
       suppression:
-        suppressionFile: $(Build.SourcesDirectory)\eng\config\guardian\.gdnsuppres
+        suppressionFile: $(Build.SourcesDirectory)\eng\config\guardian\.gdnsuppress
       policheck:
           enabled: true
       tsa:
@@ -143,11 +146,11 @@ extends:
       displayName: Build and Test
 
       jobs:
-      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev18.0') }}:
+      - ${{ if or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')) }}:
         - template: /eng/common/templates-official/job/onelocbuild.yml@self
           parameters:
             MirrorRepo: roslyn
-            MirrorBranch: release/dev18.0
+            MirrorBranch: $(BranchName)
             LclSource: lclFilesfromPackage
             LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
@@ -171,7 +174,7 @@ extends:
             displayName: 'Publish Logs'
             condition: succeededOrFailed()
             targetPath: '$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)'
-            artifactName: 'Build Diagnostic Files'
+            artifactName: 'Build Diagnostic Files - $(System.JobAttempt)'
             publishLocation: Container
 
           - output: pipelineArtifact
@@ -226,7 +229,7 @@ extends:
         steps:
         - pwsh: Set-MpPreference -DisableRealtimeMonitoring $true
           displayName: Disable Real-time Monitoring
-          
+
         - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
           displayName: Setting SourceBranchName variable
           condition: succeeded()
@@ -297,7 +300,7 @@ extends:
             zipSources: false
             feedSource: https://dnceng.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json
             # Set ConnectedPMEServiceName if the build is a CI build, otherwise it is not needed
-            ${{ if eq(variables['Build.Reason'], 'IndividualCI') }}:
+            ${{ if or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'Schedule')) }}:
               ConnectedPMEServiceName: 248d384a-b39b-46e3-8ad5-c2c210d5e7ca
           condition: and(succeeded(), in('${{ parameters.SignType }}', 'test', 'real'))
 
@@ -319,10 +322,10 @@ extends:
                        -binaryLog
                        -configuration $(BuildConfiguration)
                        -officialBuildId $(Build.BuildNumber)
-                       -officialSkipTests $(SkipTests)
+                       -officialSkipTests ${{ parameters.SkipTests }}
                        -officialSkipApplyOptimizationData ${{ parameters.SkipApplyOptimizationData }}
                        -officialSourceBranchName $(SourceBranchName)
-                       -officialIbcDrop $(IbcDrop)
+                       -officialIbcDrop ${{ parameters.IbcDrop }}
                        -officialVisualStudioDropAccessToken $(_DevDivDropAccessToken)
                        /p:RepositoryName=$(Build.Repository.Name)
                        /p:VisualStudioDropName=$(VisualStudio.DropName)
@@ -362,7 +365,7 @@ extends:
             testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(BuildConfiguration)\*.xml'
             mergeTestResults: true
             testRunTitle: 'Unit Tests'
-          condition: and(succeededOrFailed(), ne(variables['SkipTests'], 'true'))
+          condition: and(succeededOrFailed(), ${{ not(parameters.SkipTests) }})
 
       # Publish to Build Asset Registry
       - template: /eng/common/templates-official/job/publish-build-assets.yml@self

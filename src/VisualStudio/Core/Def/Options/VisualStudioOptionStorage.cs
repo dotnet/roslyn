@@ -13,6 +13,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Options;
 
 internal abstract class VisualStudioOptionStorage
 {
+    internal sealed class UnifiedSettingsManagerStorage(string key) : VisualStudioOptionStorage
+    {
+        private const string LanguagePlaceholder = "%LANGUAGE%";
+
+        /// <summary>
+        /// Key may contain <see cref="LanguagePlaceholder"/> that is replaced by the language name.
+        /// </summary>
+        public string Key { get; } = key;
+
+        private string GetKey(string? language)
+            => SubstituteLanguage(Key, language);
+
+        private static string SubstituteLanguage(string keyName, string? language)
+            // These constants come from the platform themselves.  It is how they store things in settings.json
+            => keyName.Replace(LanguagePlaceholder, language switch
+            {
+                LanguageNames.CSharp => "csharp",
+                LanguageNames.VisualBasic => "basic",
+                LanguageNames.FSharp => "fsharp",
+                "Xaml" => "xaml",
+                // 'S' in 'typeScript' being capitalized is intentional.
+                "TypeScript" => "typeScript",
+                _ => language,
+            });
+
+        public Task PersistAsync(VisualStudioUnifiedSettingsOptionPersister persister, OptionKey2 optionKey, object? value)
+            => persister.PersistAsync(optionKey, GetKey(optionKey.Language), value);
+
+        public bool TryFetch(VisualStudioUnifiedSettingsOptionPersister persister, OptionKey2 optionKey, out object? value)
+            => persister.TryFetch(optionKey, GetKey(optionKey.Language), out value);
+    }
+
     internal sealed class RoamingProfileStorage : VisualStudioOptionStorage
     {
         private const string LanguagePlaceholder = "%LANGUAGE%";
@@ -60,7 +92,7 @@ internal abstract class VisualStudioOptionStorage
             });
 
         public Task PersistAsync(VisualStudioSettingsOptionPersister persister, OptionKey2 optionKey, object? value)
-            => persister.PersistAsync(GetKey(optionKey.Language), value);
+            => persister.PersistAsync(optionKey, GetKey(optionKey.Language), value);
 
         public bool TryFetch(VisualStudioSettingsOptionPersister persister, OptionKey2 optionKey, out object? value)
             => persister.TryFetch(optionKey, GetKey(optionKey.Language), out value);
@@ -102,6 +134,12 @@ internal abstract class VisualStudioOptionStorage
 
     public static readonly IReadOnlyDictionary<string, VisualStudioOptionStorage> Storages = new Dictionary<string, VisualStudioOptionStorage>()
     {
+        // Modern settings-manager stored options.
+        {"indent_size", new UnifiedSettingsManagerStorage("languages.%LANGUAGE%.tabs.indentSize")},
+        {"indent_style", new UnifiedSettingsManagerStorage("languages.%LANGUAGE%.tabs.character")},
+        {"tab_width", new UnifiedSettingsManagerStorage("languages.%LANGUAGE%.tabs.tabSize")},
+        {"smart_indent", new UnifiedSettingsManagerStorage("languages.%LANGUAGE%.tabs.indenting")},
+
         {"dotnet_analyze_copilot_changes", new FeatureFlagStorage(@"Roslyn.AnalyzeCopilotChanges")},
         {"dotnet_copilot_fix_code_format", new FeatureFlagStorage(@"Roslyn.Copilot.FixCodeFormat")},
         {"dotnet_copilot_fix_add_missing_tokens", new FeatureFlagStorage(@"Roslyn.Copilot.FixAddMissingTokens")},
@@ -240,7 +278,6 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_generate_summary_tag_on_single_line", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateSummaryTagOnSingleLine")},
         {"dotnet_generate_only_summary_tag", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateOnlySummaryTag")},
         {"dotnet_code_quality_unused_parameters", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.UnusedParametersPreference")},
-
         {"dotnet_separate_import_directive_groups", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SeparateImportDirectiveGroups")},
         {"dotnet_sort_system_directives_first", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.PlaceSystemNamespaceFirst")},
         {"dotnet_style_allow_multiple_blank_lines_experimental", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.AllowMultipleBlankLines")},
@@ -310,19 +347,12 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_format_on_semicolon", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Semicolon")},
         {"csharp_format_on_typing", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Typing")},
         {"dotnet_format_on_paste", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.FormatOnPaste")},
-#pragma warning disable CS0612 // Type or member is obsolete
-        {"smart_indent", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Indent Style", vbKey: "TextEditor.Basic.Indent Style")},
-#pragma warning restore
         {"dotnet_generate_constructor_parameter_null_checks", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateConstructorFromMembersOptions.AddNullChecks")},
         {"dotnet_generate_equality_operators", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateEqualsAndGetHashCodeFromMembersOptions.GenerateOperators")},
         {"dotnet_generate_iequatable_implementation", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable")},
         {"dotnet_generate_overrides_for_all_members", new RoamingProfileStorage("TextEditor.Specific.GenerateOverridesOptions.SelectAll")},
         {"dotnet_member_insertion_location", new RoamingProfileStorage("TextEditor.%LANGUAGE%.ImplementTypeOptions.InsertionBehavior")},
         {"dotnet_property_generation_behavior", new RoamingProfileStorage("TextEditor.%LANGUAGE%.ImplementTypeOptions.PropertyGenerationBehavior")},
-#pragma warning disable CS0612 // Type or member is obsolete
-        {"indent_size", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Indent Size", vbKey: "TextEditor.Basic.Indent Size")},
-        {"indent_style", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Insert Tabs", vbKey: "TextEditor.Basic.Insert Tabs")},
-#pragma warning restore
         {"dotnet_enable_inline_diagnostics", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineDiagnostics")},
         {"dotnet_inline_diagnostics_location", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineDiagnostics.LocationOption")},
         {"dotnet_colorize_inline_hints", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ColorHints")},
@@ -356,7 +386,6 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_enable_event_hook_up", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Event Hookup")},
         {"dotnet_format_on_save", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "FormatOnSave")},
         {"dotnet_code_analysis_in_separate_process", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "DotnetCodeAnalysisInSeparateProcess")},
-        {"dotnet_enable_server_garbage_collection_in_code_analysis_process", new FeatureFlagStorage(@"Roslyn.OOPServerGC")},
         {"dotnet_remove_intellicode_recommendation_limit", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "RemoveRecommendationLimit")},
         {"dotnet_enable_rename_tracking", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Rename Tracking")},
         {"dotnet_enable_semantic_colorizer", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Semantic Colorizer")},
@@ -405,9 +434,6 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_unsupported_search_referenced_project_symbols", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SearchReferencedProjectSymbols")},
         {"dotnet_unsupported_search_unreferenced_project_symbols", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SearchUnreferencedProjectSymbols")},
         {"dotnet_unsupported_search_unreferenced_metadata_symbols", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SearchUnreferencedMetadataSymbols")},
-#pragma warning disable CS0612 // Type or member is obsolete
-        {"tab_width", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Tab Size", "TextEditor.Basic.Tab Size")},
-#pragma warning restore
         {"dotnet_compute_task_list_items_for_closed_files", new RoamingProfileStorage("TextEditor.Specific.ComputeTaskListItemsForClosedFiles")},
         {"dotnet_task_list_storage_descriptors", new RoamingProfileStorage("Microsoft.VisualStudio.ErrorListPkg.Shims.TaskListOptions.CommentTokens")},
         {"dotnet_unsupported_conditional_expression_wrapping_length", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ConditionalExpressionWrappingLength")},
@@ -422,6 +448,5 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_validate_compilation_tracker_states", new FeatureFlagStorage(@"Roslyn.ValidateCompilationTrackerStates")},
         {"dotnet_source_generator_execution", new RoamingProfileStorage("TextEditor.Roslyn.Specific.SourceGeneratorExecution")},
         {"xaml_enable_lsp_intellisense", new FeatureFlagStorage(@"Xaml.EnableLspIntelliSense")},
-        {"razor_use_cohosting", new FeatureFlagStorage("Razor.LSP.UseRazorCohostServer")},
     };
 }

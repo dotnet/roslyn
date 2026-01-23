@@ -1653,10 +1653,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitTypeOrValueExpression(BoundTypeOrValueExpression node)
         {
-            // If we're seeing a node of this kind, then we failed to resolve the member access
-            // as either a type or a property/field/event/local/parameter.  In such cases,
-            // the second interpretation applies so just visit the node for that.
-            return this.Visit(node.Data.ValueExpression);
+            Debug.Assert(node is not BoundTypeOrValueExpression, "The Binder is expected to resolve the member access in the most appropriate way, even in an error scenario.");
+            return null;
         }
 
         public override BoundNode VisitLiteral(BoundLiteral node)
@@ -2075,6 +2073,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCollectionExpression(BoundCollectionExpression node)
         {
+            Visit(node.CollectionCreation);
             VisitCollectionExpression(node.Elements);
             return null;
         }
@@ -3700,6 +3699,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
+        {
+            return null;
+        }
+
+        public override BoundNode VisitValuePlaceholder(BoundValuePlaceholder node)
+        {
+            return null;
+        }
+
+        public override BoundNode VisitCollectionBuilderElementsPlaceholder(BoundCollectionBuilderElementsPlaceholder node)
         {
             return null;
         }

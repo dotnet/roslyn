@@ -358,7 +358,7 @@ internal sealed class CommittedSolution(DebuggingSession debuggingSession, Solut
             return SourceText.From(text, sourceText.Encoding, checksumAlgorithm);
         }
 
-        return await Task.Run(() => TryGetPdbMatchingSourceTextFromDisk(log, filePath, sourceText.Encoding, requiredChecksum, checksumAlgorithm), cancellationToken).ConfigureAwait(false);
+        return await Task.Run(() => TryGetPdbMatchingSourceTextFromDisk(log, filePath, requiredChecksum, checksumAlgorithm), cancellationToken).ConfigureAwait(false);
     }
 
     private static DebugInformationReaderProvider? GetMethodDebugInfoReader(TraceLog log, CompilationOutputs compilationOutputs, string projectName)
@@ -403,7 +403,6 @@ internal sealed class CommittedSolution(DebuggingSession debuggingSession, Solut
     private static Optional<SourceText?> TryGetPdbMatchingSourceTextFromDisk(
         TraceLog log,
         string sourceFilePath,
-        Encoding? encoding,
         ImmutableArray<byte> requiredChecksum,
         SourceHashAlgorithm checksumAlgorithm)
     {
@@ -411,11 +410,8 @@ internal sealed class CommittedSolution(DebuggingSession debuggingSession, Solut
         {
             using var fileStream = new FileStream(sourceFilePath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
 
-            // We must use the encoding of the document as determined by the IDE (the editor).
-            // This might differ from the encoding that the compiler chooses, so if we just relied on the compiler we 
-            // might end up updating the committed solution with a document that has a different encoding than 
-            // the one that's in the workspace, resulting in false document changes when we compare the two.
-            var sourceText = SourceText.From(fileStream, encoding, checksumAlgorithm);
+            // TODO: Consider CodePage compiler setting (https://github.com/dotnet/roslyn/issues/81930)
+            var sourceText = SourceText.From(fileStream, encoding: null, checksumAlgorithm);
 
             if (IsMatchingSourceText(sourceText, requiredChecksum, checksumAlgorithm))
             {

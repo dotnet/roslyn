@@ -1180,7 +1180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>true if the specified <see cref="Conversion"/> object is equal to the current <see cref="Conversion"/> object; otherwise, false.</returns>
         public bool Equals(Conversion other)
         {
-            return this.Kind == other.Kind && this.Method == other.Method;
+            return this.Kind == other.Kind && Equals(this._uncommonData, other._uncommonData);
         }
 
         /// <summary>
@@ -1189,7 +1189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>A hash code for the current <see cref="Conversion"/> object.</returns>
         public override int GetHashCode()
         {
-            return Hash.Combine(this.Method, (int)this.Kind);
+            return Hash.Combine(this._uncommonData, (int)this.Kind);
         }
 
         /// <summary>
