@@ -238,6 +238,27 @@ public sealed class CSharpCallHierarchyTests
         testState.VerifyResultName(root, string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), [EditorFeaturesResources.Initializers]);
     }
 
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/82125")]
+    public async Task FieldInitializers_DisplayGlyphAccessibleFromUIThread()
+    {
+        var text = """
+            namespace N
+            {
+                class C
+                {
+                    public int value1 = GetValue();
+                    public int value2 = GetValue();
+
+                    public static int GetVal$$ue() { return 42; }
+                }
+            }
+            """;
+        using var testState = CallHierarchyTestState.Create(text);
+        var root = await testState.GetRootAsync();
+        testState.VerifyRoot(root, "N.C.GetValue()", [string.Format(EditorFeaturesResources.Calls_To_0, "GetValue")]);
+        testState.VerifyResultNameWithGlyph(root, string.Format(EditorFeaturesResources.Calls_To_0, "GetValue"), [EditorFeaturesResources.Initializers]);
+    }
+
     [WpfFact]
     public async Task FieldReferences()
     {
