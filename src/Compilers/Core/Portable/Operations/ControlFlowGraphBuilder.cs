@@ -1275,6 +1275,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             )
         {
 #if DEBUG
+#pragma warning disable RSEXPERIMENTAL006 // With Element: https://github.com/dotnet/roslyn/issues/80613
             Debug.Assert(spillingTheStack || _evalStack.All(
                 slot => slot.operationOpt == null
                     || slot.operationOpt.Kind == OperationKind.FlowCaptureReference
@@ -1282,6 +1283,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     || slot.operationOpt.Kind == OperationKind.Discard
                     || slot.operationOpt.Kind == OperationKind.OmittedArgument
                     || slot.operationOpt.Kind == OperationKind.CollectionExpressionElementsPlaceholder));
+#pragma warning restore RSEXPERIMENTAL006
 #endif
             if (statement == null)
             {
@@ -1847,11 +1849,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 Debug.Assert(operationOpt != null);
 
                 // Declarations cannot have control flow, so we don't need to spill them.
+#pragma warning disable RSEXPERIMENTAL006 // With Element: https://github.com/dotnet/roslyn/issues/80613
                 if (operationOpt.Kind != OperationKind.FlowCaptureReference
                     && operationOpt.Kind != OperationKind.DeclarationExpression
                     && operationOpt.Kind != OperationKind.Discard
                     && operationOpt.Kind != OperationKind.OmittedArgument
                     && operationOpt.Kind != OperationKind.CollectionExpressionElementsPlaceholder)
+#pragma warning restore RSEXPERIMENTAL006
                 {
                     // Here we need to decide what region should own the new capture. Due to the spilling operations occurred before,
                     // we currently might be in a region that is not associated with the stack frame we are in, but it is one of its
@@ -6543,6 +6547,7 @@ oneMoreTime:
 
         public override IOperation? VisitCollectionExpression(ICollectionExpressionOperation operation, int? argument)
         {
+#pragma warning disable RSEXPERIMENTAL006 // With Element: https://github.com/dotnet/roslyn/issues/80613
             EvalStackFrame frame = PushStackFrame();
 
             if (operation.ConstructArguments.Any(a => a is IArgumentOperation) && !operation.ConstructArguments.All(a => a is IArgumentOperation))
@@ -6585,6 +6590,7 @@ oneMoreTime:
             var creationArguments = arguments.IsDefault
                 ? PopArray(operation.ConstructArguments)
                 : ImmutableArray<IOperation>.CastUp(PopArray(arguments, RewriteArgumentFromArray));
+#pragma warning restore RSEXPERIMENTAL006
 
             return PopStackFrame(frame, new CollectionExpressionOperation(
                 operation.ConstructMethod,
@@ -7443,11 +7449,13 @@ oneMoreTime:
             return new PlaceholderOperation(operation.PlaceholderKind, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
+#pragma warning disable RSEXPERIMENTAL006 // With Element: https://github.com/dotnet/roslyn/issues/80613
         public override IOperation? VisitCollectionExpressionElementsPlaceholder(ICollectionExpressionElementsPlaceholderOperation operation, int? argument)
         {
             // Leave collection builder element placeholder alone. It itself doesn't affect flow control.
             return new CollectionExpressionElementsPlaceholderOperation(semanticModel: null, operation.Syntax, operation.Type, operation.IsImplicit);
         }
+#pragma warning restore RSEXPERIMENTAL006
 
         public override IOperation VisitConversion(IConversionOperation operation, int? captureIdForResult)
         {
