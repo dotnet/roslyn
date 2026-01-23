@@ -776,14 +776,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             using var builder = TemporaryArray<CSharpAttributeData>.Empty;
             foreach (var handle in customAttributeHandles)
             {
+                if (filterIsReadOnlyAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.IsReadOnlyAttribute))
+                    continue;
+
                 if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.RequiredMemberAttribute))
                 {
                     hasRequiredMemberAttribute = true;
                     continue;
                 }
-
-                if (filterIsReadOnlyAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.IsReadOnlyAttribute))
-                    continue;
 
                 if (filterExtensionMarkerAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.ExtensionMarkerAttribute))
                     continue;

@@ -1058,13 +1058,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     continue;
                 }
 
-                if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.ExtensionMarkerAttribute))
-                    continue;
-
                 if (filterCompilerFeatureRequiredAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.CompilerFeatureRequiredAttribute))
                     continue;
 
                 if (filterObsoleteAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.ObsoleteAttribute))
+                    continue;
+
+                if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.ExtensionMarkerAttribute))
                     continue;
 
                 builder.Add(new PEAttributeData(containingModule, handle));

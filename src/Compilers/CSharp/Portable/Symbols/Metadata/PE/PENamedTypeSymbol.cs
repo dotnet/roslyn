@@ -969,12 +969,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             using var builder = TemporaryArray<CSharpAttributeData>.Empty;
             foreach (var handle in customAttributeHandles)
             {
-                if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.RequiredMemberAttribute))
-                {
-                    hasRequiredMembers = true;
-                    continue;
-                }
-
                 if (filterExtensionAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.CaseSensitiveExtensionAttribute))
                     continue;
 
@@ -989,6 +983,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (filterCompilerFeatureRequiredAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.CompilerFeatureRequiredAttribute))
                     continue;
+
+                if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.RequiredMemberAttribute))
+                {
+                    hasRequiredMembers = true;
+                    continue;
+                }
 
                 builder.Add(new PEAttributeData(containingModule, handle));
             }
