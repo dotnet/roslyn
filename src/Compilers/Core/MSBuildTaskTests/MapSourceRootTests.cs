@@ -584,7 +584,7 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
             var parentPath = Path.Combine(baseDir, "subfolder", "..", "parent") + Path.DirectorySeparatorChar;
             var nestedPath = Path.Combine(baseDir, "parent", "nested") + Path.DirectorySeparatorChar;
             var nestedRootWithRelative = Path.Combine("subfolder", "..", "nested") + Path.DirectorySeparatorChar;
-            
+
             var expectedParent = Path.Combine(baseDir, "parent") + Path.DirectorySeparatorChar;
             var expectedNested = Path.Combine(baseDir, "parent", "nested") + Path.DirectorySeparatorChar;
             var expectedNestedRoot = Path.Combine("nested") + Path.DirectorySeparatorChar;
@@ -618,7 +618,7 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
             Assert.Equal(Utilities.FixFilePath(expectedParent), task.MappedSourceRoots[0].ItemSpec);
             Assert.Equal(Utilities.FixFilePath(expectedNested), task.MappedSourceRoots[1].ItemSpec);
             Assert.Equal(Utilities.FixFilePath(expectedParent), task.MappedSourceRoots[1].GetMetadata("ContainingRoot"));
-            
+
             // Verify NestedRoot was canonicalized
             Assert.Equal(Utilities.FixFilePath(expectedNestedRoot), task.MappedSourceRoots[1].GetMetadata("NestedRoot"));
 
