@@ -93,7 +93,7 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
         var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
         var expected = await CreateCompletionItemAsync(label: "A", kind: LSP.CompletionItemKind.Class, tags: ["Class", "Internal"],
-            request: completionParams, document: document, commitCharacters: CompletionRules.Default.DefaultCommitCharacters).ConfigureAwait(false);
+            request: completionParams, document: document, commitCharacters: CompletionRules.Default.DefaultCommitCharacters, sortText: "0000").ConfigureAwait(false);
         var expectedCommitCharacters = expected.CommitCharacters;
 
         // Null out the commit characters since we're expecting the commit characters will be lifted onto the completion list.
@@ -181,7 +181,7 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
         var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
         var expected = await CreateCompletionItemAsync(label: "A", kind: LSP.CompletionItemKind.Class, tags: ["Class", "Internal"],
-            request: completionParams, document: document, commitCharacters: null).ConfigureAwait(false);
+            request: completionParams, document: document, commitCharacters: null, sortText: "0000").ConfigureAwait(false);
 
         var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
         AssertJsonEquals(expected, results.Items.First());
@@ -216,7 +216,7 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
         var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
         var expected = await CreateCompletionItemAsync(label: "Goo", kind: LSP.CompletionItemKind.Method, tags: ["ExtensionMethod", "Public"],
-            request: completionParams, document: document, commitCharacters: null).ConfigureAwait(false);
+            request: completionParams, document: document, commitCharacters: null, sortText: "0003").ConfigureAwait(false);
 
         var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
         AssertJsonEquals(expected, results.Items.Single(i => i.Label == "Goo"));
@@ -256,7 +256,7 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
         var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
         var expected = await CreateCompletionItemAsync(label: "Goo", kind: LSP.CompletionItemKind.ExtensionMethod, tags: ["ExtensionMethod", "Public"],
-            request: completionParams, document: document, commitCharacters: null).ConfigureAwait(false);
+            request: completionParams, document: document, commitCharacters: null, sortText: "0003").ConfigureAwait(false);
 
         var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
         AssertJsonEquals(expected, results.Items.Single(i => i.Label == "Goo"));
@@ -286,7 +286,7 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
         var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
         var expected = await CreateCompletionItemAsync(label: "A", kind: LSP.CompletionItemKind.Class, tags: ["Class", "Internal"],
-            request: completionParams, document: document, commitCharacters: null).ConfigureAwait(false);
+            request: completionParams, document: document, commitCharacters: null, sortText: "0000").ConfigureAwait(false);
 
         var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
         AssertJsonEquals(expected, results.Items.First());
@@ -370,7 +370,7 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
         var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
         var expected = await CreateCompletionItemAsync("A", LSP.CompletionItemKind.Class, ["Class", "Internal"],
-            completionParams, document, preselect: true, commitCharacters: ImmutableArray.Create(' ', '(', '[', '{', ';', '.')).ConfigureAwait(false);
+            completionParams, document, preselect: true, commitCharacters: ImmutableArray.Create(' ', '(', '[', '{', ';', '.'), sortText: "0000").ConfigureAwait(false);
 
         var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
         AssertJsonEquals(expected, results.Items.First());
