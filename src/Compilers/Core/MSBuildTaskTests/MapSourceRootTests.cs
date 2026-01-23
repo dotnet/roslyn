@@ -456,7 +456,7 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
             }
         }
 
-        [Fact]
+        [Fact, WorkItem(82112, "https://github.com/dotnet/roslyn/issues/82112")]
         public void PathCanonicalization()
         {
             var engine = new MockEngine();
@@ -493,7 +493,7 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
             Assert.True(result);
         }
 
-        [Fact]
+        [Fact, WorkItem(82112, "https://github.com/dotnet/roslyn/issues/82112")]
         public void PathCanonicalization_PreservesTrailingSeparator()
         {
             var engine = new MockEngine();
@@ -530,6 +530,7 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
         }
 
         [Theory, CombinatorialData]
+        [WorkItem(82112, "https://github.com/dotnet/roslyn/issues/82112")]
         public void PathCanonicalization_Deterministic(bool deterministic)
         {
             var engine = new MockEngine();
@@ -573,7 +574,7 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
             Assert.True(result);
         }
 
-        [Fact]
+        [Fact, WorkItem(82112, "https://github.com/dotnet/roslyn/issues/82112")]
         public void PathCanonicalization_ContainingRootAndNestedRoot()
         {
             var engine = new MockEngine();
