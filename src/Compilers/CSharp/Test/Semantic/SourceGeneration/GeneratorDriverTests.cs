@@ -4292,12 +4292,7 @@ class C { }
         {
             _output.WriteLine(diagnostic.ToString());
 
-            var expectedMessage =
-#if NET
-                $"{message} (Parameter '{parameterName}')";
-#else
-                $"{message}{Environment.NewLine}Parameter name: {parameterName}";
-#endif
+            var expectedMessage = new ArgumentException(message: message, paramName: parameterName).Message;
             VerifyGeneratorExceptionDiagnostic<ArgumentException>(diagnostic, generatorName, expectedMessage, initialization);
         }
 
