@@ -94,14 +94,30 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 return false;
             }
 
-            // Check for ".." (parent directory reference)
-            if (path.Contains(".."))
+            // Check for ".." as a complete path segment (not just any occurrence of "..")
+            // This avoids false positives for files like "my..file"
+            int doubleDotIndex = path.IndexOf("..", StringComparison.Ordinal);
+            while (doubleDotIndex >= 0)
             {
-                return true;
+                // Check if ".." is at the start or preceded by a separator
+                bool validStart = doubleDotIndex == 0 || 
+                                  path[doubleDotIndex - 1] == Path.DirectorySeparatorChar || 
+                                  path[doubleDotIndex - 1] == Path.AltDirectorySeparatorChar;
+                
+                // Check if ".." is at the end or followed by a separator
+                bool validEnd = doubleDotIndex + 2 >= path.Length ||
+                                path[doubleDotIndex + 2] == Path.DirectorySeparatorChar ||
+                                path[doubleDotIndex + 2] == Path.AltDirectorySeparatorChar;
+                
+                if (validStart && validEnd)
+                {
+                    return true;
+                }
+                
+                doubleDotIndex = path.IndexOf("..", doubleDotIndex + 1, StringComparison.Ordinal);
             }
 
             // Check for "/." or "\." patterns (current directory reference)
-            // But exclude paths that just end with "." like "C:." 
             int dotIndex = path.IndexOf('.');
             while (dotIndex >= 0)
             {
@@ -111,8 +127,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     char prevChar = path[dotIndex - 1];
                     if (prevChar == Path.DirectorySeparatorChar || prevChar == Path.AltDirectorySeparatorChar)
                     {
-                        // This is a "/." or "\." pattern - it's a relative component
-                        return true;
+                        // Check if this is a single dot (not part of a filename)
+                        bool isSingleDot = dotIndex + 1 >= path.Length ||
+                                           path[dotIndex + 1] == Path.DirectorySeparatorChar ||
+                                           path[dotIndex + 1] == Path.AltDirectorySeparatorChar;
+                        
+                        if (isSingleDot)
+                        {
+                            return true;
+                        }
                     }
                 }
 
@@ -121,6 +144,28 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
 
             return false;
+        }
+
+        private static string CanonicalizePathPreservingTrailingSeparator(string path)
+        {
+            // Preserve the trailing separator type from the original path
+            char? trailingSeparator = null;
+            char lastChar = path[path.Length - 1];
+            if (lastChar == Path.DirectorySeparatorChar || lastChar == Path.AltDirectorySeparatorChar)
+            {
+                trailingSeparator = lastChar;
+            }
+
+            // Canonicalize the path (GetFullPathNoThrow handles exceptions)
+            var canonicalPath = Utilities.GetFullPathNoThrow(path);
+
+            // Restore the trailing separator if it was present
+            if (trailingSeparator.HasValue && !EndsWithDirectorySeparator(canonicalPath))
+            {
+                canonicalPath += trailingSeparator.Value;
+            }
+
+            return canonicalPath;
         }
 
         public override bool Execute()
@@ -132,56 +177,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 var itemSpec = sourceRoot.ItemSpec;
                 if (!string.IsNullOrEmpty(itemSpec) && ContainsRelativePathComponents(itemSpec))
                 {
-                    // Preserve the trailing separator type from the original path
-                    char? trailingSeparator = null;
-                    if (itemSpec.Length > 0)
-                    {
-                        char lastChar = itemSpec[itemSpec.Length - 1];
-                        if (lastChar == Path.DirectorySeparatorChar || lastChar == Path.AltDirectorySeparatorChar)
-                        {
-                            trailingSeparator = lastChar;
-                        }
-                    }
-
-                    // Canonicalize the path (GetFullPathNoThrow handles exceptions)
-                    var canonicalPath = Utilities.GetFullPathNoThrow(itemSpec);
-
-                    // Restore the trailing separator if it was present
-                    if (trailingSeparator.HasValue && !EndsWithDirectorySeparator(canonicalPath))
-                    {
-                        canonicalPath += trailingSeparator.Value;
-                    }
-
-                    // Update the ItemSpec with the canonicalized path
-                    sourceRoot.ItemSpec = canonicalPath;
+                    sourceRoot.ItemSpec = CanonicalizePathPreservingTrailingSeparator(itemSpec);
                 }
 
                 // Also canonicalize the ContainingRoot metadata if it has relative components
                 var containingRoot = sourceRoot.GetMetadata(Names.ContainingRoot);
                 if (!string.IsNullOrEmpty(containingRoot) && ContainsRelativePathComponents(containingRoot))
                 {
-                    // Preserve the trailing separator type from the original path
-                    char? trailingSeparator = null;
-                    if (containingRoot.Length > 0)
-                    {
-                        char lastChar = containingRoot[containingRoot.Length - 1];
-                        if (lastChar == Path.DirectorySeparatorChar || lastChar == Path.AltDirectorySeparatorChar)
-                        {
-                            trailingSeparator = lastChar;
-                        }
-                    }
-
-                    // Canonicalize the path
-                    var canonicalContainingRoot = Utilities.GetFullPathNoThrow(containingRoot);
-
-                    // Restore the trailing separator if it was present
-                    if (trailingSeparator.HasValue && !EndsWithDirectorySeparator(canonicalContainingRoot))
-                    {
-                        canonicalContainingRoot += trailingSeparator.Value;
-                    }
-
-                    // Update the ContainingRoot metadata
-                    sourceRoot.SetMetadata(Names.ContainingRoot, canonicalContainingRoot);
+                    sourceRoot.SetMetadata(Names.ContainingRoot, CanonicalizePathPreservingTrailingSeparator(containingRoot));
                 }
             }
 
