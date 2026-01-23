@@ -406,6 +406,11 @@ public sealed class RazorProjectEngine
         ComponentLayoutDirective.Register(builder);
         ComponentPageDirective.Register(builder);
 
+        if (razorLanguageVersion >= RazorLanguageVersion.Preview)
+        {
+            ComponentClassNameDirective.Register(builder);
+        }
+
         if (razorLanguageVersion >= RazorLanguageVersion.Version_6_0)
         {
             ComponentConstrainedTypeParamDirective.Register(builder);
