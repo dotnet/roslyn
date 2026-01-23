@@ -17,6 +17,7 @@ internal readonly record struct InlineParameterHintsOptions
     [DataMember] public bool SuppressForParametersThatDifferOnlyBySuffix { get; init; } = true;
     [DataMember] public bool SuppressForParametersThatMatchMethodIntent { get; init; } = true;
     [DataMember] public bool SuppressForParametersThatMatchArgumentName { get; init; } = true;
+    [DataMember] public bool SuppressForParametersThatMatchMemberName { get; init; } = true;
 
     public InlineParameterHintsOptions()
     {
