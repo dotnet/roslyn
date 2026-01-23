@@ -34914,10 +34914,17 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
+#if DEBUG
+        comp.VerifyEmitDiagnostics(
+            // (1,4): error CS0121: The call is ambiguous between the following methods or properties: 'E.extension(string).M(object)' and 'E.extension(object).M(string)'
+            // "".M("");
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E.extension(string).M(object)", "E.extension(object).M(string)").WithLocation(1, 4));
+#else
         comp.VerifyEmitDiagnostics(
             // (1,4): error CS0121: The call is ambiguous between the following methods or properties: 'E.extension(object).M(string)' and 'E.extension(string).M(object)'
             // "".M("");
             Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E.extension(object).M(string)", "E.extension(string).M(object)").WithLocation(1, 4));
+#endif
     }
 
     [Fact]
@@ -36740,7 +36747,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["System.Action E.<G>$34505F560D9EACF86A87F3ED1F85E448.M { get; }", "System.String E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        AssertEx.SetEqual(["System.String E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "System.Action E.<G>$34505F560D9EACF86A87F3ED1F85E448.M { get; }"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -36771,7 +36778,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "string.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["System.Action E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }", "System.String E.<G>$34505F560D9EACF86A87F3ED1F85E448.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        AssertEx.SetEqual(["System.String E.<G>$34505F560D9EACF86A87F3ED1F85E448.M()", "System.Action E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M { get; }"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -36805,7 +36812,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "i.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["System.Action E.<G>$B5F2BFAFBDD4469288FE06B785D143CD.M { get; }", "System.String E.<G>$2B406085AC5EBECC11B16BCD2A24DF4E.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        AssertEx.SetEqual(["System.String E.<G>$2B406085AC5EBECC11B16BCD2A24DF4E.M()", "System.Action E.<G>$B5F2BFAFBDD4469288FE06B785D143CD.M { get; }"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -37624,7 +37631,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.M<string>");
-        AssertEx.SequenceEqual(["void E.<G>$8048A6C8BE30A622530249B904B537EB<System.String>.M()", "void E.<G>$34505F560D9EACF86A87F3ED1F85E448.M<System.String>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.SetEqual(["void E.<G>$34505F560D9EACF86A87F3ED1F85E448.M<System.String>()", "void E.<G>$8048A6C8BE30A622530249B904B537EB<System.String>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -49833,11 +49840,19 @@ static class E
 """;
         var comp = CreateCompilation(src);
 
+#if DEBUG
+        var expectedDiagnostics = new[] {
+            // (2,4): error CS0121: The call is ambiguous between the following methods or properties: 'E.extension(string).M(object)' and 'E.extension(object).M(string)'
+            // "".M("");
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E.extension(string).M(object)", "E.extension(object).M(string)").WithLocation(2, 4)
+            };
+#else
         var expectedDiagnostics = new[] {
             // (2,4): error CS0121: The call is ambiguous between the following methods or properties: 'E.extension(object).M(string)' and 'E.extension(string).M(object)'
             // "".M("");
             Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E.extension(object).M(string)", "E.extension(string).M(object)").WithLocation(2, 4)
             };
+#endif
 
         comp.VerifyEmitDiagnostics(expectedDiagnostics);
 
@@ -49877,11 +49892,19 @@ static class E
 """;
         var comp = CreateCompilation(src);
 
+#if DEBUG
+        var expectedDiagnostics = new[] {
+            // (3,3): error CS0121: The call is ambiguous between the following methods or properties: 'E.extension(string).M(object)' and 'E.extension(object).M(string)'
+            // s.M(s);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E.extension(string).M(object)", "E.extension(object).M(string)").WithLocation(3, 3)
+            };
+#else
         var expectedDiagnostics = new[] {
             // (3,3): error CS0121: The call is ambiguous between the following methods or properties: 'E.extension(object).M(string)' and 'E.extension(string).M(object)'
             // s.M(s);
             Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E.extension(object).M(string)", "E.extension(string).M(object)").WithLocation(3, 3)
             };
+#endif
 
         comp.VerifyEmitDiagnostics(expectedDiagnostics);
 

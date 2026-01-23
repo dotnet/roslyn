@@ -135,5 +135,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             SymbolDisplayFormat format = GetDisplayFormat(includeNonNullable);
             return symbol.ToDisplayString(format);
         }
+
+        public static string[] ToDisplayStrings(this IEnumerable<ISymbol> symbols)
+        {
+            return symbols.Select(s => s.ToDisplayString()).ToArray();
+        }
+
     }
 }

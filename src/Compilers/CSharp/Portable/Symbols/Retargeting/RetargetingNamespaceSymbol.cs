@@ -233,6 +233,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         internal override void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
         {
+            var assembly = this.ContainingAssembly;
+
+            // Only MergedNamespaceSymbol should have a null ContainingAssembly
+            // and MergedNamespaceSymbol overrides GetExtensionMethods.
+            Debug.Assert((object)assembly != null);
+
+            if (!assembly.MightContainExtensionMethods)
+            {
+                return;
+            }
+
             var underlyingMethods = ArrayBuilder<MethodSymbol>.GetInstance();
             _underlyingNamespace.GetExtensionMethods(underlyingMethods, nameOpt, arity, options);
             foreach (var underlyingMethod in underlyingMethods)
@@ -240,6 +251,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 methods.Add(this.RetargetingTranslator.Retarget(underlyingMethod));
             }
             underlyingMethods.Free();
+        }
+
+        // Overridden to avoid NamespaceSymbol.GetExtensionMembers call to GetTypeMembersUnordered that
+        // would cause a full array allocation.
+        internal override void GetExtensionMembers(ArrayBuilder<Symbol> members, string name, string alternativeName, int arity, LookupOptions options, ConsList<FieldSymbol> fieldsBeingBound)
+        {
+            var assembly = this.ContainingAssembly;
+
+            // Only MergedNamespaceSymbol should have a null ContainingAssembly
+            // and MergedNamespaceSymbol overrides GetExtensionMembers.
+            Debug.Assert((object)assembly != null);
+
+            if (!assembly.MightContainExtensionMethods)
+            {
+                return;
+            }
+
+            var underlyingMembers = ArrayBuilder<Symbol>.GetInstance();
+            _underlyingNamespace.GetExtensionMembers(underlyingMembers, name, alternativeName, arity, options, fieldsBeingBound);
+            foreach (var underlyingMember in underlyingMembers)
+            {
+                members.Add(this.RetargetingTranslator.Retarget(underlyingMember));
+            }
+
+            underlyingMembers.Free();
         }
 
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
