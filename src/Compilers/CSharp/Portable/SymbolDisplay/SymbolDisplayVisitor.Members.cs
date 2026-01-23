@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddPunctuation(SyntaxKind.DotToken);
                 AddKeyword(SyntaxKind.FieldKeyword);
             }
-            else if (symbol.ContainingType.TypeKind == TypeKind.Enum)
+            else if (symbol.ContainingType?.TypeKind == TypeKind.Enum)
             {
                 Builder.Add(CreatePart(SymbolDisplayPartKind.EnumMemberName, symbol, symbol.Name));
             }
@@ -400,11 +400,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if ((object?)containingType != null)
                         {
-                            includeType = IncludeNamedType(symbol.ContainingType);
+                            includeType = IncludeNamedType(symbol.ContainingType!);
                         }
                         else
                         {
-                            containingType = (ITypeSymbol)symbol.ContainingSymbol;
+                            containingType = (ITypeSymbol)symbol.ContainingSymbol!;
                             includeType = true;
                         }
                     }
@@ -926,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddMemberModifiersIfNeeded(ISymbol symbol)
         {
-            INamedTypeSymbol containingType = symbol.ContainingType;
+            INamedTypeSymbol? containingType = symbol.ContainingType;
 
             // all members (that end up here) must have a containing type or a containing symbol should be a TypeSymbol.
             Debug.Assert(containingType != null || (symbol.ContainingSymbol is ITypeSymbol));
