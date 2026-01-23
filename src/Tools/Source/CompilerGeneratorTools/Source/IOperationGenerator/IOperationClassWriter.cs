@@ -27,6 +27,9 @@ namespace IOperationGenerator
         private readonly Tree _tree;
         private readonly Dictionary<string, AbstractNode?> _typeMap;
 
+        private static string QuoteString(string value)
+            => "@\"" + value.Replace("\"", "\"\"") + "\"";
+
         private IOperationClassWriter(Tree tree, string location)
         {
             _tree = tree;
@@ -116,6 +119,7 @@ namespace IOperationGenerator
                     }
 
                     WriteUsing("System.Collections.Immutable");
+                    WriteUsing("System.Diagnostics.CodeAnalysis");
 
                     if (@namespace != "Operations")
                     {
@@ -123,7 +127,6 @@ namespace IOperationGenerator
                     }
                     else
                     {
-                        WriteUsing("System.Diagnostics.CodeAnalysis");
                         WriteUsing("Microsoft.CodeAnalysis.FlowAnalysis");
                     }
 
@@ -163,6 +166,7 @@ namespace IOperationGenerator
                 writeHeader();
                 WriteUsing("System");
                 WriteUsing("System.ComponentModel");
+                WriteUsing("System.Diagnostics.CodeAnalysis");
                 WriteUsing("Microsoft.CodeAnalysis.FlowAnalysis");
                 WriteUsing("Microsoft.CodeAnalysis.Operations");
 
@@ -182,6 +186,7 @@ namespace IOperationGenerator
                 WriteLine("// See the LICENSE file in the project root for more information.");
                 WriteLine("// < auto-generated />");
                 WriteLine("#nullable enable");
+                WriteLine("#pragma warning disable RSEXPERIMENTAL006 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.");
             }
         }
 
@@ -205,6 +210,7 @@ namespace IOperationGenerator
         {
             WriteComments(node.Comments, getNodeKinds(node), writeReservedRemark: true);
 
+            WriteExperimentalAttributeIfNeeded(node);
             WriteObsoleteIfNecessary(node.Obsolete);
             WriteLine($"{(node.IsInternal ? "internal" : "public")} interface {node.Name} : {node.Base}");
             Brace();
@@ -295,6 +301,7 @@ namespace IOperationGenerator
             if (prop.IsInternal || prop.IsOverride)
                 return;
             WriteComments(prop.Comments, operationKinds: Enumerable.Empty<string>(), writeReservedRemark: false);
+            WriteExperimentalAttributeIfNeeded(prop);
             var modifiers = prop.IsNew ? "new " : "";
             WriteLine($"{modifiers}{prop.Type} {prop.Name} {{ get; }}");
         }
@@ -350,7 +357,8 @@ namespace IOperationGenerator
                                          entry.ExtraDescription,
                                          entry.EditorBrowsable ?? true,
                                          node.Obsolete?.Message,
-                                         node.Obsolete?.ErrorText);
+                                         node.Obsolete?.ErrorText,
+                                         experimentalUrl: node.IsInternal ? null : node.Experimental);
                     }
                 }
                 else
@@ -362,20 +370,26 @@ namespace IOperationGenerator
                                      currentEntry.OperationKind?.ExtraDescription,
                                      editorBrowsable: true,
                                      currentEntry.Obsolete?.Message,
-                                     currentEntry.Obsolete?.ErrorText);
+                                     currentEntry.Obsolete?.ErrorText,
+                                     experimentalUrl: currentEntry.IsInternal ? null : currentEntry.Experimental);
                     Debug.Assert(elementsToKindEnumerator.MoveNext() || i == numKinds);
                 }
             }
 
             Unbrace();
 
-            void writeEnumElement(string kind, int value, string operationName, string? extraText, bool editorBrowsable, string? obsoleteMessage, string? obsoleteError)
+            void writeEnumElement(string kind, int value, string operationName, string? extraText, bool editorBrowsable, string? obsoleteMessage, string? obsoleteError, string? experimentalUrl)
             {
                 WriteLine($"/// <summary>Indicates an <see cref=\"{operationName}\"/>.{(extraText is object ? $" {extraText}" : "")}</summary>");
 
                 if (!editorBrowsable)
                 {
                     WriteLine("[EditorBrowsable(EditorBrowsableState.Never)]");
+                }
+
+                if (!string.IsNullOrEmpty(experimentalUrl))
+                {
+                    WriteLine($"[Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = {QuoteString(experimentalUrl)})]");
                 }
 
                 if (obsoleteMessage is object)
@@ -1029,6 +1043,7 @@ namespace IOperationGenerator
                 if (type.SkipInVisitor)
                     continue;
 
+                WriteExperimentalAttributeIfNeeded(type);
                 WriteObsoleteIfNecessary(type.Obsolete);
                 var accessibility = type.IsInternal ? "internal" : "public";
                 var baseName = GetSubName(type.Name);
@@ -1049,6 +1064,7 @@ namespace IOperationGenerator
                 if (type.SkipInVisitor)
                     continue;
 
+                WriteExperimentalAttributeIfNeeded(type);
                 WriteObsoleteIfNecessary(type.Obsolete);
                 var accessibility = type.IsInternal ? "internal" : "public";
                 WriteLine($"{accessibility} virtual TResult? {GetVisitorName(type)}({type.Name} operation, TArgument argument) => DefaultVisit(operation, argument);");
@@ -1063,6 +1079,22 @@ namespace IOperationGenerator
             if (tag is object)
             {
                 WriteLine($"[Obsolete({tag.Message}, error: {tag.ErrorText})]");
+            }
+        }
+
+        private void WriteExperimentalAttributeIfNeeded(TreeType node)
+        {
+            if (!node.IsInternal && !string.IsNullOrEmpty(node.Experimental))
+            {
+                WriteLine($"[Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = {QuoteString(node.Experimental)})]");
+            }
+        }
+
+        private void WriteExperimentalAttributeIfNeeded(Property prop)
+        {
+            if (!prop.IsInternal && !prop.IsOverride && !string.IsNullOrEmpty(prop.Experimental))
+            {
+                WriteLine($"[Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = {QuoteString(prop.Experimental)})]");
             }
         }
 
