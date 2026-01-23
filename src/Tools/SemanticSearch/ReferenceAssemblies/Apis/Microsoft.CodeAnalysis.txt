@@ -3844,6 +3844,7 @@ Microsoft.CodeAnalysis.Text.SourceText.#ctor(System.Collections.Immutable.Immuta
 Microsoft.CodeAnalysis.Text.SourceText.ContentEquals(Microsoft.CodeAnalysis.Text.SourceText)
 Microsoft.CodeAnalysis.Text.SourceText.ContentEqualsImpl(Microsoft.CodeAnalysis.Text.SourceText)
 Microsoft.CodeAnalysis.Text.SourceText.CopyTo(System.Int32,System.Char[],System.Int32,System.Int32)
+Microsoft.CodeAnalysis.Text.SourceText.CopyTo(System.Int32,System.Span{System.Char},System.Int32)
 Microsoft.CodeAnalysis.Text.SourceText.From(System.Byte[],System.Int32,System.Text.Encoding,Microsoft.CodeAnalysis.Text.SourceHashAlgorithm,System.Boolean)
 Microsoft.CodeAnalysis.Text.SourceText.From(System.Byte[],System.Int32,System.Text.Encoding,Microsoft.CodeAnalysis.Text.SourceHashAlgorithm,System.Boolean,System.Boolean)
 Microsoft.CodeAnalysis.Text.SourceText.From(System.IO.Stream,System.Text.Encoding,Microsoft.CodeAnalysis.Text.SourceHashAlgorithm,System.Boolean)

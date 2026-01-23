@@ -34,11 +34,17 @@ namespace Roslyn.Test.Utilities.Syntax
             }
         }
 
+        [Obsolete("Use CopyTo with Span<char> destination instead.")]
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
+        {
+            CopyTo(sourceIndex, destination.AsSpan(destinationIndex, count), count);
+        }
+
+        public override void CopyTo(int sourceIndex, Span<char> destination, int count)
         {
             for (var i = 0; i < count; i++)
             {
-                destination[destinationIndex + i] = this[sourceIndex + i];
+                destination[i] = this[sourceIndex + i];
             }
         }
     }
