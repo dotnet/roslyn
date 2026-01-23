@@ -529,6 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResultKind resultKind;
             Symbol namedArgumentNameSymbol = BindNamedAttributeArgumentName(namedArgument, attributeType, diagnostics, out wasError, out resultKind);
             ReportDiagnosticsIfObsolete(diagnostics, namedArgumentNameSymbol, namedArgument, hasBaseReceiver: false);
+            // Unsafe property access is checked on the accessor only to avoid duplicate diagnostics.
 
             if (namedArgumentNameSymbol.Kind == SymbolKind.Property)
             {

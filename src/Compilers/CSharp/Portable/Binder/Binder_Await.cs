@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                reportUseSiteDiagnostics(this, diagnostics, runtimeAwaitCall.Method, expression.Syntax);
+                reportObsoleteAndUnsafeDiagnostics(this, diagnostics, runtimeAwaitCall.Method, expression.Syntax);
                 return true;
 
                 static bool isApplicableMethod(
@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     runtimeAwaitAwaiterMethod,
                     new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, syntax.Location, diagnostics));
 
-                reportUseSiteDiagnostics(this, diagnostics, runtimeAwaitAwaiterMethod, syntax);
+                reportObsoleteAndUnsafeDiagnostics(this, diagnostics, runtimeAwaitAwaiterMethod, syntax);
 
                 placeholder = new BoundAwaitableValuePlaceholder(syntax, awaiterType);
 
@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            static void reportUseSiteDiagnostics(Binder @this, BindingDiagnosticBag diagnostics, MethodSymbol method, SyntaxNode syntax)
+            static void reportObsoleteAndUnsafeDiagnostics(Binder @this, BindingDiagnosticBag diagnostics, MethodSymbol method, SyntaxNode syntax)
             {
                 @this.ReportDiagnosticsIfObsolete(diagnostics, method, syntax, hasBaseReceiver: false);
                 @this.ReportDiagnosticsIfObsolete(diagnostics, method.ContainingType, syntax, hasBaseReceiver: false);

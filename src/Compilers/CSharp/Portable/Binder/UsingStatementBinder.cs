@@ -249,6 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (hasAwait)
                     {
                         awaitableType = originalBinder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask);
+                        if (awaitableType is not null) AssertNotUnsafeMemberAccess(awaitableType);
                     }
                     else
                     {

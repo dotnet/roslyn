@@ -2917,6 +2917,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 123.M2();
                 E.M1(123);
                 E.M2(123);
+                unsafe { 123.M1(); }
+                unsafe { 123.M2(); }
+                unsafe { E.M1(123); }
+                unsafe { E.M2(123); }
                 """,
             expectedUnsafeSymbols: ["E.M1", "E.M2", ExtensionMember("E", "M2")],
             expectedSafeSymbols: [],
@@ -2959,6 +2963,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 c.M1();
                 c.M2();
                 c.M3();
+                unsafe { c.M3(); }
                 """,
             expectedUnsafeSymbols: ["C.M3"],
             expectedSafeSymbols: ["C.M1", "C.M2"],
@@ -3087,6 +3092,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 I i = null;
                 i.M1();
                 i.M2();
+                unsafe { i.M2(); }
                 """,
             expectedUnsafeSymbols: ["I.M2"],
             expectedSafeSymbols: ["I", "I.M1"],
@@ -3685,6 +3691,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             caller: """
                 foreach (var x in new C()) { }
                 using (var c = new C()) { }
+                unsafe { foreach (var x in new C()) { } }
+                unsafe { using (var c = new C()) { } }
                 """,
             expectedUnsafeSymbols: ["C.Dispose"],
             expectedSafeSymbols: ["C", static (ModuleSymbol m) => m.GetCorLibType(SpecialType.System_IDisposable).GetMember("Dispose")],
@@ -3874,6 +3882,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 """,
             caller: """
                 var (x, y) = new C();
+                unsafe { var (a, b) = new C(); }
                 """,
             expectedUnsafeSymbols: ["C.Deconstruct"],
             expectedSafeSymbols: ["C"],
@@ -3902,6 +3911,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 """,
             caller: """
                 lock (new System.Threading.Lock()) { }
+                unsafe { lock (new System.Threading.Lock()) { } }
                 """,
             verify: Verification.Skipped,
             expectedUnsafeSymbols: ["System.Threading.Lock.EnterScope", "System.Threading.Lock.Scope.Dispose"],
@@ -3967,6 +3977,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         var source = """
             M1();
             M2();
+            unsafe { M1(); }
             static unsafe void M1() { }
             static void M2() { }
             """;
@@ -4061,6 +4072,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 var c = new C();
                 c.P1 = c.P1 + 123;
                 c.P2 = c.P2 + 123;
+                unsafe { c.P2 = c.P2 + 123; }
                 """,
             expectedUnsafeSymbols: ["C.P2", "C.get_P2", "C.set_P2"],
             expectedSafeSymbols: ["C.P1", "C.get_P1", "C.set_P1"],
@@ -4101,6 +4113,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             caller: """
                 var c = new C();
                 c.P += 123;
+                unsafe { c.P += 123; }
                 """,
             expectedUnsafeSymbols: ["C.P", "C.get_P", "C.set_P"],
             expectedSafeSymbols: ["C"],
@@ -4143,6 +4156,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     P3 = { },
                     P4 = { },
                 };
+                unsafe { _ = new C { P1 = null, P2 = null, P3 = null, P4 = null }; }
+                unsafe { _ = new C { P1 = { }, P2 = { }, P3 = { }, P4 = { } }; }
                 """,
             expectedUnsafeSymbols: ["C.P1", "C.get_P1", "C.set_P1", "C.get_P2", "C.set_P3"],
             expectedSafeSymbols: ["C", "C.P2", "C.set_P2", "C.P3", "C.get_P3", "C.P4", "C.get_P4", "C.set_P4"],
@@ -4178,6 +4193,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 var c = new C();
                 _ = c is { Length: 0 };
                 _ = c is [];
+                unsafe { _ = c is { Length: 0 }; }
+                unsafe { _ = c is []; }
                 """,
             additionalSources: [TestSources.Index],
             expectedUnsafeSymbols: ["C.this[]", "C.get_Item", "C.Length", "C.get_Length"],
@@ -4219,6 +4236,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 x.P2 = x.P2 + 333;
                 E.get_P1(x); E.set_P1(x, 0);
                 E.get_P2(x); E.set_P2(x, 0);
+                unsafe { x.P2 = x.P2 + 444; }
+                unsafe { E.get_P2(x); E.set_P2(x, 0); }
                 """,
             expectedUnsafeSymbols: [ExtensionMember("E", "P2"), "E.get_P2", ExtensionMember("E", "get_P2"), "E.set_P2", ExtensionMember("E", "set_P2")],
             expectedSafeSymbols: [ExtensionMember("E", "P1"), "E.get_P1", ExtensionMember("E", "get_P1"), "E.set_P1", ExtensionMember("E", "set_P1")],
@@ -4252,6 +4271,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             caller: """
                 var c = new C(1, 2);
                 c.P2 = c.P1 + c.P2;
+                unsafe { c.P2 = c.P1 + c.P2; }
                 """,
             additionalSources: [IsExternalInitTypeDefinition],
             verify: Verification.Skipped,
@@ -4285,6 +4305,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 var c = new C();
                 c.P1 = c.P1 + 123;
                 c.P2 = c.P2 + 123;
+                unsafe { c.P1 = c.P1 + 123; }
+                unsafe { c.P2 = c.P2 + 123; }
                 """,
             expectedUnsafeSymbols: ["C.get_P1", "C.set_P2"],
             expectedSafeSymbols: ["C.P1", "C.P2", "C.get_P2", "C.set_P1"],
@@ -4388,6 +4410,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 c1[0] = c1[0] + 123;
                 var c2 = new C2();
                 c2[0] = c2[0] + 123;
+                unsafe { c2[0] = c2[0] + 123; }
                 """,
             expectedUnsafeSymbols: ["C2.this[]", "C2.get_Item", "C2.set_Item"],
             expectedSafeSymbols: ["C1.this[]", "C1.get_Item", "C1.set_Item"],
@@ -4428,6 +4451,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             caller: """
                 var c = new C();
                 c[0] += 123;
+                unsafe { c[0] += 123; }
                 """,
             expectedUnsafeSymbols: ["C.this[]", "C.get_Item", "C.set_Item"],
             expectedSafeSymbols: ["C"],
@@ -4457,6 +4481,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 _ = new C2 { [0] = null, [0] = { } };
                 _ = new C3 { [0] = null, [0] = { } };
                 _ = new C4 { [0] = null, [0] = { } };
+                unsafe { _ = new C1 { [0] = null, [0] = { } }; }
+                unsafe { _ = new C2 { [0] = null, [0] = { } }; }
+                unsafe { _ = new C3 { [0] = null, [0] = { } }; }
                 """,
             expectedUnsafeSymbols: ["C1.this[]", "C1.get_Item", "C1.set_Item", "C2.get_Item", "C3.set_Item"],
             expectedSafeSymbols: ["C1", "C2", "C2.this[]", "C2.set_Item", "C3", "C3.this[]", "C3.get_Item", "C4", "C4.this[]", "C4.get_Item", "C4.set_Item"],
@@ -4498,6 +4525,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 c1[0] = c1[0] + 123;
                 var c2 = new C2();
                 c2[0] = c2[0] + 123;
+                unsafe { c1[0] = c1[0] + 123; }
+                unsafe { c2[0] = c2[0] + 123; }
                 """,
             expectedUnsafeSymbols: ["C1.get_Item", "C2.set_Item"],
             expectedSafeSymbols: ["C1.this[]", "C2.this[]", "C2.get_Item", "C1.set_Item"],
@@ -4550,6 +4579,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 var c = new C();
                 c.E1 += null;
                 c.E2 += null;
+                unsafe { c.E2 += null; }
                 """,
             expectedUnsafeSymbols: ["C.E2", "C.add_E2", "C.remove_E2"],
             expectedSafeSymbols: ["C.E1", "C.add_E1", "C.remove_E1"],
@@ -4589,6 +4619,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     E2 = null;
                     E3 = null;
                     E4 = null;
+
+                    unsafe { E3(); }
+                    unsafe { E4(); }
+                    unsafe { E3 = null; }
+                    unsafe { E4 = null; }
                 }
             }
             """,
@@ -4774,6 +4809,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 public unsafe C(int x) { }
                 public C(string s) : this() { }
                 public C(C c) : this(0) { }
+                public unsafe C(int[] a) : this(0) { }
             }
             """,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())

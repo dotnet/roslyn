@@ -2058,7 +2058,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (symbol.Kind is not (SymbolKind.Event or SymbolKind.Property))
             {
                 ReportDiagnosticsIfObsolete(diagnostics, symbol, node, hasBaseReceiver: false);
-                AssertNotUnsafeMemberAccess(symbol);
+                AssertNotUnsafeMemberAccess(symbol); // PROTOTYPE: Support unsafe fields?
             }
 
             switch (symbol.Kind)
@@ -8578,7 +8578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (symbol.Kind is not (SymbolKind.Event or SymbolKind.Property))
                 {
                     ReportDiagnosticsIfObsolete(diagnostics, symbol, node, hasBaseReceiver: left.Kind == BoundKind.BaseReference);
-                    AssertNotUnsafeMemberAccess(symbol);
+                    AssertNotUnsafeMemberAccess(symbol); // PROTOTYPE: Support unsafe fields?
                 }
 
                 switch (symbol.Kind)
@@ -9194,7 +9194,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors)
         {
             ReportDiagnosticsIfObsolete(diagnostics, propertySymbol, node, hasBaseReceiver: receiver?.Kind == BoundKind.BaseReference);
+
             // Unsafe member access is checked on the accessor only to avoid duplicate diagnostics.
+            Debug.Assert(propertySymbol.CallerUnsafeMode == CallerUnsafeMode.None ||
+                (propertySymbol.GetMethod is null || propertySymbol.GetMethod.CallerUnsafeMode == propertySymbol.CallerUnsafeMode) ||
+                (propertySymbol.SetMethod is null || propertySymbol.SetMethod.CallerUnsafeMode == propertySymbol.CallerUnsafeMode));
 
             bool hasError = this.CheckInstanceOrStatic(node, receiver, propertySymbol, ref lookupResult, diagnostics);
 
