@@ -2291,7 +2291,9 @@ done:
                             !(node is JoinIntoClauseSyntax) &&
                             !(node is QueryContinuationSyntax) &&
                             !(node is ConstructorInitializerSyntax) &&
+#pragma warning disable RSEXPERIMENTAL006 // With Element: https://github.com/dotnet/roslyn/issues/80613
                             !(node is WithElementSyntax) &&
+#pragma warning restore RSEXPERIMENTAL006
                             !(node is PrimaryConstructorBaseTypeSyntax) &&
                             !(node is ArrowExpressionClauseSyntax) &&
                             !(node is PatternSyntax))
