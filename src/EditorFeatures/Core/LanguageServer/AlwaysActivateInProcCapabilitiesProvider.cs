@@ -21,7 +21,7 @@ internal sealed class AlwaysActivateInProcCapabilitiesProvider(
     DefaultCapabilitiesProvider defaultCapabilitiesProvider,
     IGlobalOptionService globalOptions,
     IDiagnosticSourceManager diagnosticSourceManager,
-    IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> buildOnlyDiagnostics) : ICapabilitiesProvider
+    [ImportMany] IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> buildOnlyDiagnostics) : ICapabilitiesProvider
 {
     public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
     {

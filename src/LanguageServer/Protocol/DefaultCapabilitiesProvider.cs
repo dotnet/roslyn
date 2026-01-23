@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// Implementation of <see cref="ICapabilitiesProvider"/> that provides all the capabilities that Roslyn supports via LSP. 
 /// </summary>
 [Export(typeof(DefaultCapabilitiesProvider)), Shared]
-[ExportStatelessLspService(typeof(ICapabilitiesProvider), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.Any)]
+[ExportCSharpVisualBasicStatelessLspService(typeof(ICapabilitiesProvider), WellKnownLspServerKinds.Any)]
 internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
 {
     private readonly ImmutableArray<Lazy<CompletionProvider, CompletionProviderMetadata>> _completionProviders;
@@ -40,21 +40,6 @@ internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
         _completionProviders = [.. completionProviders.Where(lz => lz.Metadata.Language is LanguageNames.CSharp or LanguageNames.VisualBasic)];
         _signatureHelpProviders = [.. signatureHelpProviders.Where(lz => lz.Metadata.Language is LanguageNames.CSharp or LanguageNames.VisualBasic)];
         _renameListeners = renameListeners;
-    }
-
-    public void Initialize()
-    {
-        // Force completion providers to resolve in initialize, because it means MEF parts will be loaded.
-        // We need to do this before GetCapabilities is called as that is on the UI thread, and loading MEF parts
-        // could cause assembly loads, which we want to do off the UI thread.
-        foreach (var completionProvider in _completionProviders)
-        {
-            _ = completionProvider.Value;
-        }
-        foreach (var signatureHelpProvider in _signatureHelpProviders)
-        {
-            _ = signatureHelpProvider.Value;
-        }
     }
 
     public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
