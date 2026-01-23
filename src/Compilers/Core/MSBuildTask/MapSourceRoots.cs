@@ -87,6 +87,38 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         public override bool Execute()
         {
+            // Canonicalize SourceRoot paths to ensure path comparisons work correctly downstream.
+            // This removes relative path components (e.g., ".." or ".") from SourceRoot items.
+            foreach (var sourceRoot in SourceRoots)
+            {
+                var itemSpec = sourceRoot.ItemSpec;
+                if (!string.IsNullOrEmpty(itemSpec))
+                {
+                    // Preserve the trailing separator type from the original path
+                    char? trailingSeparator = null;
+                    if (itemSpec.Length > 0)
+                    {
+                        char lastChar = itemSpec[itemSpec.Length - 1];
+                        if (lastChar == Path.DirectorySeparatorChar || lastChar == Path.AltDirectorySeparatorChar)
+                        {
+                            trailingSeparator = lastChar;
+                        }
+                    }
+
+                    // Canonicalize the path (GetFullPathNoThrow handles exceptions)
+                    var canonicalPath = Utilities.GetFullPathNoThrow(itemSpec);
+
+                    // Restore the trailing separator if it was present
+                    if (trailingSeparator.HasValue && !EndsWithDirectorySeparator(canonicalPath))
+                    {
+                        canonicalPath += trailingSeparator.Value;
+                    }
+
+                    // Update the ItemSpec with the canonicalized path
+                    sourceRoot.ItemSpec = canonicalPath;
+                }
+            }
+
             // Merge metadata of SourceRoot items with the same identity.
             var mappedSourceRoots = new List<ITaskItem>();
             var rootByItemSpec = new Dictionary<string, ITaskItem>();

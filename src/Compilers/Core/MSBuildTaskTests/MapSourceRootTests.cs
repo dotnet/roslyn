@@ -454,6 +454,125 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
                 Assert.True(result);
             }
         }
+
+        [Fact]
+        public void PathCanonicalization()
+        {
+            var engine = new MockEngine();
+
+            // Create paths with relative components that need canonicalization
+            var baseDir = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "test"));
+            var pathWithRelative = Path.Combine(baseDir, "subfolder", "..", "another") + Path.DirectorySeparatorChar;
+            var expectedCanonical = Path.Combine(baseDir, "another") + Path.DirectorySeparatorChar;
+
+            var task = new MapSourceRoots
+            {
+                BuildEngine = engine,
+                SourceRoots = new[]
+                {
+                    new TaskItem(pathWithRelative, new Dictionary<string, string>
+                    {
+                        { "SourceControl", "Git" },
+                    }),
+                },
+                Deterministic = false
+            };
+
+            bool result = task.Execute();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", engine.Log);
+
+            RoslynDebug.Assert(task.MappedSourceRoots is object);
+            Assert.Equal(1, task.MappedSourceRoots.Length);
+
+            // Verify the path was canonicalized (relative parts removed)
+            Assert.Equal(Utilities.FixFilePath(expectedCanonical), task.MappedSourceRoots[0].ItemSpec);
+            Assert.Equal(Utilities.FixFilePath(expectedCanonical), task.MappedSourceRoots[0].GetMetadata("MappedPath"));
+            Assert.Equal(@"Git", task.MappedSourceRoots[0].GetMetadata("SourceControl"));
+
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void PathCanonicalization_PreservesTrailingSeparator()
+        {
+            var engine = new MockEngine();
+
+            // Test with both forward slash and backslash
+            var baseDir = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "test"));
+            var pathWithBackslash = Path.Combine(baseDir, "subfolder", "..", "dir1") + "\\";
+            var pathWithForwardSlash = Path.Combine(baseDir, "subfolder", "..", "dir2") + "/";
+            var expectedDir1 = Path.Combine(baseDir, "dir1") + "\\";
+            var expectedDir2 = Path.Combine(baseDir, "dir2") + "/";
+
+            var task = new MapSourceRoots
+            {
+                BuildEngine = engine,
+                SourceRoots = new[]
+                {
+                    new TaskItem(pathWithBackslash),
+                    new TaskItem(pathWithForwardSlash),
+                },
+                Deterministic = false
+            };
+
+            bool result = task.Execute();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", engine.Log);
+
+            RoslynDebug.Assert(task.MappedSourceRoots is object);
+            Assert.Equal(2, task.MappedSourceRoots.Length);
+
+            // Verify trailing separators are preserved
+            Assert.Equal(Utilities.FixFilePath(expectedDir1), task.MappedSourceRoots[0].ItemSpec);
+            Assert.Equal(Utilities.FixFilePath(expectedDir2), task.MappedSourceRoots[1].ItemSpec);
+
+            Assert.True(result);
+        }
+
+        [Theory]
+        [InlineData(new object[] { true })]
+        [InlineData(new object[] { false })]
+        public void PathCanonicalization_Deterministic(bool deterministic)
+        {
+            var engine = new MockEngine();
+
+            // Test that canonicalization works with both deterministic and non-deterministic modes
+            var baseDir = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "project"));
+            var pathWithRelative = Path.Combine(baseDir, "src", "..", "src") + Path.DirectorySeparatorChar;
+            var expectedCanonical = Path.Combine(baseDir, "src") + Path.DirectorySeparatorChar;
+
+            var task = new MapSourceRoots
+            {
+                BuildEngine = engine,
+                SourceRoots = new[]
+                {
+                    new TaskItem(pathWithRelative, new Dictionary<string, string>
+                    {
+                        { "SourceControl", "Git" },
+                    }),
+                },
+                Deterministic = deterministic
+            };
+
+            bool result = task.Execute();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", engine.Log);
+
+            RoslynDebug.Assert(task.MappedSourceRoots is object);
+            Assert.Equal(1, task.MappedSourceRoots.Length);
+
+            // Verify the ItemSpec is canonicalized in both modes
+            Assert.Equal(Utilities.FixFilePath(expectedCanonical), task.MappedSourceRoots[0].ItemSpec);
+
+            if (deterministic)
+            {
+                Assert.Equal(@"/_/", task.MappedSourceRoots[0].GetMetadata("MappedPath"));
+            }
+            else
+            {
+                Assert.Equal(Utilities.FixFilePath(expectedCanonical), task.MappedSourceRoots[0].GetMetadata("MappedPath"));
+            }
+
+            Assert.True(result);
+        }
     }
 }
 
