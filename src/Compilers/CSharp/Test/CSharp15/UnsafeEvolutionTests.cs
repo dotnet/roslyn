@@ -3928,6 +3928,37 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Member_ITuple()
+    {
+        CompileAndVerifyUnsafe(
+            lib: """
+                namespace System.Runtime.CompilerServices;
+                public interface ITuple
+                {
+                    unsafe int Length { get; }
+                    unsafe object this[int index] { get; }
+                }
+                """,
+            caller: """
+                object o = null;
+                _ = o is (int x, string y);
+                unsafe { _ = o is (int a, string b); }
+                """,
+            verify: Verification.Skipped,
+            expectedUnsafeSymbols: ["System.Runtime.CompilerServices.ITuple.Length", "System.Runtime.CompilerServices.ITuple.get_Length", "System.Runtime.CompilerServices.ITuple.this[]", "System.Runtime.CompilerServices.ITuple.get_Item"],
+            expectedSafeSymbols: ["System.Runtime.CompilerServices.ITuple"],
+            expectedDiagnostics:
+            [
+                // (2,10): error CS9502: 'ITuple.Length.get' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // _ = o is (int x, string y);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "(int x, string y)").WithArguments("System.Runtime.CompilerServices.ITuple.Length.get").WithLocation(2, 10),
+                // (2,10): error CS9502: 'ITuple.this[int].get' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // _ = o is (int x, string y);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "(int x, string y)").WithArguments("System.Runtime.CompilerServices.ITuple.this[int].get").WithLocation(2, 10),
+            ]);
+    }
+
+    [Fact]
     public void Member_Iterator()
     {
         var lib = """
