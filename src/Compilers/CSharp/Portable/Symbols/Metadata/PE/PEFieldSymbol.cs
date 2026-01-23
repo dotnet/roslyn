@@ -582,40 +582,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (_lazyCustomAttributes.IsDefault)
             {
-                var attributes = LoadAndFilterAttributes(out var hasRequiredMemberAttribute);
+                var attributes = loadAndFilterAttributes(out var hasRequiredMemberAttribute);
                 ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, attributes);
                 _packedFlags.SetHasRequiredMemberAttribute(hasRequiredMemberAttribute);
             }
             return _lazyCustomAttributes;
-        }
 
-        private ImmutableArray<CSharpAttributeData> LoadAndFilterAttributes(out bool hasRequiredMemberAttribute)
-        {
-            hasRequiredMemberAttribute = false;
-
-            var containingModule = ContainingPEModule;
-            if (!containingModule.TryGetNonEmptyCustomAttributes(_handle, out var customAttributeHandles))
+            ImmutableArray<CSharpAttributeData> loadAndFilterAttributes(out bool hasRequiredMemberAttribute)
             {
-                return [];
-            }
+                hasRequiredMemberAttribute = false;
 
-            var filterOutDecimalConstantAttribute = FilterOutDecimalConstantAttribute();
-            using var builder = TemporaryArray<CSharpAttributeData>.Empty;
-            foreach (var handle in customAttributeHandles)
-            {
-                if (filterOutDecimalConstantAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.DecimalConstantAttribute))
-                    continue;
-
-                if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.RequiredMemberAttribute))
+                var containingModule = ContainingPEModule;
+                if (!containingModule.TryGetNonEmptyCustomAttributes(_handle, out var customAttributeHandles))
                 {
-                    hasRequiredMemberAttribute = true;
-                    continue;
+                    return [];
                 }
 
-                builder.Add(new PEAttributeData(containingModule, handle));
-            }
+                var filterOutDecimalConstantAttribute = FilterOutDecimalConstantAttribute();
+                using var builder = TemporaryArray<CSharpAttributeData>.Empty;
+                foreach (var handle in customAttributeHandles)
+                {
+                    if (filterOutDecimalConstantAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.DecimalConstantAttribute))
+                        continue;
 
-            return builder.ToImmutableAndClear();
+                    if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.RequiredMemberAttribute))
+                    {
+                        hasRequiredMemberAttribute = true;
+                        continue;
+                    }
+
+                    builder.Add(new PEAttributeData(containingModule, handle));
+                }
+
+                return builder.ToImmutableAndClear();
+            }
         }
 
         private bool FilterOutDecimalConstantAttribute()

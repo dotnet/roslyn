@@ -931,69 +931,70 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (uncommon.lazyCustomAttributes.IsDefault)
             {
-                ImmutableArray<CSharpAttributeData> loadedCustomAttributes = LoadAndFilterAttributes(out var hasRequiredMembers);
+                ImmutableArray<CSharpAttributeData> loadedCustomAttributes = loadAndFilterAttributes(out var hasRequiredMembers);
 
                 if (!uncommon.lazyHasRequiredMembers.HasValue())
                 {
                     uncommon.lazyHasRequiredMembers = hasRequiredMembers.ToThreeState();
                 }
+                Debug.Assert(uncommon.lazyHasRequiredMembers.Value() == hasRequiredMembers);
 
                 ImmutableInterlocked.InterlockedInitialize(ref uncommon.lazyCustomAttributes, loadedCustomAttributes);
             }
 
             return uncommon.lazyCustomAttributes;
-        }
 
-        private ImmutableArray<CSharpAttributeData> LoadAndFilterAttributes(out bool hasRequiredMembers)
-        {
-            hasRequiredMembers = false;
-
-            if (IsExtension)
+            ImmutableArray<CSharpAttributeData> loadAndFilterAttributes(out bool hasRequiredMembers)
             {
-                // We do not recognize any attributes on extension blocks
-                return [];
-            }
+                hasRequiredMembers = false;
 
-            var containingModule = ContainingPEModule;
-            if (!containingModule.TryGetNonEmptyCustomAttributes(_handle, out var customAttributeHandles))
-            {
-                return [];
-            }
-
-            var filterExtensionAttribute = MightContainExtensionMethods;
-            var filterObsoleteAttribute = IsRefLikeType && ObsoleteAttributeData is null;
-            var filterIsReadOnlyAttribute = IsReadOnly;
-            var filterIsByRefLikeAttribute = IsRefLikeType;
-            var filterCompilerFeatureRequiredAttribute = filterIsByRefLikeAttribute && DeriveCompilerFeatureRequiredDiagnostic() is null;
-
-            using var builder = TemporaryArray<CSharpAttributeData>.Empty;
-            foreach (var handle in customAttributeHandles)
-            {
-                if (filterExtensionAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.CaseSensitiveExtensionAttribute))
-                    continue;
-
-                if (filterObsoleteAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.ObsoleteAttribute))
-                    continue;
-
-                if (filterIsReadOnlyAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.IsReadOnlyAttribute))
-                    continue;
-
-                if (filterIsByRefLikeAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.IsByRefLikeAttribute))
-                    continue;
-
-                if (filterCompilerFeatureRequiredAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.CompilerFeatureRequiredAttribute))
-                    continue;
-
-                if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.RequiredMemberAttribute))
+                if (IsExtension)
                 {
-                    hasRequiredMembers = true;
-                    continue;
+                    // We do not recognize any attributes on extension blocks
+                    return [];
                 }
 
-                builder.Add(new PEAttributeData(containingModule, handle));
-            }
+                var containingModule = ContainingPEModule;
+                if (!containingModule.TryGetNonEmptyCustomAttributes(_handle, out var customAttributeHandles))
+                {
+                    return [];
+                }
 
-            return builder.ToImmutableAndClear();
+                var filterExtensionAttribute = MightContainExtensionMethods;
+                var filterObsoleteAttribute = IsRefLikeType && ObsoleteAttributeData is null;
+                var filterIsReadOnlyAttribute = IsReadOnly;
+                var filterIsByRefLikeAttribute = IsRefLikeType;
+                var filterCompilerFeatureRequiredAttribute = filterIsByRefLikeAttribute && DeriveCompilerFeatureRequiredDiagnostic() is null;
+
+                using var builder = TemporaryArray<CSharpAttributeData>.Empty;
+                foreach (var handle in customAttributeHandles)
+                {
+                    if (filterExtensionAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.CaseSensitiveExtensionAttribute))
+                        continue;
+
+                    if (filterObsoleteAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.ObsoleteAttribute))
+                        continue;
+
+                    if (filterIsReadOnlyAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.IsReadOnlyAttribute))
+                        continue;
+
+                    if (filterIsByRefLikeAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.IsByRefLikeAttribute))
+                        continue;
+
+                    if (filterCompilerFeatureRequiredAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.CompilerFeatureRequiredAttribute))
+                        continue;
+
+                    if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.RequiredMemberAttribute))
+                    {
+                        hasRequiredMembers = true;
+                        continue;
+                    }
+
+                    builder.Add(new PEAttributeData(containingModule, handle));
+                }
+
+                return builder.ToImmutableAndClear();
+            }
         }
 
         internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)

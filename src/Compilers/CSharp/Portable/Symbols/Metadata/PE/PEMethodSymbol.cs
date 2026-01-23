@@ -997,7 +997,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (!_packedFlags.IsCustomAttributesPopulated)
             {
-                var attributeData = LoadAndFilterAttributes(out var isExtensionMethod, out var isReadOnly);
+                var attributeData = loadAndFilterAttributes(out var isExtensionMethod, out var isReadOnly);
                 _packedFlags.InitializeIsExtensionMethod(isExtensionMethod);
                 _packedFlags.InitializeIsReadOnly(isReadOnly);
 
@@ -1025,52 +1025,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     ? InterlockedOperations.Initialize(ref uncommonFields._lazyCustomAttributes, ImmutableArray<CSharpAttributeData>.Empty)
                     : attributeData;
             }
-        }
 
-        private ImmutableArray<CSharpAttributeData> LoadAndFilterAttributes(out bool isExtensionMethod, out bool isReadOnly)
-        {
-            isExtensionMethod = false;
-            isReadOnly = false;
-
-            var containingModule = _containingType.ContainingPEModule;
-            if (!containingModule.TryGetNonEmptyCustomAttributes(_handle, out var customAttributeHandles))
+            ImmutableArray<CSharpAttributeData> loadAndFilterAttributes(out bool isExtensionMethod, out bool isReadOnly)
             {
-                return [];
-            }
+                isExtensionMethod = false;
+                isReadOnly = false;
 
-            bool checkForRequiredMembers = this.ShouldCheckRequiredMembers() && this.ContainingType.HasAnyRequiredMembers;
-            bool isInstanceIncrementDecrementOrCompoundAssignmentOperator = SourceMethodSymbol.IsInstanceIncrementDecrementOrCompoundAssignmentOperator(this);
-            bool filterCompilerFeatureRequiredAttribute = (checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator) && DeriveCompilerFeatureRequiredDiagnostic() is null;
-            bool filterObsoleteAttribute = checkForRequiredMembers && ObsoleteAttributeData is null;
-
-            using var builder = TemporaryArray<CSharpAttributeData>.Empty;
-            foreach (var handle in customAttributeHandles)
-            {
-                if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.CaseSensitiveExtensionAttribute))
+                var containingModule = _containingType.ContainingPEModule;
+                if (!containingModule.TryGetNonEmptyCustomAttributes(_handle, out var customAttributeHandles))
                 {
-                    isExtensionMethod = true;
-                    continue;
+                    return [];
                 }
 
-                if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.IsReadOnlyAttribute))
+                bool checkForRequiredMembers = this.ShouldCheckRequiredMembers() && this.ContainingType.HasAnyRequiredMembers;
+                bool isInstanceIncrementDecrementOrCompoundAssignmentOperator = SourceMethodSymbol.IsInstanceIncrementDecrementOrCompoundAssignmentOperator(this);
+                bool filterCompilerFeatureRequiredAttribute = (checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator) && DeriveCompilerFeatureRequiredDiagnostic() is null;
+                bool filterObsoleteAttribute = checkForRequiredMembers && ObsoleteAttributeData is null;
+
+                using var builder = TemporaryArray<CSharpAttributeData>.Empty;
+                foreach (var handle in customAttributeHandles)
                 {
-                    isReadOnly = true;
-                    continue;
+                    if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.CaseSensitiveExtensionAttribute))
+                    {
+                        isExtensionMethod = true;
+                        continue;
+                    }
+
+                    if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.IsReadOnlyAttribute))
+                    {
+                        isReadOnly = true;
+                        continue;
+                    }
+
+                    if (filterCompilerFeatureRequiredAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.CompilerFeatureRequiredAttribute))
+                        continue;
+
+                    if (filterObsoleteAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.ObsoleteAttribute))
+                        continue;
+
+                    if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.ExtensionMarkerAttribute))
+                        continue;
+
+                    builder.Add(new PEAttributeData(containingModule, handle));
                 }
 
-                if (filterCompilerFeatureRequiredAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.CompilerFeatureRequiredAttribute))
-                    continue;
-
-                if (filterObsoleteAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.ObsoleteAttribute))
-                    continue;
-
-                if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.ExtensionMarkerAttribute))
-                    continue;
-
-                builder.Add(new PEAttributeData(containingModule, handle));
+                return builder.ToImmutableAndClear();
             }
-
-            return builder.ToImmutableAndClear();
         }
 
         internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder) => GetAttributes();

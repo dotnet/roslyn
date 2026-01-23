@@ -732,7 +732,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (!_flags.IsCustomAttributesPopulated)
             {
-                var attributes = LoadAndFilterAttributes(out var hasRequiredMemberAttribute);
+                var attributes = loadAndFilterAttributes(out var hasRequiredMemberAttribute);
                 if (!attributes.IsEmpty)
                 {
                     ImmutableInterlocked.InterlockedInitialize(ref AccessUncommonFields()._lazyCustomAttributes, attributes);
@@ -758,40 +758,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 return result;
             }
-        }
 
-        private ImmutableArray<CSharpAttributeData> LoadAndFilterAttributes(out bool hasRequiredMemberAttribute)
-        {
-            hasRequiredMemberAttribute = false;
-
-            var containingModule = (PEModuleSymbol)this.ContainingModule;
-            if (!containingModule.TryGetNonEmptyCustomAttributes(_handle, out var customAttributeHandles))
+            ImmutableArray<CSharpAttributeData> loadAndFilterAttributes(out bool hasRequiredMemberAttribute)
             {
-                return [];
-            }
+                hasRequiredMemberAttribute = false;
 
-            var filterIsReadOnlyAttribute = this.RefKind == RefKind.RefReadOnly;
-            var filterExtensionMarkerAttribute = this.IsExtensionBlockMember();
-
-            using var builder = TemporaryArray<CSharpAttributeData>.Empty;
-            foreach (var handle in customAttributeHandles)
-            {
-                if (filterIsReadOnlyAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.IsReadOnlyAttribute))
-                    continue;
-
-                if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.RequiredMemberAttribute))
+                var containingModule = (PEModuleSymbol)this.ContainingModule;
+                if (!containingModule.TryGetNonEmptyCustomAttributes(_handle, out var customAttributeHandles))
                 {
-                    hasRequiredMemberAttribute = true;
-                    continue;
+                    return [];
                 }
 
-                if (filterExtensionMarkerAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.ExtensionMarkerAttribute))
-                    continue;
+                var filterIsReadOnlyAttribute = this.RefKind == RefKind.RefReadOnly;
+                var filterExtensionMarkerAttribute = this.IsExtensionBlockMember();
 
-                builder.Add(new PEAttributeData(containingModule, handle));
+                using var builder = TemporaryArray<CSharpAttributeData>.Empty;
+                foreach (var handle in customAttributeHandles)
+                {
+                    if (filterIsReadOnlyAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.IsReadOnlyAttribute))
+                        continue;
+
+                    if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.RequiredMemberAttribute))
+                    {
+                        hasRequiredMemberAttribute = true;
+                        continue;
+                    }
+
+                    if (filterExtensionMarkerAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.ExtensionMarkerAttribute))
+                        continue;
+
+                    builder.Add(new PEAttributeData(containingModule, handle));
+                }
+
+                return builder.ToImmutableAndClear();
             }
-
-            return builder.ToImmutableAndClear();
         }
 
         internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
