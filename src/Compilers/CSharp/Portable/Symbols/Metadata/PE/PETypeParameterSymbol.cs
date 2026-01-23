@@ -653,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return [];
 
                 var filterIsUnmanagedAttribute = HasUnmanagedTypeConstraint;
-                var builder = TemporaryArray<CSharpAttributeData>.Empty;
+                using var builder = TemporaryArray<CSharpAttributeData>.Empty;
                 foreach (var handle in customAttributeHandles)
                 {
                     if (filterIsUnmanagedAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.IsUnmanagedAttribute))
