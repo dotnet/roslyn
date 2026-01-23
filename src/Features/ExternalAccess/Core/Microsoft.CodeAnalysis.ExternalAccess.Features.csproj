@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess</RootNamespace>
+    <TargetFrameworks>$(NetVSShared);netstandard2.0</TargetFrameworks>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
+
+    <DefineConstants>$(DefineConstants);Unified_ExternalAccess</DefineConstants>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CodeAnalysis.ExternalAccess.Features</PackageId>
+    <PackageDescription>
+      A supporting package for Roslyn partners to access internal APIs.
+    </PackageDescription>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
+
+    <!--
+      ⚠ ONLY ASP.NET CORE ASSEMBLIES MAY BE ADDED HERE ⚠
+    -->
+    <!-- TODO: Remove Microsoft.AspNetCore.App.Analyzers once types referencing this assembly complete their move to the CodeFixes assembly -->
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.App.Analyzers" Key="$(AspNetCoreKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.App.CodeFixes" Key="$(AspNetCoreKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.App.Analyzers.Test" Key="$(AspNetCoreKey)" />
+
+    <!--
+      ⚠ ONLY COPILOT ASSEMBLIES MAY BE ADDED HERE ⚠
+    -->
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Copilot.CodeMappers.CSharp" Key="$(CopilotKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Copilot.Roslyn" Key="$(CopilotKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Copilot.Roslyn.LanguageServer" Key="$(CopilotKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Copilot.Roslyn.SemanticSearch" Key="$(CopilotKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Copilot.Roslyn.Tests" Key="$(CopilotKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Copilot.Roslyn.SemanticSearch.Tests" Key="$(CopilotKey)" />
+    <InternalsVisibleTo Include="AITools.CodeAnalysis" Key="$(AIToolsKey)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
+    <PublicAPI Include="InternalAPI.Shipped.txt" />
+    <PublicAPI Include="InternalAPI.Unshipped.txt" />
+  </ItemGroup>
+
+</Project>

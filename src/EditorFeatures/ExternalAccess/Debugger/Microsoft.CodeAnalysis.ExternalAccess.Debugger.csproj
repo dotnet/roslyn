@@ -33,6 +33,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\Core\Debugger\**\*.cs" Link="%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
     <PublicAPI Include="InternalAPI.Shipped.txt" />

@@ -1,0 +1,40 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
+using System;
+using System.Composition;
+using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.Utilities;
+
+#if Unified_ExternalAccess
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.ExternalAccess.FSharp.Editor;
+
+namespace Microsoft.VisualStudio.ExternalAccess.FSharp.Internal.Editor;
+#else
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
+
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor;
+#endif
+
+[ExportContentTypeLanguageService(FSharpContentTypeNames.FSharpContentType, LanguageNames.FSharp), Shared]
+internal class FSharpContentTypeLanguageService : IContentTypeLanguageService
+{
+    private readonly IContentTypeRegistryService _contentTypeRegistry;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public FSharpContentTypeLanguageService(IContentTypeRegistryService contentTypeRegistry)
+    {
+        _contentTypeRegistry = contentTypeRegistry;
+    }
+
+    public IContentType GetDefaultContentType()
+    {
+        return _contentTypeRegistry.GetContentType(FSharpContentTypeNames.FSharpContentType);
+    }
+}

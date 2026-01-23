@@ -1,0 +1,352 @@
+#nullable enable
+const Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.Importance.Default = 0 -> int
+const Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.Importance.Highest = 100 -> int
+const Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.Importance.Lowest = 0 -> int
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreAddPackageCodeAction
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreInstallPackageData
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreInstallPackageData.AspNetCoreInstallPackageData() -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreInstallPackageData.AspNetCoreInstallPackageData(string? packageSource, string! packageName, string? packageVersionOpt, string! packageNamespaceName) -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.AspNetCoreBraceMatchingResult() -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.AspNetCoreBraceMatchingResult(Microsoft.CodeAnalysis.Text.TextSpan LeftSpan, Microsoft.CodeAnalysis.Text.TextSpan RightSpan) -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.Deconstruct(out Microsoft.CodeAnalysis.Text.TextSpan LeftSpan, out Microsoft.CodeAnalysis.Text.TextSpan RightSpan) -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.Equals(Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult other) -> bool
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.LeftSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.LeftSpan.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.RightSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.RightSpan.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.ToBraceMatchingResult() -> Microsoft.CodeAnalysis.BraceMatching.BraceMatchingResult
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreCSharpRouteSyntaxDetector
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreCSharpRouteSyntaxDetector.IsEmbeddedLanguageToken(Microsoft.CodeAnalysis.SyntaxToken token, Microsoft.CodeAnalysis.SemanticModel! semanticModel, System.Threading.CancellationToken cancellationToken, out string? identifier, out System.Collections.Generic.IEnumerable<string!>? options) -> bool
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreCSharpVirtualCharService
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreCSharpVirtualCharService.TryConvertToVirtualChars(Microsoft.CodeAnalysis.SyntaxToken token) -> Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreDocumentHighlights
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreDocumentHighlights.AspNetCoreDocumentHighlights() -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreDocumentHighlights.AspNetCoreDocumentHighlights(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreHighlightSpan> highlightSpans) -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreDocumentHighlights.HighlightSpans.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreHighlightSpan>
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreEmbeddedLanguageClassificationContext
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreEmbeddedLanguageClassificationContext.AddClassification(string! classificationType, Microsoft.CodeAnalysis.Text.TextSpan span) -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreEmbeddedLanguageClassificationContext.AspNetCoreEmbeddedLanguageClassificationContext() -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreEmbeddedLanguageClassificationContext.AspNetCoreEmbeddedLanguageClassificationContext(Microsoft.CodeAnalysis.Classification.EmbeddedLanguageClassificationContext context) -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreEmbeddedLanguageClassificationContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreEmbeddedLanguageClassificationContext.SemanticModel.get -> Microsoft.CodeAnalysis.SemanticModel!
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreEmbeddedLanguageClassificationContext.SyntaxToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreHighlightSpan
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreHighlightSpan.AspNetCoreHighlightSpan() -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreHighlightSpan.AspNetCoreHighlightSpan(Microsoft.CodeAnalysis.Text.TextSpan textSpan, Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreHighlightSpanKind kind) -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreHighlightSpan.Kind.get -> Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreHighlightSpanKind
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreHighlightSpan.TextSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreHighlightSpanKind
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreHighlightSpanKind.Definition = 1 -> Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreHighlightSpanKind
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreHighlightSpanKind.None = 0 -> Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreHighlightSpanKind
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreHighlightSpanKind.Reference = 2 -> Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreHighlightSpanKind
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreHighlightSpanKind.WrittenReference = 3 -> Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreHighlightSpanKind
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualChar
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualChar.AspNetCoreVirtualChar() -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualChar.AspNetCoreVirtualChar(Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars.VirtualChar virtualChar) -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualChar.Equals(Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualChar other) -> bool
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualChar.RuneValue.get -> int
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualChar.Span.get -> Microsoft.CodeAnalysis.Text.TextSpan
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualChar.SurrogateChar.get -> char
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualChar.Value.get -> int
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence.AspNetCoreVirtualCharSequence() -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence.AspNetCoreVirtualCharSequence(Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars.VirtualCharSequence virtualCharSequence) -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence.Contains(Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualChar char) -> bool
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence.CreateString() -> string!
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence.Enumerator
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence.Enumerator.Current.get -> Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualChar
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence.Enumerator.Dispose() -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence.Enumerator.Enumerator() -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence.Enumerator.Enumerator(Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars.VirtualCharSequence.Enumerator enumerator) -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence.Enumerator.MoveNext() -> bool
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence.Enumerator.Reset() -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence.Find(int position) -> Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualChar?
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence.GetEnumerator() -> Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence.Enumerator
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence.GetSubSequence(Microsoft.CodeAnalysis.Text.TextSpan span) -> Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence.IndexOf(Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualChar char) -> int
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence.IsDefault.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence.Length.get -> int
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence.this[int index].get -> Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualChar
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.ExportAspNetCoreEmbeddedLanguageBraceMatcherAttribute
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.ExportAspNetCoreEmbeddedLanguageBraceMatcherAttribute.ExportAspNetCoreEmbeddedLanguageBraceMatcherAttribute(string! name, string! language) -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.ExportAspNetCoreEmbeddedLanguageBraceMatcherAttribute.Language.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.ExportAspNetCoreEmbeddedLanguageBraceMatcherAttribute.Name.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.ExportAspNetCoreEmbeddedLanguageClassifierAttribute
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.ExportAspNetCoreEmbeddedLanguageClassifierAttribute.ExportAspNetCoreEmbeddedLanguageClassifierAttribute(string! name, string! language) -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.ExportAspNetCoreEmbeddedLanguageClassifierAttribute.Language.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.ExportAspNetCoreEmbeddedLanguageClassifierAttribute.Name.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.ExportAspNetCoreEmbeddedLanguageDocumentHighlighterAttribute
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.ExportAspNetCoreEmbeddedLanguageDocumentHighlighterAttribute.ExportAspNetCoreEmbeddedLanguageDocumentHighlighterAttribute(string! name, string! language) -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.ExportAspNetCoreEmbeddedLanguageDocumentHighlighterAttribute.Language.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.ExportAspNetCoreEmbeddedLanguageDocumentHighlighterAttribute.Name.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.IAspNetCoreEmbeddedLanguageBraceMatcher
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.IAspNetCoreEmbeddedLanguageBraceMatcher.FindBraces(Microsoft.CodeAnalysis.SemanticModel! semanticModel, Microsoft.CodeAnalysis.SyntaxToken token, int position, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult?
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.IAspNetCoreEmbeddedLanguageClassifier
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.IAspNetCoreEmbeddedLanguageClassifier.RegisterClassifications(Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreEmbeddedLanguageClassificationContext context) -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.IAspNetCoreEmbeddedLanguageDocumentHighlighter
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.IAspNetCoreEmbeddedLanguageDocumentHighlighter.GetDocumentHighlights(Microsoft.CodeAnalysis.SemanticModel! semanticModel, Microsoft.CodeAnalysis.SyntaxToken token, int position, System.Threading.CancellationToken cancellationToken) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreDocumentHighlights>
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CodeMapper.ICSharpCopilotMapCodeService
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CodeMapper.ICSharpCopilotMapCodeService.MapCodeAsync(Microsoft.CodeAnalysis.Document! document, System.Collections.Immutable.ImmutableArray<string!> contents, System.Collections.Immutable.ImmutableArray<(Microsoft.CodeAnalysis.Document! document, Microsoft.CodeAnalysis.Text.TextSpan textSpan)> prioritizedFocusLocations, System.Collections.Generic.Dictionary<string!, object!>! options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextChange>?>!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem.AdditionalUris.get -> string![]?
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem.AdditionalUris.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem.CodeSnippetItem(Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem! original) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem.CodeSnippetItem(string! uri, string! value, string![]? additionalUris = null, int importance = 0) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem.Importance.get -> int
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem.Importance.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem.Uri.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem.Uri.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem.Value.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem.Value.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.IContextItem
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.IContextProvider
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.IContextProvider.ProvideContextItemsAsync(Microsoft.CodeAnalysis.Document! document, int position, System.Collections.Generic.IReadOnlyDictionary<string!, object!>! activeExperiments, System.Func<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.IContextItem!>, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask>! callback, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.ICSharpCopilotContextProviderService
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.ICSharpCopilotContextProviderService.GetContextItemsAsync(Microsoft.CodeAnalysis.Document! document, int position, System.Collections.Generic.IReadOnlyDictionary<string!, object!>! activeExperiments, System.Threading.CancellationToken cancellationToken) -> System.Collections.Generic.IAsyncEnumerable<Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.IContextItem!>!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.Importance
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.Importance.get -> int
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.Importance.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.Name.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.Name.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.TraitItem(Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem! original) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.TraitItem(string! name, string! value, int importance = 0) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.Value.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.Value.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotAnalysisUtilities
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper.Equals(Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper? other) -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentProposalWrapper
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentProposalWrapper.CopilotDocumentationCommentProposalWrapper(Microsoft.CodeAnalysis.DocumentationComments.DocumentationCommentProposal! documentationCommentProposal) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentProposalWrapper.ProposedEdits.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentProposedEditWrapper!>
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentProposalWrapper.SymbolToAnalyze.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentProposedEditWrapper
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentProposedEditWrapper.CopilotDocumentationCommentProposedEditWrapper(Microsoft.CodeAnalysis.DocumentationComments.DocumentationCommentProposedEdit! proposedEdit) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentProposedEditWrapper.SpanToReplace.get -> Microsoft.CodeAnalysis.Text.TextSpan
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentProposedEditWrapper.SymbolName.get -> string?
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentProposedEditWrapper.TagType.get -> Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType.Exception = 6 -> Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType.Param = 3 -> Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType.Remarks = 1 -> Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType.Returns = 4 -> Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType.Summary = 0 -> Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType.TypeParam = 2 -> Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType.Value = 5 -> Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsInfoWrapper
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsInfoWrapper.AdditionalContext.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsRelevantFileInfoWrapper?>
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsInfoWrapper.CopilotOnTheFlyDocsInfoWrapper(Microsoft.CodeAnalysis.QuickInfo.OnTheFlyDocsInfo! onTheFlyDocsInfo) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsInfoWrapper.DeclarationCode.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsRelevantFileInfoWrapper?>
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsInfoWrapper.HasComments.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsInfoWrapper.IsContentExcluded.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsInfoWrapper.Language.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsInfoWrapper.SymbolSignature.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsRelevantFileInfoWrapper
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsRelevantFileInfoWrapper.CopilotOnTheFlyDocsRelevantFileInfoWrapper(Microsoft.CodeAnalysis.QuickInfo.OnTheFlyDocsRelevantFileInfo! onTheFlyDocsRelevantFileInfo) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsRelevantFileInfoWrapper.Document.get -> Microsoft.CodeAnalysis.Document!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsRelevantFileInfoWrapper.TextSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotUtilities
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateImplementation.ImplementationDetailsWrapper
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateImplementation.ImplementationDetailsWrapper.ImplementationDetailsWrapper() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateImplementation.ImplementationDetailsWrapper.Message.get -> string?
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateImplementation.ImplementationDetailsWrapper.Message.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateImplementation.ImplementationDetailsWrapper.ReplacementNode.get -> Microsoft.CodeAnalysis.SyntaxNode?
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateImplementation.ImplementationDetailsWrapper.ReplacementNode.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpCopilotCodeAnalysisService
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpCopilotCodeAnalysisService.AnalyzeDocumentAsync(Microsoft.CodeAnalysis.Document! document, Microsoft.CodeAnalysis.Text.TextSpan? span, string! promptTitle, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>>!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpCopilotCodeAnalysisService.GetAvailablePromptTitlesAsync(Microsoft.CodeAnalysis.Document! document, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<string!>>!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpCopilotCodeAnalysisService.GetCachedDiagnosticsAsync(Microsoft.CodeAnalysis.Document! document, string! promptTitle, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>>!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpCopilotCodeAnalysisService.GetOnTheFlyDocsAsync(string! symbolSignature, System.Collections.Immutable.ImmutableArray<string!> declarationCode, string! language, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<(string! responseString, bool isQuotaExceeded)>!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpCopilotCodeAnalysisService.IsAvailableAsync(System.Threading.CancellationToken cancellation) -> System.Threading.Tasks.Task<bool>!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpCopilotCodeAnalysisService.IsFileExcludedAsync(string! filePath, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<bool>!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpCopilotCodeAnalysisService.StartRefinementSessionAsync(Microsoft.CodeAnalysis.Document! oldDocument, Microsoft.CodeAnalysis.Document! newDocument, Microsoft.CodeAnalysis.Diagnostic? primaryDiagnostic, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpCopilotGenerateDocumentationService
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpCopilotGenerateDocumentationService.GetDocumentationCommentAsync(Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentProposalWrapper! proposal, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<(System.Collections.Generic.Dictionary<string!, string!>? responseDictionary, bool isQuotaExceeded)>!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpCopilotGenerateImplementationService
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpCopilotGenerateImplementationService.ImplementNotImplementedExceptionsAsync(Microsoft.CodeAnalysis.Document! document, System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.SyntaxNode!, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.FindSymbols.ReferencedSymbol!>>! methodOrProperties, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateImplementation.ImplementationDetailsWrapper!>!>!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpOnTheFlyDocsService
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpOnTheFlyDocsService.GetOnTheFlyDocsPromptAsync(Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsInfoWrapper! onTheFlyDocsInfo, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<string!>!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpOnTheFlyDocsService.GetOnTheFlyDocsResponseAsync(string! prompt, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<(string! responseString, bool isQuotaExceeded)>!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.RelatedDocuments.ICopilotRelatedDocumentsService
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.RelatedDocuments.ICopilotRelatedDocumentsService.GetRelatedDocumentIdsAsync(Microsoft.CodeAnalysis.Document! document, int position, System.Func<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentId!>, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask>! callbackAsync, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchQueryResults
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchQueryResults.CompilationErrors.get -> System.Collections.Generic.IReadOnlyList<(string! id, string! message)>!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchQueryResults.CompilationErrors.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchQueryResults.CopilotSemanticSearchQueryResults() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchQueryResults.Error.get -> string?
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchQueryResults.Error.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchQueryResults.LimitReached.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchQueryResults.LimitReached.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchQueryResults.Symbols.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchQueryResults.Symbols.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchUtilities
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryExecutor
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryExecutor.ExecuteAsync(string! query, int resultCountLimit, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchQueryResults>!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompiledQueryId
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompiledQueryId.CompiledQueryId() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompiledQueryId.CompiledQueryId(int Id) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompiledQueryId.Deconstruct(out int Id) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompiledQueryId.Equals(Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompiledQueryId other) -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompiledQueryId.Id.get -> int
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompiledQueryId.Id.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompileQuery(Microsoft.CodeAnalysis.Host.SolutionServices! services, string! query, string? targetLanguage, string! referenceAssembliesDir, System.Diagnostics.TraceSource! traceSource, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompileQueryResult
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompileQueryResult
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompileQueryResult.CompilationErrors.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryCompilationError>
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompileQueryResult.CompilationErrors.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompileQueryResult.CompileQueryResult() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompileQueryResult.CompileQueryResult(Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompiledQueryId QueryId, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryCompilationError> CompilationErrors, System.TimeSpan EmitTime = default(System.TimeSpan)) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompileQueryResult.Deconstruct(out Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompiledQueryId QueryId, out System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryCompilationError> CompilationErrors, out System.TimeSpan EmitTime) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompileQueryResult.EmitTime.get -> System.TimeSpan
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompileQueryResult.EmitTime.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompileQueryResult.Equals(Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompileQueryResult other) -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompileQueryResult.QueryId.get -> Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompiledQueryId
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompileQueryResult.QueryId.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.DiscardQuery(Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompiledQueryId queryId) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.ExecuteQueryAsync(Microsoft.CodeAnalysis.Solution! solution, Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompiledQueryId queryId, Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver! observer, Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryExecutionOptions options, System.Diagnostics.TraceSource! traceSource, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.ExecuteQueryResult>!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.ExecuteQueryResult
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.ExecuteQueryResult.Deconstruct(out string? ErrorMessage, out string![]? ErrorMessageArgs, out System.TimeSpan ExecutionTime) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.ExecuteQueryResult.Equals(Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.ExecuteQueryResult other) -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.ExecuteQueryResult.ErrorMessage.get -> string?
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.ExecuteQueryResult.ErrorMessage.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.ExecuteQueryResult.ErrorMessageArgs.get -> string![]?
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.ExecuteQueryResult.ErrorMessageArgs.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.ExecuteQueryResult.ExecuteQueryResult() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.ExecuteQueryResult.ExecuteQueryResult(string? ErrorMessage, string![]? ErrorMessageArgs = null, System.TimeSpan ExecutionTime = default(System.TimeSpan)) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.ExecuteQueryResult.ExecutionTime.get -> System.TimeSpan
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.ExecuteQueryResult.ExecutionTime.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryCompilationError
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryCompilationError.Deconstruct(out string! Id, out string! Message, out Microsoft.CodeAnalysis.Text.TextSpan Span) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryCompilationError.Equals(Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryCompilationError other) -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryCompilationError.Id.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryCompilationError.Id.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryCompilationError.Message.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryCompilationError.Message.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryCompilationError.QueryCompilationError() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryCompilationError.QueryCompilationError(string! Id, string! Message, Microsoft.CodeAnalysis.Text.TextSpan Span) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryCompilationError.Span.get -> Microsoft.CodeAnalysis.Text.TextSpan
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryCompilationError.Span.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryExecutionOptions
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryExecutionOptions.Deconstruct(out int? ResultCountLimit, out bool KeepCompiledQuery) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryExecutionOptions.Equals(Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryExecutionOptions other) -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryExecutionOptions.KeepCompiledQuery.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryExecutionOptions.KeepCompiledQuery.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryExecutionOptions.QueryExecutionOptions() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryExecutionOptions.QueryExecutionOptions(int? ResultCountLimit, bool KeepCompiledQuery) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryExecutionOptions.ResultCountLimit.get -> int?
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryExecutionOptions.ResultCountLimit.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.AddItemsAsync(int itemCount, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.ItemsCompletedAsync(int itemCount, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.OnDocumentUpdatedAsync(Microsoft.CodeAnalysis.DocumentId! documentId, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextChange> changes, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.OnLocationFoundAsync(Microsoft.CodeAnalysis.Solution! solution, Microsoft.CodeAnalysis.Location! location, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.OnLogMessageAsync(string! message, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.OnSymbolFoundAsync(Microsoft.CodeAnalysis.Solution! solution, Microsoft.CodeAnalysis.ISymbol! symbol, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.OnSyntaxNodeFoundAsync(Microsoft.CodeAnalysis.Document! document, Microsoft.CodeAnalysis.SyntaxNode! node, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.OnTextFileUpdatedAsync(string! filePath, string? newContent, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.OnUserCodeExceptionAsync(Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.UserCodeExceptionInfo exception, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.OnValueFoundAsync(Microsoft.CodeAnalysis.Solution! solution, object! value, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.UserCodeExceptionInfo
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.UserCodeExceptionInfo.Deconstruct(out string! ProjectDisplayName, out string! Message, out System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText> TypeName, out System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText> StackTrace, out Microsoft.CodeAnalysis.Text.TextSpan Span) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.UserCodeExceptionInfo.Equals(Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.UserCodeExceptionInfo other) -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.UserCodeExceptionInfo.Message.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.UserCodeExceptionInfo.Message.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.UserCodeExceptionInfo.ProjectDisplayName.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.UserCodeExceptionInfo.ProjectDisplayName.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.UserCodeExceptionInfo.Span.get -> Microsoft.CodeAnalysis.Text.TextSpan
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.UserCodeExceptionInfo.Span.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.UserCodeExceptionInfo.StackTrace.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText>
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.UserCodeExceptionInfo.StackTrace.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.UserCodeExceptionInfo.TypeName.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText>
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.UserCodeExceptionInfo.TypeName.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.UserCodeExceptionInfo.UserCodeExceptionInfo() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.UserCodeExceptionInfo.UserCodeExceptionInfo(string! ProjectDisplayName, string! Message, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText> TypeName, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText> StackTrace, Microsoft.CodeAnalysis.Text.TextSpan Span) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchSolutionService
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchSolutionService.GetQueryDocumentFilePath() -> string!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchSolutionService.GetQueryDocumentId(Microsoft.CodeAnalysis.Solution! solution) -> Microsoft.CodeAnalysis.DocumentId!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchSolutionService.GetWorkspaceChangeKind(Microsoft.CodeAnalysis.Solution! oldSolution, Microsoft.CodeAnalysis.Solution! newSolution) -> (Microsoft.CodeAnalysis.WorkspaceChangeKind changeKind, Microsoft.CodeAnalysis.ProjectId? projectId, Microsoft.CodeAnalysis.DocumentId? documentId)
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchSolutionService.SetQueryText(Microsoft.CodeAnalysis.Solution! solution, string? query, string? targetLanguage, string! referenceAssembliesDir) -> Microsoft.CodeAnalysis.Solution!
+Microsoft.CodeAnalysis.SemanticSearch.SemanticSearchCopilotServiceWrapper
+Microsoft.CodeAnalysis.SemanticSearch.SemanticSearchCopilotServiceWrapper.SemanticSearchCopilotServiceWrapper(System.Lazy<Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ISemanticSearchCopilotServiceImpl!>? impl) -> void
+override Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.GetHashCode() -> int
+override Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualChar.Equals(object? obj) -> bool
+override Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualChar.GetHashCode() -> int
+override Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualChar.ToString() -> string!
+override Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem.Equals(object? obj) -> bool
+override Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem.GetHashCode() -> int
+override Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem.ToString() -> string!
+override Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.Equals(object? obj) -> bool
+override Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.GetHashCode() -> int
+override Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.ToString() -> string!
+override Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper.Equals(object? obj) -> bool
+override Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper.GetHashCode() -> int
+override Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompiledQueryId.GetHashCode() -> int
+override Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompileQueryResult.GetHashCode() -> int
+override Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.ExecuteQueryResult.GetHashCode() -> int
+override Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryCompilationError.GetHashCode() -> int
+override Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryExecutionOptions.GetHashCode() -> int
+override Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.UserCodeExceptionInfo.GetHashCode() -> int
+readonly Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreInstallPackageData.PackageName -> string!
+readonly Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreInstallPackageData.PackageNamespaceName -> string!
+readonly Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreInstallPackageData.PackageSource -> string?
+readonly Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreInstallPackageData.PackageVersionOpt -> string?
+readonly Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualChar.VirtualChar -> Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars.VirtualChar
+static Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreAddPackageCodeAction.TryCreateCodeActionAsync(Microsoft.CodeAnalysis.Document! document, int position, Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreInstallPackageData installPackageData, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.CodeActions.CodeAction?>!
+static Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.operator !=(Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult left, Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.operator ==(Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult left, Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreCSharpVirtualCharService.Instance.get -> Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreCSharpVirtualCharService!
+static Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence.FromBounds(Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence chars1, Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence chars2) -> Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem.operator !=(Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem? left, Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem? right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem.operator ==(Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem? left, Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem? right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.operator !=(Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem? left, Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem? right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.operator ==(Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem? left, Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem? right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotAnalysisUtilities.AnalyzeCopilotChangeAsync(Microsoft.CodeAnalysis.Document! document, bool accepted, string! featureId, string! proposalId, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Text.TextChange>! textChanges, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper.Create(System.Collections.Immutable.ImmutableArray<string!> values) -> Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper!
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotUtilities.GetContainingMethodDeclarationAsync(Microsoft.CodeAnalysis.Document! document, int position, bool useFullSpan, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.SyntaxNode?>!
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotUtilities.GetCopilotSuggestionDiagnosticTag() -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotUtilities.IsResultantVisibilityPublic(this Microsoft.CodeAnalysis.ISymbol! symbol) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotUtilities.IsValidIdentifier(string? name) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchUtilities.CanApplyChange(Microsoft.CodeAnalysis.TextDocument! document) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchUtilities.CreateSyntaxTree(Microsoft.CodeAnalysis.Host.SolutionServices! services, string! language, string? filePath, Microsoft.CodeAnalysis.ParseOptions! options, Microsoft.CodeAnalysis.Text.SourceText? text, System.Text.Encoding? encoding, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm, Microsoft.CodeAnalysis.SyntaxNode! root) -> Microsoft.CodeAnalysis.SyntaxTree!
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchUtilities.FindNode(this Microsoft.CodeAnalysis.Location! location, bool findInsideTrivia, bool getInnermostNodeForTie, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.SyntaxNode!
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchUtilities.FindReferencesAsync(Microsoft.CodeAnalysis.Solution! solution, Microsoft.CodeAnalysis.ISymbol! symbol, System.Action<Microsoft.CodeAnalysis.FindSymbols.ReferenceLocation>! callback, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchUtilities.GetMetadataReference(Microsoft.CodeAnalysis.Host.SolutionServices! services, string! resolvedPath, Microsoft.CodeAnalysis.MetadataReferenceProperties properties) -> Microsoft.CodeAnalysis.PortableExecutableReference!
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchUtilities.ParseSyntaxTree(Microsoft.CodeAnalysis.Host.SolutionServices! services, string! language, string? filePath, Microsoft.CodeAnalysis.ParseOptions! options, Microsoft.CodeAnalysis.Text.SourceText! text, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.SyntaxTree!
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchUtilities.ToTaggedText(this System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SymbolDisplayPart>? displayParts) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText>
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompiledQueryId.operator !=(Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompiledQueryId left, Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompiledQueryId right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompiledQueryId.operator ==(Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompiledQueryId left, Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompiledQueryId right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompileQueryResult.operator !=(Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompileQueryResult left, Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompileQueryResult right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompileQueryResult.operator ==(Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompileQueryResult left, Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompileQueryResult right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.ExecuteQueryResult.operator !=(Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.ExecuteQueryResult left, Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.ExecuteQueryResult right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.ExecuteQueryResult.operator ==(Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.ExecuteQueryResult left, Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.ExecuteQueryResult right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryCompilationError.operator !=(Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryCompilationError left, Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryCompilationError right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryCompilationError.operator ==(Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryCompilationError left, Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryCompilationError right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryExecutionOptions.operator !=(Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryExecutionOptions left, Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryExecutionOptions right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryExecutionOptions.operator ==(Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryExecutionOptions left, Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryExecutionOptions right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.UserCodeExceptionInfo.operator !=(Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.UserCodeExceptionInfo left, Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.UserCodeExceptionInfo right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.UserCodeExceptionInfo.operator ==(Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.UserCodeExceptionInfo left, Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.UserCodeExceptionInfo right) -> bool
+static readonly Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreCSharpRouteSyntaxDetector.Instance -> Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreCSharpRouteSyntaxDetector!
+static readonly Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence.Empty -> Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence
+virtual Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem.<Clone>$() -> Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem!
+virtual Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem.EqualityContract.get -> System.Type!
+virtual Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem.Equals(Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem? other) -> bool
+virtual Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.<Clone>$() -> Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem!
+virtual Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.EqualityContract.get -> System.Type!
+virtual Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.Equals(Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem? other) -> bool
+virtual Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.PrintMembers(System.Text.StringBuilder! builder) -> bool
+~override Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.Equals(object obj) -> bool
+~override Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.ToString() -> string
+~override Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompiledQueryId.Equals(object obj) -> bool
+~override Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompiledQueryId.ToString() -> string
+~override Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompileQueryResult.Equals(object obj) -> bool
+~override Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.CompileQueryResult.ToString() -> string
+~override Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.ExecuteQueryResult.Equals(object obj) -> bool
+~override Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.ExecuteQueryResult.ToString() -> string
+~override Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryCompilationError.Equals(object obj) -> bool
+~override Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryCompilationError.ToString() -> string
+~override Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryExecutionOptions.Equals(object obj) -> bool
+~override Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryService.QueryExecutionOptions.ToString() -> string
+~override Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.UserCodeExceptionInfo.Equals(object obj) -> bool
+~override Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchResultsObserver.UserCodeExceptionInfo.ToString() -> string

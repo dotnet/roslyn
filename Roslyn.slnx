@@ -170,6 +170,7 @@
     <Project Path="src/NuGet/Microsoft.CodeAnalysis.EditorFeatures.Package/Microsoft.CodeAnalysis.EditorFeatures.Package.csproj" />
   </Folder>
   <Folder Name="/EditorFeatures/ExternalAccess/">
+    <Project Path="src/EditorFeatures/ExternalAccess/Core/Microsoft.CodeAnalysis.ExternalAccess.EditorFeatures.csproj" />
     <Project Path="src/EditorFeatures/ExternalAccess/Debugger/Microsoft.CodeAnalysis.ExternalAccess.Debugger.csproj" />
   </Folder>
   <Folder Name="/ExpressionEvaluator/" />
@@ -239,6 +240,8 @@
   <Folder Name="/Features/ExternalAccess/">
     <Project Path="src/Features/ExternalAccess/AspNetCore/Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.csproj" />
     <Project Path="src/Features/ExternalAccess/Copilot/Microsoft.CodeAnalysis.ExternalAccess.Copilot.csproj" />
+    <Project Path="src/Features/ExternalAccess/Core/Microsoft.CodeAnalysis.ExternalAccess.Features.csproj" />
+    <Project Path="src/Features/ExternalAccess/Extensions/Microsoft.CodeAnalysis.ExternalAccess.Extensions.csproj" />
     <Project Path="src/Features/ExternalAccess/HotReload/Microsoft.CodeAnalysis.ExternalAccess.HotReload.csproj" />
     <Project Path="src/Features/ExternalAccess/HotReloadTest/Microsoft.CodeAnalysis.ExternalAccess.HotReload.UnitTests.csproj" />
     <Project Path="src/Features/ExternalAccess/OmniSharp.CSharp/Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp.csproj" />
@@ -268,7 +271,11 @@
   <Folder Name="/LanguageServer/ExternalAccess/">
     <Project Path="src/LanguageServer/ExternalAccess/CompilerDeveloperSDK/Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK.csproj" />
     <Project Path="src/LanguageServer/ExternalAccess/Copilot/Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot.csproj" />
+    <Project Path="src/LanguageServer/ExternalAccess/Core/Microsoft.CodeAnalysis.ExternalAccess.LanguageServer.csproj" />
+    <Project Path="src/LanguageServer/ExternalAccess/Razor/Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj" />
+    <Project Path="src/LanguageServer/ExternalAccess/Test/Microsoft.CodeAnalysis.ExternalAccess.LanguageServer.UnitTests.csproj" />
     <Project Path="src/LanguageServer/ExternalAccess/VisualDiagnostics/Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.csproj" />
+    <Project Path="src/LanguageServer/ExternalAccess/Xaml/Microsoft.CodeAnalysis.ExternalAccess.Xaml.csproj" />
   </Folder>
   <Folder Name="/Scripting/">
     <Project Path="src/NuGet/Microsoft.CodeAnalysis.Scripting.Package/Microsoft.CodeAnalysis.Scripting.Package.csproj" />
@@ -318,13 +325,9 @@
     <Project Path="src/Tools/TestDiscoveryWorker/TestDiscoveryWorker.csproj" />
   </Folder>
   <Folder Name="/Tools/ExternalAccess/">
-    <Project Path="src/Tools/ExternalAccess/Extensions/Microsoft.CodeAnalysis.ExternalAccess.Extensions.csproj" />
     <Project Path="src/Tools/ExternalAccess/Razor/EditorFeatures/Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures.csproj" />
-    <Project Path="src/Tools/ExternalAccess/Razor/Features/Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj" />
     <Project Path="src/Tools/ExternalAccess/RazorCompiler/Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" />
     <Project Path="src/Tools/ExternalAccess/RazorCompilerTest/Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.UnitTests.csproj" />
-    <Project Path="src/Tools/ExternalAccess/RazorTest/Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests.csproj" />
-    <Project Path="src/Tools/ExternalAccess/Xaml/Microsoft.CodeAnalysis.ExternalAccess.Xaml.csproj" />
   </Folder>
   <Folder Name="/Tools/SemanticSearch/">
     <Project Path="src/Tools/SemanticSearch/BuildTask/SemanticSearch.BuildTask.csproj" />
@@ -354,10 +357,11 @@
   </Folder>
   <Folder Name="/VisualStudio/ExternalAccess/">
     <Project Path="src/VisualStudio/ExternalAccess/Apex/Microsoft.CodeAnalysis.ExternalAccess.Apex.csproj" />
+    <Project Path="src/VisualStudio/ExternalAccess/Core/Microsoft.VisualStudio.LanguageServices.ExternalAccess.csproj" />
     <Project Path="src/VisualStudio/ExternalAccess/Copilot/Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot.csproj" />
     <Project Path="src/VisualStudio/ExternalAccess/EditorConfigGenerator/Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.csproj" />
     <Project Path="src/VisualStudio/ExternalAccess/FSharp/Microsoft.CodeAnalysis.ExternalAccess.FSharp.csproj" />
-    <Project Path="src/VisualStudio/ExternalAccess/FSharpTest/Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests.csproj" />
+    <Project Path="src/VisualStudio/ExternalAccess/Test/Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTests.csproj" />
   </Folder>
   <Folder Name="/VisualStudio/Insertion/">
     <Project Path="src/Setup/DevDivInsertionFiles/DevDivInsertionFiles.csproj" />
