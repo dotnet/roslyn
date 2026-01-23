@@ -1207,17 +1207,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (isParamArray)
                 {
-                    builder.Add(new PEAttributeData(containingModule, paramArrayAttribute));
+                    hiddenBuilder.Add(new PEAttributeData(containingModule, paramArrayAttribute));
                 }
 
                 if (isParamCollection)
                 {
-                    builder.Add(new PEAttributeData(containingModule, paramCollectionAttribute));
+                    hiddenBuilder.Add(new PEAttributeData(containingModule, paramCollectionAttribute));
                 }
 
                 if (!constantAttribute.IsNil)
                 {
-                    builder.Add(new PEAttributeData(containingModule, constantAttribute));
+                    hiddenBuilder.Add(new PEAttributeData(containingModule, constantAttribute));
                 }
 
                 hiddenAttributes = hiddenBuilder.ToImmutableAndFree();
