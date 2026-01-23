@@ -13080,4 +13080,137 @@ namespace Test
     }
 
     #endregion
+
+    #region ClassName
+
+    [IntegrationTestFact]
+    public void ClassName_Directive_Basic()
+    {
+        var generated = CompileToCSharp("""
+                @classname MyCustomComponent
+
+                <MyCustomComponent />
+                """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact]
+    public void ClassName_Directive_Empty()
+    {
+        var generated = CompileToCSharp("""
+                @classname 
+                <h1>Hello World</h1>
+                """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+
+    [IntegrationTestFact]
+    public void ClassName_Directive_InvalidClassName()
+    {
+        var generated = CompileToCSharp("""
+                @classname 123class
+                <h1>Hello World</h1>
+                """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact]
+    public void ClassName_Directive_InvalidClassName2()
+    {
+        var generated = CompileToCSharp("""
+                @classname class
+                <h1>Hello World</h1>
+                """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact]
+    public void ClassName_Directive_With_Periods()
+    {
+        var generated = CompileToCSharp("""
+                @classname My.Custom.Component
+                <h1>Hello World</h1>
+                """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact]
+    public void ClassName_Directive_WithTypeParam()
+    {
+        var generated = CompileToCSharp("""
+                @classname MyGenericComponent
+                @typeparam TItem
+
+                <MyGenericComponent TItem="string" />
+
+                @code {
+                    [Parameter]
+                    public TItem Item { get; set; }
+                }
+                """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact]
+    public void ClassName_Directive_WithNamespace()
+    {
+        var generated = CompileToCSharp("""
+                @classname MyCustomComponent
+                @namespace Custom.Namespace
+
+                <MyCustomComponent />
+                <Custom.Namespace.MyCustomComponent />
+                """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact]
+    public void ClassName_Directive_WithOtherDirectives()
+    {
+        var generated = CompileToCSharp("""
+                @page "/my-page"
+                @classname MyPageComponent
+                @using System.Collections.Generic
+
+                <MyPageComponent />
+                """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+
+
+    #endregion
 }

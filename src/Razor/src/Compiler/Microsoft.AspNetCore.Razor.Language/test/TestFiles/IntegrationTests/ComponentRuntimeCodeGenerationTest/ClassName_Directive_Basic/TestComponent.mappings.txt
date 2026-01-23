@@ -1,0 +1,10 @@
+﻿Source Location: (11:0,11 [17] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyCustomComponent|
+Generated Location: (460:16,0 [17] )
+|MyCustomComponent|
+
+Source Location: (33:2,1 [17] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyCustomComponent|
+Generated Location: (847:27,49 [17] )
+|MyCustomComponent|
+

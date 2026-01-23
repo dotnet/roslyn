@@ -1,0 +1,15 @@
+﻿Source Location: (11:0,11 [17] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyCustomComponent|
+Generated Location: (460:16,0 [17] )
+|MyCustomComponent|
+
+Source Location: (11:0,11 [17] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyCustomComponent|
+Generated Location: (849:29,22 [17] )
+|MyCustomComponent|
+
+Source Location: (41:1,11 [16] x:\dir\subdir\Test\TestComponent.cshtml)
+|Custom.Namespace|
+Generated Location: (1109:39,44 [16] )
+|Custom.Namespace|
+

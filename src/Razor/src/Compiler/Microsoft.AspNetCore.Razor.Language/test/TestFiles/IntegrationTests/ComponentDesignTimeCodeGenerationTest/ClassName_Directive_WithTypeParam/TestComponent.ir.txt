@@ -1,0 +1,27 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - MyGenericComponent - global::Microsoft.AspNetCore.Components.ComponentBase -  - TItem
+            DesignTimeDirective - 
+                DirectiveToken - (11:0,11 [18] x:\dir\subdir\Test\TestComponent.cshtml) - MyGenericComponent
+                DirectiveToken - (42:1,11 [5] x:\dir\subdir\Test\TestComponent.cshtml) - TItem
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                HtmlContent - (49:2,0 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (49:2,0 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                Component - (51:3,0 [37] x:\dir\subdir\Test\TestComponent.cshtml) - MyGenericComponent
+                    ComponentTypeArgument - (78:3,27 [6] x:\dir\subdir\Test\TestComponent.cshtml) - TItem
+                        IntermediateToken - (78:3,27 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - string
+                HtmlContent - (88:3,37 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (88:3,37 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+            CSharpCode - (99:5,7 [56] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (99:5,7 [56] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter]\n    public TItem Item { get; set; }\n

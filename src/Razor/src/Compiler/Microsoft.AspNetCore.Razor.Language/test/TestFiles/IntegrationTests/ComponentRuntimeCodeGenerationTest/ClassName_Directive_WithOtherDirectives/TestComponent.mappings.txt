@@ -1,0 +1,20 @@
+﻿Source Location: (47:2,1 [32] x:\dir\subdir\Test\TestComponent.cshtml)
+|using System.Collections.Generic|
+Generated Location: (325:11,0 [32] )
+|using System.Collections.Generic|
+
+Source Location: (6:0,6 [10] x:\dir\subdir\Test\TestComponent.cshtml)
+|"/my-page"|
+Generated Location: (600:21,0 [10] )
+|"/my-page"|
+
+Source Location: (29:1,11 [15] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyPageComponent|
+Generated Location: (802:31,0 [15] )
+|MyPageComponent|
+
+Source Location: (84:4,1 [15] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyPageComponent|
+Generated Location: (1187:42,49 [15] )
+|MyPageComponent|
+
