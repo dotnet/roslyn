@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!this.IsClassType() || !IsStatic || IsGenericType || !MightContainExtensionMethods) return;
 
-            // PERF: we avoid GetTypemembersUnordered as it may allocate
+            // PERF: we avoid GetTypeMembersUnordered as it may allocate
             foreach (var symbol in GetMembersUnordered())
             {
                 if (symbol.Kind != SymbolKind.NamedType)
