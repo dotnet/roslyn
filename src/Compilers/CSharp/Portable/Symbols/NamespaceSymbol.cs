@@ -340,8 +340,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var assembly = this.ContainingAssembly;
 
-            // Only MergedNamespaceSymbol should have a null ContainingAssembly
-            // and MergedNamespaceSymbol overrides GetExtensionMethods.
+            // Only MergedAssemblySymbol should have a null ContainingAssembly
+            // and MergedAssemblySymbol overrides GetExtensionMethods.
             Debug.Assert((object)assembly != null);
 
             if (!assembly.MightContainExtensionMethods)
@@ -361,19 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>Does not perform a full viability check</remarks>
         internal virtual void GetExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, ConsList<FieldSymbol> fieldsBeingBound)
         {
-            var assembly = this.ContainingAssembly;
-
-            // Only MergedNamespaceSymbol should have a null ContainingAssembly
-            // and MergedNamespaceSymbol overrides GetExtensionMembers.
-            Debug.Assert((object)assembly != null);
-
-            if (!assembly.MightContainExtensionMethods)
-            {
-                return;
-            }
-
-            var typesWithExtensionMethods = this.TypesMightContainExtensionMethods;
-            foreach (var type in typesWithExtensionMethods)
+            foreach (var type in this.GetTypeMembersUnordered())
             {
                 type.GetExtensionMembers(members, name, alternativeName, arity, options, fieldsBeingBound);
             }

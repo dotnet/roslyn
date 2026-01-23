@@ -303,9 +303,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // CreateRange and OfType Linq calls in MergedNamespaceSymbol.GetTypeMembersUnordered causes a full array allocation.
         internal sealed override void GetExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, ConsList<FieldSymbol> fieldsBeingBound)
         {
-            foreach (NamespaceSymbol namespaceSymbol in _namespacesToMerge)
+            foreach (var member in GetMembersUnordered())
             {
-                namespaceSymbol.GetExtensionMembers(members, name, alternativeName, arity, options, fieldsBeingBound);
+                if (member is NamedTypeSymbol type)
+                {
+                    type.GetExtensionMembers(members, name, alternativeName, arity, options, fieldsBeingBound);
+                }
             }
         }
     }
