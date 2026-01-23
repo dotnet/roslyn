@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 // grab out a potential cached node from the cache based on that hash.  Note that this may not actually
                 // be a viable match due to potential hash collisions, where we have 'last one wins' semantics.  So if
                 // we do see a node in the cache, we have to validate that it is actually equivalent to the data
-                // being used populate the cache entry.  This is what IsCacheEquivalent is for.  It allows us to check
+                // being used to populate the cache entry.  This is what IsCacheEquivalent is for.  It allows us to check
                 // that the node already there has that same kind, flags, and the same child (by reference).
                 int h = hash = GetCacheHash(kind, flags, child1);
                 var e = s_cache[h & CacheMask];
