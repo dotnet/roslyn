@@ -11,8 +11,10 @@ using System.Threading;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 {
@@ -46,14 +48,10 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
         private static bool ShouldExcludeGeneratedCode(AnalyzerOptions options)
         {
-            if (options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(
-                Analyzer.Utilities.EditorConfigOptionNames.BannedApiExcludeGeneratedCode,
-                out var value))
-            {
-                return bool.TryParse(value, out var result) && result;
-            }
-
-            return false;
+            return options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(
+                    Analyzer.Utilities.EditorConfigOptionNames.BannedApiExcludeGeneratedCode,
+                    out var value) &&
+                EditorConfigValueSerializer.GetDefault<bool>(isEditorConfigOption: true).ParseValue(value).GetValueOrDefault();
         }
 
         private void OnCompilationStart(CompilationStartAnalysisContext compilationContext)

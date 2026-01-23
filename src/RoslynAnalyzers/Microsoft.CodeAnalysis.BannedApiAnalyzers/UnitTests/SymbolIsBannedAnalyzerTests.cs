@@ -2082,7 +2082,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
 
         #region Generated code exclusion tests
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82114")]
         public Task ExcludeGeneratedCode_Enabled()
         {
             return new VerifyCS.Test
@@ -2115,7 +2115,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
             }.RunAsync();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82114")]
         public Task ExcludeGeneratedCode_Disabled()
         {
             return new VerifyCS.Test
@@ -2152,7 +2152,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
             }.RunAsync();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82114")]
         public Task ExcludeGeneratedCode_DefaultBehavior()
         {
             return new VerifyCS.Test
