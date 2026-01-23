@@ -18,6 +18,9 @@ namespace CSharpSyntaxGenerator
         public string Base;
 
         [XmlAttribute]
+        public string Experimental;
+
+        [XmlAttribute]
         public string SkipConvenienceFactories;
 
         [XmlElement]

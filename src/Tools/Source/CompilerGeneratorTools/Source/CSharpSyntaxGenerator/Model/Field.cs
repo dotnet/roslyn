@@ -45,6 +45,9 @@ namespace CSharpSyntaxGenerator
         public string Type;
 
         [XmlAttribute]
+        public string Experimental;
+
+        [XmlAttribute]
         public string Optional;
 
         [XmlAttribute]

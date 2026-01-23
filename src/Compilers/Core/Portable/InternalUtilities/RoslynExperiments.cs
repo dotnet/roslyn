@@ -15,6 +15,9 @@ internal static class RoslynExperiments
     internal const string GeneratorHostOutputs = "RSEXPERIMENTAL004";
     internal const string GeneratorHostOutputs_Url = "https://github.com/dotnet/roslyn/issues/74753";
 
+    // The URL is customized per-api to point at the test plan for the feature
+    internal const string PreviewLanguageFeatureApi = "RSEXPERIMENTAL006";
+
     // Previously taken: RSEXPERIMENTAL003 - https://github.com/dotnet/roslyn/issues/73002 (SyntaxTokenParser)
     // Previously taken: RSEXPERIMENTAL005 - https://github.com/dotnet/roslyn/issues/77697
 }
