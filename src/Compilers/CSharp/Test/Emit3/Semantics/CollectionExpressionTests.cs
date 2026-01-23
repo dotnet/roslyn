@@ -41818,6 +41818,54 @@ partial class Program
                 """);
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78980")]
+        public void Add_ParamsArray_NullableAnalysis()
+        {
+            // This is a regression test for https://github.com/dotnet/roslyn/issues/78980
+            // The issue was that nullable walker was visiting synthesized params arrays/collections
+            // and tracking their nullability, when they should be processed element-wise instead.
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                C c = [1];
+
+                class C : IEnumerable<object>
+                {
+                    public IEnumerator<object> GetEnumerator() => throw null!;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+                    public void Add(params object[] xs) { }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78980")]
+        public void Add_ParamsList_NullableAnalysis()
+        {
+            // This tests the variant with params List<T> mentioned in the issue
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                C c = [1];
+
+                class C : IEnumerable<object>
+                {
+                    public IEnumerator<object> GetEnumerator() => throw null!;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+                    public void Add(params List<object> xs) { }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
         [WorkItem("https://github.com/dotnet/roslyn/issues/72098")]
         [Fact]
         public void AddMethod_Derived_01()
