@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// </summary>
     /// <remarks>
     /// Does not perform any path validation.
-    /// 
-    /// The <c>MappedPath</c> is either the path (ItemSpec) itself, when <see cref="Deterministic"/> is false, 
+    ///
+    /// The <c>MappedPath</c> is either the path (ItemSpec) itself, when <see cref="Deterministic"/> is false,
     /// or a calculated deterministic source path (starting with prefix '/_/', '/_1/', etc.), otherwise.
     /// </remarks>
     public sealed class MapSourceRoots : Task
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             // For relative paths, we need to normalize them without making them absolute
             // We do this by combining with a dummy root, normalizing, then extracting the relative part
-            
+
             // Preserve the trailing separator type from the original path
             char? trailingSeparator = null;
             if (relativePath.Length > 0)
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 string dummyRoot = Path.DirectorySeparatorChar == '\\' ? @"C:\" : "/";
                 string combined = Path.Combine(dummyRoot, relativePath);
                 string normalized = Path.GetFullPath(combined);
-                
+
                 // Extract the relative part
                 if (normalized.StartsWith(dummyRoot, StringComparison.Ordinal))
                 {
