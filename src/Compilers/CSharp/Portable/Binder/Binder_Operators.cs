@@ -198,11 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return createBadCompoundAssignmentOperator(node, kind, left, right, resultKind, originalUserDefinedOperators, ref operatorResolutionForReporting, diagnostics);
                 }
 
-                if (best.Signature.Method is { } bestMethod)
-                {
-                    ReportObsoleteAndUnsafeAndFeatureAvailabilityDiagnostics(bestMethod, node, diagnostics);
-                    ReportUseSite(bestMethod, diagnostics, node);
-                }
+                ReportOperatorUseSiteDiagnostics(best.Signature.Method, node, diagnostics);
 
                 // The rules in the spec for determining additional errors are bit confusing. In particular
                 // this line is misleading:
@@ -1184,11 +1180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool foundOperator;
                 var signature = best.Signature;
 
-                if (signature.Method is { } bestMethod)
-                {
-                    ReportObsoleteAndUnsafeAndFeatureAvailabilityDiagnostics(bestMethod, node, diagnostics);
-                    ReportUseSite(bestMethod, diagnostics, node);
-                }
+                ReportOperatorUseSiteDiagnostics(signature.Method, node, diagnostics);
 
                 bool isObjectEquality = signature.Kind == BinaryOperatorKind.ObjectEqual || signature.Kind == BinaryOperatorKind.ObjectNotEqual;
 
@@ -1507,11 +1499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // bool, or we've got a valid user-defined operator.
                     BinaryOperatorSignature signature = best.Signature;
 
-                    if (signature.Method is { } bestMethod)
-                    {
-                        ReportObsoleteAndUnsafeAndFeatureAvailabilityDiagnostics(bestMethod, node, diagnostics);
-                        ReportUseSite(bestMethod, diagnostics, node);
-                    }
+                    ReportOperatorUseSiteDiagnostics(signature.Method, node, diagnostics);
 
                     bool bothBool = signature.LeftType.SpecialType == SpecialType.System_Boolean &&
                             signature.RightType.SpecialType == SpecialType.System_Boolean;
@@ -2222,10 +2210,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return possiblyBest;
         }
 
-        private void ReportObsoleteAndUnsafeAndFeatureAvailabilityDiagnostics(MethodSymbol operatorMethod, SyntaxNode node, BindingDiagnosticBag diagnostics)
+        private void ReportOperatorUseSiteDiagnostics(MethodSymbol operatorMethod, SyntaxNode node, BindingDiagnosticBag diagnostics)
         {
             if ((object)operatorMethod != null)
             {
+                ReportUseSite(operatorMethod, diagnostics, node);
                 ReportDiagnosticsIfObsolete(diagnostics, operatorMethod, node, hasBaseReceiver: false);
                 ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, operatorMethod, node);
 
@@ -2390,8 +2379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (possiblyBest is { HasValue: true, Signature: { Method: { } bestMethod } })
             {
-                ReportObsoleteAndUnsafeAndFeatureAvailabilityDiagnostics(bestMethod, node, diagnostics);
-                ReportUseSite(bestMethod, diagnostics, node);
+                ReportOperatorUseSiteDiagnostics(bestMethod, node, diagnostics);
             }
 
             return possiblyBest;
