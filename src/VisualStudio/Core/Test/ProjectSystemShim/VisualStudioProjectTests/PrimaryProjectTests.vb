@@ -5,6 +5,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 Imports Roslyn.Test.Utilities
 
@@ -15,7 +16,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         Public Async Function ProjectIsPrimaryByDefault() As Task
             Using environment = New TestEnvironment(GetType(TestDynamicFileInfoProviderThatProducesNoFiles))
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
-                    "project", LanguageNames.CSharp, CancellationToken.None)
+                    "project", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
 
                 Assert.True(project.IsPrimary)
             End Using
@@ -25,7 +26,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         Public Async Function ChangeProjectIsPrimary() As Task
             Using environment = New TestEnvironment(GetType(TestDynamicFileInfoProviderThatProducesNoFiles))
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
-                    "project", LanguageNames.CSharp, CancellationToken.None)
+                    "project", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
 
                 project.IsPrimary = False
                 Assert.False(project.IsPrimary)
@@ -36,7 +37,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         Public Async Function ChangeProjectIsPrimaryBack() As Task
             Using environment = New TestEnvironment(GetType(TestDynamicFileInfoProviderThatProducesNoFiles))
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
-                    "project", LanguageNames.CSharp, CancellationToken.None)
+                    "project", LanguageNames.CSharp, New VisualStudioProjectCreationInfo(), CancellationToken.None)
 
                 project.IsPrimary = False
                 project.IsPrimary = True
