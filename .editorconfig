@@ -317,3 +317,16 @@ dotnet_diagnostic.RS0058.severity = error
 dotnet_diagnostic.RS0059.severity = error
 dotnet_diagnostic.RS0060.severity = error
 dotnet_diagnostic.RS0061.severity = error
+
+# Build Checks
+[*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,projitems,shproj}]
+build_check.BC0101.Severity=suggestion
+build_check.BC0102.Severity=suggestion
+build_check.BC0103.Severity=suggestion
+build_check.BC0104.Severity=suggestion
+build_check.BC0105.Severity=suggestion
+build_check.BC0106.Severity=suggestion
+build_check.BC0107.Severity=suggestion
+build_check.BC0201.Severity=suggestion
+build_check.BC0202.Severity=suggestion
+build_check.BC0203.Severity=suggestion
