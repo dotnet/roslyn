@@ -88,7 +88,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         private static string CanonicalizePathPreservingTrailingSeparator(string path)
         {
             // Only canonicalize paths that are already rooted (absolute paths)
-            // This avoids turning relative paths into absolute ones based on current directory
+            // This avoids turning relative paths into absolute ones based on current directory.
+            // For rooted paths, Path.GetFullPath() resolves relative components like ".." and "."
             if (!Path.IsPathRooted(path))
             {
                 return path;
@@ -132,13 +133,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             try
             {
-                // Use a dummy root path to normalize the relative path
-                string dummyRoot = Path.DirectorySeparatorChar == '\\' ? "C:\\" : "/";
+                // Use a platform-specific dummy root path to normalize the relative path
+                string dummyRoot = Path.DirectorySeparatorChar == '\\' ? @"C:\" : "/";
                 string combined = Path.Combine(dummyRoot, relativePath);
                 string normalized = Path.GetFullPath(combined);
                 
                 // Extract the relative part
-                if (normalized.StartsWith(dummyRoot))
+                if (normalized.StartsWith(dummyRoot, StringComparison.Ordinal))
                 {
                     relativePath = normalized.Substring(dummyRoot.Length);
                 }
