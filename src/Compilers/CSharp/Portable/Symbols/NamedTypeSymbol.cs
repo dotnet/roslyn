@@ -420,8 +420,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!this.IsClassType() || !IsStatic || IsGenericType || !MightContainExtensionMethods) return;
 
-            foreach (NamedTypeSymbol nestedType in GetTypeMembersUnordered())
+            // PERF: we avoid GetTypemembersUnordered as it may allocate
+            foreach (var symbol in GetMembersUnordered())
             {
+                if (symbol.Kind != SymbolKind.NamedType)
+                {
+                    continue;
+                }
+
+                var nestedType = (NamedTypeSymbol)symbol;
                 if (nestedType is not { IsExtension: true, ExtensionParameter: { } extensionParameter }
                     || !IsValidExtensionReceiverParameter(extensionParameter))
                 {
