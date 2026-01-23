@@ -529,9 +529,7 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
             Assert.True(result);
         }
 
-        [Theory]
-        [InlineData(new object[] { true })]
-        [InlineData(new object[] { false })]
+        [Theory, CombinatorialData]
         public void PathCanonicalization_Deterministic(bool deterministic)
         {
             var engine = new MockEngine();
@@ -571,6 +569,57 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
             {
                 Assert.Equal(Utilities.FixFilePath(expectedCanonical), task.MappedSourceRoots[0].GetMetadata("MappedPath"));
             }
+
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void PathCanonicalization_ContainingRootAndNestedRoot()
+        {
+            var engine = new MockEngine();
+
+            // Create paths with relative components in ContainingRoot and NestedRoot
+            var baseDir = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "project"));
+            var parentPath = Path.Combine(baseDir, "subfolder", "..", "parent") + Path.DirectorySeparatorChar;
+            var nestedPath = Path.Combine(baseDir, "parent", "nested") + Path.DirectorySeparatorChar;
+            var nestedRootWithRelative = Path.Combine("subfolder", "..", "nested") + Path.DirectorySeparatorChar;
+            
+            var expectedParent = Path.Combine(baseDir, "parent") + Path.DirectorySeparatorChar;
+            var expectedNested = Path.Combine(baseDir, "parent", "nested") + Path.DirectorySeparatorChar;
+            var expectedNestedRoot = Path.Combine("nested") + Path.DirectorySeparatorChar;
+
+            var task = new MapSourceRoots
+            {
+                BuildEngine = engine,
+                SourceRoots = new[]
+                {
+                    new TaskItem(parentPath, new Dictionary<string, string>
+                    {
+                        { "SourceControl", "Git" },
+                    }),
+                    new TaskItem(nestedPath, new Dictionary<string, string>
+                    {
+                        { "SourceControl", "Git" },
+                        { "NestedRoot", nestedRootWithRelative },
+                        { "ContainingRoot", parentPath },
+                    }),
+                },
+                Deterministic = false
+            };
+
+            bool result = task.Execute();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", engine.Log);
+
+            RoslynDebug.Assert(task.MappedSourceRoots is object);
+            Assert.Equal(2, task.MappedSourceRoots.Length);
+
+            // Verify ContainingRoot was canonicalized
+            Assert.Equal(Utilities.FixFilePath(expectedParent), task.MappedSourceRoots[0].ItemSpec);
+            Assert.Equal(Utilities.FixFilePath(expectedNested), task.MappedSourceRoots[1].ItemSpec);
+            Assert.Equal(Utilities.FixFilePath(expectedParent), task.MappedSourceRoots[1].GetMetadata("ContainingRoot"));
+            
+            // Verify NestedRoot was canonicalized
+            Assert.Equal(Utilities.FixFilePath(expectedNestedRoot), task.MappedSourceRoots[1].GetMetadata("NestedRoot"));
 
             Assert.True(result);
         }

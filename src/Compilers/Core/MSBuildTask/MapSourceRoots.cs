@@ -85,69 +85,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return c == Path.DirectorySeparatorChar || c == Path.AltDirectorySeparatorChar;
         }
 
-        private static bool ContainsRelativePathComponents(string path)
-        {
-            // Only canonicalize paths that are already rooted (absolute paths)
-            // Relative paths like "C:" on Linux should not be canonicalized
-            if (!Path.IsPathRooted(path))
-            {
-                return false;
-            }
-
-            // Check for ".." as a complete path segment (not just any occurrence of "..")
-            // This avoids false positives for files like "my..file"
-            int doubleDotIndex = path.IndexOf("..", StringComparison.Ordinal);
-            while (doubleDotIndex >= 0)
-            {
-                // Check if ".." is at the start or preceded by a separator
-                bool validStart = doubleDotIndex == 0 || 
-                                  path[doubleDotIndex - 1] == Path.DirectorySeparatorChar || 
-                                  path[doubleDotIndex - 1] == Path.AltDirectorySeparatorChar;
-                
-                // Check if ".." is at the end or followed by a separator
-                bool validEnd = doubleDotIndex + 2 >= path.Length ||
-                                path[doubleDotIndex + 2] == Path.DirectorySeparatorChar ||
-                                path[doubleDotIndex + 2] == Path.AltDirectorySeparatorChar;
-                
-                if (validStart && validEnd)
-                {
-                    return true;
-                }
-                
-                doubleDotIndex = path.IndexOf("..", doubleDotIndex + 1, StringComparison.Ordinal);
-            }
-
-            // Check for "/." or "\." patterns (current directory reference)
-            int dotIndex = path.IndexOf('.');
-            while (dotIndex >= 0)
-            {
-                // Check if this is a path separator followed by dot
-                if (dotIndex > 0)
-                {
-                    char prevChar = path[dotIndex - 1];
-                    if (prevChar == Path.DirectorySeparatorChar || prevChar == Path.AltDirectorySeparatorChar)
-                    {
-                        // Check if this is a single dot (not part of a filename)
-                        bool isSingleDot = dotIndex + 1 >= path.Length ||
-                                           path[dotIndex + 1] == Path.DirectorySeparatorChar ||
-                                           path[dotIndex + 1] == Path.AltDirectorySeparatorChar;
-                        
-                        if (isSingleDot)
-                        {
-                            return true;
-                        }
-                    }
-                }
-
-                // Look for next dot
-                dotIndex = path.IndexOf('.', dotIndex + 1);
-            }
-
-            return false;
-        }
-
         private static string CanonicalizePathPreservingTrailingSeparator(string path)
         {
+            // Only canonicalize paths that are already rooted (absolute paths)
+            // This avoids turning relative paths into absolute ones based on current directory
+            if (!Path.IsPathRooted(path))
+            {
+                return path;
+            }
+
             // Preserve the trailing separator type from the original path
             char? trailingSeparator = null;
             char lastChar = path[path.Length - 1];
@@ -168,6 +114,49 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return canonicalPath;
         }
 
+        private static string CanonicalizeRelativePathPreservingTrailingSeparator(string relativePath)
+        {
+            // For relative paths, we need to normalize them without making them absolute
+            // We do this by combining with a dummy root, normalizing, then extracting the relative part
+            
+            // Preserve the trailing separator type from the original path
+            char? trailingSeparator = null;
+            if (relativePath.Length > 0)
+            {
+                char lastChar = relativePath[relativePath.Length - 1];
+                if (lastChar == Path.DirectorySeparatorChar || lastChar == Path.AltDirectorySeparatorChar)
+                {
+                    trailingSeparator = lastChar;
+                }
+            }
+
+            try
+            {
+                // Use a dummy root path to normalize the relative path
+                string dummyRoot = Path.DirectorySeparatorChar == '\\' ? "C:\\" : "/";
+                string combined = Path.Combine(dummyRoot, relativePath);
+                string normalized = Path.GetFullPath(combined);
+                
+                // Extract the relative part
+                if (normalized.StartsWith(dummyRoot))
+                {
+                    relativePath = normalized.Substring(dummyRoot.Length);
+                }
+            }
+            catch (Exception e) when (Utilities.IsIoRelatedException(e))
+            {
+                // If normalization fails, return the original path
+            }
+
+            // Restore the trailing separator if it was present
+            if (trailingSeparator.HasValue && !EndsWithDirectorySeparator(relativePath))
+            {
+                relativePath += trailingSeparator.Value;
+            }
+
+            return relativePath;
+        }
+
         public override bool Execute()
         {
             // Canonicalize SourceRoot paths to ensure path comparisons work correctly downstream.
@@ -175,16 +164,23 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             foreach (var sourceRoot in SourceRoots)
             {
                 var itemSpec = sourceRoot.ItemSpec;
-                if (!string.IsNullOrEmpty(itemSpec) && ContainsRelativePathComponents(itemSpec))
+                if (!string.IsNullOrEmpty(itemSpec))
                 {
                     sourceRoot.ItemSpec = CanonicalizePathPreservingTrailingSeparator(itemSpec);
                 }
 
-                // Also canonicalize the ContainingRoot metadata if it has relative components
+                // Also canonicalize the ContainingRoot metadata
                 var containingRoot = sourceRoot.GetMetadata(Names.ContainingRoot);
-                if (!string.IsNullOrEmpty(containingRoot) && ContainsRelativePathComponents(containingRoot))
+                if (!string.IsNullOrEmpty(containingRoot))
                 {
                     sourceRoot.SetMetadata(Names.ContainingRoot, CanonicalizePathPreservingTrailingSeparator(containingRoot));
+                }
+
+                // Also canonicalize the NestedRoot metadata (which is a relative path)
+                var nestedRoot = sourceRoot.GetMetadata(Names.NestedRoot);
+                if (!string.IsNullOrEmpty(nestedRoot))
+                {
+                    sourceRoot.SetMetadata(Names.NestedRoot, CanonicalizeRelativePathPreservingTrailingSeparator(nestedRoot));
                 }
             }
 
