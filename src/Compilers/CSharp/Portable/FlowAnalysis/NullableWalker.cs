@@ -795,10 +795,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                // If 'field' keyword is explicitly used by 'symbol', then use FlowAnalysisAnnotations from the backing field.
-                // Otherwise, use the FlowAnalysisAnnotations from the user-declared symbol (property or ordinary field).
-                var usesFieldKeyword = symbol is SourcePropertySymbolBase { UsesFieldKeyword: true };
-                var annotations = usesFieldKeyword ? field!.FlowAnalysisAnnotations : symbol.GetFlowAnalysisAnnotations();
+                // If we are considering the backing field for this check, and the field keyword is explicitly used by 'symbol', then use FlowAnalysisAnnotations from the backing field.
+                // Otherwise, use the FlowAnalysisAnnotations from 'symbol'.
+                var (usesFieldKeyword, annotations) = field != null && symbol is SourcePropertySymbolBase { UsesFieldKeyword: true }
+                    ? (true, field.FlowAnalysisAnnotations)
+                    : (false, symbol.GetFlowAnalysisAnnotations());
                 if ((annotations & FlowAnalysisAnnotations.AllowNull) != 0)
                 {
                     // We assume that if a member has AllowNull then the user

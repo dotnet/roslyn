@@ -12943,6 +12943,54 @@ class C<T>
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80504")]
+        public void SetsRequiredMembers_Subtype_NullResilientBaseProp()
+        {
+            // Exercise a corner case involving SetsRequiredMembers, null-resilient getters, and inheritance.
+            var source1 = """
+                #nullable enable
+
+                public class Foo {
+                    public required string Bar {
+                        get => field ?? "a";
+                        init => field = value;
+                    }
+                }
+                """;
+
+            var source2 = """
+                #nullable enable
+                using System.Diagnostics.CodeAnalysis;
+
+                public class FooDerivative : Foo {
+                    [SetsRequiredMembers]
+                    public FooDerivative() {
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source1, source2], targetFramework: TargetFramework.Net100);
+            comp.VerifyEmitDiagnostics(
+                // (6,12): warning CS8618: Non-nullable property 'Bar' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                //     public FooDerivative() {
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "FooDerivative").WithArguments("property", "Bar").WithLocation(6, 12));
+
+            var comp1 = CreateCompilation(source1, targetFramework: TargetFramework.Net100);
+            comp1.VerifyEmitDiagnostics();
+
+            verify2(comp1.ToMetadataReference());
+            verify2(comp1.EmitToImageReference());
+
+            void verify2(MetadataReference reference)
+            {
+                var comp2 = CreateCompilation(source2, references: [reference], targetFramework: TargetFramework.Net100);
+                comp2.VerifyEmitDiagnostics(
+                    // (6,12): warning CS8618: Non-nullable property 'Bar' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                    //     public FooDerivative() {
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "FooDerivative").WithArguments("property", "Bar").WithLocation(6, 12));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80504")]
         public void SetsRequiredMembersInSubtype()
         {
             var source = """
@@ -12967,7 +13015,10 @@ class C<T>
                 """;
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (16,12): warning CS8618: Non-nullable property 'Bar' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                //     public FooDerivative() {
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "FooDerivative").WithArguments("property", "Bar").WithLocation(16, 12));
         }
 
         private class TestAnalyzer1 : DiagnosticAnalyzer
