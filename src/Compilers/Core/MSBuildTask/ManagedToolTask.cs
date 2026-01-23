@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             var items = new ITaskItem[commandLineArgs.Count];
             for (var i = 0; i < commandLineArgs.Count; i++)
             {
-                items[i] = new TaskItem(commandLineArgs[i]);
+                items[i] = new ArgsTaskItem(commandLineArgs[i]);
             }
 
             return items;
