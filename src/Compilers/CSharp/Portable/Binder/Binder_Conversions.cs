@@ -456,6 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(elementField is { });
 
                     diagnostics.ReportUseSite(elementField, syntax);
+                    AssertNotUnsafeMemberAccess(elementField); // PROTOTYPE: Support unsafe fields?
 
                     if (destination.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions))
                     {

@@ -3944,7 +3944,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 _ = o is (int x, string y);
                 unsafe { _ = o is (int a, string b); }
                 """,
-            verify: Verification.Skipped,
             expectedUnsafeSymbols: ["System.Runtime.CompilerServices.ITuple.Length", "System.Runtime.CompilerServices.ITuple.get_Length", "System.Runtime.CompilerServices.ITuple.this[]", "System.Runtime.CompilerServices.ITuple.get_Item"],
             expectedSafeSymbols: ["System.Runtime.CompilerServices.ITuple"],
             expectedDiagnostics:
@@ -3955,6 +3954,41 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (2,10): error CS9502: 'ITuple.this[int].get' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // _ = o is (int x, string y);
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "(int x, string y)").WithArguments("System.Runtime.CompilerServices.ITuple.this[int].get").WithLocation(2, 10),
+            ]);
+    }
+
+    [Fact]
+    public void Member_InterpolatedStringHandler()
+    {
+        CompileAndVerifyUnsafe(
+            lib: """
+                [System.Runtime.CompilerServices.InterpolatedStringHandler]
+                public struct C
+                {
+                    public unsafe C(int literalLength, int formattedCount) { }
+                    public unsafe void AppendLiteral(string s) { }
+                    public unsafe void AppendFormatted<T>(T t) { }
+                }
+                """,
+            caller: """
+                log($"a{0}");
+                unsafe { log($"a{0}"); };
+                void log(C c) { }
+                """,
+            additionalSources: [InterpolatedStringHandlerAttribute],
+            expectedUnsafeSymbols: [Overload("C..ctor", parameterCount: 2), "C.AppendLiteral", "C.AppendFormatted"],
+            expectedSafeSymbols: ["C", Overload("C..ctor", parameterCount: 0)],
+            expectedDiagnostics:
+            [
+                // (1,7): error CS9502: 'C.AppendLiteral(string)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // log($"a{0}");
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "a").WithArguments("C.AppendLiteral(string)").WithLocation(1, 7),
+                // (1,8): error CS9502: 'C.AppendFormatted<int>(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // log($"a{0}");
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "{0}").WithArguments("C.AppendFormatted<int>(int)").WithLocation(1, 8),
+                // (1,5): error CS9502: 'C.C(int, int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // log($"a{0}");
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, @"$""a{0}""").WithArguments("C.C(int, int)").WithLocation(1, 5),
             ]);
     }
 
