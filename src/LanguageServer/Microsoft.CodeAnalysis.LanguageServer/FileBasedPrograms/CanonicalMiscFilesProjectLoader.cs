@@ -338,7 +338,8 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
             filePath: newDocumentPath,
             outputFilePath: canonicalProject.OutputFilePath,
             outputRefFilePath: canonicalProject.OutputRefFilePath,
-            hasAllInformation: hasAllInformation);
+            hasAllInformation: hasAllInformation,
+            targetFramework: canonicalProject.TargetFramework);
 
         var forkedProjectInfo = ProjectInfo.Create(
             attributes: forkedProjectAttributes,
