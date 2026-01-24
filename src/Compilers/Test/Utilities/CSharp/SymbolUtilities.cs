@@ -140,6 +140,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             return symbols.Select(s => s.ToDisplayString()).ToArray();
         }
-
     }
 }
