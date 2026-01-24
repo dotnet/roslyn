@@ -414,10 +414,10 @@ public sealed partial class CodeCleanupTests
                 }
             }
             """, """
-            using System;
-
             namespace A
             {
+                using System;
+
                 internal class Program
                 {
                     private void Method()

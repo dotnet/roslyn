@@ -19,14 +19,6 @@ namespace RunTests
 {
     internal sealed partial class Program
     {
-        private static readonly ImmutableHashSet<string> PrimaryProcessNames = ImmutableHashSet.Create(
-            StringComparer.OrdinalIgnoreCase,
-            "devenv",
-            "xunit.console",
-            "xunit.console.x86",
-            "ServiceHub.RoslynCodeAnalysisService",
-            "ServiceHub.RoslynCodeAnalysisService32");
-
         internal const int ExitSuccess = 0;
         internal const int ExitFailure = 1;
 
@@ -309,7 +301,7 @@ namespace RunTests
 
                 foreach (var targetFrameworkDirectory in Directory.EnumerateDirectories(configDirectory))
                 {
-                    var tfm = Path.GetFileName(targetFrameworkDirectory)!;
+                    var tfm = Path.GetFileName(targetFrameworkDirectory);
                     if (!IsMatch(options.TestRuntime, tfm))
                     {
                         Console.WriteLine($"Skipping {name} {tfm} does not match the target framework");

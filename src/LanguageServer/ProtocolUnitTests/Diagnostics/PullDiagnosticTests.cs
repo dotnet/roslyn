@@ -45,13 +45,26 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
         var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
-
-        Assert.Empty(results);
+        if (useVSDiagnostics)
+        {
+            Assert.Empty(results);
+        }
+        else
+        {
+            Assert.Empty(results.Single().Diagnostics!);
+        }
 
         // Verify document pull diagnostics are unaffected by running code analysis.
         await testLspServer.RunCodeAnalysisAsync(document.Project.Id);
         results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
-        Assert.Empty(results);
+        if (useVSDiagnostics)
+        {
+            Assert.Empty(results);
+        }
+        else
+        {
+            Assert.Empty(results.Single().Diagnostics!);
+        }
     }
 
     [Theory, CombinatorialData]
@@ -1412,6 +1425,64 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         Assert.Equal(DiagnosticProducingGenerator.Descriptor.Id, results[0].Diagnostics!.Single().Code);
         AssertEx.Empty(results[1].Diagnostics);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestWorkspaceDiagnosticsIncludesDoesNotUseEditorConfigForSourceGeneratedFiles(bool useVSDiagnostics, bool mutatingLspWorkspace)
+    {
+        var testRoot = TempRoot.Root;
+        // The editorconfig needs to apply to the file and source generated file.
+        // The source generated file path is generated as a path somewhere in testRoot,
+        // so we put the editorconfig and other above that path to ensure it applies to both.
+        var documentPath = Path.Combine(testRoot, "file.cs");
+        var globalConfigPath = Path.Combine(testRoot, ".globalconfig");
+        var editorConfigPath = Path.Combine(testRoot, ".editorconfig");
+
+        var workspaceXml = $"""
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="{documentPath}">
+                // Hello, World
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="{globalConfigPath}">
+                is_global = true
+                dotnet_diagnostic.SYN0001.severity = none
+                        </AnalyzerConfigDocument>
+                        <AnalyzerConfigDocument FilePath="{editorConfigPath}">
+                [*.*]
+                dotnet_diagnostic.SYN0001.severity = error
+                        </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+        var additionalAnalyzers = new DiagnosticAnalyzer[] { new CSharpSyntaxAnalyzer() };
+
+        await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(
+            workspaceXml, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics, additionalAnalyzers: additionalAnalyzers);
+
+        var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+
+        var generator = new SingleFileTestGenerator(content: "", hintName: "GeneratedFile.cs");
+        testLspServer.TestWorkspace.OnAnalyzerReferenceAdded(
+            document.Project.Id,
+            new TestGeneratorReference(generator));
+
+        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
+
+        Assert.Equal(3, results.Length);
+
+        // The file in the project should have the editorconfig rule applied and return an error.
+        Assert.True(results[0].Uri.ParsedUri!.AbsolutePath.EndsWith("file.cs"));
+        Assert.Equal(CSharpSyntaxAnalyzer.RuleId, results[0].Diagnostics!.Single().Code);
+        Assert.Equal(LSP.DiagnosticSeverity.Error, results[0].Diagnostics!.Single().Severity);
+
+        // The source generated file should only have the .globalconfig rule applied, which suppresses the diagnostic.
+        Assert.True(results[1].Uri.ParsedUri!.AbsolutePath.EndsWith("GeneratedFile.cs"));
+        Assert.Empty(results[1].Diagnostics!);
+
+        Assert.True(results[2].Uri.ParsedUri!.AbsolutePath.EndsWith("Assembly1.csproj"));
+        Assert.Empty(results[2].Diagnostics!);
     }
 
     [Theory, CombinatorialData]

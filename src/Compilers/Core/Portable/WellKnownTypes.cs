@@ -234,6 +234,9 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_AsyncVoidMethodBuilder,
         System_Runtime_CompilerServices_AsyncTaskMethodBuilder,
         System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T,
+
+        ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
+
         System_Runtime_CompilerServices_AsyncStateMachineAttribute,
         System_Runtime_CompilerServices_IteratorStateMachineAttribute,
 
@@ -249,9 +252,6 @@ namespace Microsoft.CodeAnalysis
         System_ValueTuple,
 
         System_ValueTuple_T1,
-
-        ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
-
         System_ValueTuple_T2,
         System_ValueTuple_T3,
         System_ValueTuple_T4,
@@ -333,6 +333,7 @@ namespace Microsoft.CodeAnalysis
         System_IndexOutOfRangeException,
 
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute,
+        System_Runtime_CompilerServices_MetadataUpdateDeletedAttribute,
         System_Runtime_CompilerServices_Unsafe,
 
         System_Runtime_CompilerServices_ParamCollectionAttribute,
@@ -358,8 +359,25 @@ namespace Microsoft.CodeAnalysis
 
         System_Text_Encoding,
 
+        // The InlineArray types must be sequential, as we do arithmetic on them.
+        System_Runtime_CompilerServices_InlineArray2,
+        System_Runtime_CompilerServices_InlineArray3,
+        System_Runtime_CompilerServices_InlineArray4,
+        System_Runtime_CompilerServices_InlineArray5,
+        System_Runtime_CompilerServices_InlineArray6,
+        System_Runtime_CompilerServices_InlineArray7,
+        System_Runtime_CompilerServices_InlineArray8,
+        System_Runtime_CompilerServices_InlineArray9,
+        System_Runtime_CompilerServices_InlineArray10,
+        System_Runtime_CompilerServices_InlineArray11,
+        System_Runtime_CompilerServices_InlineArray12,
+        System_Runtime_CompilerServices_InlineArray13,
+        System_Runtime_CompilerServices_InlineArray14,
+        System_Runtime_CompilerServices_InlineArray15,
+        System_Runtime_CompilerServices_InlineArray16,
+
         NextAvailable,
-        // Remember to update the AllWellKnownTypes tests when making changes here
+        // Remember to update MissingSpecialMember.AllWellKnownTypes and WellKnownTypeValidationTests.AllWellKnownTypes tests when making changes here
     }
 
     internal static class WellKnownTypes
@@ -585,6 +603,9 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.AsyncVoidMethodBuilder",
             "System.Runtime.CompilerServices.AsyncTaskMethodBuilder",
             "System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1",
+
+            "", // WellKnownType.ExtSentinel extension marker
+
             "System.Runtime.CompilerServices.AsyncStateMachineAttribute",
             "System.Runtime.CompilerServices.IteratorStateMachineAttribute",
 
@@ -596,10 +617,8 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.GCLatencyMode",
 
             "System.ValueTuple",
+
             "System.ValueTuple`1",
-
-            "", // WellKnownType.ExtSentinel extension marker
-
             "System.ValueTuple`2",
             "System.ValueTuple`3",
             "System.ValueTuple`4",
@@ -677,6 +696,7 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.HotReloadException",
             "System.IndexOutOfRangeException",
             "System.Runtime.CompilerServices.MetadataUpdateOriginalTypeAttribute",
+            "System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute",
             "System.Runtime.CompilerServices.Unsafe",
 
             "System.Runtime.CompilerServices.ParamCollectionAttribute",
@@ -701,6 +721,22 @@ namespace Microsoft.CodeAnalysis
             "System.Linq.Expressions.DefaultExpression",
 
             "System.Text.Encoding",
+
+            "System.Runtime.CompilerServices.InlineArray2`1",
+            "System.Runtime.CompilerServices.InlineArray3`1",
+            "System.Runtime.CompilerServices.InlineArray4`1",
+            "System.Runtime.CompilerServices.InlineArray5`1",
+            "System.Runtime.CompilerServices.InlineArray6`1",
+            "System.Runtime.CompilerServices.InlineArray7`1",
+            "System.Runtime.CompilerServices.InlineArray8`1",
+            "System.Runtime.CompilerServices.InlineArray9`1",
+            "System.Runtime.CompilerServices.InlineArray10`1",
+            "System.Runtime.CompilerServices.InlineArray11`1",
+            "System.Runtime.CompilerServices.InlineArray12`1",
+            "System.Runtime.CompilerServices.InlineArray13`1",
+            "System.Runtime.CompilerServices.InlineArray14`1",
+            "System.Runtime.CompilerServices.InlineArray15`1",
+            "System.Runtime.CompilerServices.InlineArray16`1",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
@@ -756,12 +792,21 @@ namespace Microsoft.CodeAnalysis
                 RoslynDebug.Assert(name == typeIdName, $"Enum name ({typeIdName}) and type name ({name}) must match at {i}");
             }
 
+            // InlineArray types must be sequential, as we do arithmetic on them.
+            var startingOffset = WellKnownType.System_Runtime_CompilerServices_InlineArray2 - 2;
+            for (int i = 2; i <= 16; i++)
+            {
+                var expectedName = $"System_Runtime_CompilerServices_InlineArray{i}";
+                Debug.Assert(expectedName == (startingOffset + i).ToString());
+            }
+
 #if DEBUG
             // Some compile time asserts
             {
                 // We should not add new types to CSharp7 set
-                _ = new int[(int)WellKnownType.CSharp7Sentinel - 252];
-                _ = new int[252 - (int)WellKnownType.CSharp7Sentinel];
+                const int ExpectedCSharp7SentinelValue = 200 + (int)InternalSpecialType.NextAvailable + 1 /* Placeholder for ExtSentinel */;
+                _ = new int[(int)WellKnownType.CSharp7Sentinel - ExpectedCSharp7SentinelValue];
+                _ = new int[ExpectedCSharp7SentinelValue - (int)WellKnownType.CSharp7Sentinel];
 
                 // The WellKnownType.ExtSentinel value must be 255
                 _ = new int[(int)WellKnownType.ExtSentinel - 255];

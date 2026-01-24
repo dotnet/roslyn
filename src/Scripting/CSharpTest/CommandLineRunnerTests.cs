@@ -52,9 +52,6 @@ $@"{LogoAndHelpPrompt}
 . {{
 .   return new int[] {{ 1, 2, 3, 4, 5 }};
 . }}
-«Yellow»
-(1,19): warning CS1998: {CSharpResources.WRN_AsyncLacksAwaits}
-«Gray»
 > from x in await GetStuffAsync()
 . where x > 2
 . select x * x
@@ -62,7 +59,7 @@ Enumerable.{iteratorType}<int, int> {{ 9, 16, 25 }}
 > ", runner.Console.Out.ToString());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-                $@"(1,19): warning CS1998: {CSharpResources.WRN_AsyncLacksAwaits}",
+                "",
                 runner.Console.Error.ToString());
         }
 

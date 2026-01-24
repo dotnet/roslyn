@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.HotReload</RootNamespace>
+    <TargetFramework>$(NetRoslyn)</TargetFramework>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CodeAnalysis.ExternalAccess.HotReload</PackageId>
+    <PackageDescription>
+      A supporting package for dotnet-watch and HotReloadUtils:
+      https://github.com/dotnet/sdk
+      https://github.com/dotnet/hotreload-utils
+    </PackageDescription>
+    <!-- Referenced by dotnet/sdk and included in SDK. Required for source build/vertical build. -->
+    <ExcludeFromSourceOnlyBuild>false</ExcludeFromSourceOnlyBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      ⚠ ONLY Microsoft.DotNet.HotReload.Watch and Microsoft.DotNet.HotReload.Utils.Generator ASSEMBLIES AND TESTS  MAY BE ADDED HERE ⚠
+    -->
+    <InternalsVisibleTo Include="Microsoft.DotNet.HotReload.Watch" Key="$(AspNetCoreKey)" />
+    <InternalsVisibleTo Include="Microsoft.DotNet.HotReload.Utils.Generator" Key="$(MicrosoftSharedPublicKey)" />
+
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.HotReload.UnitTests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Workspaces\MSBuild\Core\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
+    <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
+ 
+    <!-- An extern alias is necessary to prevent ambiguity between shared projects linked to both Workspace and BuildHost -->
+    <ProjectReference Include="..\..\..\Workspaces\MSBuild\BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj" Aliases="BuildHost" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build" ExcludeAssets="Runtime" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
+    <PublicAPI Include="InternalAPI.Shipped.txt" />
+    <PublicAPI Include="InternalAPI.Unshipped.txt" />
+  </ItemGroup>
+
+</Project>

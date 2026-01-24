@@ -12737,7 +12737,7 @@ format:
   IL_0053:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
   IL_0058:  ldloc.0
   IL_0059:  stelem     ""CustomHandler""
-  IL_005e:  call       ""void Program.<<Main>$>g__M|0_0(CustomHandler[])""
+  IL_005e:  call       ""void Program.<<Main>$>g__M|0_0(params CustomHandler[])""
   IL_0063:  ret
 }
 ");

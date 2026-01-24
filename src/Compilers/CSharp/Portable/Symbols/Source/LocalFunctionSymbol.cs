@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<ImmutableArray<TypeWithAnnotations>> _lazyTypeParameterConstraintTypes;
         private ImmutableArray<TypeParameterConstraintKind> _lazyTypeParameterConstraintKinds;
         private TypeWithAnnotations.Boxed? _lazyReturnType;
+        private ImmutableArray<CustomModifier> _lazyRefCustomModifiers;
 
         // Lock for initializing lazy fields and registering their diagnostics
         // Acquire this lock when initializing lazy objects to guarantee their declaration
@@ -126,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var compilation = DeclaringCompilation;
             ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, addTo, modifyCompilation: false);
-            // Not emitting ParamCollectionAttribute/ParamArrayAttribute for local functions
+            ParameterHelpers.EnsureParamCollectionAttributeExists(compilation, Parameters, addTo, modifyCompilation: false);
             ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, addTo, modifyCompilation: false);
             ParameterHelpers.EnsureScopedRefAttributeExists(compilation, Parameters, addTo, modifyCompilation: false);
             ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, addTo, modifyCompilation: false);
@@ -267,6 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_refKind == RefKind.RefReadOnly)
                 {
                     compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location ??= returnTypeSyntax.Location, modifyCompilation: false);
+                    Binder.GetWellKnownType(DeclaringCompilation, WellKnownType.System_Runtime_InteropServices_InAttribute, diagnostics, location ??= returnTypeSyntax.Location);
                 }
 
                 if (compilation.ShouldEmitNativeIntegerAttributes(returnType.Type))
@@ -345,7 +347,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool GenerateDebugInfo => true;
 
-        public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get
+            {
+                if (_lazyRefCustomModifiers.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedInitialize(
+                        ref _lazyRefCustomModifiers,
+                        (_refKind == RefKind.RefReadOnly && DeclaringCompilation is { } compilation) ?
+                            [CSharpCustomModifier.CreateRequired(compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute))] :
+                            []);
+                }
+
+                return _lazyRefCustomModifiers;
+            }
+        }
 
         internal override CallingConvention CallingConvention => CallingConvention.Default;
 

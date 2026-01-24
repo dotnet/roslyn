@@ -1,0 +1,345 @@
+<Project>
+  <PropertyGroup>
+    <!-- Versions used by several individual references below -->
+    <MicrosoftCodeAnalysisTestingVersion>1.1.3-beta1.26059.1</MicrosoftCodeAnalysisTestingVersion>
+    <_BasicReferenceAssembliesVersion>1.8.3</_BasicReferenceAssembliesVersion>
+    <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
+    <CodeStyleAnalyzerVersion>4.8.0-3.final</CodeStyleAnalyzerVersion>
+    <VisualStudioEditorPackagesVersion>18.0.404-preview</VisualStudioEditorPackagesVersion>
+    <ILAsmPackageVersion>9.0.0-rc.2.24462.10</ILAsmPackageVersion>
+    <ILDAsmPackageVersion>6.0.0-rtm.21518.12</ILDAsmPackageVersion>
+    <MicrosoftILVerificationVersion>7.0.0-alpha.1.22060.1</MicrosoftILVerificationVersion>
+    <!--
+      VS .NET Runtime
+
+      We should try to keep this version in sync with the version of app-local runtime in VS.
+    -->
+    <MicrosoftNetCoreAppRuntimePackagesVersion>8.0.10</MicrosoftNetCoreAppRuntimePackagesVersion>
+    <MicrosoftWindowsDesktopAppRuntimePackagesVersion>8.0.10</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
+    <_xunitVersion>2.9.2</_xunitVersion>
+    <SqliteVersion>2.1.0</SqliteVersion>
+    <!-- HumanizerVersion is referenced from the Text.Analyzers.Package.csproj -->
+    <HumanizerVersion>2.14.1</HumanizerVersion>
+  </PropertyGroup>
+
+  <!--
+    MSBuild - need to use older packages when targeting net8.0 since the newer versions only support net472 and net9.0.
+    When tareting the latest .NET the version must also be lower or equal to one specified in
+    https://github.com/dotnet/sdk/blob/main/src/Layout/redist/minimumMSBuildVersion#L1
+  -->
+
+  <ItemGroup Condition="'$(DotNetBuildSourceOnly)' == 'true'">
+    <PackageVersion Include="Microsoft.Build" Version="17.11.48" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.11.48" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.11.48" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.11.48" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(TargetFramework)' != 'net472'">
+    <PackageVersion Include="Microsoft.Build" Version="17.11.48" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.11.48" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.11.48" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.11.48" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(TargetFramework)' == 'net472'">
+    <PackageVersion Include="Microsoft.Build" Version="18.0.2" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="18.0.2" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="18.0.2" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      BuildHost
+    -->
+    <PackageVersion Include="Microsoft.Build.Locator" Version="1.10.2" />
+
+    <!--
+      Visual Studio
+    -->
+    <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="18.0.2188-preview.1" />
+    <PackageVersion Include="Microsoft.Internal.VisualStudio.Shell.Framework" Version="18.0.1211-preview.1" />
+    <PackageVersion Include="Microsoft.ServiceHub.Client" Version="4.6.3200" />
+    <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Sdk" Version="18.0.52-preview1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Extensibility" Version="18.0.52-preview1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Extensibility.JsonGenerators.Sdk" Version="18.0.52-preview1" />
+    <PackageVersion Include="Microsoft.VSSDK.Debugger.VSDConfigTool" Version="17.13.1100801-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.ProjectSystem" Version="17.0.77-pre-g62a6cb5699" />
+    <PackageVersion Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions" Version="15.8.27812-alpha" />
+    <PackageVersion Include="Microsoft.VisualStudio.CodeAnalysis.Sdk.UI" Version="15.8.27812-alpha" />
+    <PackageVersion Include="Microsoft.VisualStudio.Language.CallHierarchy" Version="15.8.27812-alpha" />
+    <PackageVersion Include="Microsoft.VisualStudio.LiveShare" Version="2.18.6" />
+    <PackageVersion Include="Microsoft.VisualStudio.LiveShare.LanguageServices" Version="3.0.6" />
+    <PackageVersion Include="Microsoft.VisualStudio.LiveShare.LanguageServices.Guest" Version="3.0.6" />
+    <PackageVersion Include="Microsoft.VisualStudio.LiveShare.WebEditors" Version="3.0.8" />
+    <PackageVersion Include="Microsoft.VisualStudio.InteractiveWindow" Version="4.0.0" />
+    <PackageVersion Include="Microsoft.VisualStudio.VsInteractiveWindow" Version="4.0.0" />
+    <PackageVersion Include="Microsoft.VisualStudio.Search" Version="17.14.39337" />
+    <PackageVersion Include="Microsoft.VisualStudio.Shell.Styles" Version="18.0.2188-preview.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.WinForms.Interfaces" Version="17.0.0-previews-4-31709-430" />
+    <PackageVersion Include="Microsoft.VisualStudio.Workspace.VSIntegration" Version="17.9.29-preview-0001" />
+    <PackageVersion Include="Microsoft.VisualStudio.Copilot.Roslyn.SemanticSearch" Version="18.0.634-alpha" />
+    <PackageVersion Include="VsWebSite.Interop" Version="8.0.50727" />
+    <PackageVersion Include="NuGet.VisualStudio" Version="6.0.0-preview.0.15" />
+    <PackageVersion Include="NuGet.VisualStudio.Contracts" Version="6.0.0-preview.0.15" />
+
+    <!-- TODO: Move these to the generate-vssdk-versions.csx-generated versions (https://github.com/dotnet/roslyn/issues/71691) -->
+    <PackageVersion Include="Microsoft.VisualStudio.Text.Internal" Version="$(VisualStudioEditorPackagesVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.Platform.VSEditor" Version="$(VisualStudioEditorPackagesVersion)" />
+
+    <!--
+      Subset of Microsoft.VisualStudio.Sdk meta-package (run `csi generate-vssdk-versions.csx` to update based on VSSDK meta-package).
+      See https://github.com/dotnet/arcade/blob/main/Documentation/MirroringPackages.md if any of these packages fail to restore.
+    -->
+    <PackageVersion Include="Microsoft.ServiceHub.Framework" Version="4.9.14-beta" />
+    <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="17.13.50" />
+    <PackageVersion Include="Microsoft.VisualStudio.Composition.Analyzers" Version="17.13.50" />
+    <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="$(VisualStudioEditorPackagesVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.Editor" Version="$(VisualStudioEditorPackagesVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.ImageCatalog" Version="18.0.2188-preview.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Imaging" Version="18.0.2188-preview.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="18.0.2154-preview.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Language" Version="$(VisualStudioEditorPackagesVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="$(VisualStudioEditorPackagesVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(VisualStudioEditorPackagesVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client" Version="18.0.14-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.RemoteControl" Version="16.3.52" />
+    <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="17.15.25-pre" />
+    <PackageVersion Include="Microsoft.VisualStudio.Shell.15.0" Version="18.0.2188-preview.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="18.0.22" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="$(VisualStudioEditorPackagesVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="$(VisualStudioEditorPackagesVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.UI" Version="$(VisualStudioEditorPackagesVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(VisualStudioEditorPackagesVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.15.22-alpha" />
+    <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.15.20-alpha" />
+    <PackageVersion Include="Microsoft.VisualStudio.Utilities" Version="18.0.2188-preview.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Utilities.Internal" Version="16.3.90" />
+    <PackageVersion Include="Nerdbank.Streams" Version="2.12.87" />
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageVersion Include="StreamJsonRpc" Version="2.23.41-alpha" />
+    <PackageVersion Include="MessagePack" Version="2.5.198" />
+
+    <!--
+      VS Debugger
+    -->
+    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="18.0.0-beta.25379.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="18.0.1082202-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="18.0.1082202-preview" />
+
+    <!--
+      VS .NET Runtime
+
+      We should try to keep this version in sync with the version of app-local runtime in VS.
+    -->
+
+    <PackageVersion Include="Microsoft.NETCore.App.Runtime.win-arm64" Version="$(MicrosoftNetCoreAppRuntimePackagesVersion)" />
+    <PackageVersion Include="Microsoft.NETCore.App.Runtime.win-x64" Version="$(MicrosoftNetCoreAppRuntimePackagesVersion)" />
+    <PackageVersion Include="Microsoft.NETCore.App.crossgen2.win-x64" Version="$(MicrosoftNetCoreAppRuntimePackagesVersion)" />
+    <PackageVersion Include="Microsoft.WindowsDesktop.App.Runtime.win-arm64" Version="$(MicrosoftWindowsDesktopAppRuntimePackagesVersion)" />
+    <PackageVersion Include="Microsoft.WindowsDesktop.App.Runtime.win-x64" Version="$(MicrosoftWindowsDesktopAppRuntimePackagesVersion)" />
+
+    <!--
+      Language Server
+    -->
+    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" Version="17.10.72-preview" />
+    <PackageVersion Include="NuGet.ProjectModel" Version="6.8.0-rc.112" />
+    <PackageVersion Include="Microsoft.TestPlatform.TranslationLayer" Version="$(MicrosoftNETTestSdkVersion)" />
+    <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="$(MicrosoftNETTestSdkVersion)" />
+
+    <!--
+      MSBuildWorkspace
+    -->
+    <PackageVersion Include="Microsoft.VisualStudio.SolutionPersistence" Version="1.0.52" />
+
+    <!--
+      Analyzers
+    -->
+
+    <!--
+      Since the Microsoft.CodeAnalysis.Analyzers package is a public dependency of our NuGet
+      packages we will keep it untied to the RoslynDiagnosticsAnalyzersPackageVersion we use for
+      other analyzers to ensure it stays on a release version.
+    -->
+    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="$(MicrosoftCodeAnalysisNetAnalyzersVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="$(CodeStyleAnalyzerVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle" Version="$(CodeStyleAnalyzerVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" Version="3.3.4-beta1.22504.1" />
+
+    <!--
+      Framework
+    -->
+    <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="$(MicrosoftBclAsyncInterfacesVersion)" />
+    <PackageVersion Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageVersion Include="Microsoft.VisualBasic" Version="10.3.0" />
+    <PackageVersion Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
+    <PackageVersion Include="Microsoft.DiaSymReader.Native" Version="17.0.0-beta1.21524.1" />
+    <PackageVersion Include="Microsoft.DiaSymReader.PortablePdb" Version="1.7.0-beta-21528-01" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="$(MicrosoftExtensionsConfigurationVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftExtensionsDependencyInjectionVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.FileSystemGlobbing" Version="$(MicrosoftExtensionsFileSystemGlobbingVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsLoggingVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MicrosoftExtensionsLoggingAbstractionsVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsLoggingConsoleVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtension" Version="$(MicrosoftExtensionsOptionsConfigurationExtensionVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="$(MicrosoftExtensionsOptionsVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Primitives" Version="$(MicrosoftExtensionsPrimitivesVersion)" />
+    <PackageVersion Include="Microsoft.Internal.Performance.CodeMarkers.DesignTime" Version="15.8.27812-alpha" />
+    <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net472" Version="1.0.3" />
+    <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net461" Version="1.0.3" />
+    <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net45" Version="1.0.3" />
+    <PackageVersion Include="System.Buffers" Version="$(SystemBuffersVersion)" />
+    <PackageVersion Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
+    <PackageVersion Include="System.Configuration.ConfigurationManager" Version="$(SystemConfigurationConfigurationManagerVersion)" />
+    <PackageVersion Include="System.Composition" Version="$(SystemCompositionVersion)" />
+    <PackageVersion Include="System.ComponentModel.Composition" Version="$(SystemComponentModelCompositionVersion)" />
+    <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="$(SystemDiagnosticsDiagnosticSourceVersion)" />
+    <PackageVersion Include="System.Diagnostics.EventLog" Version="$(SystemDiagnosticsEventLogVersion)" />
+    <PackageVersion Include="System.IO.Hashing" Version="$(SystemIOHashingVersion)" />
+    <PackageVersion Include="System.IO.Pipelines" Version="$(SystemIOPipelinesVersion)" />
+    <PackageVersion Include="System.IO.Pipes.AccessControl" Version="5.0.0" />
+    <PackageVersion Include="System.Memory" Version="$(SystemMemoryVersion)" />
+    <PackageVersion Include="System.Numerics.Vectors" Version="$(SystemNumericsVectorsVersion)" />
+    <PackageVersion Include="System.Resources.Extensions" Version="$(SystemResourcesExtensionsVersion)" />
+    <PackageVersion Include="System.Runtime.CompilerServices.Unsafe" Version="$(SystemRuntimeCompilerServicesUnsafeVersion)" />
+    <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="$(SystemSecurityCryptographyProtectedDataVersion)" />
+    <PackageVersion Include="System.Security.Permissions" Version="$(SystemSecurityPermissionsVersion)" />
+    <PackageVersion Include="System.Text.Encoding.CodePages" Version="8.0.0" />
+    <PackageVersion Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
+    <PackageVersion Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
+    <PackageVersion Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
+    <PackageVersion Include="System.Windows.Extensions" Version="$(SystemWindowsExtensionsVersion)" />
+
+    <!--
+      When updating the S.C.I or S.R.M version please let the MSBuild team know in advance so they
+      can update to the same version. Version changes require a VS test insertion for validation.
+    -->
+    <PackageVersion Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageVersion Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
+
+    <PackageVersion Include="System.Text.Encodings.Web" Version="$(SystemTextEncodingsWebVersion)" />
+    <!-- Note: When updating SystemTextJsonVersion ensure that the version is no higher than what is used by MSBuild. -->
+    <PackageVersion Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
+    <PackageVersion Include="System.Threading.Channels" Version="8.0.0" />
+
+    <PackageVersion Include="Microsoft.IO.Redist" Version="$(MicrosoftIORedistVersion)" />
+
+    <PackageVersion Include="SQLitePCLRaw.core" Version="$(SqliteVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="$(SqliteVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="$(SqliteVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.provider.dynamic_cdecl" Version="$(SqliteVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.linux" Version="$(SqliteVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.osx" Version="$(SqliteVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.v110_xp" Version="$(SqliteVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.provider.e_sqlite3.net45" Version="$(SqliteVersion)" />
+
+    <PackageVersion Include="Humanizer.Core" Version="$(HumanizerVersion)" />
+    <PackageVersion Include="ICSharpCode.Decompiler" Version="9.1.0.7988" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Elfie" Version="1.0.0" />
+
+    <!--
+      Testing.
+    -->
+    <PackageVersion Include="BenchmarkDotNet" Version="0.13.0" />
+    <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.0" />
+    <PackageVersion Include="BasicUndo" Version="0.9.3" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary" Version="2.0.0-pre-20160714" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageVersion Include="Microsoft.DiaSymReader.Converter" Version="1.1.0-beta2-22302-02" />
+    <PackageVersion Include="Microsoft.DiaSymReader.Converter.Xml" Version="1.1.0-beta2-22302-02" />
+    <PackageVersion Include="Microsoft.Metadata.Visualizer" Version="2.0.0-beta1.25425.3" />
+    <PackageVersion Include="Microsoft.ILVerification" Version="9.0.7" />
+    <PackageVersion Include="Microsoft.NETCore.Platforms" Version="5.0.0" />
+    <PackageVersion Include="Microsoft.VisualStudio.Cache" Version="17.3.26-alpha" />
+    <PackageVersion Include="Microsoft.VisualStudio.Diagnostics.Measurement" Version="17.9.36343-preview.3" />
+    <PackageVersion Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider" Version="17.8.36726" />
+    <PackageVersion Include="System.Management" Version="7.0.0" />
+    <PackageVersion Include="System.Drawing.Common" Version="10.0.1" />
+    <PackageVersion Include="NuGet.SolutionRestoreManager.Interop" Version="4.8.0" />
+    <PackageVersion Include="Moq" Version="4.10.1" />
+    <PackageVersion Include="System.CodeDom" Version="8.0.0" />
+    <PackageVersion Include="InputSimulatorPlus" Version="1.0.7" />
+    <PackageVersion Include="UIAComWrapper" Version="1.1.0.14" />
+    <PackageVersion Include="DiffPlex" Version="1.7.2" />
+    <PackageVersion Include="xunit" Version="$(_xunitVersion)" />
+    <PackageVersion Include="xunit.analyzers" Version="1.17.0" />
+    <PackageVersion Include="xunit.assert" Version="$(_xunitVersion)" />
+    <PackageVersion Include="xunit.core" Version="$(_xunitVersion)" />
+    <PackageVersion Include="Xunit.Combinatorial" Version="1.6.24" />
+    <PackageVersion Include="xunit.extensibility.core" Version="$(_xunitVersion)" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.3" />
+    <PackageVersion Include="xunit.runner.utility" Version="$(_xunitVersion)" />
+    <PackageVersion Include="xunit.abstractions" Version="2.0.3" />
+    <PackageVersion Include="xunit.extensibility.execution" Version="$(_xunitVersion)" />
+    <PackageVersion Include="XunitXml.TestLogger" Version="3.1.17" />
+    <PackageVersion Include="runtime.win-x64.Microsoft.NETCore.ILDAsm" Version="$(ILDAsmPackageVersion)" />
+    <PackageVersion Include="runtime.linux-arm64.Microsoft.NETCore.ILDAsm" Version="$(ILDAsmPackageVersion)" />
+    <PackageVersion Include="runtime.linux-x64.Microsoft.NETCore.ILDAsm" Version="$(ILDAsmPackageVersion)" />
+    <PackageVersion Include="runtime.osx-x64.Microsoft.NETCore.ILDAsm" Version="$(ILDAsmPackageVersion)" />
+    <PackageVersion Include="runtime.win-x64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
+    <PackageVersion Include="runtime.linux-arm64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
+    <PackageVersion Include="runtime.linux-x64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
+    <PackageVersion Include="runtime.osx-x64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
+    <PackageVersion Include="Basic.CompilerLog.Util" Version="0.9.19" />
+    <PackageVersion Include="Basic.Reference.Assemblies.NetStandard20" Version="$(_BasicReferenceAssembliesVersion)" />
+    <PackageVersion Include="Basic.Reference.Assemblies.Net20" Version="$(_BasicReferenceAssembliesVersion)" />
+    <PackageVersion Include="Basic.Reference.Assemblies.Net40" Version="$(_BasicReferenceAssembliesVersion)" />
+    <PackageVersion Include="Basic.Reference.Assemblies.Net50" Version="$(_BasicReferenceAssembliesVersion)" />
+    <PackageVersion Include="Basic.Reference.Assemblies.Net60" Version="$(_BasicReferenceAssembliesVersion)" />
+    <PackageVersion Include="Basic.Reference.Assemblies.Net70" Version="$(_BasicReferenceAssembliesVersion)" />
+    <PackageVersion Include="Basic.Reference.Assemblies.Net80" Version="$(_BasicReferenceAssembliesVersion)" />
+    <PackageVersion Include="Basic.Reference.Assemblies.Net461" Version="$(_BasicReferenceAssembliesVersion)" />
+    <PackageVersion Include="Basic.Reference.Assemblies.NetStandard13" Version="$(_BasicReferenceAssembliesVersion)" />
+    <PackageVersion Include="Basic.Reference.Assemblies.Net90" Version="$(_BasicReferenceAssembliesVersion)" />
+    <PackageVersion Include="Basic.Reference.Assemblies.Net100" Version="$(_BasicReferenceAssembliesVersion)" />
+    <PackageVersion Include="Microsoft.TeamFoundationServer.Client" Version="19.232.0-preview" />
+    <PackageVersion Include="System.Data.SqlClient" Version="$(SystemDataSqlClientVersion)" />
+    <!-- fix of vulnerability in 6.0.0 coming via Microsoft.TeamFoundationServer.Client -->
+    <PackageVersion Include="System.Security.Cryptography.Xml" Version="8.0.0" />
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="8.0.0" />
+    <!--
+      vs-extension-testing
+    -->
+    <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.106" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+
+    <!--
+      Infra
+    -->
+    <PackageVersion Include="Microsoft.Win32.Registry" Version="5.0.0" />
+    <PackageVersion Include="MSBuild.StructuredLogger" Version="2.3.71" />
+    <PackageVersion Include="Mono.Options" Version="6.6.0.161" />
+    <PackageVersion Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsAnalyzersPackageVersion)" />
+    <PackageVersion Include="SourceBrowser" Version="1.0.21" />
+    <PackageVersion Include="MicroBuildPluginsSwixBuild" Version="1.1.87" />
+    <PackageVersion Include="vswhere" Version="$(vswhereVersion)" />
+    <PackageVersion Include="CliWrap" Version="3.8.2" />
+    <PackageVersion Include="Microsoft.DotNet.DarcLib" Version="$(MicrosoftDotNetDarcLibPackageVersion)" />
+    <PackageVersion Include="Microsoft.DotNet.FileBasedPrograms" Version="$(MicrosoftDotNetFileBasedProgramsPackageVersion)" />
+    <PackageVersion Include="Spectre.Console" Version="0.51.1" />
+    <!--
+      The version of Roslyn we build Source Generators against that are built in this
+      repository. This must be lower than MicrosoftNetCompilersToolsetVersion,
+      but not higher than our minimum dogfoodable Visual Studio version, or else
+      the generators we build would load on the command line but not load in IDEs.
+    -->
+    <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="4.12.0" />
+    <!--
+      The version of Roslyn used in the RoslynAnalyzers varies. These are defaults that
+      will be overridden in the RoslynAnalyzer project files.
+    -->
+    <!--<PackageVersion Include="Microsoft.CodeAnalysis" Version="4.12.0" /> -->
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.12.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic" Version="4.12.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="4.12.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="4.12.0" />
+ </ItemGroup>
+</Project>

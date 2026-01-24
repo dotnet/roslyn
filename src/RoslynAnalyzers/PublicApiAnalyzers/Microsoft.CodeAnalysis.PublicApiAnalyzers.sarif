@@ -5,7 +5,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
-        "version": "5.0.0",
+        "version": "5.4.0",
         "language": "en-US"
       },
       "rules": {
@@ -460,7 +460,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.PublicApiAnalyzers.CodeFixes",
-        "version": "5.0.0",
+        "version": "5.4.0",
         "language": "en-US"
       },
       "rules": {

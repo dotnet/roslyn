@@ -67,8 +67,10 @@ internal sealed partial class SolutionState
     // holds on data calculated based on the AnalyzerReferences list
     private readonly Lazy<HostDiagnosticAnalyzers> _lazyAnalyzers;
 
-    // Mapping from file path to the set of documents that are related to it.
-    private readonly ConcurrentDictionary<string, ImmutableArray<DocumentId>> _lazyFilePathToRelatedDocumentIds = new ConcurrentDictionary<string, ImmutableArray<DocumentId>>(FilePathComparer);
+    /// <summary>
+    /// Mapping from file path to the set of documents that are related to it. Includes all types of documents.
+    /// </summary>
+    private readonly ConcurrentDictionary<string, ImmutableArray<DocumentId>> _lazyFilePathToRelatedDocumentIds = new(FilePathComparer);
 
     private SolutionState(
         string? workspaceKind,
@@ -1272,6 +1274,10 @@ internal sealed partial class SolutionState
         return Branch(analyzerReferences: analyzerReferences);
     }
 
+    /// <summary>
+    /// Returns a <see cref="DocumentId"/> for a document in another project that has the same file path. Only
+    /// works for regular source documents, additional documents or .editorconfig files will return null.
+    /// </summary>
     public DocumentId? GetFirstRelatedDocumentId(DocumentId documentId, ProjectId? relatedProjectIdHint)
     {
         Contract.ThrowIfTrue(documentId.ProjectId == relatedProjectIdHint);
@@ -1295,7 +1301,7 @@ internal sealed partial class SolutionState
             foreach (var relatedDocumentId in relatedDocumentIds)
             {
                 // Match the linear search behavior below and do not return documents from the same project.
-                if (relatedDocumentId != documentId && relatedDocumentId.ProjectId != documentId.ProjectId)
+                if (relatedDocumentId != documentId && relatedDocumentId.ProjectId != documentId.ProjectId && this.ContainsDocument(relatedDocumentId))
                     return relatedDocumentId;
             }
 
@@ -1306,7 +1312,7 @@ internal sealed partial class SolutionState
         Contract.ThrowIfTrue(relatedProject == projectState);
         if (relatedProject != null)
         {
-            var siblingDocumentId = relatedProject.GetFirstDocumentIdWithFilePath(filePath);
+            var siblingDocumentId = relatedProject.GetFirstSourceDocumentIdWithFilePath(filePath);
             if (siblingDocumentId is not null)
                 return siblingDocumentId;
         }
@@ -1318,7 +1324,7 @@ internal sealed partial class SolutionState
             if (siblingProjectState == projectState || siblingProjectState == relatedProject)
                 continue;
 
-            var siblingDocumentId = siblingProjectState.GetFirstDocumentIdWithFilePath(filePath);
+            var siblingDocumentId = siblingProjectState.GetFirstSourceDocumentIdWithFilePath(filePath);
             if (siblingDocumentId is not null)
                 return siblingDocumentId;
         }

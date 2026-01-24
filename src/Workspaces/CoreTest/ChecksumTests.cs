@@ -154,8 +154,8 @@ public sealed class ChecksumTests
     [Fact]
     public void StringArraysProduceDifferentResultsThanConcatenation()
     {
-        var checksum1 = Checksum.Create(["goo", "bar"]);
-        var checksum2 = Checksum.Create(["go", "obar"]);
+        var checksum1 = Checksum.Create(ImmutableArray.Create("goo", "bar"));
+        var checksum2 = Checksum.Create(ImmutableArray.Create("go", "obar"));
         var checksum3 = Checksum.Create("goobar");
         Assert.NotEqual(checksum1, checksum2);
         Assert.NotEqual(checksum2, checksum3);
@@ -175,9 +175,9 @@ public sealed class ChecksumTests
         Assert.NotEqual(Checksum.Null, Checksum.Create(ImmutableArray<Checksum>.Empty));
         Assert.NotEqual(Checksum.Null, Checksum.Create(ImmutableArray<byte>.Empty));
 
-        Assert.NotEqual(Checksum.Null, Checksum.Create([""]));
-        Assert.NotEqual(Checksum.Null, Checksum.Create(["\0"]));
-        Assert.NotEqual(Checksum.Null, Checksum.Create(new string?[] { null }));
+        Assert.NotEqual(Checksum.Null, Checksum.Create(ImmutableArray.Create("")));
+        Assert.NotEqual(Checksum.Null, Checksum.Create(ImmutableArray.Create("\0")));
+        Assert.NotEqual(Checksum.Null, Checksum.Create(new string?[] { null }.AsEnumerable()));
         Assert.NotEqual(Checksum.Null, Checksum.Create(new MemoryStream()));
         Assert.NotEqual(Checksum.Null, Checksum.Create(stackalloc Checksum[] { Checksum.Null }));
         Assert.NotEqual(Checksum.Null, Checksum.Create(ImmutableArray.Create(Checksum.Null)));

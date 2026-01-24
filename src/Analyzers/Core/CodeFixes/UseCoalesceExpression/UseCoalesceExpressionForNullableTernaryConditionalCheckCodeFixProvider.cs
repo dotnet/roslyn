@@ -27,10 +27,9 @@ internal sealed class UseCoalesceExpressionForNullableTernaryConditionalCheckCod
     protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
         => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, AnalyzersResources.Use_coalesce_expression, nameof(AnalyzersResources.Use_coalesce_expression));
-        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(
@@ -62,6 +61,10 @@ internal sealed class UseCoalesceExpressionForNullableTernaryConditionalCheckCod
                     var coalesceExpression = whenPart == whenTrue
                         ? g.CoalesceExpression(conditionExpression, syntaxFacts.WalkDownParentheses(currentWhenTrue))
                         : g.CoalesceExpression(conditionExpression, syntaxFacts.WalkDownParentheses(currentWhenFalse));
+
+                    // We may be moving from `a == null ? b : a` to `a ?? b`.  In this case, we want to ensure that the
+                    // space after the 'b' can be cleaned up if needed.
+                    coalesceExpression = coalesceExpression.WithAppendedTrailingTrivia(syntaxFacts.ElasticMarker);
 
                     if (semanticFacts.IsInExpressionTree(
                             semanticModel, conditionalExpression, expressionTypeOpt, cancellationToken))

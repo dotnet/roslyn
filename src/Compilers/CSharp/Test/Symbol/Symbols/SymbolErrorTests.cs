@@ -636,7 +636,7 @@ public class A<T>
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadVisBaseClass, Line = 4, Column = 18 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_BadVisBaseType, Line = 4, Column = 18 });
         }
 
         [WorkItem(539512, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539512")]
@@ -681,7 +681,7 @@ public class A<T>
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadVisBaseClass, Line = 4, Column = 19 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_BadVisBaseType, Line = 4, Column = 19 });
         }
 
         [WorkItem(539562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539562")]
@@ -739,14 +739,14 @@ public class C2 : B<object>.C<A> { }
 public class C3 : B<A>.C<object> { }
 public class C4 : B<B<A>>.C<object> { }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,14): error CS0060: Inconsistent accessibility: base type 'B<A>' is less accessible than class 'C1'
-                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C1").WithArguments("C1", "B<A>").WithLocation(6, 14),
-                // (7,14): error CS0060: Inconsistent accessibility: base type 'B<object>.C<A>' is less accessible than class 'C2'
-                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C2").WithArguments("C2", "B<object>.C<A>").WithLocation(7, 14),
-                // (8,14): error CS0060: Inconsistent accessibility: base type 'B<A>.C<object>' is less accessible than class 'C3'
-                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C3").WithArguments("C3", "B<A>.C<object>").WithLocation(8, 14),
-                // (9,14): error CS0060: Inconsistent accessibility: base type 'B<B<A>>.C<object>' is less accessible than class 'C4'
-                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C4").WithArguments("C4", "B<B<A>>.C<object>").WithLocation(9, 14));
+                // (6,14): error CS9338: Inconsistent accessibility: type 'A' is less accessible than class 'C1'
+                Diagnostic(ErrorCode.ERR_BadVisBaseType, "C1").WithArguments("C1", "A").WithLocation(6, 14),
+                // (7,14): error CS9338: Inconsistent accessibility: type 'A' is less accessible than class 'C2'
+                Diagnostic(ErrorCode.ERR_BadVisBaseType, "C2").WithArguments("C2", "A").WithLocation(7, 14),
+                // (8,14): error CS9338: Inconsistent accessibility: type 'A' is less accessible than class 'C3'
+                Diagnostic(ErrorCode.ERR_BadVisBaseType, "C3").WithArguments("C3", "A").WithLocation(8, 14),
+                // (9,14): error CS9338: Inconsistent accessibility: type 'A' is less accessible than class 'C4'
+                Diagnostic(ErrorCode.ERR_BadVisBaseType, "C4").WithArguments("C4", "A").WithLocation(9, 14));
         }
 
         [Fact]
@@ -763,8 +763,8 @@ public class C4 : B<B<A>>.C<object> { }";
 public class B<T> : A { }
 public class C : B<A.B.C> { }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (9,14): error CS0060: Inconsistent accessibility: base type 'B<A.B.C>' is less accessible than class 'C'
-                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C").WithArguments("C", "B<A.B.C>").WithLocation(9, 14));
+                // (9,14): error CS9338: Inconsistent accessibility: type 'A.B' is less accessible than class 'C'
+                Diagnostic(ErrorCode.ERR_BadVisBaseType, "C").WithArguments("C", "A.B").WithLocation(9, 14));
         }
 
         [Fact]

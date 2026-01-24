@@ -24,7 +24,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Naming;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName;
 
@@ -69,9 +68,35 @@ internal sealed partial class DeclarationNameRecommender() : IDeclarationNameRec
         if (!IsValidType(nameInfo.Type))
             return default;
 
-        var (type, plural) = UnwrapType(nameInfo.Type, semanticModel.Compilation, wasPlural: false, seenTypes: []);
+        var compilation = semanticModel.Compilation;
+        var originalType = nameInfo.Type;
 
+        var (type, plural) = UnwrapType(originalType, compilation, wasPlural: false, seenTypes: []);
         var baseNames = NameGenerator.GetBaseNames(type, plural);
+
+        // Check if the original type is a Func<..., T> and add special suggestions
+        if (originalType is INamedTypeSymbol { Name: "Func", ContainingNamespace.Name: "System", TypeArguments: [.., var returnType] })
+        {
+            using var result = TemporaryArray<ImmutableArray<string>>.Empty;
+
+            // Add standalone suggestions
+            result.Add(["Factory"]);
+            result.Add(["Selector"]);
+
+            // Get names based on the original Func type itself (e.g., "func" for Func<T>)
+            result.AddRange(baseNames);
+
+            // Also unwrap the return type and get names from it
+            var (unwrappedReturnType, returnTypePlural) = UnwrapType(returnType, compilation, wasPlural: false, seenTypes: []);
+            var returnTypeBaseNames = NameGenerator.GetBaseNames(unwrappedReturnType, returnTypePlural);
+
+            // Add return type base names with "Factory" suffix
+            foreach (var baseName in returnTypeBaseNames)
+                result.Add([.. baseName, "Factory"]);
+
+            return result.ToImmutableAndClear();
+        }
+
         return baseNames;
     }
 

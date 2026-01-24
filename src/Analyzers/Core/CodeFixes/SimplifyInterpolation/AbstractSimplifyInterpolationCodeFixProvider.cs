@@ -37,10 +37,9 @@ internal abstract class AbstractSimplifyInterpolationCodeFixProvider<
     protected abstract TInterpolationSyntax WithFormatClause(TInterpolationSyntax interpolation, TInterpolationFormatClause? formatClause);
     protected abstract string Escape(TInterpolatedStringExpressionSyntax interpolatedString, string formatString);
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, AnalyzersResources.Simplify_interpolation, nameof(AnalyzersResources.Simplify_interpolation));
-        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(
@@ -48,11 +47,15 @@ internal abstract class AbstractSimplifyInterpolationCodeFixProvider<
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var compilation = semanticModel.Compilation;
         var generator = editor.Generator;
         var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
         var helpers = this.Helpers;
 
         var knownToStringFormats = helpers.BuildKnownToStringFormatsLookupTable(semanticModel.Compilation);
+
+        var readOnlySpanOfCharType = compilation.ReadOnlySpanOfTType()?.Construct(compilation.GetSpecialType(SpecialType.System_Char));
+        var handlersAvailable = compilation.InterpolatedStringHandlerAttributeType() != null;
 
         foreach (var diagnostic in diagnostics)
         {
@@ -64,7 +67,7 @@ internal abstract class AbstractSimplifyInterpolationCodeFixProvider<
                 helpers.UnwrapInterpolation(
                     document.GetRequiredLanguageService<IVirtualCharLanguageService>(),
                     document.GetRequiredLanguageService<ISyntaxFactsService>(),
-                    interpolation, knownToStringFormats, out var unwrapped, out var alignment, out var negate, out var formatString, out _);
+                    interpolation, knownToStringFormats, readOnlySpanOfCharType, handlersAvailable, out var unwrapped, out var alignment, out var negate, out var formatString, out _);
 
                 if (unwrapped == null)
                     continue;

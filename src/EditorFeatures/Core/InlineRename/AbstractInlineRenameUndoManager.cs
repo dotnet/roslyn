@@ -28,8 +28,8 @@ internal abstract class AbstractInlineRenameUndoManager<TBufferState>
 
     protected readonly InlineRenameService InlineRenameService;
     protected readonly Dictionary<ITextBuffer, TBufferState> UndoManagers = [];
-    protected readonly Stack<ActiveSpanState> UndoStack = new Stack<ActiveSpanState>();
-    protected readonly Stack<ActiveSpanState> RedoStack = new Stack<ActiveSpanState>();
+    protected readonly Stack<ActiveSpanState> UndoStack = new();
+    protected readonly Stack<ActiveSpanState> RedoStack = new();
     protected ActiveSpanState initialState;
     protected ActiveSpanState currentState;
     protected bool updatePending = false;

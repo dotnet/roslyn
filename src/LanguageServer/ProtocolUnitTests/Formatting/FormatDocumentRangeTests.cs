@@ -96,7 +96,7 @@ public sealed class FormatDocumentRangeTests : AbstractLanguageServerProtocolTes
         LSP.Location location,
         bool insertSpaces,
         int tabSize)
-        => new LSP.DocumentRangeFormattingParams()
+        => new()
         {
             Range = location.Range,
             TextDocument = CreateTextDocumentIdentifier(location.DocumentUri),

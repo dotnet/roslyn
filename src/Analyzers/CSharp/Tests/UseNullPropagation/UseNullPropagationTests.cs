@@ -5,7 +5,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UseNullPropagation;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -48,6 +47,7 @@ public sealed partial class UseNullPropagationTests
         => new VerifyCS.Test
         {
             TestCode = testCode,
+            FixedCode = testCode,
             LanguageVersion = languageVersion,
         }.RunAsync();
 
@@ -2664,4 +2664,364 @@ public sealed partial class UseNullPropagationTests
             }
             """,
             languageVersion: LanguageVersion.CSharp14);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64431")]
+    public Task TestUnconstrainedGenericType()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            public sealed class Element<T>
+            {
+                public T Key { get; }
+
+                public bool Equals(Element<T> x)
+                {
+                    return Equals(null, x is null ? null : x.Key);
+                }
+            }
+            """,
+            languageVersion: LanguageVersion.CSharp14);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64431")]
+    public Task TestInterfaceTypeConstrainedGenericType()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            public sealed class Element<T> : System.IDisposable
+            {
+                public T Key { get; }
+
+                public bool Equals(Element<T> x)
+                {
+                    return Equals(null, x is null ? null : x.Key);
+                }
+
+                public void Dispose() { }
+            }
+            """,
+            languageVersion: LanguageVersion.CSharp14);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64431")]
+    public Task TestClassConstrainedGenericType()
+        => TestInRegularAndScriptAsync(
+            """
+            public sealed class Element<T> where T : class
+            {
+                public T Key { get; }
+
+                public bool Equals(Element<T> x)
+                {
+                    return Equals(null, [|x is null ? null : x.Key|]);
+                }
+            }
+            """,
+            """
+            public sealed class Element<T> where T : class
+            {
+                public T Key { get; }
+
+                public bool Equals(Element<T> x)
+                {
+                    return Equals(null, x?.Key);
+                }
+            }
+            """,
+            languageVersion: LanguageVersion.CSharp14);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64431")]
+    public Task TestStructConstrainedGenericType()
+        => TestInRegularAndScriptAsync(
+            """
+            public sealed class Element<T> where T : struct
+            {
+                public T Key { get; }
+
+                public bool Equals(Element<T> x)
+                {
+                    return Equals(null, [|x is null ? null : x.Key|]);
+                }
+            }
+            """,
+            """
+            public sealed class Element<T> where T : struct
+            {
+                public T Key { get; }
+
+                public bool Equals(Element<T> x)
+                {
+                    return Equals(null, x?.Key);
+                }
+            }
+            """,
+            languageVersion: LanguageVersion.CSharp14);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64431")]
+    public Task TestRefTypeConstrainedGenericType()
+        => TestInRegularAndScriptAsync(
+            """
+            public sealed class Element<T> where T : System.Exception
+            {
+                public T Key { get; }
+
+                public bool Equals(Element<T> x)
+                {
+                    return Equals(null, [|x is null ? null : x.Key|]);
+                }
+            }
+            """,
+            """
+            public sealed class Element<T> where T : System.Exception
+            {
+                public T Key { get; }
+
+                public bool Equals(Element<T> x)
+                {
+                    return Equals(null, x?.Key);
+                }
+            }
+            """,
+            languageVersion: LanguageVersion.CSharp14);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65880")]
+    public Task TestIfStatement_WithPreprocessorDirectiveInBlock()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            #nullable enable
+            using System.Diagnostics;
+
+            class C
+            {
+                private object? _controlToLayout;
+                private bool _resumeLayout;
+                private int _layoutSuspendCount;
+
+                public void Dispose()
+                {
+                    if (_controlToLayout is not null)
+                    {
+                        _controlToLayout.ToString();
+
+            #if DEBUG
+                        Debug.Assert(_layoutSuspendCount == 0, "Suspend/Resume layout mismatch!");
+            #endif
+                    }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65880")]
+    public Task TestIfStatement_WithPreprocessorDirective_DEBUG()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            #nullable enable
+            using System.Diagnostics;
+
+            class C
+            {
+                private object? _controlToLayout;
+
+                public void Dispose()
+                {
+                    if (_controlToLayout != null)
+                    {
+                        _controlToLayout.ToString();
+
+            #if DEBUG
+                        Debug.WriteLine("Debug mode");
+            #endif
+                    }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65880")]
+    public Task TestIfStatement_WithPreprocessorDirective_BeforeStatement()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            #nullable enable
+            using System.Diagnostics;
+
+            class C
+            {
+                private object? _controlToLayout;
+
+                public void Dispose()
+                {
+                    if (_controlToLayout != null)
+                    {
+            #if DEBUG
+                        Debug.WriteLine("Debug mode");
+            #endif
+                        _controlToLayout.ToString();
+                    }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65880")]
+    public Task TestIfStatement_WithoutPreprocessorDirective_StillWorks()
+        => TestInRegularAndScriptAsync(
+            """
+            #nullable enable
+            using System;
+
+            class C
+            {
+                private object? _controlToLayout;
+
+                public void Dispose()
+                {
+                    [|if|] (_controlToLayout != null)
+                    {
+                        _controlToLayout.ToString();
+                    }
+                }
+            }
+            """,
+            """
+            #nullable enable
+            using System;
+
+            class C
+            {
+                private object? _controlToLayout;
+
+                public void Dispose()
+                {
+                    _controlToLayout?.ToString();
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65880")]
+    public Task TestIfStatement_SingleStatement_WithPreprocessorDirective()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            #nullable enable
+            using System.Diagnostics;
+
+            class C
+            {
+                private object? _controlToLayout;
+
+                public void Dispose()
+                {
+                    if (_controlToLayout != null)
+            #if DEBUG
+                        _controlToLayout.ToString();
+            #else
+                        Debug.WriteLine("null");
+            #endif
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81322")]
+    public Task TestIfStatement_CompoundAssignment_Event()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                event Action SomeEvent;
+
+                static void M(C c)
+                {
+                    [|if|] (c is not null)
+                        c.SomeEvent += () => { };
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                event Action SomeEvent;
+
+                static void M(C c)
+                {
+                    c?.SomeEvent += () => { };
+                }
+            }
+            """, languageVersion: LanguageVersion.CSharp14);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81322")]
+    public Task TestIfStatement_CompoundAssignment_AddAssignment()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                int Value;
+
+                static void M(C c)
+                {
+                    [|if|] (c != null)
+                        c.Value += 5;
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                int Value;
+
+                static void M(C c)
+                {
+                    c?.Value += 5;
+                }
+            }
+            """, languageVersion: LanguageVersion.CSharp14);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81322")]
+    public Task TestIfStatement_CompoundAssignment_SubtractAssignment()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                int Value;
+
+                static void M(C c)
+                {
+                    [|if|] (c != null)
+                        c.Value -= 5;
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                int Value;
+
+                static void M(C c)
+                {
+                    c?.Value -= 5;
+                }
+            }
+            """, languageVersion: LanguageVersion.CSharp14);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81322")]
+    public Task TestIfStatement_CompoundAssignment_NotAvailableInCSharp13()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                event Action SomeEvent;
+
+                static void M(C c)
+                {
+                    if (c is not null)
+                        c.SomeEvent += () => { };
+                }
+            }
+            """, LanguageVersion.CSharp13);
 }

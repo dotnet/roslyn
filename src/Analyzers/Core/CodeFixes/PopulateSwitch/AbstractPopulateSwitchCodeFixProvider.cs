@@ -22,17 +22,14 @@ internal abstract class AbstractPopulateSwitchCodeFixProvider<
     TSwitchOperation,
     TSwitchSyntax,
     TSwitchArmSyntax,
-    TMemberAccessExpression>
+    TMemberAccessExpression>(string diagnosticId)
     : SyntaxEditorBasedCodeFixProvider
     where TSwitchOperation : IOperation
     where TSwitchSyntax : SyntaxNode
     where TSwitchArmSyntax : SyntaxNode
     where TMemberAccessExpression : SyntaxNode
 {
-    public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
-
-    protected AbstractPopulateSwitchCodeFixProvider(string diagnosticId)
-        => FixableDiagnosticIds = [diagnosticId];
+    public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = [diagnosticId];
 
     protected abstract ITypeSymbol GetSwitchType(TSwitchOperation switchStatement);
     protected abstract ICollection<ISymbol> GetMissingEnumMembers(TSwitchOperation switchOperation);
@@ -50,7 +47,7 @@ internal abstract class AbstractPopulateSwitchCodeFixProvider<
         bool hasMissingCases, bool hasMissingDefaultCase,
         TSwitchSyntax switchNode, TSwitchOperation switchOperation);
 
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var diagnostic = context.Diagnostics.First();
         var properties = diagnostic.Properties;
@@ -95,8 +92,6 @@ internal abstract class AbstractPopulateSwitchCodeFixProvider<
                     nameof(CodeFixesResources.Add_both)),
                 context.Diagnostics);
         }
-
-        return Task.CompletedTask;
     }
 
     private Task<Document> FixAsync(

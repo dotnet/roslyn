@@ -96,8 +96,9 @@ internal interface ISyntaxKinds
 
     #endregion
 
-    #region xml tokens
+    #region xml nodes and tokens
 
+    int XmlCrefAttribute { get; }
     int XmlTextLiteralToken { get; }
 
     #endregion
@@ -137,6 +138,7 @@ internal interface ISyntaxKinds
     int ArrayCreationExpression { get; }
     int AwaitExpression { get; }
     int BaseExpression { get; }
+    int? CollectionExpression { get; }
     int CollectionInitializerExpression { get; }
     int ConditionalAccessExpression { get; }
     int ConditionalExpression { get; }
@@ -233,6 +235,7 @@ internal interface ISyntaxKinds
 
     #region other
 
+    int? ExpressionElement { get; }
     int? ImplicitElementAccess { get; }
     int Interpolation { get; }
     int InterpolatedStringText { get; }

@@ -22,10 +22,10 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new CSharpConvertForToForEachCodeRefactoringProvider();
 
-    private readonly CodeStyleOption2<bool> onWithSilent = new CodeStyleOption2<bool>(true, NotificationOption2.Silent);
+    private readonly CodeStyleOption2<bool> onWithSilent = new(true, NotificationOption2.Silent);
 
     private OptionsCollection ImplicitTypeEverywhere()
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CSharpCodeStyleOptions.VarElsewhere, onWithSilent },
             { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent },
@@ -1272,6 +1272,25 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
                     [||]for (var (i, j) = (0, 0); i < array.Length; i++)
                     {
                         Console.WriteLine(array[i]);
+                    }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81530")]
+    public Task TestNotWithIterationVariableInTupleExpression()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                void Test(string[] array)
+                {
+                    [||]for (int i = 0; i < array.Length; i++)
+                    {
+                        var tuple = (array[i], i);
+                        Console.WriteLine(tuple);
                     }
                 }
             }

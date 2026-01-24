@@ -49,6 +49,7 @@ internal sealed record class ServerConfiguration(
     IEnumerable<string> ExtensionAssemblyPaths,
     string? DevKitDependencyPath,
     string? RazorDesignTimePath,
+    string? CSharpDesignTimePath,
     string? ServerPipeName,
     bool UseStdIo,
     string ExtensionLogDirectory);

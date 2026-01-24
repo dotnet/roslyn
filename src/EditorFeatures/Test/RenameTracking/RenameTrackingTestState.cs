@@ -48,7 +48,7 @@ internal sealed class RenameTrackingTestState : IDisposable
     public MockRefactorNotifyService RefactorNotifyService { get; }
 
     private readonly RenameTrackingCodeRefactoringProvider _codeRefactoringProvider;
-    private readonly RenameTrackingCancellationCommandHandler _commandHandler = new RenameTrackingCancellationCommandHandler();
+    private readonly RenameTrackingCancellationCommandHandler _commandHandler = new();
 
     public static RenameTrackingTestState Create(
         string markup,

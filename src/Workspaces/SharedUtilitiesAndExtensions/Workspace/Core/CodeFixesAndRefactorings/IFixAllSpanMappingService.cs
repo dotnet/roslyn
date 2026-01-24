@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
 /// <summary>
-/// Language service for mapping spans for specific <see cref="FixAllScope"/>s for fix all occurences code fix.
+/// Language service for mapping spans for specific <see cref="FixAllScope"/>s for fix all occurrences code fix.
 /// Every language that wants to support span based FixAll scopes, such as <see cref="FixAllScope.ContainingMember"/>,
 /// <see cref="FixAllScope.ContainingType"/>, should implement this language service. Non-span based FixAll scopes,
 /// such as <see cref="FixAllScope.Document"/>, <see cref="FixAllScope.Project"/> and <see cref="FixAllScope.Solution"/>

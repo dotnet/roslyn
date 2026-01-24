@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
             => _oldMethod;
 
         public IEnumerable<Cci.ICustomAttribute> GetAttributes(EmitContext context)
-            => throw ExceptionUtilities.Unreachable();
+            => SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
 
         public Cci.ITypeDefinition ContainingTypeDefinition
             => throw ExceptionUtilities.Unreachable();

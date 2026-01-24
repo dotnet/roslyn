@@ -18,9 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
                 SyntaxKind.ClassDeclaration
                 or SyntaxKind.StructDeclaration
                 or SyntaxKind.EnumDeclaration
-#if CODEANALYSIS_V3_OR_BETTER
-                or SyntaxKind.RecordDeclaration:
-#endif
+                or SyntaxKind.RecordDeclaration
                 or SyntaxKind.InterfaceDeclaration => true,
                 _ => false,
             };

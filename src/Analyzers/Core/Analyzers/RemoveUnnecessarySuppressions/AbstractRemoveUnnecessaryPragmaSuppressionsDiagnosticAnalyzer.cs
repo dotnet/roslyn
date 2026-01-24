@@ -29,7 +29,7 @@ internal abstract class AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAna
        nameof(AnalyzersResources.Remove_unnecessary_suppression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
     internal static readonly DiagnosticDescriptor s_removeUnnecessarySuppressionDescriptor = CreateDescriptor(
         IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId,
-        EnforceOnBuildValues.RemoveUnnecessarySuppression,
+        EnforceOnBuildValues.RemoveUnnecessaryPragmaSuppression,
         s_localizableRemoveUnnecessarySuppression, s_localizableRemoveUnnecessarySuppression,
         hasAnyCodeStyleOption: false, isUnnecessary: true);
 

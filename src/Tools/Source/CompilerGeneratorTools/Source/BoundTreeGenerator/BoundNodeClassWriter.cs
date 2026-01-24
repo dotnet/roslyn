@@ -11,7 +11,7 @@ using System.Linq;
 
 namespace BoundTreeGenerator
 {
-    internal enum TargetLanguage
+    public enum TargetLanguage
     {
         VB,
         CSharp
@@ -198,6 +198,7 @@ namespace BoundTreeGenerator
             WriteRewriter();
             WriteNullabilityRewriter();
             WriteTreeDumperNodeProducer();
+            WritePipelinePhaseValidator();
             WriteEndNamespace();
         }
 
@@ -1361,6 +1362,39 @@ namespace BoundTreeGenerator
                 default:
                     throw new ArgumentException("Unexpected target language", nameof(_targetLang));
             }
+        }
+
+        private void WritePipelinePhaseValidator()
+        {
+            if (_targetLang != TargetLanguage.CSharp)
+                return;
+
+            Blank();
+            Outdent();
+            WriteLine("#if DEBUG");
+            Indent();
+            WriteLine("internal sealed partial class PipelinePhaseValidator");
+            Brace();
+            WriteLine("internal static PipelinePhase DoesNotSurvive(BoundKind kind)");
+            Brace();
+            WriteLine("return kind switch");
+            Brace();
+            foreach (var node in _tree.Types.OfType<Node>())
+            {
+                string doesNotSurvive = node.DoesNotSurvive;
+                if (!string.IsNullOrEmpty(doesNotSurvive))
+                {
+                    WriteLine($"BoundKind.{StripBound(node.Name)} => PipelinePhase.{doesNotSurvive},");
+                }
+            }
+            WriteLine("_ => PipelinePhase.Emit");
+            Outdent();
+            WriteLine("}};");
+            Unbrace();
+            Unbrace();
+            Outdent();
+            WriteLine("#endif");
+            Indent();
         }
 
         private void WriteRewriter()

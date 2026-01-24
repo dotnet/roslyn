@@ -271,6 +271,8 @@ namespace Roslyn.Test.Utilities
 
             var rvasAndNames = from handle in reader.MethodDefinitions
                                let method = reader.GetMethodDefinition(handle)
+                               // filter out runtime-implemented methods that do not have IL:
+                               where (method.ImplAttributes & MethodImplAttributes.CodeTypeMask) == MethodImplAttributes.IL
                                orderby method.RelativeVirtualAddress
                                group method.Name by method.RelativeVirtualAddress into g
                                // Legacy test support: name can only be resolved when readers for all generations are given.

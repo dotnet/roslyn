@@ -110,21 +110,15 @@ internal sealed partial class AutomaticLineEnderCommandHandler(
     private static TextSpan? GetFormattedTextSpan(SyntaxNode root, SyntaxToken endToken)
     {
         if (endToken.IsMissing)
-        {
             return null;
-        }
 
         var ranges = FormattingRangeHelper.FindAppropriateRange(endToken, useDefaultRange: false);
         if (ranges == null)
-        {
             return null;
-        }
 
         var startToken = ranges.Value.Item1;
         if (startToken.IsMissing || startToken.Kind() == SyntaxKind.None)
-        {
             return null;
-        }
 
         return CommonFormattingHelpers.GetFormattingSpan(root, TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End));
     }
@@ -324,7 +318,7 @@ internal sealed partial class AutomaticLineEnderCommandHandler(
                     or BaseMethodDeclarationSyntax
                     or LocalFunctionStatementSyntax
                     or AccessorDeclarationSyntax
-                    or ObjectCreationExpressionSyntax
+                    or BaseObjectCreationExpressionSyntax
                     or WhileStatementSyntax
                     or CommonForEachStatementSyntax
                     or ForStatementSyntax
@@ -418,7 +412,7 @@ internal sealed partial class AutomaticLineEnderCommandHandler(
         // 1. Add an initializer to it.
         // 2. make sure it has '()' after the type, and if its next token is a missing semicolon, add that semicolon. e.g
         // var c = new Obje$$ct() => var c = new Object();
-        if (selectedNode is ObjectCreationExpressionSyntax objectCreationExpressionNode)
+        if (selectedNode is BaseObjectCreationExpressionSyntax objectCreationExpressionNode)
         {
             var (newNode, oldNode) = ModifyObjectCreationExpressionNode(objectCreationExpressionNode, addOrRemoveInitializer: true, formattingOptions);
             var newRoot = ReplaceNodeAndFormat(

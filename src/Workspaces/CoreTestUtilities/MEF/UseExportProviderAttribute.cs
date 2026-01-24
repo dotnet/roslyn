@@ -168,7 +168,7 @@ public class UseExportProviderAttribute : BeforeAfterTestAttribute
                 var exceptions = testErrorHandler.Exceptions;
                 if (exceptions.Count > 0)
                 {
-                    throw new AggregateException("Tests threw unexpected exceptions", exceptions);
+                    throw new AggregateException(exceptions);
                 }
             }
         }

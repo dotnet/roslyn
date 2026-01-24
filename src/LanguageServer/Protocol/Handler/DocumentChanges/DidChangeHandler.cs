@@ -26,15 +26,15 @@ internal class DidChangeHandler() : ILspServiceDocumentRequestHandler<DidChangeT
     public TextDocumentIdentifier GetTextDocumentIdentifier(DidChangeTextDocumentParams request)
         => request.TextDocument;
 
-    public Task<object?> HandleRequestAsync(DidChangeTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<object?> HandleRequestAsync(DidChangeTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var text = context.GetTrackedDocumentSourceText(request.TextDocument.DocumentUri);
+        var text = context.GetTrackedDocumentInfo(request.TextDocument.DocumentUri).SourceText;
 
         text = GetUpdatedSourceText(request.ContentChanges, text);
 
-        context.UpdateTrackedDocument(request.TextDocument.DocumentUri, text);
+        context.UpdateTrackedDocument(request.TextDocument.DocumentUri, text, request.TextDocument.Version);
 
-        return SpecializedTasks.Default<object>();
+        return null;
     }
 
     internal static bool AreChangesInReverseOrder(TextDocumentContentChangeEvent[] contentChanges)

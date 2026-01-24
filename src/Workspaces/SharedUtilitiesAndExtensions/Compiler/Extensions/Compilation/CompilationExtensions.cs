@@ -123,6 +123,9 @@ internal static class CompilationExtensions
     public static INamedTypeSymbol? FormattableStringType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(FormattableString).FullName!);
 
+    public static INamedTypeSymbol? IFormattableType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(IFormattable).FullName!);
+
     public static INamedTypeSymbol? EventArgsType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(EventArgs).FullName!);
 
@@ -155,6 +158,9 @@ internal static class CompilationExtensions
 
     public static INamedTypeSymbol? ValueTaskOfTType(this Compilation compilation)
         => compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1");
+
+    public static INamedTypeSymbol? ICollectionOfTType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(ICollection<>).FullName!);
 
     public static INamedTypeSymbol? IEnumerableType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(System.Collections.IEnumerable).FullName!);

@@ -18,20 +18,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers
             ImmutableArray<LinePositionSpan> spans,
             bool supportsVisualStudioExtensions,
             CancellationToken cancellationToken)
-        {
-            var tokens = SemanticTokensHelpers.HandleRequestHelperAsync(
+            => SemanticTokensHelpers.HandleRequestHelperAsync(
                 document,
                 spans,
                 supportsVisualStudioExtensions,
                 ClassificationOptions.Default,
                 cancellationToken);
-
-            // The above call to get semantic tokens may be inaccurate (because we use frozen partial semantics).  Kick
-            // off a request to ensure that the OOP side gets a fully up to compilation for this project.  Once it does
-            // we can optionally choose to notify our caller to do a refresh if we computed a compilation for a new
-            // solution snapshot.
-            // TODO: await semanticTokensRefreshQueue.TryEnqueueRefreshComputationAsync(project, cancellationToken).ConfigureAwait(false);
-            return tokens;
-        }
     }
 }

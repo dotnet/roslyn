@@ -133,7 +133,7 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
 
         // StartDebuggingSession
 
-        var debuggingSession = mockEncService.StartDebuggingSessionImpl = (_, _, _, _, _, _) => new DebuggingSessionId(1);
+        var debuggingSession = mockEncService.StartDebuggingSessionImpl = (_, _, _, _) => new DebuggingSessionId(1);
 
         Assert.False(sessionState.IsSessionActive);
         Assert.Empty(sessionState.ApplyChangesDiagnostics);
@@ -218,7 +218,7 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
 
         var runningProjectInfo = new DebuggerContracts.RunningProjectInfo()
         {
-            ProjectInstanceId = new DebuggerContracts.ProjectInstanceId(project.FilePath, "net9.0"),
+            ProjectInstanceId = new DebuggerContracts.ProjectInstanceId(project.FilePath, "net10.0"),
             RestartAutomatically = false,
         };
 
@@ -318,6 +318,12 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
         Assert.Equal(new(10, 20, 30, 40), exceptionRegion.NewSpan);
 
         Assert.True(sessionState.IsSessionActive);
+
+#pragma warning disable CS0612 // Type or member is obsolete
+        // validate that obsolete overload does not throw for empty array:
+        _ = await localService.GetUpdatesAsync(runningProjects: ImmutableArray<string>.Empty, CancellationToken.None);
+        Assert.Equal(++observedDiagnosticVersion, diagnosticRefresher.GlobalStateVersion);
+#pragma warning restore
 
         if (commitChanges)
         {

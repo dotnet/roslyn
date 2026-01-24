@@ -34,7 +34,7 @@ internal static class Helpers
                .FirstOrDefault();
 
     public static bool IsPublicInstance(ISymbol symbol)
-        => !symbol.IsStatic && symbol.DeclaredAccessibility == Accessibility.Public;
+        => symbol is { IsStatic: false, DeclaredAccessibility: Accessibility.Public };
 
     /// <summary>
     /// Checks if this <paramref name="operation"/> is `expr.Length` where `expr` is equivalent
@@ -42,8 +42,7 @@ internal static class Helpers
     /// of.
     /// </summary>
     public static bool IsInstanceLengthCheck(IPropertySymbol lengthLikeProperty, IOperation instance, IOperation operation)
-        => operation is IPropertyReferenceOperation propertyRef &&
-           propertyRef.Instance != null &&
+        => operation is IPropertyReferenceOperation { Instance: not null } propertyRef &&
            lengthLikeProperty.Equals(propertyRef.Property) &&
            CSharpSyntaxFacts.Instance.AreEquivalent(instance.Syntax, propertyRef.Instance.Syntax);
 
@@ -53,8 +52,7 @@ internal static class Helpers
     /// </summary>
     public static bool IsSubtraction(IOperation operation, [NotNullWhen(true)] out IBinaryOperation? subtraction)
     {
-        if (operation is IBinaryOperation binaryOperation &&
-            binaryOperation.OperatorKind == BinaryOperatorKind.Subtract)
+        if (operation is IBinaryOperation { OperatorKind: BinaryOperatorKind.Subtract } binaryOperation)
         {
             subtraction = binaryOperation;
             return true;

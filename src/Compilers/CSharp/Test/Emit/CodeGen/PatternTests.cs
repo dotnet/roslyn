@@ -13,6 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
+    [CompilerTrait(CompilerFeature.Patterns)]
     public class PatternTests : EmitMetadataTestBase
     {
         #region Miscellaneous
@@ -3524,7 +3525,7 @@ public class Program
       // sequence point: }
       IL_003c:  ret
     }
-", sequencePoints: "Program.Main", source: source);
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [Fact, WorkItem(33675, "https://github.com/dotnet/roslyn/issues/33675")]
@@ -4540,10 +4541,7 @@ public static class Program
 ";
             var expectedOutput = "correct";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
-            compilation.VerifyDiagnostics(
-                // (7,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task Main()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(7, 23));
+            compilation.VerifyDiagnostics();
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -4574,10 +4572,7 @@ public static class Program
 ";
             var expectedOutput = "correct";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
-            compilation.VerifyDiagnostics(
-                // (7,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task Main()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(7, 23));
+            compilation.VerifyDiagnostics();
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -6899,6 +6894,262 @@ class Outer
               IL_002d:  ret
             }
             """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80326")]
+        public void InterfaceOrNull()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                Console.WriteLine(M1(null));
+                Console.WriteLine(M2(null));
+                Console.WriteLine(M3(null));
+                Console.WriteLine(M4(null));
+                Console.WriteLine(M5(null));
+                Console.WriteLine(M6(null));
+                Console.WriteLine("---");
+                var a = new A();
+                Console.WriteLine(M1(a));
+                Console.WriteLine(M2(a));
+                Console.WriteLine(M3(a));
+                Console.WriteLine(M4(a));
+                Console.WriteLine(M5(a));
+                Console.WriteLine(M6(a));
+
+                bool M1(A? a) => a is I or null;
+                bool M2(A? a) => a is null or I;
+                bool M3(A? a) => a is I || a is null;
+                bool M4(A? a) => a is A or null;
+                bool M5(A? a) => a is I or (null and null);
+                bool M6(A? a)
+                {
+                    if (a is (I or null) and var x)
+                    {
+                        x?.M();
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                interface I
+                {
+                    void M();
+                }
+                class A : I
+                {
+                    void I.M() => Console.WriteLine("A.M");
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: """
+                True
+                True
+                True
+                True
+                True
+                True
+                ---
+                True
+                True
+                True
+                True
+                True
+                A.M
+                True
+                """).VerifyDiagnostics(
+                // (19,18): warning CS8794: An expression of type 'A' always matches the provided pattern.
+                // bool M1(A? a) => a is I or null;
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "a is I or null").WithArguments("A").WithLocation(19, 18),
+                // (20,18): warning CS8794: An expression of type 'A' always matches the provided pattern.
+                // bool M2(A? a) => a is null or I;
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "a is null or I").WithArguments("A").WithLocation(20, 18),
+                // (22,18): warning CS8794: An expression of type 'A' always matches the provided pattern.
+                // bool M4(A? a) => a is A or null;
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "a is A or null").WithArguments("A").WithLocation(22, 18),
+                // (23,18): warning CS8794: An expression of type 'A' always matches the provided pattern.
+                // bool M5(A? a) => a is I or (null and null);
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "a is I or (null and null)").WithArguments("A").WithLocation(23, 18),
+                // (26,9): warning CS8794: An expression of type 'A' always matches the provided pattern.
+                //     if (a is (I or null) and var x)
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "a is (I or null) and var x").WithArguments("A").WithLocation(26, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80326")]
+        public void BaseClassOrNull()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                Console.WriteLine(M1(null));
+                Console.WriteLine(M2(null));
+                Console.WriteLine(M3(null));
+                Console.WriteLine(M4(null));
+                Console.WriteLine(M5(null));
+                Console.WriteLine(M6(null));
+                Console.WriteLine("---");
+                var a = new A();
+                Console.WriteLine(M1(a));
+                Console.WriteLine(M2(a));
+                Console.WriteLine(M3(a));
+                Console.WriteLine(M4(a));
+                Console.WriteLine(M5(a));
+                Console.WriteLine(M6(a));
+
+                bool M1(A? a) => a is I or null;
+                bool M2(A? a) => a is null or I;
+                bool M3(A? a) => a is I || a is null;
+                bool M4(A? a) => a is A or null;
+                bool M5(A? a) => a is I or (null and null);
+                bool M6(A? a)
+                {
+                    if (a is (I or null) and var x)
+                    {
+                        x?.M();
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                class I
+                {
+                    public virtual void M() => Console.WriteLine("I.M");
+                }
+                class A : I
+                {
+                    public override void M() => Console.WriteLine("A.M");
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: """
+                True
+                True
+                True
+                True
+                True
+                True
+                ---
+                True
+                True
+                True
+                True
+                True
+                A.M
+                True
+                """).VerifyDiagnostics(
+                // (19,18): warning CS8794: An expression of type 'A' always matches the provided pattern.
+                // bool M1(A? a) => a is I or null;
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "a is I or null").WithArguments("A").WithLocation(19, 18),
+                // (20,18): warning CS8794: An expression of type 'A' always matches the provided pattern.
+                // bool M2(A? a) => a is null or I;
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "a is null or I").WithArguments("A").WithLocation(20, 18),
+                // (22,18): warning CS8794: An expression of type 'A' always matches the provided pattern.
+                // bool M4(A? a) => a is A or null;
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "a is A or null").WithArguments("A").WithLocation(22, 18),
+                // (23,18): warning CS8794: An expression of type 'A' always matches the provided pattern.
+                // bool M5(A? a) => a is I or (null and null);
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "a is I or (null and null)").WithArguments("A").WithLocation(23, 18),
+                // (26,9): warning CS8794: An expression of type 'A' always matches the provided pattern.
+                //     if (a is (I or null) and var x)
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "a is (I or null) and var x").WithArguments("A").WithLocation(26, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81173")]
+        public void DeconstructExtension_01()
+        {
+            var source = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test2(new C()));
+    }
+
+    static bool Test2(C u)
+    {
+        return u is var (_ , (i, _)) && (int)i == 10;
+    }   
+
+    static void Test3(C c, int i)
+    {
+        var (a, b) = c;
+        var (u, v) = i;
+    }   
+}
+
+public struct C
+{
+}
+
+static class Extensions
+{
+    public static void Deconstruct(this object o, out int x, out int y)
+    {
+        x = 10;
+        y = 2;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, expectedOutput: "True").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       36 (0x24)
+  .maxstack  3
+  .locals init (int V_0, //i
+            int V_1,
+            int V_2,
+            int V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""C""
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  ldloca.s   V_2
+  IL_000a:  call       ""void Extensions.Deconstruct(object, out int, out int)""
+  IL_000f:  ldloc.2
+  IL_0010:  box        ""int""
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  ldloca.s   V_3
+  IL_0019:  call       ""void Extensions.Deconstruct(object, out int, out int)""
+  IL_001e:  ldloc.0
+  IL_001f:  ldc.i4.s   10
+  IL_0021:  ceq
+  IL_0023:  ret
+}
+");
+        }
+
+        [Fact]
+        public void DeconstructExtension_02()
+        {
+            // We check conversion during initial binding
+            var src = """
+#pragma warning disable CS0436 // The type 'Span<T>' in '' conflicts with the imported type 'Span<T>'
+
+var (x, y) = new int[] { 42 };
+System.Console.Write((x, y));
+
+class C { }
+
+static class E
+{
+    public static void Deconstruct(this System.Span<int> s, out int i, out int j) => throw null;
+}
+
+namespace System
+{
+    public ref struct Span<T>
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // (3,1): error CS0656: Missing compiler required member 'Span<T>.op_Implicit'
+                // var (x, y) = new int[] { 42 };
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "var (x, y) = new int[] { 42 }").WithArguments("System.Span<T>", "op_Implicit").WithLocation(3, 1)
+                );
         }
     }
 }

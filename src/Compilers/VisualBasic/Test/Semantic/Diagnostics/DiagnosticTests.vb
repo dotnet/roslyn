@@ -56,12 +56,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact()>
         Public Sub Features()
             Dim excludedFeatures = {
-                Feature.InterpolatedStrings, ' https://github.com/dotnet/roslyn/issues/17761
-                Feature.InferredTupleNames,
-                Feature.NonTrailingNamedArguments
+                Syntax.InternalSyntax.Feature.InterpolatedStrings, ' https://github.com/dotnet/roslyn/issues/17761
+                Syntax.InternalSyntax.Feature.InferredTupleNames,
+                Syntax.InternalSyntax.Feature.NonTrailingNamedArguments
             }
             Dim [set] = New HashSet(Of ERRID)
-            For Each feature As Feature In [Enum].GetValues(GetType(Feature))
+            For Each feature As Syntax.InternalSyntax.Feature In [Enum].GetValues(GetType(Syntax.InternalSyntax.Feature))
                 If Array.IndexOf(excludedFeatures, feature) >= 0 Then
                     Continue For
                 End If
@@ -152,7 +152,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                     Case ERRID.ERR_TypeRefResolutionError3,
                          ERRID.ERR_MissingRuntimeHelper,
                          ERRID.ERR_CannotGotoNonScopeBlocksWithClosure,
-                         ERRID.ERR_SymbolDefinedInAssembly
+                         ERRID.ERR_SymbolDefinedInAssembly,
+                         ERRID.ERR_AsyncSubMain,
+                         ERRID.ERR_EncUpdateFailedMissingSymbol,
+                         ERRID.ERR_EncNoPIAReference,
+                         ERRID.ERR_EncReferenceToAddedMember,
+                         ERRID.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime
                         Assert.True(isBuildOnly, $"Check failed for ERRID.{err}")
                     Case Else
                         Assert.False(isBuildOnly, $"Check failed for ERRID.{err}")

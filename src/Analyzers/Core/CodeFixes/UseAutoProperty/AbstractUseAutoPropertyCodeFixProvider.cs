@@ -80,7 +80,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
         bool isTrivialSetAccessor,
         CancellationToken cancellationToken);
 
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var solution = context.Document.Project.Solution;
 
@@ -97,8 +97,6 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
                     priority),
                 diagnostic);
         }
-
-        return Task.CompletedTask;
     }
 
     private async Task<Solution> ProcessResultAsync(
@@ -139,24 +137,8 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
         var declarator = (TVariableDeclarator)field.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
         var propertyDeclaration = GetPropertyDeclaration(property.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken));
 
-        // First, create the updated property we want to replace the old property with
-        var isWrittenToOutsideOfConstructor = await IsWrittenToOutsideOfConstructorOrPropertyAsync(
-            field, fieldLocations, propertyDeclaration, cancellationToken).ConfigureAwait(false);
-
-        if (!isTrivialGetAccessor ||
-            (property.SetMethod != null && !isTrivialSetAccessor))
-        {
-            // We have at least a non-trivial getter/setter.  Those will not be rewritten to `get;/set;`.  As such, we
-            // need to update the property to reference `field` or itself instead of the actual field.
-            propertyDeclaration = RewriteFieldReferencesInProperty(propertyDeclaration, fieldLocations, cancellationToken);
-        }
-
-        var updatedProperty = await UpdatePropertyAsync(
-            propertyDocument, compilation,
-            field, property,
-            declarator, propertyDeclaration,
-            isWrittenToOutsideOfConstructor, isTrivialGetAccessor, isTrivialSetAccessor,
-            cancellationToken).ConfigureAwait(false);
+        // Rewrite the property declaration as needed.
+        var updatedProperty = await GetUpdatedPropertyDeclarationAsync().ConfigureAwait(false);
 
         // Note: rename will try to update all the references in linked files as well.  However, 
         // this can lead to some very bad behavior as we will change the references in linked files
@@ -274,6 +256,56 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
             updatedSolution = updatedSolution.WithDocumentSyntaxRoot(propertyDocument.Id, newPropertyTreeRoot);
 
             return updatedSolution;
+        }
+
+        async ValueTask<SyntaxNode> GetUpdatedPropertyDeclarationAsync()
+        {
+            // First, create the updated property we want to replace the old property with
+            var nullabilityMismatch =
+                field.Type.NullableAnnotation is NullableAnnotation.Annotated &&
+                property.Type.NullableAnnotation is NullableAnnotation.NotAnnotated;
+            var (isWrittenToOutsideOfConstructor, isWrittenNull) = await AnalyzeFieldWritesAsync(
+                fieldDocument.GetRequiredLanguageService<ISyntaxFactsService>(),
+                field, fieldLocations, propertyDeclaration,
+                // If there is no nullability mismatch, then just pass in 'true' here.  That will cause us to not actually
+                // analyze any of the writes since we won't need that data.  The return value will also be ignored below
+                // since we only use it if nullabilityMismatch=true.
+                isWrittenNull: !nullabilityMismatch,
+                cancellationToken).ConfigureAwait(false);
+
+            if (!isTrivialGetAccessor ||
+                (property.SetMethod != null && !isTrivialSetAccessor))
+            {
+                // We have at least a non-trivial getter/setter.  Those will not be rewritten to `get;/set;`.  As such, we
+                // need to update the property to reference `field` or itself instead of the actual field.
+                propertyDeclaration = RewriteFieldReferencesInProperty(propertyDeclaration, fieldLocations, cancellationToken);
+            }
+
+            var updatedProperty = await UpdatePropertyAsync(
+                propertyDocument, compilation,
+                field, property,
+                declarator, propertyDeclaration,
+                isWrittenToOutsideOfConstructor,
+                isTrivialGetAccessor, isTrivialSetAccessor,
+                cancellationToken).ConfigureAwait(false);
+
+            // We're replacing a nullable field with a non-nullable property.  If something nullable is ever written into
+            // the field, then we need to add [AllowNull] to the property to allow that same code to continue to work.
+            if (isWrittenNull && nullabilityMismatch)
+            {
+                var allowNullAttribute = compilation.AllowNullAttribute();
+                if (allowNullAttribute != null)
+                {
+                    var generator = propertyDocument.GetRequiredLanguageService<SyntaxGenerator>();
+                    updatedProperty = generator.AddAttributes(
+                        updatedProperty,
+                        generator.Attribute(
+                            generator.TypeExpression(allowNullAttribute, addImport: true)
+                                     .WithAdditionalAnnotations(Simplifier.AddImportsAnnotation)));
+                }
+            }
+
+            return updatedProperty;
         }
     }
 
@@ -441,15 +473,21 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
     }
 #pragma warning restore CA1822 // Mark members as static
 
-    private static async ValueTask<bool> IsWrittenToOutsideOfConstructorOrPropertyAsync(
+    private static async ValueTask<(bool isWrittenOutsideConstructor, bool isWrittenNull)> AnalyzeFieldWritesAsync(
+        ISyntaxFactsService syntaxFacts,
         IFieldSymbol field,
         ImmutableArray<ReferencedSymbol> referencedSymbols,
         TPropertyDeclaration propertyDeclaration,
+        bool isWrittenNull,
         CancellationToken cancellationToken)
     {
+        var isWrittenOutsideConstructor = false;
+
+        // Only include constructors that match the static-ness of the field. For a static field, only static
+        // constructors are relevant. For an instance field, only instance constructors are relevant.
         var constructorSpans = field.ContainingType
             .GetMembers()
-            .Where(m => m.IsConstructor())
+            .Where(m => field.IsStatic ? m.IsStaticConstructor() : m.IsConstructor())
             .SelectMany(c => c.DeclaringSyntaxReferences)
             .Select(s => s.GetSyntax(cancellationToken))
             .Select(n => n.FirstAncestorOrSelf<TConstructorDeclaration>())
@@ -465,15 +503,47 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
 
             foreach (var location in group)
             {
-                if (await IsWrittenToOutsideOfConstructorOrPropertyAsync(
-                        lazySemanticModel, location, propertyDeclaration, constructorSpans, cancellationToken).ConfigureAwait(false))
-                {
-                    return true;
-                }
+                isWrittenOutsideConstructor = isWrittenOutsideConstructor ||
+                    await IsWrittenToOutsideOfConstructorOrPropertyAsync(lazySemanticModel, location, propertyDeclaration, constructorSpans, cancellationToken).ConfigureAwait(false);
+                isWrittenNull = isWrittenNull ||
+                    await IsWrittenNullAsync(syntaxFacts, lazySemanticModel, location, cancellationToken).ConfigureAwait(false);
+
+                if (isWrittenOutsideConstructor && isWrittenNull)
+                    return (true, true);
             }
         }
 
-        return false;
+        return (isWrittenOutsideConstructor, isWrittenNull);
+    }
+
+    private static async ValueTask<bool> IsWrittenNullAsync(
+        ISyntaxFactsService syntaxFacts,
+        AsyncLazy<SemanticModel> lazySemanticModel,
+        ReferenceLocation location,
+        CancellationToken cancellationToken)
+    {
+#if !CODE_STYLE
+        if (!location.IsWrittenTo)
+            return false;
+#endif
+
+        if (location.IsImplicit)
+            return false;
+
+        var node = location.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+        if (syntaxFacts.IsNameOfAnyMemberAccessExpression(node))
+            node = node.GetRequiredParent();
+
+        if (!syntaxFacts.IsLeftSideOfAnyAssignment(node))
+            return false;
+
+        var assignment = node.GetRequiredParent();
+        var rightSide = syntaxFacts.GetRightHandSideOfAssignment(assignment);
+
+        var semanticModel = await lazySemanticModel.GetValueAsync(cancellationToken).ConfigureAwait(false);
+        var typeInfo = semanticModel.GetTypeInfo(rightSide, cancellationToken);
+
+        return typeInfo.Nullability.FlowState == NullableFlowState.MaybeNull;
     }
 
     private static async ValueTask<bool> IsWrittenToOutsideOfConstructorOrPropertyAsync(
@@ -515,6 +585,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
         // We do need a setter
         return true;
 
+        // Remove after .NET 10, https://github.com/dotnet/roslyn/issues/80198
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         async ValueTask<bool> IsWrittenToAsync(ReferenceLocation loc)
         {

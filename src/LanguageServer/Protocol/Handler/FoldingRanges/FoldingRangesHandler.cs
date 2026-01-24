@@ -36,18 +36,20 @@ internal sealed class FoldingRangesHandler : ILspServiceDocumentRequestHandler<F
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(FoldingRangeParams request) => request.TextDocument;
 
-    public Task<FoldingRange[]?> HandleRequestAsync(FoldingRangeParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<FoldingRange[]?> HandleRequestAsync(FoldingRangeParams request, RequestContext context, CancellationToken cancellationToken)
     {
         var document = context.Document;
         if (document is null)
-            return SpecializedTasks.Null<FoldingRange[]>();
+            return null;
 
-        return SpecializedTasks.AsNullable(GetFoldingRangesAsync(_globalOptions, document, cancellationToken));
+        var lineFoldingOnly = context.GetRequiredClientCapabilities().TextDocument?.FoldingRange?.LineFoldingOnly == true;
+        return await SpecializedTasks.AsNullable(GetFoldingRangesAsync(_globalOptions, document, lineFoldingOnly, cancellationToken)).ConfigureAwait(false);
     }
 
     internal static Task<FoldingRange[]> GetFoldingRangesAsync(
         IGlobalOptionService globalOptions,
         Document document,
+        bool lineFoldingOnly,
         CancellationToken cancellationToken)
     {
         var options = globalOptions.GetBlockStructureOptions(document.Project) with
@@ -59,7 +61,7 @@ internal sealed class FoldingRangesHandler : ILspServiceDocumentRequestHandler<F
             ShowBlockStructureGuidesForCodeLevelConstructs = true
         };
 
-        return GetFoldingRangesAsync(document, options, cancellationToken);
+        return GetFoldingRangesAsync(document, options, lineFoldingOnly, cancellationToken);
     }
 
     /// <summary>
@@ -68,6 +70,7 @@ internal sealed class FoldingRangesHandler : ILspServiceDocumentRequestHandler<F
     public static async Task<FoldingRange[]> GetFoldingRangesAsync(
         Document document,
         BlockStructureOptions options,
+        bool lineFoldingOnly,
         CancellationToken cancellationToken)
     {
         var blockStructureService = document.GetRequiredLanguageService<BlockStructureService>();
@@ -76,10 +79,10 @@ internal sealed class FoldingRangesHandler : ILspServiceDocumentRequestHandler<F
             return [];
 
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-        return GetFoldingRanges(blockStructure, text);
+        return GetFoldingRanges(blockStructure, text, lineFoldingOnly);
     }
 
-    private static FoldingRange[] GetFoldingRanges(BlockStructure blockStructure, SourceText text)
+    private static FoldingRange[] GetFoldingRanges(BlockStructure blockStructure, SourceText text, bool lineFoldingOnly)
     {
         if (blockStructure.Spans.IsEmpty)
         {
@@ -103,8 +106,6 @@ internal sealed class FoldingRangesHandler : ILspServiceDocumentRequestHandler<F
                 continue;
             }
 
-            // TODO - Figure out which blocks should be returned as a folding range (and what kind).
-            // https://github.com/dotnet/roslyn/projects/45#card-20049168
             FoldingRangeKind? foldingRangeKind = span.Type switch
             {
                 BlockTypes.Comment => FoldingRangeKind.Comment,
@@ -123,8 +124,66 @@ internal sealed class FoldingRangesHandler : ILspServiceDocumentRequestHandler<F
                 Kind = foldingRangeKind,
                 CollapsedText = span.BannerText
             });
+
+            if (lineFoldingOnly)
+            {
+                foldingRanges = AdjustToEnsureNonOverlappingLines(foldingRanges);
+            }
         }
 
         return foldingRanges.ToArray();
+
+        static ArrayBuilder<FoldingRange> AdjustToEnsureNonOverlappingLines(ArrayBuilder<FoldingRange> foldingRanges)
+        {
+            using var _ = PooledDictionary<int, FoldingRange>.GetInstance(out var startLineToFoldingRange);
+
+            // Spans are sorted in descending order by start position (the span starting closer to the end of the file is first).
+            foreach (var foldingRange in foldingRanges)
+            {
+                var updatedRange = foldingRange;
+                // Check if another span starts on the same line.
+                if (startLineToFoldingRange.ContainsKey(foldingRange.StartLine))
+                {
+                    // There's already a span that starts on this line.  We want to keep the innermost span, which is the one
+                    // we already have in the dictionary (as it started later in the file).  Skip this one.
+                    continue;
+                }
+
+                var endLine = foldingRange.EndLine;
+
+                // Check if this span ends on the same line another span starts.
+                // Since we're iterating bottom up, if there is a span that starts on this end line, it will be in the dictionary.
+                if (startLineToFoldingRange.ContainsKey(endLine))
+                {
+                    // The end line of this span overlaps with the start line of another span - attempt to adjust this one
+                    // to the prior line.
+                    var adjustedEndLine = endLine - 1;
+
+                    // If the adjusted end line is now at or before the start line, there's no folding range possible without line overlapping another span.
+                    if (adjustedEndLine <= foldingRange.StartLine)
+                    {
+                        continue;
+                    }
+
+                    updatedRange = new FoldingRange
+                    {
+                        StartLine = foldingRange.StartLine,
+                        StartCharacter = foldingRange.StartCharacter,
+                        EndLine = adjustedEndLine,
+                        EndCharacter = foldingRange.EndCharacter,
+                        Kind = foldingRange.Kind,
+                        CollapsedText = foldingRange.CollapsedText
+                    };
+                }
+
+                // These are explicitly ignored by the client when lineFoldingOnly is true, so no need to serialize them.
+                updatedRange.StartCharacter = null;
+                updatedRange.EndCharacter = null;
+
+                startLineToFoldingRange[foldingRange.StartLine] = updatedRange;
+            }
+
+            return [.. startLineToFoldingRange.Values];
+        }
     }
 }

@@ -7,9 +7,31 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\MSBuildTaskTests\TestUtilities\IntegrationTestBase.cs" LinkBase="TestUtilities" />
+    <Compile Include="..\MSBuildTaskTests\TestUtilities\MSBuildUtil.cs" LinkBase="TestUtilities" />
+  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
     <ProjectReference Include="..\..\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\CSharp\csc\AnyCpu\csc.csproj"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all"
+                      OutputItemType="CommandLineCompilerReference"
+                      SkipGetTargetFrameworkProperties="true"
+                      SetTargetFramework="TargetFramework=$(NetRoslyn)" />
+    <ProjectReference Include="..\..\VisualBasic\vbc\AnyCpu\vbc.csproj"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all"
+                      OutputItemType="CommandLineCompilerReference"
+                      SkipGetTargetFrameworkProperties="true"
+                      SetTargetFramework="TargetFramework=$(NetRoslyn)" />
+    <ProjectReference Include="..\..\Server\VBCSCompiler\AnyCpu\VBCSCompiler.csproj"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all"
+                      OutputItemType="CommandLineCompilerReference"
+                      SkipGetTargetFrameworkProperties="true"
+                      SetTargetFramework="TargetFramework=$(NetRoslyn)" />
     <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
     <ProjectReference Include="..\MSBuildTask\Sdk\Microsoft.Build.Tasks.CodeAnalysis.Sdk.csproj" />
@@ -22,4 +44,20 @@
     <Reference Include="System" />
     <Reference Include="System.Xml" />
   </ItemGroup>
+  <Target Name="CopyAssetsForIntegrationTests" Condition="'@(CommandLineCompilerReference)' != ''" AfterTargets="ResolveProjectReferences" BeforeTargets="AssignTargetPaths">
+    <PropertyGroup>
+      <_CommandLineCompilerReferenceOutputPath>@(CommandLineCompilerReference->'%(RootDir)%(Directory)*.*')</_CommandLineCompilerReferenceOutputPath>
+    </PropertyGroup>
+    <ItemGroup>
+      <_CommandLineCompilerReferenceContent Include="$(_CommandLineCompilerReferenceOutputPath)" />
+      <_CommandLineCompilerReferenceKey Include="@(_CommandLineCompilerReferenceContent->'%(Filename)%(Extension)')" Original="%(Identity)" KeepDuplicates="false" />
+    </ItemGroup>
+    <RemoveDuplicates Inputs="@(_CommandLineCompilerReferenceKey)">
+      <Output TaskParameter="Filtered" ItemName="_CommandLineCompilerReferenceDeduplicated" />
+    </RemoveDuplicates>
+    <ItemGroup>
+      <Content Include="%(_CommandLineCompilerReferenceDeduplicated.Original)" Link="bincore\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+    <RemoveDir Directories="$(OutDir)..\bincore" Condition="'$(DesignTimeBuild)' != 'true' and '$(BuildingProject)' == 'true'" />
+  </Target>
 </Project>

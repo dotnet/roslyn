@@ -18,9 +18,9 @@ internal sealed class LanguageInfoProvider : ILanguageInfoProvider
     private static readonly LanguageInformation s_csharpLanguageInformation = new(LanguageNames.CSharp, ".csx");
     private static readonly LanguageInformation s_fsharpLanguageInformation = new(LanguageNames.FSharp, ".fsx");
     private static readonly LanguageInformation s_vbLanguageInformation = new(LanguageNames.VisualBasic, ".vbx");
-    private static readonly LanguageInformation s_typeScriptLanguageInformation = new LanguageInformation(InternalLanguageNames.TypeScript, string.Empty);
-    private static readonly LanguageInformation s_razorLanguageInformation = new(RazorLanguageName, string.Empty);
-    private static readonly LanguageInformation s_xamlLanguageInformation = new("XAML", string.Empty);
+    private static readonly LanguageInformation s_typeScriptLanguageInformation = new(InternalLanguageNames.TypeScript, scriptExtension: null);
+    private static readonly LanguageInformation s_razorLanguageInformation = new(RazorLanguageName, scriptExtension: null);
+    private static readonly LanguageInformation s_xamlLanguageInformation = new("XAML", scriptExtension: null);
 
     private static readonly Dictionary<string, LanguageInformation> s_extensionToLanguageInformation = new()
     {

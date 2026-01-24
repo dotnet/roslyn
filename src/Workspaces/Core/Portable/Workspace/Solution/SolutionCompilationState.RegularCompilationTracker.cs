@@ -33,7 +33,7 @@ internal sealed partial class SolutionCompilationState
         private static readonly Func<ProjectState, string> s_logBuildCompilationAsync =
             state => string.Join(",", state.AssemblyName, state.DocumentStates.Count);
 
-        private static readonly CancellableLazy<Compilation?> s_lazyNullCompilation = new CancellableLazy<Compilation?>((Compilation?)null);
+        private static readonly CancellableLazy<Compilation?> s_lazyNullCompilation = new((Compilation?)null);
 
         public ProjectState ProjectState { get; }
 
@@ -213,22 +213,22 @@ internal sealed partial class SolutionCompilationState
             }
         }
 
-        public Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
+        public async Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
         {
             if (this.TryGetCompilation(out var compilation))
             {
-                return Task.FromResult(compilation);
+                return compilation;
             }
             else if (cancellationToken.IsCancellationRequested)
             {
                 // Handle early cancellation here to avoid throwing/catching cancellation exceptions in the async
                 // state machines. This helps reduce the total number of First Chance Exceptions occurring in IDE
                 // typing scenarios.
-                return Task.FromCanceled<Compilation>(cancellationToken);
+                return await Task.FromCanceled<Compilation>(cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                return GetCompilationSlowAsync(compilationState, cancellationToken);
+                return await GetCompilationSlowAsync(compilationState, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -589,10 +589,10 @@ internal sealed partial class SolutionCompilationState
                     cancellationToken).ConfigureAwait(false);
 
                 // Our generated documents are up to date if we just created them.  Note: when in balanced mode, we
-                // will then change our creation policy below to DoNotCreate.  This means that any successive forks
-                // will move us to an in-progress-state that is not running generators.  And the next time we get
-                // here and produce a final compilation, this will then be 'false' since we'll be reusing old
-                // generated docs.
+                // will then change our creation policy below to CreateOnlyRequired.  This means that any successive
+                // forks will move us to an in-progress-state that only runs required generators. The next time we get
+                // here and produce a final compilation, this will then be 'false' since we'll only be generating required
+                // docs and combining them with the old docs from other generators.
                 //
                 // This flag can then be used later when we hear about external user events (like save/build) to
                 // decide if we need to do anything.  If the generated documents are up to date, then we don't need
@@ -600,10 +600,10 @@ internal sealed partial class SolutionCompilationState
                 var generatedDocumentsUpToDate = creationPolicy.GeneratedDocumentCreationPolicy == GeneratedDocumentCreationPolicy.Create;
 
                 // If the user has the option set to only run generators to something other than 'automatic' then we
-                // want to set ourselves to not run generators again now that generators have run.  That way, any
-                // further *automatic* changes to the solution will not run generators again.  Instead, when one of
-                // those external events happen, we'll grab the workspace's solution, transition all states *out* of
-                // this state and then let the next 'GetCompilationAsync' operation cause generators to run.
+                // want to set ourselves to only run required generators now that all other generators have run.  That way,
+                // any further *automatic* changes to the solution will only run the required generators again.
+                // When one of those external events happen, we'll grab the workspace's solution, transition all states
+                // *out* of this state and then let the next 'GetCompilationAsync' operation cause all generators to run.
                 //
                 // Similarly, we don't want to automatically create skeletons at this point (unless they're missing
                 // entirely).
@@ -612,7 +612,7 @@ internal sealed partial class SolutionCompilationState
                 if (workspacePreference != SourceGeneratorExecutionPreference.Automatic)
                 {
                     if (creationPolicy.GeneratedDocumentCreationPolicy == GeneratedDocumentCreationPolicy.Create)
-                        creationPolicy = creationPolicy with { GeneratedDocumentCreationPolicy = GeneratedDocumentCreationPolicy.DoNotCreate };
+                        creationPolicy = creationPolicy with { GeneratedDocumentCreationPolicy = GeneratedDocumentCreationPolicy.CreateOnlyRequired };
 
                     if (creationPolicy.SkeletonReferenceCreationPolicy == SkeletonReferenceCreationPolicy.Create)
                         creationPolicy = creationPolicy with { SkeletonReferenceCreationPolicy = SkeletonReferenceCreationPolicy.CreateIfAbsent };

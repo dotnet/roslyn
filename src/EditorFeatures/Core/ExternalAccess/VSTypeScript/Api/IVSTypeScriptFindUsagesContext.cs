@@ -124,7 +124,7 @@ internal sealed class VSTypeScriptSourceReferenceItem(
     VSTypeScriptDocumentSpan sourceSpan,
     VSTypeScriptSymbolUsageInfo symbolUsageInfo)
 {
-    internal readonly SourceReferenceItem UnderlyingObject = new SourceReferenceItem(
+    internal readonly SourceReferenceItem UnderlyingObject = new(
         definition.UnderlyingObject, sourceSpan.ToDocumentSpan(), classifiedSpans: null, symbolUsageInfo.UnderlyingObject);
 
     public VSTypeScriptDocumentSpan GetSourceSpan()

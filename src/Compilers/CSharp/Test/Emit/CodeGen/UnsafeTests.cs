@@ -2117,7 +2117,7 @@ unsafe class C
   IL_0020:  stloc.1
  -IL_0021:  ret
 }
-", sequencePoints: "C.Main");
+", sequencePointDisplay: SequencePointDisplayMode.Minimal);
         }
 
         [Fact]
@@ -2202,7 +2202,7 @@ unsafe class C
   IL_0045:  stloc.s    V_4
  -IL_0047:  ret
 }
-", sequencePoints: "C.Main");
+", sequencePointDisplay: SequencePointDisplayMode.Minimal);
         }
 
         [Fact]
@@ -5354,6 +5354,123 @@ public static class FixableExt
         }
 
         [Fact]
+        public void CustomFixedStructObjectExtension_01()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable(1))
+        {
+            System.Console.Write(p[1]);
+        }
+
+        var f = new Fixable(1);
+        fixed (int* p = f)
+        {
+            System.Console.Write(p[2]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+}
+
+public static class FixableExt
+{
+    public static ref readonly int GetPinnableReference(this object f)
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+
+";
+
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"23", verify: Verification.Fails);
+
+            compVerifier.VerifyIL("C.Main", @"
+{
+  // Code size       64 (0x40)
+  .maxstack  3
+  .locals init (pinned int& V_0)
+  IL_0000:  ldc.i4.1
+  IL_0001:  newobj     ""Fixable..ctor(int)""
+  IL_0006:  box        ""Fixable""
+  IL_000b:  call       ""ref readonly int FixableExt.GetPinnableReference(object)""
+  IL_0010:  stloc.0
+  IL_0011:  ldloc.0
+  IL_0012:  conv.u
+  IL_0013:  ldc.i4.4
+  IL_0014:  add
+  IL_0015:  ldind.i4
+  IL_0016:  call       ""void System.Console.Write(int)""
+  IL_001b:  ldc.i4.0
+  IL_001c:  conv.u
+  IL_001d:  stloc.0
+  IL_001e:  ldc.i4.1
+  IL_001f:  newobj     ""Fixable..ctor(int)""
+  IL_0024:  box        ""Fixable""
+  IL_0029:  call       ""ref readonly int FixableExt.GetPinnableReference(object)""
+  IL_002e:  stloc.0
+  IL_002f:  ldloc.0
+  IL_0030:  conv.u
+  IL_0031:  ldc.i4.2
+  IL_0032:  conv.i
+  IL_0033:  ldc.i4.4
+  IL_0034:  mul
+  IL_0035:  add
+  IL_0036:  ldind.i4
+  IL_0037:  call       ""void System.Console.Write(int)""
+  IL_003c:  ldc.i4.0
+  IL_003d:  conv.u
+  IL_003e:  stloc.0
+  IL_003f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void CustomFixedStructObjectExtension_02()
+        {
+            // We check conversion during initial binding
+            var text = """
+#pragma warning disable CS0436 // The type 'ReadOnlySpan<T>' in '' conflicts with the imported type 'ReadOnlySpan<T>'
+
+unsafe class C
+{
+    public static void M()
+    {
+        System.ReadOnlySpan<string> x = default;
+        fixed (long* p = x)
+        {
+        }
+    }
+}
+
+static class E
+{
+    public static ref long GetPinnableReference(this System.ReadOnlySpan<object> s) => throw null;
+}
+
+namespace System
+{
+    public ref struct ReadOnlySpan<T>
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (8,26): error CS0656: Missing compiler required member 'ReadOnlySpan<T>.CastUp'
+                //         fixed (long* p = x)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.ReadOnlySpan<T>", "CastUp").WithLocation(8, 26)
+                );
+        }
+
+        [Fact]
         public void CustomFixedStructRefExtension()
         {
             var text = @"
@@ -6810,8 +6927,8 @@ unsafe class C
 }
 ";
             var expectedOutput = @"970104";
-            CompileAndVerify(string.Format(template, "unchecked"), options: TestOptions.UnsafeDebugExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("C.Main", expectedIL, sequencePoints: "C.Main");
-            CompileAndVerify(string.Format(template, "checked  "), options: TestOptions.UnsafeDebugExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("C.Main", expectedIL, sequencePoints: "C.Main");
+            CompileAndVerify(string.Format(template, "unchecked"), options: TestOptions.UnsafeDebugExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("C.Main", expectedIL, sequencePointDisplay: SequencePointDisplayMode.Minimal);
+            CompileAndVerify(string.Format(template, "checked  "), options: TestOptions.UnsafeDebugExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("C.Main", expectedIL, sequencePointDisplay: SequencePointDisplayMode.Minimal);
         }
 
         [Fact]
@@ -12011,7 +12128,7 @@ public unsafe class C
  -IL_003e:  ldloc.1
   IL_003f:  ret
 }
-", sequencePoints: "C.ToManagedByteArray");
+", sequencePointDisplay: SequencePointDisplayMode.Minimal);
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]

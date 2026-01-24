@@ -232,14 +232,14 @@
         <target state="translated">Statik yap</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_synchronous">
-        <source>Make method synchronous</source>
-        <target state="translated">Metodu zaman uyumlu hale getir</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Make_type_partial">
         <source>Make type partial</source>
         <target state="translated">Türü kısmi hale getir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="May_be_neccessary_in_other_project_this_document_is_linked_in">
+        <source>May be necessary in other project this document is linked in</source>
+        <target state="translated">Bu belgenin bağlantılı olduğu başka bir projede gerekli olabilir</target>
         <note />
       </trans-unit>
       <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">

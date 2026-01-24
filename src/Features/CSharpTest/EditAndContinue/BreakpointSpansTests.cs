@@ -1741,6 +1741,104 @@ public sealed class BreakpointSpansTests
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74795")]
+    public void UsingVariableDeclarator1()
+        => TestSpan(
+            """
+            using System.IO;
+            class C
+            {
+              void Goo()
+              {
+                [|$$using var stream = new MemoryStream();|]
+              }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74795")]
+    public void UsingVariableDeclarator2()
+        => TestSpan(
+            """
+            using System.IO;
+            class C
+            {
+              void Goo()
+              {
+                [|using var st$$ream = new MemoryStream();|]
+              }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74795")]
+    public void UsingVariableDeclarator3()
+        => TestSpan(
+            """
+            using System.IO;
+            class C
+            {
+              void Goo()
+              {
+                [|using var stream = new MemoryStream()$$;|]
+              }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74795")]
+    public void UsingVariableDeclarator4()
+        => TestSpan(
+            """
+            using System.IO;
+            class C
+            {
+              void Goo()
+              {
+            $$    [|using var stream = new MemoryStream();|]
+              }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74795")]
+    public void UsingVariableDeclarator_MultipleVariables1()
+        => TestSpan(
+            """
+            using System.IO;
+            class C
+            {
+              void Goo()
+              {
+                [|$$using var stream1 = new MemoryStream()|], stream2 = new MemoryStream();
+              }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74795")]
+    public void UsingVariableDeclarator_MultipleVariables2()
+        => TestSpan(
+            """
+            using System.IO;
+            class C
+            {
+              void Goo()
+              {
+                using var stream1 = new MemoryStream(), [|st$$ream2 = new MemoryStream()|];
+              }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74795")]
+    public void AwaitUsingVariableDeclarator()
+        => TestSpan(
+            """
+            using System.IO;
+            class C
+            {
+              async void Goo()
+              {
+                [|$$await using var stream = new MemoryStream();|]
+              }
+            }
+            """);
+
     [Fact]
     public void EventFieldDeclarator1()
         => TestSpan(

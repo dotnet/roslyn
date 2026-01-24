@@ -186,7 +186,7 @@ internal sealed class PerformanceQueue
     /// </summary>
     private sealed class AnalyzerNumberAssigner
     {
-        public static readonly AnalyzerNumberAssigner Instance = new AnalyzerNumberAssigner();
+        public static readonly AnalyzerNumberAssigner Instance = new();
 
         private int _currentId;
 

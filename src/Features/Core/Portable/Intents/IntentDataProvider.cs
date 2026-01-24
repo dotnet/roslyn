@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Features.Intents;
 internal sealed class IntentDataProvider(
     string? serializedIntentData)
 {
-    private static readonly Lazy<JsonSerializerOptions> s_serializerOptions = new Lazy<JsonSerializerOptions>(() =>
+    private static readonly Lazy<JsonSerializerOptions> s_serializerOptions = new(() =>
     {
         var serializerOptions = new JsonSerializerOptions
         {

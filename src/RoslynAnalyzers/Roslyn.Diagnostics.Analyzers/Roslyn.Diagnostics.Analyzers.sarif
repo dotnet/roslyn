@@ -5,7 +5,7 @@
     {
       "tool": {
         "name": "Roslyn.Diagnostics.Analyzers",
-        "version": "5.0.0",
+        "version": "5.4.0",
         "language": "en-US"
       },
       "rules": {
@@ -157,7 +157,7 @@
     {
       "tool": {
         "name": "Roslyn.Diagnostics.CSharp.Analyzers",
-        "version": "5.0.0",
+        "version": "5.4.0",
         "language": "en-US"
       },
       "rules": {
@@ -300,7 +300,7 @@
     {
       "tool": {
         "name": "Roslyn.Diagnostics.VisualBasic.Analyzers",
-        "version": "5.0.0",
+        "version": "5.4.0",
         "language": "en-US"
       },
       "rules": {

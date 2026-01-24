@@ -28,7 +28,7 @@ internal sealed class ConvertNamespaceCodeFixProvider() : SyntaxEditorBasedCodeF
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UseBlockScopedNamespaceDiagnosticId, IDEDiagnosticIds.UseFileScopedNamespaceDiagnosticId];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var diagnostic = context.Diagnostics.First();
 
@@ -40,11 +40,7 @@ internal sealed class ConvertNamespaceCodeFixProvider() : SyntaxEditorBasedCodeF
                 _ => throw ExceptionUtilities.UnexpectedValue(diagnostic.Id),
             });
 
-        context.RegisterCodeFix(
-            CodeAction.Create(title, GetDocumentUpdater(context), equivalenceKey),
-            context.Diagnostics);
-
-        return Task.CompletedTask;
+        RegisterCodeFix(context, title, equivalenceKey);
     }
 
     protected override async Task FixAllAsync(

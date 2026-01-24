@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
@@ -24,16 +24,26 @@ internal sealed class RemoteInitializationService(
     {
         // Performed before RunServiceAsync to ensure that the export provider is initialized before the RemoteWorkspaceManager is created
         // as part of the RunServiceAsync call.
-        var errorMessage = await RemoteExportProviderBuilder.InitializeAsync(localSettingsDirectory, cancellationToken).ConfigureAwait(false);
+        var errorMessage = await RemoteExportProviderBuilder.InitializeAsync(localSettingsDirectory, TraceLogger, cancellationToken).ConfigureAwait(false);
 
-        var processId = await RunServiceAsync(cancellationToken =>
+        try
         {
-            var service = (RemoteWorkspaceConfigurationService)GetWorkspaceServices().GetRequiredService<IWorkspaceConfigurationService>();
-            service.InitializeOptions(options);
+            var processId = await RunServiceAsync(async cancellationToken =>
+            {
+                var service = (RemoteWorkspaceConfigurationService)GetWorkspaceServices().GetRequiredService<IWorkspaceConfigurationService>();
+                service.InitializeOptions(options);
 
-            return ValueTask.FromResult(Process.GetCurrentProcess().Id);
-        }, cancellationToken).ConfigureAwait(false);
+                return Process.GetCurrentProcess().Id;
+            }, cancellationToken).ConfigureAwait(false);
 
-        return (processId, errorMessage);
+            return (processId, errorMessage);
+        }
+        catch (Exception ex) when (errorMessage != null)
+        {
+            // We want to throw the exception but also include the message from the MEF creation
+            throw new AggregateException(
+                $"Error from {nameof(RemoteExportProviderBuilder)}: {errorMessage}",
+                ex);
+        }
     }
 }

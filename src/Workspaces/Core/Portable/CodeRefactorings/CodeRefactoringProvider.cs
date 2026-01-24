@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings;
 
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings;
 /// Inherit this type to provide source code refactorings.
 /// Remember to use <see cref="ExportCodeRefactoringProviderAttribute"/> so the host environment can offer your refactorings in a UI.
 /// </summary>
-public abstract class CodeRefactoringProvider
+public abstract class CodeRefactoringProvider : IRefactorOrFixProvider
 {
     private protected ImmutableArray<string> CustomTags = [];
 
@@ -23,11 +24,11 @@ public abstract class CodeRefactoringProvider
     public abstract Task ComputeRefactoringsAsync(CodeRefactoringContext context);
 
     /// <summary>
-    /// Gets an optional <see cref="FixAllProvider"/> that can apply multiple occurrences of code refactoring(s)
-    /// registered by this code refactoring provider across the supported <see cref="CodeFixes.FixAllScope"/>s.
-    /// Return null if the provider doesn't support fix all operation.
+    /// Gets an optional <see cref="RefactorAllProvider"/> that can apply multiple occurrences of code refactoring(s)
+    /// registered by this code refactoring provider across the supported <see cref="RefactorAllScope"/>s.
+    /// Return null if the provider doesn't support the refactor all operation.
     /// </summary>
-    internal virtual FixAllProvider? GetFixAllProvider()
+    public virtual RefactorAllProvider? GetRefactorAllProvider()
         => null;
 
     /// <summary>

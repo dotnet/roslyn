@@ -188,12 +188,7 @@ internal static class RegexCharClass
 
     public static bool IsBoundaryWordChar(VirtualChar r)
     {
-        // unicode characters that do not fit in 16bits are not supported by 
-        // .net regex system.
-        if (r.Value > char.MaxValue)
-            return false;
-
-        var ch = (char)r.Value;
+        var ch = (char)r;
 
         // According to UTS#18 Unicode Regular Expressions (http://www.unicode.org/reports/tr18/)
         // RL 1.4 Simple Word Boundaries  The class of <word_character> includes all Alphabetic

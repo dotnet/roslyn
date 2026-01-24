@@ -522,10 +522,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override string ExtensionGroupingName
+        internal sealed override string? ExtensionGroupingName
             => _underlyingType.ExtensionGroupingName;
 
-        internal sealed override string ExtensionMarkerName
+        internal sealed override string? ExtensionMarkerName
             => _underlyingType.ExtensionMarkerName;
     }
 }

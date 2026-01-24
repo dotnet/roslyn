@@ -7,6 +7,11 @@
         <target state="translated">Vlastnost init-only {0} může být přiřazena jen inicializátorem člena objektu, nebo pro Me, MyClass nebo MyBase v konstruktoru instance.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeCannotBeAppliedManually">
+        <source>'{0}' cannot be applied manually.</source>
+        <target state="translated">{0} nelze použít ručně.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
         <source>A shared abstract or virtual interface member cannot be accessed.</source>
         <target state="translated">Nelze získat přístup ke sdílenému abstraktnímu nebo virtuálnímu členu rozhraní.</target>
@@ -57,9 +62,19 @@
         <target state="translated">Nelze aktualizovat {0}; chybí atribut {1}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime">
+        <source>Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</source>
+        <target state="translated">Aktualizace vyžaduje vygenerování explicitní implementace rozhraní, kterou modul runtime nepodporuje bez restartování aplikace.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidExperimentalDiagID">
         <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
         <target state="translated">Argument diagnosticId atributu Experimental musí být platný identifikátor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
+        <source>The target runtime does not support extended layout types.</source>
+        <target state="translated">Cílový modul runtime nepodporuje rozšířené typy rozložení.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormatDeterministic">
@@ -71,6 +86,11 @@
         <source>A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</source>
         <target state="translated">Hodnota typu System.Threading.Lock není v SyncLock podporována. Zvažte ruční volání metod Enter a Exit ve Zkušebním/Závěrečném bloku.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_MethodImplAttributeAsyncCannotBeUsed">
+        <source>'MethodImplAttribute.Async' cannot be manually applied to methods.</source>
+        <target state="translated">MethodImplAttribute.Async nelze u metod použít ručně.</target>
+        <note>'MethodImplAttribute.Async' is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
@@ -127,6 +147,11 @@
         <target state="translated">Události sdílených proměnných WithEvents se nedají zpracovat metodami v jiném typu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StructLayoutAndExtendedLayout">
+        <source>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</source>
+        <target state="translated">Použití StructLayoutAttribute a ExtendedLayoutAttribute u stejného typu není povolené.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SymbolDefinedInAssembly">
         <source>'{0}' is defined in assembly '{1}'.</source>
         <target state="translated">{0} je definováno v sestavení {1}.</target>
@@ -134,7 +159,7 @@
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings_RestartRequired">
         <source>Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</source>
-        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</target>
+        <target state="translated">Kombinovaná délka uživatelských řetězců používaných programem překračuje povolený limit. Přidání řetězce nebo literálu XML vyžaduje restartování aplikace.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeReserved">
@@ -355,8 +380,7 @@
 -reportivts[+|-]                  Output information on all IVTs granted to this
                                   assembly by all dependencies, and annotate foreign assembly
                                   accessibility errors with what assembly they came from.
--sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
-                                  (mscorlib.dll).
+-sdkpath:&lt;path&gt;             Path used to search for standard library assemblies.
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
                                   version:&lt;number&gt;[.&lt;number&gt;]
 -utf8output[+|-]                  Emit compiler output in UTF-8 character
@@ -367,174 +391,173 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Možnosti kompilátoru Visual Basic
+        <target state="translated">                  Visual Basic Compiler Options
 
-                                  - VÝSTUPNÍ SOUBOR -
--out:&lt;file&gt;                       Určuje název výstupního souboru.
--target:exe                       Vytvoří aplikaci konzole (výchozí).
-                                  (Krátký tvar: -t)
--target:winexe                    Vytvoří aplikaci systému Windows.
--target:library                   Vytvoří sestavení knihovny.
--target:module                    Vytvoří modul, který se dá přidat k
-                                  sestavení.
--target:appcontainerexe           Vytvoří aplikaci systému Windows, která běží v
+                                  - OUTPUT FILE -
+-out:&lt;file&gt;                       Specifies the output file name.
+-target:exe                       Create a console application (default).
+                                  (Short form: -t)
+-target:winexe                    Create a Windows application.
+-target:library                   Create a library assembly.
+-target:module                    Create a module that can be added to an
+                                  assembly.
+-target:appcontainerexe           Create a Windows application that runs in
                                   AppContainer.
--target:winmdobj                  Vytvoří pomocný soubor metadat systému Windows
--doc[+|-]                         Generuje soubor dokumentace XML.
--doc:&lt;file&gt;                       Generuje soubor dokumentace XML do souboru &lt;file&gt;.
--refout:&lt;file&gt;                    Výstup referenčního sestavení, který se má vygenerovat
+-target:winmdobj                  Create a Windows Metadata intermediate file
+-doc[+|-]                         Generates XML documentation file.
+-doc:&lt;file&gt;                       Generates XML documentation file to &lt;file&gt;.
+-refout:&lt;file&gt;                    Reference assembly output to generate
 
-                                  - VSTUPNÍ SOUBORY -
--addmodule:&lt;file_list&gt;            Odkazuje na metadata ze zadaných modulů
--link:&lt;file_list&gt;                 Vloží metadata ze zadaného definičního
-                                  sestavení. (Krátký tvar: -l)
--recurse:&lt;wildcard&gt;               Zahrne všechny soubory v aktuálním adresáři
-                                  a podadresářích podle
-                                  specifikace zástupných znaků.
--reference:&lt;file_list&gt;            Odkazuje na metadata ze zadaného
-                                  sestavení. (Krátký tvar: -r)
--analyzer:&lt;file_list&gt;             Spustí analyzátory z tohoto sestavení
-                                  (Krátký tvar: -a)
--additionalfile:&lt;file list&gt;       Další soubory, které nemají přímý vliv na generování
-                                  kódu, ale můžou je používat analyzátory k vytváření
-                                  chyb nebo upozornění.
+                                  - INPUT FILES -
+-addmodule:&lt;file_list&gt;            Reference metadata from the specified modules
+-link:&lt;file_list&gt;                 Embed metadata from the specified interop
+                                  assembly. (Short form: -l)
+-recurse:&lt;wildcard&gt;               Include all files in the current directory
+                                  and subdirectories according to the
+                                  wildcard specifications.
+-reference:&lt;file_list&gt;            Reference metadata from the specified
+                                  assembly. (Short form: -r)
+-analyzer:&lt;file_list&gt;             Run the analyzers from this assembly
+                                  (Short form: -a)
+-additionalfile:&lt;file list&gt;       Additional files that don't directly affect code
+                                  generation but may be used by analyzers for producing
+                                  errors or warnings.
 
-                                  - PROSTŘEDKY -
--linkresource:&lt;resinfo&gt;           Propojuje zadaný soubor jako externí
-                                  prostředek sestavení.
-                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,veřejný|soukromý]]
-                                  (Krátký tvar: -linkres)
--nowin32manifest                  Výchozí manifest by neměl být vložený
-                                  v oddílu manifestu výstupních dat PE.
--resource:&lt;resinfo&gt;               Přidá zadaný soubor jako vložený
-                                  prostředek sestavení.
-                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,veřejný|soukromý]]
-                                  (Krátký tvar: -res)
--win32icon:&lt;file&gt;                 Určuje soubor ikony Win32 (.ico) pro
-                                  výchozí prostředky Win32.
--win32manifest:&lt;file&gt;             Zadaný soubor je vložený do oddílu
-                                  manifestu výstupních dat PE.
--win32resource:&lt;file&gt;             Určuje soubor prostředku Win32 (.res).
+                                  - RESOURCES -
+-linkresource:&lt;resinfo&gt;           Links the specified file as an external
+                                  assembly resource.
+                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
+                                  (Short form: -linkres)
+-nowin32manifest                  The default manifest should not be embedded
+                                  in the manifest section of the output PE.
+-resource:&lt;resinfo&gt;               Adds the specified file as an embedded
+                                  assembly resource.
+                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
+                                  (Short form: -res)
+-win32icon:&lt;file&gt;                 Specifies a Win32 icon file (.ico) for the
+                                  default Win32 resources.
+-win32manifest:&lt;file&gt;             The provided file is embedded in the manifest
+                                  section of the output PE.
+-win32resource:&lt;file&gt;             Specifies a Win32 resource file (.res).
 
-                                  - GENEROVÁNÍ KÓDU -
--optimize[+|-]                    Povolí optimalizace.
--removeintchecks[+|-]             Odebere kontroly dat typu integer. Výchozí hodnota je vypnutá.
--debug[+|-]                       Generuje ladicí informace.
--debug:full                       Generuje úplné ladicí informace (výchozí).
--debug:pdbonly                    Generuje úplné ladicí informace.
--debug:portable                   Generuje ladicí informace pro různé platformy.
--debug:embedded                   Generuje ladicí informace pro různé platformy do
-                                  cílového souboru .dll nebo .exe.
--deterministic                    Vytvoří deterministické sestavení
-                                  (včetně verze modulu GUID a časového razítka)
--refonly                          Vytvoří referenční sestavení místo hlavního výstupu
--instrument:TestCoverage          Vytvoří sestavení instrumentované ke shromažďování
-                                  informací o pokrytí
--sourcelink:&lt;file&gt;                Informace o odkazu na zdroj, který se má vložit do souboru PDB.
+                                  - CODE GENERATION -
+-optimize[+|-]                    Enable optimizations.
+-removeintchecks[+|-]             Remove integer checks. Default off.
+-debug[+|-]                       Emit debugging information.
+-debug:full                       Emit full debugging information (default).
+-debug:pdbonly                    Emit full debugging information.
+-debug:portable                   Emit cross-platform debugging information.
+-debug:embedded                   Emit cross-platform debugging information into
+                                  the target .dll or .exe.
+-deterministic                    Produce a deterministic assembly
+                                  (including module version GUID and timestamp)
+-refonly                          Produce a reference assembly in place of the main output
+-instrument:TestCoverage          Produce an assembly instrumented to collect
+                                  coverage information
+-sourcelink:&lt;file&gt;                Source link info to embed into PDB.
 
-                                  – CHYBY A UPOZORNĚNÍ -
--nowarn                           Zakáže všechna upozornění.
--nowarn:&lt;number_list&gt;             Zakáže seznam jednotlivých upozornění.
--warnaserror[+|-]                 Považuje všechna upozornění za chyby.
--warnaserror[+|-]:&lt;number_list&gt;   Považuje seznam upozornění za chyby.
--ruleset:&lt;file&gt;                   Určuje soubor sady pravidel, který zakáže konkrétní
-                                  diagnostiku.
--errorlog:&lt;file&gt;[,verze=&lt;sarif_version&gt;]         
-                                  Určuje soubor k protokolování veškeré diagnostiky kompilátorů
-                                  a analyzátorů ve formátu SARIF.
-                                  sarif_version:{1|2|2.1} Výchozí hodnota je 1. 2 a 2.1
-                                  obě znamenají SARIF verze 2.1.0.
--reportanalyzer                   Oznámí další informace o analyzátoru, například
-                                  čas spuštění.
--skipanalyzers[+|-]               Přeskočí spuštění diagnostických analyzátorů.
+                                  - ERRORS AND WARNINGS -
+-nowarn                           Disable all warnings.
+-nowarn:&lt;number_list&gt;             Disable a list of individual warnings.
+-warnaserror[+|-]                 Treat all warnings as errors.
+-warnaserror[+|-]:&lt;number_list&gt;   Treat a list of warnings as errors.
+-ruleset:&lt;file&gt;                   Specify a ruleset file that disables specific
+                                  diagnostics.
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
+                                  Specify a file to log all compiler and analyzer
+                                  diagnostics in SARIF format.
+                                  sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                                  both mean SARIF version 2.1.0.
+-reportanalyzer                   Report additional analyzer information, such as
+                                  execution time.
+-skipanalyzers[+|-]               Skip execution of diagnostic analyzers.
 
-                                  - JAZYK -
--define:&lt;symbol_list&gt;             Deklaruje globální podmíněnou kompilaci
-                                  symbol(y). symbol_list:name=value,...
-                                  (Krátký tvar: -d)
--imports:&lt;import_list&gt;            Deklaruje globální importy pro obory názvů
-                                  v odkazovaných souborech metadat.
+                                  - LANGUAGE -
+-define:&lt;symbol_list&gt;             Declare global conditional compilation
+                                  symbol(s). symbol_list:name=value,...
+                                  (Short form: -d)
+-imports:&lt;import_list&gt;            Declare global Imports for namespaces in
+                                  referenced metadata files.
                                   import_list:namespace,...
--langversion:?                    Zobrazí povolené hodnoty pro verzi jazyka
--langversion:&lt;string&gt;             Určuje verzi jazyka, například
-                                  výchozí (nejnovější hlavní verze) nebo
-                                  nejnovější (nejnovější verze včetně podverzí),
-                                  nebo konkrétní verze jako 14 nebo 15.3.
--optionexplicit[+|-]              Vyžaduje explicitní deklaraci proměnných.
--optioninfer[+|-]                 Povolí odvozování typů proměnných.
--rootnamespace:&lt;string&gt;           Určuje kořenový obor názvů pro všechny deklarace
-                                  typů.
--optionstrict[+|-]                Vynutí striktní sémantiku jazyka.
--optionstrict:custom              Zobrazí upozornění, pokud se nerespektuje striktní sémantika
-                                  jazyka.
--optioncompare:binary             Určuje binární porovnávání řetězců.
-                                  Toto nastavení je výchozí.
--optioncompare:text               Určuje textové porovnávání řetězců.
+-langversion:?                    Display the allowed values for language version
+-langversion:&lt;string&gt;             Specify language version such as
+                                  `default` (latest major version), or
+                                  `latest` (latest version, including minor versions),
+                                  or specific versions like `14` or `15.3`
+-optionexplicit[+|-]              Require explicit declaration of variables.
+-optioninfer[+|-]                 Allow type inference of variables.
+-rootnamespace:&lt;string&gt;           Specifies the root Namespace for all type
+                                  declarations.
+-optionstrict[+|-]                Enforce strict language semantics.
+-optionstrict:custom              Warn when strict language semantics are not
+                                  respected.
+-optioncompare:binary             Specifies binary-style string comparisons.
+                                  This is the default.
+-optioncompare:text               Specifies text-style string comparisons.
 
-                                  - RŮZNÉ -
--help                             Zobrazí tuto zprávu o využití. (Krátký tvar: -?)
--noconfig                         Nezahrne automaticky soubor VBC.RSP.
--nologo                           Nezobrazí hlavičku kompilátoru s uvedením autorských práv.
--quiet                            Bezobslužný režim výstupu.
--verbose                          Zobrazí podrobné zprávy.
--parallel[+|-]                    Souběžné sestavení.
--version                          Zobrazí číslo verze kompilátoru a ukončí se.
+                                  - MISCELLANEOUS -
+-help                             Display this usage message. (Short form: -?)
+-noconfig                         Do not auto-include VBC.RSP file.
+-nologo                           Do not display compiler copyright banner.
+-quiet                            Quiet output mode.
+-verbose                          Display verbose messages.
+-parallel[+|-]                    Concurrent build.
+-version                          Display the compiler version number and exit.
 
-                                  - ROZŠÍŘENÉ -
--baseaddress:&lt;number&gt;             Základní adresa knihovny nebo modulu
+                                  - ADVANCED -
+-baseaddress:&lt;number&gt;             The base address for a library or module
                                   (hex).
--checksumalgorithm:&lt;alg&gt;          Určuje algoritmus pro výpočet kontrolního součtu
-                                  zdrojového souboru uloženého v souboru PDB. Podporované hodnoty:
-                                  SHA1 nebo SHA256 (výchozí).
--codepage:&lt;number&gt;                Určuje znakovou stránku, která se má použít při otevírání
-                                  zdrojových souborů.
--delaysign[+|-]                   Zpožděné podepsání sestavení pouze pomocí veřejné
-                                  část klíče silného názvu.
--delaysign[+|-]                   Veřejné podepsání sestavení pouze pomocí veřejné
-                                  část klíče silného názvu.
--errorreport:&lt;string&gt;             Určuje, jak zpracovávat interní chyby
-                                  kompilátoru; musí to být výzva, odeslání, žádné nebo fronta
-                                  (výchozí).
--generatedfilesout:&lt;dir&gt;          Umístí soubory vygenerované během kompilace
-                                  do zadaného adresáře.
--filealign:&lt;number&gt;               Určuje zarovnání použité pro oddíly výstupního
-                                  souboru.
--highentropyva[+|-]               Povolí technologii ASLR s vysokou entropií.
--keycontainer:&lt;string&gt;            Určuje kontejner klíče se silným názvem.
--keyfile:&lt;file&gt;                   Určuje soubor klíče se silným názvem.
--libpath:&lt;path_list&gt;              Seznam adresářů pro hledání odkazů
-                                  na metadata. (Položky oddělené středníkem.)
--main:&lt;class&gt;                     Určuje třídu nebo modul, který obsahuje
-                                  proceduru Sub Main. Může to být také třída, která
-                                  dědí z System.Windows.Forms.Form.
-                                  (Krátký tvar: -m)
--moduleassemblyname:&lt;string&gt;      Název sestavení, jehož součástí bude
-                                  tento modul.
--netcf                            Cílem je platforma .NET Compact Framework.
--nostdlib                         Neodkazuje na standardní knihovny
-                                  (system.dll a soubor VBC.RSP).
+-checksumalgorithm:&lt;alg&gt;          Specify algorithm for calculating source file
+                                  checksum stored in PDB. Supported values are:
+                                  SHA1 or SHA256 (default).
+-codepage:&lt;number&gt;                Specifies the codepage to use when opening
+                                  source files.
+-delaysign[+|-]                   Delay-sign the assembly using only the public
+                                  portion of the strong name key.
+-publicsign[+|-]                  Public-sign the assembly using only the public
+                                  portion of the strong name key.
+-errorreport:&lt;string&gt;             Specifies how to handle internal compiler
+                                  errors; must be prompt, send, none, or queue
+                                  (default).
+-generatedfilesout:&lt;dir&gt;          Place files generated during compilation in the
+                                  specified directory.
+-filealign:&lt;number&gt;               Specify the alignment used for output file
+                                  sections.
+-highentropyva[+|-]               Enable high-entropy ASLR.
+-keycontainer:&lt;string&gt;            Specifies a strong name key container.
+-keyfile:&lt;file&gt;                   Specifies a strong name key file.
+-libpath:&lt;path_list&gt;              List of directories to search for metadata
+                                  references. (Semi-colon delimited.)
+-main:&lt;class&gt;                     Specifies the Class or Module that contains
+                                  Sub Main. It can also be a Class that
+                                  inherits from System.Windows.Forms.Form.
+                                  (Short form: -m)
+-moduleassemblyname:&lt;string&gt;      Name of the assembly which this module will
+                                  be a part of.
+-netcf                            Target the .NET Compact Framework.
+-nostdlib                         Do not reference standard libraries
+                                  (system.dll and VBC.RSP file).
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                                  Určuje mapování pro výstup názvů zdrojových cest podle
-                                  kompilátoru.
--platform:&lt;string&gt;                Omezuje platformy, na kterých se může tento kód spouštět;
-                                  musí to být x86, x64, Itanium, arm, arm64
-                                  AnyCPU32BitPreferred nebo anycpu (výchozí).
--preferreduilang                  Určuje preferovaný název výstupního jazyka.
--nosdkpath                        Zakáže vyhledávání výchozí cesty sady SDK pro standardní sestavení knihovny.
--reportivts[+|-]                  Výstupní informace o všech IVT udělených tomuto
-                                  sestavení podle všech závislostí a opatřit poznámkami cizí sestavení
-                                  chyby přístupnosti s tím, z jakého sestavení pocházejí.
--sdkpath:&lt;path&gt;                   Umístění adresáře sady SDK .NET Framework
-                                  (mscorlib.dll).
--subsystemversion:&lt;version&gt;       Určuje verzi subsystému výstupních dat PE.
-                                  verze:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  Generuje výstup kompilátoru ve znaku UTF-8
-                                  UTF-8.
-@&lt;file&gt;                           Vloží nastavení příkazového řádku z textového souboru
--vbruntime[+|-|*]                 Kompiluje s výchozím modulem runtime Visual Basic nebo
-                                  bez něj.
--vbruntime:&lt;file&gt;                 Kompiluje s alternativním modulem runtime Visual Basic
-                                  v souboru &lt;file&gt;.
+                                  Specify a mapping for source path names output by
+                                  the compiler.
+-platform:&lt;string&gt;                Limit which platforms this code can run on;
+                                  must be x86, x64, Itanium, arm, arm64
+                                  AnyCPU32BitPreferred or anycpu (default).
+-preferreduilang                  Specify the preferred output language name.
+-nosdkpath                        Disable searching the default SDK path for standard library assemblies.
+-reportivts[+|-]                  Output information on all IVTs granted to this
+                                  assembly by all dependencies, and annotate foreign assembly
+                                  accessibility errors with what assembly they came from.
+-sdkpath:&lt;path&gt;             Path used to search for standard library assemblies.
+-subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
+                                  version:&lt;number&gt;[.&lt;number&gt;]
+-utf8output[+|-]                  Emit compiler output in UTF-8 character
+                                  encoding.
+@&lt;file&gt;                           Insert command-line settings from a text file
+-vbruntime[+|-|*]                 Compile with/without the default Visual Basic
+                                  runtime.
+-vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
+                                  runtime in &lt;file&gt;.
 </target>
         <note />
       </trans-unit>
@@ -546,11 +569,6 @@
       <trans-unit id="ThereAreNoNativeIntegerTypesInVB">
         <source>There are no native integer types in VB.</source>
         <target state="translated">Ve VB nejsou žádné nativní typy celých čísel.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Trees0">
-        <source>trees({0})</source>
-        <target state="translated">stromy({0})</target>
         <note />
       </trans-unit>
       <trans-unit id="TreesMustHaveRootNode">
@@ -635,12 +653,12 @@
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
         <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="needs-review-translation">Sestavení analyzátoru {0} odkazuje na verzi {1} kompilátoru, která je novější než aktuálně spuštěná verze {2}.</target>
+        <target state="translated">Sestavení analyzátoru{0} nelze použít, protože odkazuje na verzi {1} kompilátoru, která je novější než aktuálně spuštěná verze {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
         <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
-        <target state="needs-review-translation">Sestavení analyzátoru odkazuje na novější verzi kompilátoru, než je aktuálně spuštěná verze.</target>
+        <target state="translated">Sestavení analyzátoru nelze použít, protože odkazuje na novější verzi kompilátoru než aktuálně spuštěná verze.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
@@ -803,16 +821,6 @@
         <target state="translated">Nejsou zadané žádné vstupní zdroje.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_FileAlreadyIncluded">
-        <source>source file '{0}' specified multiple times</source>
-        <target state="translated">Zdrojový soubor {0} je zadaný několikrát.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_FileAlreadyIncluded_Title">
-        <source>Source file specified multiple times</source>
-        <target state="translated">Zdrojový soubor je zadaný několikrát.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_CantOpenFileWrite">
         <source>can't open '{0}' for writing: {1}</source>
         <target state="translated">Soubor {0} nejde otevřít pro zápis: {1}.</target>
@@ -851,16 +859,6 @@
       <trans-unit id="WRN_NoConfigInResponseFile_Title">
         <source>Ignoring /noconfig option because it was specified in a response file</source>
         <target state="translated">Přepínač /noconfig se ignoroval, protože byl uvedený v souboru odpovědí.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_InvalidWarningId">
-        <source>warning number '{0}' for the option '{1}' is either not configurable or not valid</source>
-        <target state="translated">Číslo upozornění {0} pro parametr {1} není konfigurovatelné nebo není platné.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_InvalidWarningId_Title">
-        <source>Warning number is either not configurable or not valid</source>
-        <target state="translated">Číslo upozornění není nakonfigurované nebo je neplatné.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSourcesOut">
@@ -2983,11 +2981,6 @@
       <trans-unit id="ERR_UnrecognizedEnd">
         <source>'End' statement not valid.</source>
         <target state="translated">'Příkaz End není platný.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ArrayInitForNonArray2">
-        <source>Array initializers are valid only for arrays, but the type of '{0}' is '{1}'.</source>
-        <target state="translated">Inicializátory polí jsou platné jenom pro pole, ale {0} je typu {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EndRegionNoRegion">
@@ -6739,16 +6732,6 @@
         <target state="translated">Atribut Conditional je platný jenom v deklaracích Sub.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UseSwitchInsteadOfAttribute">
-        <source>Use command-line option '{0}' or appropriate project settings instead of '{1}'.</source>
-        <target state="translated">Namísto {1} použijte možnost příkazového řádku {0} nebo odpovídající nastavení projektu.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UseSwitchInsteadOfAttribute_Title">
-        <source>Use command-line option /keyfile, /keycontainer, or /delaysign instead of AssemblyKeyFileAttribute, AssemblyKeyNameAttribute, or AssemblyDelaySignAttribute</source>
-        <target state="translated">Místo AssemblyKeyFileAttribute, AssemblyKeyNameAttribute nebo AssemblyDelaySignAttribute použijte parametr příkazového řádku /keyfile, /keycontainer nebo /delaysign.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_RecursiveAddHandlerCall">
         <source>Statement recursively calls the containing '{0}' for event '{1}'.</source>
         <target state="translated">Příkaz rekurzivně volá nadřazený {0} pro událost {1}.</target>
@@ -7427,16 +7410,6 @@
       <trans-unit id="WRN_RelDelegatePassedToRemoveHandler_Title">
         <source>The 'AddressOf' expression has no effect in this context because the method argument to 'AddressOf' requires a relaxed conversion to the delegate type of the event</source>
         <target state="translated">Výraz AddressOf nemá v tomto kontextu žádný účinek, protože argument metody pro výraz AddressOf vyžaduje volný převod na typ delegáta události.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_QueryMissingAsClauseinVarDecl">
-        <source>Range variable is assumed to be of type Object because its type cannot be inferred. Use an 'As' clause to specify a different type.</source>
-        <target state="translated">Předpokládá se, že proměnná rozsahu je typu Objekt, protože její typ nejde odvodit. Zadejte jiný typ pomocí klauzule As.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_QueryMissingAsClauseinVarDecl_Title">
-        <source>Range variable is assumed to be of type Object because its type cannot be inferred</source>
-        <target state="translated">Předpokládá se, že proměnná rozsahu je typu Object, protože se její typ nedá odvodit.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultilineLambdaMissingFunction">

@@ -8387,7 +8387,7 @@ class Program
     static void FromIn4A<T>(in S<T> s) { M4(in s.F); }
     static void FromIn4B<T>(in S<T> s) { M4(s.F); }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature("peverify-compat"), targetFramework: TargetFramework.Net70);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature(Feature.PEVerifyCompat), targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -11327,24 +11327,15 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics(
-                // (6,18): error CS8917: The delegate type could not be inferred.
+                // (6,26): error CS1107: A parameter can only have one 'scoped' modifier
                 //         var f1 = (scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(scoped scoped R r) => { }").WithLocation(6, 18),
-                // (6,26): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
-                //         var f1 = (scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(6, 26),
-                // (6,35): error CS1003: Syntax error, ',' expected
-                //         var f1 = (scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "r").WithArguments(",").WithLocation(6, 35),
-                // (6,35): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                //         var f1 = (scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "r").WithLocation(6, 35),
-                // (7,23): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_DupParamMod, "scoped").WithArguments("scoped").WithLocation(6, 26),
+                // (7,23): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
                 //         var f2 = (ref scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(7, 23),
-                // (7,37): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(7, 23),
+                // (7,30): error CS1107: A parameter can only have one 'scoped' modifier
                 //         var f2 = (ref scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "R").WithArguments(",").WithLocation(7, 37),
+                Diagnostic(ErrorCode.ERR_DupParamMod, "scoped").WithArguments("scoped").WithLocation(7, 30),
                 // (8,19): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
                 //         var f3 = (scoped scoped ref R r) => { };
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(8, 19),
@@ -11371,33 +11362,18 @@ class Program
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
             comp.VerifyEmitDiagnostics(
-                // (6,18): error CS8917: The delegate type could not be inferred.
+                // (6,26): error CS1107: A parameter can only have one 'scoped' modifier
                 //         var f1 = (scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(scoped scoped R r) => { }").WithLocation(6, 18),
-                // (6,26): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
-                //         var f1 = (scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(6, 26),
-                // (6,35): error CS1003: Syntax error, ',' expected
-                //         var f1 = (scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "r").WithArguments(",").WithLocation(6, 35),
-                // (6,35): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                //         var f1 = (scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "r").WithLocation(6, 35),
-                // (7,23): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_DupParamMod, "scoped").WithArguments("scoped").WithLocation(6, 26),
+                // (7,23): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
                 //         var f2 = (ref scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(7, 23),
-                // (7,37): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(7, 23),
+                // (7,30): error CS1107: A parameter can only have one 'scoped' modifier
                 //         var f2 = (ref scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "R").WithArguments(",").WithLocation(7, 37),
-                // (8,26): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_DupParamMod, "scoped").WithArguments("scoped").WithLocation(7, 30),
+                // (8,26): error CS1107: A parameter can only have one 'scoped' modifier
                 //         var f3 = (scoped scoped ref R r) => { };
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(8, 26),
-                // (8,33): error CS1001: Identifier expected
-                //         var f3 = (scoped scoped ref R r) => { };
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "ref").WithLocation(8, 33),
-                // (8,33): error CS1003: Syntax error, ',' expected
-                //         var f3 = (scoped scoped ref R r) => { };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(8, 33));
+                Diagnostic(ErrorCode.ERR_DupParamMod, "scoped").WithArguments("scoped").WithLocation(8, 26));
         }
 
         [Fact]
@@ -11652,23 +11628,13 @@ static class Extensions
 }";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,23): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                // (6,30): error CS9348: The 'this' modifier cannot immediately follow the 'scoped' modifier.
                 //     static void F2<T>(scoped this R<T> r) { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(6, 23),
-                // (6,30): error CS1001: Identifier expected
-                //     static void F2<T>(scoped this R<T> r) { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "this").WithLocation(6, 30),
-                // (6,30): error CS1003: Syntax error, ',' expected
-                //     static void F2<T>(scoped this R<T> r) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "this").WithArguments(",").WithLocation(6, 30),
-                // (6,30): error CS1100: Method 'F2' has a parameter modifier 'this' which is not on the first parameter
-                //     static void F2<T>(scoped this R<T> r) { }
-                Diagnostic(ErrorCode.ERR_BadThisParam, "this").WithArguments("F2").WithLocation(6, 30)
-                );
+                Diagnostic(ErrorCode.ERR_InvalidModifierAfterScoped, "this").WithArguments("this").WithLocation(6, 30));
 
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Extensions.F0").Parameters[0], "R<System.Object> r", RefKind.None, ScopedKind.None);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Extensions.F1").Parameters[0], "scoped R<System.Object> r", RefKind.None, ScopedKind.ScopedValue);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Extensions.F2").Parameters[0], "scoped", RefKind.None, ScopedKind.None);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Extensions.F2").Parameters[0], "scoped R<T> r", RefKind.None, ScopedKind.ScopedValue);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Extensions.F3").Parameters[0], "scoped ref T t", RefKind.Ref, ScopedKind.ScopedRef);
         }
 
@@ -11789,10 +11755,9 @@ scoped readonly ref struct C { }
                 // (2,12): error CS1031: Type expected
                 // scoped ref struct B { }
                 Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(2, 12),
-                // (3,8): error CS1585: Member modifier 'readonly' must precede the member type and name
+                // (3,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // scoped readonly ref struct C { }
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(3, 8)
-                );
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "scoped").WithLocation(3, 1));
         }
 
         [Fact]
@@ -11808,18 +11773,18 @@ readonly scoped record struct C();
                 // (1,8): error CS0118: 'record' is a variable but is used like a type
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_BadSKknown, "record").WithArguments("record", "variable", "type").WithLocation(1, 8),
-                // (1,15): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (1,15): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // scoped record A { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "A").WithLocation(1, 15),
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "A").WithLocation(1, 15),
                 // (1,15): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "A").WithArguments("scoped").WithLocation(1, 15),
                 // (1,15): error CS0548: '<invalid-global-code>.A': property or indexer must have at least one accessor
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "A").WithArguments("<invalid-global-code>.A").WithLocation(1, 15),
-                // (2,8): error CS1585: Member modifier 'readonly' must precede the member type and name
+                // (2,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // scoped readonly record struct B;
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(2, 8),
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "scoped").WithLocation(2, 1),
                 // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // readonly scoped record struct C();
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "readonly scoped record ").WithLocation(3, 1),
@@ -11837,8 +11802,7 @@ readonly scoped record struct C();
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 24),
                 // (3,32): error CS8936: Feature 'primary constructors' is not available in C# 10.0. Please use language version 12.0 or greater.
                 // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 32)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 32));
         }
 
         [Fact]
@@ -11854,18 +11818,18 @@ readonly scoped record struct C();
                 // (1,8): error CS0118: 'record' is a variable but is used like a type
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_BadSKknown, "record").WithArguments("record", "variable", "type").WithLocation(1, 8),
-                // (1,15): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (1,15): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // scoped record A { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "A").WithLocation(1, 15),
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "A").WithLocation(1, 15),
                 // (1,15): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "A").WithArguments("scoped").WithLocation(1, 15),
                 // (1,15): error CS0548: '<invalid-global-code>.A': property or indexer must have at least one accessor
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "A").WithArguments("<invalid-global-code>.A").WithLocation(1, 15),
-                // (2,8): error CS1585: Member modifier 'readonly' must precede the member type and name
+                // (2,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // scoped readonly record struct B;
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(2, 8),
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "scoped").WithLocation(2, 1),
                 // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // readonly scoped record struct C();
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "readonly scoped record ").WithLocation(3, 1),
@@ -11883,8 +11847,7 @@ readonly scoped record struct C();
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 24),
                 // (3,32): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 32)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 32));
         }
 
         [Fact]
@@ -13496,7 +13459,7 @@ class Program
 
             verifyModel(comp);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature(Feature.RunNullableAnalysis, "never"));
             verifyModel(comp);
 
             static void verifyModel(CSharpCompilation comp)
@@ -13560,7 +13523,7 @@ class Program
 
             verifyModel(comp);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature(Feature.RunNullableAnalysis, "never"));
             verifyModel(comp);
 
             static void verifyModel(CSharpCompilation comp)
@@ -13636,7 +13599,7 @@ ref struct RR
 
             verifyModel(comp);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature(Feature.RunNullableAnalysis, "never"));
             verifyModel(comp);
 
             static void verifyModel(CSharpCompilation comp)
@@ -13707,7 +13670,7 @@ class Program
 
             verifyModel(comp);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature(Feature.RunNullableAnalysis, "never"));
             verifyModel(comp);
 
             static void verifyModel(CSharpCompilation comp)
@@ -15189,7 +15152,7 @@ class Enumerator2<T>
 
             verifyModel(comp);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature(Feature.RunNullableAnalysis, "never"));
             verifyModel(comp);
 
             static void verifyModel(CSharpCompilation comp)
@@ -18312,8 +18275,7 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net70);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
             verifier.VerifyIL("Program.Main",
-                source: source,
-                sequencePoints: "Program.Main",
+                sequencePointDisplay: SequencePointDisplayMode.Enhanced,
                 expectedIL:
 @"{
   // Code size       30 (0x1e)
@@ -21964,13 +21926,12 @@ public ref struct R
                 // (3,18): error CS1002: ; expected
                 //     ref scoped R field;
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "field").WithLocation(3, 18),
-                // (3,23): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                // (3,23): error CS1519: Invalid token ';' in a member declaration
                 //     ref scoped R field;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 23),
-                // (3,23): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                // (3,23): error CS1519: Invalid token ';' in a member declaration
                 //     ref scoped R field;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 23)
-                );
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 23));
 
             source =
 @"ref struct R
@@ -21994,22 +21955,12 @@ public ref struct R
                 // (3,18): error CS1002: ; expected
                 //     ref scoped R Property { get => throw null; }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "Property").WithLocation(3, 18),
-                // (3,27): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
+                // (3,18): error CS0246: The type or namespace name 'Property' could not be found (are you missing a using directive or an assembly reference?)
                 //     ref scoped R Property { get => throw null; }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(3, 27),
-                // (3,27): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Property").WithArguments("Property").WithLocation(3, 18),
+                // (3,27): error CS1001: Identifier expected
                 //     ref scoped R Property { get => throw null; }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(3, 27),
-                // (3,33): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
-                //     ref scoped R Property { get => throw null; }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(3, 33),
-                // (3,33): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
-                //     ref scoped R Property { get => throw null; }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(3, 33),
-                // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1)
-                );
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(3, 27));
 
             source =
 @"ref struct R
@@ -22020,19 +21971,9 @@ public ref struct R
 }";
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (3,16): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                // (3,16): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
                 //     void M(ref scoped R parameter)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 16),
-                // (3,25): error CS1003: Syntax error, ',' expected
-                //     void M(ref scoped R parameter)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "parameter").WithArguments(",").WithLocation(3, 25),
-                // (3,25): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
-                //     void M(ref scoped R parameter)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(3, 25),
-                // (3,34): error CS1001: Identifier expected
-                //     void M(ref scoped R parameter)
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(3, 34)
-                );
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(3, 16));
 
             source =
 @"ref struct R
@@ -22043,19 +21984,9 @@ public ref struct R
 }";
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (3,15): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                // (3,15): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
                 //     void M(in scoped R parameter)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 15),
-                // (3,24): error CS1003: Syntax error, ',' expected
-                //     void M(in scoped R parameter)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "parameter").WithArguments(",").WithLocation(3, 24),
-                // (3,24): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
-                //     void M(in scoped R parameter)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(3, 24),
-                // (3,33): error CS1001: Identifier expected
-                //     void M(in scoped R parameter)
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(3, 33)
-                );
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(3, 15));
 
             source =
 @"ref struct R
@@ -22066,22 +21997,9 @@ public ref struct R
 }";
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (3,10): error CS0177: The out parameter 'R' must be assigned to before control leaves the current method
+                // (3,16): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
                 //     void M(out scoped R parameter)
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "M").WithArguments("R").WithLocation(3, 10),
-                // (3,16): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
-                //     void M(out scoped R parameter)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 16),
-                // (3,25): error CS1003: Syntax error, ',' expected
-                //     void M(out scoped R parameter)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "parameter").WithArguments(",").WithLocation(3, 25),
-                // (3,25): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
-                //     void M(out scoped R parameter)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(3, 25),
-                // (3,34): error CS1001: Identifier expected
-                //     void M(out scoped R parameter)
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(3, 34)
-                );
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(3, 16));
 
             source =
 @"ref struct R
@@ -22092,13 +22010,12 @@ public ref struct R
 }";
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (3,16): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                // (3,16): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
                 //     void M(ref scoped scoped R parameter)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 16),
-                // (3,30): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(3, 16),
+                // (3,23): error CS1107: A parameter can only have one 'scoped' modifier
                 //     void M(ref scoped scoped R parameter)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "R").WithArguments(",").WithLocation(3, 30)
-                );
+                Diagnostic(ErrorCode.ERR_DupParamMod, "scoped").WithArguments("scoped").WithLocation(3, 23));
 
             source =
 @"ref struct R
@@ -22167,6 +22084,9 @@ public ref struct R
 }";
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (1,12): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // ref struct R
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "R").WithLocation(1, 12),
                 // (3,9): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
                 //     ref scoped R M() => throw null;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 9),
@@ -22179,16 +22099,18 @@ public ref struct R
                 // (3,16): warning CS0169: The field 'R.R' is never used
                 //     ref scoped R M() => throw null;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "R").WithArguments("R.R").WithLocation(3, 16),
-                // (3,18): error CS1002: ; expected
+                // (3,18): error CS1003: Syntax error, '=' expected
                 //     ref scoped R M() => throw null;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "M").WithLocation(3, 18),
-                // (3,18): error CS1520: Method must have a return type
+                Diagnostic(ErrorCode.ERR_SyntaxError, "M").WithArguments("=").WithLocation(3, 18),
+                // (3,18): error CS8172: Cannot initialize a by-reference variable with a value
                 //     ref scoped R M() => throw null;
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(3, 18),
-                // (3,18): error CS8958: The parameterless struct constructor must be 'public'.
+                Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "M() => throw null").WithLocation(3, 18),
+                // (3,18): error CS0246: The type or namespace name 'M' could not be found (are you missing a using directive or an assembly reference?)
                 //     ref scoped R M() => throw null;
-                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "M").WithLocation(3, 18)
-                );
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "M").WithArguments("M").WithLocation(3, 18),
+                // (3,18): error CS1510: A ref or out value must be an assignable variable
+                //     ref scoped R M() => throw null;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "M() => throw null").WithLocation(3, 18));
 
             source = @"
 delegate void M(ref scoped R parameter);
@@ -22196,19 +22118,9 @@ ref struct R { }
 ";
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (2,21): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                // (2,21): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
                 // delegate void M(ref scoped R parameter);
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(2, 21),
-                // (2,30): error CS1003: Syntax error, ',' expected
-                // delegate void M(ref scoped R parameter);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "parameter").WithArguments(",").WithLocation(2, 30),
-                // (2,30): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
-                // delegate void M(ref scoped R parameter);
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(2, 30),
-                // (2,39): error CS1001: Identifier expected
-                // delegate void M(ref scoped R parameter);
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(2, 39)
-                );
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(2, 21));
 
             source = @"
 ref struct R
@@ -22224,15 +22136,9 @@ ref struct R
                 // (6,9): error CS8183: Cannot infer the type of implicitly-typed discard.
                 //         _ = void (ref scoped R parameter) => throw null;
                 Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(6, 9),
-                // (6,23): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                // (6,23): error CS9347: The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.
                 //         _ = void (ref scoped R parameter) => throw null;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(6, 23),
-                // (6,32): error CS1003: Syntax error, ',' expected
-                //         _ = void (ref scoped R parameter) => throw null;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "parameter").WithArguments(",").WithLocation(6, 32),
-                // (6,32): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                //         _ = void (ref scoped R parameter) => throw null;
-                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "parameter").WithLocation(6, 32));
+                Diagnostic(ErrorCode.ERR_ScopedAfterInOutRefReadonly, "scoped").WithLocation(6, 23));
         }
 
         [Theory, WorkItem(62931, "https://github.com/dotnet/roslyn/issues/62931")]
@@ -28010,7 +27916,7 @@ ref struct R<T>
 
             verifyModel(comp);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature(Feature.RunNullableAnalysis, "never"));
             verifyModel(comp);
 
             static void verifyModel(CSharpCompilation comp)
@@ -28070,7 +27976,7 @@ ref struct R<T>
 
             verifyModel(comp);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature(Feature.RunNullableAnalysis, "never"));
             verifyModel(comp);
 
             static void verifyModel(CSharpCompilation comp)
@@ -30413,6 +30319,245 @@ Block[B2] - Exit
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(4, 28));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
+        public void ConstructorInitializer_03()
+        {
+            // Verify that a ref to local declared in a constructor initializer cannot escape into 'this'
+            var source = """
+                ref struct R
+                {
+                    R(int x, ref int y) { }
+                    public R() : this(M(out int x), ref x) // 1, 2
+                    {
+                    }
+
+                    public static int M(out int x) => x = 1;
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,16): error CS8350: This combination of arguments to 'R.R(int, ref int)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //     public R() : this(M(out int x), ref x) // 1, 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, ": this(M(out int x), ref x)").WithArguments("R.R(int, ref int)", "y").WithLocation(4, 16),
+                // (4,41): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //     public R() : this(M(out int x), ref x) // 1, 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(4, 41));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
+        public void ConstructorInitializer_04()
+        {
+            // Verify that a local in a constructor initializer is assignable to a scoped ref struct parameter
+            var source = """
+                using System;
+
+                struct R
+                {
+                    R(int x, int y) { }
+                    public R(scoped Span<int> span) : this(M(out int x), (span = new Span<int>(ref x))[0])
+                    {
+                    }
+
+                    public static int M(out int x) => x = 1;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
+        public void ConstructorInitializer_05()
+        {
+            // Verify that a local in a constructor initializer is not assignable to a ref struct parameter
+            var source = """
+                using System;
+
+                struct R
+                {
+                    R(int x, int y) { }
+                    public R(Span<int> span) : this(M(out int x), (span = new Span<int>(ref x))[0])
+                    {
+                    }
+
+                    public static int M(out int x) => x = 1;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (6,59): error CS8347: Cannot use a result of 'Span<int>.Span(ref int)' in this context because it may expose variables referenced by parameter 'reference' outside of their declaration scope
+                //     public R(Span<int> span) : this(M(out int x), (span = new Span<int>(ref x))[0])
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Span<int>(ref x)").WithArguments("System.Span<int>.Span(ref int)", "reference").WithLocation(6, 59),
+                // (6,77): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //     public R(Span<int> span) : this(M(out int x), (span = new Span<int>(ref x))[0])
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(6, 77));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
+        public void OutParamVsConstructor_01()
+        {
+            // Expect 'this' in a constructor to behave similarly to an 'out' parameter in an ordinary method with respect to ref safety.
+            var source = """
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    private R(in int i) => _i = ref i; // ok
+
+                    void M1(out R r, in int i)
+                        => r = new R(in i); // ok
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
+        public void OutParamVsConstructor_02()
+        {
+            var source = """
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    private R(in int i) => _i = ref i;
+
+                    public R()
+                    {
+                        int i = 1;
+                        this = new R(in i); // 1, 2
+                    }
+
+                    void M1(out R r)
+                    {
+                        int i = 1;
+                        r = new R(in i); // 3, 4
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         this = new R(in i); // 1, 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(in i)").WithArguments("R.R(in int)", "i").WithLocation(9, 16),
+                // (9,25): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         this = new R(in i); // 1, 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(9, 25),
+                // (15,13): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         r = new R(in i); // 3, 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(in i)").WithArguments("R.R(in int)", "i").WithLocation(15, 13),
+                // (15,22): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         r = new R(in i); // 3, 4
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(15, 22));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
+        public void OutParamVsConstructor_03()
+        {
+            var source = """
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    private R(in int i) => _i = ref i;
+
+                    public R()
+                    {
+                        this = new R(1); // 1, 2
+                    }
+
+                    void M1(out R r)
+                        => r = new R(1); // 3, 4
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (8,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         this = new R(1); // 1, 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1)").WithArguments("R.R(in int)", "i").WithLocation(8, 16),
+                // (8,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         this = new R(1); // 1, 2
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(8, 22),
+                // (12,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         => r = new R(1); // 3, 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1)").WithArguments("R.R(in int)", "i").WithLocation(12, 16),
+                // (12,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         => r = new R(1); // 3, 4
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(12, 22));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
+        public void OutParamVsConstructor_04()
+        {
+            var source = """
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    private R(in int i) => _i = ref i;
+
+                    public R()
+                    {
+                        int i = 1;
+                        M1(out this, in i); // 1, 2
+                    }
+
+                    void M1(out R r, in int i)
+                        => r = new R(in i); // ok
+
+                    void M2(out R r)
+                    {
+                        int i = 1;
+                        M1(out r, in i); // 3, 4
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (9,9): error CS8350: This combination of arguments to 'R.M1(out R, in int)' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         M1(out this, in i); // 1, 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M1(out this, in i)").WithArguments("R.M1(out R, in int)", "i").WithLocation(9, 9),
+                // (9,25): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         M1(out this, in i); // 1, 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(9, 25),
+                // (18,9): error CS8350: This combination of arguments to 'R.M1(out R, in int)' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         M1(out r, in i); // 3, 4
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M1(out r, in i)").WithArguments("R.M1(out R, in int)", "i").WithLocation(18, 9),
+                // (18,22): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         M1(out r, in i); // 3, 4
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(18, 22));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
+        public void OutParamVsConstructor_05()
+        {
+            var source = """
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    private R(in int i) => _i = ref i;
+
+                    void M1(out R r, in int i)
+                        => r = new R(in i);
+
+                    public R()
+                        => M1(out this, 1); // 1, 2
+
+                    void M2(out R r)
+                        => M1(out r, 1); // 3, 4
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (10,12): error CS8350: This combination of arguments to 'R.M1(out R, in int)' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         => M1(out this, 1); // 1, 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M1(out this, 1)").WithArguments("R.M1(out R, in int)", "i").WithLocation(10, 12),
+                // (10,25): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         => M1(out this, 1); // 1, 2
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(10, 25),
+                // (13,12): error CS8350: This combination of arguments to 'R.M1(out R, in int)' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         => M1(out r, 1); // 3, 4
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M1(out r, 1)").WithArguments("R.M1(out R, in int)", "i").WithLocation(13, 12),
+                // (13,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         => M1(out r, 1); // 3, 4
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(13, 22));
+        }
+
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -31990,6 +32135,136 @@ Block[B2] - Exit
                 // (11,11): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //         M(GetValue().F);
                 Diagnostic(ErrorCode.ERR_BadArgRef, "GetValue().F").WithArguments("1", "ref").WithLocation(11, 11));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80244")]
+        public void Repro_80244_NetCoreApp()
+        {
+            var comp = CreateCompilation("""
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+
+                ref struct SpanReader
+                {
+                    long _spanEndStreamOffset;
+                    ReadOnlySpan<byte> _buffer;
+                    public SpanReader(ReadOnlySpan<byte> buffer, long spanStartStreamOffset)
+                    {
+                        _buffer = buffer;
+                        _spanEndStreamOffset = spanStartStreamOffset + buffer.Length;
+                    }
+
+                    public ref readonly T ReadRef<T>() where T : struct
+                    {
+                        if (_buffer.Length >= Unsafe.SizeOf<T>())
+                        {
+                            ref readonly T ret = ref MemoryMarshal.Cast<byte, T>(_buffer)[0];
+                            _buffer = _buffer.Slice(Unsafe.SizeOf<T>());
+                            return ref ret;
+                        }
+                        else
+                        {
+                            throw new Exception();
+                        }
+                    }
+                }
+                """,
+                targetFramework: TargetFramework.NetCoreApp,
+                parseOptions: TestOptions.Regular14);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80244")]
+        [InlineData(LanguageVersion.CSharp8), InlineData(LanguageVersion.CSharp14)]
+        public void Repro_80244_NetStandard(LanguageVersion consumerLanguageVersion)
+        {
+            var spanCompilation = CreateCompilation(TestSources.Span, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular8);
+            var spanReference = spanCompilation.EmitToImageReference();
+            var source0 = """
+                namespace System.Runtime.CompilerServices
+                {
+                    public static class Unsafe
+                    {
+                        public static int SizeOf<T>() => throw null!;
+                    }
+                }
+
+                namespace System.Runtime.InteropServices
+                {
+                    public static class MemoryMarshal
+                    {
+                        public static ReadOnlySpan<TTo> Cast<TFrom, TTo>(ReadOnlySpan<TFrom> span)
+                            where TFrom : struct
+                            => throw null!;
+                    }
+                }
+                """;
+            var source1 = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+
+                ref struct SpanReader
+                {
+                    long _spanEndStreamOffset;
+                    ReadOnlySpan<byte> _buffer;
+                    public SpanReader(ReadOnlySpan<byte> buffer, long spanStartStreamOffset)
+                    {
+                        _buffer = buffer;
+                        _spanEndStreamOffset = spanStartStreamOffset + buffer.Length;
+                    }
+
+                    public ref readonly T ReadRef<T>() where T : struct
+                    {
+                        if (_buffer.Length >= Unsafe.SizeOf<T>())
+                        {
+                            ref readonly T ret = ref MemoryMarshal.Cast<byte, T>(_buffer)[0];
+                            _buffer = _buffer.Slice(Unsafe.SizeOf<T>());
+                            return ref ret;
+                        }
+                        else
+                        {
+                            throw new Exception();
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source0, source1],
+                references: [spanReference],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(consumerLanguageVersion),
+                targetFramework: TargetFramework.NetStandard20);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80244")]
+        public void Repro_80244_Simple()
+        {
+            var source0 = """
+                public ref struct RS
+                {
+                    public ref byte this[int i] => throw null!;
+                }
+                """;
+
+            var reference = CreateCompilation(source0, parseOptions: TestOptions.Regular8).EmitToImageReference();
+            var source1 = """
+                class Program
+                {
+                    static ref byte M1(RS rs)
+                    {
+                        ref byte ret = ref rs[1];
+                        return ref ret;
+                    }
+
+                    static ref byte M2(RS rs)
+                    {
+                        return ref rs[1];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source1, references: [reference], parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics();
         }
     }
 }

@@ -46,8 +46,16 @@ namespace Microsoft.CodeAnalysis
             CatchAnalyzerExceptions = catchAnalyzerExceptions;
         }
 
+        /// <summary>
+        /// Gets a <see cref="SyntaxValueProvider"/> that can be used to create syntax-based input nodes for the incremental generator pipeline.
+        /// Use this to register callbacks that filter and transform syntax nodes in the compilation.
+        /// </summary>
         public SyntaxValueProvider SyntaxProvider => new(this, _syntaxInputBuilder, RegisterOutput, SyntaxHelper);
 
+        /// <summary>
+        /// Gets an <see cref="IncrementalValueProvider{T}"/> that provides access to the <see cref="Compilation"/> being processed.
+        /// The value of this provider changes whenever the compilation changes (e.g., source files, references, or options are modified).
+        /// </summary>
         public IncrementalValueProvider<Compilation> CompilationProvider => new IncrementalValueProvider<Compilation>(SharedInputNodes.Compilation.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.Compilation), CatchAnalyzerExceptions);
 
         // Use a ReferenceEqualityComparer as we want to rerun this stage whenever the CompilationOptions changes at all
@@ -58,27 +66,100 @@ namespace Microsoft.CodeAnalysis
                 .WithComparer(ReferenceEqualityComparer.Instance)
                 .WithTrackingName(WellKnownGeneratorInputs.CompilationOptions), CatchAnalyzerExceptions);
 
+        /// <summary>
+        /// Gets an <see cref="IncrementalValueProvider{T}"/> that provides access to the <see cref="ParseOptions"/> for the compilation.
+        /// The value of this provider changes whenever parse options change (e.g., language version or preprocessor symbols).
+        /// </summary>
         public IncrementalValueProvider<ParseOptions> ParseOptionsProvider => new IncrementalValueProvider<ParseOptions>(SharedInputNodes.ParseOptions.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.ParseOptions), CatchAnalyzerExceptions);
 
+        /// <summary>
+        /// Gets an <see cref="IncrementalValuesProvider{T}"/> that provides access to all <see cref="AdditionalText"/> files included in the compilation.
+        /// Additional texts are typically non-code files (like .txt, .json, .xml) that can be used as input for source generation.
+        /// Each additional text that is added, removed, or modified will trigger a new value in the provider.
+        /// </summary>
         public IncrementalValuesProvider<AdditionalText> AdditionalTextsProvider => new IncrementalValuesProvider<AdditionalText>(SharedInputNodes.AdditionalTexts.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.AdditionalTexts), CatchAnalyzerExceptions);
 
+        /// <summary>
+        /// Gets an <see cref="IncrementalValueProvider{T}"/> that provides access to the <see cref="AnalyzerConfigOptionsProvider"/> for the compilation.
+        /// This can be used to read .editorconfig settings and other analyzer configuration options.
+        /// </summary>
         public IncrementalValueProvider<AnalyzerConfigOptionsProvider> AnalyzerConfigOptionsProvider => new IncrementalValueProvider<AnalyzerConfigOptionsProvider>(SharedInputNodes.AnalyzerConfigOptions.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.AnalyzerConfigOptions), CatchAnalyzerExceptions);
 
+        /// <summary>
+        /// Gets an <see cref="IncrementalValuesProvider{T}"/> that provides access to all <see cref="MetadataReference"/>s in the compilation.
+        /// Each metadata reference (e.g., referenced assemblies) that is added, removed, or modified will trigger a new value in the provider.
+        /// </summary>
         public IncrementalValuesProvider<MetadataReference> MetadataReferencesProvider => new IncrementalValuesProvider<MetadataReference>(SharedInputNodes.MetadataReferences.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.MetadataReferences), CatchAnalyzerExceptions);
 
+        /// <summary>
+        /// Registers an output node that will produce source code to be added to the compilation.
+        /// The provided action will be invoked with the value from the provider whenever it changes.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the value provided by the source provider</typeparam>
+        /// <param name="source">An <see cref="IncrementalValueProvider{TSource}"/> that provides the input value</param>
+        /// <param name="action">An action that receives a <see cref="SourceProductionContext"/> and the input value, and can add source files or report diagnostics</param>
         public void RegisterSourceOutput<TSource>(IncrementalValueProvider<TSource> source, Action<SourceProductionContext, TSource> action) => RegisterSourceOutput(source.Node, action, IncrementalGeneratorOutputKind.Source, _sourceExtension);
 
+        /// <summary>
+        /// Registers an output node that will produce source code to be added to the compilation.
+        /// The provided action will be invoked once for each value from the provider whenever they change.
+        /// </summary>
+        /// <typeparam name="TSource">The type of each value provided by the source provider</typeparam>
+        /// <param name="source">An <see cref="IncrementalValuesProvider{TSource}"/> that provides input values</param>
+        /// <param name="action">An action that receives a <see cref="SourceProductionContext"/> and an input value, and can add source files or report diagnostics</param>
         public void RegisterSourceOutput<TSource>(IncrementalValuesProvider<TSource> source, Action<SourceProductionContext, TSource> action) => RegisterSourceOutput(source.Node, action, IncrementalGeneratorOutputKind.Source, _sourceExtension);
 
+        /// <summary>
+        /// Registers an output node that will produce implementation source code to be added to the compilation.
+        /// Implementation sources are treated differently from regular sources in some scenarios and may be excluded from certain compilation outputs.
+        /// The provided action will be invoked with the value from the provider whenever it changes.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the value provided by the source provider</typeparam>
+        /// <param name="source">An <see cref="IncrementalValueProvider{TSource}"/> that provides the input value</param>
+        /// <param name="action">An action that receives a <see cref="SourceProductionContext"/> and the input value, and can add source files or report diagnostics</param>
         public void RegisterImplementationSourceOutput<TSource>(IncrementalValueProvider<TSource> source, Action<SourceProductionContext, TSource> action) => RegisterSourceOutput(source.Node, action, IncrementalGeneratorOutputKind.Implementation, _sourceExtension);
 
+        /// <summary>
+        /// Registers an output node that will produce implementation source code to be added to the compilation.
+        /// Implementation sources are treated differently from regular sources in some scenarios and may be excluded from certain compilation outputs.
+        /// The provided action will be invoked once for each value from the provider whenever they change.
+        /// </summary>
+        /// <typeparam name="TSource">The type of each value provided by the source provider</typeparam>
+        /// <param name="source">An <see cref="IncrementalValuesProvider{TSource}"/> that provides input values</param>
+        /// <param name="action">An action that receives a <see cref="SourceProductionContext"/> and an input value, and can add source files or report diagnostics</param>
         public void RegisterImplementationSourceOutput<TSource>(IncrementalValuesProvider<TSource> source, Action<SourceProductionContext, TSource> action) => RegisterSourceOutput(source.Node, action, IncrementalGeneratorOutputKind.Implementation, _sourceExtension);
 
+        /// <summary>
+        /// Registers a callback that will be invoked once, before any other source generation occurs.
+        /// This is typically used to add source code that should be available for subsequent generation steps, such as attribute definitions.
+        /// Use <see cref="IncrementalGeneratorPostInitializationContext.AddEmbeddedAttributeDefinition"/> to add the EmbeddedAttribute which marks generated types as internal to the current assembly.
+        /// </summary>
+        /// <param name="callback">A callback that receives an <see cref="IncrementalGeneratorPostInitializationContext"/> and can add initial source files</param>
         public void RegisterPostInitializationOutput(Action<IncrementalGeneratorPostInitializationContext> callback) => _outputNodes.Add(new PostInitOutputNode(callback.WrapUserAction(CatchAnalyzerExceptions), _embeddedAttributeDefinition));
 
+        /// <summary>
+        /// Registers an output node that will produce host-specific outputs that are not added to the compilation.
+        /// Host outputs have no defined use and do not contribute to the final compilation. They are made available to the host
+        /// (i.e., the development environment or build system running the generator, such as Visual Studio, dotnet build, etc.)
+        /// via <see cref="GeneratorRunResult.HostOutputs"/> and it is up to the host to decide how to use them.
+        /// The provided action will be invoked with the value from the provider whenever it changes.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the value provided by the source provider</typeparam>
+        /// <param name="source">An <see cref="IncrementalValueProvider{TSource}"/> that provides the input value</param>
+        /// <param name="action">An action that receives a <see cref="HostOutputProductionContext"/> and the input value, and can add host-specific outputs</param>
         [Experimental(RoslynExperiments.GeneratorHostOutputs, UrlFormat = RoslynExperiments.GeneratorHostOutputs_Url)]
         public void RegisterHostOutput<TSource>(IncrementalValueProvider<TSource> source, Action<HostOutputProductionContext, TSource> action) => source.Node.RegisterOutput(new HostOutputNode<TSource>(source.Node, action.WrapUserAction(CatchAnalyzerExceptions)));
 
+        /// <summary>
+        /// Registers an output node that will produce host-specific outputs that are not added to the compilation.
+        /// Host outputs have no defined use and do not contribute to the final compilation. They are made available to the host
+        /// (i.e., the development environment or build system running the generator, such as Visual Studio, dotnet build, etc.)
+        /// via <see cref="GeneratorRunResult.HostOutputs"/> and it is up to the host to decide how to use them.
+        /// The provided action will be invoked once for each value from the provider whenever they change.
+        /// </summary>
+        /// <typeparam name="TSource">The type of each value provided by the source provider</typeparam>
+        /// <param name="source">An <see cref="IncrementalValuesProvider{TSource}"/> that provides input values</param>
+        /// <param name="action">An action that receives a <see cref="HostOutputProductionContext"/> and an input value, and can add host-specific outputs</param>
         [Experimental(RoslynExperiments.GeneratorHostOutputs, UrlFormat = RoslynExperiments.GeneratorHostOutputs_Url)]
         public void RegisterHostOutput<TSource>(IncrementalValuesProvider<TSource> source, Action<HostOutputProductionContext, TSource> action) => source.Node.RegisterOutput(new HostOutputNode<TSource>(source.Node, action.WrapUserAction(CatchAnalyzerExceptions)));
 
@@ -152,13 +233,15 @@ namespace Microsoft.CodeAnalysis
         internal readonly AdditionalSourcesCollection Sources;
         internal readonly DiagnosticBag Diagnostics;
         internal readonly Compilation Compilation;
+        internal readonly SourceHashAlgorithm ChecksumAlgorithm;
 
-        internal SourceProductionContext(AdditionalSourcesCollection sources, DiagnosticBag diagnostics, Compilation compilation, CancellationToken cancellationToken)
+        internal SourceProductionContext(AdditionalSourcesCollection sources, DiagnosticBag diagnostics, Compilation compilation, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
         {
             CancellationToken = cancellationToken;
             Sources = sources;
             Diagnostics = diagnostics;
             Compilation = compilation;
+            ChecksumAlgorithm = checksumAlgorithm;
         }
 
         public CancellationToken CancellationToken { get; }
@@ -168,7 +251,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
         /// <param name="source">The source code to add to the compilation</param>
-        public void AddSource(string hintName, string source) => AddSource(hintName, SourceText.From(source, Encoding.UTF8));
+        public void AddSource(string hintName, string source) => AddSource(hintName, SourceText.From(source, Encoding.UTF8, checksumAlgorithm: ChecksumAlgorithm == SourceHashAlgorithm.None ? SourceHashAlgorithms.Default : ChecksumAlgorithm));
 
         /// <summary>
         /// Adds a <see cref="SourceText"/> to the compilation
@@ -178,7 +261,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Directory separators "/" and "\" are allowed in <paramref name="hintName"/>, they are normalized to "/" regardless of host platform.
         /// </remarks>
-        public void AddSource(string hintName, SourceText sourceText) => Sources.Add(hintName, sourceText);
+        public void AddSource(string hintName, SourceText sourceText) => Sources.Add(hintName, sourceText.WithChecksumAlgorithm(ChecksumAlgorithm));
 
         /// <summary>
         /// Adds a <see cref="Diagnostic"/> to the users compilation

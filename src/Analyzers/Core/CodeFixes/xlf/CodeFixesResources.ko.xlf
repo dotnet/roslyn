@@ -232,14 +232,14 @@
         <target state="translated">정적으로 만들기</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_synchronous">
-        <source>Make method synchronous</source>
-        <target state="translated">메서드를 동기 메서드로 설정</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Make_type_partial">
         <source>Make type partial</source>
         <target state="translated">형식을 부분 형식으로 만들기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="May_be_neccessary_in_other_project_this_document_is_linked_in">
+        <source>May be necessary in other project this document is linked in</source>
+        <target state="translated">이 문서가 연결된 다른 프로젝트에서 필요할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">

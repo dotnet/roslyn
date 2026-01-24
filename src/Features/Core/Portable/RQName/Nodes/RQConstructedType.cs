@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
 internal sealed class RQConstructedType(RQUnconstructedType definingType, IList<RQType> typeArguments) : RQType
 {
     public readonly RQUnconstructedType DefiningType = definingType;
-    public readonly ReadOnlyCollection<RQType> TypeArguments = new ReadOnlyCollection<RQType>(typeArguments);
+    public readonly ReadOnlyCollection<RQType> TypeArguments = new(typeArguments);
 
     public override SimpleTreeNode ToSimpleTree()
     {

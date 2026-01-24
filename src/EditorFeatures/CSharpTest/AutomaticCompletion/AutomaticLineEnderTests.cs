@@ -668,7 +668,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                     return goo($$)
                 }
             }
-            """, completionActive: true);
+            """);
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530352")]
     public void EmbeddedStatement3()
@@ -1769,15 +1769,16 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             }
             """);
 
-    [WpfFact]
-    public void TestObjectCreationExpressionWithParenthesis()
+    [WpfTheory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/80753")]
+    public void TestObjectCreationExpression(bool constructorParenthesis, bool semicolon)
     {
-        var firstResult = """
+        var firstResult = $$"""
             public class Bar
             {
                 public void M()
                 {
-                    var f = new Foo()
+                    var f = new Foo{{(constructorParenthesis ? "()" : "")}}
                     {
                         $$
                     };
@@ -1789,12 +1790,12 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 public int PP { get; set; }
             }
             """;
-        Test(firstResult, """
+        Test(firstResult, $$"""
             public class Bar
             {
                 public void M()
                 {
-                    var f = n$$ew F$$oo($$)$$
+                    var f = n$$ew F$$oo{{(constructorParenthesis ? "($$)" : string.Empty)}}$${{(semicolon ? ";" : "")}}
                 }
             }
             public class Foo
@@ -1820,117 +1821,16 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             """, firstResult);
     }
 
-    [WpfFact]
-    public void TestObjectCreationExpressionWithNoParenthesis()
+    [WpfTheory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/80753")]
+    public void TestObjectCreationExpressionUsedAsExpression(bool constructorParenthesis)
     {
-        var firstResult = """
+        var firstResult = $$"""
             public class Bar
             {
                 public void M()
                 {
-                    var f = new Foo()
-                    {
-                        $$
-                    };
-                }
-            }
-            public class Foo
-            {
-                public int HH { get; set; }
-                public int PP { get; set; }
-            }
-            """;
-        Test(firstResult, """
-            public class Bar
-            {
-                public void M()
-                {
-                    var f = n$$ew F$$oo$$
-                }
-            }
-            public class Foo
-            {
-                public int HH { get; set; }
-                public int PP { get; set; }
-            }
-            """);
-        Test("""
-            public class Bar
-            {
-                public void M()
-                {
-                    var f = new Foo();
-                    $$
-                }
-            }
-            public class Foo
-            {
-                public int HH { get; set; }
-                public int PP { get; set; }
-            }
-            """, firstResult);
-    }
-
-    [WpfFact]
-    public void TestObjectCreationExpressionWithCorrectSemicolon()
-    {
-        var firstResult = """
-            public class Bar
-            {
-                public void M()
-                {
-                    var f = new Foo()
-                    {
-                        $$
-                    };
-                }
-            }
-            public class Foo
-            {
-                public int HH { get; set; }
-                public int PP { get; set; }
-            }
-            """;
-        Test(firstResult, """
-            public class Bar
-            {
-                public void M()
-                {
-                    var f = n$$ew F$$oo$$;
-                }
-            }
-            public class Foo
-            {
-                public int HH { get; set; }
-                public int PP { get; set; }
-            }
-            """);
-        Test("""
-            public class Bar
-            {
-                public void M()
-                {
-                    var f = new Foo();
-                    $$
-                }
-            }
-            public class Foo
-            {
-                public int HH { get; set; }
-                public int PP { get; set; }
-            }
-            """, firstResult);
-    }
-
-    [WpfFact]
-    public void TestObjectCreationExpressionUsedAsExpression()
-    {
-        var firstResult = """
-            public class Bar
-            {
-                public void M()
-                {
-                    N(new Foo()
+                    N(new Foo{{(constructorParenthesis ? "()" : string.Empty)}}
                     {
                         $$
                     });
@@ -1946,12 +1846,12 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 public int PP { get; set; }
             }
             """;
-        Test(firstResult, """
+        Test(firstResult, $$"""
             public class Bar
             {
                 public void M()
                 {
-                    N(ne$$w Fo$$o$$);
+                    N(ne$$w Fo$$o$${{(constructorParenthesis ? "($$)" : string.Empty)}});
                 }
 
                 private void N(Foo f)
@@ -1985,15 +1885,16 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             """, firstResult);
     }
 
-    [WpfFact]
-    public void TestObjectCreationExpressionInUsingStatement()
+    [WpfTheory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/80753")]
+    public void TestObjectCreationExpressionInUsingStatement(bool constructorParenthesis)
     {
-        var firstResult = """
+        var firstResult = $$"""
             public class Bar
             {
                 public void M()
                 {
-                    using(var a = new Foo()
+                    using(var a = new Foo{{(constructorParenthesis ? "()" : string.Empty)}}
                     {
                         $$
                     })
@@ -2005,12 +1906,12 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 public int PP { get; set; }
             }
             """;
-        Test(firstResult, """
+        Test(firstResult, $$"""
             public class Bar
             {
                 public void M()
                 {
-                    using(var a = n$$ew F$$oo($$)$$)
+                    using(var a = n$$ew F$$oo{{(constructorParenthesis ? "($$)" : string.Empty)}}$$)
                 }
             }
             public class Foo
@@ -2068,6 +1969,43 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 public int PP { get; set; }
             }
             """);
+
+    [WpfTheory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/80791")]
+    public void TestImplicitObjectCreationExpression(bool constructorParenthesis)
+    {
+        var firstResult = """
+            public class Bar
+            {
+                public void Bar2()
+                {
+                    Bar b = new()
+                    {
+                        $$
+                    };
+                }
+            }
+            """;
+        Test(firstResult, $$"""
+            public class Bar
+            {
+                public void Bar2()
+                {
+                    Bar b = new$${{(constructorParenthesis ? "($$)" : string.Empty)}}
+                }
+            }
+            """);
+        Test("""
+            public class Bar
+            {
+                public void Bar2()
+                {
+                    Bar b = new();
+                    $$
+                }
+            }
+            """, firstResult);
+    }
 
     [WpfFact]
     public void TestArrayInitializer1()
@@ -3260,55 +3198,6 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                     fin$$ally$$
                     {
                     }
-                }
-            }
-            """);
-
-    [WpfFact]
-    public void TestObjectCreationExpressionWithMissingType()
-        => Test("""
-            public class Bar
-            {
-                public void Bar2()
-                {
-                    Bar b = new()
-                    {
-                        $$
-                    };
-                }
-            }
-            """,
-            """
-            public class Bar
-            {
-                public void Bar2()
-                {
-                    Bar b = new$$
-                }
-            }
-            """);
-
-    [WpfFact]
-    public void TestRemoveInitializerForImplicitObjectCreationExpression()
-        => Test("""
-            public class Bar
-            {
-                public void Bar2()
-                {
-                    Bar b = new();
-                    $$
-                }
-            }
-            """,
-            """
-            public class Bar
-            {
-                public void Bar2()
-                {
-                    Bar b = new()
-                    {
-                        $$
-                    };
                 }
             }
             """);

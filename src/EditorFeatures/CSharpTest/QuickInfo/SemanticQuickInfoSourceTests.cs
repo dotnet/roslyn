@@ -3798,11 +3798,49 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
 
             """,
             MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<'a> IEnumerable<int>.Select<int, 'a>(Func<int, 'a> selector)"),
-        AnonymousTypes($$"""
+            AnonymousTypes($$"""
 
             {{FeaturesResources.Types_colon}}
                 'a {{FeaturesResources.is_}} new { int i, bool j }
             """));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69830")]
+    public Task QueryMethodinfoLet2()
+        => TestWithOptionsAsync(
+            Options.Regular,
+            """
+            using System;
+            using System.Collections.Generic;
+
+            _ = from element in new List<int> { 1, 2, 3 }
+                let elementInterim = element + 42
+                $$let anotherElementInterim = elementInterim - 42 // Point to 'let' keyword
+                select element;
+
+            static class Extensions
+            {
+                /// <summary>
+                /// Gets a list of <typeparamref name="TResult"/> elements.
+                /// </summary>
+                public static List<TResult> Select<T, TResult>(
+                    this List<T> elements,
+                    Func<T, TResult> selector
+                )
+                {
+                    return null;
+                }
+            } 
+            """,
+            MainDescription($"({CSharpFeaturesResources.extension}) List<'b> List<'a>.Select<'a, 'b>(Func<'a, 'b> selector)"),
+            AnonymousTypes($$"""
+
+                {{FeaturesResources.Types_colon}}
+                    'a is new { int element, int elementInterim }
+                    'b is new { int anotherElementInterim }
+                """),
+            Documentation("""
+                Gets a list of 'b elements.
+                """));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoWhere()
@@ -10190,4 +10228,63 @@ AnonymousTypes(
             """,
             MainDescription($"class System.String?"),
             NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "second")));
+
+    [Fact]
+    public Task TestWithElementConstructor()
+        => VerifyWithNet8Async(
+            """
+            using System.Collections.Generic;
+
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection(string s)
+                {
+                }
+
+                public MyCollection(int i)
+                {
+                }
+            }
+
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<string> c = [$$with(1), ""];
+                }
+            }
+            """,
+            MainDescription($"MyCollection<string>.MyCollection(int i)"));
+
+    [Fact]
+    public Task TestWithElementCollectionBuilder()
+        => VerifyWithNet8Async(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection()
+                {
+                }
+            }
+
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(string s, ReadOnlySpan<T> items) => new();
+                public static MyCollection<T> [|Create|]<T>(int i, ReadOnlySpan<T> items) => new();
+            }
+
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<string> c = [$$with(1), ""];
+                }
+            }
+            """,
+            MainDescription($"MyCollection<string> MyBuilder.Create<string>(int i, ReadOnlySpan<string> items)"));
 }

@@ -101,7 +101,7 @@ internal static class UseCollectionExpressionHelpers
             return false;
 
         // (X[])[1, 2, 3] is target typed.  `(X)[1, 2, 3]` is currently not (because it looks like indexing into an expr).
-        if (topMostExpression.Parent is CastExpressionSyntax castExpression && castExpression.Type is IdentifierNameSyntax)
+        if (topMostExpression.Parent is CastExpressionSyntax { Type: IdentifierNameSyntax })
             return false;
 
         // X[] = new Y[] { 1, 2, 3 }
@@ -116,7 +116,7 @@ internal static class UseCollectionExpressionHelpers
         if (originalTypeInfo.ConvertedType is null or IErrorTypeSymbol)
             return false;
 
-        if (!IsConstructibleCollectionType(compilation, originalTypeInfo.ConvertedType.OriginalDefinition))
+        if (!CollectionExpressionUtilities.IsConstructibleCollectionType(compilation, originalTypeInfo.ConvertedType.OriginalDefinition))
             return false;
 
         if (expression.IsInExpressionTree(semanticModel, expressionType, cancellationToken))
@@ -143,7 +143,7 @@ internal static class UseCollectionExpressionHelpers
         // expression will always succeed, and there's no need to actually validate semantics there.
         // Tracked by https://github.com/dotnet/roslyn/issues/68826
         if (parent is CastExpressionSyntax)
-            return IsConstructibleCollectionType(compilation, semanticModel.GetTypeInfo(parent, cancellationToken).Type);
+            return CollectionExpressionUtilities.IsConstructibleCollectionType(compilation, semanticModel.GetTypeInfo(parent, cancellationToken).Type);
 
         // Looks good as something to replace.  Now check the semantics of making the replacement to see if there would
         // any issues.
@@ -183,6 +183,9 @@ internal static class UseCollectionExpressionHelpers
         {
             return false;
         }
+
+        if (IsImplementationOfCollectionBuilderPattern())
+            return false;
 
         return true;
 
@@ -232,7 +235,7 @@ internal static class UseCollectionExpressionHelpers
 
             // It's always safe to convert List<X> to ICollection<X> or IList<X> as the language guarantees that it will
             // continue emitting a List<X> for those target types.
-            var isWellKnownCollectionReadWriteInterface = IsWellKnownCollectionReadWriteInterface(convertedType);
+            var isWellKnownCollectionReadWriteInterface = CollectionExpressionUtilities.IsWellKnownCollectionReadWriteInterface(convertedType);
             if (isWellKnownCollectionReadWriteInterface &&
                 Equals(type.OriginalDefinition, compilation.ListOfTType()) &&
                 type.AllInterfaces.Contains(convertedType))
@@ -258,7 +261,7 @@ internal static class UseCollectionExpressionHelpers
             //
             // `IEnumerable<object> obj = Array.Empty<object>();` or
             // `IEnumerable<string> obj = new[] { "" };`
-            if (IsWellKnownCollectionInterface(convertedType) && type.AllInterfaces.Contains(convertedType))
+            if (CollectionExpressionUtilities.IsWellKnownCollectionInterface(convertedType) && type.AllInterfaces.Contains(convertedType))
             {
                 // The observable collections are known to have significantly different behavior than List<T>.  So
                 // disallow converting those types to ensure semantics are preserved.  We do this even though
@@ -294,90 +297,56 @@ internal static class UseCollectionExpressionHelpers
             // Add more cases to support here.
             return false;
         }
-    }
 
-    public static bool IsWellKnownCollectionInterface(ITypeSymbol type)
-        => IsWellKnownCollectionReadOnlyInterface(type) || IsWellKnownCollectionReadWriteInterface(type);
-
-    public static bool IsWellKnownCollectionReadOnlyInterface(ITypeSymbol type)
-    {
-        return type.OriginalDefinition.SpecialType
-            is SpecialType.System_Collections_Generic_IEnumerable_T
-            or SpecialType.System_Collections_Generic_IReadOnlyCollection_T
-            or SpecialType.System_Collections_Generic_IReadOnlyList_T;
-    }
-
-    public static bool IsWellKnownCollectionReadWriteInterface(ITypeSymbol type)
-    {
-        return type.OriginalDefinition.SpecialType
-            is SpecialType.System_Collections_Generic_ICollection_T
-            or SpecialType.System_Collections_Generic_IList_T;
-    }
-
-    public static bool IsConstructibleCollectionType(Compilation compilation, ITypeSymbol? type)
-    {
-        if (type is null)
-            return false;
-
-        // Arrays are always a valid collection expression type.
-        if (type is IArrayTypeSymbol)
-            return true;
-
-        // Has to be a real named type at this point.
-        if (type is INamedTypeSymbol namedType)
+        bool IsImplementationOfCollectionBuilderPattern()
         {
-            // Span<T> and ReadOnlySpan<T> are always valid collection expression types.
-            if (namedType.OriginalDefinition.Equals(compilation.SpanOfTType()) ||
-                namedType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType()))
-            {
-                return true;
-            }
+            // Check if the type being created has a CollectionBuilder attribute that points to the method we're currently in.
+            // If so, suppress the diagnostic to avoid suggesting a change that would cause infinite recursion.
+            // For example, if we're inside the Create method of a CollectionBuilder, and we have:
+            //   MyCustomCollection<T> collection = new();
+            //   foreach (T item in items) { collection.Add(item); }
+            // We should NOT suggest changing it to:
+            //   MyCustomCollection<T> collection = [.. items];
+            // Because that would recursively call the same Create method.
 
-            // If it has a [CollectionBuilder] attribute on it, it is a valid collection expression type.
-            if (namedType.GetAttributes().Any(a => a.AttributeClass.IsCollectionBuilderAttribute()))
-                return true;
-
-            if (IsWellKnownCollectionInterface(namedType))
-                return true;
-
-            // At this point, all that is left are collection-initializer types.  These need to derive from
-            // System.Collections.IEnumerable, and have an invokable no-arg constructor.
-
-            // Abstract type don't have invokable constructors at all.
-            if (namedType.IsAbstract)
+            if (targetType is not INamedTypeSymbol namedType)
                 return false;
 
-            if (namedType.AllInterfaces.Contains(compilation.IEnumerableType()!))
+            // For generic types, get the type definition to check for the attribute
+            var typeToCheck = namedType.OriginalDefinition;
+
+            // Look for CollectionBuilder attribute on the type
+            var collectionBuilderAttribute = typeToCheck.GetAttributes().FirstOrDefault(attr =>
+                attr.AttributeClass?.IsCollectionBuilderAttribute() == true);
+
+            if (collectionBuilderAttribute == null)
+                return false;
+
+            // Get the builder type and method name from the attribute.
+            // CollectionBuilderAttribute has exactly 2 constructor parameters: builderType and methodName
+            if (collectionBuilderAttribute.ConstructorArguments is not
+                [
+                { Kind: TypedConstantKind.Type, Value: INamedTypeSymbol builderType },
+                { Kind: TypedConstantKind.Primitive, Value: string methodName }
+                ])
             {
-                // If they have an accessible `public C(int capacity)` constructor, the lang prefers calling that.
-                var constructors = namedType.Constructors;
-                var capacityConstructor = GetAccessibleInstanceConstructor(constructors, c => c.Parameters is [{ Name: "capacity", Type.SpecialType: SpecialType.System_Int32 }]);
-                if (capacityConstructor != null)
-                    return true;
-
-                var noArgConstructor =
-                    GetAccessibleInstanceConstructor(constructors, c => c.Parameters.IsEmpty) ??
-                    GetAccessibleInstanceConstructor(constructors, c => c.Parameters.All(p => p.IsOptional || p.IsParams));
-                if (noArgConstructor != null)
-                {
-                    // If we have a struct, and the constructor we find is implicitly declared, don't consider this
-                    // a constructible type.  It's likely the user would just get the `default` instance of the
-                    // collection (like with ImmutableArray<T>) which would then not actually work.  If the struct
-                    // does have an explicit constructor though, that's a good sign it can actually be constructed
-                    // safely with the no-arg `new S()` call.
-                    if (!(namedType.TypeKind == TypeKind.Struct && noArgConstructor.IsImplicitlyDeclared))
-                        return true;
-                }
+                return false;
             }
-        }
 
-        // Anything else is not constructible.
-        return false;
+            // Get the containing method we're currently analyzing
+            var containingMethod = semanticModel.GetEnclosingSymbol<IMethodSymbol>(expression.SpanStart, cancellationToken);
+            if (containingMethod == null)
+                return false;
 
-        IMethodSymbol? GetAccessibleInstanceConstructor(ImmutableArray<IMethodSymbol> constructors, Func<IMethodSymbol, bool> predicate)
-        {
-            var constructor = constructors.FirstOrDefault(c => !c.IsStatic && predicate(c));
-            return constructor is not null && constructor.IsAccessibleWithin(compilation.Assembly) ? constructor : null;
+            // Check if the containing method matches the CollectionBuilder method
+            // We need to compare the original definitions in case the method is generic
+            if (containingMethod.Name == methodName &&
+                SymbolEqualityComparer.Default.Equals(containingMethod.ContainingType.OriginalDefinition, builderType.OriginalDefinition))
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 
@@ -627,12 +596,14 @@ internal static class UseCollectionExpressionHelpers
     }
 
     public static CollectionExpressionSyntax ConvertInitializerToCollectionExpression(
+        // Enable when dictionary-expressions come online.
+        // SourceText text,
         InitializerExpressionSyntax initializer, bool wasOnSingleLine)
     {
         // if the initializer is already on multiple lines, keep it that way.  otherwise, squash from `{ 1, 2, 3 }` to `[1, 2, 3]`
         var openBracket = OpenBracketToken.WithTriviaFrom(initializer.OpenBraceToken);
         var elements = initializer.Expressions.GetWithSeparators().SelectAsArray(
-            i => i.IsToken ? i : ExpressionElement((ExpressionSyntax)i.AsNode()!));
+            i => i.IsToken ? i : CreateElement((ExpressionSyntax)i.AsNode()!));
         var closeBracket = CloseBracketToken.WithTriviaFrom(initializer.CloseBraceToken);
 
         // If it was on a single line to begin with, then remove the inner spaces on the `{ ... }` to create `[...]`. If
@@ -648,6 +619,48 @@ internal static class UseCollectionExpressionHelpers
         }
 
         return CollectionExpression(openBracket, SeparatedList<CollectionElementSyntax>(elements), closeBracket);
+
+        CollectionElementSyntax CreateElement(ExpressionSyntax expression)
+        {
+            // Enable when dictionary-expressions come online.
+#if false
+            if (expression is InitializerExpressionSyntax { Expressions: [var keyExpression1, var valueExpression1] } initializer)
+            {
+                // If we have `{ key, ... }` we want to move the leading trivia of the `{` to the key so that it is
+                // properly indented to the same level the `{` was.
+                var openBraceAndKeyOnSingleLine = wasOnSingleLine || text.AreOnSameLine(initializer.OpenBraceToken, keyExpression1.GetLastToken());
+                if (openBraceAndKeyOnSingleLine)
+                    keyExpression1 = keyExpression1.WithLeadingTrivia(initializer.OpenBraceToken.LeadingTrivia);
+
+                // If we have `{ ..., value }` we want to move the trailing trivia of the `}` to the value to preserve trailing comments.
+                var valueAndCloseBraceOnSingleLine = wasOnSingleLine || text.AreOnSameLine(valueExpression1.GetLastToken(), initializer.CloseBraceToken);
+                if (valueAndCloseBraceOnSingleLine)
+                    valueExpression1 = valueExpression1.WithTrailingTrivia(initializer.CloseBraceToken.TrailingTrivia);
+
+                return KeyValuePairElement(keyExpression1, ColonToken.WithTriviaFrom(initializer.Expressions.GetSeparator(0)), valueExpression1);
+            }
+            else if (expression is AssignmentExpressionSyntax
+            {
+                Left: ImplicitElementAccessSyntax { ArgumentList.Arguments: [var argument] } implicitElementAccess,
+                OperatorToken: var equalsToken,
+                Right: var valueExpression2,
+            })
+            {
+                // If we have `[key] = value` we want to move the leading trivia of the `[` to the key.
+                var keyExpression2 = argument.Expression.WithLeadingTrivia(implicitElementAccess.GetLeadingTrivia());
+                return KeyValuePairElement(
+                    keyExpression2,
+                    ColonToken.WithTrailingTrivia(equalsToken.TrailingTrivia),
+                    valueExpression2);
+            }
+            else
+            {
+                return ExpressionElement(expression);
+            }
+#else
+            return ExpressionElement(expression);
+#endif
+        }
     }
 
     public static CollectionExpressionSyntax ReplaceWithCollectionExpression(
@@ -836,7 +849,7 @@ internal static class UseCollectionExpressionHelpers
 
                         // this looks like a good statement, add to the right size of the assignment to track as that's what
                         // we'll want to put in the final collection expression.
-                        matches.Add(new(expressionStatement, UseSpread: false));
+                        matches.Add(new(expressionStatement, UseSpread: false, UseKeyValue: false));
                         currentStatement = currentStatement.GetNextStatement();
                     }
                 }
@@ -977,13 +990,13 @@ internal static class UseCollectionExpressionHelpers
                 if (arguments.Count == 1 &&
                     compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes) &&
                     originalCreateMethod.Parameters is [
-                    {
-                        Type: INamedTypeSymbol
                         {
-                            Name: nameof(Span<>) or nameof(ReadOnlySpan<>),
-                            TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
-                        } spanType
-                    }])
+                            Type: INamedTypeSymbol
+                            {
+                                Name: nameof(Span<>) or nameof(ReadOnlySpan<>),
+                                TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
+                            } spanType
+                        }])
                 {
                     if (spanType.OriginalDefinition.Equals(compilation.SpanOfTType()) ||
                         spanType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType()))
@@ -1021,7 +1034,7 @@ internal static class UseCollectionExpressionHelpers
         if (argExpression is ObjectCreationExpressionSyntax objectCreation)
         {
             // Can't have any arguments, as we cannot preserve them once we grab out all the elements.
-            if (objectCreation.ArgumentList != null && objectCreation.ArgumentList.Arguments.Count > 0)
+            if (objectCreation.ArgumentList is { Arguments.Count: > 0 })
                 return false;
 
             // If it's got an initializer, it has to be a collection initializer (or an empty object initializer);

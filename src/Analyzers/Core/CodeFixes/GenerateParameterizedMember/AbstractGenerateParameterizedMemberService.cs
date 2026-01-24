@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 
@@ -48,9 +49,7 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
         if (canGenerateAbstractly)
             result.Add(new GenerateParameterizedMemberCodeAction((TService)this, document, state, isAbstract: true, generateProperty: false));
 
-        var semanticFacts = document.Project.Solution.Workspace.Services
-            .GetExtendedLanguageServices(state.TypeToGenerateIn.Language)
-            .GetRequiredService<ISemanticFactsService>();
+        var semanticFacts = document.Project.Solution.GetRequiredLanguageService<ISemanticFactsService>(state.TypeToGenerateIn.Language);
 
         if (semanticFacts.SupportsParameterizedProperties &&
             state.InvocationExpressionOpt != null)

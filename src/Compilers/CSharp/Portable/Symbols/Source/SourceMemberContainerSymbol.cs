@@ -1843,6 +1843,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected void AfterMembersChecks(BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
+            var location = GetFirstLocation();
+
             if (IsInterface)
             {
                 CheckInterfaceMembers(this.GetMembersAndInitializers().NonTypeMembers, diagnostics);
@@ -1850,6 +1852,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (IsExtension)
             {
                 CheckExtensionMembers(this.GetMembers(), diagnostics);
+                MessageID.IDS_FeatureExtensions.CheckFeatureAvailability(diagnostics, compilation, location);
             }
 
             CheckMemberNamesDistinctFromType(diagnostics);
@@ -1868,8 +1871,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 ReportRequiredMembers(diagnostics);
             }
-
-            var location = GetFirstLocation();
 
             if (this.IsRefLikeType)
             {
@@ -2295,7 +2296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (checkCollisionWithTypeParameters && typeParameterNames == null)
                         {
-                            if (!indexer.GetIsNewExtensionMember() && indexer.ContainingType.Arity > 0)
+                            if (!indexer.IsExtensionBlockMember() && indexer.ContainingType.Arity > 0)
                             {
                                 typeParameterNames = PooledHashSet<string>.GetInstance();
                                 foreach (TypeParameterSymbol typeParameter in indexer.ContainingType.TypeParameters)
@@ -2415,7 +2416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void checkMemberNameConflictsInExtensions(BindingDiagnosticBag diagnostics)
             {
-                IEnumerable<IGrouping<string, NamedTypeSymbol>> extensionsByReceiverType = GetTypeMembers("").Where(static t => t.IsExtension).GroupBy(static t => ((SourceNamedTypeSymbol)t).ExtensionGroupingName);
+                IEnumerable<IGrouping<string, NamedTypeSymbol>> extensionsByReceiverType = GetTypeMembers("").Where(static t => t.IsExtension).GroupBy(static t => ((SourceNamedTypeSymbol)t).ExtensionGroupingName!);
 
                 foreach (var grouping in extensionsByReceiverType)
                 {
@@ -3034,7 +3035,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckSequentialOnPartialType(BindingDiagnosticBag diagnostics)
         {
-            if (!IsPartial || this.Layout.Kind != LayoutKind.Sequential)
+            if (!IsPartial || (this.Layout.Kind != LayoutKind.Sequential && this.Layout.Kind != LayoutKind.Extended))
             {
                 return;
             }
@@ -3534,7 +3535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddDeclarationDiagnostics(diagnostics);
                 diagnostics.Free();
 
-                return declaredMembersAndInitializers!;
+                return declaredMembersAndInitializers;
             }
 
             // Builds explicitly declared members (as opposed to synthesized members).
@@ -3981,6 +3982,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         Debug.Assert(symbol.IsPartialMember());
 
+                        // Accessor symbols and their diagnostics are handled by processing the associated member.
+                        // We cannot add them to the map (signature comparison on partial event accessors can lead to cycles through IsWindowsRuntimeEvent).
+                        if (symbol is SourcePropertyAccessorSymbol or SourceEventAccessorSymbol)
+                        {
+                            continue;
+                        }
+
                         if (!membersBySignature.TryGetValue(symbol, out var prev))
                         {
                             membersBySignature.Add(symbol, symbol);
@@ -4006,13 +4014,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 mergePartialEvents(nonTypeMembers, currentEvent, prevEvent, diagnostics);
                                 break;
 
-                            case (SourcePropertyAccessorSymbol, SourcePropertyAccessorSymbol):
-                            case (SourceEventAccessorSymbol, SourceEventAccessorSymbol):
-                                break; // accessor symbols and their diagnostics are handled by processing the associated member
-
                             default:
                                 // This is an error scenario. We simply don't merge the symbols in this case and a duplicate name diagnostic is reported separately.
                                 // One way this case can be reached is if type contains both `public partial int P { get; }` and `public partial int get_P();`.
+                                Debug.Assert(symbol.Kind != prev.Kind);
                                 Debug.Assert(symbol is SourceOrdinaryMethodSymbol or SourcePropertySymbol or SourcePropertyAccessorSymbol or SourceEventAccessorSymbol);
                                 Debug.Assert(prev is SourceOrdinaryMethodSymbol or SourcePropertySymbol or SourcePropertyAccessorSymbol or SourceEventAccessorSymbol);
                                 break;
@@ -4023,6 +4028,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var symbol = (Symbol)pair.Value;
                     Debug.Assert(symbol.IsPartialMember());
+
+                    if (symbol is SourcePropertyAccessorSymbol or SourceEventAccessorSymbol)
+                    {
+                        continue;
+                    }
+
                     membersBySignature.Add(symbol, symbol);
                 }
 
@@ -4071,10 +4082,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     ev);
                             }
                             break;
-
-                        case SourceEventAccessorSymbol:
-                        case SourcePropertyAccessorSymbol:
-                            break; // diagnostics for missing partial accessors are handled in 'mergePartialProperties'/'mergePartialEvents'.
 
                         default:
                             throw ExceptionUtilities.UnexpectedValue(symbol);
@@ -5509,12 +5516,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             // Lang version check for ref-fields is done inside SourceMemberFieldSymbol;
                             _ = fieldSyntax.Declaration.Type.SkipScoped(out _).SkipRefInField(out var refKind);
-
-                            if (IsImplicitClass && reportMisplacedGlobalCode)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(fieldSyntax.Declaration.Variables.First().Identifier));
-                            }
+                            reportMisplacedMemberInNamespace(
+                                 fieldSyntax,
+                                 fieldSyntax.Declaration.Variables.First().Identifier,
+                                 reportMisplacedGlobalCode);
 
                             bool modifierErrors;
                             var modifiers = SourceMemberFieldSymbol.MakeModifiers(this, fieldSyntax.Declaration.Variables[0].Identifier, fieldSyntax.Modifiers, isRefField: refKind != RefKind.None, diagnostics, out modifierErrors);
@@ -5554,11 +5559,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.MethodDeclaration:
                         {
                             var methodSyntax = (MethodDeclarationSyntax)m;
-                            if (IsImplicitClass && reportMisplacedGlobalCode)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(methodSyntax.Identifier));
-                            }
+                            reportMisplacedMemberInNamespace(
+                                 methodSyntax,
+                                 methodSyntax.Identifier,
+                                 reportMisplacedGlobalCode);
 
                             var method = SourceOrdinaryMethodSymbol.CreateMethodSymbol(this, bodyBinder, methodSyntax, compilation.IsNullableAnalysisEnabledIn(methodSyntax), diagnostics);
                             builder.NonTypeMembersWithPartialImplementations.Add(method);
@@ -5568,11 +5572,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.ConstructorDeclaration:
                         {
                             var constructorSyntax = (ConstructorDeclarationSyntax)m;
-                            if (IsImplicitClass && reportMisplacedGlobalCode)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(constructorSyntax.Identifier));
-                            }
+                            reportMisplacedMemberInNamespace(
+                                 constructorSyntax,
+                                 constructorSyntax.Identifier,
+                                 reportMisplacedGlobalCode);
 
                             bool isNullableEnabled = compilation.IsNullableAnalysisEnabledIn(constructorSyntax);
                             var constructor = SourceConstructorSymbol.CreateConstructorSymbol(this, constructorSyntax, isNullableEnabled, diagnostics);
@@ -5587,11 +5590,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.DestructorDeclaration:
                         {
                             var destructorSyntax = (DestructorDeclarationSyntax)m;
-                            if (IsImplicitClass && reportMisplacedGlobalCode)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(destructorSyntax.Identifier));
-                            }
+                            reportMisplacedMemberInNamespace(
+                                 destructorSyntax,
+                                 destructorSyntax.Identifier,
+                                 reportMisplacedGlobalCode);
 
                             // CONSIDER: if this doesn't (directly or indirectly) override object.Finalize, the
                             // runtime won't consider it a finalizer and it will not be marked as a destructor
@@ -5605,11 +5607,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.PropertyDeclaration:
                         {
                             var propertySyntax = (PropertyDeclarationSyntax)m;
-                            if (IsImplicitClass && reportMisplacedGlobalCode)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(propertySyntax.Identifier));
-                            }
+                            reportMisplacedMemberInNamespace(
+                                 propertySyntax,
+                                 propertySyntax.Identifier,
+                                 reportMisplacedGlobalCode);
 
                             var property = SourcePropertySymbol.Create(this, bodyBinder, propertySyntax, diagnostics);
                             builder.NonTypeMembersWithPartialImplementations.Add(property);
@@ -5656,12 +5657,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.EventFieldDeclaration:
                         {
                             var eventFieldSyntax = (EventFieldDeclarationSyntax)m;
-                            if (IsImplicitClass && reportMisplacedGlobalCode)
-                            {
-                                diagnostics.Add(
-                                    ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(eventFieldSyntax.Declaration.Variables.First().Identifier));
-                            }
+                            reportMisplacedMemberInNamespace(
+                                 eventFieldSyntax,
+                                 eventFieldSyntax.Declaration.Variables.First().Identifier,
+                                 reportMisplacedGlobalCode);
 
                             foreach (VariableDeclaratorSyntax declarator in eventFieldSyntax.Declaration.Variables)
                             {
@@ -5710,11 +5709,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.EventDeclaration:
                         {
                             var eventSyntax = (EventDeclarationSyntax)m;
-                            if (IsImplicitClass && reportMisplacedGlobalCode)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(eventSyntax.Identifier));
-                            }
+                            reportMisplacedMemberInNamespace(
+                                eventSyntax,
+                                eventSyntax.Identifier,
+                                reportMisplacedGlobalCode);
 
                             var @event = new SourceCustomEventSymbol(this, bodyBinder, eventSyntax, diagnostics);
 
@@ -5730,11 +5728,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.IndexerDeclaration:
                         {
                             var indexerSyntax = (IndexerDeclarationSyntax)m;
-                            if (IsImplicitClass && reportMisplacedGlobalCode)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(indexerSyntax.ThisKeyword));
-                            }
+                            reportMisplacedMemberInNamespace(
+                                indexerSyntax,
+                                indexerSyntax.ThisKeyword,
+                                reportMisplacedGlobalCode);
 
                             var indexer = SourcePropertySymbol.Create(this, bodyBinder, indexerSyntax, diagnostics);
                             builder.HaveIndexers = true;
@@ -5747,11 +5744,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.ConversionOperatorDeclaration:
                         {
                             var conversionOperatorSyntax = (ConversionOperatorDeclarationSyntax)m;
-                            if (IsImplicitClass && reportMisplacedGlobalCode)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(conversionOperatorSyntax.OperatorKeyword));
-                            }
+                            reportMisplacedMemberInNamespace(
+                                conversionOperatorSyntax,
+                                conversionOperatorSyntax.OperatorKeyword,
+                                reportMisplacedGlobalCode);
 
                             var method = SourceUserDefinedConversionSymbol.CreateUserDefinedConversionSymbol(
                                 this, bodyBinder, conversionOperatorSyntax, compilation.IsNullableAnalysisEnabledIn(conversionOperatorSyntax), diagnostics);
@@ -5762,11 +5758,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.OperatorDeclaration:
                         {
                             var operatorSyntax = (OperatorDeclarationSyntax)m;
-                            if (IsImplicitClass && reportMisplacedGlobalCode)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(operatorSyntax.OperatorKeyword));
-                            }
+                            reportMisplacedMemberInNamespace(
+                                operatorSyntax,
+                                operatorSyntax.OperatorKeyword,
+                                reportMisplacedGlobalCode);
 
                             var method = SourceUserDefinedOperatorSymbol.CreateUserDefinedOperatorSymbol(
                                 this, bodyBinder, operatorSyntax, compilation.IsNullableAnalysisEnabledIn(operatorSyntax), diagnostics);
@@ -5842,6 +5837,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             AddInitializers(builder.InstanceInitializers, instanceInitializers);
             AddInitializers(builder.StaticInitializers, staticInitializers);
+
+            void reportMisplacedMemberInNamespace(SyntaxNode member, SyntaxToken locationSyntax, bool reportMisplacedGlobalCode)
+            {
+                if (IsImplicitClass && reportMisplacedGlobalCode)
+                {
+                    var parentSyntax = member.Parent;
+                    var errorCode = parentSyntax.IsKind(SyntaxKind.CompilationUnit)
+                        ? ErrorCode.ERR_CompilationUnitUnexpected
+                        : ErrorCode.ERR_NamespaceUnexpected;
+                    diagnostics.Add(errorCode, new SourceLocation(locationSyntax));
+                }
+            }
         }
 
         private void AddAccessorIfAvailable(ArrayBuilder<Symbol> symbols, MethodSymbol? accessorOpt)

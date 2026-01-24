@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style;
 
@@ -97,9 +98,9 @@ internal sealed class NamingStyleOptionPageViewModel : AbstractNotifyPropertyCha
         var symbolSpecifications = viewModel.Items.Cast<SymbolSpecificationViewModel>().Select(n => new SymbolSpecification(
             n.ID,
             n.ItemName,
-            [.. n.SymbolKindList.Where(s => s.IsChecked).Select(k => k.CreateSymbolOrTypeOrMethodKind())],
-            [.. n.AccessibilityList.Where(s => s.IsChecked).Select(a => a._accessibility)],
-            [.. n.ModifierList.Where(s => s.IsChecked).Select(m => new SymbolSpecification.ModifierKind(m._modifier.Modifiers))]));
+            n.SymbolKindList.SelectAsArray(s => s.IsChecked, k => k.CreateSymbolOrTypeOrMethodKind()),
+            n.AccessibilityList.SelectAsArray(s => s.IsChecked, a => a._accessibility),
+            n.ModifierList.SelectAsArray(s => s.IsChecked, m => new SymbolSpecification.ModifierKind(m._modifier.Modifiers))));
 
         Specifications.Clear();
         foreach (var specification in symbolSpecifications)

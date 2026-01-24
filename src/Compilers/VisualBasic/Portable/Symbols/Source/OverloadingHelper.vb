@@ -113,9 +113,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         member.SetMetadataName(metadataName)
 
                         ' Remember the metadata name of the lexically first override
-                        If firstOverrideName Is Nothing OrElse compilation.CompareSourceLocations(member.Locations(0), locationOfFirstOverride) < 0 Then
+                        If firstOverrideName Is Nothing OrElse compilation.CompareSourceLocations(member.GetFirstLocation(), locationOfFirstOverride) < 0 Then
                             firstOverrideName = metadataName
-                            locationOfFirstOverride = member.Locations(0)
+                            locationOfFirstOverride = member.GetFirstLocation()
                         End If
                     End If
                 End If
@@ -131,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim firstName As String = Nothing
             Dim locationOfFirstName As Location = Nothing
             For Each member In overloadedMembers
-                Dim memberLocation = member.Locations(0)
+                Dim memberLocation = member.GetFirstLocation()
                 If firstName Is Nothing OrElse compilation.CompareSourceLocations(memberLocation, locationOfFirstName) < 0 Then
                     firstName = member.Name
                     locationOfFirstName = memberLocation
@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' members. For the lookup we are doing, it doesn't matter which partial we use because Imports and Options can't
             ' affect a lookup that ignores extension methods.
             Dim binder = BinderBuilder.CreateBinderForType(DirectCast(container.ContainingModule, SourceModuleSymbol),
-                                                           container.Locations(0).PossiblyEmbeddedOrMySourceTree(),
+                                                           container.GetFirstLocation().PossiblyEmbeddedOrMySourceTree(),
                                                            container)
 
             Dim result = LookupResult.GetInstance()

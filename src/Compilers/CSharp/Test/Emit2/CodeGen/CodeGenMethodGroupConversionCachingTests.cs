@@ -6390,6 +6390,467 @@ class D
         }
     }
 
+    [Fact]
+    public void CompilerLoweringPreserveAttribute_02()
+    {
+        string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+        string source2 = @"
+#pragma warning disable CS8321 // Local function is declared but never used
+
+class Test1
+{
+    void Test()
+    {
+        System.Action local<[Preserve1][Preserve2]T>()
+        {
+            return (System.Action)D.Target<T>;
+        }
+    }
+}
+
+class D
+{
+    public static void Target<B>() { }
+}
+";
+        var comp1 = CreateCompilation([source1, source2, CompilerLoweringPreserveAttributeDefinition]);
+        CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol m)
+        {
+            AssertEx.SequenceEqual(
+                ["Preserve1Attribute"],
+                m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<local>O__0_0").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+        }
+    }
+
+    [Fact]
+    public void CompilerLoweringPreserveAttribute_03()
+    {
+        string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+        string source2 = @"
+#pragma warning disable CS8321 // Local function is declared but never used
+
+class Test1
+{
+    void Test<[Preserve1][Preserve2]T>()
+    {
+        System.Action local()
+        {
+            return (System.Action)D.Target<T>;
+        }
+    }
+}
+
+class D
+{
+    public static void Target<B>() { }
+}
+";
+        var comp1 = CreateCompilation([source1, source2, CompilerLoweringPreserveAttributeDefinition]);
+        CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol m)
+        {
+            AssertEx.SequenceEqual(
+                ["Preserve1Attribute"],
+                m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<Test>O__0_0").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+        }
+    }
+
+    [Fact]
+    public void CompilerLoweringPreserveAttribute_04()
+    {
+        string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+        string source2 = @"
+#pragma warning disable CS8321 // Local function is declared but never used
+
+class Test1
+{
+    void Test<[Preserve1][Preserve2]T>()
+    {
+        var d = () =>
+        {
+            return (System.Action)D.Target<T>;
+        };
+    }
+}
+
+class D
+{
+    public static void Target<B>() { }
+}
+";
+        var comp1 = CreateCompilation([source1, source2, CompilerLoweringPreserveAttributeDefinition]);
+        CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol m)
+        {
+            AssertEx.SequenceEqual(
+                ["Preserve1Attribute"],
+                m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<Test>O__0_0").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+        }
+    }
+
+    [Fact]
+    public void CompilerLoweringPreserveAttribute_05()
+    {
+        string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+        string source2 = @"
+static class Test1
+{
+    extension<[Preserve1][Preserve2]T>(int i)
+    {
+        System.Action M2()
+        {
+            return (System.Action)D.Target<T>;
+        }
+    }
+}
+
+class D
+{
+    public static void Target<B>() { }
+}
+";
+        var comp1 = CreateCompilation([source1, source2, CompilerLoweringPreserveAttributeDefinition]);
+        CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol m)
+        {
+            AssertEx.SequenceEqual(
+                ["Preserve1Attribute"],
+                m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<>O__1_0").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+        }
+    }
+
+    [Fact]
+    public void CompilerLoweringPreserveAttribute_06()
+    {
+        string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+        string source2 = @"
+static class Test1
+{
+    extension(int i)
+    {
+        System.Action M2<[Preserve1][Preserve2]T>()
+        {
+            return (System.Action)D.Target<T>;
+        }
+    }
+}
+
+class D
+{
+    public static void Target<B>() { }
+}
+";
+        var comp1 = CreateCompilation([source1, source2, CompilerLoweringPreserveAttributeDefinition]);
+        CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol m)
+        {
+            AssertEx.SequenceEqual(
+                ["Preserve1Attribute"],
+                m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<M2>O__1_0").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+        }
+    }
+
+    [Fact]
+    public void CompilerLoweringPreserveAttribute_07()
+    {
+        string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+        string source2 = @"
+#pragma warning disable CS8321 // Local function is declared but never used
+
+static class Test1
+{
+    extension(int i)
+    {
+        void Test()
+        {
+            System.Action local<[Preserve1][Preserve2]T>()
+            {
+                return (System.Action)D.Target<T>;
+            }
+        }
+    }
+}
+
+class D
+{
+    public static void Target<B>() { }
+}
+";
+        var comp1 = CreateCompilation([source1, source2, CompilerLoweringPreserveAttributeDefinition]);
+        CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol m)
+        {
+            AssertEx.SequenceEqual(
+                ["Preserve1Attribute"],
+                m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<local>O__1_0").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+        }
+    }
+
+    [Fact]
+    public void CompilerLoweringPreserveAttribute_08()
+    {
+        string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+        string source2 = @"
+#pragma warning disable CS8321 // Local function is declared but never used
+
+static class Test1
+{
+    extension(int i)
+    {
+        void Test<[Preserve1][Preserve2]T>()
+        {
+            System.Action local()
+            {
+                return (System.Action)D.Target<T>;
+            }
+        }
+    }
+}
+
+class D
+{
+    public static void Target<B>() { }
+}
+";
+        var comp1 = CreateCompilation([source1, source2, CompilerLoweringPreserveAttributeDefinition]);
+        CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol m)
+        {
+            AssertEx.SequenceEqual(
+                ["Preserve1Attribute"],
+                m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<Test>O__1_0").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+        }
+    }
+
+    [Fact]
+    public void CompilerLoweringPreserveAttribute_09()
+    {
+        string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+        string source2 = @"
+#pragma warning disable CS8321 // Local function is declared but never used
+
+static class Test1
+{
+    extension<[Preserve1][Preserve2]T>(int i)
+    {
+        void Test()
+        {
+            System.Action local()
+            {
+                return (System.Action)D.Target<T>;
+            }
+        }
+    }
+}
+
+class D
+{
+    public static void Target<B>() { }
+}
+";
+        var comp1 = CreateCompilation([source1, source2, CompilerLoweringPreserveAttributeDefinition]);
+        CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol m)
+        {
+            AssertEx.SequenceEqual(
+                ["Preserve1Attribute"],
+                m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<>O__1_0").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+        }
+    }
+
+    [Fact]
+    public void CompilerLoweringPreserveAttribute_10()
+    {
+        string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+        string source2 = @"
+#pragma warning disable CS8321 // Local function is declared but never used
+
+static class Test1
+{
+    extension(int i)
+    {
+        void Test<[Preserve1][Preserve2]T>()
+        {
+            var d = () =>
+            {
+                return (System.Action)D.Target<T>;
+            };
+        }
+    }
+}
+
+class D
+{
+    public static void Target<B>() { }
+}
+";
+        var comp1 = CreateCompilation([source1, source2, CompilerLoweringPreserveAttributeDefinition]);
+        CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol m)
+        {
+            AssertEx.SequenceEqual(
+                ["Preserve1Attribute"],
+                m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<Test>O__1_0").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+        }
+    }
+
+    [Fact]
+    public void CompilerLoweringPreserveAttribute_11()
+    {
+        string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+        string source2 = @"
+#pragma warning disable CS8321 // Local function is declared but never used
+
+static class Test1
+{
+    extension<[Preserve1][Preserve2]T>(int i)
+    {
+        void Test()
+        {
+            var d = () =>
+            {
+                return (System.Action)D.Target<T>;
+            };
+        }
+    }
+}
+
+class D
+{
+    public static void Target<B>() { }
+}
+";
+        var comp1 = CreateCompilation([source1, source2, CompilerLoweringPreserveAttributeDefinition]);
+        CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol m)
+        {
+            AssertEx.SequenceEqual(
+                ["Preserve1Attribute"],
+                m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<>O__1_0").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+        }
+    }
+
     private static Action<ModuleSymbol> VerifyCacheContainer(string typeName, int arity, params string[] expectedFields)
     {
         return module =>

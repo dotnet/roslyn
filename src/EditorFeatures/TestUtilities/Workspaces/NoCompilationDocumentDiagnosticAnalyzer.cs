@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 [DiagnosticAnalyzer(NoCompilationConstants.LanguageName)]
 internal sealed class NoCompilationDocumentDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
 {
-    public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+    public static readonly DiagnosticDescriptor Descriptor = new(
         "NC0000", "No Compilation Syntax Error", "No Compilation Syntax Error", "Error", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Descriptor];
 
-    public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument document, SyntaxTree tree, CancellationToken cancellationToken)
+    public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument document, SyntaxTree tree, CancellationToken cancellationToken)
     {
-        return Task.FromResult(ImmutableArray.Create(
-            Diagnostic.Create(Descriptor, Location.Create(document.FilePath, default, default))));
+        return ImmutableArray.Create(
+            Diagnostic.Create(Descriptor, Location.Create(document.FilePath, default, default)));
     }
 }

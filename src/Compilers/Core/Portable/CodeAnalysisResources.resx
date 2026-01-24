@@ -120,9 +120,6 @@
   <data name="OutputKindNotSupported" xml:space="preserve">
     <value>Output kind not supported.</value>
   </data>
-  <data name="PathReturnedByResolveMetadataFileMustBeAbsolute" xml:space="preserve">
-    <value>Path returned by {0}.ResolveMetadataFile must be absolute: '{1}'</value>
-  </data>
   <data name="AssemblyMustHaveAtLeastOneModule" xml:space="preserve">
     <value>Assembly must have at least one module.</value>
   </data>
@@ -195,9 +192,6 @@
   <data name="SizeHasToBePositive" xml:space="preserve">
     <value>Size has to be positive.</value>
   </data>
-  <data name="AssemblyFileNotFound" xml:space="preserve">
-    <value>Assembly file not found</value>
-  </data>
   <data name="CannotEmbedInteropTypesFromModule" xml:space="preserve">
     <value>Can't embed interop types from module.</value>
   </data>
@@ -206,15 +200,6 @@
   </data>
   <data name="InvalidAlias" xml:space="preserve">
     <value>Invalid alias.</value>
-  </data>
-  <data name="GetMetadataMustReturnInstance" xml:space="preserve">
-    <value>{0}.GetMetadata() must return an instance of {1}.</value>
-  </data>
-  <data name="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer" xml:space="preserve">
-    <value>Value too large to be represented as a 30 bit unsigned integer.</value>
-  </data>
-  <data name="Arrays_with_more_than_one_dimension_cannot_be_serialized" xml:space="preserve">
-    <value>Arrays with more than one dimension cannot be serialized.</value>
   </data>
   <data name="InvalidAssemblyName" xml:space="preserve">
     <value>Invalid assembly name: '{0}'</value>
@@ -227,9 +212,6 @@
   </data>
   <data name="NullValueInPathMap" xml:space="preserve">
     <value>A value in the pathMap is null.</value>
-  </data>
-  <data name="CompilationOptionsMustNotHaveErrors" xml:space="preserve">
-    <value>Compilation options must not have errors.</value>
   </data>
   <data name="ReturnTypeCannotBeValuePointerbyRefOrOpen" xml:space="preserve">
     <value>Return type can't be a value type, pointer, by-ref or open generic type</value>
@@ -267,17 +249,8 @@
   <data name="FileNotFound" xml:space="preserve">
     <value>File not found.</value>
   </data>
-  <data name="PathReturnedByResolveStrongNameKeyFileMustBeAbsolute" xml:space="preserve">
-    <value>Path returned by {0}.ResolveStrongNameKeyFile must be absolute: '{1}'</value>
-  </data>
-  <data name="TypeMustBeASubclassOfSyntaxAnnotation" xml:space="preserve">
-    <value>type must be a subclass of SyntaxAnnotation.</value>
-  </data>
   <data name="InvalidModuleName" xml:space="preserve">
     <value>Invalid module name specified in metadata module '{0}': '{1}'</value>
-  </data>
-  <data name="FileSizeExceedsMaximumAllowed" xml:space="preserve">
-    <value>File size exceeds maximum allowed size of a valid metadata file.</value>
   </data>
   <data name="NameCannotBeNull" xml:space="preserve">
     <value>Name cannot be null.</value>
@@ -306,17 +279,11 @@
   <data name="InvalidContentType" xml:space="preserve">
     <value>Invalid content type</value>
   </data>
-  <data name="ExpectedNonEmptyPublicKey" xml:space="preserve">
-    <value>Expected non-empty public key</value>
-  </data>
   <data name="InvalidSizeOfPublicKeyToken" xml:space="preserve">
     <value>Invalid size of public key token.</value>
   </data>
   <data name="InvalidCharactersInAssemblyName" xml:space="preserve">
     <value>Invalid characters in assembly name</value>
-  </data>
-  <data name="InvalidCharactersInAssemblyCultureName" xml:space="preserve">
-    <value>Invalid characters in assembly culture name</value>
   </data>
   <data name="StreamMustSupportReadAndSeek" xml:space="preserve">
     <value>Stream must support read and seek operations.</value>
@@ -338,9 +305,6 @@
   </data>
   <data name="IncludingPrivateMembersUnexpectedWhenEmittingToMetadataPeStream" xml:space="preserve">
     <value>Including private members should not be used when emitting to the secondary assembly output.</value>
-  </data>
-  <data name="MustIncludePrivateMembersUnlessRefAssembly" xml:space="preserve">
-    <value>Must include private members unless emitting a ref assembly.</value>
   </data>
   <data name="EmbeddingPdbUnexpectedWhenEmittingMetadata" xml:space="preserve">
     <value>Embedding PDB is not allowed when emitting metadata.</value>
@@ -378,17 +342,11 @@
   <data name="WinRTIdentityCantBeRetargetable" xml:space="preserve">
     <value>WindowsRuntime identity can't be retargetable</value>
   </data>
-  <data name="PEImageNotAvailable" xml:space="preserve">
-    <value>PE image not available.</value>
-  </data>
   <data name="AssemblySigningNotSupported" xml:space="preserve">
     <value>Assembly signing not supported.</value>
   </data>
   <data name="XmlReferencesNotSupported" xml:space="preserve">
     <value>References to XML documents are not supported.</value>
-  </data>
-  <data name="FailedToResolveRuleSetName" xml:space="preserve">
-    <value>Could not locate the rule set file '{0}'.</value>
   </data>
   <data name="InvalidRuleSetInclude" xml:space="preserve">
     <value>An error occurred while loading the included rule set file {0} - {1}</value>
@@ -468,15 +426,6 @@
   <data name="SupportedSuppressionsHasNullDescriptor" xml:space="preserve">
     <value>Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</value>
   </data>
-  <data name="The_type_0_is_not_understood_by_the_serialization_binder" xml:space="preserve">
-    <value>The type '{0}' is not understood by the serialization binder.</value>
-  </data>
-  <data name="Cannot_deserialize_type_0" xml:space="preserve">
-    <value>Cannot deserialize type '{0}'.</value>
-  </data>
-  <data name="Cannot_serialize_type_0" xml:space="preserve">
-    <value>Cannot serialize type '{0}'.</value>
-  </data>
   <data name="InvalidNodeToTrack" xml:space="preserve">
     <value>Node to track is not a descendant of the root.</value>
   </data>
@@ -488,6 +437,15 @@
   </data>
   <data name="MissingListItem" xml:space="preserve">
     <value>The item specified is not the element of a list.</value>
+  </data>
+  <data name="MissingTokenListItem" xml:space="preserve">
+    <value>The specified token must be a direct element of a SyntaxTokenList (such as a modifier in a list of modifiers). The token cannot be an arbitrary token from the syntax tree.</value>
+  </data>
+  <data name="SeparatorTokenMustHaveSameRawKind" xml:space="preserve">
+    <value>New separator must have the same RawKind as the separator being replaced.</value>
+  </data>
+  <data name="SeparatorTokenMustHaveSameLanguage" xml:space="preserve">
+    <value>New separator must have the same Language as the separator being replaced.</value>
   </data>
   <data name="InvalidPublicKey" xml:space="preserve">
     <value>Invalid public key.</value>
@@ -616,29 +574,14 @@
   <data name="EmbeddedTextsRequirePdb" xml:space="preserve">
     <value>Embedded texts are only supported when emitting a PDB.</value>
   </data>
-  <data name="TheStreamCannotBeWrittenTo" xml:space="preserve">
-    <value>The stream cannot be written to.</value>
-  </data>
   <data name="ElementIsExpected" xml:space="preserve">
     <value>element is expected</value>
   </data>
   <data name="SeparatorIsExpected" xml:space="preserve">
     <value>separator is expected</value>
   </data>
-  <data name="TheStreamCannotBeReadFrom" xml:space="preserve">
-    <value>The stream cannot be read from.</value>
-  </data>
-  <data name="Deserialization_reader_for_0_read_incorrect_number_of_values" xml:space="preserve">
-    <value>Deserialization reader for '{0}' read incorrect number of values.</value>
-  </data>
-  <data name="Stream_contains_invalid_data" xml:space="preserve">
-    <value>Stream contains invalid data</value>
-  </data>
   <data name="InvalidDiagnosticSpanReported" xml:space="preserve">
     <value>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</value>
-  </data>
-  <data name="ExceptionEnablingMulticoreJit" xml:space="preserve">
-    <value>Warning: Could not enable multicore JIT due to exception: {0}.</value>
   </data>
   <data name="NotARootOperation" xml:space="preserve">
     <value>Given operation has a non-null parent.</value>
@@ -657,12 +600,6 @@
   </data>
   <data name="OperationMustNotBeControlFlowGraphPart" xml:space="preserve">
     <value>The provided operation must not be part of a Control Flow Graph.</value>
-  </data>
-  <data name="A_language_name_cannot_be_specified_for_this_option" xml:space="preserve">
-    <value>A language name cannot be specified for this option.</value>
-  </data>
-  <data name="A_language_name_must_be_specified_for_this_option" xml:space="preserve">
-    <value>A language name must be specified for this option.</value>
   </data>
   <data name="WRN_InvalidSeverityInAnalyzerConfig" xml:space="preserve">
     <value>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</value>

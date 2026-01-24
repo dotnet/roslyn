@@ -7,6 +7,7 @@ Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.get_GetAwaiterMethod
 Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.get_GetResultMethod
 Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.get_IsCompletedProperty
 Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.get_IsDynamic
+Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.get_RuntimeAwaitMethod
 Microsoft.CodeAnalysis.CSharp.CSharpCompilation
 Microsoft.CodeAnalysis.CSharp.CSharpCompilation.AddReferences(Microsoft.CodeAnalysis.MetadataReference[])
 Microsoft.CodeAnalysis.CSharp.CSharpCompilation.AddReferences(System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.MetadataReference})
@@ -165,6 +166,8 @@ Microsoft.CodeAnalysis.CSharp.CSharpExtensions.ClassifyConversion(Microsoft.Code
 Microsoft.CodeAnalysis.CSharp.CSharpExtensions.ClassifyConversion(Microsoft.CodeAnalysis.SemanticModel,System.Int32,Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax,Microsoft.CodeAnalysis.ITypeSymbol,System.Boolean)
 Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetAliasInfo(Microsoft.CodeAnalysis.SemanticModel,Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax,System.Threading.CancellationToken)
 Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetAwaitExpressionInfo(Microsoft.CodeAnalysis.SemanticModel,Microsoft.CodeAnalysis.CSharp.Syntax.AwaitExpressionSyntax)
+Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetAwaitExpressionInfo(Microsoft.CodeAnalysis.SemanticModel,Microsoft.CodeAnalysis.CSharp.Syntax.LocalDeclarationStatementSyntax)
+Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetAwaitExpressionInfo(Microsoft.CodeAnalysis.SemanticModel,Microsoft.CodeAnalysis.CSharp.Syntax.UsingStatementSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetCollectionInitializerSymbolInfo(Microsoft.CodeAnalysis.SemanticModel,Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax,System.Threading.CancellationToken)
 Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetCompilationUnitRoot(Microsoft.CodeAnalysis.SyntaxTree,System.Threading.CancellationToken)
 Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetConstantValue(Microsoft.CodeAnalysis.SemanticModel,Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax,System.Threading.CancellationToken)
@@ -565,6 +568,7 @@ Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitWarningDirectiveTrivia(M
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitWhenClause(Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitWhereClause(Microsoft.CodeAnalysis.CSharp.Syntax.WhereClauseSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitWhileStatement(Microsoft.CodeAnalysis.CSharp.Syntax.WhileStatementSyntax)
+Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitWithElement(Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitWithExpression(Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitXmlCDataSection(Microsoft.CodeAnalysis.CSharp.Syntax.XmlCDataSectionSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitXmlComment(Microsoft.CodeAnalysis.CSharp.Syntax.XmlCommentSyntax)
@@ -853,6 +857,7 @@ Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitWarningDirectiveTrivia(Mi
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitWhenClause(Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitWhereClause(Microsoft.CodeAnalysis.CSharp.Syntax.WhereClauseSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitWhileStatement(Microsoft.CodeAnalysis.CSharp.Syntax.WhileStatementSyntax)
+Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitWithElement(Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitWithExpression(Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitXmlCDataSection(Microsoft.CodeAnalysis.CSharp.Syntax.XmlCDataSectionSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitXmlComment(Microsoft.CodeAnalysis.CSharp.Syntax.XmlCommentSyntax)
@@ -1104,6 +1109,7 @@ Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitWarningDirectiveTrivia(
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitWhenClause(Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitWhereClause(Microsoft.CodeAnalysis.CSharp.Syntax.WhereClauseSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitWhileStatement(Microsoft.CodeAnalysis.CSharp.Syntax.WhileStatementSyntax)
+Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitWithElement(Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitWithExpression(Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitXmlCDataSection(Microsoft.CodeAnalysis.CSharp.Syntax.XmlCDataSectionSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitXmlComment(Microsoft.CodeAnalysis.CSharp.Syntax.XmlCommentSyntax)
@@ -1179,11 +1185,13 @@ Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.Equals(System.Object)
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.GetHashCode
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.get_CurrentConversion
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.get_CurrentProperty
+Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.get_DisposeAwaitableInfo
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.get_DisposeMethod
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.get_ElementConversion
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.get_ElementType
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.get_GetEnumeratorMethod
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.get_IsAsynchronous
+Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.get_MoveNextAwaitableInfo
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.get_MoveNextMethod
 Microsoft.CodeAnalysis.CSharp.InterceptableLocation
 Microsoft.CodeAnalysis.CSharp.InterceptableLocation.Equals(Microsoft.CodeAnalysis.CSharp.InterceptableLocation)
@@ -4566,6 +4574,15 @@ Microsoft.CodeAnalysis.CSharp.Syntax.WhileStatementSyntax.get_Condition
 Microsoft.CodeAnalysis.CSharp.Syntax.WhileStatementSyntax.get_OpenParenToken
 Microsoft.CodeAnalysis.CSharp.Syntax.WhileStatementSyntax.get_Statement
 Microsoft.CodeAnalysis.CSharp.Syntax.WhileStatementSyntax.get_WhileKeyword
+Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor)
+Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax.Accept``1(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor{``0})
+Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax.AddArgumentListArguments(Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax[])
+Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax)
+Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax.WithArgumentList(Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax)
+Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax.WithWithKeyword(Microsoft.CodeAnalysis.SyntaxToken)
+Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax.get_ArgumentList
+Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax.get_WithKeyword
 Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor)
 Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax.Accept``1(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor{``0})
@@ -5540,6 +5557,8 @@ Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WhileStatement(Microsoft.CodeAnalysi
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WhileStatement(Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax,Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax)
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Whitespace(System.String)
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Whitespace(System.String,System.Boolean)
+Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WithElement(Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax)
+Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WithElement(Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax)
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WithExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax,Microsoft.CodeAnalysis.CSharp.Syntax.InitializerExpressionSyntax)
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WithExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax,Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.CSharp.Syntax.InitializerExpressionSyntax)
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.XmlCDataSection(Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.SyntaxTokenList,Microsoft.CodeAnalysis.SyntaxToken)
@@ -6267,6 +6286,7 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.WhereKeyword
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.WhileKeyword
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.WhileStatement
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.WhitespaceTrivia
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.WithElement
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.WithExpression
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.WithInitializerExpression
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.WithKeyword

@@ -78,6 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ConstantValue ExplicitDefaultConstantValue { get { throw ExceptionUtilities.Unreachable(); } }
 
+        internal override ConstantValue DefaultValueFromAttributes { get { throw ExceptionUtilities.Unreachable(); } }
+
         internal override bool IsIDispatchConstant { get { throw ExceptionUtilities.Unreachable(); } }
 
         internal override bool IsIUnknownConstant { get { throw ExceptionUtilities.Unreachable(); } }

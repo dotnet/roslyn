@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup;
 [Trait(Traits.Feature, Traits.Features.EventHookup)]
 public sealed class EventHookupCommandHandlerTests
 {
-    private readonly NamingStylesTestOptionSets _namingOptions = new NamingStylesTestOptionSets(LanguageNames.CSharp);
+    private readonly NamingStylesTestOptionSets _namingOptions = new(LanguageNames.CSharp);
 
     [WpfFact]
     public async Task HandlerName_EventInThisClass()
@@ -38,6 +38,26 @@ public sealed class EventHookupCommandHandlerTests
         testState.SendTypeChar('=');
         await testState.WaitForAsynchronousOperationsAsync();
         testState.AssertShowing("C_MyEvent");
+    }
+
+    [WpfFact]
+    public async Task Handler_DismissSuggestionService()
+    {
+        var markup = """
+            class C
+            {
+                event System.Action MyEvent;
+                void M()
+                {
+                    MyEvent +$$
+                }
+            }
+            """;
+        using var testState = EventHookupTestState.CreateTestState(markup);
+        testState.SendTypeChar('=');
+        await testState.WaitForAsynchronousOperationsAsync();
+        testState.AssertShowing("C_MyEvent");
+        testState.AssertSuggestionServiceWasDismissed();
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20999")]
@@ -1203,5 +1223,5 @@ public sealed class EventHookupCommandHandlerTests
     }
 
     private static OptionsCollection QualifyMethodAccessWithNotification(NotificationOption2 notification)
-        => new OptionsCollection(LanguageNames.CSharp) { { CodeStyleOptions2.QualifyMethodAccess, true, notification } };
+        => new(LanguageNames.CSharp) { { CodeStyleOptions2.QualifyMethodAccess, true, notification } };
 }

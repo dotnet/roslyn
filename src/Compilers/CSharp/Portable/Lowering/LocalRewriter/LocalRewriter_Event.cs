@@ -307,10 +307,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)addRemove != null)
                 {
+                    TypeSymbol parameters0Type = addRemove.Parameters[0].Type;
+                    Debug.Assert(parameters0Type.IsObjectType());
+                    Conversion c0 = _factory.ClassifyEmitConversion(rewrittenReceiver, parameters0Type);
+                    Debug.Assert(c0.IsImplicit);
+                    Debug.Assert(c0.IsReference);
+
+                    TypeSymbol parameters1Type = addRemove.Parameters[1].Type;
+                    Debug.Assert(parameters1Type.SpecialType == SpecialType.System_Delegate);
+                    Conversion c1 = _factory.ClassifyEmitConversion(rewrittenArgument, parameters1Type);
+                    Debug.Assert(c1.IsImplicit);
+                    Debug.Assert(c1.IsReference);
+
                     BoundExpression eventInfo = _factory.New(ctor, _factory.Typeof(node.Event.ContainingType, ctor.Parameters[0].Type), _factory.Literal(node.Event.MetadataName));
                     result = _factory.Call(eventInfo, addRemove,
-                                          _factory.Convert(addRemove.Parameters[0].Type, rewrittenReceiver),
-                                          _factory.Convert(addRemove.Parameters[1].Type, rewrittenArgument));
+                                          _factory.Convert(parameters0Type, rewrittenReceiver, c0),
+                                          _factory.Convert(parameters1Type, rewrittenArgument, c1));
                 }
             }
 

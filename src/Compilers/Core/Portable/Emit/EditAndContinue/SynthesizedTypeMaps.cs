@@ -31,14 +31,10 @@ internal readonly struct SynthesizedTypeMaps(
         = anonymousDelegates ?? ImmutableSegmentedDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue>.Empty;
 
     /// <summary>
-    /// A map of the assembly identities of the baseline compilation to the identities of the original metadata AssemblyRefs.
-    /// Only includes identities that differ between these two.
+    /// In C#, the set of anonymous delegates with name that is not determined by parameter types only 
+    /// and need to be suffixed by an index (e.g. delegates may have same parameter types but differ in default parameter values);
+    /// in VB, this set is unused and empty.
     /// </summary>
     public ImmutableSegmentedDictionary<AnonymousDelegateWithIndexedNamePartialKey, ImmutableArray<AnonymousTypeValue>> AnonymousDelegatesWithIndexedNames { get; }
         = anonymousDelegatesWithIndexedNames ?? ImmutableSegmentedDictionary<AnonymousDelegateWithIndexedNamePartialKey, ImmutableArray<AnonymousTypeValue>>.Empty;
-
-    public bool IsSubsetOf(SynthesizedTypeMaps other)
-        => AnonymousTypes.Keys.All(static (key, other) => other.AnonymousTypes.ContainsKey(key), other) &&
-           AnonymousDelegates.Keys.All(static (key, other) => other.AnonymousDelegates.ContainsKey(key), other) &&
-           AnonymousDelegatesWithIndexedNames.Keys.All(static (key, other) => other.AnonymousDelegatesWithIndexedNames.ContainsKey(key), other);
 }

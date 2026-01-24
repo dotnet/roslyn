@@ -17,14 +17,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 /// </summary>
 internal interface IDocumentChangeTracker
 {
-    ValueTask StartTrackingAsync(DocumentUri documentUri, SourceText initialText, string languageId, CancellationToken cancellationToken);
-    void UpdateTrackedDocument(DocumentUri documentUri, SourceText text);
+    ValueTask StartTrackingAsync(DocumentUri documentUri, SourceText initialText, string languageId, int lspVersion, CancellationToken cancellationToken);
+    void UpdateTrackedDocument(DocumentUri documentUri, SourceText text, int lspVersion);
     ValueTask StopTrackingAsync(DocumentUri documentUri, CancellationToken cancellationToken);
 }
 
 internal sealed class NonMutatingDocumentChangeTracker : IDocumentChangeTracker
 {
-    public ValueTask StartTrackingAsync(DocumentUri documentUri, SourceText initialText, string languageId, CancellationToken cancellationToken)
+    public ValueTask StartTrackingAsync(DocumentUri documentUri, SourceText initialText, string languageId, int lspVersion, CancellationToken cancellationToken)
     {
         throw new InvalidOperationException("Mutating documents not allowed in a non-mutating request handler");
     }
@@ -34,7 +34,7 @@ internal sealed class NonMutatingDocumentChangeTracker : IDocumentChangeTracker
         throw new InvalidOperationException("Mutating documents not allowed in a non-mutating request handler");
     }
 
-    public void UpdateTrackedDocument(DocumentUri documentUri, SourceText text)
+    public void UpdateTrackedDocument(DocumentUri documentUri, SourceText text, int lspVersion)
     {
         throw new InvalidOperationException("Mutating documents not allowed in a non-mutating request handler");
     }

@@ -60,10 +60,11 @@ internal sealed class UseExpressionBodyForIndexersHelper :
         throw new InvalidOperationException();
     }
 
-    protected override IndexerDeclarationSyntax WithGenerateBody(SemanticModel semanticModel, IndexerDeclarationSyntax declaration)
-        => WithAccessorList(semanticModel, declaration);
+    protected override IndexerDeclarationSyntax WithGenerateBody(SemanticModel semanticModel, IndexerDeclarationSyntax declaration, CancellationToken cancellationToken)
+        => WithAccessorList(semanticModel, declaration, cancellationToken);
 
-    protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, IndexerDeclarationSyntax declaration) => true;
+    protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, IndexerDeclarationSyntax declaration, CancellationToken cancellationToken)
+        => true;
 
     protected override bool TryConvertToExpressionBody(
         IndexerDeclarationSyntax declaration,

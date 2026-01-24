@@ -18,36 +18,124 @@
         <note />
       </trans-unit>
       <trans-unit id="10160">
-        <source>Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
-Regex;
-regular expressions;
-related components under cursor;
+        <source>Underline reassigned variables;
+Display inline hints;
+Show diagnostics for closed files;
+Colorize regular expression;
+Highlight related components under cursor;
 Report invalid regular expressions;
+Enable full solution analysis;
+Perform editor feature analysis in external process;
+Enable navigation to decompiled sources;
+Always use default symbol servers for navigation;
+Import directives;
+Place System directives first when sorting imports;
+Separate import directive groups;
+Suggest imports for types in reference assemblies;
+Suggest imports for types in NuGet packages;
+Highlighting;
+Highlight references to symbol under cursor;
+Highlight related keywords under cursor;
+Outlining;
+Enter outlining mode when files open;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
+Show procedure line separators;
+Show outlining for declaration level constructs;
+Show outlining for code level constructs;
+Show outlining for comments and preprocessor regions;
+Collapse regions when collapsing to definitions;
+Fading;
+Fade out unused imports;
+Fade out unused members;
+Block Structure Guides;
+Show guides for declaration level constructs;
+Show guides for code level constructs;
+Editor Help;
+Generate XML documentation comments for ''';
+Insert ' at the start of new lines when writing ' comments;
+Show preview for rename tracking;
+Report invalid placeholders in string.Format calls;
+Extract Method;
+Implement Interface or Abstract Class;
+When inserting properties, events and methods, place them;
+with other members of the same kind;
+at the end;
+When generating property;
+prefer throwing properties;
+prefer auto properties;
 regex;
 regular expression;
+Colorize regular expressions;
+Highlight related components under cursor;
+Report invalid regular expressions;
 JSON;
 Colorize JSON strings;
 Report invalid JSON strings;
 Detect and offer editor features for JSON strings;
-Collapse #regions on file open;
-Collapse Imports on file open;
-Collapse metadata implementations on file open;
-Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="translated">Souligner les variables réaffectées;Afficher les indicateurs inline; Insertion automatique des constructions de fin ; Modifier les paramètres de liste de création de listes ; Modifier le mode plan ; Insertion automatique des membres Interface et MustOverride ; Afficher ou masquer les séparateurs de ligne de procédure ; Activer ou désactiver les suggestions de correction d’erreur ; Activer ou désactiver la mise en surbrillance des références et des mots clés ;
-Regex;
-expressions régulières ;
-composants associés sous le curseur ;
-signaler des expressions régulières non valides ;
-expression régulière ;
-expression régulière ;
-JSON ;
-coloriser les chaînes JSON ;
-signaler des chaînes JSON non valides ;
-détecter et proposer des fonctionnalités d’éditeur pour les chaînes JSON ;
-Réduire #regions sur le fichier ouvert ;
-réduire les importations à l’ouverture du fichier ;
-Réduire les implémentations de métadonnées lors de l’ouverture du fichier ;
-Utiliser des couleurs améliorées ; Modèle de couleurs de l’éditeur;Marge d’héritage;Directives d’importation;</target>
+Use enhanced colors;
+Editor Color Scheme;
+Inheritance Margin;</source>
+        <target state="translated">Souligner les variables réaffectées ;
+Afficher les astuces inline ;
+Afficher les diagnostics pour les fichiers fermés ;
+Coloriser les expressions régulières ;
+Mettre en surbrillance les composants associés sous le curseur ;
+Signaler les expressions régulières non valides ;
+Activer l’analyse complète de la solution ;
+Effectuer l’analyse des fonctionnalités de l’éditeur dans le processus externe ;
+Activer la navigation vers les sources décompilées ;
+Toujours utiliser les serveurs de symboles par défaut pour la navigation ;
+Importer des directives ;
+Placer les directives System en première position lors du tri des importations ;
+Séparer les groupes de directives d’importation ;
+Suggérer des importations pour les types dans les assembly de référence ;
+Suggérer des importations pour les types dans les packages NuGet ;
+Mettre en évidence ;
+Mettre en évidence les références au symbole sous le curseur ;
+Mettre en évidence les mots-clés associés sous le curseur ;
+Contournement ;
+Entrer en mode de contournement lorsque les fichiers sont ouverts ;
+Réduire les #regions à l’ouverture du fichier ;
+Réduire les importations à l’ouverture du fichier ;
+Réduire les implémentations de métadonnées à l’ouverture du fichier ;
+Afficher les séparateurs de lignes de procédure ;
+Afficher le contour pour les constructions au niveau de la déclaration ;
+Afficher le contour pour les constructions au niveau du code ;
+Afficher le contour pour les commentaires et les régions du préprocesseur ;
+Réduire les régions lors de la réduction vers les définitions ;
+Fermeture en fondu ;
+Fermer en fondu les importations inutilisées ;
+Fermer en fondu les membres inutilisés ;
+Guides de structure de bloc ;
+Afficher les guides pour les constructions au niveau de la déclaration ;
+Afficher les guides pour les constructions au niveau du code ;
+Aide avec l’éditeur ;
+Générer des commentaires de documentation XML pour ’’’ ;
+Insérer ’ au début des nouvelles lignes lors de l’écriture de commentaires ’ ;
+Afficher l’aperçu pour le suivi des opérations de renommage ;
+Signaler des caractères de remplacement non valides dans les appels string.Format ;
+Méthode d’extraction ;
+Implémenter l’interface ou la classe abstraite ;
+Lorsque vous insérez des propriétés, des événements et des méthodes, placez-les ;
+avec d’autres membres du même type ;
+à la fin ;
+En générant la propriété ;
+privilégiez les propriétés qui lèvent des exceptions ;
+privilégiez les propriétés automatiques ;
+regex ;
+Expression régulière ;
+Coloriser les expressions régulières ;
+Mettre en surbrillance les composants associés sous le curseur ;
+Signaler les expressions régulières non valides ;
+JSON ;
+Coloriser les chaînes JSON ;
+Signaler les chaînes JSON non valides ;
+Détecter et proposer des fonctionnalités d’éditeur pour les chaînes JSON ;
+Utiliser des couleurs améliorées ;
+Schéma de couleurs de l’éditeur ;
+Marge d’héritage ;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -114,11 +202,6 @@ Utiliser des couleurs améliorées ; Modèle de couleurs de l’éditeur;Marge d
         <source>IntelliSense</source>
         <target state="translated">IntelliSense</target>
         <note />
-      </trans-unit>
-      <trans-unit id="312">
-        <source>Change completion list settings;Pre-select most recently used member</source>
-        <target state="translated">Modifier les paramètres de la liste de saisie semi-automatique ; Présélectionner le dernier membre utilisé</target>
-        <note>IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="114">
         <source>Visual Basic components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>

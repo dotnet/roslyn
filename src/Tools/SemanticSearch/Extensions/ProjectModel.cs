@@ -24,13 +24,13 @@ public sealed class ProjectModel
 
     public string FilePath { get; }
 
-    internal ProjectModel(string filePath)
+    public ProjectModel(string filePath)
     {
         FilePath = filePath;
         _lazyResxFiles = new(LoadResxFiles, isThreadSafe: true);
     }
 
-    internal ProjectModel(string filePath, ImmutableDictionary<string, ResxFile> resxFiles)
+    public ProjectModel(string filePath, ImmutableDictionary<string, ResxFile> resxFiles)
     {
         FilePath = filePath;
         _lazyResxFiles = new(() => resxFiles, isThreadSafe: true);
@@ -56,7 +56,7 @@ public sealed class ProjectModel
         return resxFiles.ToImmutable();
     }
 
-    internal static IEnumerable<(string filePath, string? newContent)> GetChanges(ProjectModel oldModel, ProjectModel newModel)
+    public static IEnumerable<(string filePath, string? newContent)> GetChanges(ProjectModel oldModel, ProjectModel newModel)
     {
         if (!oldModel._lazyResxFiles.IsValueCreated && !newModel._lazyResxFiles.IsValueCreated)
         {
@@ -91,23 +91,24 @@ public sealed class ResxFile
 {
     public string FilePath { get; }
 
-    private readonly ImmutableDictionary<string, string> _changes;
+    private readonly ImmutableDictionary<string, string?> _changes;
 
-    internal ResxFile(string filePath, ImmutableDictionary<string, string> changes)
+    private ResxFile(string filePath, ImmutableDictionary<string, string?> changes)
     {
         FilePath = filePath;
         _changes = changes;
     }
 
     internal static ResxFile ReadFromFile(string filePath)
-    {
-        return new ResxFile(filePath, changes: ImmutableDictionary<string, string>.Empty);
-    }
+        => new(filePath, changes: ImmutableDictionary<string, string?>.Empty);
 
     public ResxFile AddString(string name, string value)
         => new(FilePath, _changes.SetItem(name, value));
 
-    internal string GetContent()
+    public ResxFile RemoveString(string name)
+        => new(FilePath, _changes.SetItem(name, null));
+
+    public string GetContent()
     {
         if (_changes.Count == 0)
         {
@@ -118,11 +119,20 @@ public sealed class ResxFile
 
         foreach (var (name, value) in _changes)
         {
-            newDocument.Root!.Add(new XElement("data",
-                new XAttribute("name", name),
-                new XAttribute(XNamespace.Xml + "space", "preserve"),
-                new XElement("value", value)
-            ));
+            if (value == null)
+            {
+                newDocument.Root!.Elements("data")
+                    .FirstOrDefault(e => e.Attribute("name")?.Value == name)?
+                    .Remove();
+            }
+            else
+            {
+                newDocument.Root!.Add(new XElement("data",
+                    new XAttribute("name", name),
+                    new XAttribute(XNamespace.Xml + "space", "preserve"),
+                    new XElement("value", value)
+                ));
+            }
         }
 
         using var stream = new MemoryStream();

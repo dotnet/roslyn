@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.PdbSourceDocument;
 [Export(typeof(IPdbSourceDocumentLogger)), Shared]
 internal sealed class PdbSourceDocumentOutputWindowLogger : IPdbSourceDocumentLogger, IDisposable
 {
-    private static readonly Guid s_outputPaneGuid = new Guid("f543e896-2e9c-48b8-8fac-d1d5030b4b89");
+    private static readonly Guid s_outputPaneGuid = new("f543e896-2e9c-48b8-8fac-d1d5030b4b89");
     private IVsOutputWindowPane? _outputPane;
 
     private readonly IThreadingContext _threadingContext;

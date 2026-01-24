@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Deleted definitions must be emitted before PrivateImplementationDetails are frozen since
                 // it may add new members to it. All changes to PrivateImplementationDetails are additions,
                 // so we don't need to create deleted method defs for those.
-                moduleBeingBuiltOpt.CreateDeletedMethodDefinitions(diagnostics.DiagnosticBag);
+                moduleBeingBuiltOpt.CreateDeletedMemberDefinitions(diagnostics.DiagnosticBag);
 
                 // all threads that were adding methods must be finished now, we can freeze the class:
                 var privateImplClass = moduleBeingBuiltOpt.FreezePrivateImplementationDetails();
@@ -693,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var compilationState = new TypeCompilationState(null, _compilation, _moduleBeingBuiltOpt);
             var context = new EmitContext(_moduleBeingBuiltOpt, null, diagnostics.DiagnosticBag, metadataOnly: false, includePrivateMembers: true);
-            foreach (Cci.IMethodDefinition definition in privateImplClass.GetMethods(context).Concat(privateImplClass.GetTopLevelAndNestedTypeMethods(context)))
+            foreach (Cci.IMethodDefinition definition in privateImplClass.GetMethods(context))
             {
                 var method = (MethodSymbol)definition.GetInternalSymbol();
                 if (method is not null)
@@ -725,6 +725,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 compilationState.Free();
+
+                CompileSynthesizedMethods(additionalType.GetTypeMembers(), diagnostics);
             }
         }
 
@@ -774,14 +776,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (!loweredBody.HasErrors)
                         {
-                            AsyncStateMachine asyncStateMachine;
-                            loweredBody = AsyncRewriter.Rewrite(loweredBody, method, methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out asyncStateMachine);
+                            AsyncStateMachine asyncStateMachine = null;
+                            if (compilationState.Compilation.IsRuntimeAsyncEnabledIn(method))
+                            {
+                                loweredBody = RuntimeAsyncRewriter.Rewrite(loweredBody, method, compilationState, diagnosticsThisMethod);
+                            }
+                            else
+                            {
+                                loweredBody = AsyncRewriter.Rewrite(loweredBody, method, methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out asyncStateMachine);
+                            }
 
                             Debug.Assert((object)iteratorStateMachine == null || (object)asyncStateMachine == null);
                             stateMachine = stateMachine ?? asyncStateMachine;
                         }
 
                         SetGlobalErrorIfTrue(diagnosticsThisMethod.HasAnyErrors());
+                        PipelinePhaseValidator.AssertAfterStateMachineRewriting(loweredBody);
 
                         if (_emitMethodBodies && !diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors)
                         {
@@ -1174,7 +1184,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                             });
                             }
 
-                            // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, Ensure we are not messing up relative order of events for extension members (with relation to events for enclosing types, etc.)
                             _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(
                                 _compilation, methodSymbol, semanticModelWithCachedBoundNodes));
                         }
@@ -1411,11 +1420,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_moduleBeingBuiltOpt != null);
 
             ILBuilder builder = new ILBuilder(_moduleBeingBuiltOpt, new LocalSlotManager(slotAllocator: null), _diagnostics.DiagnosticBag, OptimizationLevel.Release, areLocalsZeroed: false);
+            CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
+            var ctor = (MethodSymbol)Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_NotSupportedException__ctor, _diagnostics, syntax: syntax, isOptional: false);
 
-            // Emit methods in extensions as skeletons:
-            // => throw null;
-            // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, Should throw NotSupportedException instead
-            builder.EmitOpCode(System.Reflection.Metadata.ILOpCode.Ldnull);
+            if (ctor is not null)
+            {
+                builder.EmitOpCode(System.Reflection.Metadata.ILOpCode.Newobj, stackAdjustment: 1);
+                builder.EmitToken(_moduleBeingBuiltOpt.Translate(ctor, syntax, _diagnostics.DiagnosticBag, optArgList: null, needDeclaration: false), syntax, 0);
+            }
+            else
+            {
+                builder.EmitOpCode(System.Reflection.Metadata.ILOpCode.Ldnull);
+            }
+
             builder.EmitThrow(isRethrow: false);
             builder.Realize();
 
@@ -1482,6 +1499,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 codeCoverageSpans = ImmutableArray<SourceSpan>.Empty;
                 return body;
             }
+
+            PipelinePhaseValidator.AssertAfterInitialBinding(body);
 
             try
             {
@@ -1569,6 +1588,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return bodyWithoutLambdas;
                 }
 
+                PipelinePhaseValidator.AssertAfterClosureConversion(bodyWithoutLambdas);
+
                 BoundStatement bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLambdas, method, methodOrdinal, stateMachineStateDebugInfoBuilder, lazyVariableSlotAllocator, compilationState, diagnostics,
                     out IteratorStateMachine iteratorStateMachine);
 
@@ -1577,11 +1598,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return bodyWithoutIterators;
                 }
 
-                BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, methodOrdinal, stateMachineStateDebugInfoBuilder, lazyVariableSlotAllocator, compilationState, diagnostics,
-                    out AsyncStateMachine asyncStateMachine);
+                BoundStatement bodyWithoutAsync;
+                AsyncStateMachine asyncStateMachine = null;
+                if (compilationState.Compilation.IsRuntimeAsyncEnabledIn(method))
+                {
+                    bodyWithoutAsync = RuntimeAsyncRewriter.Rewrite(bodyWithoutIterators, method, compilationState, diagnostics);
+                }
+                else
+                {
+                    bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, methodOrdinal, stateMachineStateDebugInfoBuilder, lazyVariableSlotAllocator, compilationState, diagnostics,
+                       out asyncStateMachine);
+                }
 
-                Debug.Assert((object)iteratorStateMachine == null || (object)asyncStateMachine == null);
+                Debug.Assert(iteratorStateMachine is null || asyncStateMachine is null);
                 stateMachineTypeOpt = (StateMachineTypeSymbol)iteratorStateMachine ?? asyncStateMachine;
+
+                PipelinePhaseValidator.AssertAfterStateMachineRewriting(bodyWithoutAsync);
 
                 return bodyWithoutAsync;
             }

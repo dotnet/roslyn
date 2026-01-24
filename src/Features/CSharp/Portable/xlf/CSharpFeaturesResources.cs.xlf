@@ -17,6 +17,31 @@
         <target state="translated">Přidat povinné složené závorky pro řídicí příkazy na jeden řádek</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_using_0">
+        <source>Add 'using {0};'</source>
+        <target state="translated">Přidat direktivu 'using {0};'</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Add_using_0_and_simplify_all_occurrences">
+        <source>Add 'using {0};' and simplify all occurrences</source>
+        <target state="translated">Přidat direktivu 'using {0};' a zjednodušit všechny výskyty</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Adds_a_NuGet_package_reference">
+        <source>Adds a NuGet package reference.</source>
+        <target state="translated">Přidá odkaz na balíček NuGet.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adds_a_project_reference">
+        <source>Adds a project reference.</source>
+        <target state="translated">Přidá odkaz na projekt.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adds_an_SDK_reference">
+        <source>Adds an SDK reference.</source>
+        <target state="translated">Přidá odkaz na sadu SDK.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_0">
         <source>Apply '{0}'</source>
         <target state="translated">Použít {0}</target>
@@ -132,6 +157,16 @@
         <target state="translated">Automatický výběr je zakázaný kvůli možné deklaraci proměnné vzoru.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Build_property_name">
+        <source>Name</source>
+        <target state="translated">Název</target>
+        <note>'Name' is a placeholder for a property name in a directive like '#:property Name=Value'.</note>
+      </trans-unit>
+      <trans-unit id="Build_property_value">
+        <source>Value</source>
+        <target state="translated">Hodnota</target>
+        <note>'Value' is a placeholder for a build property value in a directive like '#:property Name=Value'.</note>
+      </trans-unit>
       <trans-unit id="Change_to_as_expression">
         <source>Change to 'as' expression</source>
         <target state="translated">Změnit na výraz as</target>
@@ -144,7 +179,7 @@
       </trans-unit>
       <trans-unit id="Convert_0_extension_methods_to_extension">
         <source>Convert '{0}' extension methods to extension</source>
-        <target state="new">Convert '{0}' extension methods to extension</target>
+        <target state="translated">Převést metody rozšíření {0} na rozšíření</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_0_to_record">
@@ -154,7 +189,7 @@
       </trans-unit>
       <trans-unit id="Convert_all_extension_methods_in_0_to_extension">
         <source>Convert all extension methods in '{0}' to extension</source>
-        <target state="new">Convert all extension methods in '{0}' to extension</target>
+        <target state="translated">Převést všechny rozšiřující metody v {0} na rozšíření</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_method">
@@ -192,6 +227,11 @@
         <target state="translated">Převést na doslovný řetězec</target>
         <note />
       </trans-unit>
+      <trans-unit id="Defines_a_build_property">
+        <source>Defines a build property.</source>
+        <target state="translated">Definuje vlastnost sestavení.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enable_nullable_reference_types_in_project">
         <source>Enable nullable reference types in project</source>
         <target state="translated">Povolit v projektu typy odkazů s možnou hodnotou null</target>
@@ -211,6 +251,21 @@
         <source>Make private fields readonly when possible</source>
         <target state="translated">Nastavit privátní pole jako jenom pro čtení, kde je to možné</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Package_name">
+        <source>Name</source>
+        <target state="translated">Název</target>
+        <note>'Name' is a placeholder for a package or sdk name in a directive like '#:package Name@Version'.</note>
+      </trans-unit>
+      <trans-unit id="Package_version">
+        <source>Version</source>
+        <target state="translated">Verze</target>
+        <note>'Version' is a placeholder for a package or sdk version in a directive like '#:package Name@Version'.</note>
+      </trans-unit>
+      <trans-unit id="Project_directive_file_path">
+        <source>path</source>
+        <target state="translated">cesta</target>
+        <note>'path' is a placeholder for a project file or directory path in a directive like '#:project path'.</note>
       </trans-unit>
       <trans-unit id="Reverse_for_statement">
         <source>Reverse 'for' statement</source>

@@ -46,6 +46,12 @@
             <Color Name="type parameter name">
                 <Foreground Type="CT_RAW" Source="FF2B91AF" />
             </Color>
+            <Color Name="array name">
+            </Color>
+            <Color Name="pointer name">
+            </Color>
+            <Color Name="function pointer name">
+            </Color>
             <Color Name="field name">
             </Color>
             <Color Name="enum member name">
@@ -229,6 +235,12 @@
             </Color>
             <Color Name="type parameter name">
                 <Foreground Type="CT_RAW" Source="FF2B91AF" />
+            </Color>
+            <Color Name="array name">
+            </Color>
+            <Color Name="pointer name">
+            </Color>
+            <Color Name="function pointer name">
             </Color>
             <Color Name="field name">
             </Color>
@@ -414,6 +426,12 @@
             <Color Name="type parameter name">
                 <Foreground Type="CT_RAW" Source="FF066555" />
             </Color>
+            <Color Name="array name">
+            </Color>
+            <Color Name="pointer name">
+            </Color>
+            <Color Name="function pointer name">
+            </Color>
             <Color Name="field name">
             </Color>
             <Color Name="enum member name">
@@ -594,6 +612,12 @@
             </Color>
             <Color Name="type parameter name">
                 <Foreground Type="CT_RAW" Source="FFB8D7A3" />
+            </Color>
+            <Color Name="array name">
+            </Color>
+            <Color Name="pointer name">
+            </Color>
+            <Color Name="function pointer name">
             </Color>
             <Color Name="field name">
             </Color>
@@ -780,6 +804,15 @@
             <Color Name="type parameter name">
                 <Foreground Type="CT_SYSCOLOR" Source="00000008" />
             </Color>
+            <Color Name="array name">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="pointer name">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="function pointer name">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
             <Color Name="field name">
                 <Foreground Type="CT_SYSCOLOR" Source="00000008" />
             </Color>
@@ -817,8 +850,8 @@
                 <Foreground Type="CT_SYSCOLOR" Source="00000008" />
             </Color>
             <Color Name="inline parameter name hints">
-                <Foreground Type="CT_SYSCOLOR" Source="00000005" />
                 <Background Type="CT_SYSCOLOR" Source="00000008" />
+                <Foreground Type="CT_SYSCOLOR" Source="00000005" />
             </Color>
             <Color Name="xml doc comment - attribute name">
                 <Foreground Type="CT_SYSCOLOR" Source="00000008" />

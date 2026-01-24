@@ -912,7 +912,7 @@ Public Interface ITest26
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Imports System
 
@@ -1971,7 +1971,7 @@ Public Interface IE
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Class C
     Sub Add(x As I1)
@@ -2090,7 +2090,7 @@ Public Interface IE
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Class C
     Implements I
@@ -2381,7 +2381,7 @@ Public Interface I2
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Structure S
     Implements I1, I2
@@ -2435,7 +2435,7 @@ Public Interface I2
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Structure S
     Implements I1, I2
@@ -2482,7 +2482,7 @@ Public Enum E
 End Enum
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Structure S
     Sub M(x As E)
@@ -2529,7 +2529,7 @@ Public Interface I
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Structure S
     Sub M(x As I)
@@ -2578,7 +2578,7 @@ Public Interface I
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Structure S
     Implements I
@@ -2626,7 +2626,7 @@ Public Interface I
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Structure S
     Implements I
@@ -2695,7 +2695,7 @@ public interface I
             Dim piaCompilation = CreateCSharpCompilation(pia, assemblyName:="Pia", referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib461Extended, {dispIdDefinition})).
                 EmitToImageReference(embedInteropTypes:=True)
 
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Structure S
     Implements I
@@ -2755,7 +2755,7 @@ BC30934: Conversion from 'String' to 'Integer' cannot occur in a constant expres
 ]]></expected>
             )
 
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Structure S
     Implements I
@@ -2807,7 +2807,7 @@ BC30661: Field or property 'Something' is not found.
 ]]></expected>
             )
 
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Structure S
     Implements I
@@ -2843,7 +2843,7 @@ Public Interface I
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Structure S
     Implements I
@@ -2893,7 +2893,7 @@ Public Interface I
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Structure S
     Sub M(x As I)
@@ -2945,7 +2945,7 @@ Public Interface I
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Structure S
     Sub M(x As I)
@@ -3002,7 +3002,7 @@ Public Interface I
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Structure S
     Sub M(x As I)
@@ -3053,7 +3053,7 @@ Imports System.Runtime.InteropServices
 Public Delegate Sub D()
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Structure S
     Sub M(x As D)
@@ -3101,7 +3101,7 @@ Public Interface I
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Structure S
     Sub M(x As I)
@@ -3301,7 +3301,7 @@ Public Interface I
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Public Class A
     Public Shared F As Object
@@ -3310,7 +3310,7 @@ Public Class A
 End Class
 ]]></file>
                            </compilation>
-            Dim sources2 = <compilation name="2">
+            Dim sources2 = <compilation>
                                <file name="a.vb"><![CDATA[
 Class B
     Private Shared Sub M(o As I)
@@ -3374,7 +3374,7 @@ Public Interface I
 End Interface
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation name="10">
                                <file name="a.vb"><![CDATA[
 Public Class A
     Public Shared F As Object
@@ -3383,7 +3383,7 @@ Public Class A
 End Class
 ]]></file>
                            </compilation>
-            Dim sources2 = <compilation name="2">
+            Dim sources2 = <compilation name="20">
                                <file name="a.vb"><![CDATA[
 Class B
     Private Shared F = A.F
@@ -3393,7 +3393,7 @@ End Class
 ]]></file>
                            </compilation>
             Dim errors = <errors>
-BC40059: A reference was created to embedded interop assembly '0, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' because of an indirect reference to that assembly from assembly '1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Consider changing the 'Embed Interop Types' property on either assembly.
+BC40059: A reference was created to embedded interop assembly '0, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' because of an indirect reference to that assembly from assembly '10, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Consider changing the 'Embed Interop Types' property on either assembly.
 </errors>
             Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
@@ -3402,7 +3402,7 @@ BC40059: A reference was created to embedded interop assembly '0, Version=0.0.0.
                                                            DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
                                                            Dim references = [module].GetReferencedAssemblySymbols()
                                                            Assert.Equal(2, references.Length)
-                                                           Assert.Equal("1", references(1).Name)
+                                                           Assert.Equal("10", references(1).Name)
                                                        End Sub
             Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
@@ -3629,7 +3629,7 @@ Public Enum E
 End Enum
 ]]></file>
                            </compilation>
-            Dim sources1 = <compilation name="1">
+            Dim sources1 = <compilation>
                                <file name="a.vb"><![CDATA[
 Class C
     Private Const F As E = E.B

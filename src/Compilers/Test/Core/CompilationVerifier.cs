@@ -8,12 +8,10 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -34,10 +32,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     public sealed partial class CompilationVerifier
     {
         /// <summary>
-        /// When true this will dump assemblies to disk when verification fails or there are emit errors writing
-        /// the compilation to bytes
+        /// When non-null this will dump assemblies to disk in the given path
         /// </summary>
-        internal static bool DumpAssembliesOnFailure { get; set; }
+        internal static string? DumpAssemblyLocation { get; set; } = Environment.GetEnvironmentVariable("ROSLYN_TEST_DUMP_PATH");
 
         private static int s_dumpCount;
 
@@ -64,6 +61,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         private EmitData GetEmitData() => _emitData ?? throw new InvalidOperationException("Must call Emit first");
+
+        internal PortableExecutableReference GetImageReference(
+            bool embedInteropTypes = false,
+            ImmutableArray<string> aliases = default,
+            DocumentationProvider? documentation = null)
+        {
+            if (Compilation.Options.OutputKind == OutputKind.NetModule)
+            {
+                return ModuleMetadata.CreateFromImage(EmittedAssemblyData).GetReference(documentation, display: Compilation.MakeSourceModuleName());
+            }
+            else
+            {
+                return AssemblyMetadata.CreateFromImage(EmittedAssemblyData).GetReference(documentation, aliases: aliases, embedInteropTypes: embedInteropTypes, display: Compilation.MakeSourceAssemblySimpleName());
+            }
+        }
 
         internal Metadata GetMetadata()
         {
@@ -94,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public string Dump(string? methodName = null)
         {
             var emitData = Emit(manifestResources: null, EmitOptions.Default);
-            var dumpDir = DumpAssemblyData(emitData.Modules);
+            var dumpDir = DumpAssemblyData(emitData.Modules, DumpAssemblyLocation ?? "");
             string extension = emitData.EmittedModule.Kind == OutputKind.ConsoleApplication ? ".exe" : ".dll";
             string modulePath = Path.Combine(dumpDir, emitData.EmittedModule.SimpleName + extension);
 
@@ -168,10 +180,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return output.ToString();
         }
 
-        public static string DumpAssemblyData(IEnumerable<ModuleData> modules)
+        public static string DumpAssemblyData(IEnumerable<ModuleData> modules, string dumpBasePath)
         {
             var dumpCount = Interlocked.Increment(ref s_dumpCount);
-            var dumpDirectory = Path.Combine(TempRoot.Root, "dumps", dumpCount.ToString());
+            var dumpDirectory = Path.Combine(dumpBasePath is "" ? TempRoot.Root : dumpBasePath, "dumps", dumpCount.ToString());
             _ = Directory.CreateDirectory(dumpDirectory);
 
             // Limit the number of dumps to 10. After 10 we're likely in a bad state and are 
@@ -348,9 +360,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
             catch (Exception)
             {
-                if (DumpAssembliesOnFailure)
+                if (DumpAssemblyLocation is string dumpPath)
                 {
-                    DumpAssemblyData(emitData.Modules);
+                    DumpAssemblyData(emitData.Modules, dumpPath);
                 }
 
                 if (peVerify.Status.HasFlag(VerificationStatus.PassesOrFailFast))
@@ -607,6 +619,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 // can't be loaded as a dependency (via Assembly.ReflectionOnlyLoad) in the same domain.
                 dependencyList.Insert(0, moduleData);
 
+                if (DumpAssemblyLocation is string dumpAssemblyLocation)
+                {
+                    DumpAssemblyData(dependencyList, dumpAssemblyLocation);
+                }
+
                 _emitData = new EmitData(
                     moduleData,
                     dependencyList.ToImmutableArray(),
@@ -616,7 +633,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
             else
             {
-                var dumpDir = DumpAssembliesOnFailure ? DumpAssemblyData(dependencyList) : null;
+                var dumpDir = DumpAssemblyLocation is string dumpAssemblyLocation ? DumpAssemblyData(dependencyList, dumpAssemblyLocation) : null;
                 throw new EmitException(diagnostics.ToReadOnlyAndFree(), dumpDir);
             }
         }
@@ -638,11 +655,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string qualifiedMethodName,
             XCData expectedIL,
             bool realIL = false,
-            string? sequencePoints = null,
+            SequencePointDisplayMode sequencePointDisplay = SequencePointDisplayMode.None,
             [CallerFilePath] string? callerPath = null,
             [CallerLineNumber] int callerLine = 0)
         {
-            return VerifyILImpl(qualifiedMethodName, expectedIL.Value, realIL, sequencePoints: sequencePoints != null, sequencePointsSource: false, callerPath, callerLine, escapeQuotes: false, ilFormat: null);
+            return VerifyILImpl(qualifiedMethodName, expectedIL.Value, realIL, sequencePointDisplay, callerPath, callerLine, escapeQuotes: false, ilFormat: null);
         }
 
         /// <summary>
@@ -652,13 +669,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string qualifiedMethodName,
             string expectedIL,
             bool realIL = false,
-            string? sequencePoints = null,
+            SequencePointDisplayMode sequencePointDisplay = SequencePointDisplayMode.None,
             [CallerFilePath] string? callerPath = null,
             [CallerLineNumber] int callerLine = 0,
-            string? source = null,
             SymbolDisplayFormat? ilFormat = null)
         {
-            return VerifyILImpl(qualifiedMethodName, expectedIL, realIL, sequencePoints: sequencePoints != null, sequencePointsSource: source != null, callerPath, callerLine, escapeQuotes: false, ilFormat);
+            return VerifyILImpl(qualifiedMethodName, expectedIL, realIL, sequencePointDisplay, callerPath, callerLine, escapeQuotes: false, ilFormat);
         }
 
         public CompilationVerifier VerifyMethodBody(
@@ -669,7 +685,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             [CallerLineNumber] int callerLine = 0,
             SymbolDisplayFormat? ilFormat = null)
         {
-            return VerifyILImpl(qualifiedMethodName, expectedILWithSequencePoints, realIL, sequencePoints: true, sequencePointsSource: true, callerPath, callerLine, escapeQuotes: false, ilFormat);
+            return VerifyILImpl(qualifiedMethodName, expectedILWithSequencePoints, realIL, sequencePointDisplay: SequencePointDisplayMode.Enhanced, callerPath, callerLine, escapeQuotes: false, ilFormat);
         }
 
         public void VerifyILMultiple(params string[] qualifiedMethodNamesAndExpectedIL)
@@ -724,27 +740,26 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string qualifiedMethodName,
             string expectedIL,
             bool realIL,
-            bool sequencePoints,
-            bool sequencePointsSource,
+            SequencePointDisplayMode sequencePointDisplay,
             string? callerPath,
             int callerLine,
             bool escapeQuotes,
             SymbolDisplayFormat? ilFormat)
         {
-            string? actualIL = VisualizeIL(qualifiedMethodName, realIL, sequencePoints, sequencePointsSource, ilFormat);
+            string? actualIL = VisualizeIL(qualifiedMethodName, realIL, sequencePointDisplay, ilFormat);
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, message: null, escapeQuotes, callerPath, callerLine);
             return this;
         }
 
-        public string VisualizeIL(string qualifiedMethodName, bool realIL = false, bool sequencePoints = false, bool sequencePointsSource = true, SymbolDisplayFormat? ilFormat = null)
-            => VisualizeIL(GetEmitData().TestData.GetMethodData(qualifiedMethodName), realIL, sequencePoints, sequencePointsSource, ilFormat);
+        public string VisualizeIL(string qualifiedMethodName, bool realIL = false, SequencePointDisplayMode sequencePointDisplay = SequencePointDisplayMode.None, SymbolDisplayFormat? ilFormat = null)
+            => VisualizeIL(GetEmitData().TestData.GetMethodData(qualifiedMethodName), realIL, sequencePointDisplay, ilFormat);
 
-        internal string VisualizeIL(CompilationTestData.MethodData methodData, bool realIL = false, bool sequencePoints = false, bool sequencePointsSource = true, SymbolDisplayFormat? ilFormat = null)
+        internal string VisualizeIL(CompilationTestData.MethodData methodData, bool realIL = false, SequencePointDisplayMode sequencePointDisplay = SequencePointDisplayMode.None, SymbolDisplayFormat? ilFormat = null)
         {
             Dictionary<int, string>? markers = null;
 
             var emitData = GetEmitData();
-            if (sequencePoints)
+            if (sequencePointDisplay != SequencePointDisplayMode.None)
             {
                 var actualPdbXml = PdbToXmlConverter.ToXml(
                     pdbStream: new MemoryStream(emitData.EmittedAssemblyPdb.ToArray()),
@@ -771,7 +786,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     var documentMap = ILValidation.GetDocumentIdToPathMap(xmlDocument);
 
-                    markers = sequencePointsSource ?
+                    markers = sequencePointDisplay == SequencePointDisplayMode.Enhanced ?
                         ILValidation.GetSequencePointMarkers(xmlMethod, id => _compilation.SyntaxTrees.Single(tree => tree.FilePath == documentMap[id]).GetText()) :
                         ILValidation.GetSequencePointMarkers(xmlMethod);
                 }
@@ -1085,6 +1100,5 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return null;
             }
         }
-
     }
 }

@@ -13,6 +13,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1227,6 +1228,10 @@ next:;
             {
                 arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasCompilerLoweringPreserveAttribute = true;
             }
+            else if (attribute.IsTargetAttribute(AttributeDescription.ExtendedLayoutAttribute))
+            {
+                arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasExtendedLayoutAttribute = true;
+            }
             else
             {
                 var compilation = this.DeclaringCompilation;
@@ -1509,7 +1514,13 @@ next:;
             get
             {
                 var data = GetDecodedWellKnownAttributeData();
-                if (data != null && data.HasStructLayoutAttribute)
+
+                if (data is { HasExtendedLayoutAttribute: true })
+                {
+                    return new TypeLayout(LayoutKind.Extended, 0, alignment: 0);
+                }
+
+                if (data is { HasStructLayoutAttribute: true })
                 {
                     return data.Layout;
                 }
@@ -1521,6 +1532,7 @@ next:;
                     // 
                     // Dev11 compiler sets the value to 1 for structs with no instance fields and no size specified.
                     // It does not change the size value if it was explicitly specified to be 0, nor does it report an error.
+
                     return new TypeLayout(LayoutKind.Sequential, this.HasInstanceFields() ? 0 : 1, alignment: 0);
                 }
 
@@ -1543,6 +1555,15 @@ next:;
             {
                 var data = GetDecodedWellKnownAttributeData();
                 return (data != null && data.HasStructLayoutAttribute) ? data.MarshallingCharSet : DefaultMarshallingCharSet;
+            }
+        }
+
+        internal bool HasExtendedLayoutAttribute
+        {
+            get
+            {
+                var data = GetDecodedWellKnownAttributeData();
+                return data is { HasExtendedLayoutAttribute: true };
             }
         }
 
@@ -1826,9 +1847,13 @@ next:;
         {
             get
             {
-                return IsExtension
-                    ? ExtensionMarkerName
-                    : base.MetadataName;
+                if (IsExtension)
+                {
+                    Debug.Assert(ExtensionMarkerName is not null);
+                    return ExtensionMarkerName;
+                }
+
+                return base.MetadataName;
             }
         }
 
@@ -1881,9 +1906,15 @@ next:;
                 Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor, diagnostics, indexerSymbol.TryGetFirstLocation() ?? GetFirstLocation());
             }
 
+            if (HasStructLayoutAttribute && HasExtendedLayoutAttribute)
+            {
+                // Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
+                diagnostics.Add(ErrorCode.ERR_StructLayoutAndExtendedLayout, GetFirstLocation());
+            }
+
             if (TypeKind == TypeKind.Struct && !IsRecordStruct && HasInlineArrayAttribute(out _))
             {
-                if (Layout.Kind == LayoutKind.Explicit)
+                if (Layout.Kind is not (LayoutKind.Sequential or LayoutKind.Auto))
                 {
                     diagnostics.Add(ErrorCode.ERR_InvalidInlineArrayLayout, GetFirstLocation());
                 }
@@ -1967,6 +1998,14 @@ next:;
                 }
             }
 
+            if (TypeKind == TypeKind.Struct && HasExtendedLayoutAttribute)
+            {
+                if (!ContainingAssembly.RuntimeSupportsExtendedLayout)
+                {
+                    diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportExtendedLayoutTypes, GetFirstLocation());
+                }
+            }
+
             if (this.IsMicrosoftCodeAnalysisEmbeddedAttribute())
             {
                 // This is a user-defined implementation of the special attribute Microsoft.CodeAnalysis.EmbeddedAttribute. It needs to follow specific rules:
@@ -1978,6 +2017,7 @@ next:;
                 // 6. It must inherit from System.Attribute
                 // 7. It must be allowed on any type declaration (class, struct, interface, enum, or delegate)
                 // 8. It must be non-generic (checked as part of IsMicrosoftCodeAnalysisEmbeddedAttribute, we don't error on this because both types can exist)
+                // 9. It cannot have file scope
 
                 const AttributeTargets expectedTargets = AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface | AttributeTargets.Enum | AttributeTargets.Delegate;
 
@@ -1985,11 +2025,12 @@ next:;
                     || TypeKind != TypeKind.Class
                     || !IsSealed
                     || IsStatic
+                    || IsFileLocal
                     || !InstanceConstructors.Any(c => c is { ParameterCount: 0, DeclaredAccessibility: Accessibility.Internal or Accessibility.Public })
                     || !this.DeclaringCompilation.IsAttributeType(this)
                     || (GetAttributeUsageInfo().ValidTargets & expectedTargets) != expectedTargets)
                 {
-                    // The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.
+                    // The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.
                     diagnostics.Add(ErrorCode.ERR_EmbeddedAttributeMustFollowPattern, GetFirstLocation());
                 }
 

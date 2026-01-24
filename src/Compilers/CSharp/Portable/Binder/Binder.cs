@@ -485,6 +485,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal virtual bool BindingCollectionExpressionWithArguments => false;
+
         internal virtual NamedTypeSymbol? ParamsCollectionTypeInProgress => null;
 
         internal virtual MethodSymbol? ParamsCollectionConstructorInProgress => null;
@@ -751,7 +753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool IsDisallowedExtensionInOlderLangVer(MethodSymbol symbol)
         {
-            return symbol.GetIsNewExtensionMember() && (symbol.IsStatic || symbol.MethodKind != MethodKind.Ordinary);
+            return symbol.IsExtensionBlockMember() && (symbol.IsStatic || symbol.MethodKind != MethodKind.Ordinary);
         }
 
         internal static void ReportDiagnosticsIfDisallowedExtension(BindingDiagnosticBag diagnostics, MethodSymbol method, SyntaxNode syntax)

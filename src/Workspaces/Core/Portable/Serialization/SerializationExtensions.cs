@@ -63,7 +63,7 @@ internal static class SerializationExtensions
         // filePath will point to actual file on disk, but in memory solultion, or
         // one from AdhocWorkspace and etc, FilePath/OutputFilePath can be a random string.
         // Make sure we return only if given filePath is in right form.
-        if (info.FilePath == null && info.OutputFilePath == null)
+        if (info is { FilePath: null, OutputFilePath: null })
         {
             // return empty since that is what IDE does for this case
             // see AbstractProject.GetStrongNameKeyPaths
@@ -74,13 +74,13 @@ internal static class SerializationExtensions
         if (PathUtilities.IsAbsolute(info.FilePath))
         {
             // desktop strong name provider only knows how to deal with absolute path
-            builder.Add(PathUtilities.GetDirectoryName(info.FilePath)!);
+            builder.Add(PathUtilities.GetDirectoryName(info.FilePath));
         }
 
         if (PathUtilities.IsAbsolute(info.OutputFilePath))
         {
             // desktop strong name provider only knows how to deal with absolute path
-            builder.Add(PathUtilities.GetDirectoryName(info.OutputFilePath)!);
+            builder.Add(PathUtilities.GetDirectoryName(info.OutputFilePath));
         }
 
         return builder.ToImmutableAndFree();

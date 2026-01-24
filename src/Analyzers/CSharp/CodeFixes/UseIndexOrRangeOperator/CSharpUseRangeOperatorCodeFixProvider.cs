@@ -36,10 +36,9 @@ internal sealed class CSharpUseRangeOperatorCodeFixProvider() : SyntaxEditorBase
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
         [IDEDiagnosticIds.UseRangeOperatorDiagnosticId];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Use_range_operator, nameof(CSharpAnalyzersResources.Use_range_operator));
-        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(
@@ -111,6 +110,12 @@ internal sealed class CSharpUseRangeOperatorCodeFixProvider() : SyntaxEditorBase
             var expression = invocation.Expression is MemberAccessExpressionSyntax memberAccess
                 ? memberAccess.Expression // x.Substring(...) -> x[...]
                 : invocation.Expression;
+
+            // Stackalloc expressions need to be parenthesized when followed by an indexer to avoid
+            // parsing ambiguity (stackalloc byte[10][..] would be parsed as stackalloc declaration)
+            if (expression is StackAllocArrayCreationExpressionSyntax or ImplicitStackAllocArrayCreationExpressionSyntax)
+                expression = expression.Parenthesize();
+
             return ElementAccessExpression(expression, argumentList);
         }
         else

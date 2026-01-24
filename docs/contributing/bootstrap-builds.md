@@ -17,7 +17,7 @@ The build correctness job works by first building the Microsoft.Net.Compilers.To
 - Inserts a [ExitingTraceListener](https://github.com/dotnet/roslyn/blob/main/src/Compilers/Shared/ExitingTraceListener.cs) into the process trace listeners. This means any `Debug.Assert` failure will result in the compilation failing with an actionable stack trace.
 - Defines a [ValidateBootstrap](https://github.com/dotnet/roslyn/blob/main/src/Compilers/Core/MSBuildTask/ValidateBootstrap.cs). This lets us validate that the compiler used in the bootstrap build is actually the one we built vs. the default. This helps protect against build authoring changes which could inadvertently cause the default compiler to be used in a bootstrap build.
 
-The job then cleans out all of the artifacts from the build and starts a normal build of Roslyn.sln but specifies `/p:BootstrapBuildPath=...`. This causes two files to be loaded:
+The job then cleans out all of the artifacts from the build and starts a normal build of Roslyn.slnx but specifies `/p:BootstrapBuildPath=...`. This causes two files to be loaded:
 
 - [Bootstrap.props](https://github.com/dotnet/roslyn/blob/main/eng/targets/Bootstrap.props): loads the bootstrap compiler over the default one
 - [Bootstrap.targets](https://github.com/dotnet/roslyn/blob/main/eng/targets/Bootstrap.targets): verifies the bootstrap compiler was actually used
@@ -101,14 +101,14 @@ Locally reproducing and attaching a debugger to a bootstrap build failure is fai
 
 ```powershell
 .\build.ps1 -bl
-dotnet run --framework net9.0 src\Tools\Replay\ artifacts\log\Debug\Build.binlog -w
+dotnet run --framework net10.0 --project src\Tools\Replay\ artifacts\log\Debug\Build.binlog -w
 ```
 
 **Linux**
 
 ```sh
 ./build.sh -bl
-dotnet run --framework net9.0 src/Tools/Replay/ artifacts/log/Debug/Build.binlog -w
+dotnet run --framework net10.0 --project src/Tools/Replay/ artifacts/log/Debug/Build.binlog -w
 ```
 
 The `-w` flag will cause replay to print the process ID of the compiler and wait until you hit a key, so that you can attach a debugger to the process and set breakpoints for exceptions you are interested in.

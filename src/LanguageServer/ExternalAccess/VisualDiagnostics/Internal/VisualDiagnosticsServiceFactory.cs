@@ -29,7 +29,7 @@ internal sealed class VisualDiagnosticsServiceFactory(
     LspWorkspaceRegistrationService lspWorkspaceRegistrationService) : ILspServiceFactory, IOnServiceBrokerInitialized
 {
     private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
-    private readonly Lazy<OnInitializedService> _OnInitializedService = new Lazy<OnInitializedService>(() => new OnInitializedService(lspWorkspaceRegistrationService));
+    private readonly Lazy<OnInitializedService> _OnInitializedService = new(() => new OnInitializedService(lspWorkspaceRegistrationService));
 
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
@@ -46,7 +46,7 @@ internal sealed class VisualDiagnosticsServiceFactory(
         private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
         private IVisualDiagnosticsLanguageService? _visualDiagnosticsLanguageService;
         private CancellationToken _cancellationToken;
-        private static readonly TaskCompletionSource<bool> _taskCompletionSource = new TaskCompletionSource<bool>();
+        private static readonly TaskCompletionSource<bool> _taskCompletionSource = new();
 
         public OnInitializedService(LspWorkspaceRegistrationService lspWorkspaceRegistrationService)
         {
@@ -58,11 +58,10 @@ internal sealed class VisualDiagnosticsServiceFactory(
             (_visualDiagnosticsLanguageService as IDisposable)?.Dispose();
         }
 
-        public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
+        public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
             _cancellationToken = cancellationToken;
             _taskCompletionSource.TrySetResult(true);
-            return Task.CompletedTask;
         }
 
         public void OnServiceBrokerInitialized(IServiceBroker serviceBroker)

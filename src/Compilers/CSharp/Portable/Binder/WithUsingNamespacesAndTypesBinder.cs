@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return true; }
         }
 
-        internal override void GetCandidateExtensionMethods(
+        internal override void GetCandidateExtensionMethodsInSingleBinder(
             ArrayBuilder<MethodSymbol> methods,
             string name,
             int arity,
@@ -129,28 +129,46 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override void GetExtensionDeclarations(ArrayBuilder<NamedTypeSymbol> extensions, Binder originalBinder)
+        internal override void GetCandidateExtensionMembersInSingleBinder(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, Binder originalBinder)
         {
-            Debug.Assert(extensions.Count == 0);
+            Debug.Assert(members.Count == 0);
 
-            // Tracked by https://github.com/dotnet/roslyn/issues/79440 : using directives, test this flag (see TestUnusedExtensionMarksImportsAsUsed)
             bool callerIsSemanticModel = originalBinder.IsSemanticModelBinder;
+
+            // We need to avoid collecting multiple candidates for an extension declaration imported both through a namespace and a static class
+            // We will look for duplicates only if both of the following flags are set to true
+            bool seenNamespaceWithExtensions = false;
+            bool seenStaticClassWithExtensions = false;
 
             foreach (var nsOrType in this.GetUsings(basesBeingResolved: null))
             {
                 if (nsOrType.NamespaceOrType is NamespaceSymbol ns)
                 {
-                    var count = extensions.Count;
-                    ns.GetExtensionContainers(extensions);
+                    var count = members.Count;
+                    ns.GetExtensionMembers(members, name, alternativeName, arity, options, originalBinder.FieldsBeingBound);
                     // If we found any extension declarations, then consider this using as used.
-                    // Tracked by https://github.com/dotnet/roslyn/issues/79440 : using directives, consider refining this logic
-                    if (extensions.Count != count)
+                    if (members.Count != count)
                     {
                         MarkImportDirective(nsOrType.UsingDirectiveReference, callerIsSemanticModel);
+                        seenNamespaceWithExtensions = true;
                     }
                 }
-                // Tracked by https://github.com/dotnet/roslyn/issues/79440 : using directives, clarify expected behavior for `using Extension;` or `using static Extension;`.
-                //            If/when we do such a scenario, we have to remove duplicates (see GetCandidateExtensionMethods).
+                else if (nsOrType.NamespaceOrType is NamedTypeSymbol namedType)
+                {
+                    var count = members.Count;
+                    namedType.GetExtensionMembers(members, name, alternativeName, arity, options, originalBinder.FieldsBeingBound);
+                    // If we found any extension declarations, then consider this using as used.
+                    if (members.Count != count)
+                    {
+                        MarkImportDirective(nsOrType.UsingDirectiveReference, callerIsSemanticModel);
+                        seenStaticClassWithExtensions = true;
+                    }
+                }
+            }
+
+            if (seenNamespaceWithExtensions && seenStaticClassWithExtensions)
+            {
+                members.RemoveDuplicates();
             }
         }
 
@@ -187,6 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsValidLookupCandidateInUsings(Symbol symbol)
         {
+            Debug.Assert(!symbol.IsExtensionBlockMember());
             switch (symbol.Kind)
             {
                 // lookup via "using namespace" ignores namespaces inside
@@ -195,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // lookup via "using static" ignores extension methods and non-static methods
                 case SymbolKind.Method:
-                    if (!symbol.IsStatic || ((MethodSymbol)symbol).IsExtensionMethod) // Tracked by https://github.com/dotnet/roslyn/issues/79440: using directives, Test this code path with new extensions
+                    if (!symbol.IsStatic || ((MethodSymbol)symbol).IsExtensionMethod)
                     {
                         return false;
                     }

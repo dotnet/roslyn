@@ -13,9 +13,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -39,7 +39,7 @@ public sealed class DiagnosticAnalyzerServiceTests
     private static readonly TestComposition s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures;
 
     private static AdhocWorkspace CreateWorkspace(Type[] additionalParts = null)
-        => new AdhocWorkspace(s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(additionalParts).GetHostServices());
+        => new(s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(additionalParts).GetHostServices());
 
     private static IGlobalOptionService GetGlobalOptions(Workspace workspace)
         => workspace.Services.SolutionServices.ExportProvider.GetExportedValue<IGlobalOptionService>();
@@ -65,8 +65,8 @@ public sealed class DiagnosticAnalyzerServiceTests
         var service = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
         var diagnostics = await service.GetDiagnosticsForIdsAsync(
-            workspace.CurrentSolution.Projects.Single(), documentId: null, diagnosticIds: null, shouldIncludeAnalyzer: null,
-            includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: false, CancellationToken.None);
+            workspace.CurrentSolution.Projects.Single(), documentIds: default, diagnosticIds: null, AnalyzerFilter.All,
+            includeLocalDocumentDiagnostics: true, CancellationToken.None);
         Assert.NotEmpty(diagnostics);
     }
 
@@ -183,7 +183,7 @@ public sealed class DiagnosticAnalyzerServiceTests
         // open document
         workspace.OpenDocument(document.Id);
 
-        var diagnostics = await service.ForceAnalyzeProjectAsync(document.Project, CancellationToken.None);
+        var diagnostics = await service.ForceRunCodeAnalysisDiagnosticsAsync(document.Project, CancellationToken.None);
 
         foreach (var diagnostic in diagnostics)
         {
@@ -217,7 +217,7 @@ public sealed class DiagnosticAnalyzerServiceTests
         var syntax = false;
         var semantic = false;
 
-        var diagnostics = await service.ForceAnalyzeProjectAsync(document.Project, CancellationToken.None);
+        var diagnostics = await service.ForceRunCodeAnalysisDiagnosticsAsync(document.Project, CancellationToken.None);
 
         (syntax, semantic) = resultSetter(syntax, semantic, diagnostics);
 
@@ -257,7 +257,7 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         var service = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
-        var diagnostics = await service.ForceAnalyzeProjectAsync(project, CancellationToken.None);
+        var diagnostics = await service.ForceRunCodeAnalysisDiagnosticsAsync(project, CancellationToken.None);
         Assert.NotEmpty(diagnostics);
     }
 
@@ -340,7 +340,7 @@ public sealed class DiagnosticAnalyzerServiceTests
     {
         var service = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
-        var diagnostics = await service.ForceAnalyzeProjectAsync(project, CancellationToken.None);
+        var diagnostics = await service.ForceRunCodeAnalysisDiagnosticsAsync(project, CancellationToken.None);
 
         if (expectAnalyzerExecuted)
         {
@@ -389,7 +389,7 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         workspace.OpenAdditionalDocument(firstAdditionalDocument.Id);
 
-        var diagnostics = await service.ForceAnalyzeProjectAsync(project, CancellationToken.None);
+        var diagnostics = await service.ForceRunCodeAnalysisDiagnosticsAsync(project, CancellationToken.None);
 
         var expectedCount = testMultiple ? 4 : 1;
 
@@ -470,7 +470,7 @@ public sealed class DiagnosticAnalyzerServiceTests
                 throw ExceptionUtilities.UnexpectedValue(analysisScope);
         }
 
-        var diagnostics = await service.ForceAnalyzeProjectAsync(project, CancellationToken.None);
+        var diagnostics = await service.ForceRunCodeAnalysisDiagnosticsAsync(project, CancellationToken.None);
 
         var diagnostic = diagnostics.SingleOrDefault();
         if (includeAnalyzer)
@@ -592,7 +592,7 @@ public sealed class DiagnosticAnalyzerServiceTests
                 break;
         }
 
-        var diagnostics = await service.ForceAnalyzeProjectAsync(project, CancellationToken.None);
+        var diagnostics = await service.ForceRunCodeAnalysisDiagnosticsAsync(project, CancellationToken.None);
 
         diagnostics = [.. diagnostics
             .Where(d => d.Id == IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId)
@@ -626,31 +626,19 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         // Verify that requesting analyzer diagnostics for analyzer1 does not lead to invoking analyzer2.
         var analyzer1 = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, DiagnosticSeverity.Warning, throwOnAllNamedTypes: false);
-        var analyzer1Id = analyzer1.GetAnalyzerId();
         var analyzer2 = new NamedTypeAnalyzer();
-        var analyzerIdsToRequestDiagnostics = ImmutableArray.Create(analyzer1Id);
         var analyzerReference = new AnalyzerImageReference([analyzer1, analyzer2]);
         workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
         var project = workspace.CurrentSolution.Projects.Single();
         var document = documentAnalysis ? project.Documents.Single() : null;
-        var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
-            document, project, Checksum.Null, span: null, projectAnalyzerIds: [], analyzerIdsToRequestDiagnostics,
-            AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
-            logPerformanceInfo: false, getTelemetryInfo: false,
-            cancellationToken: CancellationToken.None);
+
+        var service = project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+        var diagnosticsMapResults = await service.GetDiagnosticsForIdsAsync(
+            project, documentIds: default, [analyzer1.Descriptor.Id], AnalyzerFilter.All, includeLocalDocumentDiagnostics: true, CancellationToken.None);
         Assert.False(analyzer2.ReceivedSymbolCallback);
 
-        Assert.Equal(1, diagnosticsMapResults.Diagnostics.Length);
-        var (actualAnalyzerId, diagnosticMap) = diagnosticsMapResults.Diagnostics.Single();
-        Assert.Equal(analyzer1Id, actualAnalyzerId);
-        Assert.Equal(1, diagnosticMap.Semantic.Length);
-        var semanticDiagnostics = diagnosticMap.Semantic.Single().Item2;
-        var diagnostic = Assert.Single(semanticDiagnostics);
+        var diagnostic = Assert.Single(diagnosticsMapResults);
         Assert.Equal(analyzer1.Descriptor.Id, diagnostic.Id);
-
-        Assert.Empty(diagnosticMap.Syntax);
-        Assert.Empty(diagnosticMap.NonLocal);
-        Assert.Empty(diagnosticMap.Other);
     }
 
     [Theory, CombinatorialData]
@@ -660,7 +648,6 @@ public sealed class DiagnosticAnalyzerServiceTests
         using var workspace = TestWorkspace.CreateCSharp("class A { }");
 
         var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, DiagnosticSeverity.Warning, throwOnAllNamedTypes: false);
-        var analyzerId = analyzer.GetAnalyzerId();
         var analyzerReference = new AnalyzerImageReference([analyzer]);
 
         workspace.TryApplyChanges(
@@ -669,16 +656,12 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         var project = workspace.CurrentSolution.Projects.Single();
         var document = documentAnalysis ? project.Documents.Single() : null;
-        var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
-            document, project, Checksum.Null, span: null, projectAnalyzerIds: [analyzerId], [analyzerId],
-            AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
-            logPerformanceInfo: false, getTelemetryInfo: false,
-            cancellationToken: CancellationToken.None);
+        var service = project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+        var diagnosticsMapResults = await service.GetDiagnosticsForIdsAsync(
+            project, documentIds: default, [analyzer.Descriptor.Id], AnalyzerFilter.All, includeLocalDocumentDiagnostics: true, CancellationToken.None);
 
         // In this case, since the analyzer identity is identical, we ran it once
-        var analyzerResults = diagnosticsMapResults.Diagnostics.Single();
-        Assert.Equal(analyzerId, analyzerResults.Item1);
-        Assert.Equal(1, analyzerResults.Item2.Semantic.Length);
+        Assert.Single(diagnosticsMapResults);
     }
 
     [Theory, CombinatorialData]
@@ -688,16 +671,16 @@ public sealed class DiagnosticAnalyzerServiceTests
         using var workspace = TestWorkspace.CreateCSharp("class A { }");
 
         var analyzerProject = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, DiagnosticSeverity.Warning, throwOnAllNamedTypes: false);
-        var analyzerProjectId = analyzerProject.GetAnalyzerId();
         var analyzerProjectReference = new AnalyzerImageReference([analyzerProject]);
 
         var analyzerHost = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, DiagnosticSeverity.Warning, throwOnAllNamedTypes: false);
-        var analyzerHostId = analyzerHost.GetAnalyzerId();
         var analyzerHostReference = new AnalyzerImageReference([analyzerHost]);
+
+        SerializerService.TestAccessor.AddAnalyzerImageReferences([analyzerProjectReference, analyzerHostReference]);
 
         // AnalyzerImageReference will create a separate AnalyzerImageReference.Id for each instance created, so these will be different.
         Assert.NotEqual(analyzerProjectReference.Id, analyzerHostReference.Id);
-        Assert.Equal(analyzerProjectId, analyzerHostId);
+        Assert.Equal(analyzerProject.GetAnalyzerId(), analyzerHost.GetAnalyzerId());
 
         workspace.TryApplyChanges(
             workspace.CurrentSolution.WithAnalyzerReferences([analyzerHostReference])
@@ -705,16 +688,13 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         var project = workspace.CurrentSolution.Projects.Single();
         var document = documentAnalysis ? project.Documents.Single() : null;
-        var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
-            document, project, Checksum.Null, span: null, projectAnalyzerIds: [analyzerProjectId], [analyzerHostId],
-            AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
-            logPerformanceInfo: false, getTelemetryInfo: false,
-            cancellationToken: CancellationToken.None);
+        var service = project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+        var diagnosticsMapResults = await service.GetDiagnosticsForIdsAsync(
+            project, documentIds: default, [analyzerProject.Descriptor.Id, analyzerHost.Descriptor.Id],
+            AnalyzerFilter.All, includeLocalDocumentDiagnostics: true, CancellationToken.None);
 
         // In this case, since the analyzer reference identity is identical, we ran it once
-        var analyzerResults = diagnosticsMapResults.Diagnostics.Single();
-        Assert.Equal(analyzerHostId, analyzerResults.Item1);
-        Assert.Equal(1, analyzerResults.Item2.Semantic.Length);
+        Assert.Single(diagnosticsMapResults);
     }
 
     [Theory, CombinatorialData]
@@ -724,15 +704,13 @@ public sealed class DiagnosticAnalyzerServiceTests
         using var workspace = TestWorkspace.CreateCSharp("class A { }");
 
         var analyzerProject = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, DiagnosticSeverity.Warning, throwOnAllNamedTypes: false);
-        var analyzerProjectId = analyzerProject.GetAnalyzerId();
         var analyzerProjectReference = CreateAnalyzerReferenceWithSameId(analyzerProject);
 
         var analyzerHost = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, DiagnosticSeverity.Warning, throwOnAllNamedTypes: false);
-        var analyzerHostId = analyzerHost.GetAnalyzerId();
         var analyzerHostReference = CreateAnalyzerReferenceWithSameId(analyzerHost);
 
         Assert.Equal(analyzerProjectReference.Id, analyzerHostReference.Id);
-        Assert.Equal(analyzerProjectId, analyzerHostId);
+        Assert.Equal(analyzerProject.GetAnalyzerId(), analyzerHost.GetAnalyzerId());
 
         workspace.TryApplyChanges(
             workspace.CurrentSolution.WithAnalyzerReferences(AddExtraReferenceIfNeeded(analyzerHostReference, includeExtraHostReference))
@@ -740,16 +718,13 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         var project = workspace.CurrentSolution.Projects.Single();
         var document = documentAnalysis ? project.Documents.Single() : null;
-        var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
-            document, project, Checksum.Null, span: null, projectAnalyzerIds: [analyzerProjectId], [analyzerHostId],
-            AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
-            logPerformanceInfo: false, getTelemetryInfo: false,
-            cancellationToken: CancellationToken.None);
+        var service = project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+        var diagnosticsMapResults = await service.GetDiagnosticsForIdsAsync(
+            project, documentIds: default, [analyzerProject.Descriptor.Id, analyzerHost.Descriptor.Id],
+            AnalyzerFilter.All, includeLocalDocumentDiagnostics: true, CancellationToken.None);
 
-        // In this case, the analyzers are ran twice. This appears to be a bug in SkippedHostAnalyzersInfo.Create, because it calls
-        // HostDiagnosticAnalyzers.CreateProjectDiagnosticAnalyzersPerReference which already filters out references, it doesn't return any
-        // references to skip.
-        Assert.Equal(2, diagnosticsMapResults.Diagnostics.Length);
+        // We should only get one diagnostic as the two analyzers have the same ID and will be deduped.
+        Assert.Single(diagnosticsMapResults);
 
         static AnalyzerReference CreateAnalyzerReferenceWithSameId(DiagnosticAnalyzer analyzer)
         {
@@ -761,11 +736,13 @@ public sealed class DiagnosticAnalyzerServiceTests
             return new TestAnalyzerReferenceByLanguage(map);
         }
 
-        static ImmutableArray<AnalyzerReference> AddExtraReferenceIfNeeded(AnalyzerReference mainReference, bool addExtraReference)
+        ImmutableArray<AnalyzerReference> AddExtraReferenceIfNeeded(AnalyzerReference mainReference, bool addExtraReference)
         {
             if (addExtraReference)
             {
-                return [mainReference, new AnalyzerImageReference([new FieldAnalyzer("FA1234", syntaxTreeAction: false)])];
+                var imageReference = new AnalyzerImageReference([new FieldAnalyzer("FA1234", syntaxTreeAction: false)]);
+                SerializerService.TestAccessor.AddAnalyzerImageReference(imageReference);
+                return [mainReference, imageReference];
             }
             else
             {
@@ -784,8 +761,6 @@ public sealed class DiagnosticAnalyzerServiceTests
         var analyzerProjectReference = CreateAnalyzerReferenceWithSameId(analyzer);
         var analyzerHostReference = CreateAnalyzerReferenceWithSameId(analyzer);
 
-        var analyzerId = analyzer.GetAnalyzerId();
-
         Assert.Equal(analyzerProjectReference.Id, analyzerHostReference.Id);
 
         workspace.TryApplyChanges(
@@ -794,13 +769,12 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         var project = workspace.CurrentSolution.Projects.Single();
         var document = documentAnalysis ? project.Documents.Single() : null;
-        var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
-            document, project, Checksum.Null, span: null, projectAnalyzerIds: [analyzerId], [analyzerId],
-            AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
-            logPerformanceInfo: false, getTelemetryInfo: false,
-            cancellationToken: CancellationToken.None);
+        var service = project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+        var diagnosticsMapResults = await service.GetDiagnosticsForIdsAsync(
+            project, documentIds: default, [analyzer.Descriptor.Id],
+            AnalyzerFilter.All, includeLocalDocumentDiagnostics: true, CancellationToken.None);
 
-        Assert.Equal(1, diagnosticsMapResults.Diagnostics.Length);
+        Assert.Single(diagnosticsMapResults);
 
         static AnalyzerReference CreateAnalyzerReferenceWithSameId(DiagnosticAnalyzer analyzer)
         {
@@ -831,9 +805,8 @@ public sealed class DiagnosticAnalyzerServiceTests
         project = project.AddAdditionalDocument("additional.txt", @"This is an additional file!").Project;
 
         var analyzer = new FilterSpanTestAnalyzer(kind);
-        var analyzerId = analyzer.GetAnalyzerId();
-        var analyzerIdsToRequestDiagnostics = ImmutableArray.Create(analyzerId);
         var analyzerReference = new AnalyzerImageReference([analyzer]);
+        SerializerService.TestAccessor.AddAnalyzerImageReference(analyzerReference);
         project = project.AddAnalyzerReference(analyzerReference);
 
         workspace.TryApplyChanges(project.Solution);
@@ -857,14 +830,12 @@ public sealed class DiagnosticAnalyzerServiceTests
         async Task VerifyCallbackSpanAsync(TextSpan? filterSpan)
         {
             var analysisKind = kind is FilterSpanTestAnalyzer.AnalysisKind.SyntaxTree or FilterSpanTestAnalyzer.AnalysisKind.AdditionalFile
-                ? AnalysisKind.Syntax
-                : AnalysisKind.Semantic;
+                ? DiagnosticKind.AnalyzerSyntax
+                : DiagnosticKind.AnalyzerSemantic;
             var documentToAnalyze = kind == FilterSpanTestAnalyzer.AnalysisKind.AdditionalFile ? additionalDocument : document;
-            _ = await DiagnosticComputer.GetDiagnosticsAsync(
-                documentToAnalyze, project, Checksum.Null, filterSpan, analyzerIdsToRequestDiagnostics, hostAnalyzerIds: [],
-                analysisKind, new DiagnosticAnalyzerInfoCache(), workspace.Services,
-                logPerformanceInfo: false, getTelemetryInfo: false,
-                CancellationToken.None);
+            var service = project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+            _ = await service.GetDiagnosticsForSpanAsync(
+                documentToAnalyze, filterSpan, analysisKind, CancellationToken.None);
             Assert.Equal(filterSpan, analyzer.CallbackFilterSpan);
             if (kind == FilterSpanTestAnalyzer.AnalysisKind.AdditionalFile)
             {
@@ -908,18 +879,17 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         var project = workspace.CurrentSolution.Projects.Single();
         var document = project.Documents.Single();
-        var diagnosticAnalyzerInfoCache = new DiagnosticAnalyzerInfoCache();
 
         var kind = actionKind == AnalyzerRegisterActionKind.SyntaxTree ? AnalysisKind.Syntax : AnalysisKind.Semantic;
-        var analyzerIds = ImmutableArray.Create(analyzer.GetAnalyzerId());
 
         // First invoke analysis with cancellation token, and verify canceled compilation and no reported diagnostics.
         Assert.Empty(analyzer.CanceledCompilations);
+        var service = project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
         try
         {
-            _ = await DiagnosticComputer.GetDiagnosticsAsync(document, project, Checksum.Null, span: null,
-                projectAnalyzerIds: [], analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services,
-                logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: analyzer.CancellationToken);
+            _ = await service.GetDiagnosticsForIdsAsync(
+                project, [document.Id], diagnosticIds: null, AnalyzerFilter.All, includeLocalDocumentDiagnostics: true,
+                analyzer.CancellationToken);
 
             throw ExceptionUtilities.Unreachable();
         }
@@ -927,15 +897,10 @@ public sealed class DiagnosticAnalyzerServiceTests
         {
         }
 
-        Assert.Single(analyzer.CanceledCompilations);
-
         // Then invoke analysis without cancellation token, and verify non-cancelled diagnostic.
-        var diagnosticsMap = await DiagnosticComputer.GetDiagnosticsAsync(document, project, Checksum.Null, span: null,
-            projectAnalyzerIds: [], analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services,
-            logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
-        var builder = diagnosticsMap.Diagnostics.Single().diagnosticMap;
-        var diagnostic = kind == AnalysisKind.Syntax ? builder.Syntax.Single().Item2.Single() : builder.Semantic.Single().Item2.Single();
-        Assert.Equal(CancellationTestAnalyzer.DiagnosticId, diagnostic.Id);
+        var diagnosticsMap = await service.GetDiagnosticsForIdsAsync(
+            project, [document.Id], diagnosticIds: null, AnalyzerFilter.All, includeLocalDocumentDiagnostics: true, CancellationToken.None);
+        Assert.Equal(CancellationTestAnalyzer.DiagnosticId, diagnosticsMap.Single().Id);
     }
 
     [Theory, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1909806")]
@@ -963,7 +928,7 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         var service = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
-        var diagnostics = await service.ForceAnalyzeProjectAsync(project, CancellationToken.None);
+        var diagnostics = await service.ForceRunCodeAnalysisDiagnosticsAsync(project, CancellationToken.None);
 
         Assert.NotEmpty(diagnostics);
     }
@@ -1002,9 +967,9 @@ public sealed class DiagnosticAnalyzerServiceTests
 
     private sealed class Analyzer : DiagnosticAnalyzer
     {
-        internal static readonly DiagnosticDescriptor s_syntaxRule = new DiagnosticDescriptor("syntax", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
-        internal static readonly DiagnosticDescriptor s_semanticRule = new DiagnosticDescriptor("semantic", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
-        internal static readonly DiagnosticDescriptor s_compilationRule = new DiagnosticDescriptor("compilation", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
+        internal static readonly DiagnosticDescriptor s_syntaxRule = new("syntax", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
+        internal static readonly DiagnosticDescriptor s_semanticRule = new("semantic", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
+        internal static readonly DiagnosticDescriptor s_compilationRule = new("compilation", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [s_syntaxRule, s_semanticRule, s_compilationRule];
 
@@ -1018,9 +983,9 @@ public sealed class DiagnosticAnalyzerServiceTests
 
     private sealed class DisabledByDefaultAnalyzer : DiagnosticAnalyzer
     {
-        internal static readonly DiagnosticDescriptor s_syntaxRule = new DiagnosticDescriptor("syntax", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: false);
-        internal static readonly DiagnosticDescriptor s_semanticRule = new DiagnosticDescriptor("semantic", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: false);
-        internal static readonly DiagnosticDescriptor s_compilationRule = new DiagnosticDescriptor("compilation", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: false);
+        internal static readonly DiagnosticDescriptor s_syntaxRule = new("syntax", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: false);
+        internal static readonly DiagnosticDescriptor s_semanticRule = new("semantic", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: false);
+        internal static readonly DiagnosticDescriptor s_compilationRule = new("compilation", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: false);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [s_syntaxRule, s_semanticRule, s_compilationRule];
 
@@ -1043,14 +1008,13 @@ public sealed class DiagnosticAnalyzerServiceTests
 
     private sealed class LeakDocumentAnalyzer : DocumentDiagnosticAnalyzer
     {
-        internal static readonly DiagnosticDescriptor s_syntaxRule = new DiagnosticDescriptor("leak", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
+        internal static readonly DiagnosticDescriptor s_syntaxRule = new("leak", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [s_syntaxRule];
 
-        public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument document, SyntaxTree tree, CancellationToken cancellationToken)
+        public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument document, SyntaxTree tree, CancellationToken cancellationToken)
         {
-            return Task.FromResult<ImmutableArray<Diagnostic>>(
-                [Diagnostic.Create(s_syntaxRule, tree.GetRoot(cancellationToken).GetLocation())]);
+            return [Diagnostic.Create(s_syntaxRule, tree.GetRoot(cancellationToken).GetLocation())];
         }
     }
 

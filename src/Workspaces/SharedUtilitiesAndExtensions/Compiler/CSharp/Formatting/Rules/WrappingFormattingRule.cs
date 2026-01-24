@@ -153,17 +153,17 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
 
     private static (SyntaxToken openBrace, SyntaxToken closeBrace) GetBracePair(SyntaxNode node)
     {
-        if (node is BaseMethodDeclarationSyntax methodDeclaration && methodDeclaration.Body != null)
+        if (node is BaseMethodDeclarationSyntax { Body: not null } methodDeclaration)
         {
             return (methodDeclaration.Body.OpenBraceToken, methodDeclaration.Body.CloseBraceToken);
         }
 
-        if (node is PropertyDeclarationSyntax propertyDeclaration && propertyDeclaration.AccessorList != null)
+        if (node is PropertyDeclarationSyntax { AccessorList: not null } propertyDeclaration)
         {
             return (propertyDeclaration.AccessorList.OpenBraceToken, propertyDeclaration.AccessorList.CloseBraceToken);
         }
 
-        if (node is AccessorDeclarationSyntax accessorDeclaration && accessorDeclaration.Body != null)
+        if (node is AccessorDeclarationSyntax { Body: not null } accessorDeclaration)
         {
             return (accessorDeclaration.Body.OpenBraceToken, accessorDeclaration.Body.CloseBraceToken);
         }

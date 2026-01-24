@@ -7,7 +7,7 @@ This document lists known breaking changes in Roslyn after .NET 9 general releas
 ***Introduced in Visual Studio 2022 version 17.13***
 
 C# 14 introduces the ability to write a lambda with parameter modifiers, without having to specify a parameter type:
-https://github.com/dotnet/csharplang/blob/main/proposals/simple-lambda-parameters-with-modifiers.md
+[Simple lambda parameters with modifiers](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-14.0/simple-lambda-parameters-with-modifiers.md)
 
 As part of this work, a breaking change was accepted where `scoped` will always be treated as a modifier
 in a lambda parameter, even where it might have been accepted as a type name in the past.  For example:
@@ -38,7 +38,7 @@ might be raised because a new overload is applicable but there is no single best
 The following example shows some ambiguities and possible workarounds.
 Note that another workaround is for API authors to use the `OverloadResolutionPriorityAttribute`.
 
-```cs
+```csharp
 var x = new long[] { 1 };
 Assert.Equal([2], x); // previously Assert.Equal<T>(T[], T[]), now ambiguous with Assert.Equal<T>(ReadOnlySpan<T>, Span<T>)
 Assert.Equal([2], x.AsSpan()); // workaround
@@ -52,7 +52,7 @@ Assert.Equal(y.AsSpan(), s); // workaround
 A `Span<T>` overload might be chosen in C# 14 where an overload taking an interface implemented by `T[]` (such as `IEnumerable<T>`) was chosen in C# 13,
 and that can lead to an `ArrayTypeMismatchException` at runtime if used with a covariant array:
 
-```cs
+```csharp
 string[] s = new[] { "a" };
 object[] o = s; // array variance
 
@@ -84,11 +84,16 @@ static class MemoryMarshal
 }
 ```
 
+### `Enumerable.Reverse`
+
 When using C# 14 or newer and targeting a .NET older than `net10.0`
 or .NET Framework with `System.Memory` reference,
-there is a breaking change with `Enumerable.Reverse` and arrays:
+there is a breaking change with `Enumerable.Reverse` and arrays.
 
-```cs
+> [!CAUTION]
+> This only impacts customers using C# 14 and targeting .NET earlier than `net10.0`, which is an unsupported configuration. 
+
+```csharp
 int[] x = new[] { 1, 2, 3 };
 var y = x.Reverse(); // previously Enumerable.Reverse, now MemoryExtensions.Reverse
 ```
@@ -99,7 +104,7 @@ than `Enumerable.Reverse(this IEnumerable<T>)` (which used to be resolved in C# 
 Specifically, the `Span` extension does the reversal in place and returns `void`.
 As a workaround, one can define their own `Enumerable.Reverse(this T[])` or use `Enumerable.Reverse` explicitly:
 
-```cs
+```csharp
 int[] x = new[] { 1, 2, 3 };
 var y = Enumerable.Reverse(x); // instead of 'x.Reverse();'
 ```
@@ -158,6 +163,21 @@ class C
 }
 ```
 
+## Warn for redundant pattern in simple `or` patterns
+
+***Introduced in Visual Studio 2022 version 17.13***
+
+In a disjunctive `or` pattern such as `is not null or 42` or `is not int or string`
+the second pattern is redundant and likely results from misunderstanding the precedence order
+of `not` and `or` pattern combinators.  
+The compiler provides a warning in common cases of this mistake:
+
+```csharp
+_ = o is not null or 42; // warning: pattern "42" is redundant
+_ = o is not int or string; // warning: pattern "string" is redundant
+```
+It is likely that the user meant `is not (null or 42)` or `is not (int or string)` instead.
+
 ## `UnscopedRefAttribute` cannot be used with old ref safety rules
 
 ***Introduced in Visual Studio 2022 version 17.13***
@@ -169,7 +189,7 @@ However, the attribute should not have an effect in that context, and that is no
 
 Code that previously did not report any errors in C# 10 or earlier with net6.0 or earlier can now fail to compile:
 
-```cs
+```csharp
 using System.Diagnostics.CodeAnalysis;
 struct S
 {
@@ -186,7 +206,7 @@ To prevent misunderstanding (thinking the attribute has an effect
 but it actually does not because your code is compiled with the earlier ref safety rules),
 a warning is reported when the attribute is used in C# 10 or earlier with net6.0 or earlier:
 
-```cs
+```csharp
 using System.Diagnostics.CodeAnalysis;
 struct S
 {
@@ -356,7 +376,7 @@ class @extension
 }
 ```
 
-***Introduced in Visual Studio 2022 version 17.15.***
+***Introduced in Visual Studio 2026 version 18.0.***
 The "extension" identifier may not be used as a type name, so the following will not compile:
 ```csharp
 using extension = ...; // alias may not be named "extension"
@@ -366,7 +386,7 @@ class C<extension> { } // type parameter may not be named "extension"
 
 ## Partial properties and events are now implicitly virtual and public
 
-***Introduced in Visual Studio 2022 version 17.15***
+***Introduced in Visual Studio 2026 version 18.0 preview 1***
 
 We have fixed [an inconsistency](https://github.com/dotnet/roslyn/issues/77346)
 where partial interface properties and events would not be implicitly `virtual` and `public` unlike their non-partial equivalents.
@@ -401,4 +421,31 @@ partial interface I
 }
 
 class C : I;
+```
+
+## Missing `ParamCollectionAttribute` is reported in more cases
+
+***Introduced in Visual Studio 2026 version 18.0***
+
+If you are compiling a `.netmodule` (note that this doesn't apply to normal DLL/EXE compilations),
+and have a lambda or a local function with a `params` collection parameter,
+and the `ParamCollectionAttribute` is not found, a compilation error is now reported
+(because the attribute now must be [emitted](https://github.com/dotnet/roslyn/issues/79752) on the synthesized method
+but the attribute type itself is not synthesized by the compiler into a `.netmodule`).
+You can work around that by defining the attribute yourself.
+
+```cs
+using System;
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        Func<IList<int>, int> lam = (params IList<int> xs) => xs.Count; // error if ParamCollectionAttribute does not exist
+        lam([1, 2, 3]);
+
+        int func(params IList<int> xs) => xs.Count; // error if ParamCollectionAttribute does not exist
+        func(4, 5, 6);
+    }
+}
 ```

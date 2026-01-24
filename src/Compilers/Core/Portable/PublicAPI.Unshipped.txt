@@ -1,43 +1,9 @@
-Microsoft.CodeAnalysis.CommandLineArguments.ManifestResourceArguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CommandLineResource>
-Microsoft.CodeAnalysis.CommandLineResource
-Microsoft.CodeAnalysis.CommandLineResource.CommandLineResource() -> void
-Microsoft.CodeAnalysis.CommandLineResource.FullPath.get -> string!
-Microsoft.CodeAnalysis.CommandLineResource.IsEmbedded.get -> bool
-Microsoft.CodeAnalysis.CommandLineResource.IsLinked.get -> bool
-Microsoft.CodeAnalysis.CommandLineResource.IsPublic.get -> bool
-Microsoft.CodeAnalysis.CommandLineResource.LinkedResourceFileName.get -> string?
-Microsoft.CodeAnalysis.CommandLineResource.ResourceName.get -> string!
-Microsoft.CodeAnalysis.Compilation.EmitDifference(Microsoft.CodeAnalysis.Emit.EmitBaseline! baseline, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Emit.SemanticEdit>! edits, System.Func<Microsoft.CodeAnalysis.ISymbol!, bool>! isAddedSymbol, System.IO.Stream! metadataStream, System.IO.Stream! ilStream, System.IO.Stream! pdbStream, Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions options, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Emit.EmitDifferenceResult!
-Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions
-Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.EmitDifferenceOptions() -> void
-Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.EmitFieldRva.get -> bool
-Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.EmitFieldRva.init -> void
-Microsoft.CodeAnalysis.IMethodSymbol.IsIterator.get -> bool
-static readonly Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.Default -> Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions
-Microsoft.CodeAnalysis.IEventSymbol.IsPartialDefinition.get -> bool
-Microsoft.CodeAnalysis.IEventSymbol.PartialDefinitionPart.get -> Microsoft.CodeAnalysis.IEventSymbol?
-Microsoft.CodeAnalysis.IEventSymbol.PartialImplementationPart.get -> Microsoft.CodeAnalysis.IEventSymbol?
-Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext.AddEmbeddedAttributeDefinition() -> void
-override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.ToString() -> string!
-Microsoft.CodeAnalysis.ITypeSymbol.IsExtension.get -> bool
-Microsoft.CodeAnalysis.TypeKind.Extension = 14 -> Microsoft.CodeAnalysis.TypeKind
-Microsoft.CodeAnalysis.ITypeSymbol.ExtensionParameter.get -> Microsoft.CodeAnalysis.IParameterSymbol?
-const Microsoft.CodeAnalysis.WellKnownMemberNames.AdditionAssignmentOperatorName = "op_AdditionAssignment" -> string!
-const Microsoft.CodeAnalysis.WellKnownMemberNames.BitwiseAndAssignmentOperatorName = "op_BitwiseAndAssignment" -> string!
-const Microsoft.CodeAnalysis.WellKnownMemberNames.BitwiseOrAssignmentOperatorName = "op_BitwiseOrAssignment" -> string!
-const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedAdditionAssignmentOperatorName = "op_CheckedAdditionAssignment" -> string!
-const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedDivisionAssignmentOperatorName = "op_CheckedDivisionAssignment" -> string!
-const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedMultiplicationAssignmentOperatorName = "op_CheckedMultiplicationAssignment" -> string!
-const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedSubtractionAssignmentOperatorName = "op_CheckedSubtractionAssignment" -> string!
-const Microsoft.CodeAnalysis.WellKnownMemberNames.DivisionAssignmentOperatorName = "op_DivisionAssignment" -> string!
-const Microsoft.CodeAnalysis.WellKnownMemberNames.ExclusiveOrAssignmentOperatorName = "op_ExclusiveOrAssignment" -> string!
-const Microsoft.CodeAnalysis.WellKnownMemberNames.LeftShiftAssignmentOperatorName = "op_LeftShiftAssignment" -> string!
-const Microsoft.CodeAnalysis.WellKnownMemberNames.ModulusAssignmentOperatorName = "op_ModulusAssignment" -> string!
-const Microsoft.CodeAnalysis.WellKnownMemberNames.MultiplicationAssignmentOperatorName = "op_MultiplicationAssignment" -> string!
-const Microsoft.CodeAnalysis.WellKnownMemberNames.RightShiftAssignmentOperatorName = "op_RightShiftAssignment" -> string!
-const Microsoft.CodeAnalysis.WellKnownMemberNames.SubtractionAssignmentOperatorName = "op_SubtractionAssignment" -> string!
-const Microsoft.CodeAnalysis.WellKnownMemberNames.UnsignedRightShiftAssignmentOperatorName = "op_UnsignedRightShiftAssignment" -> string!
-const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedDecrementAssignmentOperatorName = "op_CheckedDecrementAssignment" -> string!
-const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedIncrementAssignmentOperatorName = "op_CheckedIncrementAssignment" -> string!
-const Microsoft.CodeAnalysis.WellKnownMemberNames.DecrementAssignmentOperatorName = "op_DecrementAssignment" -> string!
-const Microsoft.CodeAnalysis.WellKnownMemberNames.IncrementAssignmentOperatorName = "op_IncrementAssignment" -> string!
+Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.MethodImplEntriesSupported.get -> bool
+Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.MethodImplEntriesSupported.init -> void
+Microsoft.CodeAnalysis.IMethodSymbol.ReduceExtensionMember(Microsoft.CodeAnalysis.ITypeSymbol! receiverType) -> Microsoft.CodeAnalysis.IMethodSymbol?
+Microsoft.CodeAnalysis.IPropertySymbol.ReduceExtensionMember(Microsoft.CodeAnalysis.ITypeSymbol! receiverType) -> Microsoft.CodeAnalysis.IPropertySymbol?
+Microsoft.CodeAnalysis.OperationKind.CollectionExpressionElementsPlaceholder = 129 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.Operations.ICollectionExpressionElementsPlaceholderOperation
+Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation.ConstructArguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitCollectionExpressionElementsPlaceholder(Microsoft.CodeAnalysis.Operations.ICollectionExpressionElementsPlaceholderOperation! operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitCollectionExpressionElementsPlaceholder(Microsoft.CodeAnalysis.Operations.ICollectionExpressionElementsPlaceholderOperation! operation, TArgument argument) -> TResult?

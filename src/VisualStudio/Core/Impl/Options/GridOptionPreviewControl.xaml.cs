@@ -29,7 +29,7 @@ internal partial class GridOptionPreviewControl : AbstractOptionPageControl
     private readonly IEnumerable<(string feature, ImmutableArray<IOption2> options)> _groupedEditorConfigOptions;
     private readonly string _language;
 
-    public static readonly Uri CodeStylePageHeaderLearnMoreUri = new Uri(UseEditorConfigUrl);
+    public static readonly Uri CodeStylePageHeaderLearnMoreUri = new(UseEditorConfigUrl);
     public static string CodeStylePageHeader => ServicesVSResources.Code_style_header_use_editor_config;
     public static string CodeStylePageHeaderLearnMoreText => ServicesVSResources.Learn_more;
     public static string DescriptionHeader => ServicesVSResources.Description;

@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeMethodSynchronous;
 
 using VerifyCS = CSharpCodeFixVerifier<
-    EmptyDiagnosticAnalyzer,
+    CSharpRemoveUnnecessaryAsyncModifierDiagnosticAnalyzer,
     CSharpMakeMethodSynchronousCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -27,7 +27,7 @@ public sealed class MakeMethodSynchronousTests
 
             class C
             {
-                async Task {|CS1998:Goo|}()
+                {|IDE0390:async|} Task Goo()
                 {
                 }
             }
@@ -51,7 +51,7 @@ public sealed class MakeMethodSynchronousTests
 
             class C
             {
-                async Task<int> {|CS1998:Goo|}()
+                {|IDE0390:async|} Task<int> Goo()
                 {
                     return 1;
                 }
@@ -77,7 +77,7 @@ public sealed class MakeMethodSynchronousTests
 
             class C
             {
-                public async Task {|CS1998:Goo|}()
+                public {|IDE0390:async|} Task Goo()
                 {
                 }
             }
@@ -101,7 +101,7 @@ public sealed class MakeMethodSynchronousTests
 
             class C
             {
-                async public Task {|CS1998:Goo|}()
+                [|async|] public Task Goo()
                 {
                 }
             }
@@ -125,8 +125,8 @@ public sealed class MakeMethodSynchronousTests
 
             class C
             {
-                async // comment
-                Task {|CS1998:Goo|}()
+                {|IDE0390:async|} // comment
+                Task Goo()
                 {
                 }
             }
@@ -150,7 +150,7 @@ public sealed class MakeMethodSynchronousTests
 
             class C
             {
-                async Task {|CS1998:GooAsync|}()
+                {|IDE0390:async|} Task GooAsync()
                 {
                 }
             }
@@ -174,7 +174,7 @@ public sealed class MakeMethodSynchronousTests
 
             class C
             {
-                async Task {|CS1998:GooAsync|}()
+                {|IDE0390:async|} Task GooAsync()
                 {
                 }
 
@@ -229,7 +229,7 @@ public sealed class MakeMethodSynchronousTests
                 void Goo()
                 {
                     Func<Task> f =
-                        async () {|CS1998:=>|} { };
+                        [|async|] () => { };
                 }
             }
             """,
@@ -274,7 +274,7 @@ public sealed class MakeMethodSynchronousTests
                 void Goo()
                 {
                     Func<string, Task> f =
-                        async a {|CS1998:=>|} { };
+                        {|IDE0390:async|} a => { };
                 }
             }
             """,
@@ -319,7 +319,7 @@ public sealed class MakeMethodSynchronousTests
                 void Goo()
                 {
                     Func<string, Task<int>> f =
-                        async a {|CS1998:=>|} 1;
+                        [|async|] a => 1;
                 }
             }
             """,
@@ -366,7 +366,7 @@ public sealed class MakeMethodSynchronousTests
                 void Goo()
                 {
                     Func<Task> f =
-                        async {|CS1998:delegate|} { };
+                        {|IDE0390:async|} delegate { };
                 }
             }
             """,
@@ -390,12 +390,12 @@ public sealed class MakeMethodSynchronousTests
 
             public class Class1
             {
-                async Task {|CS1998:GooAsync|}()
+                [|async|] Task GooAsync()
                 {
                     BarAsync();
                 }
 
-                async Task<int> {|#0:{|CS1998:BarAsync|}|}()
+                [|async|] Task<int> {|#0:BarAsync|}()
                 {
                     GooAsync();
                     return 1;
@@ -434,7 +434,7 @@ public sealed class MakeMethodSynchronousTests
                 {
                 }
 
-                async void {|CS1998:BarAsync|}()
+                {|IDE0390:async|} void BarAsync()
                 {
                     Goo();
                 }
@@ -448,7 +448,7 @@ public sealed class MakeMethodSynchronousTests
 
             public class Class1
             {
-                async Task {|CS1998:GooAsync|}()
+                {|IDE0390:async|} Task GooAsync()
                 {
                 }
 
@@ -481,7 +481,7 @@ public sealed class MakeMethodSynchronousTests
                 {
                 }
 
-                async void {|CS1998:BarAsync|}()
+                {|IDE0390:async|} void BarAsync()
                 {
                     Goo();
                 }
@@ -495,7 +495,7 @@ public sealed class MakeMethodSynchronousTests
 
             public class Class1
             {
-                async Task {|CS1998:GooAsync|}()
+                {|IDE0390:async|} Task GooAsync()
                 {
                 }
 
@@ -528,7 +528,7 @@ public sealed class MakeMethodSynchronousTests
                 {
                 }
 
-                async void {|CS1998:BarAsync|}()
+                {|IDE0390:async|} void BarAsync()
                 {
                     this.Goo();
                 }
@@ -542,7 +542,7 @@ public sealed class MakeMethodSynchronousTests
 
             public class Class1
             {
-                async Task {|CS1998:GooAsync|}()
+                {|IDE0390:async|} Task GooAsync()
                 {
                 }
 
@@ -575,7 +575,7 @@ public sealed class MakeMethodSynchronousTests
                 {
                 }
 
-                async void {|CS1998:BarAsync|}()
+                {|IDE0390:async|} void BarAsync()
                 {
                     this.Goo();
                 }
@@ -589,7 +589,7 @@ public sealed class MakeMethodSynchronousTests
 
             public class Class1
             {
-                async Task {|CS1998:GooAsync|}()
+                {|IDE0390:async|} Task GooAsync()
                 {
                 }
 
@@ -623,7 +623,7 @@ public sealed class MakeMethodSynchronousTests
                     return 1;
                 }
 
-                async void {|CS1998:BarAsync|}()
+                {|IDE0390:async|} void BarAsync()
                 {
                     this.Goo(this.Goo(0));
                 }
@@ -637,7 +637,7 @@ public sealed class MakeMethodSynchronousTests
 
             public class Class1
             {
-                async Task<int> {|CS1998:GooAsync|}(int i)
+                {|IDE0390:async|} Task<int> GooAsync(int i)
                 {
                     return 1;
                 }
@@ -672,7 +672,7 @@ public sealed class MakeMethodSynchronousTests
                     return 1;
                 }
 
-                async void {|CS1998:BarAsync|}()
+                {|IDE0390:async|} void BarAsync()
                 {
                     this.Goo(this.Goo(0));
                 }
@@ -686,7 +686,7 @@ public sealed class MakeMethodSynchronousTests
 
             public class Class1
             {
-                async Task<int> {|CS1998:GooAsync|}(int i)
+                {|IDE0390:async|} Task<int> GooAsync(int i)
                 {
                     return 1;
                 }
@@ -717,7 +717,7 @@ public sealed class MakeMethodSynchronousTests
             {
                 public void M1()
                 {
-                    async Task {|CS1998:M2Async|}()
+                    [|async|] Task M2Async()
                     {
                     }
                 }
@@ -755,7 +755,7 @@ public sealed class MakeMethodSynchronousTests
                 public void M1()
                 {
                     // Leading trivia
-                    /*1*/ async {{asyncReturn}} /*2*/ {|CS1998:M2Async|}/*3*/() /*4*/
+                    /*1*/ {|IDE0390:async|} {{asyncReturn}} /*2*/ M2Async/*3*/() /*4*/
                     {
                         throw new NotImplementedException();
                     }
@@ -800,7 +800,7 @@ public sealed class MakeMethodSynchronousTests
             class C
             {
                 // Leading trivia
-                {{modifiers}}/*1*/ async {{asyncReturn}} /*2*/ {|CS1998:M2Async|}/*3*/() /*4*/
+                {{modifiers}}/*1*/ {|IDE0390:async|} {{asyncReturn}} /*2*/ M2Async/*3*/() /*4*/
                 {
                     throw new NotImplementedException();
                 }
@@ -855,7 +855,7 @@ public sealed class MakeMethodSynchronousTests
             """
             class C
             {
-                async System.Threading.Tasks.Task {|CS1998:MAsync|}()
+                [|async|] System.Threading.Tasks.Task MAsync()
                 {
                     using ({|#0:var x = new object()|})
                     {
@@ -906,7 +906,7 @@ public sealed class MakeMethodSynchronousTests
             """
             class C
             {
-                async System.Threading.Tasks.Task {|CS1998:MAsync|}()
+                [|async|] System.Threading.Tasks.Task MAsync()
                 {
                     foreach (var n in new int[] { })
                     {
@@ -955,7 +955,7 @@ public sealed class MakeMethodSynchronousTests
             """
             class C
             {
-                async System.Threading.Tasks.Task {|CS1998:MAsync|}()
+                [|async|] System.Threading.Tasks.Task MAsync()
                 {
                     foreach (var (a, b) in new(int, int)[] { })
                     {
@@ -986,7 +986,7 @@ public sealed class MakeMethodSynchronousTests
 
             class C
             {
-                async IAsyncEnumerable<int> {|CS1998:MAsync|}()
+                [|async|] IAsyncEnumerable<int> MAsync()
                 {
                     yield return 1;
                 }
@@ -1019,7 +1019,7 @@ public sealed class MakeMethodSynchronousTests
             {
                 void Method()
                 {
-                    async IAsyncEnumerator<int> {|CS1998:MAsync|}()
+                    {|IDE0390:async|} IAsyncEnumerator<int> MAsync()
                     {
                         yield return 1;
                     }

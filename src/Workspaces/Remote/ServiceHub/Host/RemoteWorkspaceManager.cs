@@ -50,7 +50,7 @@ internal class RemoteWorkspaceManager
         return new RemoteWorkspaceManager(CreateAssetCache);
 
         static SolutionAssetCache CreateAssetCache(RemoteWorkspace workspace)
-            => new SolutionAssetCache(workspace, cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1));
+            => new(workspace, cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1));
     });
 
     internal static RemoteWorkspaceManager Default => s_default.Value;
@@ -94,7 +94,7 @@ internal class RemoteWorkspaceManager
         var (solution, _) = await workspace.RunWithSolutionAsync(
             assetProvider,
             solutionChecksum,
-            static _ => ValueTask.FromResult(false),
+            static async _ => false,
             cancellationToken).ConfigureAwait(false);
 
         return solution;

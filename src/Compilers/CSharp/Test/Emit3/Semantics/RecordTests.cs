@@ -65,9 +65,9 @@ record Point(int x, int y);
                 // (2,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
                 // record Point { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(2, 1),
-                // (2,8): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,8): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                 // record Point { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Point").WithLocation(2, 8),
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "Point").WithLocation(2, 8),
                 // (2,8): error CS0548: '<invalid-global-code>.Point': property or indexer must have at least one accessor
                 // record Point { }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "Point").WithArguments("<invalid-global-code>.Point").WithLocation(2, 8)
@@ -11017,18 +11017,6 @@ End Class
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             compB.VerifyDiagnostics(
-                // (1,8): error CS0115: 'B.EqualityContract': no suitable method found to override
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.EqualityContract").WithLocation(1, 8),
-                // (1,8): error CS0115: 'B.Equals(A?)': no suitable method found to override
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.Equals(A?)").WithLocation(1, 8),
-                // (1,8): error CS0115: 'B.PrintMembers(StringBuilder)': no suitable method found to override
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)").WithLocation(1, 8),
-                // (1,8): error CS8867: No accessible copy constructor found in base type 'A'.
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "B").WithArguments("A").WithLocation(1, 8),
                 // (1,17): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P").WithArguments("P").WithLocation(1, 17),
@@ -11088,18 +11076,6 @@ End Class
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             compB.VerifyDiagnostics(
-                // (1,8): error CS0115: 'B.EqualityContract': no suitable method found to override
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.EqualityContract").WithLocation(1, 8),
-                // (1,8): error CS0115: 'B.Equals(A?)': no suitable method found to override
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.Equals(A?)").WithLocation(1, 8),
-                // (1,8): error CS0115: 'B.PrintMembers(StringBuilder)': no suitable method found to override
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)").WithLocation(1, 8),
-                // (1,8): error CS8867: No accessible copy constructor found in base type 'A'.
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "B").WithArguments("A").WithLocation(1, 8),
                 // (1,17): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P").WithArguments("P").WithLocation(1, 17),
@@ -11178,15 +11154,6 @@ End Class
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             compB.VerifyDiagnostics(
-                // (1,8): error CS0115: 'C.EqualityContract': no suitable method found to override
-                // record C(object P, object Q, object R) : B
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.EqualityContract").WithLocation(1, 8),
-                // (1,8): error CS0115: 'C.Equals(B?)': no suitable method found to override
-                // record C(object P, object Q, object R) : B
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.Equals(B?)").WithLocation(1, 8),
-                // (1,8): error CS0115: 'C.PrintMembers(StringBuilder)': no suitable method found to override
-                // record C(object P, object Q, object R) : B
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.PrintMembers(System.Text.StringBuilder)").WithLocation(1, 8),
                 // (1,8): error CS7036: There is no argument given that corresponds to the required parameter 'b' of 'B.B(B)'
                 // record C(object P, object Q, object R) : B
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("b", "B.B(B)").WithLocation(1, 8),
@@ -12641,6 +12608,21 @@ record B : A
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.EqualityContract").WithLocation(1, 8));
 
             AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63270")]
+        public void RecordInheritingFromNonRecord_OnlyReportsBaseError()
+        {
+            var source = """
+                class Base { }
+
+                record Derived : Base { }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,18): error CS8864: Records may only inherit from object or another record
+                // record Derived : Base { }
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "Base").WithLocation(3, 18));
         }
 
         [Theory, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
@@ -21533,9 +21515,9 @@ record C : Base(X, Y)
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (13,16): error CS8861: Unexpected argument list.
+                // (13,16): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
                 // record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X, Y)").WithLocation(13, 16)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithLocation(13, 16)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21579,9 +21561,9 @@ partial record C : Base(X, Y)
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (17,24): error CS8861: Unexpected argument list.
+                // (17,24): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
                 // partial record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X, Y)").WithLocation(17, 24)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithLocation(17, 24)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21632,12 +21614,12 @@ partial record C : Base(X, Y)
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (13,24): error CS8861: Unexpected argument list.
+                // (13,24): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
                 // partial record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X, Y)").WithLocation(13, 24),
-                // (17,24): error CS8861: Unexpected argument list.
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithLocation(13, 24),
+                // (17,24): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
                 // partial record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X, Y)").WithLocation(17, 24)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithLocation(17, 24)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21694,9 +21676,9 @@ partial record C : Base(X, Y)
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (17,24): error CS8861: Unexpected argument list.
+                // (17,24): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
                 // partial record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X, Y)").WithLocation(17, 24)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithLocation(17, 24)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21783,9 +21765,9 @@ partial record C(int X, int Y) : Base(X, Y)
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (13,24): error CS8861: Unexpected argument list.
+                // (13,24): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
                 // partial record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X, Y)").WithLocation(13, 24)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithLocation(13, 24)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21982,9 +21964,9 @@ record C : Base(X)
                 // (11,8): error CS1729: 'Base' does not contain a constructor that takes 0 arguments
                 // record C : Base(X)
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("Base", "0").WithLocation(11, 8),
-                // (11,16): error CS8861: Unexpected argument list.
+                // (11,16): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
                 // record C : Base(X)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X)").WithLocation(11, 16)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X)").WithLocation(11, 16)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -22499,9 +22481,9 @@ interface I {}
             var comp = CreateCompilation(src);
 
             comp.VerifyDiagnostics(
-                // (11,16): error CS8861: Unexpected argument list.
+                // (11,16): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
                 // record C : Base(GetInt(X, out var xx) + xx, Y), I
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(GetInt(X, out var xx) + xx, Y)").WithLocation(11, 16),
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(GetInt(X, out var xx) + xx, Y)").WithLocation(11, 16),
                 // (13,30): error CS1729: 'Base' does not contain a constructor that takes 4 arguments
                 //     C(int X, int Y, int Z) : base(X, Y, Z, 1) { return; }
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "base").WithArguments("Base", "4").WithLocation(13, 30)
@@ -26390,9 +26372,9 @@ record B
             if (c.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
             {
                 c.VerifyDiagnostics(
-                    // (8,12): error CS0060: Inconsistent accessibility: base type 'X<B.C.D.E>' is less accessible than class 'B.C'
+                    // (8,12): error CS9338: Inconsistent accessibility: type 'B.C.D' is less accessible than class 'B.C'
                     //     record C : X<C.D.E>
-                    Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C").WithArguments("B.C", "X<B.C.D.E>").WithLocation(8, 12),
+                    Diagnostic(ErrorCode.ERR_BadVisBaseType, "C").WithArguments("B.C", "B.C.D").WithLocation(8, 12),
                     // (8,12): error CS0051: Inconsistent accessibility: parameter type 'X<B.C.D.E>' is less accessible than method 'B.C.Equals(X<B.C.D.E>?)'
                     //     record C : X<C.D.E>
                     Diagnostic(ErrorCode.ERR_BadVisParamType, "C").WithArguments("B.C.Equals(X<B.C.D.E>?)", "X<B.C.D.E>").WithLocation(8, 12)
@@ -26401,9 +26383,9 @@ record B
             else
             {
                 c.VerifyDiagnostics(
-                    // (8,12): error CS0060: Inconsistent accessibility: base type 'X<B.C.D.E>' is less accessible than class 'B.C'
+                    // (8,12): error CS9338: Inconsistant accessibility: type 'B.C.D' is less accessible than class 'B.C'
                     //     record C : X<C.D.E>
-                    Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C").WithArguments("B.C", "X<B.C.D.E>").WithLocation(8, 12),
+                    Diagnostic(ErrorCode.ERR_BadVisBaseType, "C").WithArguments("B.C", "B.C.D").WithLocation(8, 12),
                     // (8,12): error CS0050: Inconsistent accessibility: return type 'X<B.C.D.E>' is less accessible than method 'B.C.<Clone>$()'
                     //     record C : X<C.D.E>
                     Diagnostic(ErrorCode.ERR_BadVisReturnType, "C").WithArguments("B.C.<Clone>$()", "X<B.C.D.E>").WithLocation(8, 12),
@@ -30866,6 +30848,116 @@ record R2 : I(0)
                 );
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48243")]
+        public void RecordInheritanceWithoutParameterList()
+        {
+            var src = """
+                record R1(int P1);
+                record R2 : R1(1);
+                """;
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,8): error CS1729: 'R1' does not contain a constructor that takes 0 arguments
+                // record R2 : R1(1);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "R2").WithArguments("R1", "0").WithLocation(2, 8),
+                // (2,15): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
+                // record R2 : R1(1);
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(1)").WithLocation(2, 15));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48243")]
+        public void RecordClassInheritanceWithoutParameterList()
+        {
+            var src = """
+                record class R1(int P1);
+                record class R2 : R1(42);
+                """;
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,14): error CS1729: 'R1' does not contain a constructor that takes 0 arguments
+                // record class R2 : R1(42);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "R2").WithArguments("R1", "0").WithLocation(2, 14),
+                // (2,21): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
+                // record class R2 : R1(42);
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(42)").WithLocation(2, 21));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48243")]
+        public void RecordInheritanceWithEmptyParameterListIsValid()
+        {
+            var src = """
+                record R1(int P1);
+                record R2() : R1(1);
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var r = new R2();
+                        System.Console.WriteLine(r.P1);
+                    }
+                }
+                """;
+            CompileAndVerify(src, expectedOutput: "1").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48243")]
+        public void StructWithArgumentListInBaseType()
+        {
+            var src = """
+                interface I
+                {
+                }
+
+                struct S : I(0)
+                {
+                }
+                """;
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (5,13): error CS8861: Unexpected argument list.
+                // struct S : I(0)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(0)").WithLocation(5, 13));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48243")]
+        public void RecordStructWithArgumentListInBaseType()
+        {
+            var src = """
+                interface I
+                {
+                }
+
+                record struct S : I(0)
+                {
+                }
+                """;
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (5,20): error CS8861: Unexpected argument list.
+                // record struct S : I(0)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(0)").WithLocation(5, 20));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48243")]
+        public void RecordWithArgumentListToInterface()
+        {
+            var src = """
+                interface I
+                {
+                }
+
+                record R : I(0)
+                {
+                }
+                """;
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (5,13): error CS8861: Unexpected argument list.
+                // record R : I(0)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(0)").WithLocation(5, 13));
+        }
+
         [Theory]
         [WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
         [CombinatorialData]
@@ -31081,7 +31173,7 @@ record R1(int x);
                 class Attr : System.Attribute {}
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"), targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature(Feature.RunNullableAnalysis, "never"), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -31105,7 +31197,7 @@ record R1(int x);
                 class Attr : System.Attribute {}
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"), targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature(Feature.RunNullableAnalysis, "never"), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];

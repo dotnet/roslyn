@@ -737,18 +737,18 @@ System.Console.WriteLine(g);
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (2,12): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,12): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // new string a = "Hi!";
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "a").WithLocation(2, 12),
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "a").WithLocation(2, 12),
                 // (2,12): warning CS0109: The member '<invalid-global-code>.a' does not hide an accessible member. The new keyword is not required.
                 // new string a = "Hi!";
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "a").WithArguments("<invalid-global-code>.a").WithLocation(2, 12),
                 // (3,26): error CS0103: The name 'a' does not exist in the current context
                 // System.Console.WriteLine(a);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(3, 26),
-                // (4,15): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (4,15): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // public string b = "Hi!";
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "b").WithLocation(4, 15),
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "b").WithLocation(4, 15),
                 // (5,26): error CS0103: The name 'b' does not exist in the current context
                 // System.Console.WriteLine(b);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(5, 26),
@@ -1104,7 +1104,7 @@ System.Console.WriteLine(async);
             CompileAndVerify(comp, expectedOutput: "Hi!");
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80313")]
         public void LocalDeclarationStatement_18()
         {
             var text = @"
@@ -1133,6 +1133,49 @@ await System.Threading.Tasks.Task.Yield();
 
             comp = CreateCompilation(text, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(text);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("-100"), verify: Verification.Fails with
+            {
+                ILVerifyMessage = "[<Main>$]: Return value missing on the stack. { Offset = 0x2f }"
+            }, sourceSymbolValidator: validator);
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       48 (0x30)
+                  .maxstack  1
+                  .locals init (int V_0, //c
+                                System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
+                                System.Runtime.CompilerServices.YieldAwaitable V_2)
+                  IL_0000:  ldc.i4.s   -100
+                  IL_0002:  stloc.0
+                  IL_0003:  ldloca.s   V_0
+                  IL_0005:  ldind.i4
+                  IL_0006:  call       "void System.Console.Write(int)"
+                  IL_000b:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                  IL_0010:  stloc.2
+                  IL_0011:  ldloca.s   V_2
+                  IL_0013:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                  IL_0018:  stloc.1
+                  IL_0019:  ldloca.s   V_1
+                  IL_001b:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                  IL_0020:  brtrue.s   IL_0028
+                  IL_0022:  ldloc.1
+                  IL_0023:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
+                  IL_0028:  ldloca.s   V_1
+                  IL_002a:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                  IL_002f:  ret
+                }
+                """);
+
+            static void validator(ModuleSymbol module)
+            {
+                var program = module.GlobalNamespace.GetTypeMember("Program");
+                Assert.NotNull(program);
+
+                var main = program.GetMethod("<Main>$");
+                Assert.NotNull(main);
+                Assert.Equal(MethodImplAttributes.Async, main.ImplementationAttributes & MethodImplAttributes.Async);
+            }
         }
 
         [Fact]
@@ -1527,7 +1570,7 @@ string e() => ""1"";
             Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, model1.GetTypeInfo(reference).Nullability.FlowState);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80487")]
         public void FlowAnalysis_02()
         {
             var text = @"
@@ -1539,18 +1582,10 @@ if (args.Length == 0)
 }
 ";
 
-            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions).VerifyDiagnostics(
                 // (2,1): error CS0161: '<top-level-statements-entry-point>': not all code paths return a value
                 // System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_ReturnExpected, @"System.Console.WriteLine();
-
-if (args.Length == 0)
-{
-    return 10;
-}
-").WithArguments("<top-level-statements-entry-point>").WithLocation(2, 1)
-                );
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "System.Console.WriteLine();").WithArguments("<top-level-statements-entry-point>").WithLocation(2, 1));
         }
 
         [Fact]
@@ -2574,9 +2609,9 @@ new void M()
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (5,10): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (5,10): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // new void M()
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "M").WithLocation(5, 10),
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "M").WithLocation(5, 10),
                 // (5,10): warning CS0109: The member '<invalid-global-code>.M()' does not hide an accessible member. The new keyword is not required.
                 // new void M()
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "M").WithArguments("<invalid-global-code>.M()").WithLocation(5, 10)
@@ -2605,9 +2640,9 @@ class C1
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (5,9): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (5,9): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // new int F = C1.GetInt(out var Test);
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "F").WithLocation(5, 9),
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "F").WithLocation(5, 9),
                 // (5,9): warning CS0109: The member '<invalid-global-code>.F' does not hide an accessible member. The new keyword is not required.
                 // new int F = C1.GetInt(out var Test);
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "F").WithArguments("<invalid-global-code>.F").WithLocation(5, 9)
@@ -2630,9 +2665,9 @@ new void M()
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (5,10): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (5,10): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // new void M()
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "M").WithLocation(5, 10),
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "M").WithLocation(5, 10),
                 // (5,10): warning CS0109: The member '<invalid-global-code>.M()' does not hide an accessible member. The new keyword is not required.
                 // new void M()
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "M").WithArguments("<invalid-global-code>.M()").WithLocation(5, 10)
@@ -4364,9 +4399,9 @@ localI();
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (2,10): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,10): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // new void localA() => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "localA").WithLocation(2, 10),
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "localA").WithLocation(2, 10),
                 // (2,10): warning CS0109: The member '<invalid-global-code>.localA()' does not hide an accessible member. The new keyword is not required.
                 // new void localA() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "localA").WithArguments("<invalid-global-code>.localA()").WithLocation(2, 10),
@@ -4376,27 +4411,27 @@ localI();
                 // (4,1): error CS0106: The modifier 'public' is not valid for this item
                 // public void localB() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(4, 1),
-                // (6,14): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (6,14): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // virtual void localC() => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "localC").WithLocation(6, 14),
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "localC").WithLocation(6, 14),
                 // (6,14): error CS0621: '<invalid-global-code>.localC()': virtual or abstract members cannot be private
                 // virtual void localC() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_VirtualPrivate, "localC").WithArguments("<invalid-global-code>.localC()").WithLocation(6, 14),
                 // (7,1): error CS0103: The name 'localC' does not exist in the current context
                 // localC();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "localC").WithArguments("localC").WithLocation(7, 1),
-                // (8,13): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (8,13): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // sealed void localD() => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "localD").WithLocation(8, 13),
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "localD").WithLocation(8, 13),
                 // (8,13): error CS0238: '<invalid-global-code>.localD()' cannot be sealed because it is not an override
                 // sealed void localD() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_SealedNonOverride, "localD").WithArguments("<invalid-global-code>.localD()").WithLocation(8, 13),
                 // (9,1): error CS0103: The name 'localD' does not exist in the current context
                 // localD();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "localD").WithArguments("localD").WithLocation(9, 1),
-                // (10,15): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (10,15): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // override void localE() => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "localE").WithLocation(10, 15),
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "localE").WithLocation(10, 15),
                 // (10,15): error CS0621: '<invalid-global-code>.localE()': virtual or abstract members cannot be private
                 // override void localE() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_VirtualPrivate, "localE").WithArguments("<invalid-global-code>.localE()").WithLocation(10, 15),
@@ -4406,9 +4441,9 @@ localI();
                 // (11,1): error CS0103: The name 'localE' does not exist in the current context
                 // localE();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "localE").WithArguments("localE").WithLocation(11, 1),
-                // (12,15): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (12,15): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // abstract void localF() => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "localF").WithLocation(12, 15),
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "localF").WithLocation(12, 15),
                 // (12,15): error CS0500: '<invalid-global-code>.localF()' cannot declare a body because it is marked abstract
                 // abstract void localF() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "localF").WithArguments("<invalid-global-code>.localF()").WithLocation(12, 15),
@@ -4418,9 +4453,9 @@ localI();
                 // (13,1): error CS0103: The name 'localF' does not exist in the current context
                 // localF();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "localF").WithArguments("localF").WithLocation(13, 1),
-                // (14,14): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (14,14): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // partial void localG() => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "localG").WithLocation(14, 14),
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "localG").WithLocation(14, 14),
                 // (14,14): error CS0759: No defining declaration found for implementing declaration of partial method '<invalid-global-code>.localG()'
                 // partial void localG() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "localG").WithArguments("<invalid-global-code>.localG()").WithLocation(14, 14),
@@ -4781,9 +4816,9 @@ int local => 1;
                 // (2,5): error CS0103: The name 'local' does not exist in the current context
                 // _ = local;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(2, 5),
-                // (4,5): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (4,5): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // int local => 1;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "local").WithLocation(4, 5)
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "local").WithLocation(4, 5)
                 );
         }
 
@@ -4802,9 +4837,9 @@ int local { get => 1; }
                 // (2,5): error CS0103: The name 'local' does not exist in the current context
                 // _ = local;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(2, 5),
-                // (4,5): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (4,5): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // int local { get => 1; }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "local").WithLocation(4, 5)
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "local").WithLocation(4, 5)
                 );
         }
 
@@ -4823,9 +4858,9 @@ int local { get { return 1; } }
                 // (2,5): error CS0103: The name 'local' does not exist in the current context
                 // _ = local;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(2, 5),
-                // (4,5): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (4,5): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // int local { get { return 1; } }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "local").WithLocation(4, 5)
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "local").WithLocation(4, 5)
                 );
         }
 
@@ -4844,9 +4879,9 @@ event System.Action local;
                 // (2,1): error CS0103: The name 'local' does not exist in the current context
                 // local += null;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(2, 1),
-                // (4,21): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (4,21): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // event System.Action local;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "local").WithLocation(4, 21)
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "local").WithLocation(4, 21)
                 );
         }
 
@@ -4869,9 +4904,9 @@ event System.Action local
                 // (2,1): error CS0103: The name 'local' does not exist in the current context
                 // local -= null;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(2, 1),
-                // (4,21): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (4,21): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // event System.Action local
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "local").WithLocation(4, 21)
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "local").WithLocation(4, 21)
                 );
         }
 
@@ -7825,7 +7860,7 @@ return;
             }
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80313")]
         public void Return_04()
         {
             var text = @"
@@ -7843,7 +7878,9 @@ return 11;
             Assert.Equal("System.Threading.Tasks.Task<System.Int32>", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
-            CompileAndVerify(comp, expectedOutput: "hello Return_04", args: new[] { "Return_04" }, expectedReturnCode: 11);
+            var expectedOutput = "hello Return_04";
+            var args = new[] { "Return_04" };
+            CompileAndVerify(comp, expectedOutput: expectedOutput, args: args, expectedReturnCode: 11);
 
             if (ExecutionConditionUtil.IsWindows)
             {
@@ -7892,6 +7929,50 @@ return 11;
     </method>
   </methods>
 </symbols>", options: PdbValidationOptions.SkipConversionValidation);
+            }
+
+            comp = CreateRuntimeAsyncCompilation(text);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), args: args, verify: Verification.Fails with
+            {
+                ILVerifyMessage = "[<Main>$]: Unexpected type on the stack. { Offset = 0x43, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }"
+            }, sourceSymbolValidator: validator);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       68 (0x44)
+                  .maxstack  3
+                  IL_0000:  ldstr      "hello "
+                  IL_0005:  call       "void System.Console.Write(string)"
+                  IL_000a:  call       "System.Threading.Tasks.TaskFactory System.Threading.Tasks.Task.Factory.get"
+                  IL_000f:  ldsfld     "System.Func<int> Program.<>c.<>9__0_0"
+                  IL_0014:  dup
+                  IL_0015:  brtrue.s   IL_002e
+                  IL_0017:  pop
+                  IL_0018:  ldsfld     "Program.<>c Program.<>c.<>9"
+                  IL_001d:  ldftn      "int Program.<>c.<<Main>$>b__0_0()"
+                  IL_0023:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_0028:  dup
+                  IL_0029:  stsfld     "System.Func<int> Program.<>c.<>9__0_0"
+                  IL_002e:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
+                  IL_0033:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0038:  pop
+                  IL_0039:  ldarg.0
+                  IL_003a:  ldc.i4.0
+                  IL_003b:  ldelem.ref
+                  IL_003c:  call       "void System.Console.Write(string)"
+                  IL_0041:  ldc.i4.s   11
+                  IL_0043:  ret
+                }
+                """);
+
+            static void validator(ModuleSymbol module)
+            {
+                var program = module.GlobalNamespace.GetTypeMember("Program");
+                Assert.NotNull(program);
+
+                var main = program.GetMethod("<Main>$");
+                Assert.NotNull(main);
+                Assert.Equal(MethodImplAttributes.Async, main.ImplementationAttributes & MethodImplAttributes.Async);
             }
         }
 
@@ -8326,7 +8407,7 @@ System.Console.WriteLine(""Hi!"");
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp).VerifyIL("<top-level-statements-entry-point>", sequencePoints: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName + "." + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName, source: text, expectedIL:
+            CompileAndVerify(comp).VerifyIL("<top-level-statements-entry-point>", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL:
 @"
 {
   // Code size        2 (0x2)
@@ -8404,7 +8485,7 @@ System.Console.WriteLine(i);
 ";
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "3").VerifyIL("<top-level-statements-entry-point>", sequencePoints: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName + "." + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName, source: text, expectedIL:
+            CompileAndVerify(comp, expectedOutput: "3").VerifyIL("<top-level-statements-entry-point>", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL:
 @"
 {
   // Code size       20 (0x14)
@@ -8451,7 +8532,7 @@ System.Console.WriteLine(i);
 ";
             var comp = CreateCompilation(text, options: TestOptions.DebugExe.WithOverflowChecks(true), parseOptions: DefaultParseOptions);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "3").VerifyIL("<top-level-statements-entry-point>", sequencePoints: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName + "." + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName, source: text, expectedIL:
+            CompileAndVerify(comp, expectedOutput: "3").VerifyIL("<top-level-statements-entry-point>", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL:
 @"
 {
   // Code size       20 (0x14)
@@ -9790,11 +9871,10 @@ partial ext X
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 13),
                 // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // partial ext X
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "").WithLocation(2, 1),
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "partial").WithLocation(2, 1),
                 // (2,14): error CS1002: ; expected
                 // partial ext X
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 14)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 14));
         }
 
         [Fact]
@@ -9879,6 +9959,250 @@ partial class Program
 
             comp = CreateCompilation(new[] { src2, src1 }, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "Done").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
+        public void TestFieldInCompilationUnit()
+        {
+            var source = """
+                private int f;
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics(
+                // (1,13): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
+                // private int f;
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "f").WithLocation(1, 13)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
+        public void TestFieldInNamespace()
+        {
+            var source = """
+                namespace N;
+
+                private int f;
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (3,13): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // private int f;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "f").WithLocation(3, 13)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
+        public void TestPropertyInCompilationUnit()
+        {
+            var source = """
+                int P { get; set; }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics(
+                // (1,5): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
+                // int P { get; set; }
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "P").WithLocation(1, 5)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
+        public void TestPropertyInNamespace()
+        {
+            var source = """
+                namespace N;
+
+                int P { get; set; }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (3,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // int P { get; set; }
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "P").WithLocation(3, 5)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
+        public void TestEventFieldInCompilationUnit()
+        {
+            var source = """
+                using System;
+
+                event Action E;
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics(
+                // (3,14): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
+                // event Action E;
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "E").WithLocation(3, 14)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
+        public void TestEventFieldInNamespace()
+        {
+            var source = """
+                using System;
+
+                namespace N;
+
+                event Action E;
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (5,14): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // event Action E;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "E").WithLocation(5, 14)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
+        public void TestEventDeclarationInCompilationUnit()
+        {
+            var source = """
+                using System;
+
+                event Action E { add { } remove { } }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics(
+                // (3,14): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
+                // event Action E { add { } remove { } }
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "E").WithLocation(3, 14)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
+        public void TestEventDeclarationInNamespace()
+        {
+            var source = """
+                using System;
+
+                namespace N;
+
+                event Action E { add { } remove { } }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (5,14): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // event Action E { add { } remove { } }
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "E").WithLocation(5, 14)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
+        public void TestIndexerInCompilationUnit()
+        {
+            var source = """
+                int this[int x] => 0;
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics(
+                // (1,5): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
+                // int this[int x] => 0;
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "this").WithLocation(1, 5)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
+        public void TestIndexerInNamespace()
+        {
+            var source = """
+                namespace N;
+
+                int this[int x] => 0;
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (3,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // int this[int x] => 0;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "this").WithLocation(3, 5)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
+        public void TestConversionOperatorInCompilationUnit()
+        {
+            var source = """
+                public static implicit operator int(int d) => 0;
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics(
+                // (1,24): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
+                // public static implicit operator int(int d) => 0;
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "operator").WithLocation(1, 24),
+                // (1,33): error CS0556: User-defined conversion must convert to or from the enclosing type
+                // public static implicit operator int(int d) => 0;
+                Diagnostic(ErrorCode.ERR_ConversionNotInvolvingContainedType, "int").WithLocation(1, 33)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
+        public void TestConversionOperatorInNamespace()
+        {
+            var source = """
+                namespace N;
+
+                public static implicit operator int(int d) => 0;
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (3,24): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // public static implicit operator int(int d) => 0;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "operator").WithLocation(3, 24),
+                // (3,33): error CS0556: User-defined conversion must convert to or from the enclosing type
+                // public static implicit operator int(int d) => 0;
+                Diagnostic(ErrorCode.ERR_ConversionNotInvolvingContainedType, "int").WithLocation(3, 33)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
+        public void TestOperatorInCompilationUnit()
+        {
+            var source = """
+                public static int operator +(int operand1, int operand2) => 0;
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics(
+                // (1,19): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
+                // public static int operator +(int operand1, int operand2) => 0;
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "operator").WithLocation(1, 19),
+                // (1,28): error CS0563: One of the parameters of a binary operator must be the containing type
+                // public static int operator +(int operand1, int operand2) => 0;
+                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "+").WithLocation(1, 28)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
+        public void TestOperatorInFileScopedNamespace()
+        {
+            var source = """
+                namespace N;
+
+                public static int operator +(int operand1, int operand2) => 0;
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // public static int operator +(int operand1, int operand2) => 0;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "operator").WithLocation(3, 19),
+                // (3,28): error CS0563: One of the parameters of a binary operator must be the containing type
+                // public static int operator +(int operand1, int operand2) => 0;
+                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "+").WithLocation(3, 28)
+                );
         }
     }
 }

@@ -33,12 +33,6 @@
 "Title"="C#/VB LSP semantic tokens experience"
 "PreviewPaneChannels"="IntPreview,int.main"
 
-[$RootKey$\FeatureFlags\Roslyn\OOPServerGC]
-"Description"="Run C#/VB out-of-process code analysis with ServerGC."
-"Value"=dword:00000000
-"Title"="Run C#/VB code analysis with ServerGC (requires restart)"
-"PreviewPaneChannels"="IntPreview,int.main"
-
 [$RootKey$\FeatureFlags\Roslyn\SemanticSearchEnabled]
 "Description"="Enable C# Semantic Search."
 "Value"=dword:00000000
@@ -71,10 +65,20 @@
 // 68b46364-d378-42f2-9e72-37d86c5f4468 is the guid for SettingsEditorFactory
 // 6cf2e545-6109-4730-8883-cf43d7aec3e1 is the guid for RoslynPackage
 [$RootKey$\Editors\{68b46364-d378-42f2-9e72-37d86c5f4468}]
+"DisplayName"="#101"
 "Package"="{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
+
 [$RootKey$\Editors\{68b46364-d378-42f2-9e72-37d86c5f4468}\Extensions]
-// dword must be larger that 26 (the priority of the textmate editor)
-// we set it to 100 (64 in hex) here
-"editorconfig"=dword:00000064
+// dword must be smaller that 0x26 (the priority of the textmate editor)
+// we set it to 0x25 here so it's below that but still higher than anything else that might be using it
+"editorconfig"=dword:0000025
+
 [$RootKey$\Editors\{68b46364-d378-42f2-9e72-37d86c5f4468}\LogicalViews]
 "{7651a703-06e5-11d1-8ebd-00a0c90f26ea}"=""
+
+[$RootKey$\Services\{89e9dfce-d0f3-48c4-be76-140d5cce69ef}]
+@="{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
+"Name"="RoslynPackageLoadService"
+"IsAsyncQueryable"=dword:00000001
+"IsCacheable"=dword:00000001
+"IsFreeThreaded"=dword:00000001

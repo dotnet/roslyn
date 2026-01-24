@@ -69,8 +69,7 @@ internal static class AttributeGenerator
         if (attribute.AttributeClass == null)
             return null;
 
-        var attributeArguments = GenerateAttributeArgumentList(
-            attribute, reusableSyntax);
+        var attributeArguments = GenerateAttributeArgumentList(attribute, reusableSyntax);
         return attribute.AttributeClass.GenerateTypeSyntax() is NameSyntax nameSyntax
             ? Attribute(nameSyntax, attributeArguments)
             : null;
@@ -101,7 +100,7 @@ internal static class AttributeGenerator
         {
             // In the case of a string constant with value "x", see if the originating syntax was a `nameof(x)`
             // expression and attempt to preserve that.
-            if (existingSyntax?.ArgumentList != null && constant.Kind is not TypedConstantKind.Array && constant.Value is string stringValue)
+            if (existingSyntax?.ArgumentList != null && constant is { Kind: not TypedConstantKind.Array, Value: string stringValue })
             {
                 foreach (var existingArgument in existingSyntax.ArgumentList.Arguments)
                 {

@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ru" original="../FileBasedProgramsResources.resx">
+    <body>
+      <trans-unit id="CannotConvertDirective">
+        <source>Some directives cannot be converted. Run the file to see all compilation errors. Specify '--force' to convert anyway.</source>
+        <target state="translated">Некоторые директивы невозможно преобразовать. Запустите файл, чтобы увидеть все ошибки компиляции. Укажите параметр "--force", чтобы выполнить преобразование, невзирая на ошибки.</target>
+        <note>{Locked="--force"}</note>
+      </trans-unit>
+      <trans-unit id="CouldNotFindAnyProjectInDirectory">
+        <source>Could not find any project in `{0}`.</source>
+        <target state="translated">Не удалось найти проекты в "{0}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CouldNotFindProjectOrDirectory">
+        <source>Could not find project or directory `{0}`.</source>
+        <target state="translated">Не удалось найти проект или каталог "{0}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DirectiveError">
+        <source>error</source>
+        <target state="translated">ошибка</target>
+        <note>Used when reporting directive errors like "file(location): error: message".</note>
+      </trans-unit>
+      <trans-unit id="DuplicateDirective">
+        <source>Duplicate directives are not supported: {0}</source>
+        <target state="translated">Повторяющиеся директивы не поддерживаются: {0}</target>
+        <note>{0} is the directive type and name.</note>
+      </trans-unit>
+      <trans-unit id="EmptyTempPath">
+        <source>Unable to determine a temporary directory path. Consider configuring the TEMP environment variable on Windows or local app data folder on Unix.</source>
+        <target state="translated">Не удалось определить путь к временному каталогу. Рассмотрите возможность настроить переменную среды TEMP в Windows или папку локальных данных приложений в Unix.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDirectiveName">
+        <source>The directive should contain a name without special characters and an optional value separated by '{1}' like '#:{0} Name{1}Value'.</source>
+        <target state="translated">Директива должна содержать имя без специальных символов и необязательное значение, разделенные символом-разделителем "{1}", например "#:{0} Имя{1}Значение".</target>
+        <note>{0} is the directive type like 'package' or 'sdk'. {1} is the expected separator like '@' or '='.</note>
+      </trans-unit>
+      <trans-unit id="InvalidProjectDirective">
+        <source>The '#:project' directive is invalid: {0}</source>
+        <target state="translated">Недопустимая директива "#:project": {0}</target>
+        <note>{0} is the inner error message.</note>
+      </trans-unit>
+      <trans-unit id="MissingDirectiveName">
+        <source>Missing name of '{0}'.</source>
+        <target state="translated">Отсутствует имя "{0}".</target>
+        <note>{0} is the directive name like 'package' or 'sdk'.</note>
+      </trans-unit>
+      <trans-unit id="MoreThanOneProjectInDirectory">
+        <source>Found more than one project in `{0}`. Specify which one to use.</source>
+        <target state="translated">Найдено несколько проектов в "{0}". Выберите один.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PropertyDirectiveInvalidName">
+        <source>Invalid property name: {0}</source>
+        <target state="translated">Недопустимое имя свойства: {0}</target>
+        <note>{0} is an inner exception message.</note>
+      </trans-unit>
+      <trans-unit id="PropertyDirectiveMissingParts">
+        <source>The property directive needs to have two parts separated by '=' like '#:property PropertyName=PropertyValue'.</source>
+        <target state="translated">Директива свойства должна иметь две части, разделенные символом "=", например "#:property PropertyName=PropertyValue".</target>
+        <note>{Locked="#:property"}</note>
+      </trans-unit>
+      <trans-unit id="QuoteInDirective">
+        <source>Directives currently cannot contain double quotes (").</source>
+        <target state="translated">В директивах пока нельзя использовать двойные кавычки (").</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StaticGraphRestoreNotSupported">
+        <source>Static graph restore is not supported for file-based apps. Remove the '#:property'.</source>
+        <target state="translated">Восстановление статического графа не поддерживается для приложений на основе файлов. Удалите "#:property".</target>
+        <note>{Locked="#:property"}</note>
+      </trans-unit>
+      <trans-unit id="UnrecognizedDirective">
+        <source>Unrecognized directive '{0}'.</source>
+        <target state="translated">Нераспознанная директива "{0}".</target>
+        <note>{0} is the directive name like 'package' or 'sdk'.</note>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

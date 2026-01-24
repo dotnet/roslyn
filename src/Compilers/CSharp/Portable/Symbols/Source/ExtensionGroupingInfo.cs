@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var sourceNamedType = (SourceNamedTypeSymbol)type;
+                Debug.Assert(sourceNamedType.ExtensionGroupingName is not null);
                 var groupingMetadataName = sourceNamedType.ExtensionGroupingName;
 
                 MultiDictionary<string, SourceNamedTypeSymbol>? markerMap;
@@ -48,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     groupingMap.Add(groupingMetadataName, markerMap);
                 }
 
+                Debug.Assert(sourceNamedType.ExtensionMarkerName is not null);
                 markerMap.Add(sourceNamedType.ExtensionMarkerName, sourceNamedType);
             }
 
@@ -472,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         alreadyReportedExtensions ??= PooledHashSet<SourceNamedTypeSymbol>.GetInstance();
                         if (alreadyReportedExtensions.Add(extension))
                         {
-                            diagnostics.Add(ErrorCode.ERR_ExtensionBlockCollision, extension.Locations[0]);
+                            diagnostics.Add(ErrorCode.ERR_ExtensionBlockCollision, extension.GetFirstLocation());
                         }
                     }
                 }
@@ -537,7 +539,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool IDefinition.IsEncDeleted => false;
 
-            bool INamedTypeReference.MangleName => false;
+            bool INamedTypeReference.MangleName => MangleName;
+
+            protected abstract bool MangleName { get; }
 
             string? INamedTypeReference.AssociatedFileIdentifier => null;
 
@@ -759,6 +763,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             protected override IEnumerable<INestedTypeDefinition> NestedTypes => ExtensionMarkerTypes;
 
+            protected override bool MangleName => GenericParameterCount != 0;
+
             protected override IEnumerable<IPropertyDefinition> GetProperties(EmitContext context)
             {
                 foreach (var marker in ExtensionMarkerTypes)
@@ -897,6 +903,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             protected override IEnumerable<INestedTypeDefinition> NestedTypes => SpecializedCollections.EmptyEnumerable<INestedTypeDefinition>();
+
+            protected override bool MangleName => false;
 
             protected override IEnumerable<IPropertyDefinition> GetProperties(EmitContext context) => SpecializedCollections.EmptyEnumerable<IPropertyDefinition>();
 

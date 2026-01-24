@@ -6197,5 +6197,76 @@ $"  ///  </summary>{Environment.NewLine}" +
                 }
                 """);
         }
+
+        [Fact]
+        public void TestNormalizeExtension_01()
+        {
+            TestNormalizeDeclaration("""
+static class E
+{
+extension < T > ( int i )  where   T   : struct
+{
+}
+}
+""", """
+static class E
+{
+  extension<T>(int i)
+    where T : struct
+  {
+  }
+}
+""");
+        }
+
+        [Fact]
+        public void TestNormalizeExtension_02()
+        {
+            TestNormalizeDeclaration("""
+static class E
+{
+extension ( int  )
+{
+}
+}
+""", """
+static class E
+{
+  extension(int)
+  {
+  }
+}
+""");
+        }
+
+        [Fact]
+        public void TestNormalizeSuppression_01()
+        {
+            TestNormalizeDeclaration("""
+throw null!;
+""", """
+throw null!;
+""");
+        }
+
+        [Fact]
+        public void TestNormalizeSuppression_02()
+        {
+            TestNormalizeDeclaration("""
+throw x!;
+""", """
+throw x!;
+""");
+        }
+
+        [Fact]
+        public void TestNormalizeSuppression_03()
+        {
+            TestNormalizeDeclaration("""
+M()!;
+""", """
+M()!;
+""");
+        }
     }
 }

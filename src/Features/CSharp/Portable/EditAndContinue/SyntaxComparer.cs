@@ -1082,8 +1082,8 @@ internal sealed class SyntaxComparer(
             case SyntaxKind.CatchClause:
                 var leftCatch = (CatchClauseSyntax)leftBlock.Parent;
                 var rightCatch = (CatchClauseSyntax)rightBlock.Parent;
-                if (leftCatch.Declaration == null && leftCatch.Filter == null &&
-                    rightCatch.Declaration == null && rightCatch.Filter == null)
+                if (leftCatch is { Declaration: null, Filter: null } &&
+                    rightCatch is { Declaration: null, Filter: null })
                 {
                     var leftTry = (TryStatementSyntax)leftCatch.Parent!;
                     var rightTry = (TryStatementSyntax)rightCatch.Parent!;
@@ -1665,7 +1665,7 @@ internal sealed class SyntaxComparer(
 
     private sealed class LcsTokens : LongestCommonImmutableArraySubsequence<SyntaxToken>
     {
-        internal static readonly LcsTokens Instance = new LcsTokens();
+        internal static readonly LcsTokens Instance = new();
 
         protected override bool Equals(SyntaxToken oldElement, SyntaxToken newElement)
             => SyntaxFactory.AreEquivalent(oldElement, newElement);
@@ -1673,7 +1673,7 @@ internal sealed class SyntaxComparer(
 
     private sealed class LcsNodes : LongestCommonImmutableArraySubsequence<SyntaxNode>
     {
-        internal static readonly LcsNodes Instance = new LcsNodes();
+        internal static readonly LcsNodes Instance = new();
 
         protected override bool Equals(SyntaxNode oldElement, SyntaxNode newElement)
             => SyntaxFactory.AreEquivalent(oldElement, newElement);

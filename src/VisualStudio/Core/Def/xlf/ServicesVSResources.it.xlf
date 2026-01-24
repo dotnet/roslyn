@@ -237,6 +237,11 @@
         <target state="translated">L'esecuzione di Code Analysis è stata terminata prima del completamento per '{0}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_preview">
+        <source>Code preview</source>
+        <target state="translated">Anteprima codice</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
         <source>Collapse local functions when collapsing to definitions</source>
         <target state="translated">Comprimere le funzioni locali durante la compressione delle definizioni</target>
@@ -319,7 +324,7 @@
       </trans-unit>
       <trans-unit id="Display_diagnostics_inline">
         <source>Display diagnostics inline</source>
-        <target state="new">Display diagnostics inline</target>
+        <target state="translated">Visualizzare diagnostica inline</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
@@ -345,11 +350,6 @@
       <trans-unit id="Edit">
         <source>_Edit</source>
         <target state="translated">_Modifica</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Editor_Color_Scheme">
-        <source>Editor Color Scheme</source>
-        <target state="translated">Combinazione colori editor</target>
         <note />
       </trans-unit>
       <trans-unit id="Editor_Help">
@@ -414,7 +414,7 @@
       </trans-unit>
       <trans-unit id="Error_encountered_updating_0">
         <source>Error encountered updating '{0}'</source>
-        <target state="new">Error encountered updating '{0}'</target>
+        <target state="translated">Si è verificato un errore durante l'aggiornamento di '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Error_updating_suppressions_0">
@@ -424,7 +424,7 @@
       </trans-unit>
       <trans-unit id="Experimental_feature">
         <source>Experimental feature</source>
-        <target state="new">Experimental feature</target>
+        <target state="translated">Funzionalità sperimentale</target>
         <note>This is used by the settings UI to mark experimental features.</note>
       </trans-unit>
       <trans-unit id="External_sources">
@@ -469,7 +469,7 @@
       </trans-unit>
       <trans-unit id="Fix_text_pasted_into_string_literals">
         <source>Fix text pasted into string literals</source>
-        <target state="new">Fix text pasted into string literals</target>
+        <target state="translated">Correggere il testo incollato in valori letterali stringa</target>
         <note />
       </trans-unit>
       <trans-unit id="For_non_interface_members">
@@ -485,6 +485,16 @@
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
         <target state="translated">Genera file con estensione editorconfig dalle impostazioni</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_only_summary_tag">
+        <source>Generate only &lt;summary&gt; tag</source>
+        <target state="translated">Generare solo tag &lt;summary&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_summary_on_single_line">
+        <source>Generate &lt;summary&gt; on single line</source>
+        <target state="translated">Generare &lt;summary&gt; su una sola riga</target>
         <note />
       </trans-unit>
       <trans-unit id="Generator_running">
@@ -529,12 +539,12 @@
       </trans-unit>
       <trans-unit id="Ignore">
         <source>Ignore</source>
-        <target state="new">Ignore</target>
+        <target state="translated">Ignora</target>
         <note />
       </trans-unit>
       <trans-unit id="Ignore_including_future_errors">
         <source>Ignore (including future errors)</source>
-        <target state="new">Ignore (including future errors)</target>
+        <target state="translated">Ignorare (inclusi errori futuri)</target>
         <note />
       </trans-unit>
       <trans-unit id="Implemented_interfaces">
@@ -1124,7 +1134,7 @@
       </trans-unit>
       <trans-unit id="Prefer_simple_property_accessors">
         <source>Prefer simple property accessors</source>
-        <target state="new">Prefer simple property accessors</target>
+        <target state="translated">Preferire funzioni di accesso a proprietà semplici</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_simple_using_statement">
@@ -1206,6 +1216,11 @@
         <source>Remove unnecessary usings</source>
         <target state="translated">Rimuovi istruzioni using non necessarie</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Removed_0">
+        <source>Removed {0}</source>
+        <target state="translated">È stata eseguita la rimozione di {0}</target>
+        <note>{0} is a modifier, type, and parameter name</note>
       </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
         <source>Report invalid JSON strings</source>
@@ -1290,6 +1305,11 @@
       <trans-unit id="Search_found_no_results_no_csharp_or_vb_projects_opened">
         <source>Search found no results: no C# or Visual Basic projects are opened</source>
         <target state="translated">La ricerca non ha trovato risultati: non sono stati aperti progetti C# o Visual Basic</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Search_members">
+        <source>Search members</source>
+        <target state="translated">Cercare nei membri</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">
@@ -1677,20 +1697,15 @@
         <target state="translated">Valore da inserire nei siti di chiamata</target>
         <note />
       </trans-unit>
-      <trans-unit id="Visual_Studio_2017">
-        <source>Visual Studio 2017</source>
-        <target state="translated">Visual Studio 2017</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Visual_Studio_2019">
-        <source>Visual Studio 2019</source>
-        <target state="translated">Visual Studio 2019</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Visual_Studio_Settings">
         <source>Visual Studio Settings</source>
         <target state="translated">Impostazioni di Visual Studio</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Warning_0_does_not_bind_to_type">
+        <source>Warning {0} does not bind to type</source>
+        <target state="translated">L'avviso {0} non è associato al tipo</target>
+        <note>{0} is a type name</note>
       </trans-unit>
       <trans-unit id="Warning_colon_duplicate_parameter_name">
         <source>Warning: duplicate parameter name</source>

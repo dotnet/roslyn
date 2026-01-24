@@ -23,9 +23,7 @@ using Microsoft.CodeAnalysis.Text;
 using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using System.Diagnostics;
-using System.ComponentModel;
 
 #if NET
 using Roslyn.Test.Utilities.CoreClr;
@@ -1653,7 +1651,7 @@ Delta.2: Test D2
             // Load the compiler assembly and a modified version of S.C.I into the compiler load context. We
             // expect the analyzer will use the bogus S.C.I in the compiler context instead of the one 
             // in the host context.
-            var alc = new AssemblyLoadContext(nameof(AssemblyResolver_FirstOneWins), isCollectible: true);
+            var alc = new AssemblyLoadContext(nameof(AssemblyResolver_FirstOneWins), isCollectible: false);
             _ = alc.LoadFromAssemblyPath(TestFixture.UserSystemCollectionsImmutable);
             _ = alc.LoadFromAssemblyPath(typeof(AnalyzerAssemblyLoader).GetTypeInfo().Assembly.Location);
             var loader = kind switch
@@ -1677,8 +1675,33 @@ Delta.2: Test D2
 
                 Assert.Equal("42", sb.ToString());
             });
+        }
 
-            alc.Unload();
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_DoesNotUseCollectibleALCs(AnalyzerTestKind kind)
+        {
+            // This validation is critical to our VS / CLI performance. We ship several analyzers and source-generators in the
+            // SDK (NetAnalyzers & Razor generators) that are added to most projects. We want to ship these as Ready2Run so that
+            // we reduce JIT time. However, when an assembly is loaded into a collectible AssemblyLoadContext it prevents any of
+            // the R2R logic from being used.
+
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            {
+                loader.AddDependencyLocation(testFixture.Delta1);
+                loader.AddDependencyLocation(testFixture.Gamma);
+
+                Assembly gamma = loader.LoadFromPath(testFixture.Gamma);
+                Assert.NotNull(gamma);
+
+                var contexts = loader.GetDirectoryLoadContextsSnapshot();
+                Assert.NotEmpty(contexts);
+
+                foreach (var context in contexts)
+                {
+                    Assert.False(context.IsCollectible, "AnalyzerAssemblyLoader should not use collectible assembly load contexts.");
+                }
+            });
         }
 #endif
 

@@ -656,10 +656,7 @@ namespace Microsoft.CodeAnalysis.Text
                         hash.Append(MemoryMarshal.AsBytes(charSpan));
                     }
 
-                    // Switch this to ImmutableCollectionsMarshal.AsImmutableArray(hash.GetHashAndReset()) when we move to S.C.I v8.
-                    Span<byte> destination = stackalloc byte[128 / 8];
-                    hash.GetHashAndReset(destination);
-                    return destination.ToImmutableArray();
+                    return ImmutableCollectionsMarshal.AsImmutableArray(hash.GetHashAndReset());
                 }
                 finally
                 {
@@ -724,25 +721,46 @@ namespace Microsoft.CodeAnalysis.Text
             CheckSubSpan(span);
 
             // default implementation constructs text using CopyTo
-            var builder = PooledStringBuilder.GetInstance();
-            var buffer = s_charArrayPool.Allocate();
+            var tempBuffer = s_charArrayPool.Allocate();
+            string result;
 
             int position = Math.Max(Math.Min(span.Start, this.Length), 0);
             int length = Math.Min(span.End, this.Length) - position;
+
+#if NET
+            result = string.Create(length, (this, position, length, tempBuffer), static (buffer, arg) =>
+            {
+                var (sourceText, position, length, tempBuffer) = arg;
+
+                while (buffer.Length > 0)
+                {
+                    int copyLength = Math.Min(tempBuffer.Length, length);
+                    sourceText.CopyTo(position, tempBuffer, 0, copyLength);
+                    tempBuffer.AsSpan(0, copyLength).CopyTo(buffer);
+
+                    buffer = buffer[copyLength..];
+                    length -= copyLength;
+                    position += copyLength;
+                }
+            });
+#else
+            var builder = PooledStringBuilder.GetInstance();
             builder.Builder.EnsureCapacity(length);
 
             while (position < this.Length && length > 0)
             {
-                int copyLength = Math.Min(buffer.Length, length);
-                this.CopyTo(position, buffer, 0, copyLength);
-                builder.Builder.Append(buffer, 0, copyLength);
+                int copyLength = Math.Min(tempBuffer.Length, length);
+                this.CopyTo(position, tempBuffer, 0, copyLength);
+                builder.Builder.Append(tempBuffer, 0, copyLength);
                 length -= copyLength;
                 position += copyLength;
             }
 
-            s_charArrayPool.Free(buffer);
+            result = builder.ToStringAndFree();
+#endif
 
-            return builder.ToStringAndFree();
+            s_charArrayPool.Free(tempBuffer);
+            return result;
         }
 
         #region Changes
@@ -1301,6 +1319,37 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             throw new IOException(CodeAnalysisResources.StreamIsTooLong);
+        }
+
+        internal SourceText WithChecksumAlgorithm(SourceHashAlgorithm checksumAlgorithm)
+        {
+            if (checksumAlgorithm == SourceHashAlgorithm.None || checksumAlgorithm == ChecksumAlgorithm)
+                return this;
+
+            return new SourceTextWithAlgorithm(this, checksumAlgorithm);
+        }
+
+        private sealed class SourceTextWithAlgorithm : SourceText
+        {
+            private readonly SourceText _underlying;
+
+            public SourceTextWithAlgorithm(SourceText underlying, SourceHashAlgorithm checksumAlgorithm) : base(checksumAlgorithm: checksumAlgorithm)
+            {
+                Debug.Assert(checksumAlgorithm != SourceHashAlgorithm.None);
+                Debug.Assert(checksumAlgorithm != underlying.ChecksumAlgorithm);
+                _underlying = underlying;
+            }
+
+            public override char this[int position] => _underlying[position];
+
+            public override Encoding? Encoding => _underlying.Encoding;
+
+            public override int Length => _underlying.Length;
+
+            public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
+            {
+                _underlying.CopyTo(sourceIndex, destination, destinationIndex, count);
+            }
         }
     }
 }

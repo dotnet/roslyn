@@ -7,6 +7,11 @@
         <target state="translated">La proprietà di sola inizializzazione '{0}' può essere assegnata solo da un inizializzatore di membro di oggetto oppure in 'Me', 'MyClass' o 'MyBase' in un costruttore di istanza.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeCannotBeAppliedManually">
+        <source>'{0}' cannot be applied manually.</source>
+        <target state="translated">'{0}' non può essere applicato manualmente.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
         <source>A shared abstract or virtual interface member cannot be accessed.</source>
         <target state="translated">Impossibile accedere a un membro di interfaccia astratto o virtuale condiviso.</target>
@@ -57,9 +62,19 @@
         <target state="translated">Non è possibile aggiornare '{0}'. Manca l'attributo '{1}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime">
+        <source>Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</source>
+        <target state="translated">L'aggiornamento richiede l'implementazione esplicita dell'interfaccia, operazione non supportata dal runtime senza il riavvio dell'applicazione.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidExperimentalDiagID">
         <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
         <target state="translated">L'argomento diagnosticId dell'attributo 'Experimental' deve essere un identificatore valido</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
+        <source>The target runtime does not support extended layout types.</source>
+        <target state="translated">Il runtime di destinazione non supporta tipi di layout estesi.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormatDeterministic">
@@ -71,6 +86,11 @@
         <source>A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</source>
         <target state="translated">Un valore di tipo 'System.Threading.Lock' non è supportato in SyncLock. Prendi in considerazione di chiamare manualmente i metodi 'Enter' e 'Exit' in un blocco Try/Finally.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_MethodImplAttributeAsyncCannotBeUsed">
+        <source>'MethodImplAttribute.Async' cannot be manually applied to methods.</source>
+        <target state="translated">Non è possibile applicare manualmente 'MethodImplAttribute.Async' ai metodi.</target>
+        <note>'MethodImplAttribute.Async' is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
@@ -127,6 +147,11 @@
         <target state="translated">Gli eventi di variabili WithEvents condivise non possono essere gestiti da metodi in un tipo diverso.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StructLayoutAndExtendedLayout">
+        <source>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</source>
+        <target state="translated">Non è consentito usare 'StructLayoutAttribute' e 'ExtendedLayoutAttribute' nello stesso tipo.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SymbolDefinedInAssembly">
         <source>'{0}' is defined in assembly '{1}'.</source>
         <target state="translated">'{0}' è definito nell'assembly '{1}'.</target>
@@ -134,7 +159,7 @@
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings_RestartRequired">
         <source>Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</source>
-        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</target>
+        <target state="translated">La lunghezza combinata delle stringhe utente usate dal programma supera il limite consentito. L'aggiunta di una stringa o di un valore letterale XML richiede il riavvio dell'applicazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeReserved">
@@ -355,8 +380,7 @@
 -reportivts[+|-]                  Output information on all IVTs granted to this
                                   assembly by all dependencies, and annotate foreign assembly
                                   accessibility errors with what assembly they came from.
--sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
-                                  (mscorlib.dll).
+-sdkpath:&lt;path&gt;             Path used to search for standard library assemblies.
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
                                   version:&lt;number&gt;[.&lt;number&gt;]
 -utf8output[+|-]                  Emit compiler output in UTF-8 character
@@ -516,7 +540,7 @@
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                                   Consente di specificare un mapping per i nomi di percorso di origine
                                   visualizzati dal compilatore.
--platform:&lt;string&gt;                Limita le piattaforme in cui è possibile eseguire questo codice.
+-platform:&lt;string&gt;                Limita le piattaforme in cui è possibile eseguire questo codice;
                                   Il valore deve essere x86, x64, Itanium, arm, arm64
                                   AnyCPU32BitPreferred o anycpu (impostazione predefinita).
 -preferreduilang                  Consente di specificare il nome del linguaggio di output preferito.
@@ -524,8 +548,7 @@
 -reportivts[+|-]                  Restituisce informazioni su tutti i tipi di I/O concessi a questo
                                   assembly da tutte le dipendenze e annota gli errori di accessibilità dell'assembly esterno
                                   da cui provengono.
--sdkpath:&lt;path&gt;                   Percorso della directory di .NET Framework SDK
-                                  (mscorlib.dll).
+-sdkpath:&lt;path&gt;             Percorso usato per cercare assembly di librerie standard.
 -subsystemversion:&lt;version&gt;       Consente di specificare la versione del sottosistema del file PE di output.
                                   version:&lt;number&gt;[.&lt;number&gt;]
 -utf8output[+|-]                  Crea l'output del compilatore con codifica dei caratteri
@@ -534,7 +557,6 @@
 -vbruntime[+|-|*]                 Compila con/senza il runtime di Visual Basic
                                   predefinito.
 -vbruntime:&lt;file&gt;                 Compila con il runtime di Visual Basic alternativo
-
                                   in &lt;file&gt;.
 </target>
         <note />
@@ -547,11 +569,6 @@
       <trans-unit id="ThereAreNoNativeIntegerTypesInVB">
         <source>There are no native integer types in VB.</source>
         <target state="translated">Non ci sono tipi Integer nativi in VB.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Trees0">
-        <source>trees({0})</source>
-        <target state="translated">alberi ({0})</target>
         <note />
       </trans-unit>
       <trans-unit id="TreesMustHaveRootNode">
@@ -636,12 +653,12 @@
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
         <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="needs-review-translation">L'assembly dell'analizzatore '{0}' fa riferimento alla versione '{1}' del compilatore, che è più recente della versione attualmente in esecuzione '{2}'.</target>
+        <target state="translated">Non è possibile usare l'assembly dell'analizzatore '{0}' perché fa riferimento alla versione '{1}' del compilatore, che è più recente della versione attualmente in esecuzione '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
         <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
-        <target state="needs-review-translation">L'assembly dell'analizzatore fa riferimento alla versione del compilatore, che è più recente della versione attualmente in esecuzione.</target>
+        <target state="translated">Non è possibile usare l'assembly dell'analizzatore perché fa riferimento a una versione del compilatore più recente rispetto alla versione attualmente in esecuzione.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
@@ -804,16 +821,6 @@
         <target state="translated">non sono state specificate origini di input</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_FileAlreadyIncluded">
-        <source>source file '{0}' specified multiple times</source>
-        <target state="translated">il file di origine '{0}' è specificato più volte</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_FileAlreadyIncluded_Title">
-        <source>Source file specified multiple times</source>
-        <target state="translated">Il file di origine è specificato più volte</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_CantOpenFileWrite">
         <source>can't open '{0}' for writing: {1}</source>
         <target state="translated">non è possibile aprire '{0}' per la scrittura: {1}</target>
@@ -852,16 +859,6 @@
       <trans-unit id="WRN_NoConfigInResponseFile_Title">
         <source>Ignoring /noconfig option because it was specified in a response file</source>
         <target state="translated">L'opzione /noconfig è stata ignorata perché è stata specificata in un file di risposta</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_InvalidWarningId">
-        <source>warning number '{0}' for the option '{1}' is either not configurable or not valid</source>
-        <target state="translated">numero avviso '{0}' per l'opzione '{1}' non configurabile o non valido</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_InvalidWarningId_Title">
-        <source>Warning number is either not configurable or not valid</source>
-        <target state="translated">Il numero di avviso non è configurabile o valido</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSourcesOut">
@@ -2984,11 +2981,6 @@
       <trans-unit id="ERR_UnrecognizedEnd">
         <source>'End' statement not valid.</source>
         <target state="translated">'L'istruzione 'End' non è valida.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ArrayInitForNonArray2">
-        <source>Array initializers are valid only for arrays, but the type of '{0}' is '{1}'.</source>
-        <target state="translated">Gli inizializzatori di matrice sono validi solo per le matrici, ma il tipo di '{0}' è '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EndRegionNoRegion">
@@ -6740,16 +6732,6 @@
         <target state="translated">L'attributo 'Conditional' è valido solo nelle dichiarazioni 'Sub'</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UseSwitchInsteadOfAttribute">
-        <source>Use command-line option '{0}' or appropriate project settings instead of '{1}'.</source>
-        <target state="translated">Usare l'opzione della riga di comando '{0}' o le impostazioni di progetto appropriate invece di '{1}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UseSwitchInsteadOfAttribute_Title">
-        <source>Use command-line option /keyfile, /keycontainer, or /delaysign instead of AssemblyKeyFileAttribute, AssemblyKeyNameAttribute, or AssemblyDelaySignAttribute</source>
-        <target state="translated">Usare l'opzione della riga di comando /keyfile, /keycontainer o /delaysign invece di AssemblyKeyFileAttribute, AssemblyKeyNameAttribute o AssemblyDelaySignAttribute</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_RecursiveAddHandlerCall">
         <source>Statement recursively calls the containing '{0}' for event '{1}'.</source>
         <target state="translated">L'istruzione chiama in modo ricorsivo il metodo '{0}' che la contiene per l'evento '{1}'.</target>
@@ -7428,16 +7410,6 @@
       <trans-unit id="WRN_RelDelegatePassedToRemoveHandler_Title">
         <source>The 'AddressOf' expression has no effect in this context because the method argument to 'AddressOf' requires a relaxed conversion to the delegate type of the event</source>
         <target state="translated">L'espressione 'AddressOf' non ha effetto in questo contesto perché l'argomento del metodo per 'AddressOf' richiede una conversione di tipo relaxed del tipo delegato dell'evento</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_QueryMissingAsClauseinVarDecl">
-        <source>Range variable is assumed to be of type Object because its type cannot be inferred. Use an 'As' clause to specify a different type.</source>
-        <target state="translated">Si presuppone che la variabile di intervallo sia di tipo Object perché non è possibile dedurne il tipo. Usare una clausola 'As' per specificare un tipo diverso.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_QueryMissingAsClauseinVarDecl_Title">
-        <source>Range variable is assumed to be of type Object because its type cannot be inferred</source>
-        <target state="translated">Si presuppone che la variabile di intervallo sia di tipo Object perché non è possibile dedurne il tipo</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultilineLambdaMissingFunction">

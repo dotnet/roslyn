@@ -43,9 +43,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The value is set during binding the symbols that need those attributes, and is frozen on first trial to get it.
         /// Freezing is needed to make sure that nothing tries to modify the value after the value is read.
         /// </summary>
-        internal EmbeddableAttributes GetNeedsGeneratedAttributes()
+        internal EmbeddableAttributes GetNeedsGeneratedAttributes(bool freezeState = true)
         {
-            _needsGeneratedAttributes_IsFrozen = true;
+            if (freezeState)
+            {
+                _needsGeneratedAttributes_IsFrozen = true;
+            }
+
             return (EmbeddableAttributes)_needsGeneratedAttributes;
         }
 
@@ -393,9 +397,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<KeyValuePair<WellKnownMember, TypedConstant>> namedArguments = default,
             bool isOptionalUse = false)
         {
-            var ctorSymbol = (MethodSymbol)Binder.GetWellKnownTypeMember(this, constructor, useSiteInfo: out _, isOptional: true);
+            var ctorSymbol = (MethodSymbol?)Binder.GetWellKnownTypeMember(this, constructor, useSiteInfo: out _, isOptional: true);
 
-            if ((object)ctorSymbol == null)
+            if (ctorSymbol is null)
             {
                 // if this assert fails, UseSiteErrors for "member" have not been checked before emitting ...
                 Debug.Assert(isOptionalUse || WellKnownMembers.IsSynthesizedAttributeOptional(constructor));
@@ -537,9 +541,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.RequiresLocationAttribute, diagnostics, location, modifyCompilation);
         }
 
-        internal void EnsureParamCollectionAttributeExistsAndModifyCompilation(BindingDiagnosticBag? diagnostics, Location location)
+        internal void EnsureParamCollectionAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
         {
-            EnsureEmbeddableAttributeExists(EmbeddableAttributes.ParamCollectionAttribute, diagnostics, location, modifyCompilation: true);
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.ParamCollectionAttribute, diagnostics, location, modifyCompilation: modifyCompilation);
         }
 
         internal void EnsureIsByRefLikeAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)

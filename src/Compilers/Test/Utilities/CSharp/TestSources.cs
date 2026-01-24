@@ -24,12 +24,14 @@ namespace System
         unsafe public Span(void* pointer, int length)
         {
             this.arr = Helpers.ToArray<T>(pointer, length);
+            this.start = 0;
             this.Length = length;
         }
 
         public Span(T[] arr)
         {
             this.arr = arr;
+            this.start = 0;
             this.Length = arr is null ? 0 : arr.Length;
         }
 
@@ -96,6 +98,8 @@ namespace System
         public static implicit operator ReadOnlySpan<T>(Span<T> span) => new ReadOnlySpan<T>(span.arr);
 
         public Span<T> Slice(int offset, int length) => new Span<T>(this.arr, offset, length);
+
+        public Span<T> Slice(int offset) => new Span<T>(this.arr, offset, Length - offset);
     }
 
     public readonly ref struct ReadOnlySpan<T>
@@ -111,12 +115,14 @@ namespace System
         unsafe public ReadOnlySpan(void* pointer, int length)
         {
             this.arr = Helpers.ToArray<T>(pointer, length);
+            this.start = 0;
             this.Length = length;
         }
 
         public ReadOnlySpan(T[] arr)
         {
             this.arr = arr;
+            this.start = 0;
             this.Length = arr is null ? 0 : arr.Length;
         }
 
@@ -184,6 +190,8 @@ namespace System
         public static implicit operator ReadOnlySpan<T>(string stringValue) => string.IsNullOrEmpty(stringValue) ? default : new ReadOnlySpan<T>((T[])(object)stringValue.ToCharArray());
 
         public ReadOnlySpan<T> Slice(int offset, int length) => new ReadOnlySpan<T>(this.arr, offset, length);
+
+        public ReadOnlySpan<T> Slice(int offset) => new ReadOnlySpan<T>(this.arr, offset, offset - Length);
 
 #nullable enable
         public static ReadOnlySpan<T> CastUp<TDerived>(ReadOnlySpan<TDerived> items) where TDerived : class?, T
@@ -556,5 +564,15 @@ namespace System
         public static Span<T> AsSpan<T>(this T[] array) => new Span<T>(array);
     }
 }";
+
+        public static readonly string ParamsCollectionAttribute = """
+            namespace System.Runtime.CompilerServices
+            {
+                public sealed class ParamCollectionAttribute : Attribute
+                {
+                    public ParamCollectionAttribute() { }
+                }
+            }
+            """;
     }
 }

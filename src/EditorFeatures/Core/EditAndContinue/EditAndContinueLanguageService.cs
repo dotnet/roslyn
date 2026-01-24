@@ -48,8 +48,8 @@ internal sealed class EditAndContinueLanguageService(
     private bool _disabled;
     private RemoteDebuggingSessionProxy? _debuggingSession;
 
-    private Solution? _pendingUpdatedDesignTimeSolution;
-    private Solution? _committedDesignTimeSolution;
+    private Solution? _pendingUpdatedSolution;
+    private Solution? _committedSolution;
 
     public event Action<Solution>? SolutionCommitted;
 
@@ -72,11 +72,8 @@ internal sealed class EditAndContinueLanguageService(
     private SolutionServices Services
         => workspaceProvider.Value.Workspace.Services.SolutionServices;
 
-    private Solution GetCurrentDesignTimeSolution()
+    private Solution GetCurrentSolution()
         => workspaceProvider.Value.Workspace.CurrentSolution;
-
-    private Solution GetCurrentCompileTimeSolution(Solution currentDesignTimeSolution)
-        => Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(currentDesignTimeSolution);
 
     private RemoteDebuggingSessionProxy GetDebuggingSession()
         => _debuggingSession ?? throw new NoSessionException();
@@ -114,20 +111,17 @@ internal sealed class EditAndContinueLanguageService(
             // so that we don't miss any pertinent workspace update events.
             sourceTextProvider.Activate();
 
-            var currentSolution = GetCurrentDesignTimeSolution();
-            _committedDesignTimeSolution = currentSolution;
-            var solution = GetCurrentCompileTimeSolution(currentSolution);
+            var currentSolution = GetCurrentSolution();
+            _committedSolution = currentSolution;
 
             sourceTextProvider.SetBaseline(currentSolution);
 
             var proxy = new RemoteEditAndContinueServiceProxy(Services);
 
             _debuggingSession = await proxy.StartDebuggingSessionAsync(
-                solution,
+                currentSolution,
                 new ManagedHotReloadServiceBridge(debuggerService.Value),
                 sourceTextProvider,
-                captureMatchingDocuments: [],
-                captureAllMatchingDocuments: false,
                 reportDiagnostics: true,
                 cancellationToken).ConfigureAwait(false);
         }
@@ -157,7 +151,7 @@ internal sealed class EditAndContinueLanguageService(
         try
         {
             var session = GetDebuggingSession();
-            var solution = (inBreakState == true) ? GetCurrentCompileTimeSolution(GetCurrentDesignTimeSolution()) : null;
+            var solution = (inBreakState == true) ? GetCurrentSolution() : null;
 
             await session.BreakStateOrCapabilitiesChangedAsync(inBreakState, cancellationToken).ConfigureAwait(false);
 
@@ -193,18 +187,18 @@ internal sealed class EditAndContinueLanguageService(
             return;
         }
 
-        var committedDesignTimeSolution = Interlocked.Exchange(ref _pendingUpdatedDesignTimeSolution, null);
-        Contract.ThrowIfNull(committedDesignTimeSolution);
+        var committedSolution = Interlocked.Exchange(ref _pendingUpdatedSolution, null);
+        Contract.ThrowIfNull(committedSolution);
 
         try
         {
-            SolutionCommitted?.Invoke(committedDesignTimeSolution);
+            SolutionCommitted?.Invoke(committedSolution);
         }
         catch (Exception e) when (FatalError.ReportAndCatch(e))
         {
         }
 
-        _committedDesignTimeSolution = committedDesignTimeSolution;
+        _committedSolution = committedSolution;
 
         try
         {
@@ -224,7 +218,7 @@ internal sealed class EditAndContinueLanguageService(
             return;
         }
 
-        Contract.ThrowIfNull(Interlocked.Exchange(ref _pendingUpdatedDesignTimeSolution, null));
+        Contract.ThrowIfNull(Interlocked.Exchange(ref _pendingUpdatedSolution, null));
 
         try
         {
@@ -260,8 +254,8 @@ internal sealed class EditAndContinueLanguageService(
 
         sourceTextProvider.Deactivate();
         _debuggingSession = null;
-        _committedDesignTimeSolution = null;
-        _pendingUpdatedDesignTimeSolution = null;
+        _committedSolution = null;
+        _pendingUpdatedSolution = null;
     }
 
     private ActiveStatementSpanProvider GetActiveStatementSpanProvider(Solution solution)
@@ -292,9 +286,9 @@ internal sealed class EditAndContinueLanguageService(
                 return false;
             }
 
-            Contract.ThrowIfNull(_committedDesignTimeSolution);
-            var oldSolution = _committedDesignTimeSolution;
-            var newSolution = GetCurrentDesignTimeSolution();
+            Contract.ThrowIfNull(_committedSolution);
+            var oldSolution = _committedSolution;
+            var newSolution = GetCurrentSolution();
 
             return (sourceFilePath != null)
                 ? await EditSession.HasChangesAsync(oldSolution, newSolution, sourceFilePath, cancellationToken).ConfigureAwait(false)
@@ -312,7 +306,14 @@ internal sealed class EditAndContinueLanguageService(
 
     [Obsolete]
     public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<string> runningProjects, CancellationToken cancellationToken)
-        => throw new NotImplementedException();
+    {
+        // StreamJsonRpc may use this overload when the method is invoked with empty parameters. Call the new implementation instead.
+
+        if (!runningProjects.IsEmpty)
+            throw new NotImplementedException();
+
+        return GetUpdatesAsync(ImmutableArray<RunningProjectInfo>.Empty, cancellationToken);
+    }
 
     public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<RunningProjectInfo> runningProjects, CancellationToken cancellationToken)
     {
@@ -321,8 +322,7 @@ internal sealed class EditAndContinueLanguageService(
             return new ManagedHotReloadUpdates([], []);
         }
 
-        var designTimeSolution = GetCurrentDesignTimeSolution();
-        var solution = GetCurrentCompileTimeSolution(designTimeSolution);
+        var solution = GetCurrentSolution();
         var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
         var runningProjectOptions = runningProjects.ToRunningProjectOptions(solution, static info => (info.ProjectInstanceId.ProjectFilePath, info.ProjectInstanceId.TargetFramework, info.RestartAutomatically));
 
@@ -333,13 +333,13 @@ internal sealed class EditAndContinueLanguageService(
             case ModuleUpdateStatus.Ready:
                 // The debugger will call Commit/Discard on the solution
                 // based on whether the updates will be applied successfully or not.
-                _pendingUpdatedDesignTimeSolution = designTimeSolution;
+                _pendingUpdatedSolution = solution;
                 break;
 
             case ModuleUpdateStatus.None:
                 // No significant changes have been made.
                 // Commit the solution to apply any changes in comments that do not generate updates.
-                _committedDesignTimeSolution = designTimeSolution;
+                _committedSolution = solution;
                 break;
         }
 

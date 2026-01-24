@@ -101,6 +101,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
+        Public Overrides ReadOnly Property MethodImplSupported As Boolean
+            Get
+                Return _options.MethodImplEntriesSupported
+            End Get
+        End Property
+
         Friend Shared Function GetOrCreateMetadataSymbols(initialBaseline As EmitBaseline, compilation As VisualBasicCompilation) As EmitBaseline.MetadataSymbols
             If initialBaseline.LazyMetadataSymbols IsNot Nothing Then
                 Return initialBaseline.LazyMetadataSymbols
@@ -225,29 +231,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Friend Overloads Function GetSynthesizedTypes() As SynthesizedTypeMaps Implements IPEDeltaAssemblyBuilder.GetSynthesizedTypes
-            ' VB anonymous delegates are handled as anonymous types
-            Dim result = New SynthesizedTypeMaps(
-                Compilation.AnonymousTypeManager.GetAnonymousTypeMap(),
-                anonymousDelegates:=Nothing,
-                anonymousDelegatesWithIndexedNames:=Nothing)
-
-            ' Should contain all entries in previous generation.
-            Debug.Assert(PreviousGeneration.SynthesizedTypes.IsSubsetOf(result))
-
-            Return result
-        End Function
-
         Friend Overrides Function TryCreateVariableSlotAllocator(method As MethodSymbol, topLevelMethod As MethodSymbol, diagnostics As DiagnosticBag) As VariableSlotAllocator
             Return _changes.DefinitionMap.TryCreateVariableSlotAllocator(Compilation, method, topLevelMethod, diagnostics)
         End Function
 
         Friend Overrides Function GetMethodBodyInstrumentations(method As MethodSymbol) As MethodInstrumentation
             Return _changes.DefinitionMap.GetMethodBodyInstrumentations(method)
-        End Function
-
-        Friend Overrides Function GetPreviousAnonymousTypes() As ImmutableArray(Of AnonymousTypeKey)
-            Return ImmutableArray.CreateRange(PreviousGeneration.SynthesizedTypes.AnonymousTypes.Keys)
         End Function
 
         Friend Overrides Function GetNextAnonymousTypeIndex(fromDelegates As Boolean) As Integer

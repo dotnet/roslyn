@@ -2718,7 +2718,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
             """);
 
     [WpfFact]
-    public void DoNotCompleteStatment_DocComments()
+    public void DoNotCompleteStatement_DocComments()
         => VerifyNoSpecialSemicolonHandling("""
             /// Testing $$
             class C

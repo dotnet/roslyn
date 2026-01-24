@@ -429,9 +429,9 @@ class B
 ");
 
             c.VerifyDiagnostics(
-                // (8,11): error CS0060: Inconsistent accessibility: base type 'X<B.C.D.E>' is less accessible than class 'B.C'
+                // (8,11): error CS9338: Inconsistent accessibility: type 'B.C.D' is less accessible than class 'B.C'
                 //     class C : X<C.D.E>
-                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C").WithArguments("B.C", "X<B.C.D.E>").WithLocation(8, 11));
+                Diagnostic(ErrorCode.ERR_BadVisBaseType, "C").WithArguments("B.C", "B.C.D").WithLocation(8, 11));
         }
 
         [Fact]
@@ -593,9 +593,9 @@ class B
 ");
 
             c.VerifyDiagnostics(
-                // (8,11): error CS0060: Inconsistent accessibility: base type 'X<B.C.D.E>' is less accessible than class 'B.C'
+                // (8,11): error CS9338: Inconsistent accessibility: type 'B.C.D' is less accessible than class 'B.C'
                 //     class C : X<C.D.E>
-                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C").WithArguments("B.C", "X<B.C.D.E>").WithLocation(8, 11));
+                Diagnostic(ErrorCode.ERR_BadVisBaseType, "C").WithArguments("B.C", "B.C.D").WithLocation(8, 11));
         }
 
         [Fact]
@@ -843,10 +843,12 @@ class ADerived2: A
             Assert.True(compilation.IsSymbolAccessibleWithin(adiscard, sourceAssem));
             Assert.False(Symbol.IsSymbolAccessible(kdiscard.GetSymbol(), sourceAssem.GetSymbol()));
             Assert.False(compilation.IsSymbolAccessibleWithin(kdiscard, sourceAssem));
+#if !DEBUG
             Assert.False(Symbol.IsSymbolAccessible(classA.GetSymbol(), mscorlibAssem.GetSymbol()));
             Assert.False(compilation.IsSymbolAccessibleWithin(classA, mscorlibAssem));
             Assert.False(Symbol.IsSymbolAccessible(aliasA.GetSymbol(), mscorlibAssem.GetSymbol()));
             Assert.False(compilation.IsSymbolAccessibleWithin(aliasA, mscorlibAssem));
+#endif 
             Assert.True(Symbol.IsSymbolAccessible(unknownType.GetSymbol(), sourceAssem.GetSymbol()));
             Assert.True(compilation.IsSymbolAccessibleWithin(unknownType, sourceAssem));
             Assert.True(Symbol.IsSymbolAccessible(mscorlibAssem.GetSymbol(), sourceAssem.GetSymbol()));

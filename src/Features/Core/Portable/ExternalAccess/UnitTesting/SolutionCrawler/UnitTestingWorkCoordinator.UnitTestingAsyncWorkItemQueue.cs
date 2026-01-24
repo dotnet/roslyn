@@ -20,7 +20,7 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
             where TKey : class
         {
             private readonly object _gate = new();
-            private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(initialCount: 0);
+            private readonly SemaphoreSlim _semaphore = new(initialCount: 0);
             private bool _disposed;
 
             private readonly UnitTestingSolutionCrawlerProgressReporter _progressReporter = progressReporter;

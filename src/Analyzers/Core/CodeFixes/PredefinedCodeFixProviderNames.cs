@@ -67,6 +67,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string GenerateMethod = nameof(GenerateMethod);
     public const string GenerateType = nameof(GenerateType);
     public const string GenerateVariable = nameof(GenerateVariable);
+    public const string HiddenExplicitCast = nameof(HiddenExplicitCast);
     public const string ImplementAbstractClass = nameof(ImplementAbstractClass);
     public const string ImplementInterface = nameof(ImplementInterface);
     public const string InlineDeclaration = nameof(InlineDeclaration);
@@ -108,8 +109,10 @@ internal static class PredefinedCodeFixProviderNames
     public const string RemoveUnnecessaryImports = nameof(RemoveUnnecessaryImports);
     public const string RemoveUnnecessaryLambdaExpression = nameof(RemoveUnnecessaryLambdaExpression);
     public const string RemoveUnnecessaryNullableDirective = nameof(RemoveUnnecessaryNullableDirective);
+    public const string RemoveUnnecessaryNullableWarningSuppressions = nameof(RemoveUnnecessaryNullableWarningSuppressions);
     public const string RemoveUnnecessaryParentheses = nameof(RemoveUnnecessaryParentheses);
     public const string RemoveUnnecessaryPragmaSuppressions = nameof(RemoveUnnecessaryPragmaSuppressions);
+    public const string RemoveUnnecessaryUnsafeModifier = nameof(RemoveUnnecessaryUnsafeModifier);
     public const string RemoveUnreachableCode = nameof(RemoveUnreachableCode);
     public const string RemoveUnusedLocalFunction = nameof(RemoveUnusedLocalFunction);
     public const string RemoveUnusedMembers = nameof(RemoveUnusedMembers);

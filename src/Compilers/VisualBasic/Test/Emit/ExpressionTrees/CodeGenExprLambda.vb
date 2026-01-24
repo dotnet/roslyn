@@ -8810,5 +8810,80 @@ value(Module1)
 
         End Sub
 
+        <WorkItem("https://github.com/dotnet/roslyn/issues/79130")>
+        <Fact>
+        Public Sub ConstrainedTypeParameter()
+
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+
+Class Program
+    Shared Sub Main()
+        Dim expressionCreatedDirectly = ExpressionBuilder(Of ClassWithIntProperty).OrderBy(Function(x) x.IntProperty)
+        Dim expressionViaGenericMethodConstrainedToClass = CreateExpressionConstrainedToClass(Of ClassWithIntProperty)()
+        Dim expressionViaGenericMethodConstrainedToInterface = CreateExpressionConstrainedToInterface(Of ClassWithIntProperty)()
+        Dim expressionViaGenericMethodConstrainedToInterfaceAndClass = CreateExpressionConstrainedToInterfaceAndClass(Of ClassWithIntProperty)()
+
+        AssertIsMemberExpressionWithParameterExpression(expressionCreatedDirectly)
+        AssertIsMemberExpressionWithParameterExpression(expressionViaGenericMethodConstrainedToClass)
+        AssertIsMemberExpressionWithParameterExpression(expressionViaGenericMethodConstrainedToInterface)
+        AssertIsMemberExpressionWithParameterExpression(expressionViaGenericMethodConstrainedToInterfaceAndClass)
+    End Sub
+
+    Shared Function CreateExpressionConstrainedToClass(Of T As ClassWithIntProperty)() As Expression(Of Func(Of T, Integer))
+        Return ExpressionBuilder(Of T).OrderBy(Function(x) x.IntProperty)
+    End Function
+
+    Shared Function CreateExpressionConstrainedToInterface(Of T As IWithIntProperty)() As Expression(Of Func(Of T, Integer))
+        Return ExpressionBuilder(Of T).OrderBy(Function(x) x.IntProperty)
+    End Function
+
+    Shared Function CreateExpressionConstrainedToInterfaceAndClass(Of T As {Class, IWithIntProperty})() As Expression(Of Func(Of T, Integer))
+        Return ExpressionBuilder(Of T).OrderBy(Function(x) x.IntProperty)
+    End Function
+
+    Shared Sub AssertIsMemberExpressionWithParameterExpression(Of T)(expression As Expression(Of Func(Of T, Integer)))
+        Dim memberExpression = CType(expression.Body, MemberExpression)
+        Dim nestedExpression = memberExpression.Expression
+        Console.WriteLine(nestedExpression.NodeType.ToString())
+        Console.WriteLine(memberExpression)
+    End Sub
+End Class
+
+NotInheritable Class ExpressionBuilder(Of TSource)
+    Public Shared Function OrderBy(Of TKey)(keySelector As Expression(Of Func(Of TSource, TKey))) As Expression(Of Func(Of TSource, TKey))
+        Return keySelector
+    End Function
+End Class
+
+Public Interface IWithIntProperty
+    ReadOnly Property IntProperty As Integer
+End Interface
+
+Class ClassWithIntProperty
+    Implements IWithIntProperty
+
+    Public Property IntProperty As Integer Implements IWithIntProperty.IntProperty
+End Class
+                            ]]></file>
+                         </compilation>
+
+            CompileAndVerify(source,
+                 options:=TestOptions.DebugExe,
+                 expectedOutput:=<![CDATA[
+Parameter
+x.IntProperty
+Parameter
+x.IntProperty
+Parameter
+x.IntProperty
+Parameter
+x.IntProperty
+]]>).VerifyDiagnostics()
+
+        End Sub
+
     End Class
 End Namespace

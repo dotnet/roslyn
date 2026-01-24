@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression VisitInstanceCompoundAssignmentOperator(BoundCompoundAssignmentOperator node, bool used)
         {
             Debug.Assert(node.Operator.Method is { });
-            Debug.Assert(node.LeftConversion is null || (node.Left.Type!.IsReferenceType && node.Operator.Method.GetIsNewExtensionMember()));
+            Debug.Assert(node.LeftConversion is null || (node.Left.Type!.IsReferenceType && node.Operator.Method.IsExtensionBlockMember()));
             Debug.Assert(node.FinalConversion is null);
 
             SyntaxNode syntax = node.Syntax;
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(TypeSymbol.Equals(transformedLHS.Type, node.Left.Type, TypeCompareKind.AllIgnoreOptions));
 
-                if (IsNewExtensionMemberAccessWithByValPossiblyStructReceiver(transformedLHS))
+                if (IsExtensionBlockMemberAccessWithByValPossiblyStructReceiver(transformedLHS))
                 {
                     // We need to create a tree that ensures that receiver of 'set' is evaluated after the binary operation
                     BoundLocal binaryResult = _factory.StoreToTemp(opFinal, out BoundAssignmentOperator assignmentToTemp, refKind: RefKind.None);
@@ -240,22 +240,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool IsNewExtensionMemberAccessWithByValPossiblyStructReceiver(BoundExpression transformedLHS)
+        private static bool IsExtensionBlockMemberAccessWithByValPossiblyStructReceiver(BoundExpression transformedLHS)
         {
             switch (transformedLHS)
             {
                 case BoundPropertyAccess { PropertySymbol: { } property }:
-                    return IsNewExtensionMemberWithByValPossiblyStructReceiver(property);
+                    return IsExtensionBlockMemberWithByValPossiblyStructReceiver(property);
                 case BoundIndexerAccess { Indexer: { } indexer }:
-                    return IsNewExtensionMemberWithByValPossiblyStructReceiver(indexer);
+                    return IsExtensionBlockMemberWithByValPossiblyStructReceiver(indexer);
                 default:
                     return false;
             }
         }
 
-        static bool IsNewExtensionMemberWithByValPossiblyStructReceiver(Symbol symbol)
+        static bool IsExtensionBlockMemberWithByValPossiblyStructReceiver(Symbol symbol)
         {
-            return symbol.GetIsNewExtensionMember() && !symbol.IsStatic && symbol.ContainingType.ExtensionParameter is { RefKind: RefKind.None, Type.IsReferenceType: false };
+            return symbol.IsExtensionBlockMember() && !symbol.IsStatic && symbol.ContainingType.ExtensionParameter is { RefKind: RefKind.None, Type.IsReferenceType: false };
         }
 
         private BoundExpression? TransformPropertyOrEventReceiver(Symbol propertyOrEvent, BoundExpression? receiverOpt, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If the property is static or if the receiver is of kind "Base" or "this", then we can just generate prop = prop + value
             if (receiverOpt == null || propertyOrEvent.IsStatic || !CanChangeValueBetweenReads(receiverOpt))
             {
-                return receiverOpt;
+                return VisitExpression(receiverOpt);
             }
 
             Debug.Assert(receiverOpt.Kind != BoundKind.TypeExpression);
@@ -295,9 +295,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind refKind;
             bool isKnownToReferToTempIfReferenceType = false;
 
-            if (propertyOrEvent.GetIsNewExtensionMember())
+            if (propertyOrEvent.IsExtensionBlockMember())
             {
-                refKind = GetNewExtensionMemberReceiverCaptureRefKind(rewrittenReceiver, propertyOrEvent);
+                refKind = GetExtensionBlockMemberReceiverCaptureRefKind(rewrittenReceiver, propertyOrEvent);
             }
             else
             {
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             temps.Add(receiverTemp.LocalSymbol);
 
             if (receiverTemp.LocalSymbol.IsRef &&
-                (propertyOrEvent.GetIsNewExtensionMember() ?
+                (propertyOrEvent.IsExtensionBlockMember() ?
                      !receiverTemp.Type.IsValueType :
                      CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverTemp)) &&
                 !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverTemp))

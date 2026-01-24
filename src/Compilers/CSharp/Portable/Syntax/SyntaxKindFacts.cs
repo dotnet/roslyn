@@ -853,7 +853,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return kind == SyntaxKind.EnumKeyword ? SyntaxKind.EnumDeclaration : GetTypeDeclarationKind(kind);
         }
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, decide what we want for extension declaration
         public static SyntaxKind GetTypeDeclarationKind(SyntaxKind kind)
         {
             switch (kind)
@@ -866,6 +865,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.InterfaceDeclaration;
                 case SyntaxKind.RecordKeyword:
                     return SyntaxKind.RecordDeclaration;
+                case SyntaxKind.ExtensionKeyword:
+                    return SyntaxKind.ExtensionBlockDeclaration;
                 default:
                     return SyntaxKind.None;
             }

@@ -2103,7 +2103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var otherAssembly in haveGrantedAssemblies.Keys)
                 {
-                    IVTConclusion conclusion = MakeFinalIVTDetermination(otherAssembly);
+                    IVTConclusion conclusion = MakeFinalIVTDetermination(otherAssembly, assertUnexpectedGiver: true);
 
                     Debug.Assert(conclusion != IVTConclusion.NoRelationshipClaimed);
 
@@ -2171,7 +2171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            IVTConclusion conclusion = MakeFinalIVTDetermination(potentialGiverOfAccess);
+            IVTConclusion conclusion = MakeFinalIVTDetermination(potentialGiverOfAccess, assertUnexpectedGiver: true);
 
             return conclusion == IVTConclusion.Match || conclusion == IVTConclusion.OneSignedOneNot;
         }
@@ -2724,7 +2724,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         handledUnreadFields.Add(field);
                     }
 
-                    if (containingType.HasStructLayoutAttribute || containingType.HasInlineArrayAttribute(out _))
+                    if (containingType.HasStructLayoutAttribute || containingType.HasExtendedLayoutAttribute || containingType.HasInlineArrayAttribute(out _))
                     {
                         continue;
                     }
@@ -2765,7 +2765,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     var containingType = field.ContainingType as SourceNamedTypeSymbol;
-                    if ((object)containingType != null && !containingType.HasStructLayoutAttribute && !containingType.HasInlineArrayAttribute(out _))
+                    if ((object)containingType != null && !containingType.HasStructLayoutAttribute && !containingType.HasExtendedLayoutAttribute && !containingType.HasInlineArrayAttribute(out _))
                     {
                         diagnostics.Add(ErrorCode.WRN_UnreferencedFieldAssg, field.GetFirstLocationOrNone(), field);
                     }
@@ -2937,7 +2937,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override IEnumerable<NamedTypeSymbol> GetAllTopLevelForwardedTypes()
         {
-            return PEModuleBuilder.GetForwardedTypes(this, builder: null);
+            return PEModuleBuilder.GetForwardedTypes(this, builder: null, context: null);
         }
 
         public override AssemblyMetadata GetMetadata() => null;

@@ -2544,6 +2544,12 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
     protected static bool ParameterTypesEquivalent(ImmutableArray<IParameterSymbol> oldParameters, ImmutableArray<IParameterSymbol> newParameters, bool exact)
         => oldParameters.SequenceEqual(newParameters, exact, ParameterTypesEquivalent);
 
+    protected static bool ParameterDefaultValuesEquivalent(ImmutableArray<IParameterSymbol> oldParameters, ImmutableArray<IParameterSymbol> newParameters)
+        => oldParameters.SequenceEqual(newParameters, ParameterDefaultValuesEquivalent);
+
+    protected static bool LambdaParametersEquivalent(ImmutableArray<IParameterSymbol> oldParameters, ImmutableArray<IParameterSymbol> newParameters)
+        => oldParameters.SequenceEqual(newParameters, LambdaParameterEquivalent);
+
     protected static bool CustomModifiersEquivalent(CustomModifier oldModifier, CustomModifier newModifier, bool exact)
         => oldModifier.IsOptional == newModifier.IsOptional &&
            TypesEquivalent(oldModifier.Modifier, newModifier.Modifier, exact);
@@ -2581,6 +2587,20 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
 
     protected static bool ParameterTypesEquivalent(IParameterSymbol oldParameter, IParameterSymbol newParameter, bool exact)
         => (exact ? s_exactSymbolEqualityComparer : s_runtimeSymbolEqualityComparer).ParameterEquivalenceComparer.Equals(oldParameter, newParameter);
+
+    protected static bool ParameterDefaultValuesEquivalent(IParameterSymbol oldParameter, IParameterSymbol newParameter)
+        => oldParameter.HasExplicitDefaultValue == newParameter.HasExplicitDefaultValue &&
+           (!oldParameter.HasExplicitDefaultValue || Equals(oldParameter.ExplicitDefaultValue, newParameter.ExplicitDefaultValue));
+
+    /// <summary>
+    /// Lambda parameters are equivallent if the type of the lambda as emitted to IL doesn't change.
+    /// Tuple element names, dynamic, etc. do not affect lambda natural type. 
+    /// Default values and "params" do.
+    /// </summary>
+    protected static bool LambdaParameterEquivalent(IParameterSymbol oldParameter, IParameterSymbol newParameter)
+        => ParameterTypesEquivalent(oldParameter, newParameter, exact: false) &&
+           ParameterDefaultValuesEquivalent(oldParameter, newParameter) &&
+           oldParameter.IsParams == newParameter.IsParams;
 
     protected static bool TypeParameterConstraintsEquivalent(ITypeParameterSymbol oldParameter, ITypeParameterSymbol newParameter, bool exact)
         => TypesEquivalent(oldParameter.ConstraintTypes, newParameter.ConstraintTypes, exact) &&
@@ -2734,8 +2754,8 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                             continue;
                         }
 
-                        var oldSymbolInNewCompilation = symbolCache.GetKey(oldSymbol, cancellationToken).Resolve(newModel.Compilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
-                        var newSymbolInOldCompilation = symbolCache.GetKey(newSymbol, cancellationToken).Resolve(oldModel.Compilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+                        var oldSymbolInNewCompilation = symbolCache.GetKey(oldSymbol, cancellationToken).Resolve(newModel.Compilation, cancellationToken: cancellationToken).Symbol;
+                        var newSymbolInOldCompilation = symbolCache.GetKey(newSymbol, cancellationToken).Resolve(oldModel.Compilation, cancellationToken: cancellationToken).Symbol;
 
                         if (oldSymbolInNewCompilation == null || newSymbolInOldCompilation == null)
                         {
@@ -2795,6 +2815,18 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                         // Delete/insert/update edit of a member of a reloadable type (including nested types) results in Replace edit of the containing type.
                         // If a Delete edit is part of delete-insert operation (member moved to a different partial type declaration or to a different file)
                         // skip producing Replace semantic edit for this Delete edit as one will be reported by the corresponding Insert edit.
+                        //
+                        // Updates to types nested into reloadable type are handled as Replace edits of the reloadable type.
+                        //
+                        // Rationale:
+                        //   Any update to a member of a reloadable type results is a Replace edit of the type.
+                        //   Replace edit generates a new version of the entire reloadable type, including any types nested into it.
+                        //   Therefore, updating members results in new versions of all types nested in the reloadable type.
+                        //   It would be unnecessarily limiting and inconsistent to update nested types "in-place".
+                        //
+                        // Scenario:
+                        //   Razor page, which is a reloadable type, may define nested types using @functions block.
+                        //   Any changes should be allowed to be made in a Razor page, including changes to nested types defined in @functions block.
 
                         var oldContainingType = oldSymbol?.ContainingType;
                         var newContainingType = newSymbol?.ContainingType;
@@ -2803,31 +2835,30 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                         if (containingType != null && (syntacticEditKind != EditKind.Delete || newSymbol == null))
                         {
                             var containingTypeSymbolKey = symbolCache.GetKey(containingType, cancellationToken);
-                            oldContainingType ??= (INamedTypeSymbol?)containingTypeSymbolKey.Resolve(oldModel.Compilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
-                            newContainingType ??= (INamedTypeSymbol?)containingTypeSymbolKey.Resolve(newModel.Compilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+                            oldContainingType ??= (INamedTypeSymbol?)containingTypeSymbolKey.Resolve(oldModel.Compilation, cancellationToken: cancellationToken).Symbol;
+                            newContainingType ??= (INamedTypeSymbol?)containingTypeSymbolKey.Resolve(newModel.Compilation, cancellationToken: cancellationToken).Symbol;
 
-                            if (oldContainingType != null && newContainingType != null && IsReloadable(oldContainingType))
+                            if (AddReloadableTypeSemanticEdit(
+                                editScript,
+                                newModel,
+                                diagnostics,
+                                capabilities,
+                                processedSymbols,
+                                semanticEdits,
+                                oldTree,
+                                newTree,
+                                newDeclaration,
+                                oldContainingType,
+                                newContainingType,
+                                cancellationToken))
                             {
-                                if (processedSymbols.Add(newContainingType))
-                                {
-                                    if (capabilities.GrantNewTypeDefinition(containingType))
-                                    {
-                                        semanticEdits.Add(SemanticEditInfo.CreateReplace(containingTypeSymbolKey,
-                                            IsPartialTypeEdit(oldContainingType, newContainingType, oldTree, newTree) ? containingTypeSymbolKey : null));
-                                    }
-                                    else
-                                    {
-                                        CreateDiagnosticContext(diagnostics, oldContainingType, newContainingType, newDeclaration, newModel, editScript.Match).
-                                            Report(RudeEditKind.ChangingReloadableTypeNotSupportedByRuntime, cancellationToken);
-                                    }
-                                }
-
                                 continue;
                             }
                         }
 
+                        // Handle changes to reloadable type itself (the above handles changes to its members and types).
                         // Deleting a reloadable type is a rude edit, reported the same as for non-reloadable.
-                        // Adding a reloadable type is a standard type addition (TODO: unless added to a reloadable type?).
+                        // Adding a reloadable type is a standard type addition (unless added to a reloadable type).
                         // Making reloadable attribute non-reloadable results in a new version of the type that is
                         // not reloadable but does not update the old version in-place.
                         if (syntacticEditKind != EditKind.Delete && oldSymbol is INamedTypeSymbol oldType && newSymbol is INamedTypeSymbol newType && IsReloadable(oldType))
@@ -2947,7 +2978,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                                 // If so, skip the member deletion and only report the containing symbol deletion.
                                 var oldContainingType = oldSymbol.ContainingType;
                                 var containingTypeKey = symbolCache.GetKey(oldContainingType, cancellationToken);
-                                var newContainingType = (INamedTypeSymbol?)containingTypeKey.Resolve(newModel.Compilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+                                var newContainingType = (INamedTypeSymbol?)containingTypeKey.Resolve(newModel.Compilation, cancellationToken: cancellationToken).Symbol;
                                 if (newContainingType == null)
                                 {
                                     // If a type parameter is deleted from the parameter list of a type declaration, the symbol key won't be resolved (because the arities do not match).
@@ -3072,7 +3103,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                                         HasEdit(editMap, GetSymbolDeclarationSyntax(newAssociatedMember, cancellationToken), EditKind.Insert);
 
                                     var containingTypeKey = symbolCache.GetKey(newContainingType, cancellationToken);
-                                    oldContainingType = containingTypeKey.Resolve(oldModel.Compilation, ignoreAssemblyKey: true, cancellationToken).Symbol as INamedTypeSymbol;
+                                    oldContainingType = containingTypeKey.Resolve(oldModel.Compilation, cancellationToken: cancellationToken).Symbol as INamedTypeSymbol;
 
                                     // Check rude edits for each member even if it is inserted into a new type.
                                     if (!hasAssociatedSymbolInsert && IsMember(newSymbol))
@@ -3487,23 +3518,20 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
 
                     var oldContainingType = oldSymbol.ContainingType;
                     var newContainingType = newSymbol.ContainingType;
-                    if (oldContainingType != null && newContainingType != null && IsReloadable(oldContainingType))
+                    if (AddReloadableTypeSemanticEdit(
+                        editScript,
+                        newModel,
+                        diagnostics,
+                        capabilities,
+                        processedSymbols,
+                        semanticEdits,
+                        oldTree,
+                        newTree,
+                        newDeclaration,
+                        oldContainingType,
+                        newContainingType,
+                        cancellationToken))
                     {
-                        if (processedSymbols.Add(newContainingType))
-                        {
-                            if (capabilities.GrantNewTypeDefinition(newContainingType))
-                            {
-                                var oldContainingTypeKey = SymbolKey.Create(oldContainingType, cancellationToken);
-                                semanticEdits.Add(SemanticEditInfo.CreateReplace(oldContainingTypeKey,
-                                    IsPartialTypeEdit(oldContainingType, newContainingType, oldTree, newTree) ? oldContainingTypeKey : null));
-                            }
-                            else
-                            {
-                                CreateDiagnosticContext(diagnostics, oldContainingType, newContainingType, newDeclaration, newModel, editScript.Match)
-                                    .Report(RudeEditKind.ChangingReloadableTypeNotSupportedByRuntime, cancellationToken);
-                            }
-                        }
-
                         continue;
                     }
 
@@ -3609,7 +3637,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                 static ISymbol? Resolve(ISymbol symbol, SymbolKey symbolKey, Compilation compilation, CancellationToken cancellationToken)
                 {
                     // Ignore ambiguous resolution result - it may happen if there are semantic errors in the compilation.
-                    var result = symbolKey.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+                    var result = symbolKey.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
 
                     // If we were looking for a definition and an implementation is returned the definition does not exist.
                     return symbol.IsPartialImplementation() && result?.IsPartialDefinition() == true ? null : result;
@@ -3689,7 +3717,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
     protected static ISymbol? GetSemanticallyMatchingNewSymbol(ISymbol? oldSymbol, ISymbol? newSymbol, Compilation newCompilation, SymbolInfoCache symbolCache, CancellationToken cancellationToken)
         => oldSymbol != null && IsMember(oldSymbol) &&
            newSymbol != null && IsMember(newSymbol) &&
-           symbolCache.GetKey(oldSymbol, cancellationToken).Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol is { } matchingNewSymbol &&
+           symbolCache.GetKey(oldSymbol, cancellationToken).Resolve(newCompilation, cancellationToken: cancellationToken).Symbol is { } matchingNewSymbol &&
            !matchingNewSymbol.IsSynthesized() &&
            matchingNewSymbol != newSymbol
            ? matchingNewSymbol
@@ -3785,7 +3813,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                 IsPrimaryConstructor(constructor, cancellationToken) &&
                 constructor.GetMatchingDeconstructor() is { IsImplicitlyDeclared: true } deconstructor)
             {
-                if (SymbolKey.Create(deconstructor, cancellationToken).Resolve(otherCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol != null)
+                if (SymbolKey.Create(deconstructor, cancellationToken).Resolve(otherCompilation, cancellationToken: cancellationToken).Symbol != null)
                 {
                     // Update for transition from synthesized to declared deconstructor
                     AddUpdateEditsForMemberAndAccessors(semanticEdits, deconstructor, cancellationToken);
@@ -4033,7 +4061,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                 continue;
             }
 
-            var newType = SymbolKey.Create(oldType, cancellationToken).Resolve(newModel.Compilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+            var newType = SymbolKey.Create(oldType, cancellationToken).Resolve(newModel.Compilation, cancellationToken: cancellationToken).Symbol;
             if (newType == null)
             {
                 var key = (oldType.Name, oldType.Arity);
@@ -4064,7 +4092,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                 continue;
             }
 
-            var oldType = SymbolKey.Create(newType, cancellationToken).Resolve(oldModel.Compilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+            var oldType = SymbolKey.Create(newType, cancellationToken).Resolve(oldModel.Compilation, cancellationToken: cancellationToken).Symbol;
             if (oldType == null)
             {
                 // Check if a type with the same name and arity was also removed. If so treat it as a move.
@@ -4127,6 +4155,49 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
 
     private static bool IsReloadable(INamedTypeSymbol type)
         => TypeOrBaseTypeHasCompilerServicesAttribute(type, CreateNewOnMetadataUpdateAttributeName);
+
+    private static INamedTypeSymbol? TryGetOutermostReloadableType(INamedTypeSymbol type)
+        => type.GetContainingTypesAndThis().FirstOrDefault(IsReloadable);
+
+    private bool AddReloadableTypeSemanticEdit(
+        EditScript<SyntaxNode> editScript,
+        DocumentSemanticModel newModel,
+        RudeEditDiagnosticsBuilder diagnostics,
+        EditAndContinueCapabilitiesGrantor capabilities,
+        PooledHashSet<ISymbol> processedSymbols,
+        ArrayBuilder<SemanticEditInfo> semanticEdits,
+        SyntaxTree oldTree,
+        SyntaxTree newTree,
+        SyntaxNode? newDeclaration,
+        INamedTypeSymbol? oldContainingType,
+        INamedTypeSymbol? newContainingType,
+        CancellationToken cancellationToken)
+    {
+        if (oldContainingType is null ||
+            newContainingType is null ||
+            TryGetOutermostReloadableType(oldContainingType) is not { } oldOutermostReloadableType ||
+            TryGetOutermostReloadableType(newContainingType) is not { } newOutermostReloadableType)
+        {
+            return false;
+        }
+
+        if (processedSymbols.Add(newOutermostReloadableType))
+        {
+            if (capabilities.GrantNewTypeDefinition(newOutermostReloadableType))
+            {
+                var oldOutermostReloadableTypeKey = SymbolKey.Create(oldOutermostReloadableType, cancellationToken);
+                semanticEdits.Add(SemanticEditInfo.CreateReplace(oldOutermostReloadableTypeKey,
+                    IsPartialTypeEdit(oldOutermostReloadableType, newOutermostReloadableType, oldTree, newTree) ? oldOutermostReloadableTypeKey : null));
+            }
+            else
+            {
+                CreateDiagnosticContext(diagnostics, oldOutermostReloadableType, newOutermostReloadableType, newDeclaration, newModel, editScript.Match).
+                    Report(RudeEditKind.ChangingReloadableTypeNotSupportedByRuntime, cancellationToken);
+            }
+        }
+
+        return true;
+    }
 
     private static bool TypeOrBaseTypeHasCompilerServicesAttribute(INamedTypeSymbol type, string attributeName)
     {
@@ -4521,8 +4592,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                     hasGeneratedAttributeChange = true;
                 }
 
-                if (oldParameter.HasExplicitDefaultValue != newParameter.HasExplicitDefaultValue ||
-                    oldParameter.HasExplicitDefaultValue && !Equals(oldParameter.ExplicitDefaultValue, newParameter.ExplicitDefaultValue))
+                if (!ParameterDefaultValuesEquivalent(oldParameter, newParameter))
                 {
                     rudeEdit = RudeEditKind.InitializerUpdate;
                 }
@@ -5174,7 +5244,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             while (oldContainer is not null and not INamespaceSymbol { IsGlobalNamespace: true })
             {
                 var symbolKey = SymbolKey.Create(oldSymbol, cancellationToken);
-                if (symbolKey.Resolve(newModel.Compilation, ignoreAssemblyKey: true, cancellationToken).Symbol is { } newSymbol)
+                if (symbolKey.Resolve(newModel.Compilation, cancellationToken: cancellationToken).Symbol is { } newSymbol)
                 {
                     return newSymbol;
                 }
@@ -5581,7 +5651,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                     }
                     else
                     {
-                        var resolution = newCtorKey.Resolve(oldModel.Compilation, ignoreAssemblyKey: true, cancellationToken);
+                        var resolution = newCtorKey.Resolve(oldModel.Compilation, cancellationToken: cancellationToken);
 
                         // There may be semantic errors in the compilation that result in multiple candidates.
                         // Pick the first candidate.
@@ -6342,7 +6412,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         => GetSymbolDeclarationSyntax(symbol, selector: System.Linq.ImmutableArrayExtensions.First, cancellationToken)!;
 
     protected SyntaxNode? GetSingleSymbolDeclarationSyntax(ISymbol symbol, CancellationToken cancellationToken)
-        => GetSymbolDeclarationSyntax(symbol, selector: refs => refs is [var single] ? single : null, cancellationToken)!;
+        => GetSymbolDeclarationSyntax(symbol, selector: refs => refs is [var single] ? single : null, cancellationToken);
 
     protected SyntaxNode? GetSymbolDeclarationSyntax(ISymbol symbol, SyntaxTree tree, CancellationToken cancellationToken)
         => GetSymbolDeclarationSyntax(symbol, syntaxRefs => syntaxRefs.FirstOrDefault(r => r.SyntaxTree == tree), cancellationToken);
@@ -6620,8 +6690,12 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         var newLambdaSymbol = (IMethodSymbol)diagnosticContext.RequiredNewSymbol;
 
         // signature validation:
-        if (!ParameterTypesEquivalent(oldLambdaSymbol.Parameters, newLambdaSymbol.Parameters, exact: false))
+        if (!LambdaParametersEquivalent(oldLambdaSymbol.Parameters, newLambdaSymbol.Parameters))
         {
+            // If a delegate type for the lambda is synthesized (anonymous) changing default parameter value changes the synthesized delegate type.
+            // If the delegate type is not synthesized the default value is ignored and warning is reported by the compiler.
+            // Technically, the runtime rude edit does not need to be reported in the latter case but we report it anyway for simplicity.
+
             runtimeRudeEditsBuilder[newLambda] = diagnosticContext.CreateRudeEdit(RudeEditKind.ChangingLambdaParameters, cancellationToken);
             return;
         }
@@ -6633,7 +6707,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         }
 
         if (!TypeParametersEquivalent(oldLambdaSymbol.TypeParameters, newLambdaSymbol.TypeParameters, exact: false) ||
-                 !oldLambdaSymbol.TypeParameters.SequenceEqual(newLambdaSymbol.TypeParameters, static (p, q) => p.Name == q.Name))
+            !oldLambdaSymbol.TypeParameters.SequenceEqual(newLambdaSymbol.TypeParameters, static (p, q) => p.Name == q.Name))
         {
             runtimeRudeEditsBuilder[newLambda] = diagnosticContext.CreateRudeEdit(RudeEditKind.ChangingTypeParameters, cancellationToken);
             return;
@@ -7031,7 +7105,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             GetPrimaryConstructor(newSymbol.ContainingType, cancellationToken) is { } newPrimaryConstructor &&
             method.HasDeconstructorSignature(newPrimaryConstructor))
         {
-            var oldConstructor = SymbolKey.Create(newPrimaryConstructor, cancellationToken).Resolve(oldCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+            var oldConstructor = SymbolKey.Create(newPrimaryConstructor, cancellationToken).Resolve(oldCompilation, cancellationToken: cancellationToken).Symbol;
 
             // An insert exists if the new primary constructor is explicitly declared and
             // the old one doesn't exist, is synthesized, or is not a primary constructor parameter.
@@ -7044,7 +7118,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             GetPrimaryConstructor(newSymbol.ContainingType, cancellationToken)?.Parameters.FirstOrDefault(
                 static (parameter, name) => parameter.Name == name, newSymbol.Name) is { } newPrimaryParameter)
         {
-            var oldParameter = SymbolKey.Create(newPrimaryParameter, cancellationToken).Resolve(oldCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+            var oldParameter = SymbolKey.Create(newPrimaryParameter, cancellationToken).Resolve(oldCompilation, cancellationToken: cancellationToken).Symbol;
             var oldProperty = (IPropertySymbol)oldSymbol;
 
             // An insert exists if the new primary parameter is explicitly declared and

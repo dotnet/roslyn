@@ -32,18 +32,9 @@ internal sealed partial class ConvertSwitchStatementToExpressionCodeFixProvider(
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.ConvertSwitchStatementToExpressionDiagnosticId];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        var switchLocation = context.Diagnostics.First().AdditionalLocations[0];
-        var switchStatement = (SwitchStatementSyntax)switchLocation.FindNode(getInnermostNodeForTie: true, context.CancellationToken);
-        if (switchStatement.ContainsDirectives)
-        {
-            // Avoid providing code fixes for switch statements containing directives
-            return Task.CompletedTask;
-        }
-
         RegisterCodeFix(context, CSharpAnalyzersResources.Convert_switch_statement_to_expression, nameof(CSharpAnalyzersResources.Convert_switch_statement_to_expression));
-        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(

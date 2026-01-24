@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ko" original="../FileBasedProgramsResources.resx">
+    <body>
+      <trans-unit id="CannotConvertDirective">
+        <source>Some directives cannot be converted. Run the file to see all compilation errors. Specify '--force' to convert anyway.</source>
+        <target state="translated">일부 지시문을 변환할 수 없습니다. 파일을 실행하여 모든 컴파일 오류를 확인하세요. 변환을 강제로 진행하려면 '--force'를 지정하세요.</target>
+        <note>{Locked="--force"}</note>
+      </trans-unit>
+      <trans-unit id="CouldNotFindAnyProjectInDirectory">
+        <source>Could not find any project in `{0}`.</source>
+        <target state="translated">'{0}'에서 프로젝트를 찾을 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CouldNotFindProjectOrDirectory">
+        <source>Could not find project or directory `{0}`.</source>
+        <target state="translated">프로젝트 또는 디렉터리 {0}을(를) 찾을 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DirectiveError">
+        <source>error</source>
+        <target state="translated">오류</target>
+        <note>Used when reporting directive errors like "file(location): error: message".</note>
+      </trans-unit>
+      <trans-unit id="DuplicateDirective">
+        <source>Duplicate directives are not supported: {0}</source>
+        <target state="translated">중복 지시문은 지원되지 않습니다. {0}</target>
+        <note>{0} is the directive type and name.</note>
+      </trans-unit>
+      <trans-unit id="EmptyTempPath">
+        <source>Unable to determine a temporary directory path. Consider configuring the TEMP environment variable on Windows or local app data folder on Unix.</source>
+        <target state="translated">임시 디렉터리 경로를 확인할 수 없습니다. Windows에서는 TEMP 환경 변수를, Unix에서는 로컬 앱 데이터 폴더를 설정하는 것이 좋습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDirectiveName">
+        <source>The directive should contain a name without special characters and an optional value separated by '{1}' like '#:{0} Name{1}Value'.</source>
+        <target state="translated">지시문에는 특수 문자가 없는 이름과 '#:{0} 이름{1}값'과 같이 '{1}'(으)로 구분된 선택적 값이 포함되어야 합니다.</target>
+        <note>{0} is the directive type like 'package' or 'sdk'. {1} is the expected separator like '@' or '='.</note>
+      </trans-unit>
+      <trans-unit id="InvalidProjectDirective">
+        <source>The '#:project' directive is invalid: {0}</source>
+        <target state="translated">'#:p roject' 지시문이 잘못되었습니다. {0}</target>
+        <note>{0} is the inner error message.</note>
+      </trans-unit>
+      <trans-unit id="MissingDirectiveName">
+        <source>Missing name of '{0}'.</source>
+        <target state="translated">'{0}' 이름이 없습니다.</target>
+        <note>{0} is the directive name like 'package' or 'sdk'.</note>
+      </trans-unit>
+      <trans-unit id="MoreThanOneProjectInDirectory">
+        <source>Found more than one project in `{0}`. Specify which one to use.</source>
+        <target state="translated">'{0}'에서 프로젝트를 두 개 이상 찾았습니다. 사용할 프로젝트를 지정하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PropertyDirectiveInvalidName">
+        <source>Invalid property name: {0}</source>
+        <target state="translated">잘못된 속성 이름: {0}</target>
+        <note>{0} is an inner exception message.</note>
+      </trans-unit>
+      <trans-unit id="PropertyDirectiveMissingParts">
+        <source>The property directive needs to have two parts separated by '=' like '#:property PropertyName=PropertyValue'.</source>
+        <target state="translated">property 지시문에는 '#:property PropertyName=PropertyValue'와 같이 '='로 구분된 두 부분이 있어야 합니다.</target>
+        <note>{Locked="#:property"}</note>
+      </trans-unit>
+      <trans-unit id="QuoteInDirective">
+        <source>Directives currently cannot contain double quotes (").</source>
+        <target state="translated">지시문은 현재 큰따옴표(")를 포함할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StaticGraphRestoreNotSupported">
+        <source>Static graph restore is not supported for file-based apps. Remove the '#:property'.</source>
+        <target state="translated">정적 그래프 복원은 파일 기반 앱에서 지원되지 않습니다. '#:property'를 제거합니다.</target>
+        <note>{Locked="#:property"}</note>
+      </trans-unit>
+      <trans-unit id="UnrecognizedDirective">
+        <source>Unrecognized directive '{0}'.</source>
+        <target state="translated">인식할 수 없는 지시문 '{0}'입니다.</target>
+        <note>{0} is the directive name like 'package' or 'sdk'.</note>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

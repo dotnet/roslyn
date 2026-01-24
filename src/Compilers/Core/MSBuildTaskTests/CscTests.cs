@@ -4,15 +4,15 @@
 
 using System;
 using System.IO;
-using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Xunit.Abstractions;
+using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
-    public sealed class CscTests
+    public sealed class CscTests : TestBase
     {
         public ITestOutputHelper TestOutputHelper { get; }
 
@@ -485,14 +485,37 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.ToolExe = "";
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             Assert.Equal("", csc.GenerateCommandLineContents());
-            // StartsWith because it can be csc.exe or csc.dll
-            Assert.StartsWith(Path.Combine("path", "to", "custom_csc", "csc."), csc.GeneratePathToTool());
+            AssertEx.Equal(Path.Combine("path", "to", "custom_csc", $"csc{PlatformInformation.ExeExtension}"), csc.GeneratePathToTool());
 
             csc = new Csc();
             csc.ToolPath = Path.Combine("path", "to", "custom_csc");
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             Assert.Equal("", csc.GenerateCommandLineContents());
-            Assert.StartsWith(Path.Combine("path", "to", "custom_csc", "csc."), csc.GeneratePathToTool());
+            AssertEx.Equal(Path.Combine("path", "to", "custom_csc", $"csc{PlatformInformation.ExeExtension}"), csc.GeneratePathToTool());
+        }
+
+        /// <summary>
+        /// Setting ToolExe to "csc.exe" should use the built-in compiler regardless of apphost being used or not.
+        /// </summary>
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2615118")]
+        public void BuiltInToolExe(bool useAppHost, bool setToolExe)
+        {
+            var csc = new Csc();
+            csc.UseAppHost_TestOnly = useAppHost;
+            if (setToolExe)
+            {
+                csc.ToolExe = $"csc{PlatformInformation.ExeExtension}";
+            }
+            if (useAppHost)
+            {
+                AssertEx.Equal(csc.PathToBuiltInTool, csc.GeneratePathToTool());
+                AssertEx.Equal("", csc.GenerateCommandLineContents());
+            }
+            else
+            {
+                AssertEx.Equal(RuntimeHostInfo.GetDotNetPathOrDefault(), csc.GeneratePathToTool());
+                AssertEx.Equal(RuntimeHostInfo.GetDotNetExecCommandLine(csc.PathToBuiltInTool, ""), csc.GenerateCommandLineContents());
+            }
         }
 
         [Fact]
@@ -648,6 +671,67 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
                 Assert.Throws<ArgumentException>(() => csc.GenerateResponseFileContents());
             }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
+        public void StdLib()
+        {
+            var csc = new Csc
+            {
+                Sources = MSBuildUtil.CreateTaskItems("test.cs"),
+            };
+
+            AssertEx.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [ConditionalFact(typeof(UnixLikeOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/80865")]
+        public void SourceFileInRootDirectoryOnUnix()
+        {
+            // On Unix, a source file path starting with "/" without another "/" 
+            // should be prefixed with "./" to avoid being misinterpreted as a command-line switch
+            var csc = new Csc
+            {
+                Sources = MSBuildUtil.CreateTaskItems("/Program.cs"),
+            };
+
+            var responseFileContents = csc.GenerateResponseFileContents();
+            Assert.Contains("/./Program.cs", responseFileContents);
+            Assert.DoesNotContain(" /Program.cs", responseFileContents);
+        }
+
+        [ConditionalFact(typeof(UnixLikeOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/80865")]
+        public void MultipleSourceFilesWithRootDirectoryOnUnix()
+        {
+            // Test multiple files where some are in root and some are not
+            // Also test that /dir/file.cs is NOT transformed (has second '/')
+            var csc = new Csc
+            {
+                Sources = MSBuildUtil.CreateTaskItems("/Program.cs", "src/Test.cs", "/App.cs", "/dir/File.cs"),
+            };
+
+            var responseFileContents = csc.GenerateResponseFileContents();
+            Assert.Contains("/./Program.cs", responseFileContents);
+            Assert.Contains("/./App.cs", responseFileContents);
+            Assert.Contains(" src/Test.cs", responseFileContents);
+            // /dir/File.cs should NOT be transformed (contains second '/')
+            Assert.Contains(" /dir/File.cs", responseFileContents);
+            Assert.DoesNotContain("/./dir/File.cs", responseFileContents);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/80865")]
+        public void SourceFilePathsOnWindows()
+        {
+            // On Windows, paths should not be transformed even if they start with "/"
+            var csc = new Csc
+            {
+                Sources = MSBuildUtil.CreateTaskItems("test.cs", "/test.cs"),
+            };
+
+            var responseFileContents = csc.GenerateResponseFileContents();
+            Assert.Contains(" test.cs", responseFileContents);
+            // On Windows, /test.cs should NOT be transformed
+            Assert.Contains(" /test.cs", responseFileContents);
+            Assert.DoesNotContain("/./test.cs", responseFileContents);
         }
     }
 }

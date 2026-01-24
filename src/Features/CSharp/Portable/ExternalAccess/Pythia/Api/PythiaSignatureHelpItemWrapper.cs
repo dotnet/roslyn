@@ -13,7 +13,7 @@ internal readonly struct PythiaSignatureHelpItemWrapper(SignatureHelpItem underl
     internal readonly SignatureHelpItem UnderlyingObject = underlyingObject;
 
     public static SymbolDisplayPart CreateTextDisplayPart(string text)
-        => new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, text);
+        => new(SymbolDisplayPartKind.Text, null, text);
 
     public static PythiaSignatureHelpItemWrapper CreateFromMethodGroupMethod(
         Document document,
@@ -21,5 +21,5 @@ internal readonly struct PythiaSignatureHelpItemWrapper(SignatureHelpItem underl
         int position,
         SemanticModel semanticModel,
         IList<SymbolDisplayPart> descriptionParts)
-    => new PythiaSignatureHelpItemWrapper(AbstractOrdinaryMethodSignatureHelpProvider.ConvertMethodGroupMethod(document, method, position, semanticModel, descriptionParts));
+    => new(AbstractOrdinaryMethodSignatureHelpProvider.ConvertMethodGroupMethod(document, method, position, semanticModel, descriptionParts));
 }

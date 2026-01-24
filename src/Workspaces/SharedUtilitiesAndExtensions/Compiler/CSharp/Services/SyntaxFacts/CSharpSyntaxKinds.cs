@@ -64,6 +64,7 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int? Utf8SingleLineRawStringLiteralToken => (int)SyntaxKind.Utf8SingleLineRawStringLiteralToken;
     public int? Utf8MultiLineRawStringLiteralToken => (int)SyntaxKind.Utf8MultiLineRawStringLiteralToken;
 
+    public int XmlCrefAttribute => (int)SyntaxKind.XmlCrefAttribute;
     public int XmlTextLiteralToken => (int)SyntaxKind.XmlTextLiteralToken;
 
     public int DelegateKeyword => (int)SyntaxKind.DelegateKeyword;
@@ -95,6 +96,7 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int ArrayCreationExpression => (int)SyntaxKind.ArrayCreationExpression;
     public int AwaitExpression => (int)SyntaxKind.AwaitExpression;
     public int BaseExpression => (int)SyntaxKind.BaseExpression;
+    public int? CollectionExpression => (int)SyntaxKind.CollectionExpression;
     public int CollectionInitializerExpression => (int)SyntaxKind.CollectionInitializerExpression;
     public int ConditionalAccessExpression => (int)SyntaxKind.ConditionalAccessExpression;
     public int ConditionalExpression => (int)SyntaxKind.ConditionalExpression;
@@ -176,6 +178,7 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int ElseClause => (int)SyntaxKind.ElseClause;
     public int EqualsValueClause => (int)SyntaxKind.EqualsValueClause;
 
+    public int? ExpressionElement => (int)SyntaxKind.ExpressionElement;
     public int? ImplicitElementAccess => (int)SyntaxKind.ImplicitElementAccess;
     public int Interpolation => (int)SyntaxKind.Interpolation;
     public int InterpolatedStringExpression => (int)SyntaxKind.InterpolatedStringExpression;

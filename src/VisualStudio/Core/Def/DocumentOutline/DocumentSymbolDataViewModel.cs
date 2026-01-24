@@ -48,8 +48,8 @@ internal sealed class DocumentSymbolDataViewModel : INotifyPropertyChanged, IEqu
         Children = children;
     }
 
-    private static readonly PropertyChangedEventArgs _isExpandedPropertyChangedEventArgs = new PropertyChangedEventArgs(nameof(IsExpanded));
-    private static readonly PropertyChangedEventArgs _isSelectedPropertyChangedEventArgs = new PropertyChangedEventArgs(nameof(IsSelected));
+    private static readonly PropertyChangedEventArgs _isExpandedPropertyChangedEventArgs = new(nameof(IsExpanded));
+    private static readonly PropertyChangedEventArgs _isSelectedPropertyChangedEventArgs = new(nameof(IsSelected));
 
     private void NotifyPropertyChanged([CallerMemberName] string? propertyName = null)
         => PropertyChanged?.Invoke(this, propertyName switch

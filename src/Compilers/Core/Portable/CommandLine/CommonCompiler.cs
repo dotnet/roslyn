@@ -159,20 +159,8 @@ namespace Microsoft.CodeAnalysis
         internal static string GetProductVersion(Type type)
         {
             string? assemblyVersion = GetInformationalVersionWithoutHash(type);
-            string? hash = GetShortCommitHash(type);
+            string? hash = type.Assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash;
             return $"{assemblyVersion} ({hash})";
-        }
-
-        [return: NotNullIfNotNull(nameof(hash))]
-        internal static string? ExtractShortCommitHash(string? hash)
-        {
-            // leave "<developer build>" alone, but truncate SHA to 8 characters
-            if (hash != null && hash.Length >= 8 && hash[0] != '<')
-            {
-                return hash.Substring(0, 8);
-            }
-
-            return hash;
         }
 
         private static string? GetInformationalVersionWithoutHash(Type type)
@@ -182,10 +170,10 @@ namespace Microsoft.CodeAnalysis
             return type.Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0];
         }
 
-        private static string? GetShortCommitHash(Type type)
+        internal static string GetAssemblyLocation(Type type)
         {
-            var hash = type.Assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash;
-            return ExtractShortCommitHash(hash);
+            var location = type.Assembly.Location;
+            return string.IsNullOrEmpty(location) ? "<unknown>" : location;
         }
 
         /// <summary>
@@ -217,7 +205,7 @@ namespace Microsoft.CodeAnalysis
 
         internal virtual MetadataReferenceResolver GetCommandLineMetadataReferenceResolver(TouchedFileLogger? loggerOpt)
         {
-            var pathResolver = new CompilerRelativePathResolver(FileSystem, Arguments.ReferencePaths, Arguments.BaseDirectory!);
+            var pathResolver = new CompilerRelativePathResolver(FileSystem, Arguments.ReferencePaths, Arguments.BaseDirectory);
             return new LoggingMetadataFileReferenceResolver(pathResolver, GetMetadataProvider(), loggerOpt);
         }
 
@@ -824,7 +812,7 @@ namespace Microsoft.CodeAnalysis
             GeneratorDriver? driver = null;
             string cacheKey = string.Empty;
             bool disableCache =
-                !Arguments.ParseOptions.Features.ContainsKey("enable-generator-cache") ||
+                !Arguments.ParseOptions.HasFeature(Feature.EnableGeneratorCache) ||
                 string.IsNullOrWhiteSpace(Arguments.OutputFileName);
             if (this.GeneratorDriverCache is object && !disableCache)
             {
@@ -835,7 +823,7 @@ namespace Microsoft.CodeAnalysis
                                                   .ReplaceAdditionalTexts(additionalTexts);
             }
 
-            driver ??= CreateGeneratorDriver(generatedFilesBaseDirectory, parseOptions, generators, analyzerConfigOptionsProvider, additionalTexts);
+            driver ??= CreateGeneratorDriver(generatedFilesBaseDirectory, parseOptions, generators, analyzerConfigOptionsProvider, additionalTexts, Arguments.ChecksumAlgorithm);
             driver = driver.RunGeneratorsAndUpdateCompilation(input, out var compilationOut, out var diagnostics);
             generatorDiagnostics.AddRange(diagnostics);
 
@@ -874,7 +862,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private protected abstract GeneratorDriver CreateGeneratorDriver(string baseDirectory, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts);
+        private protected abstract GeneratorDriver CreateGeneratorDriver(string baseDirectory, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts, SourceHashAlgorithm checksumAlgorithm);
 
         private int RunCore(TextWriter consoleOutput, ErrorLogger? errorLogger, CancellationToken cancellationToken)
         {
@@ -1257,14 +1245,9 @@ namespace Microsoft.CodeAnalysis
                 // TODO(https://github.com/dotnet/roslyn/issues/19592):
                 // This feature flag is being maintained until our next major release to avoid unnecessary
                 // compat breaks with customers.
-                if (Arguments.ParseOptions.Features.ContainsKey("pdb-path-determinism") && !string.IsNullOrEmpty(emitOptions.PdbFilePath))
+                if (Arguments.ParseOptions.HasFeature(Feature.PdbPathDeterminism) && !string.IsNullOrEmpty(emitOptions.PdbFilePath))
                 {
                     emitOptions = emitOptions.WithPdbFilePath(Path.GetFileName(emitOptions.PdbFilePath));
-                }
-
-                if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
-                {
-                    EmitDeterminismKey(compilation, FileSystem, additionalTextFiles, analyzers, generators, Arguments.PathMap, emitOptions);
                 }
 
                 if (Arguments.SourceLink != null)
@@ -1284,6 +1267,20 @@ namespace Microsoft.CodeAnalysis
                             diagnostics,
                             MessageProvider);
                     }
+                }
+
+                if (Arguments.ParseOptions.HasFeature(Feature.DebugDeterminism))
+                {
+                    EmitDeterminismKey(
+                        compilation,
+                        FileSystem,
+                        additionalTextFiles,
+                        analyzers,
+                        generators,
+                        Arguments.PathMap,
+                        emitOptions,
+                        sourceLinkStreamDisposerOpt?.Stream,
+                        Arguments.ManifestResources);
                 }
 
                 // Need to ensure the PDB file path validation is done on the original path as that is the
@@ -1747,9 +1744,19 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<ISourceGenerator> generators,
             ImmutableArray<KeyValuePair<string, string>> pathMap,
-            EmitOptions? emitOptions)
+            EmitOptions? emitOptions,
+            Stream? sourceLinkStream,
+            ImmutableArray<ResourceDescription> resources)
         {
-            var key = compilation.GetDeterministicKey(additionalTexts, analyzers, generators, pathMap, emitOptions);
+            var key = compilation.GetDeterministicKey(
+                additionalTexts,
+                analyzers,
+                generators,
+                pathMap,
+                emitOptions,
+                sourceLinkStream,
+                resources);
+
             var filePath = Path.Combine(Arguments.OutputDirectory, Arguments.OutputFileName + ".key");
             using var stream = fileSystem.OpenFile(filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
             var bytes = Encoding.UTF8.GetBytes(key);

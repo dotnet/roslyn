@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.RawStringLiteral;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -41,23 +42,28 @@ internal sealed class OnAutoInsertHandler(
 
     public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.VSInternalDocumentOnAutoInsertParams request) => request.TextDocument;
 
-    public Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(
+    public async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(
         LSP.VSInternalDocumentOnAutoInsertParams request,
         RequestContext context,
         CancellationToken cancellationToken)
     {
         var document = context.Document;
         if (document == null)
-            return SpecializedTasks.Null<LSP.VSInternalDocumentOnAutoInsertResponseItem>();
+            return null;
 
         var onAutoInsertEnabled = _globalOptions.GetOption(LspOptionsStorage.LspEnableAutoInsert, document.Project.Language);
         if (!onAutoInsertEnabled)
-            return SpecializedTasks.Null<LSP.VSInternalDocumentOnAutoInsertResponseItem>();
+            return null;
 
         var servicesForDocument = _braceCompletionServices.SelectAsArray(s => s.Metadata.Language == document.Project.Language, s => s.Value);
         var isRazorRequest = context.ServerKind == WellKnownLspServerKinds.RazorLspServer;
         var position = ProtocolConversions.PositionToLinePosition(request.Position);
-        return GetOnAutoInsertResponseAsync(_globalOptions, servicesForDocument, document, position, request.Character, request.Options, isRazorRequest, cancellationToken);
+        var supportsVSExtensions = context.GetRequiredClientCapabilities().HasVisualStudioLspCapability();
+
+        // We want adjust the braces after enter for razor and non-VS clients.
+        // We don't do this via on type formatting as it does not support snippets.
+        var includeNewLineBraceFormatting = isRazorRequest || !supportsVSExtensions;
+        return await GetOnAutoInsertResponseAsync(_globalOptions, servicesForDocument, document, position, request.Character, request.Options, includeNewLineBraceFormatting, cancellationToken).ConfigureAwait(false);
     }
 
     internal static async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> GetOnAutoInsertResponseAsync(
@@ -67,7 +73,7 @@ internal sealed class OnAutoInsertHandler(
         LinePosition linePosition,
         string character,
         LSP.FormattingOptions lspFormattingOptions,
-        bool isRazorRequest,
+        bool includeNewLineBraceFormatting,
         CancellationToken cancellationToken)
     {
         var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
@@ -92,7 +98,8 @@ internal sealed class OnAutoInsertHandler(
         // Only support this for razor as LSP doesn't support overtype yet.
         // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1165179/
         // Once LSP supports overtype we can move all of brace completion to LSP.
-        if (character == "\n" && isRazorRequest)
+
+        if (character == "\n" && includeNewLineBraceFormatting)
         {
             var indentationOptions = new IndentationOptions(formattingOptions)
             {
@@ -104,6 +111,16 @@ internal sealed class OnAutoInsertHandler(
             if (braceCompletionAfterReturnResponse != null)
             {
                 return braceCompletionAfterReturnResponse;
+            }
+        }
+
+        // Handle raw string literal quote typing
+        if (character == "\"")
+        {
+            var rawStringResponse = await GetRawStringLiteralResponseAsync(document, linePosition, cancellationToken).ConfigureAwait(false);
+            if (rawStringResponse != null)
+            {
+                return rawStringResponse;
             }
         }
 
@@ -125,7 +142,7 @@ internal sealed class OnAutoInsertHandler(
 
         var result = character == "\n"
             ? service.GetDocumentationCommentSnippetOnEnterTyped(parsedDocument, position, options, cancellationToken)
-            : service.GetDocumentationCommentSnippetOnCharacterTyped(parsedDocument, position, options, cancellationToken, addIndentation: false);
+            : service.GetDocumentationCommentSnippetOnCharacterTyped(parsedDocument, position, options, cancellationToken);
 
         if (result == null)
             return null;
@@ -194,6 +211,7 @@ internal sealed class OnAutoInsertHandler(
 
         var textChange = await GetCollapsedChangeAsync(textChanges, document, cancellationToken).ConfigureAwait(false);
         var newText = GetTextChangeTextWithCaretAtLocation(newSourceText, textChange, desiredCaretLinePosition);
+
         var autoInsertChange = new LSP.VSInternalDocumentOnAutoInsertResponseItem
         {
             TextEditFormat = LSP.InsertTextFormat.Snippet,
@@ -253,5 +271,49 @@ internal sealed class OnAutoInsertHandler(
         }
 
         return null;
+    }
+
+    private static async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> GetRawStringLiteralResponseAsync(
+        Document document,
+        LinePosition linePosition,
+        CancellationToken cancellationToken)
+    {
+        var service = document.GetLanguageService<IRawStringLiteralAutoInsertService>();
+        if (service == null)
+            return null;
+
+        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var originalPosition = sourceText.Lines.GetPosition(linePosition);
+
+        // The service expects to receive a document without the typed quote and position where the quote would be typed.
+        // We were passed a document with the quote already inserted and position after the quote.  Hence we need to
+        // adjust the document backwards to remove the quote and move the position back by one.
+        var positionOfQuote = originalPosition - 1;
+        var sourceTextWithoutQuote = sourceText.WithChanges(new TextChange(new TextSpan(positionOfQuote, 1), string.Empty));
+        var documentWithoutQuote = document.WithText(sourceTextWithoutQuote);
+
+        var textChange = service.GetTextChangeForQuote(documentWithoutQuote, sourceTextWithoutQuote, positionOfQuote, cancellationToken);
+        if (textChange == null)
+            return null;
+
+        // The server returns an edit to be applied after the quote has already been typed.
+        // The original request is based on the document with the quote already inserted, so we can just return the edit
+        // directly against the request document.
+        var edit = ProtocolConversions.TextChangeToTextEdit(textChange.Value, sourceText);
+        var format = LSP.InsertTextFormat.Plaintext;
+
+        if (textChange.Value.Span.Start == originalPosition)
+        {
+            // The raw string edit may start with the original position (i.e. the caret position).
+            // In such a case, we need to return a snippet edit to ensure the caret is not moved to the end.
+            edit.NewText = edit.NewText.Insert(0, "$0"); // Insert caret at the original position after the typed quote.
+            format = LSP.InsertTextFormat.Snippet;
+        }
+
+        return new LSP.VSInternalDocumentOnAutoInsertResponseItem
+        {
+            TextEditFormat = format,
+            TextEdit = edit
+        };
     }
 }

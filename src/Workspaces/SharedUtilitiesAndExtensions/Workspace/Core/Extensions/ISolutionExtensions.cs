@@ -62,7 +62,7 @@ internal static partial class ISolutionExtensions
         }
 #endif
 
-        return solution.GetDocument(documentId) ?? throw CreateDocumentNotFoundException();
+        return solution.GetDocument(documentId) ?? throw CreateDocumentNotFoundException(documentId);
     }
 
 #if WORKSPACE
@@ -82,7 +82,7 @@ internal static partial class ISolutionExtensions
         var project = solution.GetRequiredProject(documentId.ProjectId);
         var sourceGeneratedDocument = project.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
         if (sourceGeneratedDocument == null)
-            throw CreateDocumentNotFoundException();
+            throw CreateDocumentNotFoundException(documentId);
 
         return sourceGeneratedDocument;
     }
@@ -91,23 +91,41 @@ internal static partial class ISolutionExtensions
         => GetRequiredDocumentAsync(solution, documentId, includeSourceGenerated: false, cancellationToken);
 
     public static async ValueTask<Document> GetRequiredDocumentAsync(this Solution solution, DocumentId documentId, bool includeSourceGenerated, CancellationToken cancellationToken)
-        => (await solution.GetDocumentAsync(documentId, includeSourceGenerated, cancellationToken).ConfigureAwait(false)) ?? throw CreateDocumentNotFoundException();
+        => (await solution.GetDocumentAsync(documentId, includeSourceGenerated, cancellationToken).ConfigureAwait(false)) ?? throw CreateDocumentNotFoundException(documentId);
 
     public static async ValueTask<TextDocument> GetRequiredTextDocumentAsync(this Solution solution, DocumentId documentId, CancellationToken cancellationToken = default)
-        => (await solution.GetTextDocumentAsync(documentId, cancellationToken).ConfigureAwait(false)) ?? throw CreateDocumentNotFoundException();
+        => (await solution.GetTextDocumentAsync(documentId, cancellationToken).ConfigureAwait(false)) ?? throw CreateDocumentNotFoundException(documentId);
 #endif
 
     public static TextDocument GetRequiredAdditionalDocument(this Solution solution, DocumentId documentId)
-        => solution.GetAdditionalDocument(documentId) ?? throw CreateDocumentNotFoundException();
+        => solution.GetAdditionalDocument(documentId) ?? throw CreateDocumentNotFoundException(documentId);
 
     public static TextDocument GetRequiredAnalyzerConfigDocument(this Solution solution, DocumentId documentId)
-        => solution.GetAnalyzerConfigDocument(documentId) ?? throw CreateDocumentNotFoundException();
+        => solution.GetAnalyzerConfigDocument(documentId) ?? throw CreateDocumentNotFoundException(documentId);
 
     public static TextDocument GetRequiredTextDocument(this Solution solution, DocumentId documentId)
-        => solution.GetTextDocument(documentId) ?? throw CreateDocumentNotFoundException();
+    {
+        var document = solution.GetTextDocument(documentId);
+        if (document != null)
+            return document;
 
-    private static Exception CreateDocumentNotFoundException()
-        => new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+#if WORKSPACE
+        if (documentId.IsSourceGenerated)
+            throw new InvalidOperationException($"Use {nameof(GetRequiredTextDocumentAsync)} to get the {nameof(TextDocument)} for a `.{nameof(DocumentId.IsSourceGenerated)}=true` {nameof(DocumentId)}");
+#endif
+
+        throw CreateDocumentNotFoundException(documentId);
+    }
+
+    public static Exception CreateDocumentNotFoundException(DocumentId? documentId)
+#if WORKSPACE
+        => CreateDocumentNotFoundException(documentId?.DebugName);
+#else
+        => CreateDocumentNotFoundException(documentId?.ToString());
+#endif
+
+    public static Exception CreateDocumentNotFoundException(string? debugName)
+        => new InvalidOperationException(string.Format(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document, debugName ?? "Unknown"));
 
 #if WORKSPACE
     public static Solution WithUpToDateSourceGeneratorDocuments(this Solution solution, IEnumerable<ProjectId> projectIds)
@@ -146,4 +164,24 @@ internal static partial class ISolutionExtensions
                 return null;
         }
     }
+
+    public static TLanguageService? GetLanguageService<TLanguageService>(this Solution? solution, string languageName) where TLanguageService : ILanguageService
+        => solution is null ? default : solution.GetExtendedLanguageServices(languageName).GetService<TLanguageService>();
+
+    public static TLanguageService GetRequiredLanguageService<TLanguageService>(this Solution solution, string languageName) where TLanguageService : ILanguageService
+        => solution.GetExtendedLanguageServices(languageName).GetRequiredService<TLanguageService>();
+
+#pragma warning disable RS0030 // Do not used banned API 'Project.LanguageServices', use 'GetExtendedLanguageServices' instead - allow in this helper.
+
+    /// <summary>
+    /// Gets extended host language services, which includes language services from <see cref="Project.LanguageServices"/>.
+    /// </summary>
+    public static HostLanguageServices GetExtendedLanguageServices(this Solution solution, string languageName)
+#if !WORKSPACE
+        => solution.Workspace.Services.GetExtendedLanguageServices(languageName);
+#else
+        => solution.Services.GetExtendedLanguageServices(languageName);
+#endif
+
+#pragma warning restore RS0030 // Do not used banned APIs
 }

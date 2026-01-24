@@ -478,6 +478,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             token.GetDiagnostics().Verify();
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40773")]
+        public void ConstructedSyntaxTrivia_NoLocationAndDiagnostics()
+        {
+            var trivia = SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ");
+            Assert.Equal(Location.None, trivia.GetLocation());
+            trivia.GetDiagnostics().Verify();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40773")]
+        public void ParsedSyntaxTriviaWithoutDiagnostics()
+        {
+            var trivia = SyntaxFactory.ParseLeadingTrivia("// Comment").First();
+            Assert.Equal(Location.None, trivia.GetLocation());
+            trivia.GetDiagnostics().Verify();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40773")]
+        public void ParsedSyntaxTriviaWithDiagnostics()
+        {
+            var trivia = SyntaxFactory.ParseLeadingTrivia("/* Unclosed multiline comment").First();
+            Assert.Equal(Location.None, trivia.GetLocation());
+            trivia.GetDiagnostics().Verify(
+                Diagnostic(ErrorCode.ERR_OpenEndedComment).WithLocation(1, 1));
+        }
+
         [Fact]
         [WorkItem(21231, "https://github.com/dotnet/roslyn/issues/21231")]
         public void TestSpacingOnNullableIntType()
@@ -713,6 +738,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var typeName = SyntaxFactory.ParseTypeName("", options: parseOptions);
             Assert.Same(parseOptions, typeName.SyntaxTree.Options);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17637")]
+        public void Identifier_Null_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => SyntaxFactory.Identifier(text: null));
+            Assert.Throws<ArgumentNullException>(() =>
+                SyntaxFactory.Identifier(SyntaxFactory.TriviaList(), text: null, SyntaxFactory.TriviaList()));
+            Assert.Throws<ArgumentNullException>(() =>
+                SyntaxFactory.Identifier(SyntaxFactory.TriviaList(), SyntaxKind.IdentifierName, text: null, valueText: "value", SyntaxFactory.TriviaList()));
+            Assert.Throws<ArgumentNullException>(() =>
+                SyntaxFactory.Identifier(SyntaxFactory.TriviaList(), SyntaxKind.IdentifierName, text: "text", valueText: null, SyntaxFactory.TriviaList()));
+            Assert.Throws<ArgumentNullException>(() =>
+                SyntaxFactory.VerbatimIdentifier(SyntaxFactory.TriviaList(), text: null, valueText: "value", SyntaxFactory.TriviaList()));
+            Assert.Throws<ArgumentNullException>(() =>
+                SyntaxFactory.VerbatimIdentifier(SyntaxFactory.TriviaList(), text: "text", valueText: null, SyntaxFactory.TriviaList()));
         }
     }
 }

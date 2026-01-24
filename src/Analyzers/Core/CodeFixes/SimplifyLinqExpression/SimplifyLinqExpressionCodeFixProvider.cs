@@ -24,13 +24,12 @@ internal sealed class SimplifyLinqExpressionCodeFixProvider() : SyntaxEditorBase
     public sealed override ImmutableArray<string> FixableDiagnosticIds
        => [IDEDiagnosticIds.SimplifyLinqExpressionDiagnosticId];
 
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, AnalyzersResources.Simplify_LINQ_expression, nameof(AnalyzersResources.Simplify_LINQ_expression));
-        return Task.CompletedTask;
     }
 
-    protected override Task FixAllAsync(
+    protected override async Task FixAllAsync(
         Document document,
         ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor,
@@ -66,7 +65,5 @@ internal sealed class SimplifyLinqExpressionCodeFixProvider() : SyntaxEditorBase
                 return innerInvocationExpression.ReplaceNode(innerName, outerName.WithTriviaFrom(innerName)).WithTrailingTrivia(current.GetTrailingTrivia());
             });
         }
-
-        return Task.CompletedTask;
     }
 }

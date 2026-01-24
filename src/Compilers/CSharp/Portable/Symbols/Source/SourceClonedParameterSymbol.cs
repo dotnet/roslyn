@@ -71,7 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool UseUpdatedEscapeRules => _originalParam.UseUpdatedEscapeRules;
 
-        internal override ConstantValue ExplicitDefaultConstantValue
+#nullable enable
+        internal override ConstantValue? ExplicitDefaultConstantValue
         {
             get
             {
@@ -80,10 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ConstantValue DefaultValueFromAttributes
+        internal override ConstantValue? DefaultValueFromAttributes
         {
             get { return _originalParam.DefaultValueFromAttributes; }
         }
+#nullable disable
 
         #region Forwarded
 

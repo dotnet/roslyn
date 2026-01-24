@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -116,7 +117,7 @@ internal static class CopilotChangeAnalysisUtilities
             return string.Join(":", strings.OrderBy(v => v));
 
         if (value is TimeSpan timeSpan)
-            return timeSpan.TotalMilliseconds.ToString("G17");
+            return timeSpan.TotalMilliseconds.ToString("G17", CultureInfo.InvariantCulture);
 
         return value.ToString() ?? "";
     }

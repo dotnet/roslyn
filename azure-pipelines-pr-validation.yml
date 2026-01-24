@@ -225,9 +225,8 @@ extends:
 
         - task: MicroBuildSigningPlugin@4
           inputs:
-            signType: $(SignType)
+            signType: test
             zipSources: false
-          condition: and(succeeded(), in(variables['SignType'], 'test', 'real'))
 
         - task: PowerShell@2
           displayName: Build
@@ -250,7 +249,7 @@ extends:
                        -officialVisualStudioDropAccessToken $(_DevDivDropAccessToken)
                        /p:RepositoryName=$(Build.Repository.Name)
                        /p:VisualStudioDropName=$(VisualStudio.DropName)
-                       /p:DotNetSignType=$(SignType)
+                       /p:DotNetSignType=test
                        /p:DotnetPublishUsingPipelines=true
                        /p:IgnoreIbcMergeErrors=true
                        /p:GenerateSbom=true
@@ -263,7 +262,7 @@ extends:
           displayName: Publish Assets
           inputs:
             filePath: 'eng\publish-assets.ps1'
-            arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)" -prValidation'
+            arguments: '-configuration $(BuildConfiguration) -prValidation'
           condition: succeeded()
 
         - task: PublishTestResults@2
@@ -358,7 +357,7 @@ extends:
             vsBranchName: ${{ parameters.VisualStudioBranchName }}
             titlePrefix: ${{ parameters.OptionalTitlePrefix }}
             sourceBranch: $(ComponentBranchName)
-            publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/main/eng/config/PublishData.json"
+            publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/$(ComponentBranchName)/eng/config/PublishData.json"
             queueSpeedometerValidation: true
             dropPath: '$(Pipeline.Workspace)\VSSetup'
             retainInsertedBuild: false

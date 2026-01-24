@@ -204,9 +204,6 @@
   <data name="Remove_tag" xml:space="preserve">
     <value>Remove tag</value>
   </data>
-  <data name="Make_method_synchronous" xml:space="preserve">
-    <value>Make method synchronous</value>
-  </data>
   <data name="_0_may_change_semantics" xml:space="preserve">
     <value>{0} (may change semantics)</value>
   </data>
@@ -314,5 +311,8 @@
   </data>
   <data name="Generate_explicit_conversion_operator_in_0" xml:space="preserve">
     <value>Generate explicit conversion operator in '{0}'</value>
+  </data>
+  <data name="May_be_neccessary_in_other_project_this_document_is_linked_in">
+    <value>May be necessary in other project this document is linked in</value>
   </data>
 </root>

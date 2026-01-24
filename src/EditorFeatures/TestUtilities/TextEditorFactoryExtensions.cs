@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests;
 internal static class TextEditorFactoryExtensions
 {
     public static DisposableTextView CreateDisposableTextView(this ITextEditorFactoryService textEditorFactory)
-        => new DisposableTextView(textEditorFactory.CreateTextView());
+        => new(textEditorFactory.CreateTextView());
 
     public static DisposableTextView CreateDisposableTextView(this ITextEditorFactoryService textEditorFactory, ITextBuffer buffer, ImmutableArray<string> roles = default)
     {

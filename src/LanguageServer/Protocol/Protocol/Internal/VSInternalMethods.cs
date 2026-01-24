@@ -22,58 +22,59 @@ internal static class VSInternalMethods
     public const string TextDocumentUriPresentationName = "textDocument/_vs_uriPresentation";
     public const string TextDocumentValidateBreakableRangeName = "textDocument/_vs_validateBreakableRange";
     public const string WorkspaceMapCodeName = "workspace/_vs_mapCode";
+    public const string WorkspaceProjectContextRefreshName = "workspace/projectContext/_vs_refresh";
     public const string WorkspacePullDiagnosticName = "workspace/_vs_diagnostic";
     public const string WorkspaceSpellCheckableRangesName = "workspace/_vs_spellCheckableRanges";
 
     /// <summary>
     /// Strongly typed message object for 'textDocument/_vs_onAutoInsert'.
     /// </summary>
-    public static readonly LspRequest<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem> OnAutoInsert = new LspRequest<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem>(OnAutoInsertName);
+    public static readonly LspRequest<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem> OnAutoInsert = new(OnAutoInsertName);
 
     /// <summary>
     /// Strongly typed message object for 'textDocument/_vs_iconMappingResolve'.
     /// </summary>
-    public static readonly LspRequest<VSInternalKindAndModifier, VSInternalIconMapping> TextDocumentIconMappingResolve = new LspRequest<VSInternalKindAndModifier, VSInternalIconMapping>(TextDocumentIconMappingResolveName);
+    public static readonly LspRequest<VSInternalKindAndModifier, VSInternalIconMapping> TextDocumentIconMappingResolve = new(TextDocumentIconMappingResolveName);
 
     /// <summary>
     /// Strongly typed message object for 'textDocument/_vs_diagnostic'.
     /// </summary>
-    public static readonly LspRequest<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]> DocumentPullDiagnostic = new LspRequest<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(DocumentPullDiagnosticName);
+    public static readonly LspRequest<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]> DocumentPullDiagnostic = new(DocumentPullDiagnosticName);
 
     /// <summary>
     /// Strongly typed message object for 'workspace/_vs_diagnostic'.
     /// </summary>
-    public static readonly LspRequest<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[]> WorkspacePullDiagnostic = new LspRequest<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[]>(WorkspacePullDiagnosticName);
+    public static readonly LspRequest<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[]> WorkspacePullDiagnostic = new(WorkspacePullDiagnosticName);
 
     /// <summary>
     /// Strongly typed message object for 'textDocument/_vs_validateBreakableRange'.
     /// </summary>
-    public static readonly LspRequest<VSInternalValidateBreakableRangeParams, Range?> TextDocumentValidateBreakableRange = new LspRequest<VSInternalValidateBreakableRangeParams, Range?>(TextDocumentValidateBreakableRangeName);
+    public static readonly LspRequest<VSInternalValidateBreakableRangeParams, Range?> TextDocumentValidateBreakableRange = new(TextDocumentValidateBreakableRangeName);
 
     /// <summary>
     /// Strongly typed message object for 'textDocument/inlineCompletion'.
     /// </summary>
-    public static readonly LspRequest<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList> TextDocumentInlineCompletion = new LspRequest<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList>(TextDocumentInlineCompletionName);
+    public static readonly LspRequest<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList> TextDocumentInlineCompletion = new(TextDocumentInlineCompletionName);
 
     /// <summary>
     /// Strongly typed message object for 'textDocument/_vs_uriPresentation'.
     /// </summary>
-    public static readonly LspRequest<VSInternalUriPresentationParams, WorkspaceEdit?> TextDocumentUriPresentation = new LspRequest<VSInternalUriPresentationParams, WorkspaceEdit?>(TextDocumentUriPresentationName);
+    public static readonly LspRequest<VSInternalUriPresentationParams, WorkspaceEdit?> TextDocumentUriPresentation = new(TextDocumentUriPresentationName);
 
     /// <summary>
     /// Strongly typed message object for 'textDocument/_vs_textPresentation'.
     /// </summary>
-    public static readonly LspRequest<VSInternalTextPresentationParams, WorkspaceEdit?> TextDocumentTextPresentation = new LspRequest<VSInternalTextPresentationParams, WorkspaceEdit?>(TextDocumentTextPresentationName);
+    public static readonly LspRequest<VSInternalTextPresentationParams, WorkspaceEdit?> TextDocumentTextPresentation = new(TextDocumentTextPresentationName);
 
     /// <summary>
     /// Strongly typed message object for 'textDocument/_vs_spellCheckableRanges'.
     /// </summary>
-    public static readonly LspRequest<VSInternalDocumentSpellCheckableParams, VSInternalSpellCheckableRangeReport[]> TextDocumentSpellCheckableRanges = new LspRequest<VSInternalDocumentSpellCheckableParams, VSInternalSpellCheckableRangeReport[]>(TextDocumentSpellCheckableRangesName);
+    public static readonly LspRequest<VSInternalDocumentSpellCheckableParams, VSInternalSpellCheckableRangeReport[]> TextDocumentSpellCheckableRanges = new(TextDocumentSpellCheckableRangesName);
 
     /// <summary>
     /// Strongly typed message object for 'workspace/_vs_spellCheckableRanges'.
     /// </summary>
-    public static readonly LspRequest<VSInternalWorkspaceSpellCheckableParams, VSInternalWorkspaceSpellCheckableReport[]> WorkspaceSpellCheckableRanges = new LspRequest<VSInternalWorkspaceSpellCheckableParams, VSInternalWorkspaceSpellCheckableReport[]>(WorkspaceSpellCheckableRangesName);
+    public static readonly LspRequest<VSInternalWorkspaceSpellCheckableParams, VSInternalWorkspaceSpellCheckableReport[]> WorkspaceSpellCheckableRanges = new(WorkspaceSpellCheckableRangesName);
 
     /// <summary>
     /// Strongly typed message object for 'workspace/_vs_mapCode'

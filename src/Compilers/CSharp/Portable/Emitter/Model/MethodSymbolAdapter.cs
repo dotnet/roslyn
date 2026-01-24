@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return ((SourceMemberContainerTypeSymbol)containingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingMarkerType(marker);
             }
-            else if (AdaptedMethodSymbol.GetIsNewExtensionMember())
+            else if (AdaptedMethodSymbol.IsExtensionBlockMember())
             {
                 return ((SourceMemberContainerTypeSymbol)containingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingGroupingType((SourceNamedTypeSymbol)containingType);
             }
@@ -310,12 +310,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return synthesizedGlobalMethod.ContainingPrivateImplementationDetailsType;
                 }
 
-                // Tracked by https://github.com/dotnet/roslyn/issues/78827 : code quality, share logic with Cci.ITypeMemberReference.GetContainingType implementation?
                 if (AdaptedMethodSymbol is SynthesizedExtensionMarker marker)
                 {
                     return ((SourceMemberContainerTypeSymbol)AdaptedMethodSymbol.ContainingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingMarkerType(marker);
                 }
-                else if (AdaptedMethodSymbol.GetIsNewExtensionMember())
+                else if (AdaptedMethodSymbol.IsExtensionBlockMember())
                 {
                     var containingType = AdaptedMethodSymbol.ContainingType;
                     return ((SourceMemberContainerTypeSymbol)containingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingGroupingType((SourceNamedTypeSymbol)containingType);

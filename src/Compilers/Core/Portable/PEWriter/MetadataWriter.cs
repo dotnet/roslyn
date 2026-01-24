@@ -1453,7 +1453,7 @@ namespace Microsoft.Cci
 
         protected static Location GetSymbolLocation(ISymbolInternal symbolOpt)
         {
-            return symbolOpt != null && !symbolOpt.Locations.IsDefaultOrEmpty ? symbolOpt.Locations[0] : Location.None;
+            return symbolOpt?.GetFirstLocationOrNone() ?? Location.None;
         }
 
         internal TypeAttributes GetTypeAttributes(ITypeDefinition typeDef)
@@ -1473,6 +1473,13 @@ namespace Microsoft.Cci
 
                 case LayoutKind.Explicit:
                     result |= TypeAttributes.ExplicitLayout;
+                    break;
+
+                default:
+                    if (typeDef.Layout == LayoutKind.Extended)
+                    {
+                        result |= TypeAttributes.ExtendedLayout;
+                    }
                     break;
             }
 
@@ -2117,12 +2124,6 @@ namespace Microsoft.Cci
         {
             foreach (var parent in parentList)
             {
-                if (parent.IsEncDeleted)
-                {
-                    // Custom attributes are not needed for EnC definition deletes
-                    continue;
-                }
-
                 EntityHandle parentHandle = getDefinitionHandle(parent);
                 AddCustomAttributesToTable(parentHandle, parent.GetAttributes(Context));
             }
@@ -2227,7 +2228,7 @@ namespace Microsoft.Cci
                 return;
             }
 
-            var exportedTypes = module.GetExportedTypes(Context.Diagnostics);
+            var exportedTypes = module.GetExportedTypes(Context);
             if (exportedTypes.Length == 0)
             {
                 return;
@@ -2598,9 +2599,21 @@ namespace Microsoft.Cci
 
         private void PopulateMethodImplTableRows()
         {
+            if (methodImplList.Count == 0)
+            {
+                return;
+            }
+
+            if (!Module.MethodImplSupported)
+            {
+                // .NET Framework incorrectly handles MethodImpl table in the second generation, which causes AV.
+                // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/2631743
+                Context.Diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime, NoLocation.Singleton));
+            }
+
             metadata.SetCapacity(TableIndex.MethodImpl, methodImplList.Count);
 
-            foreach (MethodImplementation methodImplementation in this.methodImplList)
+            foreach (MethodImplementation methodImplementation in methodImplList)
             {
                 metadata.AddMethodImplementation(
                     type: GetTypeDefinitionHandle(methodImplementation.ContainingType),
@@ -2652,6 +2665,12 @@ namespace Microsoft.Cci
 
             foreach (IPropertyDefinition propertyDef in this.GetPropertyDefs())
             {
+                // do not emit MethodSemantics entries for deleted properties - the existing ones do not need updating
+                if (propertyDef.IsEncDeleted)
+                {
+                    continue;
+                }
+
                 var association = GetPropertyDefIndex(propertyDef);
                 foreach (IMethodReference accessorMethod in propertyDef.GetAccessors(Context))
                 {
@@ -2678,6 +2697,12 @@ namespace Microsoft.Cci
 
             foreach (IEventDefinition eventDef in this.GetEventDefs())
             {
+                // do not emit MethodSemantics entries for deleted events - the existing ones do not need updating
+                if (eventDef.IsEncDeleted)
+                {
+                    continue;
+                }
+
                 var association = GetEventDefinitionHandle(eventDef);
                 foreach (IMethodReference accessorMethod in eventDef.GetAccessors(Context))
                 {
@@ -3830,9 +3855,7 @@ namespace Microsoft.Cci
             {
                 if (module.IsPlatformType(typeReference, PlatformType.SystemTypedReference))
                 {
-                    // We should use `SignatureTypeEncoder.TypedReference()` once such a method is available
-                    // Tracked by https://github.com/dotnet/runtime/issues/80812
-                    encoder.Builder.WriteByte((byte)SignatureTypeCode.TypedReference);
+                    encoder.TypedReference();
                     return;
                 }
 

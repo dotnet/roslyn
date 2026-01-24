@@ -29,6 +29,7 @@ usage()
   echo "  --testMono                 Run unit tests on Mono"
   echo "  --testCompilerOnly         Run only the compiler unit tests"
   echo "  --testIOperation           Run unit tests with the IOperation test hook"
+  echo "  --testRuntimeAsync         Run unit tests with runtime async validation enabled"
   echo ""
   echo "Advanced settings:"
   echo "  --ci                       Building in CI"
@@ -66,6 +67,7 @@ publish=false
 test_core_clr=false
 test_mono=false
 test_ioperation=false
+test_runtime_async=false
 test_compiler_only=false
 
 configuration="Debug"
@@ -143,6 +145,9 @@ while [[ $# > 0 ]]; do
       ;;
     --testioperation)
       test_ioperation=true
+      ;;
+    --testruntimeasync)
+      test_runtime_async=true
       ;;
     --ci)
       ci=true
@@ -264,6 +269,14 @@ function BuildSolution {
     fi
   fi
 
+  if [[ "$test_runtime_async" == true ]]; then
+    export DOTNET_RuntimeAsync="1"
+
+    if [[ "$test_mono" != true && "$test_core_clr" != true ]]; then
+      test_core_clr=true
+    fi
+  fi
+
   local test=false
   local test_runtime=""
   local mono_tool=""
@@ -282,6 +295,11 @@ function BuildSolution {
     test_runtime_args="--debug"
   fi
 
+  local msbuild_warn_as_error=""
+  if [[ "$warn_as_error" == true ]]; then
+    msbuild_warn_as_error="/warnAsError"
+  fi
+
   local generate_documentation_file=""
   if [[ "$skip_documentation" == true ]]; then
     generate_documentation_file="/p:GenerateDocumentationFile=false"
@@ -291,11 +309,6 @@ function BuildSolution {
   if [[ "$ci" == true ]]; then
     roslyn_use_hard_links="/p:ROSLYNUSEHARDLINKS=true"
   fi
-
-  # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
-  # We don't pass /warnaserror to msbuild (warn_as_error is set to false by default above), but set 
-  # /p:TreatWarningsAsErrors=true so that compiler reported warnings, other than IDE0055 are treated as errors. 
-  # Warnings reported from other msbuild tasks are not treated as errors for now.
 
   MSBuild $toolset_build_proj \
     $bl \
@@ -312,13 +325,14 @@ function BuildSolution {
     /p:RunAnalyzersDuringBuild=$run_analyzers \
     /p:BootstrapBuildPath="$bootstrap_dir" \
     /p:ContinuousIntegrationBuild=$ci \
-    /p:TreatWarningsAsErrors=true \
+    /p:TreatWarningsAsErrors=$warn_as_error \
     /p:TestRuntimeAdditionalArguments=$test_runtime_args \
     /p:DotNetBuildSourceOnly=$source_build \
     /p:DotNetBuild=$product_build \
     /p:DotNetBuildFromVMR=$from_vmr \
     $test_runtime \
     $mono_tool \
+    $msbuild_warn_as_error \
     $generate_documentation_file \
     $roslyn_use_hard_links \
     ${properties[@]+"${properties[@]}"}
@@ -333,6 +347,7 @@ function GetCompilerTestAssembliesIncludePaths {
   assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit\.UnitTests$'"
   assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit2\.UnitTests$'"
   assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit3\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.CSharp15\.UnitTests$'"
   assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.IOperation\.UnitTests$'"
   assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.CommandLine\.UnitTests$'"
   assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Syntax\.UnitTests$'"
@@ -341,6 +356,7 @@ function GetCompilerTestAssembliesIncludePaths {
   assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Emit\.UnitTests$'"
   assemblies+=" --include '^Roslyn\.Compilers\.VisualBasic\.IOperation\.UnitTests$'"
   assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.CommandLine\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.Build\.Tasks\.CodeAnalysis\.UnitTests$'"
   echo "$assemblies"
 }
 
@@ -386,6 +402,6 @@ if [[ "$test_core_clr" == true ]]; then
   if [[ "$ci" != true ]]; then
     runtests_args="$runtests_args --html"
   fi
-  dotnet exec "$scriptroot/../artifacts/bin/RunTests/${configuration}/net9.0/RunTests.dll" --runtime core --configuration ${configuration} --logs ${log_dir} --dotnet ${_InitializeDotNetCli}/dotnet $runtests_args
+  dotnet exec "$scriptroot/../artifacts/bin/RunTests/${configuration}/net10.0/RunTests.dll" --runtime core --configuration ${configuration} --logs ${log_dir} --dotnet ${_InitializeDotNetCli}/dotnet $runtests_args
 fi
 ExitWithExitCode 0
