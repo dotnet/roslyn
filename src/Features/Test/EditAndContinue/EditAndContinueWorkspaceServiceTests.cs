@@ -3199,7 +3199,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             FeaturesResources.Changing_source_file_0_in_a_stale_project_1_has_no_effect_until_the_project_is_rebuilt_2,
             document3.FilePath,
             "test",
-            FeaturesResources.the_project_has_not_been_built);
+            FeaturesResources.the_content_of_the_document_is_stale);
 
         AssertEx.Equal(
         [
