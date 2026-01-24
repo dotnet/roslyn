@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract partial class NamespaceSymbol : NamespaceOrTypeSymbol, INamespaceSymbolInternal
     {
         // PERF: initialization of the following fields will allocate, so we make them lazy
-        private ImmutableArray<NamedTypeSymbol> _lazyTypesMightContainExtensionMethods;
+        private ImmutableArray<NamedTypeSymbol> _lazyTypesMightContainExtensions;
         private string _lazyQualifiedName;
 
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -312,15 +312,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        private ImmutableArray<NamedTypeSymbol> TypesMightContainExtensionMethods
+        private ImmutableArray<NamedTypeSymbol> TypesMightContainExtensions
         {
             get
             {
-                var typesWithExtensionMethods = this._lazyTypesMightContainExtensionMethods;
+                var typesWithExtensionMethods = this._lazyTypesMightContainExtensions;
                 if (typesWithExtensionMethods.IsDefault)
                 {
-                    this._lazyTypesMightContainExtensionMethods = this.GetTypeMembersUnordered().WhereAsArray(t => t.MightContainExtensionMethods);
-                    typesWithExtensionMethods = this._lazyTypesMightContainExtensionMethods;
+                    this._lazyTypesMightContainExtensions = this.GetTypeMembersUnordered().WhereAsArray(t => t.MightContainExtensions);
+                    typesWithExtensionMethods = this._lazyTypesMightContainExtensions;
                 }
 
                 return typesWithExtensionMethods;
@@ -341,12 +341,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // and MergedNamespaceSymbol overrides GetExtensionMembers.
             Debug.Assert((object)assembly != null);
 
-            if (!assembly.MightContainExtensionMethods)
+            if (!assembly.MightContainExtensions)
             {
                 return;
             }
 
-            var typesWithExtensionMethods = this.TypesMightContainExtensionMethods;
+            var typesWithExtensionMethods = this.TypesMightContainExtensions;
 
             foreach (var type in typesWithExtensionMethods)
             {

@@ -960,7 +960,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return [];
                 }
 
-                var filterExtensionAttribute = MightContainExtensionMethods;
+                var filterExtensionAttribute = MightContainExtensions;
                 var filterObsoleteAttribute = IsRefLikeType && ObsoleteAttributeData is null;
                 var filterIsReadOnlyAttribute = IsReadOnly;
                 var filterIsByRefLikeAttribute = IsRefLikeType;
@@ -1995,7 +1995,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get { throw ExceptionUtilities.Unreachable(); }
         }
 
-        public override bool MightContainExtensionMethods
+        public override bool MightContainExtensions
         {
             get
             {
@@ -2023,7 +2023,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             if ((object)containingAssembly != null)
                             {
                                 contains = (moduleHasExtension
-                                    && containingAssembly.MightContainExtensionMethods).ToThreeState();
+                                    && containingAssembly.MightContainExtensions).ToThreeState();
                             }
                             else
                             {

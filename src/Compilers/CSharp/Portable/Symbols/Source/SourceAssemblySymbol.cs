@@ -1897,7 +1897,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool MightContainExtensionMethods
+        public override bool MightContainExtensions
         {
             get
             {
@@ -2080,7 +2080,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         break;
                     case SymbolKind.NamedType:
-                        if (((NamedTypeSymbol)member).MightContainExtensionMethods)
+                        if (((NamedTypeSymbol)member).MightContainExtensions)
                         {
                             return true;
                         }

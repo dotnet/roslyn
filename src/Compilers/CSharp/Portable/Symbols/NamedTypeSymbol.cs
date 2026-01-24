@@ -339,13 +339,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns true if this type might contain extension methods. If this property
-        /// returns false, there are no extension methods in this type.
+        /// Returns true if this type might contain extension members or methods. If this property
+        /// returns false, there are no extension members or methods in this type.
         /// </summary>
         /// <remarks>
-        /// This property allows the search for extension methods to be narrowed quickly.
+        /// This property allows the search for extension members or methods to be narrowed quickly.
         /// </remarks>
-        public abstract bool MightContainExtensionMethods { get; }
+        public abstract bool MightContainExtensions { get; }
 
 #nullable enable
         /// <remarks>Does not perform a full viability check</remarks>
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(name is not null || alternativeName is null);
 
-            if (!this.IsClassType() || !IsStatic || IsGenericType || !MightContainExtensionMethods)
+            if (!this.IsClassType() || !IsStatic || IsGenericType || !MightContainExtensions)
                 return;
 
             PooledHashSet<MethodSymbol>? implementationsToShadow = null;

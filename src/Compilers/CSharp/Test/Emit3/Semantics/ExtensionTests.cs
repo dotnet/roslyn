@@ -5457,7 +5457,7 @@ public static class Extensions
             Assert.False(implementation.HasSpecialName);
             Assert.False(implementation.HasRuntimeSpecialName);
 
-            Assert.True(implementation.ContainingType.MightContainExtensionMethods);
+            Assert.True(implementation.ContainingType.MightContainExtensions);
 
             Assert.Contains("M", extensions.MemberNames);
             Assert.NotEmpty(extensions.GetSimpleNonTypeMembers("M"));
@@ -8527,7 +8527,7 @@ public static class Extensions
             Assert.False(implementation.HasSpecialName);
             Assert.False(implementation.HasRuntimeSpecialName);
 
-            Assert.True(implementation.ContainingType.MightContainExtensionMethods);
+            Assert.True(implementation.ContainingType.MightContainExtensions);
 
             if (m is PEModuleSymbol peModuleSymbol)
             {
