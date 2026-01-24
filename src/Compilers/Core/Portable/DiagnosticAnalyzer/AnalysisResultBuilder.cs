@@ -506,7 +506,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableDictionary<AdditionalText, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> localAdditionalFileDiagnostics;
             ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> nonLocalDiagnostics;
 
-            var analyzersSet = analyzers.ToImmutableHashSet();
+            var analyzersSet = PooledHashSet<DiagnosticAnalyzer>.GetInstance();
+            analyzersSet.AddRange(analyzers);
+
             Func<Diagnostic, bool> shouldInclude = analysisScope.ShouldInclude;
             lock (_gate)
             {
@@ -516,13 +518,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 nonLocalDiagnostics = GetImmutable(analyzersSet, shouldInclude, _nonLocalDiagnosticsOpt);
             }
 
+            analyzersSet.Free();
             cancellationToken.ThrowIfCancellationRequested();
             var analyzerTelemetryInfo = GetTelemetryInfo(analyzers);
             return new AnalysisResult(analyzers, localSyntaxDiagnostics, localSemanticDiagnostics, localAdditionalFileDiagnostics, nonLocalDiagnostics, analyzerTelemetryInfo);
         }
 
         private static ImmutableDictionary<TKey, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> GetImmutable<TKey>(
-            ImmutableHashSet<DiagnosticAnalyzer> analyzers,
+            IReadOnlyCollection<DiagnosticAnalyzer> analyzers,
             Func<Diagnostic, bool> shouldInclude,
             Dictionary<TKey, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? localDiagnosticsOpt)
             where TKey : class
@@ -558,7 +561,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private static ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> GetImmutable(
-            ImmutableHashSet<DiagnosticAnalyzer> analyzers,
+            IReadOnlyCollection<DiagnosticAnalyzer> analyzers,
             Func<Diagnostic, bool> shouldInclude,
             Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>? nonLocalDiagnosticsOpt)
         {
