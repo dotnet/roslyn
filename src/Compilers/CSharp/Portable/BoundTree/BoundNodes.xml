@@ -1543,6 +1543,7 @@
 
   <Node Name="BoundDecisionDag" Base="BoundNode">
     <Field Name="RootNode" Type="BoundDecisionDagNode" Null="disallow"/>
+    <Field Name="SuitableForLowering" Type="bool"/>
   </Node>
 
   <AbstractNode Name="BoundDecisionDagNode" Base="BoundNode">
@@ -1590,7 +1591,7 @@
     <!--Check that the input is not null. Used as part of a type test.-->
     <Field Name="IsExplicitTest" Type="bool"/>
   </Node>
-  <Node Name="BoundDagExplicitNullTest" Base="BoundDagTest">
+  <Node Name="BoundDagExplicitNullTest" Base="BoundDagTest" UpdateMethodModifiers="new">
     <!--Check that the input is null. Used when an explicit null test appears in source.-->
   </Node>
   <Node Name="BoundDagValueTest" Base="BoundDagTest">

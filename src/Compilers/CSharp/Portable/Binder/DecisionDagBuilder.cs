@@ -11,7 +11,6 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -65,6 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// affect code semantics but it results in a better code generation.
         /// </summary>
         private readonly bool _forLowering;
+        private bool _suitableForLowering = true;
 
         private DecisionDagBuilder(CSharpCompilation compilation, LabelSymbol defaultLabel, bool forLowering, BindingDiagnosticBag diagnostics)
         {
@@ -369,7 +369,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var syntax = pattern.Syntax;
             var patternLength = pattern.Subpatterns.Length;
-            var objectType = this._compilation.GetSpecialType(SpecialType.System_Object);
             var getLengthProperty = (PropertySymbol)pattern.GetLengthMethod.AssociatedSymbol;
             RoslynDebug.Assert(getLengthProperty.Type.SpecialType == SpecialType.System_Int32);
             var getItemProperty = (PropertySymbol)pattern.GetItemMethod.AssociatedSymbol;
@@ -380,12 +379,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             tests.Add(new Tests.One(new BoundDagTypeTest(syntax, iTupleType, input)));
             var valueAsITupleEvaluation = new BoundDagTypeEvaluation(syntax, iTupleType, input);
             tests.Add(new Tests.One(valueAsITupleEvaluation));
-            var valueAsITuple = new BoundDagTemp(syntax, iTupleType, valueAsITupleEvaluation);
+            var valueAsITuple = valueAsITupleEvaluation.MakeResultTemp();
             output = valueAsITuple;
 
             var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, getLengthProperty, isLengthOrCount: true, OriginalInput(valueAsITuple, getLengthProperty));
             tests.Add(new Tests.One(lengthEvaluation));
-            var lengthTemp = new BoundDagTemp(syntax, this._compilation.GetSpecialType(SpecialType.System_Int32), lengthEvaluation);
+            var lengthTemp = lengthEvaluation.MakeResultTemp();
             tests.Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(patternLength), lengthTemp)));
 
             var getItemPropertyInput = OriginalInput(valueAsITuple, getItemProperty);
@@ -393,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var indexEvaluation = new BoundDagIndexEvaluation(syntax, getItemProperty, i, getItemPropertyInput);
                 tests.Add(new Tests.One(indexEvaluation));
-                var indexTemp = new BoundDagTemp(syntax, objectType, indexEvaluation);
+                var indexTemp = indexEvaluation.MakeResultTemp();
                 tests.Add(MakeTestsAndBindings(indexTemp, pattern.Subpatterns[i].Pattern, bindings));
             }
 
@@ -420,18 +419,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 return this._conversions.HasIdentityOrImplicitReferenceConversion(possibleDerived, possibleBase, ref discardedUseSiteInfo);
             }
-        }
-
-        private static BoundDagTemp OriginalInput(BoundDagTemp input)
-        {
-            // Type evaluations do not change identity
-            while (input.Source is BoundDagTypeEvaluation source)
-            {
-                Debug.Assert(input.Index == 0);
-                input = source.Input;
-            }
-
-            return input;
         }
 
         private Tests MakeTestsAndBindingsForDeclarationPattern(
@@ -518,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var evaluation = new BoundDagTypeEvaluation(syntax, type, input);
-                input = new BoundDagTemp(syntax, type, evaluation);
+                input = evaluation.MakeResultTemp();
                 tests.Add(new Tests.One(evaluation));
             }
 
@@ -578,15 +565,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MethodSymbol method = recursive.DeconstructMethod;
                     var evaluation = new BoundDagDeconstructEvaluation(recursive.Syntax, method, OriginalInput(input, method));
                     tests.Add(new Tests.One(evaluation));
-                    int extensionExtra = method.IsStatic ? 1 : 0;
-                    int count = Math.Min(method.ParameterCount - extensionExtra, recursive.Deconstruction.Length);
+
+                    ArrayBuilder<BoundDagTemp> outParamTemps = evaluation.MakeOutParameterTemps();
+                    int count = Math.Min(outParamTemps.Count, recursive.Deconstruction.Length);
                     for (int i = 0; i < count; i++)
                     {
                         BoundPattern pattern = recursive.Deconstruction[i].Pattern;
-                        SyntaxNode syntax = pattern.Syntax;
-                        var element = new BoundDagTemp(syntax, method.Parameters[i + extensionExtra].Type, evaluation, i);
-                        tests.Add(MakeTestsAndBindings(element, pattern, bindings));
+                        tests.Add(MakeTestsAndBindings(outParamTemps[i], pattern, bindings));
                     }
+                    outParamTemps.Free();
                 }
                 else if (Binder.IsZeroElementTupleType(inputType))
                 {
@@ -608,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         FieldSymbol field = elements[i];
                         var evaluation = new BoundDagFieldEvaluation(syntax, field, OriginalInput(input, field)); // fetch the ItemN field
                         tests.Add(new Tests.One(evaluation));
-                        var element = new BoundDagTemp(syntax, field.Type, evaluation);
+                        var element = evaluation.MakeResultTemp();
                         tests.Add(MakeTestsAndBindings(element, pattern, bindings));
                     }
                 }
@@ -664,17 +651,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (member.Symbol)
                 {
                     case PropertySymbol property:
-                        evaluation = new BoundDagPropertyEvaluation(member.Syntax, property, isLengthOrCount, OriginalInput(input, property));
-                        break;
+                        {
+                            var eval = new BoundDagPropertyEvaluation(member.Syntax, property, isLengthOrCount, OriginalInput(input, property));
+                            input = eval.MakeResultTemp();
+                            evaluation = eval;
+                            break;
+                        }
                     case FieldSymbol field:
-                        evaluation = new BoundDagFieldEvaluation(member.Syntax, field, OriginalInput(input, field));
-                        break;
+                        {
+                            var eval = new BoundDagFieldEvaluation(member.Syntax, field, OriginalInput(input, field));
+                            input = eval.MakeResultTemp();
+                            evaluation = eval;
+                            break;
+                        }
                     default:
                         return false;
                 }
 
                 tests.Add(new Tests.One(evaluation));
-                input = new BoundDagTemp(member.Syntax, member.Type, evaluation);
                 return true;
             }
         }
@@ -732,7 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         builder = ArrayBuilder<Tests>.GetInstance(2);
                         builder.Add(result);
                         var evaluation = new BoundDagTypeEvaluation(bin.Syntax, bin.NarrowedType, input);
-                        output = new BoundDagTemp(bin.Syntax, bin.NarrowedType, evaluation);
+                        output = evaluation.MakeResultTemp();
                         builder.Add(new Tests.One(evaluation));
                         return Tests.AndSequence.Create(builder);
                     }
@@ -801,7 +795,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rootDecisionDagNode = decisionDag.RootNode.Dag;
             RoslynDebug.Assert(rootDecisionDagNode != null);
-            var boundDecisionDag = new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode);
+            Debug.Assert(_suitableForLowering || !_forLowering);
+            var boundDecisionDag = new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode, _suitableForLowering);
 
             // Now go and clean up all the dag states we created
             foreach (var kvp in uniqueState)
@@ -975,21 +970,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Select the next test to do at this state, and compute successor states
                     switch (state.SelectedTest = state.ComputeSelectedTest())
                     {
-                        case BoundDagAssignmentEvaluation e when state.RemainingValues.TryGetValue(e.Input, out IValueSet? currentValues):
-                            Debug.Assert(e.Input.IsEquivalentTo(e.Target));
-                            // Update the target temp entry with current values. Note that even though we have determined that the two are the same,
-                            // we don't need to update values for the current input. We will emit another assignment node with this temp as the target
-                            // if apropos, which has the effect of flowing the remaining values from the other test in the analysis of subsequent states.
-                            if (state.RemainingValues.TryGetValue(e.Target, out IValueSet? targetValues))
-                            {
-                                // Take the intersection of entries as we have ruled out any impossible
-                                // values for each alias of an element, and now we're dealiasing them.
-                                currentValues = currentValues.Intersect(targetValues);
-                            }
-                            state.TrueBranch = uniquifyState(RemoveEvaluation(state.Cases, e), state.RemainingValues.SetItem(e.Target, currentValues));
-                            break;
                         case BoundDagEvaluation e:
-                            state.TrueBranch = uniquifyState(RemoveEvaluation(state.Cases, e), state.RemainingValues);
+                            state.TrueBranch = uniquifyState(RemoveEvaluation(state, e), state.RemainingValues);
                             // An evaluation is considered to always succeed, so there is no false branch
                             break;
                         case BoundDagTest d:
@@ -1236,27 +1218,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (lengthTemp, offset);
         }
 
-        private static (BoundDagTemp input, BoundDagTemp lengthTemp, int index) GetCanonicalInput(BoundDagIndexerEvaluation e)
+        private FrozenArrayBuilder<StateForCase> RemoveEvaluation(DagState state, BoundDagEvaluation e)
         {
-            int index = e.Index;
-            BoundDagTemp input = e.Input;
-            BoundDagTemp lengthTemp = e.LengthTemp;
-            while (input.Source is BoundDagSliceEvaluation slice)
-            {
-                Debug.Assert(input.Index == 0);
-                index = index < 0 ? index - slice.EndIndex : index + slice.StartIndex;
-                lengthTemp = slice.LengthTemp;
-                input = slice.Input;
-            }
-            return (OriginalInput(input), lengthTemp, index);
-        }
-
-        private static FrozenArrayBuilder<StateForCase> RemoveEvaluation(FrozenArrayBuilder<StateForCase> cases, BoundDagEvaluation e)
-        {
+            FrozenArrayBuilder<StateForCase> cases = state.Cases;
             var builder = ArrayBuilder<StateForCase>.GetInstance(cases.Count);
             foreach (var stateForCase in cases)
             {
-                var remainingTests = stateForCase.RemainingTests.RemoveEvaluation(e);
+                var remainingTests = stateForCase.RemainingTests.RemoveEvaluation(this, state, stateForCase.Bindings, e);
                 if (remainingTests is Tests.False)
                 {
                     // This can occur in error cases like `e is not int x` where there is a trailing evaluation
@@ -1452,19 +1420,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Returns true if the tests are related i.e. they have the same input, otherwise false.</summary>
-        /// <param name="relationCondition">The pre-condition under which these tests are related.</param>
-        /// <param name="relationEffect">A possible assignment node which will correspond two non-identical but related test inputs.</param>
         private bool CheckInputRelation(
-            SyntaxNode syntax,
-            DagState state,
             BoundDagTest test,
-            BoundDagTest other,
-            out Tests relationCondition,
-            out Tests relationEffect)
+            BoundDagTest other)
         {
-            relationCondition = Tests.True.Instance;
-            relationEffect = Tests.True.Instance;
-
             // If inputs are identical, we don't need to do any further check.
             if (test.Input == other.Input)
             {
@@ -1481,11 +1440,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            BoundDagTemp s1Input = OriginalInput(test.Input);
-            BoundDagTemp s2Input = OriginalInput(other.Input);
-            // Loop through the input chain for both tests at the same time and check if there's
-            // any pair of indexers in the path that could relate depending on the length value.
-            ArrayBuilder<Tests>? conditions = null;
+            return IsSameEntity(test.Input, other.Input);
+        }
+
+        private static bool IsSameEntity(BoundDagTemp input1, BoundDagTemp input2)
+        {
+            BoundDagTemp s1Input = originalInput(input1);
+            BoundDagTemp s2Input = originalInput(input2);
             while (s1Input.Index == s2Input.Index)
             {
                 switch (s1Input.Source, s2Input.Source)
@@ -1497,73 +1458,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // If we have found two identical evaluations as the source (possibly null), inputs can be considered related.
                     case var (s1, s2) when s1 == s2:
-                        if (conditions != null)
-                        {
-                            relationCondition = Tests.AndSequence.Create(conditions);
-                            // At this point, we have determined that two non-identical inputs refer to the same element.
-                            // We represent this correspondence with an assignment node in order to merge the remaining values.
-                            // If tests are related unconditionally, we won't need to do so as the remaining values are updated right away.
-                            relationEffect = new Tests.One(new BoundDagAssignmentEvaluation(syntax, target: other.Input, input: test.Input));
-                        }
                         return true;
 
-                    // Even though the two tests appear unrelated (with different inputs),
-                    // it is possible that they are in fact related under certain conditions.
-                    // For instance, the inputs [0] and [^1] point to the same element when length is 1.
-                    case (BoundDagIndexerEvaluation s1, BoundDagIndexerEvaluation s2):
-                        // Take the top-level input and normalize indices to account for indexer accesses inside a slice.
-                        // For instance [0] in nested list pattern [ 0, ..[$$], 2 ] refers to [1] in the containing list.
-                        (s1Input, BoundDagTemp s1LengthTemp, int s1Index) = GetCanonicalInput(s1);
-                        (s2Input, BoundDagTemp s2LengthTemp, int s2Index) = GetCanonicalInput(s2);
-                        // Ignore input source as it will be matched in the subsequent iterations.
-                        if (s1Input.Index == s2Input.Index)
-                        {
-                            Debug.Assert(s1LengthTemp.IsEquivalentTo(s2LengthTemp));
-                            if (s1Index == s2Index)
-                            {
-                                continue;
-                            }
-
-                            if (s1Index < 0 != s2Index < 0)
-                            {
-                                Debug.Assert(state.RemainingValues.ContainsKey(s1LengthTemp));
-                                var lengthValues = (IValueSet<int>)state.RemainingValues[s1LengthTemp];
-                                // We do not expect an empty set here because an indexer evaluation is always preceded by
-                                // a length test of which an impossible match would have made the rest of the tests unreachable.
-                                Debug.Assert(!lengthValues.IsEmpty);
-
-                                // Compute the length value that would make these two indices point to the same element.
-                                int lengthValue = s1Index < 0 ? s2Index - s1Index : s1Index - s2Index;
-                                if (lengthValues.All(BinaryOperatorKind.Equal, lengthValue))
-                                {
-                                    // If the length is known to be exact, the two are considered to point to the same element.
-                                    continue;
-                                }
-
-                                if (!_forLowering && lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
-                                {
-                                    // Otherwise, we add a test to make the result conditional on the length value.
-                                    (conditions ??= ArrayBuilder<Tests>.GetInstance()).Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp)));
-                                    continue;
-                                }
-                            }
-                        }
-                        break;
-
-                    // If the sources are equivalent (ignoring their input), it's still possible to find a pair of indexers that could relate.
-                    // For example, the subpatterns in `[.., { E: subpat }] or [{ E: subpat }]` are being applied to the same element in the list.
-                    // To account for this scenario, we walk up all the inputs as long as we see equivalent evaluation nodes in the path.
                     case (BoundDagEvaluation s1, BoundDagEvaluation s2) when s1.IsEquivalentTo(s2):
-                        s1Input = OriginalInput(s1.Input);
-                        s2Input = OriginalInput(s2.Input);
+                        s1Input = originalInput(s1.Input);
+                        s2Input = originalInput(s2.Input);
                         continue;
                 }
                 break;
             }
 
-            // tests are unrelated
-            conditions?.Free();
+            // unrelated
             return false;
+
+            static BoundDagTemp originalInput(BoundDagTemp input)
+            {
+                // Type evaluations do not change identity
+                while (input.Source is BoundDagTypeEvaluation source)
+                {
+                    Debug.Assert(input.Index == 0);
+                    input = source.Input;
+                }
+
+                return input;
+            }
         }
 
         /// <summary>
@@ -2118,7 +2036,128 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out Tests whenFalse,
                 ref bool foundExplicitNullTest);
             public virtual BoundDagTest ComputeSelectedTest() => throw ExceptionUtilities.Unreachable();
-            public virtual Tests RemoveEvaluation(BoundDagEvaluation e) => this;
+
+            protected readonly struct RemoveEvaluationAndUpdateTempReferencesResult
+            {
+                /// <summary>
+                /// Temps are updated and evaluation is removed
+                /// </summary>
+                public readonly Tests FinalResult;
+                public readonly ImmutableDictionary<BoundDagTemp, BoundDagTemp> FinalTempMap;
+
+                /// <summary>
+                /// Evaluation isn't removed, but temps are updated
+                /// </summary>
+                public readonly Tests? ConditionToUseFinalResult;
+                public readonly Tests? TempsUpdatedResult;
+
+                public RemoveEvaluationAndUpdateTempReferencesResult(
+                    Tests finalResult,
+                    ImmutableDictionary<BoundDagTemp, BoundDagTemp> finalTempMap,
+                    Tests? conditionToUseFinalResult,
+                    Tests? tempsUpdatedResult)
+                {
+                    Debug.Assert((conditionToUseFinalResult is null) == (tempsUpdatedResult is null));
+                    Debug.Assert((conditionToUseFinalResult is null) || (tempsUpdatedResult is One(BoundDagIndexerEvaluation)));
+                    this.FinalResult = finalResult;
+                    this.FinalTempMap = finalTempMap;
+                    this.ConditionToUseFinalResult = conditionToUseFinalResult;
+                    this.TempsUpdatedResult = tempsUpdatedResult;
+                }
+            }
+
+            protected abstract RemoveEvaluationAndUpdateTempReferencesResult RemoveEvaluationAndUpdateTempReferencesCore(DecisionDagBuilder dagBuilder, DagState state, ImmutableArray<BoundPatternBinding> bindings, ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagEvaluation e);
+
+            public Tests RemoveEvaluation(DecisionDagBuilder dagBuilder, DagState state, ImmutableArray<BoundPatternBinding> bindings, BoundDagEvaluation e)
+            {
+                return RemoveEvaluationAndUpdateTempReferences(dagBuilder, state, bindings, ImmutableDictionary<BoundDagTemp, BoundDagTemp>.Empty, e);
+            }
+
+            protected Tests RemoveEvaluationAndUpdateTempReferences(DecisionDagBuilder dagBuilder, DagState state, ImmutableArray<BoundPatternBinding> bindings, ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagEvaluation e)
+            {
+                RemoveEvaluationAndUpdateTempReferencesResult rewriteResult = RemoveEvaluationAndUpdateTempReferencesCore(dagBuilder, state, bindings, tempMap, e);
+
+                if (rewriteResult.FinalTempMap == tempMap && rewriteResult.ConditionToUseFinalResult is null)
+                {
+                    return rewriteResult.FinalResult;
+                }
+
+                var finalResult = ArrayBuilder<Tests>.GetInstance(2);
+
+                finalResult.Add(rewriteResult.FinalResult);
+                AddBindingsPatchingAssignments(bindings, tempMap, rewriteResult.FinalTempMap, finalResult);
+
+                if (rewriteResult.ConditionToUseFinalResult is null)
+                {
+                    // Microsoft.CodeAnalysis.CSharp.UnitTests.PatternMatchingTests_ListPatterns.Exhaustiveness_01 hits this case
+                    // Trivial case.
+                    return AndSequence.Create(finalResult);
+                }
+
+                // Microsoft.CodeAnalysis.CSharp.UnitTests.PatternMatchingTests_ListPatterns.ListPattern_Negated_05 hits this case
+                Debug.Assert(rewriteResult.TempsUpdatedResult is not null);
+
+                //
+                //   We need to replace the node with a test of the following shape:
+                //   
+                //   OrSequence(
+                //       AndSequence(
+                //           ConditionToUseFinalResult,
+                //           finalResult
+                //       ),
+                //       AndSequence(
+                //           Not (ConditionToUseFinalResult),
+                //           TempsUpdatedResult
+                //       )
+                //   )
+                //
+
+                finalResult.Insert(0, rewriteResult.ConditionToUseFinalResult);
+
+                return OrSequence.Create(
+                    AndSequence.Create(finalResult),
+                    AndSequence.Create(Not.Create(rewriteResult.ConditionToUseFinalResult), rewriteResult.TempsUpdatedResult));
+            }
+
+            private static void AddBindingsPatchingAssignments(ImmutableArray<BoundPatternBinding> bindings, ImmutableDictionary<BoundDagTemp, BoundDagTemp> oldTempMap, ImmutableDictionary<BoundDagTemp, BoundDagTemp> newTempMap, ArrayBuilder<Tests> assignments)
+            {
+                if (oldTempMap == newTempMap)
+                {
+                    return;
+                }
+
+                Debug.Assert(oldTempMap.Count < newTempMap.Count);
+
+                foreach (BoundPatternBinding b in bindings)
+                {
+                    if (TryGetTempReplacement(newTempMap, b.TempContainingValue, out BoundDagTemp? useValueFrom))
+                    {
+                        if (!TryGetTempReplacement(oldTempMap, b.TempContainingValue, out BoundDagTemp? oldReplacement) ||
+                            !oldReplacement.Equals(useValueFrom))
+                        {
+                            Debug.Assert(!b.TempContainingValue.Equals(useValueFrom));
+                            assignments.Add(new Tests.One(new BoundDagAssignmentEvaluation(useValueFrom.Syntax, b.TempContainingValue, useValueFrom)));
+                        }
+                    }
+                }
+            }
+
+            private static bool TryGetTempReplacement(ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagTemp oldTemp, [NotNullWhen(true)] out BoundDagTemp? newTemp)
+            {
+                if (tempMap.TryGetValue(oldTemp, out newTemp))
+                {
+                    // Get to the final temp in the chain
+                    while (tempMap.TryGetValue(newTemp, out BoundDagTemp? nextTemp))
+                    {
+                        newTemp = nextTemp;
+                    }
+
+                    return true;
+                }
+
+                return false;
+            }
+
             /// <summary>
             /// Rewrite nested length tests in slice subpatterns to check the top-level length property instead.
             /// </summary>
@@ -2144,6 +2183,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     whenTrue = whenFalse = this;
                 }
+
+                protected override RemoveEvaluationAndUpdateTempReferencesResult RemoveEvaluationAndUpdateTempReferencesCore(DecisionDagBuilder builder, DagState state, ImmutableArray<BoundPatternBinding> bindings, ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagEvaluation e)
+                    => new RemoveEvaluationAndUpdateTempReferencesResult(this, tempMap, conditionToUseFinalResult: null, tempsUpdatedResult: null);
             }
 
             /// <summary>
@@ -2165,6 +2207,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     whenTrue = whenFalse = this;
                 }
+
+                protected override RemoveEvaluationAndUpdateTempReferencesResult RemoveEvaluationAndUpdateTempReferencesCore(DecisionDagBuilder builder, DagState state, ImmutableArray<BoundPatternBinding> bindings, ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagEvaluation e)
+                    => new RemoveEvaluationAndUpdateTempReferencesResult(this, tempMap, conditionToUseFinalResult: null, tempsUpdatedResult: null);
             }
 
             /// <summary>
@@ -2190,9 +2235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SyntaxNode syntax = test.Syntax;
                     BoundDagTest other = this.Test;
                     if (other is BoundDagEvaluation ||
-                        !builder.CheckInputRelation(syntax, state, test, other,
-                            relationCondition: out Tests relationCondition,
-                            relationEffect: out Tests relationEffect))
+                        !builder.CheckInputRelation(test, other))
                     {
                         // if this is an evaluation or the tests are for unrelated things,
                         // there cannot be any implications from one to the other.
@@ -2212,45 +2255,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         falseTestImpliesTrueOther: out bool falseDecisionImpliesTrueOther,
                         foundExplicitNullTest: ref foundExplicitNullTest);
 
-                    Debug.Assert(relationEffect is True or One(BoundDagAssignmentEvaluation));
-
-                    // Given:
-                    //
-                    //  - "test" as a test that has already occurred,
-                    //  - "other" as a subsequent test,
-                    //  - S as a possible side-effect (expected to always evaluate to True),
-                    //  - and P as a pre-condition under which we need to evaluate S,
-                    //
-                    // we proceed as follows:
-                    //
-                    //  - If "test" being true proves "other" to be also true, we rewrite "other" as ((P && S) || other),
-                    //    because we have determined that on this branch, "other" would always succeed if the pre-condition is met.
-                    //    Note: If there is no pre-condition, i.e. P is True, the above will be reduced to True which means "other" is insignificant.
-                    //
-                    //  - If "test" being true proves "other" to be false, we rewrite "other" as (!(P && S) && other),
-                    //    because we have determined that on this branch, "other" would never succeed if the pre-condition is met.
-                    //    Note: If there is no pre-condition, i.e. P is True, the above will be reduced to False which means "other" is impossible.
-                    //
-                    //  - Otherwise, we rewrite "other" as ((!P || S) && other) to preserve the side-effect if the pre-condition is met,
-                    //    because we have determined that there were no logical implications from one to the other on this branch.
-                    //    Note: If there is no pre-condition, i.e. P is True, "other" is not rewritten which means the two are considered independent.
-                    //
-                    whenTrue = rewrite(trueDecisionImpliesTrueOther, trueDecisionPermitsTrueOther, relationCondition, relationEffect, this);
-
-                    // Similarly for the opposite branch when "test" is false.
-                    whenFalse = rewrite(falseDecisionImpliesTrueOther, falseDecisionPermitsTrueOther, relationCondition, relationEffect, this);
-
-                    static Tests rewrite(bool decisionImpliesTrueOther, bool decisionPermitsTrueOther, Tests relationCondition, Tests relationEffect, Tests other)
-                    {
-                        return decisionImpliesTrueOther
-                            ? OrSequence.Create(AndSequence.Create(relationCondition, relationEffect), other)
-                            : !decisionPermitsTrueOther
-                                ? AndSequence.Create(Not.Create(AndSequence.Create(relationCondition, relationEffect)), other)
-                                : AndSequence.Create(OrSequence.Create(Not.Create(relationCondition), relationEffect), other);
-                    }
+                    whenTrue = trueDecisionImpliesTrueOther ? Tests.True.Instance : trueDecisionPermitsTrueOther ? this : (Tests)Tests.False.Instance;
+                    whenFalse = falseDecisionImpliesTrueOther ? Tests.True.Instance : falseDecisionPermitsTrueOther ? this : (Tests)Tests.False.Instance;
                 }
+
                 public override BoundDagTest ComputeSelectedTest() => this.Test;
-                public override Tests RemoveEvaluation(BoundDagEvaluation e) => e.Equals(Test) ? Tests.True.Instance : (Tests)this;
                 public override string Dump(Func<BoundDagTest, string> dump) => dump(this.Test);
                 public override bool Equals(object? obj) => this == obj || obj is One other && this.Test.Equals(other.Test);
                 public override int GetHashCode() => this.Test.GetHashCode();
@@ -2315,6 +2324,391 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return ConstantValue.Create(offset > (int.MaxValue - value) ? int.MaxValue : value + offset);
                     }
                 }
+
+                protected override RemoveEvaluationAndUpdateTempReferencesResult RemoveEvaluationAndUpdateTempReferencesCore(DecisionDagBuilder builder, DagState state, ImmutableArray<BoundPatternBinding> bindings, ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagEvaluation e)
+                {
+                    var savedTempMap = tempMap;
+                    var updatedTest = UpdateDagTempReferences(Test, ref tempMap);
+                    if (e.Equals(updatedTest))
+                    {
+                        return new RemoveEvaluationAndUpdateTempReferencesResult(Tests.True.Instance, tempMap, conditionToUseFinalResult: null, tempsUpdatedResult: null);
+                    }
+
+                    var tempsUpdatedResultTempMap = tempMap;
+                    var tempsUpdatedResult = this;
+
+                    if (!Test.Equals(updatedTest))
+                    {
+                        tempsUpdatedResult = new One(updatedTest);
+                    }
+                    else
+                    {
+                        Debug.Assert(savedTempMap == tempsUpdatedResultTempMap);
+                    }
+
+                    Tests finalResult = RemoveEvaluation(tempsUpdatedResult, builder, state, ref tempMap, e, out var condition);
+
+                    Debug.Assert(!finalResult.Equals(tempsUpdatedResult) || tempsUpdatedResultTempMap == tempMap);
+                    Debug.Assert(condition is null ||
+                                 (!finalResult.Equals(tempsUpdatedResult) &&
+                                  Test is BoundDagIndexerEvaluation &&
+                                  tempsUpdatedResult is One(BoundDagIndexerEvaluation)));
+                    Debug.Assert(Test is not BoundDagIndexerEvaluation ||
+                                 (tempsUpdatedResult == this && tempsUpdatedResultTempMap == savedTempMap) ||
+                                 (finalResult == tempsUpdatedResult && condition is null));
+
+                    if (condition is not null && savedTempMap != tempsUpdatedResultTempMap)
+                    {
+                        // The process of updating temps updated the underlying indexer evaluation.
+                        // Then the process of removal made another update to that indexer evaluation.
+                        // This means that the evaluation would somehow take an input that is calculated
+                        // from itself, only then temps update would update the evaluation.
+                        // But a circuarity like this is not possible with indexer evaluations.
+                        // In other words, it is not possible to evaluate an indexer and have an 'output'
+                        // that is considered as the same entity as the 'input', so that the next indexer
+                        // evaluation on the 'output' would be considered equivalent to the first one.
+                        // This fact is important because only indexer evaluations can result in a conditional 
+                        // removal, and properly handling the temp map change resulting from the temps update
+                        // in this case, while possible, will add an extra complexity to handle the case that
+                        // we think is impossible. 
+                        Debug.Fail("Unexpected change in temp map during conditional removal of indexer evaluation.");
+
+                        // In case we somehow get here, it is safe to return the result of updating the temps only.
+                        return new RemoveEvaluationAndUpdateTempReferencesResult(tempsUpdatedResult, tempsUpdatedResultTempMap, null, null);
+                    }
+
+                    return new RemoveEvaluationAndUpdateTempReferencesResult(
+                        finalResult,
+                        tempMap,
+                        condition,
+                        condition is null ? null : tempsUpdatedResult);
+                }
+
+                public static Tests RemoveEvaluation(One tests, DecisionDagBuilder builder, DagState state, ref ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagEvaluation e, out Tests? condition)
+                {
+                    switch (e)
+                    {
+                        case BoundDagTypeEvaluation typeEval:
+                            {
+                                condition = null;
+                                return RemoveTypeEvaluation(tests, ref tempMap, typeEval);
+                            }
+                        case BoundDagIndexerEvaluation indexer:
+                            {
+                                return RemoveIndexerEvaluation(tests, builder, state, ref tempMap, indexer, out condition);
+                            }
+                        case BoundDagDeconstructEvaluation deconstruct:
+                            {
+                                condition = null;
+                                return RemoveDeconstructEvaluation(tests, ref tempMap, deconstruct);
+                            }
+                        case BoundDagFieldEvaluation:
+                        case BoundDagPropertyEvaluation:
+                        case BoundDagIndexEvaluation:
+                        case BoundDagSliceEvaluation:
+                            {
+                                condition = null;
+                                return RemoveSimpleEvaluationWithResultTemp(tests, ref tempMap, e);
+                            }
+                        case BoundDagAssignmentEvaluation assignment:
+                            {
+                                condition = null;
+                                return RemoveAssignmentEvaluation(tests, assignment);
+                            }
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(e);
+                    }
+                }
+
+                private static bool IsEquivalentEvaluation(One tests, BoundDagEvaluation e1, [NotNullWhen(true)] out BoundDagEvaluation? underlying)
+                {
+                    if (tests.Test is BoundDagEvaluation eval &&
+                        e1.IsEquivalentTo(eval) &&
+                        IsSameEntity(eval.Input, e1.Input))
+                    {
+                        Debug.Assert(!eval.Input.Equals(e1.Input));
+                        underlying = eval;
+                        return true;
+                    }
+
+                    underlying = null;
+                    return false;
+                }
+
+                private static Tests RemoveAssignmentEvaluation(One tests, BoundDagAssignmentEvaluation e1)
+                {
+                    if (IsEquivalentEvaluation(tests, e1, out _))
+                    {
+                        return Tests.True.Instance;
+                    }
+
+                    return tests;
+                }
+
+                private static Tests RemoveSimpleEvaluationWithResultTemp(One tests, ref ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagEvaluation e1)
+                {
+                    if (IsEquivalentEvaluation(tests, e1, out var eval))
+                    {
+                        // Refer to the result of e1 instead of result of eval, this will allow to reuse results of evaluations that might be coming next
+                        AddResultTempReplacement(ref tempMap, eval, e1);
+                        return Tests.True.Instance;
+                    }
+
+                    return tests;
+                }
+
+                private static void AddResultTempReplacement(ref ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagEvaluation oldEval, BoundDagEvaluation newEval)
+                {
+                    AddTempReplacement(ref tempMap, oldEval.MakeResultTemp(), newEval.MakeResultTemp());
+                }
+
+                private static void AddTempReplacement(ref ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagTemp oldTemp, BoundDagTemp newTemp)
+                {
+                    Debug.Assert(!oldTemp.Equals(newTemp));
+                    tempMap = tempMap.SetItem(oldTemp, newTemp);
+                }
+
+                private static Tests RemoveDeconstructEvaluation(One tests, ref ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagDeconstructEvaluation e1)
+                {
+                    if (IsEquivalentEvaluation(tests, e1, out var eval))
+                    {
+                        // Refer to the result of e1 instead of result of eval, this will allow to reuse results of evaluations that might be coming next
+                        AddOutParameterTempsReplacemet(ref tempMap, (BoundDagDeconstructEvaluation)eval, e1);
+                        return Tests.True.Instance;
+                    }
+
+                    return tests;
+                }
+
+                private static void AddOutParameterTempsReplacemet(ref ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagDeconstructEvaluation oldDeconstruct, BoundDagDeconstructEvaluation newDeconstruct)
+                {
+                    ArrayBuilder<BoundDagTemp> newOutParamTemps = newDeconstruct.MakeOutParameterTemps();
+                    ArrayBuilder<BoundDagTemp> oldOutParamTemps = oldDeconstruct.MakeOutParameterTemps();
+                    for (int i = 0; i < oldOutParamTemps.Count; i++)
+                    {
+                        AddTempReplacement(ref tempMap, oldOutParamTemps[i], newOutParamTemps[i]);
+                    }
+                    newOutParamTemps.Free();
+                    oldOutParamTemps.Free();
+                }
+
+                private static Tests RemoveTypeEvaluation(One tests, ref ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagTypeEvaluation e1)
+                {
+                    if (tests.Test is BoundDagTypeEvaluation typeEval && IsSameEntity(typeEval.Input, e1.Input))
+                    {
+                        Debug.Assert(!typeEval.Equals(e1));
+
+                        if (e1.Type.Equals(typeEval.Type, TypeCompareKind.AllIgnoreOptions))
+                        {
+                            // Refer to the result of e1 instead of result of typeEval, this will allow to reuse results of evaluations that might be coming next
+                            AddResultTempReplacement(ref tempMap, typeEval, e1);
+                            return Tests.True.Instance;
+                        }
+                        else if (!typeEval.Input.Equals(e1.Input))
+                        {
+                            // Change typeEval to use input of e1 instead, this will allow to reuse results of evaluations that might be coming next
+                            var newTypeEval = typeEval.Update(e1.Input);
+                            AddResultTempReplacement(ref tempMap, typeEval, newTypeEval);
+                            return new Tests.One(newTypeEval);
+                        }
+                    }
+
+                    return tests;
+                }
+
+                private static Tests RemoveIndexerEvaluation(One tests, DecisionDagBuilder dagBuilder, DagState state, ref ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagIndexerEvaluation s1, out Tests? condition)
+                {
+                    if (tests.Test is BoundDagIndexerEvaluation s2 && s2.IndexerType.Equals(s1.IndexerType, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        // Even though the two tests appear unrelated (with different inputs),
+                        // it is possible that they are in fact related under certain conditions.
+                        // For instance, the inputs [0] and [^1] point to the same element when remainingTestsLength is 1.
+
+                        // Take the top-level input and normalize indices to account for indexer accesses inside a slice.
+                        // For instance [0] in nested list pattern [ 0, ..[$$], 2 ] refers to [1] in the containing list.
+                        (BoundDagTemp s1Input, BoundDagTemp s1LengthTemp, int s1Index) = getCanonicalInput(s1);
+                        (BoundDagTemp s2Input, BoundDagTemp s2LengthTemp, int s2Index) = getCanonicalInput(s2);
+
+                        if (IsSameEntity(s1Input, s2Input))
+                        {
+                            Debug.Assert(s1LengthTemp.IsEquivalentTo(s2LengthTemp));
+                            if (s1Index == s2Index)
+                            {
+                                AddResultTempReplacement(ref tempMap, s2, s1);
+                                condition = null;
+                                return Tests.True.Instance;
+                            }
+
+                            if (s1Index < 0 != s2Index < 0)
+                            {
+                                Debug.Assert(state.RemainingValues.ContainsKey(s1LengthTemp));
+                                var lengthValues = (IValueSet<int>)state.RemainingValues[s1LengthTemp];
+                                // We do not expect an empty set here because an indexer evaluation is always preceded by
+                                // a length test of which an impossible match would have made the rest of the tests unreachable.
+                                Debug.Assert(!lengthValues.IsEmpty);
+
+                                // Compute the length value that would make these two indices point to the same element.
+                                int lengthValue = s1Index < 0 ? s2Index - s1Index : s1Index - s2Index;
+                                if (lengthValues.All(BinaryOperatorKind.Equal, lengthValue))
+                                {
+                                    // If the length is known to be exact, the two are considered to point to the same element.
+                                    AddResultTempReplacement(ref tempMap, s2, s1);
+                                    condition = null;
+                                    return Tests.True.Instance;
+                                }
+
+                                if (!dagBuilder._forLowering && lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
+                                {
+                                    dagBuilder._suitableForLowering = false;
+
+                                    // Otherwise, we add a test to make the result conditional on the length value.
+                                    condition = new Tests.One(new BoundDagValueTest(s2.Syntax, ConstantValue.Create(lengthValue), s1LengthTemp));
+                                    AddResultTempReplacement(ref tempMap, s2, s1);
+                                    return Tests.True.Instance;
+                                }
+                            }
+                        }
+                    }
+
+                    condition = null;
+                    return tests;
+
+                    static (BoundDagTemp input, BoundDagTemp lengthTemp, int index) getCanonicalInput(BoundDagIndexerEvaluation e)
+                    {
+                        int index = e.Index;
+                        BoundDagTemp input = e.Input;
+                        BoundDagTemp lengthTemp = e.LengthTemp;
+                        while (input.Source is BoundDagSliceEvaluation slice)
+                        {
+                            Debug.Assert(input.Index == 0);
+                            index = index < 0 ? index - slice.EndIndex : index + slice.StartIndex;
+                            lengthTemp = slice.LengthTemp;
+                            input = slice.Input;
+                        }
+                        return (input, lengthTemp, index);
+                    }
+                }
+
+                private static BoundDagTest UpdateDagTempReferences(BoundDagTest test, ref ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap)
+                {
+                    switch (test)
+                    {
+                        case BoundDagEvaluation eval:
+                            {
+                                switch (eval)
+                                {
+                                    case BoundDagIndexEvaluation:
+                                    case BoundDagTypeEvaluation:
+                                    case BoundDagFieldEvaluation:
+                                    case BoundDagPropertyEvaluation:
+                                        {
+                                            return updateDagTempsForSimpleEvaluation((BoundDagEvaluation)test, ref tempMap);
+                                        }
+
+                                    case BoundDagIndexerEvaluation indexer:
+                                        {
+                                            if (!TryGetTempReplacement(tempMap, indexer.Input, out BoundDagTemp? inputReplacement))
+                                            {
+                                                inputReplacement = indexer.Input;
+                                            }
+
+                                            if (!TryGetTempReplacement(tempMap, indexer.LengthTemp, out BoundDagTemp? lengthReplacement))
+                                            {
+                                                lengthReplacement = indexer.LengthTemp;
+                                            }
+
+                                            if (inputReplacement == (object)indexer.Input && lengthReplacement == (object)indexer.LengthTemp)
+                                            {
+                                                return test;
+                                            }
+
+                                            var indexerEvaluation = indexer.Update(lengthReplacement, inputReplacement);
+                                            AddResultTempReplacement(ref tempMap, indexer, indexerEvaluation);
+                                            return indexerEvaluation;
+                                        }
+                                    case BoundDagSliceEvaluation slice:
+                                        {
+                                            if (!TryGetTempReplacement(tempMap, slice.Input, out BoundDagTemp? inputReplacement))
+                                            {
+                                                inputReplacement = slice.Input;
+                                            }
+
+                                            if (!TryGetTempReplacement(tempMap, slice.LengthTemp, out BoundDagTemp? lengthReplacement))
+                                            {
+                                                lengthReplacement = slice.LengthTemp;
+                                            }
+
+                                            if (inputReplacement == (object)slice.Input && lengthReplacement == (object)slice.LengthTemp)
+                                            {
+                                                return test;
+                                            }
+
+                                            var sliceEvaluation = slice.Update(lengthReplacement, inputReplacement);
+                                            AddResultTempReplacement(ref tempMap, slice, sliceEvaluation);
+                                            return sliceEvaluation;
+                                        }
+                                    case BoundDagAssignmentEvaluation assignment:
+                                        {
+                                            if (!TryGetTempReplacement(tempMap, assignment.Input, out BoundDagTemp? inputReplacement))
+                                            {
+                                                return test;
+                                            }
+
+                                            var assignmentEvaluation = assignment.Update(inputReplacement);
+                                            return assignmentEvaluation;
+                                        }
+                                    case BoundDagDeconstructEvaluation deconstruct:
+                                        {
+                                            if (!TryGetTempReplacement(tempMap, deconstruct.Input, out BoundDagTemp? replacement))
+                                            {
+                                                return test;
+                                            }
+
+                                            var deconstructEvaluation = deconstruct.Update(replacement);
+                                            AddOutParameterTempsReplacemet(ref tempMap, deconstruct, deconstructEvaluation);
+                                            return deconstructEvaluation;
+                                        }
+
+                                    default:
+                                        throw ExceptionUtilities.UnexpectedValue(test);
+                                }
+                            }
+
+                        case BoundDagRelationalTest:
+                        case BoundDagTypeTest:
+                        case BoundDagNonNullTest:
+                        case BoundDagExplicitNullTest:
+                        case BoundDagValueTest:
+                            {
+                                return updateDagTempsForNonEvaluation(test, tempMap);
+                            }
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(test);
+                    }
+
+                    static BoundDagTest updateDagTempsForSimpleEvaluation(BoundDagEvaluation eval, ref ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap)
+                    {
+                        if (!TryGetTempReplacement(tempMap, eval.Input, out BoundDagTemp? replacement))
+                        {
+                            return eval;
+                        }
+
+                        var updated = eval.Update(replacement);
+                        AddResultTempReplacement(ref tempMap, eval, updated);
+                        return updated;
+                    }
+
+                    static BoundDagTest updateDagTempsForNonEvaluation(BoundDagTest test, ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap)
+                    {
+                        Debug.Assert(test is not BoundDagEvaluation);
+                        if (!TryGetTempReplacement(tempMap, test.Input, out BoundDagTemp? replacement))
+                        {
+                            return test;
+                        }
+
+                        return test.Update(replacement);
+                    }
+                }
             }
 
             public sealed class Not : Tests
@@ -2340,7 +2734,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return builder;
                 }
-                public override Tests RemoveEvaluation(BoundDagEvaluation e) => Create(Negated.RemoveEvaluation(e));
+                protected override RemoveEvaluationAndUpdateTempReferencesResult RemoveEvaluationAndUpdateTempReferencesCore(DecisionDagBuilder builder, DagState state, ImmutableArray<BoundPatternBinding> bindings, ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagEvaluation e)
+                {
+                    return new RemoveEvaluationAndUpdateTempReferencesResult(
+                        Create(Negated.RemoveEvaluationAndUpdateTempReferences(builder, state, bindings, tempMap, e)),
+                        tempMap,
+                        conditionToUseFinalResult: null,
+                        tempsUpdatedResult: null);
+                }
+
                 public override Tests RewriteNestedLengthTests() => Create(Negated.RewriteNestedLengthTests());
                 public override BoundDagTest ComputeSelectedTest() => Negated.ComputeSelectedTest();
                 public override string Dump(Func<BoundDagTest, string> dump) => $"Not ({Negated.Dump(dump)})";
@@ -2447,40 +2849,94 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                public sealed override Tests RemoveEvaluation(BoundDagEvaluation e)
+                private enum ReassembleKind
                 {
-                    var testsToRewrite = ArrayBuilder<Tests?>.GetInstance();
-                    var testsToAssemble = ArrayBuilder<SequenceTests>.GetInstance();
+                    And,
+                    Or,
+                }
+
+                protected sealed override RemoveEvaluationAndUpdateTempReferencesResult RemoveEvaluationAndUpdateTempReferencesCore(DecisionDagBuilder dagBuilder, DagState state, ImmutableArray<BoundPatternBinding> bindings, ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagEvaluation e)
+                {
+                    var testsToRewrite = ArrayBuilder<(Tests? Tests, bool SkipRewrite)>.GetInstance();
+                    var testsToAssemble = ArrayBuilder<(
+                                                        ReassembleKind Kind,
+                                                        int ChildCount,
+                                                        ImmutableDictionary<BoundDagTemp, BoundDagTemp> TempMapToRestore
+                                                       )>.GetInstance();
                     var testsRewritten = ArrayBuilder<Tests>.GetInstance();
 
-                    testsToRewrite.Push(this);
+                    testsToRewrite.Push((this, SkipRewrite: false));
 
                     do
                     {
-                        var current = testsToRewrite.Pop();
+                        var (current, skipRewrite) = testsToRewrite.Pop();
 
                         switch (current)
                         {
                             case SequenceTests seq:
-                                testsToAssemble.Push(seq);
-                                testsToRewrite.Push(null); // marker to indicate we need to reassemble after handling children
-                                testsToRewrite.AddRange(seq.RemainingTests!);
+                                ImmutableArray<Tests> remainingTests = seq.RemainingTests;
+                                testsToAssemble.Push((seq is AndSequence ? ReassembleKind.And : ReassembleKind.Or, remainingTests.Length, tempMap));
+                                testsToRewrite.Push((null, false)); // marker to indicate we need to reassemble after handling children
+
+                                // Push in reverse order to rewrite in original order
+                                for (int i = remainingTests.Length - 1; i >= 0; i--)
+                                {
+                                    testsToRewrite.Push((seq.RemainingTests[i], SkipRewrite: false));
+                                }
                                 break;
 
                             case null:
-                                var toAssemble = testsToAssemble.Pop();
-                                var length = toAssemble.RemainingTests.Length;
-                                var newSequence = ArrayBuilder<Tests>.GetInstance(length);
-                                for (int i = 0; i < length; i++)
                                 {
-                                    newSequence.Add(testsRewritten.Pop());
-                                }
+                                    var (kind, childCount, tempMapToRestore) = testsToAssemble.Pop();
+                                    var newSequence = ArrayBuilder<Tests>.GetInstance(childCount);
+                                    newSequence.Count = childCount;
+                                    for (int i = childCount - 1; i >= 0; i--)
+                                    {
+                                        newSequence[i] = testsRewritten.Pop();
+                                    }
 
-                                testsRewritten.Push(toAssemble.Update(newSequence));
+                                    if (kind is ReassembleKind.And)
+                                    {
+                                        AddBindingsPatchingAssignments(bindings, tempMapToRestore, tempMap, newSequence);
+                                    }
+                                    else
+                                    {
+                                        Debug.Assert(tempMapToRestore == tempMap);
+                                    }
+
+                                    testsRewritten.Push(kind is ReassembleKind.And ? AndSequence.Create(newSequence) : OrSequence.Create(newSequence));
+                                    tempMap = tempMapToRestore;
+                                }
                                 break;
 
                             default:
-                                testsRewritten.Push(current.RemoveEvaluation(e));
+                                {
+                                    Debug.Assert(testsToAssemble.Count != 0); // If we have a child to rewrite, we must have a parent to reassemble.
+
+                                    if (skipRewrite)
+                                    {
+                                        testsRewritten.Push(current);
+                                        break;
+                                    }
+
+                                    if (testsToAssemble.Peek().Kind == ReassembleKind.And)
+                                    {
+                                        RemoveEvaluationAndUpdateTempReferencesResult rewriteResult = current.RemoveEvaluationAndUpdateTempReferencesCore(dagBuilder, state, bindings, tempMap, e);
+
+                                        if (rewriteResult.FinalTempMap == tempMap && rewriteResult.ConditionToUseFinalResult is null)
+                                        {
+                                            testsRewritten.Push(rewriteResult.FinalResult);
+                                        }
+                                        else
+                                        {
+                                            handleComplexResultOfChildRewriteInAndSequence(rewriteResult);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        testsRewritten.Push(current.RemoveEvaluationAndUpdateTempReferences(dagBuilder, state, bindings, tempMap, e));
+                                    }
+                                }
                                 break;
                         }
                     }
@@ -2497,7 +2953,131 @@ namespace Microsoft.CodeAnalysis.CSharp
                     testsToAssemble.Free();
                     testsRewritten.Free();
 
-                    return result;
+                    return new RemoveEvaluationAndUpdateTempReferencesResult(result, tempMap, conditionToUseFinalResult: null, tempsUpdatedResult: null);
+
+                    void handleComplexResultOfChildRewriteInAndSequence(RemoveEvaluationAndUpdateTempReferencesResult rewriteResult)
+                    {
+                        Debug.Assert(testsToAssemble.Peek().Kind == ReassembleKind.And);
+
+                        if (rewriteResult.ConditionToUseFinalResult is null)
+                        {
+                            // Trivial case. Keep rewriting with updated temp map and patchup bindings while reassembling the AndSequence
+                            testsRewritten.Push(rewriteResult.FinalResult);
+                            tempMap = rewriteResult.FinalTempMap;
+                            return;
+                        }
+
+                        Debug.Assert(rewriteResult.TempsUpdatedResult is not null);
+
+                        var (_, childCount, tempMapToRestore) = testsToAssemble.Peek();
+
+                        var leftToRewriteBuilder = ArrayBuilder<Tests>.GetInstance();
+                        popAndAddChildrenLeftToRewrite(leftToRewriteBuilder);
+                        Debug.Assert(leftToRewriteBuilder.Count < childCount);
+
+                        //
+                        //   We need to complete the sequence with a test of the following shape:
+                        //   
+                        //   OrSequence(
+                        //       AndSequence(
+                        //           ConditionToUseFinalResult,
+                        //           FinalResult,
+                        //           < remaining original nodes from the sequence after evaluation is removed in them and locals are updated by using FinalTempMap >
+                        //       ),
+                        //       AndSequence(
+                        //           Not (ConditionToUseFinalResult),
+                        //           TempsUpdatedResult,
+                        //           < remaining original nodes from the sequence after evaluation is removed in them and locals are updated by using the current tempMap >
+                        //       )
+                        //   )
+                        //
+
+                        // Patach the count of children in the pending AndSequence
+                        testsToAssemble[^1] = (ReassembleKind.And, childCount - leftToRewriteBuilder.Count, tempMapToRestore);
+                        pushConditionalResult(rewriteResult, leftToRewriteBuilder);
+                        leftToRewriteBuilder.Free();
+                    }
+
+                    void pushConditionalResult(RemoveEvaluationAndUpdateTempReferencesResult rewriteResult, ArrayBuilder<Tests> leftToRewriteBuilder)
+                    {
+                        Debug.Assert(rewriteResult.ConditionToUseFinalResult is not null);
+                        Debug.Assert(rewriteResult.TempsUpdatedResult is not null);
+                        //
+                        //   We need "to push" a test of the following shape:
+                        //   
+                        //   OrSequence(
+                        //       AndSequence(
+                        //           ConditionToUseFinalResult,
+                        //           FinalResult,
+                        //           < remaining original nodes from the sequence after evaluation is removed in them and locals are updated by using FinalTempMap >
+                        //       ),
+                        //       AndSequence(
+                        //           Not (ConditionToUseFinalResult),
+                        //           TempsUpdatedResult,
+                        //           < remaining original nodes from the sequence after evaluation is removed in them and locals are updated by using the current tempMap >
+                        //       )
+                        //   )
+                        //
+
+                        testsToAssemble.Add((ReassembleKind.Or, 2, tempMap));
+                        testsToRewrite.Push((null, false)); // marker to indicate we need to reassemble after handling children
+
+                        // Children are pushed into testsToRewrite in reverse order
+
+                        //       AndSequence(
+                        //           Not (ConditionToUseFinalResult),
+                        //           TempsUpdatedResult,
+                        //           < remaining original nodes from the sequence after evaluation is removed in them and locals are updated by using the current tempMap >
+                        //       )
+
+                        int leftToRewrite = leftToRewriteBuilder.Count;
+                        testsToAssemble.Add((ReassembleKind.And, leftToRewrite + 2, tempMap));
+                        testsToRewrite.Push((null, false)); // marker to indicate we need to reassemble after handling children
+
+                        for (int i = leftToRewrite - 1; i >= 0; i--)
+                        {
+                            testsToRewrite.Push((leftToRewriteBuilder![i], SkipRewrite: false));
+                        }
+
+                        testsToRewrite.Push((rewriteResult.TempsUpdatedResult, SkipRewrite: true));
+                        testsToRewrite.Push((Not.Create(rewriteResult.ConditionToUseFinalResult), SkipRewrite: true));
+
+                        //       AndSequence(
+                        //           ConditionToUseFinalResult,
+                        //           FinalResult,
+                        //           < remaining original nodes from the sequence after evaluation is removed in them and locals are updated by using FinalTempMap >
+                        //       )
+
+                        testsToAssemble.Add((ReassembleKind.And, leftToRewrite + 2, TempMapToRestore: tempMap));
+                        testsToRewrite.Push((null, false)); // marker to indicate we need to reassemble after handling children
+
+                        for (int i = leftToRewrite - 1; i >= 0; i--)
+                        {
+                            testsToRewrite.Push((leftToRewriteBuilder![i], SkipRewrite: false));
+                        }
+
+                        testsToRewrite.Push((rewriteResult.FinalResult, SkipRewrite: true));
+                        testsToRewrite.Push((rewriteResult.ConditionToUseFinalResult, SkipRewrite: true));
+
+                        tempMap = rewriteResult.FinalTempMap;
+                    }
+
+                    void popAndAddChildrenLeftToRewrite(ArrayBuilder<Tests> leftToRewriteBuilder)
+                    {
+                        while (true)
+                        {
+                            var (toRewrite, skip) = testsToRewrite.Peek();
+                            if (toRewrite is null)
+                            {
+                                break;
+                            }
+
+                            Debug.Assert(!skip);
+                            Debug.Assert(!skip);
+                            leftToRewriteBuilder.Add(toRewrite);
+                            testsToRewrite.Pop();
+                        }
+                    }
                 }
 
                 public sealed override Tests RewriteNestedLengthTests()
@@ -2717,7 +3297,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             public sealed class AndSequence : SequenceTests
             {
-                private AndSequence(ImmutableArray<Tests> remainingTests) : base(remainingTests) { }
+                private AndSequence(ImmutableArray<Tests> remainingTests) : base(remainingTests)
+                {
+                    Debug.Assert(!remainingTests.Any(t => t is AndSequence));
+                }
                 public override Tests Update(ArrayBuilder<Tests> remainingTests) => Create(remainingTests);
                 public static Tests Create(Tests t1, Tests t2)
                 {
@@ -2796,7 +3379,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             public sealed class OrSequence : SequenceTests
             {
-                private OrSequence(ImmutableArray<Tests> remainingTests) : base(remainingTests) { }
+                private OrSequence(ImmutableArray<Tests> remainingTests) : base(remainingTests)
+                {
+                    Debug.Assert(!remainingTests.Any(t => t is OrSequence));
+                }
                 public override Tests Update(ArrayBuilder<Tests> remainingTests) => Create(remainingTests);
                 public static Tests Create(Tests t1, Tests t2)
                 {

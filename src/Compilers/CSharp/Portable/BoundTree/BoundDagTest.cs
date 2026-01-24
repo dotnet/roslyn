@@ -46,6 +46,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Hash.Combine(((int)Kind).GetHashCode(), Input.GetHashCode());
         }
 
+        public BoundDagTest Update(BoundDagTemp input) => UpdateTestImpl(input);
+        public abstract BoundDagTest UpdateTestImpl(BoundDagTemp input);
+
 #if DEBUG
         internal new string GetDebuggerDisplay()
         {
@@ -103,5 +106,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 #endif
+    }
+
+    partial class BoundDagValueTest
+    {
+        public override BoundDagTest UpdateTestImpl(BoundDagTemp input) => Update(input);
+        public new BoundDagValueTest Update(BoundDagTemp input)
+        {
+            return Update(Value, input);
+        }
+    }
+
+    partial class BoundDagExplicitNullTest
+    {
+        public override BoundDagTest UpdateTestImpl(BoundDagTemp input) => Update(input);
+    }
+
+    partial class BoundDagNonNullTest
+    {
+        public override BoundDagTest UpdateTestImpl(BoundDagTemp input) => Update(input);
+        public new BoundDagNonNullTest Update(BoundDagTemp input)
+        {
+            return Update(IsExplicitTest, input);
+        }
+    }
+
+    partial class BoundDagTypeTest
+    {
+        public override BoundDagTest UpdateTestImpl(BoundDagTemp input) => Update(input);
+        public new BoundDagTypeTest Update(BoundDagTemp input)
+        {
+            return Update(Type, input);
+        }
     }
 }
