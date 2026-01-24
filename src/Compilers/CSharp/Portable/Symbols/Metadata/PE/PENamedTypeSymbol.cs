@@ -64,12 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// A map of types immediately contained within this type 
         /// grouped by their name (case-sensitively).
         /// </summary>
-        private Dictionary<ReadOnlyMemory<char>, ImmutableArray<PENamedTypeSymbol>> _lazyNestedTypesByName;
-
-        /// <summary>
-        /// Cache of the type members.
-        /// </summary>
-        private ImmutableArray<NamedTypeSymbol> _lazyNestedTypes;
+        private Dictionary<ReadOnlyMemory<char>, ImmutableArray<PENamedTypeSymbol>> _lazyNestedTypes;
 
         /// <summary>
         /// Lazily initialized by TypeKind property.
@@ -1637,7 +1632,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // Now add types to the end.
                 int membersCount = members.Count;
 
-                foreach (var typeArray in _lazyNestedTypesByName.Values)
+                foreach (var typeArray in _lazyNestedTypes.Values)
                 {
                     members.AddRange(typeArray);
                 }
@@ -1760,7 +1755,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // nested types are not common, but we need to check just in case
             ImmutableArray<PENamedTypeSymbol> t;
-            if (_lazyNestedTypesByName.TryGetValue(name.AsMemory(), out t))
+            if (_lazyNestedTypes.TryGetValue(name.AsMemory(), out t))
             {
                 m = m.Concat(StaticCast<Symbol>.From(t));
             }
@@ -1800,39 +1795,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private ImmutableArray<NamedTypeSymbol> GetMemberTypesPrivate()
         {
-            if (_lazyNestedTypes.IsDefault)
+            var count = _lazyNestedTypes.Values.Sum(static a => a.Length);
+            var result = new PENamedTypeSymbol[count];
+            var destIndex = 0;
+
+            foreach (var typeArray in _lazyNestedTypes.Values)
             {
-                ImmutableInterlocked.InterlockedInitialize(ref _lazyNestedTypes, compute());
+                typeArray.CopyTo(result, destIndex);
+
+                destIndex += typeArray.Length;
             }
 
-            return _lazyNestedTypes;
-
-            ImmutableArray<NamedTypeSymbol> compute()
-            {
-                var count = _lazyNestedTypesByName.Values.Sum(static a => a.Length);
-                var result = new PENamedTypeSymbol[count];
-                var destIndex = 0;
-
-                foreach (var typeArray in _lazyNestedTypesByName.Values)
-                {
-                    typeArray.CopyTo(result, destIndex);
-
-                    destIndex += typeArray.Length;
-                }
-
-                return ImmutableCollectionsMarshal.AsImmutableArray<NamedTypeSymbol>(result);
-            }
+            return ImmutableCollectionsMarshal.AsImmutableArray<NamedTypeSymbol>(result);
         }
 
         private void EnsureNestedTypesAreLoaded()
         {
-            if (_lazyNestedTypesByName == null)
+            if (_lazyNestedTypes == null)
             {
                 var types = ArrayBuilder<PENamedTypeSymbol>.GetInstance();
                 types.AddRange(this.CreateNestedTypes());
                 var typesDict = GroupByName(types);
 
-                var exchangeResult = Interlocked.CompareExchange(ref _lazyNestedTypesByName, typesDict, null);
+                var exchangeResult = Interlocked.CompareExchange(ref _lazyNestedTypes, typesDict, null);
                 if (exchangeResult == null)
                 {
                     // Build cache of TypeDef Tokens
@@ -1846,7 +1831,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private void SetExtensionGroupingTypeNestedTypes(ArrayBuilder<PENamedTypeSymbol> groupingNestedTypes)
         {
-            var exchangeResult = Interlocked.CompareExchange(ref _lazyNestedTypesByName, GroupByName(groupingNestedTypes), null);
+            var exchangeResult = Interlocked.CompareExchange(ref _lazyNestedTypes, GroupByName(groupingNestedTypes), null);
             Debug.Assert(exchangeResult == null);
         }
 
@@ -1856,7 +1841,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             ImmutableArray<PENamedTypeSymbol> t;
 
-            if (_lazyNestedTypesByName.TryGetValue(name, out t))
+            if (_lazyNestedTypes.TryGetValue(name, out t))
             {
                 return StaticCast<NamedTypeSymbol>.From(t);
             }
