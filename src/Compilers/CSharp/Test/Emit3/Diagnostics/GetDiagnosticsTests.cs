@@ -1909,6 +1909,130 @@ public enum E2
                 }, SymbolKind.NamedType);
             }
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/62031")]
+        public void TestSuppressMessageOnLambda()
+        {
+            var source = @"
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    void M()
+    {
+        // Lambda with SuppressMessage attribute should suppress diagnostic TEST001 inside the lambda body
+        var lambda = [SuppressMessage(""Test"", ""TEST001"")] () => 
+        {
+            TestMethod();  // This should be suppressed
+        };
+
+        // Local function with SuppressMessage attribute should suppress diagnostic
+        [SuppressMessage(""Test"", ""TEST001"")]
+        void LocalFunction()
+        {
+            TestMethod();  // This should be suppressed
+        }
+
+        lambda();
+        LocalFunction();
+    }
+
+    void TestMethod() { }
+}";
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+
+            // Create a simple diagnostic analyzer that reports TEST001 for method invocations
+            var analyzer = new MethodInvocationAnalyzer();
+            var analyzers = new DiagnosticAnalyzer[] { analyzer };
+
+            // Verify that the diagnostic is suppressed in both lambda and local function
+            var analyzerDiagnostics = compilation.GetAnalyzerDiagnostics(analyzers);
+            analyzerDiagnostics.Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/62031")]
+        public void TestSuppressMessageOnParenthesizedLambda()
+        {
+            var source = @"
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    void M()
+    {
+        var lambda = [SuppressMessage(""Test"", ""TEST001"")] (int x) => TestMethod();
+        lambda(1);
+    }
+
+    void TestMethod() { }
+}";
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+
+            var analyzer = new MethodInvocationAnalyzer();
+            var analyzers = new DiagnosticAnalyzer[] { analyzer };
+
+            var analyzerDiagnostics = compilation.GetAnalyzerDiagnostics(analyzers);
+            analyzerDiagnostics.Verify();
+        }
+
+        private class MethodInvocationAnalyzer : DiagnosticAnalyzer
+        {
+            private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
+                "TEST001",
+                "Test diagnostic",
+                "Method invocation",
+                "Test",
+                DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.InvocationExpression);
+            }
+
+            private void AnalyzeNode(SyntaxNodeAnalysisContext context)
+            {
+                var invocation = (InvocationExpressionSyntax)context.Node;
+                // Only report on invocations of TestMethod
+                if (invocation.Expression is IdentifierNameSyntax identifier && 
+                    identifier.Identifier.ValueText == "TestMethod")
+                {
+                    context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_descriptor, invocation.GetLocation()));
+                }
+            }
+        }
+
+        private class LocalVariableAnalyzer : DiagnosticAnalyzer
+        {
+            private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
+                "TEST001",
+                "Test diagnostic",
+                "Local variable declared",
+                "Test",
+                DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.VariableDeclarator);
+            }
+
+            private void AnalyzeNode(SyntaxNodeAnalysisContext context)
+            {
+                var declarator = (VariableDeclaratorSyntax)context.Node;
+                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_descriptor, declarator.GetLocation()));
+            }
+        }
     }
 }
 
