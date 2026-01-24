@@ -291,19 +291,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        internal override void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string? name, int arity, LookupOptions options)
+        internal sealed override void GetAllExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, ConsList<FieldSymbol> fieldsBeingBound)
         {
             foreach (NamespaceSymbol namespaceSymbol in _namespacesToMerge)
             {
-                namespaceSymbol.GetExtensionMethods(methods, name, arity, options);
-            }
-        }
-
-        internal sealed override void GetExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, ConsList<FieldSymbol> fieldsBeingBound)
-        {
-            foreach (NamespaceSymbol namespaceSymbol in _namespacesToMerge)
-            {
-                namespaceSymbol.GetExtensionMembers(members, name, alternativeName, arity, options, fieldsBeingBound);
+                namespaceSymbol.GetAllExtensionMembers(members, name, alternativeName, arity, options, fieldsBeingBound);
             }
         }
     }

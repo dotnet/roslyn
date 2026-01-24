@@ -327,39 +327,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
         /// <summary>
-        /// Add all extension methods in this namespace to the given list. If name or arity
+        /// Add all extension members and methods in this namespace to the given list. If name or arity
         /// or both are provided, only those extension methods that match are included.
         /// </summary>
-        /// <param name="methods">Methods list</param>
-        /// <param name="nameOpt">Optional method name</param>
-        /// <param name="arity">Method arity</param>
-        /// <param name="options">Lookup options</param>
         /// <remarks>Does not perform a full viability check</remarks>
-        internal virtual void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
-        {
-            var assembly = this.ContainingAssembly;
-
-            // Only MergedNamespaceSymbol should have a null ContainingAssembly
-            // and MergedNamespaceSymbol overrides GetExtensionMethods.
-            Debug.Assert((object)assembly != null);
-
-            if (!assembly.MightContainExtensionMethods)
-            {
-                return;
-            }
-
-            var typesWithExtensionMethods = this.TypesMightContainExtensionMethods;
-
-            foreach (var type in typesWithExtensionMethods)
-            {
-                type.DoGetExtensionMethods(methods, nameOpt, arity, options);
-            }
-        }
-
-#nullable enable
-        /// <remarks>Does not perform a full viability check</remarks>
-        internal virtual void GetExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, ConsList<FieldSymbol> fieldsBeingBound)
+        internal virtual void GetAllExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, ConsList<FieldSymbol> fieldsBeingBound)
         {
             var assembly = this.ContainingAssembly;
 
@@ -376,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var type in typesWithExtensionMethods)
             {
-                type.GetExtensionMembers(members, name, alternativeName, arity, options, fieldsBeingBound);
+                type.GetAllExtensionMembers(members, name, alternativeName, arity, options, fieldsBeingBound);
             }
         }
 #nullable disable

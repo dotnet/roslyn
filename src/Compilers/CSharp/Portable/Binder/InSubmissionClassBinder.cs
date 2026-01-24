@@ -31,17 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             _inUsings = inUsings;
         }
 
-        internal override void GetCandidateExtensionMethodsInSingleBinder(
-            ArrayBuilder<MethodSymbol> methods,
-            string name,
-            int arity,
-            LookupOptions options,
-            Binder originalBinder)
+        internal override void GetAllExtensionCandidatesInSingleBinder(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, Binder originalBinder)
         {
-            for (var submission = this.Compilation; submission != null; submission = submission.PreviousSubmission)
-            {
-                submission.ScriptClass?.GetExtensionMethods(methods, name, arity, options);
-            }
+            // TODO2
+            //for (var submission = this.Compilation; submission != null; submission = submission.PreviousSubmission)
+            //{
+            //    submission.ScriptClass?.GetExtensionMethods(methods, name, arity, options);
+            //}
         }
 
         internal override void LookupSymbolsInSingleBinder(
