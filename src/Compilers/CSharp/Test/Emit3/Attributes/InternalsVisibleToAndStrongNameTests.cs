@@ -3285,7 +3285,7 @@ internal class C3: C1<C2>
             comp2.VerifyDiagnostics();
 
             var comp1Assembly = (MetadataOrSourceAssemblySymbol)comp2.GetAssemblyOrModuleSymbol(comp1Ref);
-            Assert.False(comp1Assembly.AssembliesToWhichInternalAccessHasBeenDetermined.ContainsKey(comp2.Assembly));
+            Assert.False(comp1Assembly.AssembliesToWhichInternalAccessHasBeenDetermined.ContainsKey(comp2.Assembly.Identity));
         }
 
         [Fact]
@@ -3319,7 +3319,7 @@ internal class C3: C1<C2>
             comp2.VerifyDiagnostics();
 
             var comp1Assembly = (MetadataOrSourceAssemblySymbol)comp2.GetAssemblyOrModuleSymbol(comp1Ref);
-            Assert.False(comp1Assembly.AssembliesToWhichInternalAccessHasBeenDetermined.ContainsKey(comp2.Assembly));
+            Assert.False(comp1Assembly.AssembliesToWhichInternalAccessHasBeenDetermined.ContainsKey(comp2.Assembly.Identity));
         }
     }
 }

@@ -26,6 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks></remarks>
         internal IVTConclusion MakeFinalIVTDetermination(AssemblySymbol potentialGiverOfAccess, bool assertUnexpectedGiver)
         {
+            // TODO2: remove parameter if we are not going to use it
+            Debug.Assert(assertUnexpectedGiver || !assertUnexpectedGiver);
+
             IVTConclusion result;
             if (AssembliesToWhichInternalAccessHasBeenDetermined.TryGetValue(potentialGiverOfAccess.Identity, out result))
                 return result;
