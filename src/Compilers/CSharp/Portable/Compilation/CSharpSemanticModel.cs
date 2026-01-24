@@ -5238,6 +5238,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     : ImmutableArray.Create<ISymbol>(namedType, primaryConstructor.GetPublicSymbol());
             }
 
+            // Lambda expressions with attributes need to return their symbol so that SuppressMessage attributes work.
+            // This is needed for the same reason as local functions - so that attributes on the lambda can suppress
+            // diagnostics within the lambda body.
+            if (declaration is AnonymousFunctionExpressionSyntax anonymousFunction)
+            {
+                var lambdaSymbol = GetSymbolInfo(anonymousFunction, cancellationToken).Symbol;
+                return lambdaSymbol != null
+                    ? ImmutableArray.Create(lambdaSymbol)
+                    : ImmutableArray<ISymbol>.Empty;
+            }
+
             var symbol = GetDeclaredSymbolCore(declaration, cancellationToken);
             return symbol != null
                 ? ImmutableArray.Create(symbol)
