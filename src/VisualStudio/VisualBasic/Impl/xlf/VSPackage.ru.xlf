@@ -33,21 +33,21 @@ Collapse #regions on file open;
 Collapse Imports on file open;
 Collapse metadata implementations on file open;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="translated">Подчеркивать переназначенные переменные;Показывать встроенные подсказки;Автоматическая вставка конечных конструкций;Изменять параметры автоматического форматирования;Изменять режим структуры;Автоматическая вставка интерфейса и элементов MustOverride;Показывать или скрывать разделители строк для процедуры;Включить или отключить предложения по исправлению ошибок;Включить или отключить выделение ссылок и ключевых слов;
-Регулярные выражения;
-регулярные выражения;
-связанные компоненты под курсором;
-Сообщать о недопустимых регулярных выражениях;
-регулярное выражение;
-регулярное выражение;
+        <target state="new">Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
+Regex;
+regular expressions;
+related components under cursor;
+Report invalid regular expressions;
+regex;
+regular expression;
 JSON;
-Выделить строки JSON цветом;
-Сообщить о недопустимых строках JSON;
-Найти и предложить функции редактора для строк JSON;
-Сворачивать #regions при открытии файлов;
-Сворачивать директивы import при открытии файлов;
-Сворачивать реализации метаданных при открытии файлов;
-Использовать расширенный набор цветов;Цветовая схема редактора;Поле наследования;Директивы import;</target>
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
+Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -117,7 +117,7 @@ JSON;
       </trans-unit>
       <trans-unit id="312">
         <source>Change completion list settings;Pre-select most recently used member</source>
-        <target state="translated">Изменение параметров списка завершения; Предварительный выбор наиболее часто используемого члена</target>
+        <target state="new">Change completion list settings;Pre-select most recently used member</target>
         <note>IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="114">

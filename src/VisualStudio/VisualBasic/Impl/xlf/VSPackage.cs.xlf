@@ -33,21 +33,21 @@ Collapse #regions on file open;
 Collapse Imports on file open;
 Collapse metadata implementations on file open;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="translated">Podtrhnout znovu přiřazené proměnné;Zobrazovat vložené nápovědy;Automatické vložení koncových konstruktorů;Změnit nastavení přehledného výpisu;Změnit režim sbalení;Automatické vkládání členů Interface a MustOverride;Zobrazit nebo skrýt oddělovače řádků procedur;Zapnout nebo vypnout návrhy oprav chyb;Zapnout nebo vypnout zvýrazňování odkazů a klíčových slov;
+        <target state="new">Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
 Regex;
-regulární výrazy;
-související komponenty pod kurzorem;
-Nahlásit neplatné regulární výrazy;
+regular expressions;
+related components under cursor;
+Report invalid regular expressions;
 regex;
-regulární výraz;
+regular expression;
 JSON;
-Obarvit řetězce JSON;
-Nahlásit neplatné řetězce JSON;
-Rozpoznat a nabízet funkce editoru pro řetězce JSON;
-Při otevření souboru sbalit #regions;
-Při otevření souboru sbalit importy;
-Sbalit implementace metadat při otevření souboru;
-Používat rozšířené barvy;Barevné schéma editoru;Okraj dědičnosti;Direktivy importu;</target>
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
+Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -117,7 +117,7 @@ Používat rozšířené barvy;Barevné schéma editoru;Okraj dědičnosti;Direk
       </trans-unit>
       <trans-unit id="312">
         <source>Change completion list settings;Pre-select most recently used member</source>
-        <target state="translated">Změnit nastavení pro seznam dokončení;Předvolit naposledy použitou položku</target>
+        <target state="new">Change completion list settings;Pre-select most recently used member</target>
         <note>IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="114">
