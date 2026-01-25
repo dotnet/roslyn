@@ -740,7 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         input.Type is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true } unionType &&
                         Binder.IsUnionTypeValueProperty(unionType, property))
                     {
-                        // This sub-puttern is a union matching 
+                        // This sub-pattern is a union matching 
 
                         Debug.Assert(subpattern is { Member.Receiver: null, IsLengthOrCount: false }); // This is the shape created by UnionMatchingRewriter.
                         if (subpattern is { Member.Receiver: null, IsLengthOrCount: false })
