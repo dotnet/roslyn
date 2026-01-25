@@ -322,7 +322,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Built_in_Copilot_analysis">
         <source>Built-in Copilot analysis</source>
-        <target state="translated">Análisis integrado de Copilot</target>
+        <target state="new">Built-in Copilot analysis</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_VisualBasic_References">
@@ -352,7 +352,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue">
         <source>Capture group numbers must be less than or equal to Int32.MaxValue</source>
-        <target state="translated">La captura de números de grupo deben ser menor o igual a Int32.MaxValue</target>
+        <target state="new">Capture group numbers must be less than or equal to Int32.MaxValue</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a{2147483648}</note>
       </trans-unit>
       <trans-unit id="Capture_number_cannot_be_zero">
@@ -952,7 +952,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
         <source>Insufficient hexadecimal digits</source>
-        <target state="translated">Insuficientes dígitos hexadecimales</target>
+        <target state="new">Insufficient hexadecimal digits</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \x</note>
       </trans-unit>
       <trans-unit id="Introduce_constant">
@@ -1052,7 +1052,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Malformed">
         <source>malformed</source>
-        <target state="translated">con formato incorrecto</target>
+        <target state="new">malformed</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0</note>
       </trans-unit>
       <trans-unit id="Malformed_character_escape">
@@ -1092,12 +1092,12 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Method_0_must_be_static_and_non_generic">
         <source>Method '{0}' must be static and non-generic</source>
-        <target state="translated">El método "{0}" debe ser estático y no genérico</target>
+        <target state="new">Method '{0}' must be static and non-generic</target>
         <note />
       </trans-unit>
       <trans-unit id="Method_0_must_have_a_single_parameter_of_type_1_and_return_2">
         <source>Method '{0}' must have a single parameter of type '{1}' and return '{2}'</source>
-        <target state="translated">El método "{0}" debe tener un único parámetro de tipo "{1}" y devolver "{2}"</target>
+        <target state="new">Method '{0}' must have a single parameter of type '{1}' and return '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Miscellaneous_Files">
@@ -1242,7 +1242,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
         <source>Nested quantifier {0}</source>
-        <target state="translated">Cuantificador anidado {0}</target>
+        <target state="new">Nested quantifier {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</note>
       </trans-unit>
       <trans-unit id="No_common_root_node_for_extraction">
@@ -1337,27 +1337,27 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Pull_selected_members_up_to_0">
         <source>Pull selected members up to {0}</source>
-        <target state="translated">Subir miembros seleccionados hasta {0}</target>
+        <target state="new">Pull selected members up to {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
         <source>Quantifier {x,y} following nothing</source>
-        <target state="translated">Cuantificador {x,y} después de nada</target>
+        <target state="new">Quantifier {x,y} following nothing</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: *</note>
       </trans-unit>
       <trans-unit id="Query">
         <source>Query</source>
-        <target state="translated">Consulta</target>
+        <target state="new">Query</target>
         <note />
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group">
         <source>reference to undefined group</source>
-        <target state="translated">referencia al grupo no definido</target>
+        <target state="new">reference to undefined group</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(1))</note>
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group_name_0">
         <source>Reference to undefined group name {0}</source>
-        <target state="translated">Referencia a nombre de grupo no definido {0}</target>
+        <target state="new">Reference to undefined group name {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \k&lt;a&gt;. Here, {0} will be the name of the undefined group ('a')</note>
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group_number_0">
@@ -2532,7 +2532,7 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
       </trans-unit>
       <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
         <source>Renaming anonymous type members is not yet supported.</source>
-        <target state="translated">Todavía no se puede cambiar el nombre de miembros de tipo anónimo.</target>
+        <target state="new">Renaming anonymous type members is not yet supported.</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_1">
@@ -2597,12 +2597,12 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
       </trans-unit>
       <trans-unit id="Semantic_search_query_failed_to_compile">
         <source>Semantic search query failed to compile</source>
-        <target state="translated">No se pudo compilar la consulta de búsqueda semántica</target>
+        <target state="new">Semantic search query failed to compile</target>
         <note />
       </trans-unit>
       <trans-unit id="Semantic_search_query_terminated_with_exception">
         <source>Semantic search query terminated with exception</source>
-        <target state="translated">Consulta de búsqueda semántica finalizada con excepción</target>
+        <target state="new">Semantic search query terminated with exception</target>
         <note />
       </trans-unit>
       <trans-unit id="Silent">
@@ -2697,12 +2697,12 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
       </trans-unit>
       <trans-unit id="The_assembly_0_references_compiler_version_1_newer_than_2">
         <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="translated">El ensamblado del analizador ”{0}” hace referencia a la versión ”{1}” del compilador, que es más reciente que la versión "{2}" que se está ejecutando actualmente.</target>
+        <target state="new">The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_query_does_not_specify_0_method_or_top_level_function">
         <source>The query does not specify '{0}' method or top-level function</source>
-        <target state="translated">La consulta no especifica "{0}" método o función de nivel superior</target>
+        <target state="new">The query does not specify '{0}' method or top-level function</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -2767,7 +2767,7 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
       </trans-unit>
       <trans-unit id="Unable_to_load_type_0_1">
         <source>Unable to load type '{0}': '{1}'</source>
-        <target state="translated">No se ha podido cargar el tipo "{0}": "{1}"</target>
+        <target state="new">Unable to load type '{0}': '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_property">
@@ -2967,7 +2967,7 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
       </trans-unit>
       <trans-unit id="Updating_the_type_of_0_around_an_active_statement_requires_restarting_the_application">
         <source>Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</source>
-        <target state="translated">Actualizar el tipo de {0} (de "{1}" a "{2}") alrededor de una instrucción activa requiere reiniciar la aplicación.</target>
+        <target state="new">Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_type_of_0_requires_restarting_the_application">
@@ -3887,7 +3887,7 @@ Si el especificador de formato "M" se usa sin otros especificadores de formato p
       </trans-unit>
       <trans-unit id="Generate_Equals_object">
         <source>Generate Equals(object)</source>
-        <target state="translated">Generar "Equals(object)"</target>
+        <target state="new">Generate Equals(object)</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_GetHashCode">
@@ -4147,7 +4147,7 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="_0_1">
         <source>    {0} - {1}</source>
-        <target state="translated">    {0} - {1}</target>
+        <target state="new">    {0} - {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source">
@@ -4792,12 +4792,12 @@ Esta versión se utiliza en: {2}</target>
       </trans-unit>
       <trans-unit id="Add_string_IsNullOrEmpty_check">
         <source>Add 'string.IsNullOrEmpty' check</source>
-        <target state="translated">Agregar comprobación de "string.IsNullOrEmpty"</target>
+        <target state="new">Add 'string.IsNullOrEmpty' check</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_string_IsNullOrWhiteSpace_check">
         <source>Add 'string.IsNullOrWhiteSpace' check</source>
-        <target state="translated">Agregar comprobación de "string.IsNullOrWhiteSpace"</target>
+        <target state="new">Add 'string.IsNullOrWhiteSpace' check</target>
         <note />
       </trans-unit>
       <trans-unit id="Initialize_field_0">

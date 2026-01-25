@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Sort_Namespaces">
         <source>&amp;Sort Namespaces</source>
-        <target state="translated">Cla&amp;ssificar Namespaces</target>
+        <target state="new">&amp;Sort Namespaces</target>
         <note />
       </trans-unit>
     </body>

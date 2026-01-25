@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
         <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
-        <target state="translated">Hay una sesión de cambio de nombre insertado que está activa para el identificador "{0}". Vuelva a invocar el cambio de nombre insertado para acceder a más opciones. Puede continuar editando el identificador cuyo nombre se va a cambiar en cualquier momento.</target>
+        <target state="new">An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</target>
         <note>For screenreaders. {0} is the identifier being renamed.</note>
       </trans-unit>
       <trans-unit id="Applying_changes">
@@ -39,12 +39,12 @@
       </trans-unit>
       <trans-unit id="Describe_with_Copilot">
         <source>Describe with Copilot</source>
-        <target state="translated">Describir con Copilot</target>
+        <target state="new">Describe with Copilot</target>
         <note />
       </trans-unit>
       <trans-unit id="Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
         <source>'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</source>
-        <target state="translated">La opción "Describir con Copilot" no está disponible porque su organización excluye el documento al que se hace referencia.</target>
+        <target state="new">'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
@@ -984,7 +984,7 @@
       </trans-unit>
       <trans-unit id="Rename_colon_0">
         <source>Rename: {0}</source>
-        <target state="translated">Cambiar nombre: {0}</target>
+        <target state="new">Rename: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
@@ -1105,8 +1105,8 @@
       <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
         <source>We can fix the error by not making struct "out/ref" parameter(s).
 Do you want to proceed?</source>
-        <target state="translated">Podemos arreglar el error si no hacemos parámetro(s) de estructura "out/ref". 
-¿Quiere continuar?</target>
+        <target state="new">We can fix the error by not making struct "out/ref" parameter(s).
+Do you want to proceed?</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_Signature_colon">
@@ -1171,7 +1171,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="Apply3">
         <source>Apply</source>
-        <target state="translated">Aplicar</target>
+        <target state="new">Apply</target>
         <note />
       </trans-unit>
       <trans-unit id="Cancel">
@@ -1246,12 +1246,12 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="New_name_colon_0">
         <source>New name: {0}</source>
-        <target state="translated">Nuevo nombre: {0}</target>
+        <target state="new">New name: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Modify_any_highlighted_location_to_begin_renaming">
         <source>Modify any highlighted location to begin renaming.</source>
-        <target state="translated">Modificar cualquier ubicación resaltada para empezar a cambiar el nombre.</target>
+        <target state="new">Modify any highlighted location to begin renaming.</target>
         <note />
       </trans-unit>
       <trans-unit id="Paste">

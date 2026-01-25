@@ -234,7 +234,7 @@
       </trans-unit>
       <trans-unit id="Make_method_synchronous">
         <source>Make method synchronous</source>
-        <target state="translated">메서드를 동기 메서드로 설정</target>
+        <target state="new">Make method synchronous</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_type_partial">

@@ -33,21 +33,21 @@ Collapse #regions on file open;
 Collapse Imports on file open;
 Collapse metadata implementations on file open;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="translated">Sublinhar variáveis reatribuídas;Exibir dicas incorporadas;Inserção automática de construtores finais;Alterar as configurações de reformatação automática;Alterar o modo de estrutura de tópicos;Inserção automática de interface e membros MustOverride;Mostrar ou ocultar separadores de linha de procedimento;Ativar ou desativar as sugestões de correção de erros;Ativar ou desativar o realce de referências e palavras-chave;
-Regex; 
-expressões regulares;
-componentes relacionados sob o cursor;
-Notificar expressões regulares inválidas;
+        <target state="new">Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
+Regex;
+regular expressions;
+related components under cursor;
+Report invalid regular expressions;
 regex;
-expressões regulares;
+regular expression;
 JSON;
-Colorizar cadeias de caracteres JSON;
-Notificar cadeias de caracteres JSON inválidas;
-Detectar e oferecer recursos de editor para cadeia de caracteres JSON;
-Recolher #regions do arquivo aberto;
-Recolher inportações do arquivo aberto;
-Recolher implementações de metadados do arquivo aberto;
-Usar cores aprimoradas;Esquema de Cores do Editor;Margem de Herança;Importar Diretivas;</target>
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
+Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -117,7 +117,7 @@ Usar cores aprimoradas;Esquema de Cores do Editor;Margem de Herança;Importar Di
       </trans-unit>
       <trans-unit id="312">
         <source>Change completion list settings;Pre-select most recently used member</source>
-        <target state="translated">Alterar as configurações de lista de conclusão;pre-selecionar membro usado recentemente</target>
+        <target state="new">Change completion list settings;Pre-select most recently used member</target>
         <note>IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="114">

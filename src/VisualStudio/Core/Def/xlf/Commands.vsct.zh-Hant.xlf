@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="cmdIdClearStackTraceExplorer|CommandName">
         <source>CleearStackTraceExplorerCommandName</source>
-        <target state="translated">CleearStackTraceExplorerCommandName</target>
+        <target state="new">CleearStackTraceExplorerCommandName</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdIdClearStackTraceExplorer|LocCanonicalName">
@@ -64,92 +64,92 @@
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeCurrentFile|ButtonText">
         <source>&amp;Current Document</source>
-        <target state="translated">目前文件(&amp;C)</target>
+        <target state="new">&amp;Current Document</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeCurrentFile|CommandName">
         <source>AnalysisScopeCurrentDocument</source>
-        <target state="translated">AnalysisScopeCurrentDocument</target>
+        <target state="new">AnalysisScopeCurrentDocument</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeCurrentFile|LocCanonicalName">
         <source>Current Document</source>
-        <target state="translated">目前文件</target>
+        <target state="new">Current Document</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeDefault|ButtonText">
         <source>&amp;Default</source>
-        <target state="translated">預設(&amp;D)</target>
+        <target state="new">&amp;Default</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeDefault|CommandName">
         <source>AnalysisScopeDefault</source>
-        <target state="translated">AnalysisScopeDefault</target>
+        <target state="new">AnalysisScopeDefault</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeDefault|LocCanonicalName">
         <source>Default</source>
-        <target state="translated">預設</target>
+        <target state="new">Default</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeEntireSolution|ButtonText">
         <source>&amp;Entire Solution</source>
-        <target state="translated">整個解決方案(&amp;E)</target>
+        <target state="new">&amp;Entire Solution</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeEntireSolution|CommandName">
         <source>AnalysisScopeEntireSolution</source>
-        <target state="translated">AnalysisScopeEntireSolution</target>
+        <target state="new">AnalysisScopeEntireSolution</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeEntireSolution|LocCanonicalName">
         <source>Entire Solution</source>
-        <target state="translated">整個解決方案</target>
+        <target state="new">Entire Solution</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeNone|ButtonText">
         <source>&amp;None</source>
-        <target state="translated">無(&amp;N)</target>
+        <target state="new">&amp;None</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeNone|CommandName">
         <source>AnalysisScopeNone</source>
-        <target state="translated">AnalysisScopeNone</target>
+        <target state="new">AnalysisScopeNone</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeNone|LocCanonicalName">
         <source>None</source>
-        <target state="translated">無</target>
+        <target state="new">None</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeOpenFiles|ButtonText">
         <source>&amp;Open Documents</source>
-        <target state="translated">開啟文件(&amp;O)</target>
+        <target state="new">&amp;Open Documents</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeOpenFiles|CommandName">
         <source>AnalysisScopeOpenDocuments</source>
-        <target state="translated">AnalysisScopeOpenDocuments</target>
+        <target state="new">AnalysisScopeOpenDocuments</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeOpenFiles|LocCanonicalName">
         <source>Open Documents</source>
-        <target state="translated">開啟文件</target>
+        <target state="new">Open Documents</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeSubMenu|ButtonText">
         <source>Set Analysis Scope</source>
-        <target state="translated">設定分析範圍</target>
+        <target state="new">Set Analysis Scope</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeSubMenu|CommandName">
         <source>Set Analysis Scope</source>
-        <target state="translated">設定分析範圍</target>
+        <target state="new">Set Analysis Scope</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeSubMenu|LocCanonicalName">
         <source>SetAnalysisScope</source>
-        <target state="translated">SetAnalysisScope</target>
+        <target state="new">SetAnalysisScope</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidCSharpOrganizeSortUsings|ButtonText">

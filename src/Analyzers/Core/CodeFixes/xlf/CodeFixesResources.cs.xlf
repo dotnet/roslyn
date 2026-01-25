@@ -234,7 +234,7 @@
       </trans-unit>
       <trans-unit id="Make_method_synchronous">
         <source>Make method synchronous</source>
-        <target state="translated">Nastavit metodu jako synchronní</target>
+        <target state="new">Make method synchronous</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_type_partial">
