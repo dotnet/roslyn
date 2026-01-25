@@ -369,7 +369,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotMatchOnINumberBase">
         <source>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specifc numeric type.</source>
-        <target state="translated">'INumberBase&lt;T&gt;'에서 상속되거나 확장되므로 '{0}' 숫자 상수 또는 관계형 패턴을 사용할 수 없습니다. 형식 패턴을 사용하여 특정 숫자 형식으로 좁히는 것이 좋습니다.</target>
+        <target state="new">Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specifc numeric type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -459,7 +459,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeMethodNotFound">
         <source>Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
-        <target state="translated">필요한 시그니처가 있는 액세스 가능한 '{0}' 메서드(형식이 'ReadOnlySpan&lt;{1}&gt;'인 단일 매개 변수가 및 '{2}' 반환 형식이 있는 정적 메서드)를 찾을 수 없습니다.</target>
+        <target state="new">Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderNoElementType">
@@ -749,7 +749,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsUtf8StringLiterals">
         <source>An expression tree may not contain UTF-8 string conversion or literal.</source>
-        <target state="translated">식 트리에는 UTF-8 문자열 변환 또는 리터럴이 포함될 수 없습니다.</target>
+        <target state="new">An expression tree may not contain UTF-8 string conversion or literal.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
@@ -799,7 +799,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8_0">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
-        <target state="translated">'{0}' 기능은 C# 8.0에서 사용할 수 없습니다. 언어 버전 {1} 이상을 사용하세요.</target>
+        <target state="new">Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion9">
@@ -1134,7 +1134,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorPathNotInCompilationWithUnmappedCandidate">
         <source>Cannot intercept: Path '{0}' is unmapped. Expected mapped path '{1}'.</source>
-        <target state="translated">차단할 수 없음: 경로 '{0}'이(가) 매핑되지 않았습니다. 매핑된 경로 '{1}'이(가) 예상됩니다.</target>
+        <target state="new">Cannot intercept: Path '{0}' is unmapped. Expected mapped path '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorPositionBadToken">
@@ -1549,7 +1549,7 @@
       </trans-unit>
       <trans-unit id="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName">
         <source>'{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.</source>
-        <target state="translated">'{0}'은(는) 인스턴스 메서드가 아니므로 수신기는 보간된 문자열 처리기 인수가 될 수 없습니다.</target>
+        <target state="new">'{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotOverridableAPIInRecord">
@@ -1774,7 +1774,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyTypeDifference">
         <source>Both partial property declarations must have the same type.</source>
-        <target state="translated">두 부분 속성 선언의 형식이 같아야 합니다.</target>
+        <target state="new">Both partial property declarations must have the same type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyUnexpectedAccessor">
@@ -1994,7 +1994,7 @@
       </trans-unit>
       <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
         <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
-        <target state="translated">'Microsoft.CodeAnalysis.EmbeddedAttribute' 형식은 제네릭이 아니고, 내부, sealed, static이 아니어야 하고, 매개 변수가 없는 생성자를 포함하고, System.Attribute에서 상속하며, 모든 형식에 적용할 수 있어야 합니다.</target>
+        <target state="new">The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
@@ -2089,7 +2089,7 @@
       </trans-unit>
       <trans-unit id="ERR_SimpleProgramDisallowsMainType">
         <source>Cannot specify /main if there is a compilation unit with top-level statements.</source>
-        <target state="translated">최상위 문이 포함된 컴파일 단위가 있으면 /main을 지정할 수 없습니다.</target>
+        <target state="new">Cannot specify /main if there is a compilation unit with top-level statements.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SimpleProgramIsEmpty">
@@ -2114,7 +2114,7 @@
       </trans-unit>
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
         <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
-        <target state="translated">단일 요소 분해 패턴은 명확성을 위해 다른 구문이 필요합니다. 닫는 괄호 ')' 뒤에 무시 항목 지정자 '_'을 추가하는 것이 좋습니다.</target>
+        <target state="new">A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SpreadMissingMember">
@@ -2324,7 +2324,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedTypeForSlicePattern">
         <source>Slice patterns may not be used for a value of type '{0}'.</source>
-        <target state="translated">조각 패턴은 '{0}' 형식 값에 사용할 수 없습니다.</target>
+        <target state="new">Slice patterns may not be used for a value of type '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnterminatedRawString">
@@ -2659,7 +2659,7 @@
       </trans-unit>
       <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
         <source>Identifier is a contextual keyword, with a specific meaning, in a later language version.</source>
-        <target state="translated">식별자는 이후 언어 버전에서 특정 의미를 가진 컨텍스트 키워드입니다.</target>
+        <target state="new">Identifier is a contextual keyword, with a specific meaning, in a later language version.</target>
         <note />
       </trans-unit>
       <trans-unit id="INF_TooManyBoundLambdas">
@@ -2709,12 +2709,12 @@
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
         <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="translated">분석기 어셈블리 '{0}'은(는) 컴파일러의 '{1}' 버전을 참조하며, 이 버전은 현재 실행 중인 버전 '{2}'보다 최신 버전입니다.</target>
+        <target state="new">The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
         <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
-        <target state="translated">분석기 어셈블리는 현재 실행 중인 버전보다 최신 버전의 컴파일러를 참조합니다.</target>
+        <target state="new">The analyzer assembly references a newer version of the compiler than the currently running version.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedIn">
@@ -2739,12 +2739,12 @@
       </trans-unit>
       <trans-unit id="WRN_AttrDependentTypeNotAllowed">
         <source>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</source>
-        <target state="translated">유형 ‘{0}’은(는) 메타데이터로 표현할 수 없기 때문에 이 컨텍스트에서 사용할 수 없습니다.</target>
+        <target state="new">Type '{0}' cannot be used in this context because it cannot be represented in metadata.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttrDependentTypeNotAllowed_Title">
         <source>Type cannot be used in this context because it cannot be represented in metadata.</source>
-        <target state="translated">유형은 메타데이터로 표현할 수 없기 때문에 이 컨텍스트에서 사용할 수 없습니다.</target>
+        <target state="new">Type cannot be used in this context because it cannot be represented in metadata.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadArgRef">
@@ -2769,12 +2769,12 @@
       </trans-unit>
       <trans-unit id="WRN_CallArgMixing">
         <source>This combination of arguments to '{0}' may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
-        <target state="translated">'{0}'에 대한 이 인수 조합은 선언 범위 외부에 있는 '{1}' 매개 변수에서 참조하는 변수를 노출할 수 있습니다.</target>
+        <target state="new">This combination of arguments to '{0}' may expose variables referenced by parameter '{1}' outside of their declaration scope</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallArgMixing_Title">
         <source>This combination of arguments may expose variables referenced by parameter outside of their declaration scope</source>
-        <target state="translated">이 인수 조합은 선언 범위 외부의 매개 변수에서 참조하는 변수를 노출할 수 있습니다.</target>
+        <target state="new">This combination of arguments may expose variables referenced by parameter outside of their declaration scope</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
@@ -2919,22 +2919,22 @@
       </trans-unit>
       <trans-unit id="WRN_EscapeCall">
         <source>Use of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
-        <target state="translated">이 컨텍스트에서 '{0}' 결과를 사용하면 선언 범위 외부에서 '{1}' 매개 변수가 참조하는 변수가 노출될 수 있습니다.</target>
+        <target state="new">Use of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeCall2">
         <source>Use of member of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
-        <target state="translated">이 컨텍스트에서 '{0}' 결과의 멤버를 사용하면 선언 범위 외부에서 '{1}' 매개 변수가 참조하는 변수가 노출될 수 있습니다.</target>
+        <target state="new">Use of member of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeCall2_Title">
         <source>Use of member of result in this context may expose variables referenced by parameter outside of their declaration scope</source>
-        <target state="translated">이 컨텍스트에서 result 멤버를 사용하면 선언 범위 외부의 매개 변수에서 참조하는 변수가 노출될 수 있습니다.</target>
+        <target state="new">Use of member of result in this context may expose variables referenced by parameter outside of their declaration scope</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeCall_Title">
         <source>Use of result in this context may expose variables referenced by parameter outside of their declaration scope</source>
-        <target state="translated">이 컨텍스트에서 결과를 사용하면 선언 범위 외부의 매개 변수에서 참조하는 변수가 노출될 수 있습니다.</target>
+        <target state="new">Use of result in this context may expose variables referenced by parameter outside of their declaration scope</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeStackAlloc">
@@ -3179,12 +3179,12 @@
       </trans-unit>
       <trans-unit id="WRN_PartialPropertySignatureDifference">
         <source>Partial property declarations '{0}' and '{1}' have signature differences.</source>
-        <target state="translated">부분 속성 선언 '{0}' 및 '{1}'에는 서명 차이가 있습니다.</target>
+        <target state="new">Partial property declarations '{0}' and '{1}' have signature differences.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PartialPropertySignatureDifference_Title">
         <source>Partial property declarations have signature differences.</source>
-        <target state="translated">부분 속성 선언에는 서명 차이가 있습니다.</target>
+        <target state="new">Partial property declarations have signature differences.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
@@ -3682,164 +3682,164 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="translated">
-                             Visual C# 컴파일러 옵션
+        <target state="new">
+                             Visual C# Compiler Options
 
-                       - 출력 파일 -
--out:&lt;file&gt;                   출력 파일 이름 지정(기본값: 
-                              메인 클래스가 있는 파일의 기본 이름 또는 첫 번째 파일)
--target:exe                   콘솔 실행 파일 빌드(기본값)(Short
-                              형식: -t:exe)
--target:winexe                Windows 실행 파일 빌드(약식:
+                       - OUTPUT FILES -
+-out:&lt;file&gt;                   Specify output file name (default: base name of
+                              file with main class or first file)
+-target:exe                   Build a console executable (default) (Short
+                              form: -t:exe)
+-target:winexe                Build a Windows executable (Short form:
                               -t:winexe)
--target:library               라이브러리 빌드(약식: -t:library)
--target:module                다른 모듈에 추가할 수 있는 모듈 빌드
-                              어셈블리(약식: -t:module)
--target:appcontainerexe       Appcontainer 실행 파일 빌드(약식:
+-target:library               Build a library (Short form: -t:library)
+-target:module                Build a module that can be added to another
+                              assembly (Short form: -t:module)
+-target:appcontainerexe       Build an Appcontainer executable (Short form:
                               -t:appcontainerexe)
--target:winmdobj              Windows 런타임 중간 파일 빌드
-                              WinMDExp에서 사용합니다(약식: -t:winmdobj)
--doc:&lt;file&gt;                   생성할 XML 문서 파일
--refout:&lt;file&gt;                생성할 참조 어셈블리 출력
--platform:&lt;string&gt;            이 코드가 실행될 수 있는 플랫폼 제한: x86,
-                              Itanium, x64, arm, arm64, anycpu32bitpreferred 또는
-                              anycpu. 기본값은 anycpu입니다.
+-target:winmdobj              Build a Windows Runtime intermediate file that
+                              is consumed by WinMDExp (Short form: -t:winmdobj)
+-doc:&lt;file&gt;                   XML Documentation file to generate
+-refout:&lt;file&gt;                Reference assembly output to generate
+-platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred, or
+                              anycpu. The default is anycpu.
 
-                       - 입력 파일 -
--recurse:&lt;wildcard&gt;           현재 디렉터리의 모든 파일을 포함하고
-                              와일드카드에 따른 하위 디렉터리
-                              사양
--reference:&lt;alias&gt;=&lt;file&gt;      지정된 별칭을 사용하여 지정된 어셈블리 파일의
-                              참조 메타데이터(약식: -r)
--reference:&lt;file list&gt;       지정된 어셈블리 파일의 참조
-                              메타데이터(약식: -r)
--addmodule:&lt;file list&gt;        지정된 모듈을 이 어셈블리에 연결
--link:&lt;file list&gt;             지정된 interop 어셈블리 파일의
-                              메타데이터 포함(약식: -l)
--analyzer:&lt;file list&gt;         이 어셈블리에서 분석기 실행
-                              (약식: -a)
--additionalfile:&lt;file list&gt;   코드 생성에 직접적인 영향을 미치지 않지만
-                              오류 또는 경고를 생성하기 위해 분석기에서
-                              사용할 수 있는 추가 파일입니다.
--embed                        모든 소스 파일을 PDB에 삽입합니다.
--embed:&lt;file list&gt;            PDB에 특정 파일을 포함합니다.
+                       - INPUT FILES -
+-recurse:&lt;wildcard&gt;           Include all files in the current directory and
+                              subdirectories according to the wildcard
+                              specifications
+-reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly
+                              file using the given alias (Short form: -r)
+-reference:&lt;file list&gt;        Reference metadata from the specified assembly
+                              files (Short form: -r)
+-addmodule:&lt;file list&gt;        Link the specified modules into this assembly
+-link:&lt;file list&gt;             Embed metadata from the specified interop
+                              assembly files (Short form: -l)
+-analyzer:&lt;file list&gt;         Run the analyzers from this assembly
+                              (Short form: -a)
+-additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
+                              generation but may be used by analyzers for producing
+                              errors or warnings.
+-embed                        Embed all source files in the PDB.
+-embed:&lt;file list&gt;            Embed specific files in the PDB.
 
-                       - 리소스 -
--win32res:&lt;file&gt;             Win32 리소스 파일(.res) 지정
--win32icon:&lt;file&gt;            출력에 이 아이콘 사용
--win32manifest:&lt;file&gt;         Win32 매니페스트 파일(.xml) 지정
--nowin32manifest              기본 Win32 매니페스트를 포함하지 않음
--resource:&lt;resinfo&gt;           지정된 리소스 포함(약식: -res)
--linkresource:&lt;resinfo&gt;       지정된 리소스를 이 어셈블리에 연결
-                              (약식: -linkres) 여기서 resinfo 형식
-                              은 &lt;file&gt;[,&lt;string name&gt;[,public|private]]
+                       - RESOURCES -
+-win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
+-win32icon:&lt;file&gt;             Use this icon for the output
+-win32manifest:&lt;file&gt;         Specify a Win32 manifest file (.xml)
+-nowin32manifest              Do not include the default Win32 manifest
+-resource:&lt;resinfo&gt;           Embed the specified resource (Short form: -res)
+-linkresource:&lt;resinfo&gt;       Link the specified resource to this assembly
+                              (Short form: -linkres) Where the resinfo format
+                              is &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
-                       - 코드 생성 -
--debug[+|-]                  디버깅 정보 내보내기
+                       - CODE GENERATION -
+-debug[+|-]                   Emit debugging information
 -debug:{full|pdbonly|portable|embedded}
-                              디버깅 유형 지정('full'은 기본값,
-                              'portable'은 플랫폼 간 형식입니다.
-                              'embedded'는 대상 .dll 또는 .exe에 포함된
-                              플랫폼 간간 형식입니다)
--optimize[+|-]                최적화 활성화(약식: -o)
--deterministic                결정적 어셈블리 생성
-                              (모듈 버전 GUID 및 타임스탬프 포함)
--refonly                      기본 출력 대신 참조 어셈블리 생성
--instrument:TestCoverage        커버리지 정보를 수집하기 위해 계측된
-                              어셈블리 생성
--sourcelink:&lt;file&gt;            PDB에 삽입할 소스 링크 정보입니다.
+                              Specify debugging type ('full' is default,
+                              'portable' is a cross-platform format,
+                              'embedded' is a cross-platform format embedded into
+                              the target .dll or .exe)
+-optimize[+|-]                Enable optimizations (Short form: -o)
+-deterministic                Produce a deterministic assembly
+                              (including module version GUID and timestamp)
+-refonly                      Produce a reference assembly in place of the main output
+-instrument:TestCoverage      Produce an assembly instrumented to collect
+                              coverage information
+-sourcelink:&lt;file&gt;            Source link info to embed into PDB.
 
-                       - 오류 및 경고 -
--warnaserror[+|-]             모든 경고를 오류로 보고
--warnaserror[+|-]:&lt;warn list&gt; 특정 경고를 오류로 보고합니다.
-                              (모든 null 가능성 경고에 대해 "nullable" 사용)
--warn:&lt;n&gt;                     경고 수준 설정(0 이상)(약식: -w)
--nowarn:&lt;warn list&gt;           특정 경고 메시지 비활성화
-                              (모든 null 가능성 경고에 대해 "nullable" 사용)
--ruleset:&lt;file&gt;                   특정 진단을 사용하지 않도록 설정하는 규칙 집합 파일을
-                              지정합니다.
+                       - ERRORS AND WARNINGS -
+-warnaserror[+|-]             Report all warnings as errors
+-warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
+                              (use "nullable" for all nullability warnings)
+-warn:&lt;n&gt;                     Set warning level (0 or higher) (Short form: -w)
+-nowarn:&lt;warn list&gt;           Disable specific warning messages
+                              (use "nullable" for all nullability warnings)
+-ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
+                              diagnostics.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
-                              모든 컴파일러 및 분석기의 진단을 SARIF 형식으로 기록하기 위해
-                              지정합니다.
-                              sarif_version:{1|2|2.1} 기본값은 1.2 및 2.1
-                              둘 다 SARIF 버전 2.1.0을 의미합니다.
--reportanalyzer                실행 시간과 같은 추가 분석기 정보를
-                              보고합니다.
--skipanalyzers[+|-]           진단 분석기 실행을 건너뜁니다.
+                              Specify a file to log all compiler and analyzer
+                              diagnostics.
+                              sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                              both mean SARIF version 2.1.0.
+-reportanalyzer               Report additional analyzer information, such as
+                              execution time.
+-skipanalyzers[+|-]           Skip execution of diagnostic analyzers.
 
-                       - 언어 -
--checked[+|-]                오버플로 검사 생성
--unsafe[+|-]                  '안전하지 않은' 코드 허용
--define:&lt;symbol list&gt;         조건부 컴파일 기호 정의(약식
-                              : -d)
--langversion:?                언어 버전에 허용되는 값 표시
--langversion:&lt;string&gt;         다음과 같은 언어 버전 지정
-                              'latest'(부 버전을 포함한 최신 버전),
-                              `default`(`latest`와 동일),
-                              `latestmajor`(부 버전을 제외한 최신 버전),
-                              `preview` (지원되지 않는 미리 보기의 기능을 포함한 최신 버전),
-                              또는 `6` 또는 `7.1`과 같은 특정 버전
--nullable[+|-]                null 허용 컨텍스트 옵션 enable|disable을 지정합니다.
+                       - LANGUAGE -
+-checked[+|-]                 Generate overflow checks
+-unsafe[+|-]                  Allow 'unsafe' code
+-define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
+                              form: -d)
+-langversion:?                Display the allowed values for language version
+-langversion:&lt;string&gt;         Specify language version such as
+                              `latest` (latest version, including minor versions),
+                              `default` (same as `latest`),
+                              `latestmajor` (latest version, excluding minor versions),
+                              `preview` (latest version, including features in unsupported preview),
+                              or specific versions like `6` or `7.1`
+-nullable[+|-]                Specify nullable context option enable|disable.
 -nullable:{enable|disable|warnings|annotations}
-                              null 허용 컨텍스트 옵션 enable|disable|warnings|annotations를 지정합니다.
+                              Specify nullable context option enable|disable|warnings|annotations.
 
-                       - 보안 -
--delaysign[+|-]               공개 키만 사용하여 어셈블리 서명 지연
-                              공개적으로 진행합니다.
--publicsign[+|-]                  강력한 이름의 키의 공개 부분만 사용하여 어셈블리 서명을
-                              공개적으로 진행합니다.
--keyfile:&lt;file&gt;               강력한 이름의 키 파일 지정
--keycontainer:&lt;string&gt;        강력한 이름의 키 컨테이너를 지정합니다.
--highentropyva[+|-]           높은 엔트로피 ASLR 사용
+                       - SECURITY -
+-delaysign[+|-]               Delay-sign the assembly using only the public
+                              portion of the strong name key
+-publicsign[+|-]              Public-sign the assembly using only the public
+                              portion of the strong name key
+-keyfile:&lt;file&gt;               Specify a strong name key file
+-keycontainer:&lt;string&gt;        Specify a strong name key container
+-highentropyva[+|-]           Enable high-entropy ASLR
 
-                       - 기타 -
-@&lt;file&gt;                       추가 옵션에 대한 응답 파일 읽기
--help                         이 사용 메시지 표시(약식: -?)
--nologo                       컴파일러 저작권 메시지 억제
--noconfig                      CSC.RSP 파일을 자동으로 포함하지 않음
--parallel[+|-]                           동시 빌드입니다.
--version                           컴파일러 버전 번호를 표시하고 종료합니다.
+                       - MISCELLANEOUS -
+@&lt;file&gt;                       Read response file for more options
+-help                         Display this usage message (Short form: -?)
+-nologo                       Suppress compiler copyright message
+-noconfig                     Do not auto include CSC.RSP file
+-parallel[+|-]                Concurrent build.
+-version                      Display the compiler version number and exit.
 
-                       - 고급 -
--baseaddress:&lt;address&gt;        빌드할 라이브러리의 기준 주소
--checksumalgorithm:&lt;alg&gt;          PBD에 저장된 소스 파일 체크섬을 계산하기 위한
-                              알고리즘을 지정합니다. 지원되는 값은 다음과 같습니다.
-                              SHA1 또는 SHA256(기본값)입니다.
--codepage:&lt;n&gt;                 소스를 열 때 사용할 코드페이지를 지정합니다.
-                              파일
--utf8output                   UTF-8 인코딩으로 컴파일러 메시지 출력
--main:&lt;type&gt;                  진입점을 포함하는 유형 지정
-                              (가능한 다른 모든 진입점 무시)(약식
-                              : -m)
--fullpaths                    컴파일러는 정규화된 경로를 생성합니다.
--filealign:&lt;n&gt;                출력 파일에 사용되는 정렬을 지정합니다.
-                              섹션
+                       - ADVANCED -
+-baseaddress:&lt;address&gt;        Base address for the library to be built
+-checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
+                              checksum stored in PDB. Supported values are:
+                              SHA1 or SHA256 (default).
+-codepage:&lt;n&gt;                 Specify the codepage to use when opening source
+                              files
+-utf8output                   Output compiler messages in UTF-8 encoding
+-main:&lt;type&gt;                  Specify the type that contains the entry point
+                              (ignore all other possible entry points) (Short
+                              form: -m)
+-fullpaths                    Compiler generates fully qualified paths
+-filealign:&lt;n&gt;                Specify the alignment used for output file
+                              sections
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                              컴파일러를 이용하여 원본 경로 이름 출력의 매핑을
-                              구체화합니다.
--pdb:&lt;file&gt;                  디버그 정보 파일 이름 지정(기본값:
-                              확장자가 .pdb인 출력 파일 이름)
--errorendlocation             각 오류의 끝 위치 출력
-                              행 및 열
--preferreduilang                  기본 출력 언어 이름을 지정합니다.
--nosdkpath                       표준 라이브러리 어셈블리의 기본 SDK 경로 검색을 사용하지 않도록 설정합니다.
--nostdlib[+|-]                표준 라이브러리(mscorlib.dll)를 참조하지 않음
--subsystemversion:&lt;string&gt;    이 어셈블리의 하위 시스템 버전 지정
--lib:&lt;file list&gt;              참조를 검색할 추가 디렉터리
-                              구체화
--errorreport:&lt;string&gt;        내부 컴파일러 오류 처리 방법 지정:
-                              프롬프트, 전송, 큐 또는 없음. 기본값은
-                              큐입니다.
--appconfig:&lt;file&gt;             어셈블리 바인딩 설정이 포함된
-                              애플리케이션 구성 파일 지정
--moduleassemblyname:&lt;string&gt;   이 모듈이 속할 어셈블리의
-                              이름 지정
--modulename:&lt;문자열&gt; 소스 모듈의 이름을 지정합니다.
--generatedfilesout:&lt;dir&gt;       컴파일 중에 생성된 파일을
-                              지정된 디렉터리에 둡니다.
--reportivts[+|-]                   여기에 부여된 모든 IVT에 대한 출력 정보
-                              모든 종속성에 의한 어셈블리 및 외부 어셈블리
-                              접근성 오류가 발생한 어셈블리에 대한 주석을 추가합니다.
+                              Specify a mapping for source path names output by
+                              the compiler.
+-pdb:&lt;file&gt;                   Specify debug information file name (default:
+                              output file name with .pdb extension)
+-errorendlocation             Output line and column of the end location of
+                              each error
+-preferreduilang              Specify the preferred output language name.
+-nosdkpath                    Disable searching the default SDK path for standard library assemblies.
+-nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
+-subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
+-lib:&lt;file list&gt;              Specify additional directories to search in for
+                              references
+-errorreport:&lt;string&gt;         Specify how to handle internal compiler errors:
+                              prompt, send, queue, or none. The default is
+                              queue.
+-appconfig:&lt;file&gt;             Specify an application configuration file
+                              containing assembly binding settings
+-moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
+                              a part of
+-modulename:&lt;string&gt;          Specify the name of the source module
+-generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
+                              specified directory.
+-reportivts[+|-]                    Output information on all IVTs granted to this
+                              assembly by all dependencies, and annotate foreign assembly
+                              accessibility errors with what assembly they came from.
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -5345,12 +5345,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField">
         <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
-        <target state="translated">null을 허용하지 않는 {0} '{1}'은(는) 생성자를 종료할 때 null이 아닌 값을 포함해야 합니다. 'required' 한정자를 추가하거나 {0}을(를) nullable로 선언하거나 '[field: MaybeNull, AllowNull]' 특성을 추가하는 것이 좋습니다.</target>
+        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</target>
         <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField_Title">
         <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
-        <target state="translated">null을 허용하지 않는 속성은 생성자를 종료할 때 null이 아닌 값을 포함해야 합니다. 'required' 한정자를 추가하거나 속성을 nullable로 선언하거나 '[field: MaybeNull, AllowNull]' 특성을 추가하는 것이 좋습니다.</target>
+        <target state="new">Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
@@ -5765,7 +5765,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadVisIndexerParam">
         <source>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer '{0}'</source>
-        <target state="translated">일관성 없는 액세스 가능성: '{1}' 매개 변수 형식이 '{0}' 인덱서보다 액세스하기 어렵습니다.</target>
+        <target state="new">Inconsistent accessibility: parameter type '{1}' is less accessible than indexer '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisOpReturn">
@@ -6150,7 +6150,7 @@
       </trans-unit>
       <trans-unit id="ERR_IntegralTypeValueExpected">
         <source>A value of an integral type expected</source>
-        <target state="translated">정수 계열 형식 값이 필요합니다.</target>
+        <target state="new">A value of an integral type expected</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateCaseLabel">
@@ -6695,7 +6695,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
         <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</source>
-        <target state="translated">'partial' 한정자는 'class', 'record', 'struct', 'interface' 또는 메서드 또는 속성 반환 형식 바로 앞에만 올 수 있습니다.</target>
+        <target state="new">The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -7354,7 +7354,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_PredefinedValueTupleTypeAmbiguous3">
         <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
-        <target state="translated">미리 정의된 형식 '{0}'이(가) 여러 참조된 어셈블리('{1}' 및 '{2}')에서 선언되었습니다.</target>
+        <target state="new">Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructWithBaseConstructorCall">
@@ -7519,7 +7519,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_OperatorsMustBeStatic">
         <source>User-defined operator '{0}' must be declared static and public</source>
-        <target state="translated">'{0}' 사용자 정의 연산자는 static 및 public으로 선언해야 합니다.</target>
+        <target state="new">User-defined operator '{0}' must be declared static and public</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIncDecSignature">
@@ -7674,7 +7674,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_DllImportOnInvalidMethod">
         <source>The DllImport attribute must be specified on a method marked 'static' and 'extern'</source>
-        <target state="translated">DllImport 특성은 'static' 및 'extern'으로 표시된 메서드에만 지정할 수 있습니다.</target>
+        <target state="new">The DllImport attribute must be specified on a method marked 'static' and 'extern'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
@@ -8773,7 +8773,7 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
       </trans-unit>
       <trans-unit id="ERR_BadTypeforThis">
         <source>The first parameter of an extension method cannot be of type '{0}'</source>
-        <target state="translated">확장 메서드의 첫 번째 매개 변수는 '{0}' 형식이 될 수 없습니다.</target>
+        <target state="new">The first parameter of an extension method cannot be of type '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamModThis">
@@ -8803,7 +8803,7 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
       </trans-unit>
       <trans-unit id="ERR_ExtensionAttrNotFound">
         <source>Cannot define a new extension method because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
-        <target state="translated">컴파일러에 필요한 '{0}' 형식을 찾을 수 없으므로 새 확장 메서드를 정의할 수 없습니다. System.Core.dll의 참조가 있는지 확인하세요.</target>
+        <target state="new">Cannot define a new extension method because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitExtension">
@@ -8898,7 +8898,7 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
         <source>Invalid token '{0}' in class, record, struct, or interface member declaration</source>
-        <target state="translated">클래스, 레코드, 구조체 또는 인터페이스 멤버 선언에 잘못된 토큰 '{0}'이(가) 있습니다.</target>
+        <target state="new">Invalid token '{0}' in class, record, struct, or interface member declaration</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">
@@ -9028,7 +9028,7 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
       </trans-unit>
       <trans-unit id="ERR_MainClassIsImport">
         <source>Cannot use '{0}' for Main method because it is imported</source>
-        <target state="translated">가져온 것이므로 Main 메서드에 '{0}'을(를) 사용할 수 없습니다.</target>
+        <target state="new">Cannot use '{0}' for Main method because it is imported</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OutputNeedsName">
@@ -9763,17 +9763,17 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
       </trans-unit>
       <trans-unit id="WRN_BadWarningNumber">
         <source>'{0}' is not a valid warning number</source>
-        <target state="translated">'{0}'은(는) 유효한 경고 번호가 아닙니다.</target>
+        <target state="new">'{0}' is not a valid warning number</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadWarningNumber_Title">
         <source>Not a valid warning number</source>
-        <target state="translated">올바른 경고 번호가 아닙니다.</target>
+        <target state="new">Not a valid warning number</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadWarningNumber_Description">
         <source>A number that was passed to the #pragma warning preprocessor directive was not a valid warning number. Verify that the number represents a warning, not an error.</source>
-        <target state="translated">#pragma 경고 전처리기 지시문에 전달된 번호는 올바른 경고 번호가 아닙니다. 번호가 오류가 아닌 경고를 나타내는지 확인하세요.</target>
+        <target state="new">A number that was passed to the #pragma warning preprocessor directive was not a valid warning number. Verify that the number represents a warning, not an error.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidNumber">
@@ -9788,12 +9788,12 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
       </trans-unit>
       <trans-unit id="WRN_FileNameTooLong">
         <source>Invalid filename specified for preprocessor directive. Filename is too long or not a valid filename.</source>
-        <target state="translated">전처리기 지시문에 잘못된 파일 이름이 지정되었습니다. 파일 이름이 너무 길거나 유효한 파일 이름이 아닙니다.</target>
+        <target state="new">Invalid filename specified for preprocessor directive. Filename is too long or not a valid filename.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_FileNameTooLong_Title">
         <source>Invalid filename specified for preprocessor directive</source>
-        <target state="translated">전처리기 지시문에 지정한 파일 이름이 잘못되었습니다.</target>
+        <target state="new">Invalid filename specified for preprocessor directive</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPChecksum">
@@ -10108,7 +10108,7 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
       </trans-unit>
       <trans-unit id="ERR_CantSetWin32Manifest">
         <source>Error reading Win32 manifest file '{0}' -- '{1}'</source>
-        <target state="translated">'{0}' Win32 매니페스트 파일을 읽는 동안 오류가 발생했습니다. '{1}'</target>
+        <target state="new">Error reading Win32 manifest file '{0}' -- '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CantHaveManifestForModule">
@@ -10238,7 +10238,7 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
       </trans-unit>
       <trans-unit id="ERR_MemGroupInExpressionTree">
         <source>An expression tree lambda may not contain a method group</source>
-        <target state="translated">람다 식 트리에는 메서드 그룹을 사용할 수 없습니다.</target>
+        <target state="new">An expression tree lambda may not contain a method group</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerAddHasParamModifiers">
@@ -10861,12 +10861,12 @@ C#에서는 out과 ref를 구분하지만 CLR에서는 동일한 것으로 간�
       </trans-unit>
       <trans-unit id="WRN_AsyncLacksAwaits">
         <source>This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.</source>
-        <target state="translated">이 비동기 메서드에는 'await' 연산자가 없으며 메서드가 동시에 실행됩니다. 'await' 연산자를 사용하여 비블로킹 API 호출을 대기하거나, 'await Task.Run(...)'을 사용하여 백그라운드 스레드에서 CPU 바인딩된 작업을 수행하세요.</target>
+        <target state="new">This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AsyncLacksAwaits_Title">
         <source>Async method lacks 'await' operators and will run synchronously</source>
-        <target state="translated">이 비동기 메서드에는 'await' 연산자가 없으며 메서드가 동시에 실행됩니다.</target>
+        <target state="new">Async method lacks 'await' operators and will run synchronously</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnobservedAwaitableExpression">
@@ -11008,7 +11008,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_NotYetImplementedInRoslyn">
         <source>This language feature ('{0}') is not yet implemented.</source>
-        <target state="translated">이 언어 기능('{0}')은 아직 구현되지 않았습니다.</target>
+        <target state="new">This language feature ('{0}') is not yet implemented.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueNotAllowed">
@@ -11533,7 +11533,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_InvalidDynamicCondition">
         <source>Expression must be implicitly convertible to Boolean or its type '{0}' must define operator '{1}'.</source>
-        <target state="translated">식은 부울로 암시적으로 변환할 수 있어야 하거나 '{0}' 형식은 '{1}' 연산자를 정의해야 합니다.</target>
+        <target state="new">Expression must be implicitly convertible to Boolean or its type '{0}' must define operator '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MixingWinRTEventWithRegular">
@@ -11543,32 +11543,32 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope1">
         <source>Call System.IDisposable.Dispose() on allocated instance of {0} before all references to it are out of scope.</source>
-        <target state="translated">모든 참조가 범위를 벗어나기 전에 할당된 {0} 인스턴스에서 System.IDisposable.Dispose()를 호출하세요.</target>
+        <target state="new">Call System.IDisposable.Dispose() on allocated instance of {0} before all references to it are out of scope.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope1_Title">
         <source>Call System.IDisposable.Dispose() on allocated instance before all references to it are out of scope</source>
-        <target state="translated">할당된 인스턴스에 대한 모든 참조가 범위를 벗어나기 전에 System.IDisposable.Dispose()를 호출하세요.</target>
+        <target state="new">Call System.IDisposable.Dispose() on allocated instance before all references to it are out of scope</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope2">
         <source>Allocated instance of {0} is not disposed along all exception paths.  Call System.IDisposable.Dispose() before all references to it are out of scope.</source>
-        <target state="translated">할당된 {0} 인스턴스는 일부 예외 경로와 함께 삭제되지 않습니다. 모든 참조가 범위를 벗어나기 전에 System.IDisposable.Dispose()를 호출하세요.</target>
+        <target state="new">Allocated instance of {0} is not disposed along all exception paths.  Call System.IDisposable.Dispose() before all references to it are out of scope.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope2_Title">
         <source>Allocated instance is not disposed along all exception paths</source>
-        <target state="translated">할당된 인스턴스는 일부 예외 경로와 함께 삭제되지 않습니다.</target>
+        <target state="new">Allocated instance is not disposed along all exception paths</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CA2202_DoNotDisposeObjectsMultipleTimes">
         <source>Object '{0}' can be disposed more than once.</source>
-        <target state="translated">'{0}' 개체는 여러 번 삭제할 수 있습니다.</target>
+        <target state="new">Object '{0}' can be disposed more than once.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CA2202_DoNotDisposeObjectsMultipleTimes_Title">
         <source>Object can be disposed more than once</source>
-        <target state="translated">개체를 여러 번 삭제할 수 있습니다.</target>
+        <target state="new">Object can be disposed more than once</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewCoClassOnLink">
@@ -12256,7 +12256,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_InitializerInStructWithoutExplicitConstructor">
         <source>Structs without explicit constructors cannot contain members with initializers.</source>
-        <target state="translated">명시적 생성자가 없는 구조체는 이니셜라이저를 사용하여 멤버를 포함할 수 없습니다.</target>
+        <target state="new">Structs without explicit constructors cannot contain members with initializers.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EncodinglessSyntaxTree">
@@ -12276,7 +12276,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_UnexpectedBoundGenericName">
         <source>Type arguments are not allowed in the nameof operator.</source>
-        <target state="translated">nameof 연산자에서는 형식 인수가 허용되지 않습니다.</target>
+        <target state="new">Type arguments are not allowed in the nameof operator.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullPropagatingOpInExpressionTree">
@@ -12311,7 +12311,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_SingleLineCommentInExpressionHole">
         <source>A single-line comment may not be used in an interpolated string.</source>
-        <target state="translated">보간된 문자열에는 한 줄로 된 주석을 사용할 수 없습니다.</target>
+        <target state="new">A single-line comment may not be used in an interpolated string.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InsufficientStack">
@@ -12561,7 +12561,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyLocal">
         <source>Cannot return '{0}' by reference because it is read-only</source>
-        <target state="translated">'{0}'은(는) 읽기 전용이므로 참조로 반환할 수 없습니다.</target>
+        <target state="new">Cannot return '{0}' by reference because it is read-only</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnRangeVariable">
@@ -12571,7 +12571,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyLocalCause">
         <source>Cannot return '{0}' by reference because it is a '{1}'</source>
-        <target state="translated">'{0}'은(는) '{1}'이므로 참조로 반환할 수 없습니다.</target>
+        <target state="new">Cannot return '{0}' by reference because it is a '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonly">
@@ -12796,7 +12796,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList">
         <source>Reference to an implicitly-typed out variable '{0}' is not permitted in the same argument list.</source>
-        <target state="translated">동일한 인수 목록에서 암시적으로 형식화된 출력 변수 '{0}'에 대한 참조는 허용되지 않습니다.</target>
+        <target state="new">Reference to an implicitly-typed out variable '{0}' is not permitted in the same argument list.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailedForImplicitlyTypedOutVariable">
@@ -13016,7 +13016,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_CompilerAndLanguageVersion">
         <source>Compiler version: '{0}'. Language version: {1}.</source>
-        <target state="translated">컴파일러 버전: '{0}'. 언어 버전: {1}.</target>
+        <target state="new">Compiler version: '{0}'. Language version: {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAsyncMain">
