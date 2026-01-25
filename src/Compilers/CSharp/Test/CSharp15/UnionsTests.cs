@@ -11276,7 +11276,7 @@ class Program
 }
 ";
             var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalse").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "FalseTrueFalse").VerifyDiagnostics();
         }
 
         [Fact]
@@ -11312,7 +11312,7 @@ class Program
 }
 ";
             var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalse").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "FalseTrueFalse").VerifyDiagnostics();
         }
 
         [Fact]
