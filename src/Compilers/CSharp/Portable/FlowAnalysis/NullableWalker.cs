@@ -12570,7 +12570,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(awaitableInfo);
             RemovePlaceholderReplacement(placeholder);
 
-            if (node.Type.IsValueType || node.HasErrors || awaitableInfo.GetResult is null)
+            bool isNullableValueType = node.Type.IsValueType &&
+                                       node.Type is NamedTypeSymbol nts &&
+                                       nts.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
+
+            if ((node.Type.IsValueType && !isNullableValueType) ||
+                node.HasErrors ||
+                awaitableInfo.GetResult is null)
             {
                 SetNotNullResult(node);
             }
