@@ -322,7 +322,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Built_in_Copilot_analysis">
         <source>Built-in Copilot analysis</source>
-        <target state="translated">Yerleşik Copilot analizi</target>
+        <target state="new">Built-in Copilot analysis</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_VisualBasic_References">
@@ -352,7 +352,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue">
         <source>Capture group numbers must be less than or equal to Int32.MaxValue</source>
-        <target state="translated">Yakalama grup numaraları Int32.MaxValue eşit veya daha az olmalıdır</target>
+        <target state="new">Capture group numbers must be less than or equal to Int32.MaxValue</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a{2147483648}</note>
       </trans-unit>
       <trans-unit id="Capture_number_cannot_be_zero">
@@ -952,7 +952,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
         <source>Insufficient hexadecimal digits</source>
-        <target state="translated">Yetersiz onaltılık basamak</target>
+        <target state="new">Insufficient hexadecimal digits</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \x</note>
       </trans-unit>
       <trans-unit id="Introduce_constant">
@@ -1052,7 +1052,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Malformed">
         <source>malformed</source>
-        <target state="translated">Hatalı biçimlendirilmiş</target>
+        <target state="new">malformed</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0</note>
       </trans-unit>
       <trans-unit id="Malformed_character_escape">
@@ -1092,12 +1092,12 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Method_0_must_be_static_and_non_generic">
         <source>Method '{0}' must be static and non-generic</source>
-        <target state="translated">'{0}' yönteminin statik olması ve genel olmaması gerekir.</target>
+        <target state="new">Method '{0}' must be static and non-generic</target>
         <note />
       </trans-unit>
       <trans-unit id="Method_0_must_have_a_single_parameter_of_type_1_and_return_2">
         <source>Method '{0}' must have a single parameter of type '{1}' and return '{2}'</source>
-        <target state="translated">'{0}' yönteminin '{1}' türünde tek bir parametre olması ve '{2}' değerini döndürmesi gerekir</target>
+        <target state="new">Method '{0}' must have a single parameter of type '{1}' and return '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Miscellaneous_Files">
@@ -1242,7 +1242,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
         <source>Nested quantifier {0}</source>
-        <target state="translated">İç içe geçmiş niceleyici {0}</target>
+        <target state="new">Nested quantifier {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</note>
       </trans-unit>
       <trans-unit id="No_common_root_node_for_extraction">
@@ -1337,27 +1337,27 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Pull_selected_members_up_to_0">
         <source>Pull selected members up to {0}</source>
-        <target state="translated">Seçili üyeleri {0} öğesine yukarı çek</target>
+        <target state="new">Pull selected members up to {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
         <source>Quantifier {x,y} following nothing</source>
-        <target state="translated">Niceleyici {x,y} hiçbir şeyi takip etmiyor</target>
+        <target state="new">Quantifier {x,y} following nothing</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: *</note>
       </trans-unit>
       <trans-unit id="Query">
         <source>Query</source>
-        <target state="translated">Sorgu</target>
+        <target state="new">Query</target>
         <note />
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group">
         <source>reference to undefined group</source>
-        <target state="translated">tanımsız grubuna başvuru</target>
+        <target state="new">reference to undefined group</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(1))</note>
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group_name_0">
         <source>Reference to undefined group name {0}</source>
-        <target state="translated">{0} tanımsız grup adı referansı</target>
+        <target state="new">Reference to undefined group name {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \k&lt;a&gt;. Here, {0} will be the name of the undefined group ('a')</note>
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group_number_0">
@@ -2532,7 +2532,7 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       </trans-unit>
       <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
         <source>Renaming anonymous type members is not yet supported.</source>
-        <target state="translated">Anonim türdeki üyeleri yeniden adlandırma henüz desteklenmiyor.</target>
+        <target state="new">Renaming anonymous type members is not yet supported.</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_1">
@@ -2597,12 +2597,12 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       </trans-unit>
       <trans-unit id="Semantic_search_query_failed_to_compile">
         <source>Semantic search query failed to compile</source>
-        <target state="translated">Anlamsal arama sorgusu derlenemedi</target>
+        <target state="new">Semantic search query failed to compile</target>
         <note />
       </trans-unit>
       <trans-unit id="Semantic_search_query_terminated_with_exception">
         <source>Semantic search query terminated with exception</source>
-        <target state="translated">Anlamsal arama sorgusu bir özel durumla sonlandırıldı</target>
+        <target state="new">Semantic search query terminated with exception</target>
         <note />
       </trans-unit>
       <trans-unit id="Silent">
@@ -2697,12 +2697,12 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       </trans-unit>
       <trans-unit id="The_assembly_0_references_compiler_version_1_newer_than_2">
         <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="translated">'{0}' çözümleyici bütünleştirilmiş kodu, derleyicinin şu anda çalışan '{2}' sürümünden daha yeni olan '{1}' sürümüne başvurur.</target>
+        <target state="new">The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_query_does_not_specify_0_method_or_top_level_function">
         <source>The query does not specify '{0}' method or top-level function</source>
-        <target state="translated">Sorgu '{0}' yöntemini veya üst düzey işlev belirtmiyor</target>
+        <target state="new">The query does not specify '{0}' method or top-level function</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -2767,7 +2767,7 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       </trans-unit>
       <trans-unit id="Unable_to_load_type_0_1">
         <source>Unable to load type '{0}': '{1}'</source>
-        <target state="translated">'{0}' türü yüklenemiyor: '{1}'</target>
+        <target state="new">Unable to load type '{0}': '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_property">
@@ -2967,7 +2967,7 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       </trans-unit>
       <trans-unit id="Updating_the_type_of_0_around_an_active_statement_requires_restarting_the_application">
         <source>Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</source>
-        <target state="translated">Etkin bir deyim etrafında {0} türünün ('{1}' değerinden '{2}' değerine) güncelleştirilmesi uygulamanın yeniden başlatılmasını gerektirir.</target>
+        <target state="new">Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_type_of_0_requires_restarting_the_application">
@@ -3887,7 +3887,7 @@ If the "M" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Generate_Equals_object">
         <source>Generate Equals(object)</source>
-        <target state="translated">Equals(object) oluştur</target>
+        <target state="new">Generate Equals(object)</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_GetHashCode">
@@ -4147,7 +4147,7 @@ Devam etmek istiyor musunuz?</target>
       </trans-unit>
       <trans-unit id="_0_1">
         <source>    {0} - {1}</source>
-        <target state="translated">    {0} - {1}</target>
+        <target state="new">    {0} - {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source">
@@ -4792,12 +4792,12 @@ Bu sürüm şurada kullanılır: {2}</target>
       </trans-unit>
       <trans-unit id="Add_string_IsNullOrEmpty_check">
         <source>Add 'string.IsNullOrEmpty' check</source>
-        <target state="translated">'string.IsNullOrEmpty' denetimi ekle</target>
+        <target state="new">Add 'string.IsNullOrEmpty' check</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_string_IsNullOrWhiteSpace_check">
         <source>Add 'string.IsNullOrWhiteSpace' check</source>
-        <target state="translated">'string.IsNullOrWhiteSpace' denetimi ekle</target>
+        <target state="new">Add 'string.IsNullOrWhiteSpace' check</target>
         <note />
       </trans-unit>
       <trans-unit id="Initialize_field_0">
