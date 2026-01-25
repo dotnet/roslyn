@@ -1021,5 +1021,81 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return actions;
         }
+
+        public static AnalyzerActions Merge(ArrayBuilder<AnalyzerActions> otherActions)
+        {
+            if (otherActions.Any(static analyzerAction => analyzerAction.IsDefault))
+            {
+                throw new ArgumentNullException(nameof(otherActions));
+            }
+
+            var compilationStartActions = ArrayBuilder<CompilationStartAnalyzerAction>.GetInstance();
+            var compilationEndActions = ArrayBuilder<CompilationAnalyzerAction>.GetInstance();
+            var compilationActions = ArrayBuilder<CompilationAnalyzerAction>.GetInstance();
+            var syntaxTreeActions = ArrayBuilder<SyntaxTreeAnalyzerAction>.GetInstance();
+            var additionalFileActions = ArrayBuilder<AdditionalFileAnalyzerAction>.GetInstance();
+            var semanticModelActions = ArrayBuilder<SemanticModelAnalyzerAction>.GetInstance();
+            var symbolActions = ArrayBuilder<SymbolAnalyzerAction>.GetInstance();
+            var symbolStartActions = ArrayBuilder<SymbolStartAnalyzerAction>.GetInstance();
+            var symbolEndActions = ArrayBuilder<SymbolEndAnalyzerAction>.GetInstance();
+            var codeBlockStartActions = ArrayBuilder<AnalyzerAction>.GetInstance();
+            var codeBlockEndActions = ArrayBuilder<CodeBlockAnalyzerAction>.GetInstance();
+            var codeBlockActions = ArrayBuilder<CodeBlockAnalyzerAction>.GetInstance();
+            var operationBlockStartActions = ArrayBuilder<OperationBlockStartAnalyzerAction>.GetInstance();
+            var operationBlockEndActions = ArrayBuilder<OperationBlockAnalyzerAction>.GetInstance();
+            var operationBlockActions = ArrayBuilder<OperationBlockAnalyzerAction>.GetInstance();
+            var syntaxNodeActions = ArrayBuilder<AnalyzerAction>.GetInstance();
+            var operationActions = ArrayBuilder<OperationAnalyzerAction>.GetInstance();
+            var isEmpty = true;
+            var concurrent = false;
+
+            foreach (var otherAction in otherActions)
+            {
+                compilationStartActions.AddRange(otherAction._compilationStartActions);
+                compilationEndActions.AddRange(otherAction._compilationEndActions);
+                compilationActions.AddRange(otherAction._compilationActions);
+                syntaxTreeActions.AddRange(otherAction._syntaxTreeActions);
+                additionalFileActions.AddRange(otherAction._additionalFileActions);
+                semanticModelActions.AddRange(otherAction._semanticModelActions);
+                symbolActions.AddRange(otherAction._symbolActions);
+                symbolStartActions.AddRange(otherAction._symbolStartActions);
+                symbolEndActions.AddRange(otherAction._symbolEndActions);
+                codeBlockStartActions.AddRange(otherAction._codeBlockStartActions);
+                codeBlockEndActions.AddRange(otherAction._codeBlockEndActions);
+                codeBlockActions.AddRange(otherAction._codeBlockActions);
+                syntaxNodeActions.AddRange(otherAction._syntaxNodeActions);
+                operationActions.AddRange(otherAction._operationActions);
+                operationBlockStartActions.AddRange(otherAction._operationBlockStartActions);
+                operationBlockEndActions.AddRange(otherAction._operationBlockEndActions);
+                operationBlockActions.AddRange(otherAction._operationBlockActions);
+                isEmpty &= otherAction.IsEmpty;
+
+                concurrent |= otherAction.Concurrent;
+            }
+
+            AnalyzerActions actions = new AnalyzerActions(concurrent)
+            {
+                _compilationStartActions = compilationStartActions.ToImmutableAndFree(),
+                _compilationEndActions = compilationEndActions.ToImmutableAndFree(),
+                _compilationActions = compilationActions.ToImmutableAndFree(),
+                _syntaxTreeActions = syntaxTreeActions.ToImmutableAndFree(),
+                _additionalFileActions = additionalFileActions.ToImmutableAndFree(),
+                _semanticModelActions = semanticModelActions.ToImmutableAndFree(),
+                _symbolActions = symbolActions.ToImmutableAndFree(),
+                _symbolStartActions = symbolStartActions.ToImmutableAndFree(),
+                _symbolEndActions = symbolEndActions.ToImmutableAndFree(),
+                _codeBlockStartActions = codeBlockStartActions.ToImmutableAndFree(),
+                _codeBlockEndActions = codeBlockEndActions.ToImmutableAndFree(),
+                _codeBlockActions = codeBlockActions.ToImmutableAndFree(),
+                _syntaxNodeActions = syntaxNodeActions.ToImmutableAndFree(),
+                _operationActions = operationActions.ToImmutableAndFree(),
+                _operationBlockStartActions = operationBlockStartActions.ToImmutableAndFree(),
+                _operationBlockEndActions = operationBlockEndActions.ToImmutableAndFree(),
+                _operationBlockActions = operationBlockActions.ToImmutableAndFree(),
+                IsEmpty = isEmpty
+            };
+
+            return actions;
+        }
     }
 }

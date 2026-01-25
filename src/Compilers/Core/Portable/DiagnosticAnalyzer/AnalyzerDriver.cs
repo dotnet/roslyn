@@ -2043,8 +2043,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SeverityFilter severityFilter,
             CancellationToken cancellationToken)
         {
-            var allAnalyzerActions = AnalyzerActions.Empty;
             var unsuppressedAnalyzersBuilder = PooledHashSet<DiagnosticAnalyzer>.GetInstance();
+            var actions = ArrayBuilder<AnalyzerActions>.GetInstance();
+
             foreach (var analyzer in analyzers)
             {
                 if (!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerExecutor.Compilation.Options, analyzerManager, analyzerExecutor, analysisScope, severityFilter, cancellationToken))
@@ -2052,9 +2053,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     unsuppressedAnalyzersBuilder.Add(analyzer);
 
                     var analyzerActions = await analyzerManager.GetAnalyzerActionsAsync(analyzer, analyzerExecutor, cancellationToken).ConfigureAwait(false);
-                    allAnalyzerActions = allAnalyzerActions.Append(in analyzerActions);
+                    actions.Add(analyzerActions);
                 }
             }
+
+            var allAnalyzerActions = AnalyzerActions.Merge(actions);
+            actions.Free();
 
             var unsuppressedAnalyzers = unsuppressedAnalyzersBuilder.ToImmutableHashSet();
             unsuppressedAnalyzersBuilder.Free();
