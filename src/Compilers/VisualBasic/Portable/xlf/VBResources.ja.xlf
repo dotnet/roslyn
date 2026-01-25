@@ -362,176 +362,174 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Visual Basic コンパイラ オプション
+        <target state="new">                  Visual Basic Compiler Options
 
-                                 - 出力ファイル -
--out:&lt;file&gt;                       出力ファイル名を指定します。
--target:exe                       コンソール アプリケーション (既定) を作成します。
-                                 (短い形式: -t)
--target:winexe                    Windows アプリケーションを作成します。
--target:library                   ライブラリ アセンブリを作成します。
--target:module                    アセンブリに追加できるモジュールを
-                                 作成します。
--target:appcontainerexe           AppContainer で実行される Windows アプリケーションを
-                                 作成します。
--target:winmdobj                  Windows メタデータ中間ファイルを作成します
--doc[+|-]                         XML ドキュメント ファイルを生成します。
--doc:&lt;file&gt;                       &lt;file&gt; に XML ドキュメント ファイルを生成します。
--refout:&lt;file&gt;                    生成する参照アセンブリ出力です
+                                  - OUTPUT FILE -
+-out:&lt;file&gt;                       Specifies the output file name.
+-target:exe                       Create a console application (default).
+                                  (Short form: -t)
+-target:winexe                    Create a Windows application.
+-target:library                   Create a library assembly.
+-target:module                    Create a module that can be added to an
+                                  assembly.
+-target:appcontainerexe           Create a Windows application that runs in
+                                  AppContainer.
+-target:winmdobj                  Create a Windows Metadata intermediate file
+-doc[+|-]                         Generates XML documentation file.
+-doc:&lt;file&gt;                       Generates XML documentation file to &lt;file&gt;.
+-refout:&lt;file&gt;                    Reference assembly output to generate
 
-                                 - 入力ファイル -
--addmodule:&lt;file_list&gt;            指定されたモジュールからのメタデータを参照します
--link:&lt;file_list&gt;                 指定された相互運用アセンブリからのメタデータを
-                                 埋め込みます。(短い形式: -l)
--recurse:&lt;wildcard&gt;               ワイルドカードの仕様に従って、現在のディレクトリと
-                                 サブディレクトリ内のすべての
-                                 ファイルを含めます。
--reference:&lt;file_list&gt;            指定されたアセンブリからのメタデータを
-                                 参照します。(短い形式: -r)
--analyzer:&lt;file_list&gt;             このアセンブリからアナライザーを実行します
-                                 (短い形式: -a)
--additionalfile:&lt;file list&gt;       コードの生成に直接影響しないものの、エラーまたは警告を
-                                 生成するためにアナライザーが使用する可能性がある
-                                 追加ファイルです。
+                                  - INPUT FILES -
+-addmodule:&lt;file_list&gt;            Reference metadata from the specified modules
+-link:&lt;file_list&gt;                 Embed metadata from the specified interop
+                                  assembly. (Short form: -l)
+-recurse:&lt;wildcard&gt;               Include all files in the current directory
+                                  and subdirectories according to the
+                                  wildcard specifications.
+-reference:&lt;file_list&gt;            Reference metadata from the specified
+                                  assembly. (Short form: -r)
+-analyzer:&lt;file_list&gt;             Run the analyzers from this assembly
+                                  (Short form: -a)
+-additionalfile:&lt;file list&gt;       Additional files that don't directly affect code
+                                  generation but may be used by analyzers for producing
+                                  errors or warnings.
 
-                                 - リソース -
--linkresource:&lt;resinfo&gt;           指定されたファイルを外部アセンブリ リソースとして
-                                 リンクします。
-                                 resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
-                                 (短い形式: -linkres)
--nowin32manifest                  既定のマニフェストを、出力 PE のマニフェスト セクション
-                                 に埋め込みません。
--resource:&lt;resinfo&gt;               指定したファイルを埋め込みアセンブリ リソース
-                                 として追加します。
-                                 resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
-                                 (短い形式: -res)
--win32icon:&lt;file&gt;                 既定の Win32 リソースに、Win32 アイコン ファイル (.ico)
-                                 を指定します。
--win32manifest:&lt;file&gt;             指定されたファイルを出力 PE のマニフェスト セクションに
-                                 埋め込みます。
--win32resource:&lt;file&gt;             Win32 リソース ファイル (.res) を指定します。
+                                  - RESOURCES -
+-linkresource:&lt;resinfo&gt;           Links the specified file as an external
+                                  assembly resource.
+                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
+                                  (Short form: -linkres)
+-nowin32manifest                  The default manifest should not be embedded
+                                  in the manifest section of the output PE.
+-resource:&lt;resinfo&gt;               Adds the specified file as an embedded
+                                  assembly resource.
+                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
+                                  (Short form: -res)
+-win32icon:&lt;file&gt;                 Specifies a Win32 icon file (.ico) for the
+                                  default Win32 resources.
+-win32manifest:&lt;file&gt;             The provided file is embedded in the manifest
+                                  section of the output PE.
+-win32resource:&lt;file&gt;             Specifies a Win32 resource file (.res).
 
-                                 - コード生成 -
--optimize[+|-]                    最適化を有効にします。
--removeintchecks[+|-]             整数チェックを削除します。既定値はオフです。
--debug[+|-]                       デバッグ情報を出力します。
--debug:full                       完全なデバッグ情報を出力します (既定)。
--debug:pdbonly                    完全なデバッグ情報を出力します。
--debug:portable                   クロスプラットフォーム デバッグ情報を出力します。
--debug:embedded                   クロスプラットフォームのデバッグ情報を、ターゲットの .dll または .exe に
-                                 出力します。
--deterministic                   決定論的アセンブリ
-を生成します
-                                 (モジュール バージョン GUID とタイムスタンプを含む)
--refonly                          メイン出力
-の代わりに参照アセンブリを生成します
--instrument:TestCoverage          カバレッジ情報を収集するようにインストルメント化されたアセンブリを
-                                 生成します
--sourcelink:&lt;file&gt;                PDB に埋め込むソース リンク情報。
+                                  - CODE GENERATION -
+-optimize[+|-]                    Enable optimizations.
+-removeintchecks[+|-]             Remove integer checks. Default off.
+-debug[+|-]                       Emit debugging information.
+-debug:full                       Emit full debugging information (default).
+-debug:pdbonly                    Emit full debugging information.
+-debug:portable                   Emit cross-platform debugging information.
+-debug:embedded                   Emit cross-platform debugging information into
+                                  the target .dll or .exe.
+-deterministic                    Produce a deterministic assembly
+                                  (including module version GUID and timestamp)
+-refonly                          Produce a reference assembly in place of the main output
+-instrument:TestCoverage          Produce an assembly instrumented to collect
+                                  coverage information
+-sourcelink:&lt;file&gt;                Source link info to embed into PDB.
 
-                                 - エラーと警告 -
--nowarn                           すべての警告を無効にします。
--nowarn:&lt;number_list&gt;             個々の警告の一覧を無効にします。
--warnaserror[+|-]                 すべての警告をエラーとして扱います。
--warnaserror[+|-]: &lt;number_list&gt;   警告の一覧をエラーとして扱います。
--ruleset:&lt;file&gt;                   特定の診断を無効にするルールセット ファイルを
-                                 指定します。
+                                  - ERRORS AND WARNINGS -
+-nowarn                           Disable all warnings.
+-nowarn:&lt;number_list&gt;             Disable a list of individual warnings.
+-warnaserror[+|-]                 Treat all warnings as errors.
+-warnaserror[+|-]:&lt;number_list&gt;   Treat a list of warnings as errors.
+-ruleset:&lt;file&gt;                   Specify a ruleset file that disables specific
+                                  diagnostics.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
-                                 すべてのコンパイラとアナライザーの診断を SARIF 形式でログに記録する
-                                 ファイルを指定します。
-                                 sarif_version:{1|2|2.1} 既定値は 1 です。2 と 2.1 は
-                                 両方とも SARIF バージョン 2.1.0 を意味します。
--reportanalyzer                   実行時間などの追加のアナライザー情報を
-                                 報告します。
--skipanalyzers[+|-]               診断アナライザーの実行をスキップします。
+                                  Specify a file to log all compiler and analyzer
+                                  diagnostics in SARIF format.
+                                  sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                                  both mean SARIF version 2.1.0.
+-reportanalyzer                   Report additional analyzer information, such as
+                                  execution time.
+-skipanalyzers[+|-]               Skip execution of diagnostic analyzers.
 
-                                 - 言語 -
--define:&lt;symbol_list&gt;             グローバル条件付きコンパイル シンボルを
-                                 宣言します。symbol_list:name=value,...
-                                 (短い形式: -d)
--imports:&lt;import_list&gt;            参照されたメタデータ ファイルの名前空間に対するグローバル インポートを
-                                 宣言します。
-                                 import_list:namespace,...
--langversion:?                  言語バージョンに指定できる値を表示します
--langversion:&lt;string&gt;             次のような言語バージョンを指定します。
-                                 'default' (最新のメジャー バージョン)、または
-                                 'latest' (マイナー バージョンを含む最新バージョン)、
-                                 または `14` や `15.3` などの特定のバージョン
--optionexplicit[+|-]              変数の明示的な宣言が必要です。
--optioninfer[+|-]                 変数の型推論を許可します。
--rootnamespace:&lt;string&gt;           すべての型宣言に対するルート名前空間を
-                                 指定します。
--optionstrict[+|-]                厳密な言語セマンティクスを適用します。
--optionstrict:custom              厳密な言語セマンティクスが守られていないときに
-                                 警告します。
--optioncompare:binary             バイナリ スタイルの文字列比較を指定します。
-                                 これは既定です。
--optioncompare:text               テキスト スタイルの文字列比較を指定します。
+                                  - LANGUAGE -
+-define:&lt;symbol_list&gt;             Declare global conditional compilation
+                                  symbol(s). symbol_list:name=value,...
+                                  (Short form: -d)
+-imports:&lt;import_list&gt;            Declare global Imports for namespaces in
+                                  referenced metadata files.
+                                  import_list:namespace,...
+-langversion:?                    Display the allowed values for language version
+-langversion:&lt;string&gt;             Specify language version such as
+                                  `default` (latest major version), or
+                                  `latest` (latest version, including minor versions),
+                                  or specific versions like `14` or `15.3`
+-optionexplicit[+|-]              Require explicit declaration of variables.
+-optioninfer[+|-]                 Allow type inference of variables.
+-rootnamespace:&lt;string&gt;           Specifies the root Namespace for all type
+                                  declarations.
+-optionstrict[+|-]                Enforce strict language semantics.
+-optionstrict:custom              Warn when strict language semantics are not
+                                  respected.
+-optioncompare:binary             Specifies binary-style string comparisons.
+                                  This is the default.
+-optioncompare:text               Specifies text-style string comparisons.
 
-                                 - その他 -
--help                             この使用状況メッセージを表示します。(短い形式: -?)
--noconfig                         VBC.RSP ファイルを自動的に含めません。
--nologo                           コンパイラの著作権バナーを表示しません。
--quiet                            非表示出力モード。
--verbose                          詳細メッセージを表示します。
--parallel[+|-]                    同時ビルド。
--version                          コンパイラのバージョン番号を表示して終了します。
+                                  - MISCELLANEOUS -
+-help                             Display this usage message. (Short form: -?)
+-noconfig                         Do not auto-include VBC.RSP file.
+-nologo                           Do not display compiler copyright banner.
+-quiet                            Quiet output mode.
+-verbose                          Display verbose messages.
+-parallel[+|-]                    Concurrent build.
+-version                          Display the compiler version number and exit.
 
-                                 - 詳細設定 -
--baseaddress:&lt;number&gt;             ライブラリまたはモジュールのベース アドレス
-                                 (16 進数)。
--checksumalgorithm:&lt;alg&gt;          PDB に格納されているソース ファイルのチェックサムを計算するためのアルゴリズムを
-                                 指定します。サポートされている値:
-                                 SHA1 または SHA256 (既定値)。
--codepage:&lt;number&gt;                ソース ファイルを開くときに使用するコードページを
-                                 指定します。
--delaysign[+|-]                   厳密な名前キーの公開部分のみを使用して
-                                 アセンブリに遅延署名します。
--publicsign[+|-]                  厳密な名前キーの公開部分のみを使用して
-                                 アセンブリに公開署名します。
--errorreport:&lt;string&gt;             内部コンパイラ エラーを処理する方法を指定します。
-                                 prompt、send、none、queue
-                                 (既定値) のいずれかです。
--generatedfilesout:&lt;dir&gt;          コンパイル中に生成されたファイルを指定した
-                                 ディレクトリに配置します。
--filealign:&lt;number&gt;               出力ファイルのセクションに使用する配置を
-                                 指定します。
--highentropyva[+|-]               高エントロピ ASLR を有効にします。
--keycontainer:&lt;string&gt;            厳密な名前のキー コンテナーを指定します。
--keyfile:&lt;file&gt;                   厳密な名前のキー ファイルを指定します。
--libpath:&lt;path_list&gt;              メタデータ参照を検索するディレクトリの
-                                 一覧です。(セミコロン区切り)。
--main:&lt;class&gt;                     Sub Main を含むクラスまたはモジュールを
-                                 指定します。また、System.Windows.Forms.Form から
-                                 継承するクラスを指定することもできます。
-                                 (短い形式: -m)
--moduleassemblyname:&lt;string&gt;      このモジュールが属することになるアセンブリの
-                                 名前です。
--netcf                            .NET Compact Framework をターゲットに設定します。
--nostdlib                         標準ライブラリを参照しません
-                                 (system.dll と VBC.RSP ファイル)。
+                                  - ADVANCED -
+-baseaddress:&lt;number&gt;             The base address for a library or module
+                                  (hex).
+-checksumalgorithm:&lt;alg&gt;          Specify algorithm for calculating source file
+                                  checksum stored in PDB. Supported values are:
+                                  SHA1 or SHA256 (default).
+-codepage:&lt;number&gt;                Specifies the codepage to use when opening
+                                  source files.
+-delaysign[+|-]                   Delay-sign the assembly using only the public
+                                  portion of the strong name key.
+-publicsign[+|-]                  Public-sign the assembly using only the public
+                                  portion of the strong name key.
+-errorreport:&lt;string&gt;             Specifies how to handle internal compiler
+                                  errors; must be prompt, send, none, or queue
+                                  (default).
+-generatedfilesout:&lt;dir&gt;          Place files generated during compilation in the
+                                  specified directory.
+-filealign:&lt;number&gt;               Specify the alignment used for output file
+                                  sections.
+-highentropyva[+|-]               Enable high-entropy ASLR.
+-keycontainer:&lt;string&gt;            Specifies a strong name key container.
+-keyfile:&lt;file&gt;                   Specifies a strong name key file.
+-libpath:&lt;path_list&gt;              List of directories to search for metadata
+                                  references. (Semi-colon delimited.)
+-main:&lt;class&gt;                     Specifies the Class or Module that contains
+                                  Sub Main. It can also be a Class that
+                                  inherits from System.Windows.Forms.Form.
+                                  (Short form: -m)
+-moduleassemblyname:&lt;string&gt;      Name of the assembly which this module will
+                                  be a part of.
+-netcf                            Target the .NET Compact Framework.
+-nostdlib                         Do not reference standard libraries
+                                  (system.dll and VBC.RSP file).
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                                 コンパイラが出力するソース パス名のマッピングを
-                                 指定します。
--platform:&lt;string&gt;                このコードを実行できるプラットフォームを限定します。
-                                 x86、x64、Itanium、arm、arm64
-                                 AnyCPU32BitPreferred、anycpu (既定値) のいずれかである必要があります。
--preferreduilang                  優先する出力言語名を指定します。
--nosdkpath                        標準ライブラリ アセンブリの既定の SDK パスの検索を無効にします。
--reportivts[+|-]                  すべての依存関係によってこのアセンブリに
-                                 付与されたすべての IVT に関する情報を出力し、外部アセンブリの
-                                 アクセシビリティ エラーに、発生元のアセンブリに関する注釈をつけます。
--sdkpath:&lt;path&gt;                   .NET Framework SDK ディレクトリの場所
-                                 (mscorlib.dll)。
--subsystemversion:&lt;version&gt;       出力 PE のサブシステム バージョンを指定します。
-                                 version:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  UTF-8 文字エンコードでコンパイラ出力を
-                                 作成します。
-@&lt;file&gt;                           テキスト ファイルからコマンド ライン設定を挿入します
--vbruntime[+|-|*]                 コンパイル時に既定の Visual Basic ランタイムを使用するかどうかを
-                                 指定します。
--vbruntime:&lt;file&gt;                 &lt;file&gt; で指定された代替の Visual Basic ランタイムを使用して
-                                 コンパイルします。
+                                  Specify a mapping for source path names output by
+                                  the compiler.
+-platform:&lt;string&gt;                Limit which platforms this code can run on;
+                                  must be x86, x64, Itanium, arm, arm64
+                                  AnyCPU32BitPreferred or anycpu (default).
+-preferreduilang                  Specify the preferred output language name.
+-nosdkpath                        Disable searching the default SDK path for standard library assemblies.
+-reportivts[+|-]                  Output information on all IVTs granted to this
+                                  assembly by all dependencies, and annotate foreign assembly
+                                  accessibility errors with what assembly they came from.
+-sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
+                                  (mscorlib.dll).
+-subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
+                                  version:&lt;number&gt;[.&lt;number&gt;]
+-utf8output[+|-]                  Emit compiler output in UTF-8 character
+                                  encoding.
+@&lt;file&gt;                           Insert command-line settings from a text file
+-vbruntime[+|-|*]                 Compile with/without the default Visual Basic
+                                  runtime.
+-vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
+                                  runtime in &lt;file&gt;.
 </target>
         <note />
       </trans-unit>
@@ -547,7 +545,7 @@
       </trans-unit>
       <trans-unit id="Trees0">
         <source>trees({0})</source>
-        <target state="translated">ツリー ({0})</target>
+        <target state="new">trees({0})</target>
         <note />
       </trans-unit>
       <trans-unit id="TreesMustHaveRootNode">
@@ -632,12 +630,12 @@
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
         <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="translated">アナライザー アセンブリ '{0}' は、コンパイラのバージョン '{1}' を参照しています。これは、現在実行中のバージョン '{2}' よりも新しいバージョンです。</target>
+        <target state="new">The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
         <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
-        <target state="translated">アナライザー アセンブリが参照しるコンパイラのバージョンは、現在実行中のバージョンよりも新しいです。</target>
+        <target state="new">The analyzer assembly references a newer version of the compiler than the currently running version.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
@@ -802,12 +800,12 @@
       </trans-unit>
       <trans-unit id="WRN_FileAlreadyIncluded">
         <source>source file '{0}' specified multiple times</source>
-        <target state="translated">ソース ファイル '{0}' が複数回指定されています</target>
+        <target state="new">source file '{0}' specified multiple times</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_FileAlreadyIncluded_Title">
         <source>Source file specified multiple times</source>
-        <target state="translated">ソース ファイルが複数回指定されました</target>
+        <target state="new">Source file specified multiple times</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOpenFileWrite">
@@ -852,12 +850,12 @@
       </trans-unit>
       <trans-unit id="WRN_InvalidWarningId">
         <source>warning number '{0}' for the option '{1}' is either not configurable or not valid</source>
-        <target state="translated">警告番号 '{0}' (オプション '{1}' ) は、構成できないか無効です</target>
+        <target state="new">warning number '{0}' for the option '{1}' is either not configurable or not valid</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidWarningId_Title">
         <source>Warning number is either not configurable or not valid</source>
-        <target state="translated">警告番号は、構成できないか無効です</target>
+        <target state="new">Warning number is either not configurable or not valid</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSourcesOut">
@@ -2984,7 +2982,7 @@
       </trans-unit>
       <trans-unit id="ERR_ArrayInitForNonArray2">
         <source>Array initializers are valid only for arrays, but the type of '{0}' is '{1}'.</source>
-        <target state="translated">配列初期化子は配列に対してのみ有効ですが、'{0}' の型は '{1}' です。</target>
+        <target state="new">Array initializers are valid only for arrays, but the type of '{0}' is '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EndRegionNoRegion">
@@ -6738,12 +6736,12 @@
       </trans-unit>
       <trans-unit id="WRN_UseSwitchInsteadOfAttribute">
         <source>Use command-line option '{0}' or appropriate project settings instead of '{1}'.</source>
-        <target state="translated">コマンド ライン オプション '{0}' を使用するか、'{1}' 以外の適切なプロジェクト設定を使用してください。</target>
+        <target state="new">Use command-line option '{0}' or appropriate project settings instead of '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseSwitchInsteadOfAttribute_Title">
         <source>Use command-line option /keyfile, /keycontainer, or /delaysign instead of AssemblyKeyFileAttribute, AssemblyKeyNameAttribute, or AssemblyDelaySignAttribute</source>
-        <target state="translated">AssemblyKeyFileAttribute、AssemblyKeyNameAttribute、または AssemblyDelaySignAttribute の代わりに、コマンド ライン オプション /keyfile、/keycontainer、または /delaysign を使用してください</target>
+        <target state="new">Use command-line option /keyfile, /keycontainer, or /delaysign instead of AssemblyKeyFileAttribute, AssemblyKeyNameAttribute, or AssemblyDelaySignAttribute</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecursiveAddHandlerCall">
@@ -7428,12 +7426,12 @@
       </trans-unit>
       <trans-unit id="WRN_QueryMissingAsClauseinVarDecl">
         <source>Range variable is assumed to be of type Object because its type cannot be inferred. Use an 'As' clause to specify a different type.</source>
-        <target state="translated">型を推論できないため、範囲変数は Object 型と見なされます。'As' 句を使って異なる型を指定してください。</target>
+        <target state="new">Range variable is assumed to be of type Object because its type cannot be inferred. Use an 'As' clause to specify a different type.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_QueryMissingAsClauseinVarDecl_Title">
         <source>Range variable is assumed to be of type Object because its type cannot be inferred</source>
-        <target state="translated">範囲変数の型を推論できないため、Object 型であると見なされます</target>
+        <target state="new">Range variable is assumed to be of type Object because its type cannot be inferred</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultilineLambdaMissingFunction">
