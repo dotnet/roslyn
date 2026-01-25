@@ -421,6 +421,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private static BoundDagTemp OriginalInput(BoundDagTemp input)
+        {
+            // Type evaluations do not change identity
+            while (input.Source is BoundDagTypeEvaluation source)
+            {
+                Debug.Assert(input.Index == 0);
+                input = source.Input;
+            }
+
+            return input;
+        }
+
         private Tests MakeTestsAndBindingsForDeclarationPattern(
             BoundDagTemp input,
             BoundDeclarationPattern declaration,
@@ -1445,8 +1457,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsSameEntity(BoundDagTemp input1, BoundDagTemp input2)
         {
-            BoundDagTemp s1Input = originalInput(input1);
-            BoundDagTemp s2Input = originalInput(input2);
+            BoundDagTemp s1Input = OriginalInput(input1);
+            BoundDagTemp s2Input = OriginalInput(input2);
             while (s1Input.Index == s2Input.Index)
             {
                 switch (s1Input.Source, s2Input.Source)
@@ -1461,8 +1473,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return true;
 
                     case (BoundDagEvaluation s1, BoundDagEvaluation s2) when s1.IsEquivalentTo(s2):
-                        s1Input = originalInput(s1.Input);
-                        s2Input = originalInput(s2.Input);
+                        s1Input = OriginalInput(s1.Input);
+                        s2Input = OriginalInput(s2.Input);
                         continue;
                 }
                 break;
@@ -1470,18 +1482,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // unrelated
             return false;
-
-            static BoundDagTemp originalInput(BoundDagTemp input)
-            {
-                // Type evaluations do not change identity
-                while (input.Source is BoundDagTypeEvaluation source)
-                {
-                    Debug.Assert(input.Index == 0);
-                    input = source.Input;
-                }
-
-                return input;
-            }
         }
 
         /// <summary>
