@@ -326,17 +326,34 @@ internal sealed class CommittedSolution(DebuggingSession debuggingSession, Solut
     {
         Contract.ThrowIfNull(document.FilePath);
 
-        var maybePdbHasDocument = TryReadSourceFileChecksumFromPdb(document, out var requiredChecksum, out var checksumAlgorithm);
+        var maybePdbHasDocument = TryReadSourceFileDebugInfo(document, sourceText.Encoding, out var requiredChecksum, out var checksumAlgorithm, out var defaultEncoding);
 
         var maybeMatchingSourceText = (maybePdbHasDocument == true)
-            ? await TryGetMatchingSourceTextAsync(debuggingSession.SessionLog, sourceText, document.FilePath, currentDocument, debuggingSession.SourceTextProvider, requiredChecksum, checksumAlgorithm, cancellationToken).ConfigureAwait(false)
+            ? await TryGetMatchingSourceTextAsync(
+                debuggingSession.SessionLog,
+                sourceText,
+                document.FilePath,
+                currentDocument,
+                debuggingSession.SourceTextProvider,
+                requiredChecksum,
+                checksumAlgorithm,
+                defaultEncoding,
+                cancellationToken).ConfigureAwait(false)
             : default;
 
         return (maybeMatchingSourceText, maybePdbHasDocument);
     }
 
     private static async ValueTask<Optional<SourceText?>> TryGetMatchingSourceTextAsync(
-        TraceLog log, SourceText sourceText, string filePath, Document? currentDocument, IPdbMatchingSourceTextProvider sourceTextProvider, ImmutableArray<byte> requiredChecksum, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
+        TraceLog log,
+        SourceText sourceText,
+        string filePath,
+        Document? currentDocument,
+        IPdbMatchingSourceTextProvider sourceTextProvider,
+        ImmutableArray<byte> requiredChecksum,
+        SourceHashAlgorithm checksumAlgorithm,
+        Encoding? defaultEncoding,
+        CancellationToken cancellationToken)
     {
         if (IsMatchingSourceText(sourceText, requiredChecksum, checksumAlgorithm))
         {
@@ -355,10 +372,10 @@ internal sealed class CommittedSolution(DebuggingSession debuggingSession, Solut
         var text = await sourceTextProvider.TryGetMatchingSourceTextAsync(filePath, requiredChecksum, checksumAlgorithm, cancellationToken).ConfigureAwait(false);
         if (text != null)
         {
-            return SourceText.From(text, sourceText.Encoding, checksumAlgorithm);
+            return SourceText.From(text, defaultEncoding, checksumAlgorithm);
         }
 
-        return await Task.Run(() => TryGetPdbMatchingSourceTextFromDisk(log, filePath, requiredChecksum, checksumAlgorithm), cancellationToken).ConfigureAwait(false);
+        return await Task.Run(() => TryGetPdbMatchingSourceTextFromDisk(log, filePath, defaultEncoding, requiredChecksum, checksumAlgorithm), cancellationToken).ConfigureAwait(false);
     }
 
     private static DebugInformationReaderProvider? GetMethodDebugInfoReader(TraceLog log, CompilationOutputs compilationOutputs, string projectName)
@@ -403,6 +420,7 @@ internal sealed class CommittedSolution(DebuggingSession debuggingSession, Solut
     private static Optional<SourceText?> TryGetPdbMatchingSourceTextFromDisk(
         TraceLog log,
         string sourceFilePath,
+        Encoding? defaultEncoding,
         ImmutableArray<byte> requiredChecksum,
         SourceHashAlgorithm checksumAlgorithm)
     {
@@ -410,8 +428,7 @@ internal sealed class CommittedSolution(DebuggingSession debuggingSession, Solut
         {
             using var fileStream = new FileStream(sourceFilePath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
 
-            // TODO: Consider CodePage compiler setting (https://github.com/dotnet/roslyn/issues/81930)
-            var sourceText = SourceText.From(fileStream, encoding: null, checksumAlgorithm);
+            var sourceText = SourceText.From(fileStream, defaultEncoding, checksumAlgorithm);
 
             if (IsMatchingSourceText(sourceText, requiredChecksum, checksumAlgorithm))
             {
@@ -432,22 +449,39 @@ internal sealed class CommittedSolution(DebuggingSession debuggingSession, Solut
         }
     }
 
-    private bool? TryReadSourceFileChecksumFromPdb(Document document, out ImmutableArray<byte> requiredChecksum, out SourceHashAlgorithm checksumAlgorithm)
+    private bool? TryReadSourceFileDebugInfo(Document document, Encoding? documentEncoding, out ImmutableArray<byte> checksum, out SourceHashAlgorithm checksumAlgorithm, out Encoding? defaultEncoding)
     {
         Contract.ThrowIfNull(document.FilePath);
+        defaultEncoding = null;
 
         var compilationOutputs = debuggingSession.GetCompilationOutputs(document.Project);
         using var debugInfoReaderProvider = GetMethodDebugInfoReader(debuggingSession.SessionLog, compilationOutputs, document.Project.Name);
         if (debugInfoReaderProvider == null)
         {
             // unable to determine whether document is in the PDB
-            requiredChecksum = default;
+            checksum = default;
             checksumAlgorithm = default;
             return null;
         }
 
-        var debugInfoReader = debugInfoReaderProvider.CreateEditAndContinueMethodDebugInfoReader();
-        return TryReadSourceFileChecksumFromPdb(debuggingSession.SessionLog, debugInfoReader, document.FilePath, out requiredChecksum, out checksumAlgorithm);
+        var debugInfoReader = debugInfoReaderProvider.CreateEditAndContinueDebugInfoReader();
+
+        var result = TryReadSourceFileChecksumFromPdb(debuggingSession.SessionLog, debugInfoReader, document.FilePath, out checksum, out checksumAlgorithm);
+
+        if (result == true)
+        {
+            try
+            {
+                defaultEncoding = debugInfoReader.GetDefaultSourceFileEncoding();
+            }
+            catch (NotSupportedException e)
+            {
+                debuggingSession.SessionLog.Write($"Unable to determine default defaultEncoding for '{document.FilePath}': {e.Message}");
+                defaultEncoding = documentEncoding;
+            }
+        }
+
+        return result;
     }
 
     /// <summary>
@@ -458,7 +492,7 @@ internal sealed class CommittedSolution(DebuggingSession debuggingSession, Solut
     /// </summary>
     private static bool? TryReadSourceFileChecksumFromPdb(
         TraceLog log,
-        EditAndContinueMethodDebugInfoReader debugInfoReader,
+        EditAndContinueDebugInfoReader debugInfoReader,
         string sourceFilePath,
         out ImmutableArray<byte> checksum,
         out SourceHashAlgorithm algorithm)

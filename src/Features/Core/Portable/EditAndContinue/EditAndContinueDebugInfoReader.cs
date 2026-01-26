@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -11,6 +9,7 @@ using System.IO;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -22,14 +21,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// Reader of debug information needed for EnC.
 /// This object does not own the underlying memory (SymReader/MetadataReader).
 /// </summary>
-internal abstract class EditAndContinueMethodDebugInfoReader
+internal abstract class EditAndContinueDebugInfoReader
 {
-    // TODO: Remove, the path should match exactly. Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830914.
-    internal static bool IgnoreCaseWhenComparingDocumentNames;
-
     public abstract bool IsPortable { get; }
     public abstract EditAndContinueMethodDebugInformation GetDebugInfo(MethodDefinitionHandle methodHandle);
     public abstract StandaloneSignatureHandle GetLocalSignature(MethodDefinitionHandle methodHandle);
+    public abstract ImmutableDictionary<string, string> GetCompilationOptions();
+
+    /// <summary>
+    /// Returns default source file encoding specified in the compilation options.
+    /// </summary>
+    /// <exception cref="NotSupportedException">The PDB does not support compilation options, the options do not include encoding, or the encoding is not supproted by the platform.</exception>
+    public abstract Encoding? GetDefaultSourceFileEncoding();
 
     /// <summary>
     /// Reads document checksum.
@@ -38,7 +41,7 @@ internal abstract class EditAndContinueMethodDebugInfoReader
     /// <exception cref="Exception">Error reading debug information from the PDB.</exception>
     public abstract bool TryGetDocumentChecksum(string documentPath, out ImmutableArray<byte> checksum, out Guid algorithmId);
 
-    private sealed class Native : EditAndContinueMethodDebugInfoReader
+    private sealed class Native : EditAndContinueDebugInfoReader
     {
         private readonly ISymUnmanagedReader5 _symReader;
         private readonly int _version;
@@ -66,7 +69,7 @@ internal abstract class EditAndContinueMethodDebugInfoReader
         {
             var methodToken = MetadataTokens.GetToken(methodHandle);
 
-            byte[] debugInfo;
+            byte[]? debugInfo;
             try
             {
                 debugInfo = _symReader.GetCustomDebugInfo(methodToken, _version);
@@ -107,11 +110,26 @@ internal abstract class EditAndContinueMethodDebugInfoReader
 
         public override bool TryGetDocumentChecksum(string documentPath, out ImmutableArray<byte> checksum, out Guid algorithmId)
             => TryGetDocumentChecksum(_symReader, documentPath, out checksum, out algorithmId);
+
+        public override ImmutableDictionary<string, string> GetCompilationOptions()
+            // Windows PDBs do not store compilation options.
+            => ImmutableDictionary<string, string>.Empty;
+
+        public override Encoding? GetDefaultSourceFileEncoding()
+            => throw new NotSupportedException("Windows PDB does not support compilation options.");
     }
 
-    private sealed class Portable(MetadataReader pdbReader) : EditAndContinueMethodDebugInfoReader
+    private sealed class Portable : EditAndContinueDebugInfoReader
     {
-        private readonly MetadataReader _pdbReader = pdbReader;
+        private readonly MetadataReader _pdbReader;
+        private readonly Lazy<Encoding?> _lazyDefaultSourceFileEncoding;
+        private ImmutableDictionary<string, string>? _lazyCompilationOptions;
+
+        public Portable(MetadataReader pdbReader)
+        {
+            _pdbReader = pdbReader;
+            _lazyDefaultSourceFileEncoding = new(ReadDefaultSourceFileEncoding);
+        }
 
         public override bool IsPortable => true;
 
@@ -125,32 +143,9 @@ internal abstract class EditAndContinueMethodDebugInfoReader
                 compressedStateMachineStateMap: GetCdiBytes(methodHandle, PortableCustomDebugInfoKinds.EncStateMachineStateMap));
 
         private ImmutableArray<byte> GetCdiBytes(MethodDefinitionHandle methodHandle, Guid kind)
-            => TryGetCustomDebugInformation(_pdbReader, methodHandle, kind, out var cdi) ?
-                _pdbReader.GetBlobContent(cdi.Value) : default;
-
-        /// <exception cref="BadImageFormatException">Invalid data format.</exception>
-        private static bool TryGetCustomDebugInformation(MetadataReader reader, EntityHandle handle, Guid kind, out CustomDebugInformation customDebugInfo)
-        {
-            var foundAny = false;
-            customDebugInfo = default;
-            foreach (var infoHandle in reader.GetCustomDebugInformation(handle))
-            {
-                var info = reader.GetCustomDebugInformation(infoHandle);
-                var id = reader.GetGuid(info.Kind);
-                if (id == kind)
-                {
-                    if (foundAny)
-                    {
-                        throw new BadImageFormatException();
-                    }
-
-                    customDebugInfo = info;
-                    foundAny = true;
-                }
-            }
-
-            return foundAny;
-        }
+            => _pdbReader.TryGetCustomDebugInformation(methodHandle, kind, out var cdi)
+                ? _pdbReader.GetBlobContent(cdi.Value)
+                : default;
 
         public override bool TryGetDocumentChecksum(string documentPath, out ImmutableArray<byte> checksum, out Guid algorithmId)
         {
@@ -158,7 +153,7 @@ internal abstract class EditAndContinueMethodDebugInfoReader
             {
                 var document = _pdbReader.GetDocument(documentHandle);
 
-                if (_pdbReader.StringComparer.Equals(document.Name, documentPath, IgnoreCaseWhenComparingDocumentNames))
+                if (_pdbReader.StringComparer.Equals(document.Name, documentPath, ignoreCase: false))
                 {
                     checksum = _pdbReader.GetBlobContent(document.Hash);
                     algorithmId = _pdbReader.GetGuid(document.HashAlgorithm);
@@ -170,10 +165,36 @@ internal abstract class EditAndContinueMethodDebugInfoReader
             algorithmId = default;
             return false;
         }
+
+        public override ImmutableDictionary<string, string> GetCompilationOptions()
+            => _lazyCompilationOptions ??= _pdbReader.GetCompilationOptions();
+
+        public override Encoding? GetDefaultSourceFileEncoding()
+            => _lazyDefaultSourceFileEncoding.Value;
+
+        private Encoding? ReadDefaultSourceFileEncoding()
+        {
+            var options = GetCompilationOptions();
+
+            if (!options.TryGetValue(CompilationOptionNames.DefaultEncoding, out var encodingName) &&
+                !options.TryGetValue(CompilationOptionNames.FallbackEncoding, out encodingName))
+            {
+                return null;
+            }
+
+            try
+            {
+                return Encoding.GetEncoding(encodingName);
+            }
+            catch (Exception e)
+            {
+                throw new NotSupportedException($"Encoding '{encodingName}' not supported: {e.Message}");
+            }
+        }
     }
 
     /// <summary>
-    /// Creates <see cref="EditAndContinueMethodDebugInfoReader"/> backed by a given <see cref="ISymUnmanagedReader5"/>.
+    /// Creates <see cref="EditAndContinueDebugInfoReader"/> backed by a given <see cref="ISymUnmanagedReader5"/>.
     /// </summary>
     /// <param name="symReader">SymReader open on a Portable or Windows PDB.</param>
     /// <param name="version">The version of the PDB to read.</param>
@@ -186,7 +207,7 @@ internal abstract class EditAndContinueMethodDebugInfoReader
     /// <remarks>
     /// Automatically detects the underlying PDB format and returns the appropriate reader.
     /// </remarks>
-    public static unsafe EditAndContinueMethodDebugInfoReader Create(ISymUnmanagedReader5 symReader, int version = 1)
+    public static unsafe EditAndContinueDebugInfoReader Create(ISymUnmanagedReader5 symReader, int version = 1)
     {
         if (symReader == null)
         {
@@ -212,14 +233,14 @@ internal abstract class EditAndContinueMethodDebugInfoReader
     }
 
     /// <summary>
-    /// Creates <see cref="EditAndContinueMethodDebugInfoReader"/> back by a given <see cref="MetadataReader"/>.
+    /// Creates <see cref="EditAndContinueDebugInfoReader"/> back by a given <see cref="MetadataReader"/>.
     /// </summary>
     /// <param name="pdbReader"><see cref="MetadataReader"/> open on a Portable PDB.</param>
     /// <exception cref="ArgumentNullException"><paramref name="pdbReader"/> is null.</exception>
     /// <returns>
     /// The resulting reader does not take ownership of the <paramref name="pdbReader"/> or the memory it reads.
     /// </returns>
-    public static unsafe EditAndContinueMethodDebugInfoReader Create(MetadataReader pdbReader)
+    public static unsafe EditAndContinueDebugInfoReader Create(MetadataReader pdbReader)
        => new Portable(pdbReader ?? throw new ArgumentNullException(nameof(pdbReader)));
 
     internal static bool TryGetDocumentChecksum(ISymUnmanagedReader5 symReader, string documentPath, out ImmutableArray<byte> checksum, out Guid algorithmId)
