@@ -929,7 +929,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return ImmutableArray<CSharpAttributeData>.Empty;
             }
 
-            if (uncommon.lazyCustomAttributes.IsDefault)
+            if (RoslynImmutableInterlocked.VolatileRead(in uncommon.lazyCustomAttributes).IsDefault)
             {
                 ImmutableArray<CSharpAttributeData> loadedCustomAttributes = loadAndFilterAttributes(out var hasRequiredMembers);
 

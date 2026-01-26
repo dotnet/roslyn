@@ -1090,7 +1090,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
-            if (_lazyCustomAttributes.IsDefault)
+            if (RoslynImmutableInterlocked.VolatileRead(in _lazyCustomAttributes).IsDefault)
             {
                 var attributes = loadAndFilterAttributes(out var hiddenAttributes, out var isParamArray, out var isParamCollection);
                 ImmutableInterlocked.InterlockedInitialize(ref _lazyHiddenAttributes, hiddenAttributes);
