@@ -35,7 +35,7 @@ namespace IOperationGenerator
         public string Base;
 
         [XmlAttribute]
-        public string? Experimental;
+        public string? ExperimentalUrl;
 
         [XmlAttribute]
         public string? Namespace;
@@ -113,7 +113,7 @@ namespace IOperationGenerator
         public string Type;
 
         [XmlAttribute]
-        public string? Experimental;
+        public string? ExperimentalUrl;
 
         [XmlAttribute(AttributeName = "New")]
         public string NewText;

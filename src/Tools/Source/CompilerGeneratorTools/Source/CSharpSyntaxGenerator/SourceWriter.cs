@@ -29,11 +29,11 @@ namespace CSharpSyntaxGenerator
         private static string QuoteString(string value)
             => "@\"" + value.Replace("\"", "\"\"") + "\"";
 
-        private void WriteExperimentalIfNeeded(string experimental)
+        private void WriteExperimentalIfNeeded(string experimentalUrl)
         {
-            if (!string.IsNullOrEmpty(experimental))
+            if (!string.IsNullOrEmpty(experimentalUrl))
             {
-                WriteLine($"[Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = {QuoteString(experimental)})]");
+                WriteLine($"[Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = {QuoteString(experimentalUrl)})]");
             }
         }
 
@@ -714,7 +714,7 @@ namespace CSharpSyntaxGenerator
             if (node is AbstractNode)
             {
                 var nd = (AbstractNode)node;
-                WriteExperimentalIfNeeded(node.Experimental);
+                WriteExperimentalIfNeeded(node.ExperimentalUrl);
                 WriteLine($"public abstract partial class {node.Name} : {node.Base}");
                 OpenBlock();
                 WriteLine($"internal {node.Name}(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)");
@@ -733,7 +733,7 @@ namespace CSharpSyntaxGenerator
                         var fieldType = GetRedFieldType(field);
                         WriteLine();
                         WriteComment(field.PropertyComment, "");
-                        WriteExperimentalIfNeeded(field.Experimental);
+                        WriteExperimentalIfNeeded(field.ExperimentalUrl);
                         WriteLine($"{"public"} abstract {(IsNew(field) ? "new " : "")}{fieldType} {field.Name} {{ get; }}");
                         WriteLine($"public {node.Name} With{field.Name}({fieldType} {CamelCase(field.Name)}) => With{field.Name}Core({CamelCase(field.Name)});");
                         WriteLine($"internal abstract {node.Name} With{field.Name}Core({fieldType} {CamelCase(field.Name)});");
@@ -770,7 +770,7 @@ namespace CSharpSyntaxGenerator
                 {
                     WriteLine();
                     WriteComment(field.PropertyComment, "");
-                    WriteExperimentalIfNeeded(field.Experimental);
+                    WriteExperimentalIfNeeded(field.ExperimentalUrl);
                     WriteLine($"{"public"} abstract {(IsNew(field) ? "new " : "")}{field.Type} {field.Name} {{ get; }}");
                 }
 
@@ -833,7 +833,7 @@ namespace CSharpSyntaxGenerator
 
                 WriteComment($"</list>");
                 WriteComment($"</remarks>");
-                WriteExperimentalIfNeeded(node.Experimental);
+                WriteExperimentalIfNeeded(node.ExperimentalUrl);
                 WriteLine($"public sealed partial class {node.Name} : {node.Base}");
                 OpenBlock();
 
@@ -885,7 +885,7 @@ namespace CSharpSyntaxGenerator
                     if (field.Type == "SyntaxToken")
                     {
                         WriteComment(field.PropertyComment, "");
-                        WriteExperimentalIfNeeded(field.Experimental);
+                        WriteExperimentalIfNeeded(field.ExperimentalUrl);
                         Write($"public {OverrideOrNewModifier(field)}{GetRedPropertyType(field)} {field.Name}");
                         if (IsOptional(field))
                         {
@@ -906,7 +906,7 @@ namespace CSharpSyntaxGenerator
                     else if (field.Type == "SyntaxList<SyntaxToken>")
                     {
                         WriteComment(field.PropertyComment, "");
-                        WriteExperimentalIfNeeded(field.Experimental);
+                        WriteExperimentalIfNeeded(field.ExperimentalUrl);
                         WriteLine($"public {OverrideOrNewModifier(field)}SyntaxTokenList {field.Name}");
                         OpenBlock();
                         WriteLine("get");
@@ -919,7 +919,7 @@ namespace CSharpSyntaxGenerator
                     else
                     {
                         WriteComment(field.PropertyComment, "");
-                        WriteExperimentalIfNeeded(field.Experimental);
+                        WriteExperimentalIfNeeded(field.ExperimentalUrl);
                         Write($"public {OverrideOrNewModifier(field)}{GetRedPropertyType(field)} {field.Name}");
 
                         if (IsNodeList(field.Type))
@@ -961,7 +961,7 @@ namespace CSharpSyntaxGenerator
                 foreach (var field in valueFields)
                 {
                     WriteComment(field.PropertyComment, "");
-                    WriteExperimentalIfNeeded(field.Experimental);
+                    WriteExperimentalIfNeeded(field.ExperimentalUrl);
                     WriteLine($"{"public"} {OverrideOrNewModifier(field)}{field.Type} {field.Name} => ((InternalSyntax.{node.Name})this.Green).{field.Name};");
                     WriteLine();
                 }
@@ -1108,7 +1108,7 @@ namespace CSharpSyntaxGenerator
                     WriteLine();
                 nWritten++;
                 WriteComment($"<summary>Called when the visitor visits a {node.Name} node.</summary>");
-                WriteExperimentalIfNeeded(node.Experimental);
+                WriteExperimentalIfNeeded(node.ExperimentalUrl);
                 WriteLine($"public virtual {(genericResult ? "TResult?" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node) => this.DefaultVisit(node);");
             }
             CloseBlock();
@@ -1182,7 +1182,7 @@ namespace CSharpSyntaxGenerator
                     }
                 }
 
-                WriteExperimentalIfNeeded(field.Experimental);
+                WriteExperimentalIfNeeded(field.ExperimentalUrl);
                 Write(
                     $"public{(isNew ? " new " : " ")}{node.Name} With{StripPost(field.Name, "Opt")}({type} {CamelCase(field.Name)})" +
                     " => Update(");
@@ -1284,7 +1284,7 @@ namespace CSharpSyntaxGenerator
                 }
             }
 
-            WriteExperimentalIfNeeded(field.Experimental);
+            WriteExperimentalIfNeeded(field.ExperimentalUrl);
             WriteLine($"public{(isNew ? " new " : " ")}{node.Name} Add{field.Name}(params {argType}[] items) => With{StripPost(field.Name, "Opt")}(this.{field.Name}.AddRange(items));");
         }
 
@@ -1304,7 +1304,7 @@ namespace CSharpSyntaxGenerator
             }
 
             // AddBaseListTypes
-            WriteExperimentalIfNeeded(field.Experimental);
+            WriteExperimentalIfNeeded(field.ExperimentalUrl);
             Write($"public{(isNew ? " new " : " ")}{node.Name} Add{StripPost(field.Name, "Opt")}{referencedNodeField.Name}(params {argType}[] items)");
 
             if (IsOptional(field))
@@ -1337,7 +1337,7 @@ namespace CSharpSyntaxGenerator
                 if (nWritten > 0)
                     WriteLine();
                 nWritten++;
-                WriteExperimentalIfNeeded(node.Experimental);
+                WriteExperimentalIfNeeded(node.ExperimentalUrl);
                 WriteLine($"public override SyntaxNode? Visit{StripPost(node.Name, "Syntax")}({node.Name} node)");
 
                 if (node.Fields.Count == 0)
@@ -1464,7 +1464,7 @@ namespace CSharpSyntaxGenerator
 
             WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
 
-            WriteExperimentalIfNeeded(nd.Experimental);
+            WriteExperimentalIfNeeded(nd.ExperimentalUrl);
             Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
             WriteRedFactoryParameters(nd);
 
@@ -1650,7 +1650,7 @@ namespace CSharpSyntaxGenerator
             this.WriteLine();
 
             WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
-            WriteExperimentalIfNeeded(nd.Experimental);
+            WriteExperimentalIfNeeded(nd.ExperimentalUrl);
             Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
             Write(CommaJoin(
                 nd.Kinds.Count > 1 ? "SyntaxKind kind" : "",
@@ -1740,7 +1740,7 @@ namespace CSharpSyntaxGenerator
             }
 
             WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
-            WriteExperimentalIfNeeded(nd.Experimental);
+            WriteExperimentalIfNeeded(nd.ExperimentalUrl);
             Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
             Write(CommaJoin(
                 nd.Kinds.Count > 1 ? "SyntaxKind kind" : "",

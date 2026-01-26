@@ -1839,7 +1839,7 @@
     </Field>
     <Field Name="Expression" Type="ExpressionSyntax" />
   </Node>
-  <Node Name="WithElementSyntax" Base="CollectionElementSyntax" Experimental="https://github.com/dotnet/roslyn/issues/80613">
+  <Node Name="WithElementSyntax" Base="CollectionElementSyntax" ExperimentalUrl="https://github.com/dotnet/roslyn/issues/80613">
     <Kind Name="WithElement"/>
     <Field Name="WithKeyword" Type="SyntaxToken">
       <Kind Name="WithKeyword"/>

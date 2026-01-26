@@ -18,7 +18,7 @@ namespace CSharpSyntaxGenerator
         public string Base;
 
         [XmlAttribute]
-        public string Experimental;
+        public string ExperimentalUrl;
 
         [XmlAttribute]
         public string SkipConvenienceFactories;

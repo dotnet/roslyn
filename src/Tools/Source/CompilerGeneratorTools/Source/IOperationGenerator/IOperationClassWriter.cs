@@ -358,7 +358,7 @@ namespace IOperationGenerator
                                          entry.EditorBrowsable ?? true,
                                          node.Obsolete?.Message,
                                          node.Obsolete?.ErrorText,
-                                         experimentalUrl: node.IsInternal ? null : node.Experimental);
+                                         experimentalUrl: node.ExperimentalUrl);
                     }
                 }
                 else
@@ -371,7 +371,7 @@ namespace IOperationGenerator
                                      editorBrowsable: true,
                                      currentEntry.Obsolete?.Message,
                                      currentEntry.Obsolete?.ErrorText,
-                                     experimentalUrl: currentEntry.IsInternal ? null : currentEntry.Experimental);
+                                     experimentalUrl: currentEntry.ExperimentalUrl);
                     Debug.Assert(elementsToKindEnumerator.MoveNext() || i == numKinds);
                 }
             }
@@ -1082,19 +1082,24 @@ namespace IOperationGenerator
             }
         }
 
+        private void WriteExperimentalAttribute(string experimentalUrl)
+        {
+            WriteLine($"[Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @\"{experimentalUrl.Replace("\"", "\"\"")}\")]");
+        }
+
         private void WriteExperimentalAttributeIfNeeded(TreeType node)
         {
-            if (!node.IsInternal && !string.IsNullOrEmpty(node.Experimental))
+            if (!string.IsNullOrEmpty(node.ExperimentalUrl))
             {
-                WriteLine($"[Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = {QuoteString(node.Experimental)})]");
+                WriteExperimentalAttribute(node.ExperimentalUrl);
             }
         }
 
         private void WriteExperimentalAttributeIfNeeded(Property prop)
         {
-            if (!prop.IsInternal && !prop.IsOverride && !string.IsNullOrEmpty(prop.Experimental))
+            if (!prop.IsOverride && !string.IsNullOrEmpty(prop.ExperimentalUrl))
             {
-                WriteLine($"[Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = {QuoteString(prop.Experimental)})]");
+                WriteExperimentalAttribute(prop.ExperimentalUrl);
             }
         }
 

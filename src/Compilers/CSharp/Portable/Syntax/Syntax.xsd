@@ -8,7 +8,7 @@
             <xs:complexType>
               <xs:attribute name="Name" type="xs:string" use="required" />
               <xs:attribute name="Base" type="xs:string" use="required" />
-              <xs:attribute name="Experimental" type="xs:string" use="optional" />
+              <xs:attribute name="ExperimentalUrl" type="xs:string" use="optional" />
             </xs:complexType>
           </xs:element>
           <xs:element maxOccurs="unbounded" name="AbstractNode">
@@ -35,7 +35,7 @@
                       </xs:sequence>
                       <xs:attribute name="Name" type="xs:string" use="required" />
                       <xs:attribute name="Type" type="xs:string" use="required" />
-                      <xs:attribute name="Experimental" type="xs:string" use="optional" />
+                      <xs:attribute name="ExperimentalUrl" type="xs:string" use="optional" />
                       <xs:attribute name="Optional" type="xs:boolean" use="optional" />
                     </xs:complexType>
                   </xs:element>
@@ -62,7 +62,7 @@
                             </xs:sequence>
                             <xs:attribute name="Name" type="xs:string" use="required" />
                             <xs:attribute name="Type" type="xs:string" use="required" />
-                            <xs:attribute name="Experimental" type="xs:string" use="optional" />
+                            <xs:attribute name="ExperimentalUrl" type="xs:string" use="optional" />
                           </xs:complexType>
                         </xs:element>
                         <xs:element minOccurs="0" name="Sequence">
@@ -86,7 +86,7 @@
                                   </xs:sequence>
                                   <xs:attribute name="Name" type="xs:string" use="required" />
                                   <xs:attribute name="Type" type="xs:string" use="required" />
-                                  <xs:attribute name="Experimental" type="xs:string" use="optional" />
+                                  <xs:attribute name="ExperimentalUrl" type="xs:string" use="optional" />
                                 </xs:complexType>
                               </xs:element>
                             </xs:sequence>
@@ -99,7 +99,7 @@
               </xs:sequence>
               <xs:attribute name="Name" type="xs:string" use="required" />
               <xs:attribute name="Base" type="xs:string" use="required" />
-              <xs:attribute name="Experimental" type="xs:string" use="optional" />
+              <xs:attribute name="ExperimentalUrl" type="xs:string" use="optional" />
             </xs:complexType>
           </xs:element>
           <xs:element maxOccurs="unbounded" name="Node">
@@ -136,7 +136,7 @@
                       <xs:attribute name="MinCount" type="xs:unsignedByte" use="optional" />
                       <xs:attribute name="Optional" type="xs:boolean" use="optional" />
                       <xs:attribute name="AllowTrailingSeparator" type="xs:boolean" use="optional" />
-                      <xs:attribute name="Experimental" type="xs:string" use="optional" />
+                      <xs:attribute name="ExperimentalUrl" type="xs:string" use="optional" />
                     </xs:complexType>
                   </xs:element>
                   <xs:element name="TypeComment">
@@ -176,7 +176,7 @@
                             <xs:attribute name="Type" type="xs:string" use="required" />
                             <xs:attribute name="Override" type="xs:boolean" use="optional" />
                             <xs:attribute name="Optional" type="xs:boolean" use="optional" />
-                            <xs:attribute name="Experimental" type="xs:string" use="optional" />
+                            <xs:attribute name="ExperimentalUrl" type="xs:string" use="optional" />
                           </xs:complexType>
                         </xs:element>
                         <xs:element minOccurs="0" name="Sequence">
@@ -189,7 +189,7 @@
                                       <xs:complexType>
                                         <xs:attribute name="Name" type="xs:string" use="required" />
                                         <xs:attribute name="Type" type="xs:string" use="required" />
-                                        <xs:attribute name="Experimental" type="xs:string" use="optional" />
+                                        <xs:attribute name="ExperimentalUrl" type="xs:string" use="optional" />
                                       </xs:complexType>
                                     </xs:element>
                                   </xs:sequence>
@@ -214,7 +214,7 @@
                                   <xs:attribute name="Name" type="xs:string" use="required" />
                                   <xs:attribute name="Type" type="xs:string" use="required" />
                                   <xs:attribute name="Override" type="xs:boolean" use="optional" />
-                                  <xs:attribute name="Experimental" type="xs:string" use="optional" />
+                                  <xs:attribute name="ExperimentalUrl" type="xs:string" use="optional" />
                                 </xs:complexType>
                               </xs:element>
                             </xs:sequence>
@@ -229,7 +229,7 @@
               <xs:attribute name="Name" type="xs:string" use="required" />
               <xs:attribute name="Base" type="xs:string" use="required" />
               <xs:attribute name="SkipConvenienceFactories" type="xs:boolean" use="optional" />
-              <xs:attribute name="Experimental" type="xs:string" use="optional" />
+              <xs:attribute name="ExperimentalUrl" type="xs:string" use="optional" />
             </xs:complexType>
           </xs:element>
         </xs:choice>
