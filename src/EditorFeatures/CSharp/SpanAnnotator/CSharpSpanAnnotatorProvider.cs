@@ -1,24 +1,38 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Logic.Find;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.Editor.Implementation.Find;
+namespace Microsoft.CodeAnalysis.Editor.CSharp.SpanAnnotator;
 
 [Export(typeof(ISpanAnnotatorProvider))]
 [Name(nameof(CSharpSpanAnnotatorProvider))]
 [SupportsFileExtension(".cs")]
-[Obsolete]
-internal class CSharpSpanAnnotatorProvider : ISpanAnnotatorProvider
+[Obsolete] // ISpanAnnotatorProvider is still experimental and subject to change
+internal sealed class CSharpSpanAnnotatorProvider : ISpanAnnotatorProvider
 {
-    public ISpanAnnotator GetAnnotator(string fileExtension) => new CSharpSpanAnnotator();
+    private CSharpSpanAnnotator? _annotator;
 
-    private class CSharpSpanAnnotator : ISpanAnnotator
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpSpanAnnotatorProvider()
+    {
+    }
+
+    public ISpanAnnotator GetAnnotator(string fileExtension)
+        => _annotator ??= new CSharpSpanAnnotator();
+
+    private sealed class CSharpSpanAnnotator : ISpanAnnotator
     {
         // 40KB, the limit at which Roslyn doesn't use full strings for parsing
         private const int LargeObjectHeapLimitInChars = 40 * 1024;
@@ -38,30 +52,24 @@ internal class CSharpSpanAnnotatorProvider : ISpanAnnotatorProvider
                 yield break;
             }
 
-            IEnumerator<SyntaxToken>? tokensEnumerator = null; // Don't parse yet, spans could be empty
-            var parsingFailed = false;
+            IEnumerator<SyntaxToken>? tokensEnumerator = null;
+            try
+            {
+                tokensEnumerator = SyntaxFactory.ParseTokens(
+                    snapshot.GetText(),
+                    options: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None)).GetEnumerator();
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            {
+            }
+
             SyntaxToken? lastToken = null;
 
             foreach (var span in spans)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (tokensEnumerator is null && !parsingFailed)
-                {
-                    try
-                    {
-                        tokensEnumerator = SyntaxFactory.ParseTokens(
-                            snapshot.GetText(),
-                            options: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None)).GetEnumerator();
-                    }
-                    catch (Exception e)
-                    {
-                        _ = e.ToString(); // TODO: Log it?
-                        parsingFailed = true;
-                    }
-                }
-
-                if (parsingFailed)
+                if (tokensEnumerator is null)
                 {
                     yield return new SpanAndKind(span);
                 }
@@ -69,7 +77,7 @@ internal class CSharpSpanAnnotatorProvider : ISpanAnnotatorProvider
                 {
                     Assumes.NotNull(tokensEnumerator);
 
-                    FindResultKind kind;
+                    FindResultKind kind = default;
 
                     while (true)
                     {
