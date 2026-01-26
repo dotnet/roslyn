@@ -198,11 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return createBadCompoundAssignmentOperator(node, kind, left, right, resultKind, originalUserDefinedOperators, ref operatorResolutionForReporting, diagnostics);
                 }
 
-                if (best.Signature.Method is { } bestMethod)
-                {
-                    ReportObsoleteAndFeatureAvailabilityDiagnostics(bestMethod, node, diagnostics);
-                    ReportUseSite(bestMethod, diagnostics, node);
-                }
+                ReportOperatorUseSiteDiagnostics(best.Signature.Method, node, diagnostics);
 
                 // The rules in the spec for determining additional errors are bit confusing. In particular
                 // this line is misleading:
@@ -480,6 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression rightConverted = CreateConversion(right, overloadResolutionResult.ValidResult.Result.ConversionForArg(isExtension ? 1 : 0), method.Parameters[0].Type, diagnostics);
 
                     ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node);
                     ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, method, node, isDelegateConversion: false);
 
                     BoundValuePlaceholder? leftPlaceholder = null;
@@ -1183,11 +1180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool foundOperator;
                 var signature = best.Signature;
 
-                if (signature.Method is { } bestMethod)
-                {
-                    ReportObsoleteAndFeatureAvailabilityDiagnostics(bestMethod, node, diagnostics);
-                    ReportUseSite(bestMethod, diagnostics, node);
-                }
+                ReportOperatorUseSiteDiagnostics(signature.Method, node, diagnostics);
 
                 bool isObjectEquality = signature.Kind == BinaryOperatorKind.ObjectEqual || signature.Kind == BinaryOperatorKind.ObjectNotEqual;
 
@@ -1506,11 +1499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // bool, or we've got a valid user-defined operator.
                     BinaryOperatorSignature signature = best.Signature;
 
-                    if (signature.Method is { } bestMethod)
-                    {
-                        ReportObsoleteAndFeatureAvailabilityDiagnostics(bestMethod, node, diagnostics);
-                        ReportUseSite(bestMethod, diagnostics, node);
-                    }
+                    ReportOperatorUseSiteDiagnostics(signature.Method, node, diagnostics);
 
                     bool bothBool = signature.LeftType.SpecialType == SpecialType.System_Boolean &&
                             signature.RightType.SpecialType == SpecialType.System_Boolean;
@@ -2222,11 +2211,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return possiblyBest;
         }
 
-        private void ReportObsoleteAndFeatureAvailabilityDiagnostics(MethodSymbol operatorMethod, SyntaxNode node, BindingDiagnosticBag diagnostics)
+        private void ReportOperatorUseSiteDiagnostics(MethodSymbol operatorMethod, SyntaxNode node, BindingDiagnosticBag diagnostics)
         {
             if ((object)operatorMethod != null)
             {
+                ReportUseSite(operatorMethod, diagnostics, node);
                 ReportDiagnosticsIfObsolete(diagnostics, operatorMethod, node, hasBaseReceiver: false);
+                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, operatorMethod, node);
 
                 if (operatorMethod.ContainingType.IsInterface &&
                     operatorMethod.ContainingModule != Compilation.SourceModule)
@@ -2389,8 +2380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (possiblyBest is { HasValue: true, Signature: { Method: { } bestMethod } })
             {
-                ReportObsoleteAndFeatureAvailabilityDiagnostics(bestMethod, node, diagnostics);
-                ReportUseSite(bestMethod, diagnostics, node);
+                ReportOperatorUseSiteDiagnostics(bestMethod, node, diagnostics);
             }
 
             return possiblyBest;
@@ -3568,6 +3558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var method = overloadResolutionResult.ValidResult.Member;
 
                     ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node);
                     ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, method, node, isDelegateConversion: false);
 
                     BoundValuePlaceholder? operandPlaceholder = null;

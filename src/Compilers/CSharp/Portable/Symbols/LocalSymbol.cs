@@ -379,6 +379,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
+
         protected sealed override ISymbol CreateISymbol()
         {
             return new PublicModel.LocalSymbol(this);

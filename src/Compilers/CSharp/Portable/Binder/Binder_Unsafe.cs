@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Flags.Includes(BinderFlags.UnsafeRegion); }
         }
 
-        private void ReportDiagnosticsIfUnsafeMemberAccess(BindingDiagnosticBag diagnostics, Symbol symbol, SyntaxNode node)
+        internal void ReportDiagnosticsIfUnsafeMemberAccess(BindingDiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node)
         {
             var callerUnsafeMode = symbol.CallerUnsafeMode;
             if (callerUnsafeMode != CallerUnsafeMode.None)
@@ -37,13 +37,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// If this fails, call <see cref="ReportDiagnosticsIfUnsafeMemberAccess"/> for the <paramref name="symbol"/> instead and add corresponding tests.
+        /// </summary>
+        [Conditional("DEBUG")]
+        internal static void AssertNotUnsafeMemberAccess(Symbol symbol)
+        {
+            // Resolving `symbol.ToString()` can lead to errors in some cases
+            // and `Debug.Assert` on .NET Framework evaluates all interpolated values eagerly,
+            // so avoid evaluating that unless we are going to fail anyway.
+
+            if (symbol.CallerUnsafeMode is not CallerUnsafeMode.None)
+            {
+                Debug.Fail($"Symbol {symbol} has {nameof(symbol.CallerUnsafeMode)}={symbol.CallerUnsafeMode}.");
+            }
+
+            if (symbol.Kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Event)
+            {
+                Debug.Fail($"Symbol {symbol} has {nameof(symbol.Kind)}={symbol.Kind}.");
+            }
+        }
+
         /// <param name="disallowedUnder">
         /// Memory safety rules which the current location is disallowed under.
         /// PROTOTYPE: Consider removing the default parameter value.
         /// </param>
         /// <returns>True if a diagnostic was reported</returns>
         internal bool ReportUnsafeIfNotAllowed(
-            SyntaxNode node,
+            SyntaxNodeOrToken node,
             BindingDiagnosticBag diagnostics,
             TypeSymbol? sizeOfTypeOpt = null,
             MemorySafetyRules disallowedUnder = MemorySafetyRules.Legacy,
@@ -57,11 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            diagnostics.Add(new CSDiagnostic(diagnosticInfo, node.Location));
+            diagnostics.Add(new CSDiagnostic(diagnosticInfo, node.GetLocation()));
             return true;
         }
 
-        /// <inheritdoc cref="ReportUnsafeIfNotAllowed(SyntaxNode, BindingDiagnosticBag, TypeSymbol?, MemorySafetyRules, ErrorCode?, object[])"/>
+        /// <inheritdoc cref="ReportUnsafeIfNotAllowed(SyntaxNodeOrToken, BindingDiagnosticBag, TypeSymbol?, MemorySafetyRules, ErrorCode?, object[])"/>
         internal bool ReportUnsafeIfNotAllowed(Location location, BindingDiagnosticBag diagnostics, MemorySafetyRules disallowedUnder = MemorySafetyRules.Legacy)
         {
             var diagnosticInfo = GetUnsafeDiagnosticInfo(sizeOfTypeOpt: null, disallowedUnder);

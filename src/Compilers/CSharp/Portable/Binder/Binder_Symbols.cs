@@ -268,6 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (symbol.Kind != SymbolKind.Alias)
                             {
                                 ReportDiagnosticsIfObsolete(diagnostics, type, syntax, hasBaseReceiver: false);
+                                AssertNotUnsafeMemberAccess(type);
                             }
                         }
                         else
@@ -334,6 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Obsolete alias targets are reported in UnwrapAlias, but if it was a type (not an
                     // alias to a type) we report the obsolete type here.
                     symbol.TypeWithAnnotations.ReportDiagnosticsIfObsolete(this, syntax, diagnostics);
+                    if (symbol.TypeWithAnnotations.IsResolved) AssertNotUnsafeMemberAccess(symbol.TypeWithAnnotations.Type);
                 }
 
                 return symbol;
@@ -1146,6 +1148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type.VisitType((typePart, argTuple, isNested) =>
                     {
                         argTuple.Item1.ReportDiagnosticsIfObsolete(argTuple.diagnostics, typePart, argTuple.syntax, hasBaseReceiver: false);
+                        Binder.AssertNotUnsafeMemberAccess(typePart);
                         return false;
                     }, args);
                 }
@@ -1667,6 +1670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var left = BindNamespaceOrTypeSymbol(leftName, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics: false).NamespaceOrTypeSymbol;
             ReportDiagnosticsIfObsolete(diagnostics, left, leftName, hasBaseReceiver: false);
+            AssertNotUnsafeMemberAccess(left);
 
             bool isLeftUnboundGenericType = left.Kind == SymbolKind.NamedType &&
                 ((NamedTypeSymbol)left).IsUnboundGenericType;

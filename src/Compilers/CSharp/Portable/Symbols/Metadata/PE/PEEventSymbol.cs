@@ -40,6 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private const int UnsetAccessibility = -1;
         private int _lazyDeclaredAccessibility = UnsetAccessibility;
 
+        private byte _lazyRequiresUnsafe;
+
         private readonly Flags _flags;
         [Flags]
         private enum Flags : byte
@@ -362,7 +364,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (_lazyCustomAttributes.IsDefault)
             {
                 var containingPEModuleSymbol = (PEModuleSymbol)this.ContainingModule;
-                containingPEModuleSymbol.LoadCustomAttributes(_handle, ref _lazyCustomAttributes);
+
+                var requiresUnsafeState = (ThreeState)Volatile.Read(ref _lazyRequiresUnsafe);
+                bool checkForRequiresUnsafe = requiresUnsafeState != ThreeState.False;
+
+                if (checkForRequiresUnsafe)
+                {
+                    ImmutableArray<CSharpAttributeData> attributes = containingPEModuleSymbol.GetCustomAttributesForToken(
+                          _handle,
+                          out CustomAttributeHandle requiresUnsafe,
+                          AttributeDescription.RequiresUnsafeAttribute);
+
+                    bool hasRequiresUnsafeAttribute = !requiresUnsafe.IsNil;
+                    _lazyRequiresUnsafe = (byte)ComputeRequiresUnsafe(hasRequiresUnsafeAttribute).ToThreeState();
+
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, attributes);
+                }
+                else
+                {
+                    containingPEModuleSymbol.LoadCustomAttributes(_handle, ref _lazyCustomAttributes);
+                }
             }
             return _lazyCustomAttributes;
         }
@@ -500,6 +521,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 ObsoleteAttributeHelpers.InitializeObsoleteDataFromMetadata(ref _lazyObsoleteAttributeData, _handle, (PEModuleSymbol)(this.ContainingModule), ignoreByRefLikeMarker: false, ignoreRequiredMemberMarker: false);
                 return _lazyObsoleteAttributeData;
+            }
+        }
+
+        private bool RequiresUnsafe
+        {
+            get
+            {
+                var requiresUnsafeState = (ThreeState)Volatile.Read(ref _lazyRequiresUnsafe);
+                if (!requiresUnsafeState.HasValue())
+                {
+                    var containingPEModuleSymbol = (PEModuleSymbol)this.ContainingModule;
+                    bool hasRequiresUnsafeAttribute = containingPEModuleSymbol.Module.HasAttribute(_handle, AttributeDescription.RequiresUnsafeAttribute);
+                    bool requiresUnsafe = ComputeRequiresUnsafe(hasRequiresUnsafeAttribute);
+                    _lazyRequiresUnsafe = (byte)requiresUnsafe.ToThreeState();
+                    return requiresUnsafe;
+                }
+
+                return requiresUnsafeState.Value();
+            }
+        }
+
+        private bool ComputeRequiresUnsafe(bool hasRequiresUnsafeAttribute)
+        {
+            return ContainingModule.UseUpdatedMemorySafetyRules
+                ? hasRequiresUnsafeAttribute
+                // This might be expensive, so we cache it in flags.
+                : Type.ContainsPointerOrFunctionPointer();
+        }
+
+        internal override CallerUnsafeMode CallerUnsafeMode
+        {
+            get
+            {
+                if (!RequiresUnsafe)
+                {
+                    return CallerUnsafeMode.None;
+                }
+
+                return ContainingModule.UseUpdatedMemorySafetyRules
+                    ? CallerUnsafeMode.Explicit
+                    : CallerUnsafeMode.Implicit;
             }
         }
 

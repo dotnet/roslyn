@@ -336,6 +336,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool IsRequired { get; }
 
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None; // PROTOTYPE: Support unsafe fields?
+
         #region Use-Site Diagnostics
 
         internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()

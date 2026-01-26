@@ -221,8 +221,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool HasUnscopedRefAttribute { get; }
 
-        internal abstract override CallerUnsafeMode CallerUnsafeMode { get; }
-
         /// <summary>
         /// Returns the overridden property, or null.
         /// </summary>
