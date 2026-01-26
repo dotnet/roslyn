@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+∩╗┐// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -26,17 +26,17 @@ namespace Microsoft.CodeAnalysis
     // exactly one line per node of the tree:
     //
     //   root
-    //   ├─a1
-    //   │ └─a1b1
-    //   ├─a2
-    //   │ ├─a2b1
-    //   │ │ └─a2b1c1
-    //   │ └─a2b2
-    //   │   ├─a2b2c1
-    //   │   │ └─a2b2c1d1
-    //   │   └─a2b2c2
-    //   └─a3
-    //     └─a3b1
+    //   Γö£ΓöÇa1
+    //   Γöé ΓööΓöÇa1b1
+    //   Γö£ΓöÇa2
+    //   Γöé Γö£ΓöÇa2b1
+    //   Γöé Γöé ΓööΓöÇa2b1c1
+    //   Γöé ΓööΓöÇa2b2
+    //   Γöé   Γö£ΓöÇa2b2c1
+    //   Γöé   Γöé ΓööΓöÇa2b2c1d1
+    //   Γöé   ΓööΓöÇa2b2c2
+    //   ΓööΓöÇa3
+    //     ΓööΓöÇa3b1
     //
     // And second, an XML format:
     //
