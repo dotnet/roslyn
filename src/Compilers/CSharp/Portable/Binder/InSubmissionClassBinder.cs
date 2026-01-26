@@ -33,11 +33,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override void GetAllExtensionCandidatesInSingleBinder(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, Binder originalBinder)
         {
-            // TODO2
-            //for (var submission = this.Compilation; submission != null; submission = submission.PreviousSubmission)
-            //{
-            //    submission.ScriptClass?.GetExtensionMethods(methods, name, arity, options);
-            //}
+            for (var submission = this.Compilation; submission != null; submission = submission.PreviousSubmission)
+            {
+                submission.ScriptClass?.GetAllExtensionMembers(members, name, alternativeName, arity, options, fieldsBeingBound: ConsList<FieldSymbol>.Empty);
+            }
         }
 
         internal override void LookupSymbolsInSingleBinder(

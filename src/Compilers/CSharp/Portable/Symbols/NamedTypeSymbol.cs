@@ -412,12 +412,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(name is not null || alternativeName is null);
 
-            if (!this.IsClassType() || !IsStatic || IsGenericType || !MightContainExtensions)
+            if (!MightContainExtensions)
                 return;
 
             PooledHashSet<MethodSymbol>? implementationsToShadow = null;
 
-            doGetExtensionMembers(members, name, alternativeName, arity, options, ref implementationsToShadow, fieldsBeingBound);
+            if (this.IsClassType() && IsStatic && !IsGenericType)
+            {
+                doGetExtensionMembers(members, name, alternativeName, arity, options, ref implementationsToShadow, fieldsBeingBound);
+            }
+
             DoGetExtensionMethods(members, name, arity, options, implementationsToShadow);
             if (alternativeName is not null)
             {
