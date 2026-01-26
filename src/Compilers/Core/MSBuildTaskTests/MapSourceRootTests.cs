@@ -107,14 +107,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             RoslynDebug.Assert(task.MappedSourceRoots is object);
             Assert.Equal(3, task.MappedSourceRoots.Length);
 
-            Assert.Equal(Utilities.FixFilePath(Path.GetFullPath(@"!@#:;$%^&*()_+|{}\")), task.MappedSourceRoots[0].ItemSpec);
+            Assert.Equal(Utilities.FixFilePath(Utilities.GetFullPathNoThrow(@"!@#:;$%^&*()_+|{}\")), task.MappedSourceRoots[0].ItemSpec);
             Assert.Equal(@"/_1/", task.MappedSourceRoots[0].GetMetadata("MappedPath"));
 
-            Assert.Equal(Utilities.FixFilePath(Path.GetFullPath("****/")), task.MappedSourceRoots[1].ItemSpec);
+            Assert.Equal(Utilities.FixFilePath(Utilities.GetFullPathNoThrow("****/")), task.MappedSourceRoots[1].ItemSpec);
             Assert.Equal(@"/_/", task.MappedSourceRoots[1].GetMetadata("MappedPath"));
             Assert.Equal(@"Git", task.MappedSourceRoots[1].GetMetadata("SourceControl"));
 
-            Assert.Equal(Utilities.FixFilePath(Path.GetFullPath(@"****\|||:;\")), task.MappedSourceRoots[2].ItemSpec);
+            Assert.Equal(Utilities.FixFilePath(Utilities.GetFullPathNoThrow(@"****\|||:;\")), task.MappedSourceRoots[2].ItemSpec);
             Assert.Equal(@"/_/|||:;/", task.MappedSourceRoots[2].GetMetadata("MappedPath"));
             Assert.Equal(@"Git", task.MappedSourceRoots[2].GetMetadata("SourceControl"));
 

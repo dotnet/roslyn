@@ -182,10 +182,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         if (containingRoot != null && topLevelMappedPaths.TryGetValue(Utilities.FixFilePath(containingRoot), out var mappedTopLevelPath))
                         {
                             // Normalize nested root.
-                            var fullOriginalPath = Utilities.GetFullPathNoThrow(Path.Combine(containingRoot, nestedRoot));
-                            nestedRoot = fullOriginalPath.StartsWith(containingRoot, StringComparison.OrdinalIgnoreCase)
-                                ? fullOriginalPath.Substring(containingRoot.Length)
-                                : nestedRoot;
+                            if (Utilities.TryCombine(containingRoot, nestedRoot, out var combinedPath))
+                            {
+                                var fullOriginalPath = Utilities.GetFullPathNoThrow(combinedPath);
+                                if (fullOriginalPath.StartsWith(containingRoot, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    nestedRoot = fullOriginalPath.Substring(containingRoot.Length);
+                                }
+                            }
 
                             Debug.Assert(mappedTopLevelPath.EndsWith("/", StringComparison.Ordinal));
                             root.SetMetadata(Names.MappedPath, mappedTopLevelPath + EnsureEndsWithSlash(nestedRoot).Replace('\\', '/'));
