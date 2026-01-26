@@ -57,6 +57,8 @@ internal sealed class ProjectBuildManager
         { PropertyNames.ShouldUnsetParentConfigurationAndPlatform, bool.FalseString }
     }.ToImmutableDictionary();
 
+    public ImmutableArray<string> KnownCommandLineParserLanguages { get; }
+
     private readonly ImmutableDictionary<string, string> _additionalGlobalProperties;
     private readonly ILogger? _msbuildLogger;
     private MSB.Evaluation.ProjectCollection? _batchBuildProjectCollection;
@@ -70,8 +72,9 @@ internal sealed class ProjectBuildManager
         }
     }
 
-    public ProjectBuildManager(ImmutableDictionary<string, string> additionalGlobalProperties, ILogger? msbuildLogger = null)
+    public ProjectBuildManager(ImmutableArray<string> knownCommandLineParserLanguages, ImmutableDictionary<string, string> additionalGlobalProperties, ILogger? msbuildLogger = null)
     {
+        KnownCommandLineParserLanguages = knownCommandLineParserLanguages;
         _additionalGlobalProperties = additionalGlobalProperties ?? ImmutableDictionary<string, string>.Empty;
         _msbuildLogger = msbuildLogger;
     }

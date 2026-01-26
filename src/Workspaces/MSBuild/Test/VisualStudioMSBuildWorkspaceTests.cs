@@ -875,16 +875,31 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         CreateFiles(GetSimpleCSharpSolutionFiles());
         var projFileName = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
         var language = "lingo";
-        var e = await Assert.ThrowsAsync<InvalidOperationException>(async delegate
-        {
-            var ws = MSBuildWorkspace.Create();
-            ws.AssociateFileExtensionWithLanguage("csproj", language); // non-existent language
-            await ws.OpenProjectAsync(projFileName);
-        });
+        var ws = MSBuildWorkspace.Create();
 
-        // the exception should tell us something about the language being unrecognized.
-        var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_language_1_is_not_supported, projFileName, language);
-        Assert.Equal(expected, e.Message);
+        ws.AssociateFileExtensionWithLanguage("csproj", language); // non-existent language
+        var project = await ws.OpenProjectAsync(projFileName);
+        Assert.Equal(language, project.Language);
+
+        // parse and compilation options should be null since language is unknown
+        Assert.Null(project.ParseOptions);
+        Assert.Null(project.CompilationOptions);
+
+        // documents and metadata references should still be loaded:
+        AssertEx.SequenceEqual(
+        [
+            "CSharpClass.cs",
+            "AssemblyInfo.cs",
+            ".NETFramework,Version=v4.8.AssemblyAttributes.cs"
+        ], project.Documents.Select(d => d.Name));
+
+        AssertEx.Equal(
+        [
+            "Microsoft.CSharp.dll",
+            "mscorlib.dll",
+            "System.Core.dll",
+            "System.dll",
+        ], project.MetadataReferences.Select(r => Path.GetFileName(((PortableExecutableReference)r).FilePath)));
     }
 
     [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -1142,44 +1157,6 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
 
     [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("https://github.com/dotnet/roslyn/issues/3931")]
-    public async Task TestOpenSolution_WithMissingLanguageLibraries_WithSkipFalse_ThrowsAsync()
-    {
-        // proves that if the language libraries are missing then the appropriate error occurs
-        CreateFiles(GetSimpleCSharpSolutionFiles());
-        var solutionFilePath = GetSolutionFileName(@"TestSolution.sln");
-
-        var e = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-        {
-            using var workspace = CreateMSBuildWorkspace(MefHostServices.Create(_defaultAssembliesWithoutCSharp));
-            workspace.SkipUnrecognizedProjects = false;
-            await workspace.OpenSolutionAsync(solutionFilePath);
-        });
-
-        var projFileName = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
-        var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_language_1_is_not_supported, projFileName, LanguageNames.CSharp);
-        Assert.Equal(expected, e.Message);
-    }
-
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/3931")]
-    public async Task TestOpenSolution_WithMissingLanguageLibraries_WithSkipTrue_SucceedsWithDiagnostic()
-    {
-        // proves that if the language libraries are missing then the appropriate error occurs
-        CreateFiles(GetSimpleCSharpSolutionFiles());
-        var solutionFilePath = GetSolutionFileName(@"TestSolution.sln");
-
-        using var workspace = CreateMSBuildWorkspace(MefHostServices.Create(_defaultAssembliesWithoutCSharp));
-        workspace.SkipUnrecognizedProjects = true;
-
-        var solution = await workspace.OpenSolutionAsync(solutionFilePath);
-
-        var projFileName = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
-        var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_language_1_is_not_supported, projFileName, LanguageNames.CSharp);
-        Assert.Equal(expected, workspace.Diagnostics.Single().Message);
-    }
-
-    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/3931")]
     public async Task TestOpenProject_WithMissingLanguageLibraries_Throws()
     {
         // proves that if the language libraries are missing then the appropriate error occurs
@@ -1187,10 +1164,29 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
         var projectName = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
 
         using var workspace = MSBuildWorkspace.Create(MefHostServices.Create(_defaultAssembliesWithoutCSharp));
-        var e = await Assert.ThrowsAsync<InvalidOperationException>(() => workspace.OpenProjectAsync(projectName));
+        var project = await workspace.OpenProjectAsync(projectName);
 
-        var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_language_1_is_not_supported, projectName, LanguageNames.CSharp);
-        Assert.Equal(expected, e.Message);
+        Assert.Equal(LanguageNames.CSharp, project.Language);
+
+        // parse and compilation options should be null since language is unknown
+        Assert.Null(project.ParseOptions);
+        Assert.Null(project.CompilationOptions);
+
+        // documents and metadata references should still be loaded:
+        AssertEx.SequenceEqual(
+        [
+            "CSharpClass.cs",
+            "AssemblyInfo.cs",
+            ".NETFramework,Version=v4.8.AssemblyAttributes.cs"
+        ], project.Documents.Select(d => d.Name));
+
+        AssertEx.Equal(
+        [
+            "Microsoft.CSharp.dll",
+            "mscorlib.dll",
+            "System.Core.dll",
+            "System.dll",
+        ], project.MetadataReferences.Select(r => Path.GetFileName(((PortableExecutableReference)r).FilePath)));
     }
 
     [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -3100,7 +3096,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
 
         var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
 
-        await using var buildHostProcessManager = new BuildHostProcessManager(ImmutableDictionary<string, string>.Empty);
+        await using var buildHostProcessManager = new BuildHostProcessManager(knownCommandLineParserLanguages: [LanguageNames.CSharp], ImmutableDictionary<string, string>.Empty);
 
         var buildHost = await buildHostProcessManager.GetBuildHostWithFallbackAsync(projectFilePath, CancellationToken.None);
         var projectFile = await buildHost.LoadProjectFileAsync(projectFilePath, LanguageNames.CSharp, CancellationToken.None);

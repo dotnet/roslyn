@@ -68,7 +68,7 @@ internal static class ProjectDependencyHelper
         var lockFile = lockFileFormat.Read(projectAssetsPath);
         var projectAssetsMap = CreateProjectAssetsMap(lockFile);
 
-        using var _ = PooledHashSet<PackageReference>.GetInstance(out var unresolved);
+        using var _ = PooledHashSet<PackageReferenceItem>.GetInstance(out var unresolved);
 
         foreach (var reference in projectFileInfo.PackageReferences)
         {
