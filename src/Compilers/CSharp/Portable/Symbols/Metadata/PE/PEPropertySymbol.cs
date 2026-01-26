@@ -738,8 +738,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     ImmutableInterlocked.InterlockedInitialize(ref AccessUncommonFields()._lazyCustomAttributes, attributes);
                 }
 
-                _flags.SetCustomAttributesPopulated();
                 _flags.SetHasRequiredMemberAttribute(hasRequiredMemberAttribute);
+                _flags.SetCustomAttributesPopulated();
             }
 
             var uncommonFields = _uncommonFields;

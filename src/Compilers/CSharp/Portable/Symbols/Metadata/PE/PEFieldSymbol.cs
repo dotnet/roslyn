@@ -583,8 +583,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (_lazyCustomAttributes.IsDefault)
             {
                 var attributes = loadAndFilterAttributes(out var hasRequiredMemberAttribute);
-                ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, attributes);
                 _packedFlags.SetHasRequiredMemberAttribute(hasRequiredMemberAttribute);
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, attributes);
             }
             return _lazyCustomAttributes;
 
