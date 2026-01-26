@@ -1796,6 +1796,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                         }
                                                                                     },
                                                                                     (implementingType, isExplicit));
+
+                    SourceMemberContainerTypeSymbol.CheckCallerUnsafeMismatch(
+                        implementedEvent,
+                        implementingEvent,
+                        (implementedEvent, implementingType, implementingEvent),
+                        static arg => GetImplicitImplementationDiagnosticLocation(arg.implementedEvent, arg.implementingType, arg.implementingEvent),
+                        diagnostics);
                 }
                 else
                 {
@@ -1882,6 +1889,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 allowVariance: true,
                                 invokedAsExtensionMethod: false);
                         }
+
                         SourceMemberContainerTypeSymbol.CheckRefReadonlyInMismatch(
                             implementedMethod, implementingMethod, diagnostics,
                             static (diagnostics, implementedMethod, implementingMethod, implementingParameter, _, arg) =>
@@ -1893,6 +1901,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             },
                             implementingType,
                             invokedAsExtensionMethod: false);
+
+                        SourceMemberContainerTypeSymbol.CheckCallerUnsafeMismatch(
+                            implementedMethod,
+                            implementingMethod,
+                            (implementedMethod, implementingType, implementingMethod),
+                            static arg => GetImplicitImplementationDiagnosticLocation(arg.implementedMethod, arg.implementingType, arg.implementingMethod),
+                            diagnostics);
 
                         if (implementingMethod.HasUnscopedRefAttributeOnMethodOrProperty())
                         {

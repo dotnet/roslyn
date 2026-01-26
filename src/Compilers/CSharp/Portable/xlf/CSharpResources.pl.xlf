@@ -382,6 +382,11 @@
         <target state="translated">Atrybut AsyncMethodBuilder jest niedozwolony w metodach anonimowych bez jawnego zwracanego typu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CallerUnsafeOverridingSafe">
+        <source>Unsafe member '{0}' overrides safe member '{1}'</source>
+        <target state="new">Unsafe member '{0}' overrides safe member '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
         <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
         <target state="translated">Nie można użyć atrybutu "OverloadResolutionPriorityAttribute" w tej składowej.</target>
