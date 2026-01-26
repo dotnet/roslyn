@@ -71,8 +71,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             public static readonly string[] SourceRootMetadataNames = new[] { SourceControl, RevisionId, NestedRoot, ContainingRoot, MappedPath, SourceLinkUrl };
         }
 
+        private static string NormalizePath(string path)
+        {
+            return string.IsNullOrEmpty(path) ? path : EnsureEndsWithSlash(Utilities.GetFullPathNoThrow(path));
+        }
+
         private static string EnsureEndsWithSlash(string path)
-            => (path[path.Length - 1] == '/') ? path : path + '/';
+            => EndsWithDirectorySeparator(path) ? path : path + Path.DirectorySeparatorChar;
 
         private static bool EndsWithDirectorySeparator(string path)
         {
@@ -100,6 +105,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 {
                     Log.LogErrorFromResources("MapSourceRoots.PathMustEndWithSlashOrBackslash", Names.SourceRoot, sourceRoot.ItemSpec);
                 }
+
+                // Normalize the path.
+                sourceRoot.ItemSpec = NormalizePath(sourceRoot.ItemSpec);
 
                 if (rootByItemSpec.TryGetValue(sourceRoot.ItemSpec, out var existingRoot))
                 {
@@ -167,14 +175,22 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     string nestedRoot = root.GetMetadata(Names.NestedRoot);
                     if (!string.IsNullOrEmpty(nestedRoot))
                     {
-                        string containingRoot = root.GetMetadata(Names.ContainingRoot);
+                        string containingRoot = NormalizePath(root.GetMetadata(Names.ContainingRoot));
 
                         // The value of ContainingRoot metadata is a file path that is compared with ItemSpec values of SourceRoot items.
                         // Since the paths in ItemSpec have backslashes replaced with slashes on non-Windows platforms we need to do the same for ContainingRoot.
                         if (containingRoot != null && topLevelMappedPaths.TryGetValue(Utilities.FixFilePath(containingRoot), out var mappedTopLevelPath))
                         {
+                            // Normalize nested root.
+                            var fullOriginalPath = Utilities.GetFullPathNoThrow(Path.Combine(containingRoot, nestedRoot));
+                            nestedRoot = fullOriginalPath.StartsWith(containingRoot, StringComparison.OrdinalIgnoreCase)
+                                ? fullOriginalPath.Substring(containingRoot.Length)
+                                : nestedRoot;
+
                             Debug.Assert(mappedTopLevelPath.EndsWith("/", StringComparison.Ordinal));
-                            root.SetMetadata(Names.MappedPath, mappedTopLevelPath + EnsureEndsWithSlash(nestedRoot.Replace('\\', '/')));
+                            root.SetMetadata(Names.MappedPath, mappedTopLevelPath + EnsureEndsWithSlash(nestedRoot).Replace('\\', '/'));
+                            root.SetMetadata(Names.ContainingRoot, containingRoot);
+                            root.SetMetadata(Names.NestedRoot, nestedRoot);
                         }
                         else
                         {

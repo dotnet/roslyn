@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal(Utilities.FixFilePath(@"c:\packages\SourcePackage1\"), task.MappedSourceRoots[0].ItemSpec);
             Assert.Equal(@"/_1/", task.MappedSourceRoots[0].GetMetadata("MappedPath"));
 
-            Assert.Equal(Utilities.FixFilePath(@"/packages/SourcePackage2/"), task.MappedSourceRoots[1].ItemSpec);
+            Assert.Equal(Utilities.FixFilePath(Path.GetFullPath("/packages/SourcePackage2/")), task.MappedSourceRoots[1].ItemSpec);
             Assert.Equal(@"/_2/", task.MappedSourceRoots[1].GetMetadata("MappedPath"));
 
             Assert.Equal(Utilities.FixFilePath(@"c:\MyProjects\MyProject\"), task.MappedSourceRoots[2].ItemSpec);
@@ -106,14 +107,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             RoslynDebug.Assert(task.MappedSourceRoots is object);
             Assert.Equal(3, task.MappedSourceRoots.Length);
 
-            Assert.Equal(Utilities.FixFilePath(@"!@#:;$%^&*()_+|{}\"), task.MappedSourceRoots[0].ItemSpec);
+            Assert.Equal(Utilities.FixFilePath(Path.GetFullPath(@"!@#:;$%^&*()_+|{}\")), task.MappedSourceRoots[0].ItemSpec);
             Assert.Equal(@"/_1/", task.MappedSourceRoots[0].GetMetadata("MappedPath"));
 
-            Assert.Equal(Utilities.FixFilePath("****/"), task.MappedSourceRoots[1].ItemSpec);
+            Assert.Equal(Utilities.FixFilePath(Path.GetFullPath("****/")), task.MappedSourceRoots[1].ItemSpec);
             Assert.Equal(@"/_/", task.MappedSourceRoots[1].GetMetadata("MappedPath"));
             Assert.Equal(@"Git", task.MappedSourceRoots[1].GetMetadata("SourceControl"));
 
-            Assert.Equal(Utilities.FixFilePath(@"****\|||:;\"), task.MappedSourceRoots[2].ItemSpec);
+            Assert.Equal(Utilities.FixFilePath(Path.GetFullPath(@"****\|||:;\")), task.MappedSourceRoots[2].ItemSpec);
             Assert.Equal(@"/_/|||:;/", task.MappedSourceRoots[2].GetMetadata("MappedPath"));
             Assert.Equal(@"Git", task.MappedSourceRoots[2].GetMetadata("SourceControl"));
 
@@ -453,6 +454,50 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
 
                 Assert.True(result);
             }
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/82112")]
+        public void NormalizePaths(bool deterministic, [CombinatorialValues("e", "d/../e")] string nestedRoot)
+        {
+            var engine = new MockEngine();
+
+            var originalPath1 = Utilities.FixFilePath(@"c:\MyProjects\MyProject\a\b\..\c\");
+            var normalizedPath1 = Utilities.FixFilePath(@"c:\MyProjects\MyProject\a\c\");
+            var originalPath2 = Utilities.FixFilePath(@"c:\MyProjects\MyProject\a\b\..\c\d\..\e\");
+            var normalizedPath2 = Utilities.FixFilePath(@"c:\MyProjects\MyProject\a\c\e\");
+
+            var task = new MapSourceRoots
+            {
+                BuildEngine = engine,
+                SourceRoots =
+                [
+                    new TaskItem(originalPath1),
+                    new TaskItem(originalPath2, new Dictionary<string, string>
+                    {
+                        { "ContainingRoot", originalPath1 },
+                        { "NestedRoot", nestedRoot },
+                    }),
+                ],
+                Deterministic = deterministic,
+            };
+
+            bool result = task.Execute();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", engine.Log);
+
+            var expectedMappedPath1 = deterministic ? "/_/" : normalizedPath1;
+            var expectedNestedRoot = deterministic ? "e" : nestedRoot;
+            var expectedContainingRoot = deterministic ? normalizedPath1 : originalPath1;
+            var expectedMappedPath2 = deterministic ? "/_/e/" : normalizedPath2;
+
+            AssertEx.NotNull(task.MappedSourceRoots);
+            AssertEx.Equal(
+                $"""
+                '{normalizedPath1}' SourceControl='' RevisionId='' NestedRoot='' ContainingRoot='' MappedPath='{expectedMappedPath1}' SourceLinkUrl=''
+                '{normalizedPath2}' SourceControl='' RevisionId='' NestedRoot='{expectedNestedRoot}' ContainingRoot='{expectedContainingRoot}' MappedPath='{expectedMappedPath2}' SourceLinkUrl=''
+                """,
+                string.Join(Environment.NewLine, task.MappedSourceRoots.Select(InspectSourceRoot)));
+
+            Assert.True(result);
         }
     }
 }
