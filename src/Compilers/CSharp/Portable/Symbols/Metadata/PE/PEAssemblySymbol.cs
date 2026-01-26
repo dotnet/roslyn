@@ -154,13 +154,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return [];
                 }
 
+                var mightContainExtensionMethods = this.MightContainExtensionMethods;
                 using var builder = TemporaryArray<CSharpAttributeData>.Empty;
                 foreach (var handle in customAttributeHandles)
                 {
-                    if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.CaseSensitiveExtensionAttribute))
-                        continue;
-
-                    if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.IsReadOnlyAttribute))
+                    if (mightContainExtensionMethods && containingModule.AttributeMatchesFilter(handle, AttributeDescription.CaseSensitiveExtensionAttribute))
                         continue;
 
                     builder.Add(new PEAttributeData(containingModule, handle));
