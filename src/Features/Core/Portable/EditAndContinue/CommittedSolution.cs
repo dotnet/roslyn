@@ -74,7 +74,7 @@ internal sealed class CommittedSolution(DebuggingSession debuggingSession, Solut
     /// 
     /// Lock <see cref="_guard"/> to update.
     /// </summary>
-    private ImmutableDictionary<ProjectId, Guid> _staleProjects = ImmutableDictionary<ProjectId, Guid>.Empty;
+    private ImmutableDictionary<ProjectId, StaleProjectInfo> _staleProjects = ImmutableDictionary<ProjectId, StaleProjectInfo>.Empty;
 
     /// <summary>
     /// Implements workaround for https://github.com/dotnet/project-system/issues/5457.
@@ -132,7 +132,7 @@ internal sealed class CommittedSolution(DebuggingSession debuggingSession, Solut
     public Project GetRequiredProject(ProjectId id)
         => _solution.GetRequiredProject(id);
 
-    public ImmutableDictionary<ProjectId, Guid> StaleProjects
+    public ImmutableDictionary<ProjectId, StaleProjectInfo> StaleProjects
         => _staleProjects;
 
     public ImmutableArray<DocumentId> GetDocumentIdsWithFilePath(string path)
@@ -399,7 +399,7 @@ internal sealed class CommittedSolution(DebuggingSession debuggingSession, Solut
         }
     }
 
-    public void CommitChanges(Solution solution, ImmutableDictionary<ProjectId, Guid> staleProjects)
+    public void CommitChanges(Solution solution, ImmutableDictionary<ProjectId, StaleProjectInfo> staleProjects)
     {
         lock (_guard)
         {

@@ -606,7 +606,7 @@ internal sealed class EditSession
         }
     }
 
-    private async Task<(ImmutableArray<DocumentAnalysisResults> results, bool hasOutOfSyncDocument)> AnalyzeProjectDifferencesAsync(
+    private async Task<(ImmutableArray<DocumentAnalysisResults> results, Document? staleDocument)> AnalyzeProjectDifferencesAsync(
         Solution newSolution,
         ProjectDifferences differences,
         ActiveStatementSpanProvider newDocumentActiveStatementSpanProvider,
@@ -614,7 +614,7 @@ internal sealed class EditSession
         CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<(Document? oldDocument, Document? newDocument)>.GetInstance(out var documents);
-        var hasOutOfSyncDocument = false;
+        Document? staleDocument = null;
 
         foreach (var newDocument in differences.ChangedOrAddedDocuments)
         {
@@ -632,7 +632,7 @@ internal sealed class EditSession
                 case CommittedSolution.DocumentState.OutOfSync:
                     // TODO: https://github.com/dotnet/roslyn/issues/78125
                     // consider reporting EditAndContinueErrorCode.DocumentIsOutOfSyncWithDebuggee warning if project doesn't specify SingleTargetBuildForStartupProjects property
-                    hasOutOfSyncDocument = true;
+                    staleDocument = newDocument;
                     break;
 
                 case CommittedSolution.DocumentState.MatchesBuildOutput:
@@ -654,11 +654,11 @@ internal sealed class EditSession
         }
 
         // No need to report rude edits if project has any documents that are out of sync. No deltas will be emitted for such project.
-        var analyses = hasOutOfSyncDocument
+        var analyses = staleDocument != null
             ? []
             : await Analyses.GetDocumentAnalysesAsync(DebuggingSession.LastCommittedSolution, newSolution, documents, newDocumentActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
-        return (analyses, hasOutOfSyncDocument);
+        return (analyses, staleDocument);
     }
 
     private static ProjectAnalysisSummary GetProjectAnalysisSummary(ImmutableArray<DocumentAnalysisResults> documentAnalyses)
@@ -1038,6 +1038,18 @@ internal sealed class EditSession
         return map.ToImmutable();
     }
 
+    /// <summary>
+    /// Reason for document staleness.
+    /// </summary>
+    private readonly struct DocumentStalenessReason(Project staleProject, string? staleDocumentPath)
+    {
+        /// <summary>One of the projects that the changed document included in or linked to.</summary>
+        public Project StaleProject { get; } = staleProject;
+
+        /// <summary>Path of one of the stale documents that caused the project to be stale, or null if the project is stale because it hasn't been built.</summary>
+        public string? StaleDocumentPath { get; } = staleDocumentPath;
+    }
+
     public async ValueTask<SolutionUpdate> EmitSolutionUpdateAsync(
         Solution solution,
         ActiveStatementSpanProvider solutionActiveStatementSpanProvider,
@@ -1061,10 +1073,10 @@ internal sealed class EditSession
             // Project differences for currently analyzed project. Reused and cleared.
             using var projectDifferences = new ProjectDifferences();
 
-            // After all projects have been analyzed "true" value indicates changed document that is only included in stale projects.
-            var changedDocumentsStaleness = new Dictionary<string, bool>(SolutionState.FilePathComparer);
+            // After all projects have been analyzed a value indicates changed document that is only included in stale projects.
+            var changedDocumentsStaleness = new Dictionary<string, DocumentStalenessReason?>(SolutionState.FilePathComparer);
 
-            void UpdateChangedDocumentsStaleness(bool isStale)
+            void UpdateChangedDocumentsStaleness(DocumentStalenessReason? staleness)
             {
                 foreach (var changedDocument in projectDifferences.ChangedOrAddedDocuments)
                 {
@@ -1073,13 +1085,13 @@ internal sealed class EditSession
                     // Only documents that support EnC (have paths) are added to the list.
                     Contract.ThrowIfNull(path);
 
-                    if (isStale)
+                    if (staleness.HasValue)
                     {
-                        _ = changedDocumentsStaleness.TryAdd(path, true);
+                        _ = changedDocumentsStaleness.TryAdd(path, staleness);
                     }
                     else
                     {
-                        changedDocumentsStaleness[path] = false;
+                        changedDocumentsStaleness[path] = null;
                     }
                 }
             }
@@ -1114,15 +1126,15 @@ internal sealed class EditSession
                     var (mvid, mvidReadError) = await DebuggingSession.GetProjectModuleIdAsync(newProject, cancellationToken).ConfigureAwait(false);
 
                     // We don't consider document changes in stale projects until they are rebuilt (removed from stale set).
-                    if (staleProjects.TryGetValue(newProject.Id, out var staleModuleId))
+                    if (staleProjects.TryGetValue(newProject.Id, out var staleProjectInfo))
                     {
                         // The module hasn't been rebuilt or we are unable to read the MVID -- keep treating the project as stale.
-                        if (mvid == staleModuleId || mvidReadError != null)
+                        if (mvid == staleProjectInfo.Mvid || mvidReadError != null)
                         {
                             Log.Write($"EnC state of {newProject.GetLogDisplay()} queried: project is stale");
 
                             // Track changed documents that are only included in stale or unbuilt projects:
-                            UpdateChangedDocumentsStaleness(isStale: true);
+                            UpdateChangedDocumentsStaleness(new(newProject, staleProjectInfo.StaleDocumentPath));
                             continue;
                         }
 
@@ -1152,7 +1164,7 @@ internal sealed class EditSession
                         }
 
                         // Track changed documents that are only included in stale or unbuilt projects:
-                        UpdateChangedDocumentsStaleness(isStale: true);
+                        UpdateChangedDocumentsStaleness(new(newProject, staleDocumentPath: null));
                         continue;
                     }
 
@@ -1176,22 +1188,26 @@ internal sealed class EditSession
                     // which change we have not observed yet. Then call-sites of C.M in a changed document observed by the analysis will be seen as C.M(object)
                     // instead of the true C.M(string).
 
-                    var (changedDocumentAnalyses, hasOutOfSyncChangedDocument) =
+                    var (changedDocumentAnalyses, staleDocument) =
                         await AnalyzeProjectDifferencesAsync(solution, projectDifferences, solutionActiveStatementSpanProvider, projectDiagnostics, cancellationToken).ConfigureAwait(false);
 
-                    if (hasOutOfSyncChangedDocument)
+                    if (staleDocument != null)
                     {
                         // The project is considered stale as long as it has at least one document that is out-of-sync.
                         // Treat the project the same as if it hasn't been built. We won't produce delta for it until it gets rebuilt.
                         Log.Write($"Changes not applied to {newProject.GetLogDisplay()}: binaries not up-to-date");
 
-                        staleProjects = staleProjects.Add(newProject.Id, mvid);
-                        UpdateChangedDocumentsStaleness(isStale: true);
+                        // Documents without path are not analyzed.
+                        var staleDocumentPath = staleDocument.FilePath;
+                        Debug.Assert(staleDocumentPath != null);
+
+                        staleProjects = staleProjects.Add(newProject.Id, new StaleProjectInfo(mvid, staleDocumentPath));
+                        UpdateChangedDocumentsStaleness(new(newProject, staleDocumentPath));
 
                         continue;
                     }
 
-                    UpdateChangedDocumentsStaleness(isStale: false);
+                    UpdateChangedDocumentsStaleness(staleness: null);
 
                     foreach (var changedDocumentAnalysis in changedDocumentAnalyses)
                     {
@@ -1456,14 +1472,28 @@ internal sealed class EditSession
             // Report stale document updates.
             // We report a warning when a changed/added document is only included in (linked to) stale projects.
 
-            foreach (var (documentPath, isStale) in changedDocumentsStaleness)
+            foreach (var (changedDocumentPath, staleness) in changedDocumentsStaleness)
             {
-                if (isStale)
+                if (staleness.HasValue)
                 {
-                    foreach (var documentId in solution.GetDocumentIdsWithFilePath(documentPath))
+                    foreach (var documentId in solution.GetDocumentIdsWithFilePath(changedDocumentPath))
                     {
                         var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.UpdatingDocumentInStaleProject);
-                        var diagnostic = Diagnostic.Create(descriptor, Location.Create(documentPath, textSpan: default, lineSpan: default), [documentPath]);
+                        var staleDocumentPath = staleness.Value.StaleDocumentPath;
+
+                        var diagnostic = Diagnostic.Create(
+                            descriptor,
+                            Location.Create(changedDocumentPath, textSpan: default, lineSpan: default),
+                            [
+                                changedDocumentPath,
+                                staleness.Value.StaleProject.Name,
+                                staleDocumentPath == null
+                                    ? FeaturesResources.the_project_has_not_been_built
+                                    : staleDocumentPath == changedDocumentPath
+                                    ? FeaturesResources.the_content_of_the_document_is_stale
+                                    : string.Format(FeaturesResources.the_project_contains_stale_document_0, staleDocumentPath)
+                            ]);
+
                         diagnosticBuilders.MultiAdd(documentId.ProjectId, diagnostic);
                     }
                 }
