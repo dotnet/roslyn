@@ -1,4 +1,4 @@
-∩╗┐namespace Microsoft.CodeAnalysis.CSharp
+﻿namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static partial class ErrorFacts
     {
