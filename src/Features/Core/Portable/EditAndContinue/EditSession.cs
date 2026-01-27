@@ -983,7 +983,7 @@ internal sealed class EditSession
                 newResolution = edit.Symbol.Resolve(newCompilation, cancellationToken: cancellationToken);
                 Contract.ThrowIfNull(newResolution.Symbol);
             }
-            else if (edit.Kind == SemanticEditKind.Delete && edit.DeletedSymbolContainer is not null)
+            else if (edit is { Kind: SemanticEditKind.Delete, DeletedSymbolContainer: not null })
             {
                 // For deletes, we use NewSymbol to reference the containing type of the deleted member
                 newResolution = edit.DeletedSymbolContainer.Value.Resolve(newCompilation, cancellationToken: cancellationToken);
@@ -1353,16 +1353,12 @@ internal sealed class EditSession
                             Telemetry.LogEmitDifferenceTime(emitDifferenceTimer.Elapsed);
                         }
 
-                        // TODO: https://github.com/dotnet/roslyn/issues/36061
-                        // We should only report diagnostics from emit phase.
-                        // Syntax and semantic diagnostics are already reported by the diagnostic analyzer.
-                        // Currently we do not have means to distinguish between diagnostics reported from compilation and emit phases.
-                        // Querying diagnostics of the entire compilation or just the updated files migth be slow.
-                        // In fact, it is desirable to allow emitting deltas for symbols affected by the change while allowing untouched
-                        // method bodies to have errors.
-                        if (!emitResult.Diagnostics.IsEmpty)
+                        foreach (var emitDiagnostic in emitResult.Diagnostics)
                         {
-                            projectDiagnostics.AddRange(emitResult.Diagnostics);
+                            if (emitDiagnostic.Severity is DiagnosticSeverity.Error or DiagnosticSeverity.Warning)
+                            {
+                                projectDiagnostics.Add(emitDiagnostic);
+                            }
                         }
 
                         if (!emitResult.Success)
@@ -1600,9 +1596,7 @@ internal sealed class EditSession
                 // Adds a region with specified PDB spans.
                 void AddNonRemappableRegion(SourceFileSpan oldSpan, SourceFileSpan newSpan, bool isExceptionRegion)
                 {
-                    // TODO: Remove comparer, the path should match exactly. Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830914.
-                    Debug.Assert(string.Equals(oldSpan.Path, newSpan.Path,
-                        EditAndContinueMethodDebugInfoReader.IgnoreCaseWhenComparingDocumentNames ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal));
+                    Debug.Assert(string.Equals(oldSpan.Path, newSpan.Path, StringComparison.Ordinal));
 
                     // The up-to-date flag is copied when new active statement is created from the corresponding old one.
                     Debug.Assert(oldActiveStatement.IsMethodUpToDate == newActiveStatement.IsMethodUpToDate);

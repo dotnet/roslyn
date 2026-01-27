@@ -16,19 +16,14 @@ using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using RoslynLog = Microsoft.CodeAnalysis.Internal.Log;
 
 // Setting the title can fail if the process is run without a window, such
 // as when launched detached from nodejs
-try
-{
-    Console.Title = "Microsoft.CodeAnalysis.LanguageServer";
-}
-catch (IOException)
-{
-}
+IOUtilities.PerformIO(() => Console.Title = "Microsoft.CodeAnalysis.LanguageServer");
 
 WindowsErrorReporting.SetErrorModeOnWindows();
 
@@ -126,8 +121,6 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     var serviceBrokerFactory = exportProvider.GetExportedValue<ServiceBrokerFactory>();
     StarredCompletionAssemblyHelper.InitializeInstance(serverConfiguration.StarredCompletionsPath, extensionManager, loggerFactory, serviceBrokerFactory);
-    // TODO: Remove, the path should match exactly. Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830914.
-    Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueMethodDebugInfoReader.IgnoreCaseWhenComparingDocumentNames = Path.DirectorySeparatorChar == '\\';
 
     LanguageServerHost? server = null;
     if (serverConfiguration.UseStdIo)

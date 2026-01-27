@@ -4,7 +4,6 @@
 
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests.Miscellaneous;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -146,13 +145,9 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.Equal(2, primordialDocument.Project.Documents.Count());
         Assert.Empty(primordialDocument.Project.MetadataReferences);
 
+        // No errors for '#:' are expected.
         var primordialSyntaxTree = await primordialDocument.GetRequiredSyntaxTreeAsync(CancellationToken.None);
-        // TODO: we probably don't want to report syntax errors for '#:' in the primordial non-file document.
-        // The logic which decides whether to add '-features:FileBasedProgram' probably needs to be adjusted.
-        primordialSyntaxTree.GetDiagnostics(CancellationToken.None).Verify(
-            // vscode-notebook-cell://dev-container/test.cs(1,2): error CS9298: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')"
-            // #:sdk Microsoft.Net.Sdk
-            TestHelpers.Diagnostic(code: 9298, squiggledText: ":").WithLocation(1, 2));
+        Assert.Empty(primordialSyntaxTree.GetDiagnostics(CancellationToken.None));
 
         // Wait for the canonical project to finish loading.
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
@@ -165,13 +160,47 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         // Should have the appropriate generated files now that we ran a design time build
         Assert.Contains(canonicalDocument.Project.Documents, d => d.Name == "Canonical.AssemblyInfo.cs");
 
+        // No errors for '#:' are expected.
         var canonicalSyntaxTree = await canonicalDocument.GetRequiredSyntaxTreeAsync(CancellationToken.None);
-        // TODO: we probably don't want to report syntax errors for '#:' in the canonical non-file document.
-        // The logic which decides whether to add '-features:FileBasedProgram' probably needs to be adjusted.
-        canonicalSyntaxTree.GetDiagnostics(CancellationToken.None).Verify(
-            // vscode-notebook-cell://dev-container/test.cs(1,2): error CS9298: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')"
+        Assert.Empty(canonicalSyntaxTree.GetDiagnostics(CancellationToken.None));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestScriptsWithIgnoredDirectives(bool mutatingLspWorkspace)
+    {
+        // https://github.com/dotnet/roslyn/issues/81644: A csx script with '#:' directives should not be loaded as a file-based program
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+
+        var nonFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\script.csx");
+        await testLspServer.OpenDocumentAsync(nonFileUri, """
+            #:sdk Microsoft.Net.Sdk
+            Console.WriteLine("Hello World");
+            """).ConfigureAwait(false);
+
+        // File is added to a miscellaneous project containing only the script.
+        var (_, primordialDocument) = await GetRequiredLspWorkspaceAndDocumentAsync(nonFileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(1, primordialDocument.Project.Documents.Count());
+        Assert.Empty(primordialDocument.Project.MetadataReferences);
+
+        // FileBasedProgram feature flag is not passed, so an error is expected on '#:'.
+        var primordialSyntaxTree = await primordialDocument.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+        primordialSyntaxTree.GetDiagnostics(CancellationToken.None).Verify(
+            // script.csx(1,2): error CS9298: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')"
             // #:sdk Microsoft.Net.Sdk
             TestHelpers.Diagnostic(code: 9298, squiggledText: ":").WithLocation(1, 2));
+
+        // Wait for project load to finish
+        await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+
+        var (miscWorkspace, canonicalDocument) = await GetRequiredLspWorkspaceAndDocumentAsync(nonFileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, miscWorkspace.Kind);
+        Assert.NotNull(canonicalDocument);
+        Assert.NotEqual(primordialDocument, canonicalDocument);
+        Assert.Contains(canonicalDocument.Project.Documents, d => d.Name == "script.AssemblyInfo.cs");
+
+        var canonicalSyntaxTree = await canonicalDocument.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+        Assert.Empty(canonicalSyntaxTree.GetDiagnostics(CancellationToken.None));
     }
 
     [Theory, CombinatorialData]

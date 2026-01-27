@@ -6238,5 +6238,35 @@ static class E
 }
 """);
         }
+
+        [Fact]
+        public void TestNormalizeSuppression_01()
+        {
+            TestNormalizeDeclaration("""
+throw null!;
+""", """
+throw null!;
+""");
+        }
+
+        [Fact]
+        public void TestNormalizeSuppression_02()
+        {
+            TestNormalizeDeclaration("""
+throw x!;
+""", """
+throw x!;
+""");
+        }
+
+        [Fact]
+        public void TestNormalizeSuppression_03()
+        {
+            TestNormalizeDeclaration("""
+M()!;
+""", """
+M()!;
+""");
+        }
     }
 }

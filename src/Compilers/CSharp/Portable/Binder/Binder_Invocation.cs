@@ -1209,9 +1209,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var methodResult = result.ValidResult;
             var returnType = methodResult.Member.ReturnType;
             var method = methodResult.Member;
-            bool isNewExtensionMethod = method.IsExtensionBlockMember();
+            bool isExtensionBlockMethod = method.IsExtensionBlockMember();
 
-            if (isNewExtensionMethod)
+            if (isExtensionBlockMethod)
             {
                 // For new extension methods, we performed overload resolution giving the receiver as one of the arguments.
                 // We now restore the arguments to their original state and update the result accordingly.
@@ -1252,7 +1252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.CheckAndCoerceArguments(node, methodResult, analyzedArguments, diagnostics, receiver, invokedAsExtensionMethod: invokedAsExtensionMethod, out argsToParams);
 
             var expanded = methodResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
-            var extensionReceiver = isNewExtensionMethod && !method.IsStatic ? receiver : null;
+            var extensionReceiver = isExtensionBlockMethod && !method.IsStatic ? receiver : null;
             BindDefaultArguments(node, method.Parameters, extensionReceiver, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argsToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
 
             // Note: we specifically want to do final validation (7.6.5.1) without checking delegate compatibility (15.2),
@@ -1293,7 +1293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 analyzedArguments.Arguments[0] = receiverArgument;
             }
-            else if (isNewExtensionMethod && receiver is not BoundTypeExpression)
+            else if (isExtensionBlockMethod && receiver is not BoundTypeExpression)
             {
                 receiver = CheckAndConvertExtensionReceiver(receiver, method.ContainingType.ExtensionParameter, diagnostics);
             }
@@ -1766,6 +1766,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         conversion,
                         isCast,
                         isCast ? new ConversionGroup(conversion, parameter.TypeWithAnnotations) : null,
+                        InConversionGroupFlags.Unspecified,
                         parameterType,
                         diagnostics);
                 }
@@ -1855,7 +1856,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MessageID.IDS_FeatureParamsCollections.CheckFeatureAvailability(diagnostics, node);
                 }
 
-                var unconvertedCollection = new BoundUnconvertedCollectionExpression(node, ImmutableArray<BoundNode>.CastUp(collectionArgs)) { WasCompilerGenerated = true, IsParamsArrayOrCollection = true };
+                // params collections have no way to pass `with(...)` arguments along.  So just pass 'null' for them
+                // as they will never exist.
+                var unconvertedCollection = new BoundUnconvertedCollectionExpression(
+                    node, withElement: null, ImmutableArray<BoundNode>.CastUp(collectionArgs))
+                {
+                    WasCompilerGenerated = true,
+                    IsParamsArrayOrCollection = true
+                };
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 Conversion conversion = Conversions.ClassifyImplicitConversionFromExpression(unconvertedCollection, collectionType, ref useSiteInfo);
                 diagnostics.Add(node, useSiteInfo);
@@ -1880,6 +1888,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                  @checked: CheckOverflowAtRuntime,
                                  explicitCastInCode: false,
                                  conversionGroupOpt: null,
+                                 InConversionGroupFlags.Unspecified,
                                  constantValueOpt: null,
                                  type: collectionType)
                 { WasCompilerGenerated = true, IsParamsArrayOrCollection = true };
@@ -2351,6 +2360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.MayBeNameofOperator())
             {
                 var binder = this.GetBinder(node);
+                Debug.Assert(binder.Flags == this.Flags);
                 if (binder.EnclosingNameofArgument == node.ArgumentList.Arguments[0].Expression)
                 {
                     result = binder.BindNameofOperatorInternal(node, diagnostics);

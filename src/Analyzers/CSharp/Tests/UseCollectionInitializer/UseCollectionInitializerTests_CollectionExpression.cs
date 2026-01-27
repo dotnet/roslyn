@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCollectionExpression;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -22,10 +23,13 @@ using VerifyCS = CSharpCodeFixVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
 public sealed partial class UseCollectionInitializerTests_CollectionExpression
 {
-    private static Task TestInRegularAndScriptAsync([StringSyntax("C#-test")] string testCode, [StringSyntax("C#-test")] string fixedCode, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
+    private static Task TestInRegularAndScriptAsync(
+        [StringSyntax("C#-test")] string testCode,
+        [StringSyntax("C#-test")] string fixedCode,
+        OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
         => new VerifyCS.Test
         {
-            ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net100,
             TestCode = testCode,
             FixedCode = fixedCode,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -5783,7 +5787,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
 
-            """ + UseCollectionExpressionForEmptyTests.CollectionBuilderAttributeDefinition);
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70099")]
     public Task TestCollectionBuilderOutsideMethod()
@@ -5823,7 +5827,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
 
-            """ + UseCollectionExpressionForEmptyTests.CollectionBuilderAttributeDefinition,
+            """,
             """
             using System;
             using System.Collections;
@@ -5858,6 +5862,631 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
 
-            """ + UseCollectionExpressionForEmptyTests.CollectionBuilderAttributeDefinition);
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public Task TestObjectCreationArgument1_CSharp14()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        List<int> list = [|new|] List<int>(values);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        List<int> list = [with(values)];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public Task TestObjectCreationArgument2_CSharp14()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        List<int> list = [|new|] List<int>(values) { 1, 2, 3 };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        List<int> list = [with(values), 1, 2, 3];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public Task TestObjectCreationArgument3_CSharp14()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        List<int> list = [|new|] List<int>(0) { 1, 2, 3 };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        List<int> list = [with(0), 1, 2, 3];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public Task TestObjectCreationArgument4_CSharp14()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        List<int> list = [|new|] List<int>(capacity: 0) { 1, 2, 3 };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        List<int> list = [with(capacity: 0), 1, 2, 3];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNonGenericCollectionBuilder()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Collections.ObjectModel;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(Factory), nameof(Factory.Create))]
+            internal class MyCustomCollection : List<int>
+            {
+            }
+
+            internal static class Factory
+            {
+                public static MyCustomCollection Create(ReadOnlySpan<int> items)
+                {
+                    MyCustomCollection collection = new();
+                    foreach (var item in items)
+                        collection.Add(item);
+
+                    return collection;
+                }
+            }
+
+            class C
+            {
+                void M()
+                {
+                    MyCustomCollection c = [|new|]();
+                    [|c.Add(|]1);
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Collections.ObjectModel;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(Factory), nameof(Factory.Create))]
+            internal class MyCustomCollection : List<int>
+            {
+            }
+            
+            internal static class Factory
+            {
+                public static MyCustomCollection Create(ReadOnlySpan<int> items)
+                {
+                    MyCustomCollection collection = new();
+                    foreach (var item in items)
+                        collection.Add(item);
+            
+                    return collection;
+                }
+            }
+
+            class C
+            {
+                void M()
+                {
+                    MyCustomCollection c = [1];
+                }
+            }
+            """);
+
+    // Enable when dictionary-expressions come online.
+#if false
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public Task TestKeyValuePair1_CSharp14()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        Dictionary<int, string> map = [|new|] Dictionary<int, string>() { { 1, "x" } };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        Dictionary<int, string> map = [1: "x"];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public Task TestKeyValuePair2_CSharp14()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        Dictionary<int, string> map = [|new|] Dictionary<int, string>()
+                        {
+                            { 1, "x" },
+                            { 2, "y" },
+                        };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        Dictionary<int, string> map =
+                        [
+                            1: "x",
+                            2: "y",
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public Task TestKeyValuePair3_CSharp14()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        Dictionary<int, string> map = [|new|] Dictionary<int, string>() { [1] = "x" };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        Dictionary<int, string> map = [1: "x"];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public Task TestKeyValuePair4_CSharp14()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        Dictionary<int, string> map = [|new|] Dictionary<int, string>()
+                        {
+                            [1] = "x",
+                            [2] = "y",
+                        };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        Dictionary<int, string> map =
+                        [
+                            1: "x",
+                            2: "y",
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public Task TestKeyValuePair5_CSharp14()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        Dictionary<int, string> map = [|new|] Dictionary<int, string>();
+                        [|map.Add(|]1, "x");
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        Dictionary<int, string> map = [1: "x"];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public Task TestKeyValuePair6_CSharp14()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        Dictionary<int, string> map = [|new|] Dictionary<int, string>();
+                        map[1] = "x";
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        Dictionary<int, string> map = [1: "x"];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public Task TestKeyValuePair7_CSharp14()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        Dictionary<string, string> map = [|new|] Dictionary<string, string>(StringComparer.Ordinal);
+                        map["x"] = "y";
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        Dictionary<string, string> map = [with(StringComparer.Ordinal), "x": "y"];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public Task DictionaryType1()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        X([|new|] Dictionary<int, string>()
+                        {
+                            [1] = "x",
+                            [2] = "y",
+                        });
+                    }
+
+                    void X(Dictionary<int, string> map)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        X(
+                        [
+                            1: "x",
+                            2: "y",
+                        ]);
+                    }
+                
+                    void X(Dictionary<int, string> map)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public Task DictionaryType2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        X([|new|] Dictionary<int, string>()
+                        {
+                            [1] = "x",
+                            [2] = "y",
+                        });
+                    }
+
+                    void X(IDictionary<int, string> map)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        X(
+                        [
+                            1: "x",
+                            2: "y",
+                        ]);
+                    }
+                
+                    void X(IDictionary<int, string> map)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public Task DictionaryType3_ExactMatch()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        X(new Dictionary<int, string>()
+                        {
+                            [1] = "x",
+                            [2] = "y",
+                        });
+                    }
+
+                    void X(IReadOnlyDictionary<int, string> map)
+                    {
+                    }
+                }
+                """,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression=when_types_exactly_match
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public Task DictionaryType3_LooseMatch()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        X([|new|] Dictionary<int, string>()
+                        {
+                            [1] = "x",
+                            [2] = "y",
+                        });
+                    }
+
+                    void X(IReadOnlyDictionary<int, string> map)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        X(
+                        [
+                            1: "x",
+                            2: "y",
+                        ]);
+                    }
+                
+                    void X(IReadOnlyDictionary<int, string> map)
+                    {
+                    }
+                }
+                """,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression=when_types_loosely_match
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+#endif
 }
 

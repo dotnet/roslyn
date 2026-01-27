@@ -1110,7 +1110,7 @@ internal static partial class SyntaxTreeExtensions
             parameter4 = token.Parent as ParameterSyntax;
             previousModifier = token.Kind();
         }
-        else if (token.IsKind(SyntaxKind.IdentifierToken) && token.Text == "scoped" && token.Parent is IdentifierNameSyntax scopedIdentifierName)
+        else if (token.IsKind(SyntaxKind.IdentifierToken) && token is { Text: "scoped", Parent: IdentifierNameSyntax scopedIdentifierName })
         {
             parameter4 = scopedIdentifierName.Parent as ParameterSyntax;
             previousModifier = SyntaxKind.ScopedKeyword;
@@ -1128,7 +1128,7 @@ internal static partial class SyntaxTreeExtensions
         static bool IsSuitableParameterList(ParameterListSyntax parameterList, bool includeOperators)
             => parameterList.Parent switch
             {
-                MethodDeclarationSyntax or LocalFunctionStatementSyntax or ConstructorDeclarationSyntax or DelegateDeclarationSyntax or TypeDeclarationSyntax => true,
+                MethodDeclarationSyntax or LocalFunctionStatementSyntax or ConstructorDeclarationSyntax or DelegateDeclarationSyntax or TypeDeclarationSyntax or ParenthesizedLambdaExpressionSyntax or AnonymousMethodExpressionSyntax => true,
                 OperatorDeclarationSyntax or ConversionOperatorDeclarationSyntax when includeOperators => true,
                 _ => false,
             };
@@ -1267,7 +1267,7 @@ internal static partial class SyntaxTreeExtensions
         {
             parent = token.Parent.Parent;
         }
-        else if (token.IsKind(SyntaxKind.IdentifierToken) && token.Text == "scoped" && token.Parent is IdentifierNameSyntax scopedIdentifierName && scopedIdentifierName.Parent.IsKind(SyntaxKind.Parameter))
+        else if (token.IsKind(SyntaxKind.IdentifierToken) && token is { Text: "scoped", Parent: IdentifierNameSyntax scopedIdentifierName } && scopedIdentifierName.Parent.IsKind(SyntaxKind.Parameter))
         {
             parent = scopedIdentifierName.Parent.Parent;
         }

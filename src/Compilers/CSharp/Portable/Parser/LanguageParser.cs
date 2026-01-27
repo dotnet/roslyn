@@ -4834,7 +4834,9 @@ parse_member_name:;
                     return this.IsTrueIdentifier();
 
                 default:
-                    return IsParameterModifierExcludingScoped(this.CurrentToken) || IsPossibleScopedKeyword(isFunctionPointerParameter: false) || IsPredefinedType(this.CurrentToken.Kind);
+                    return IsParameterModifierExcludingScoped(this.CurrentToken) ||
+                           IsDefiniteScopedModifier(isFunctionPointerParameter: false, isLambdaParameter: false) ||
+                           IsPredefinedType(this.CurrentToken.Kind);
             }
         }
 
@@ -4961,32 +4963,50 @@ parse_member_name:;
 
         private void ParseParameterModifiers(SyntaxListBuilder modifiers, bool isFunctionPointerParameter, bool isLambdaParameter)
         {
-            bool tryScoped = true;
+            Debug.Assert(!(isFunctionPointerParameter && isLambdaParameter), "Can't be parsing parameters for both a function pointer and a lambda at the same time");
 
-            while (IsParameterModifierExcludingScoped(this.CurrentToken))
+            var seenScoped = false;
+            while (true)
             {
-                if (this.CurrentToken.Kind is SyntaxKind.RefKeyword or SyntaxKind.OutKeyword or SyntaxKind.InKeyword or SyntaxKind.ReadOnlyKeyword)
+                // Normal keyword-modifier (in/out/ref/readonly/params/this).  Always safe to consume.
+                if (IsParameterModifierExcludingScoped(this.CurrentToken))
                 {
-                    tryScoped = false;
+                    modifiers.Add(this.EatToken());
+                    continue;
                 }
 
-                modifiers.Add(this.EatToken());
-            }
-
-            if (tryScoped)
-            {
-                SyntaxToken scopedKeyword = ParsePossibleScopedKeyword(isFunctionPointerParameter, isLambdaParameter);
-
-                if (scopedKeyword != null)
+                // 'scoped' modifier.  May be ambiguous with a type/identifier.  And has changed parsing rules between
+                // C#13/14 inside a lambda parameter list.
+                if (this.IsDefiniteScopedModifier(isFunctionPointerParameter, isLambdaParameter))
                 {
-                    modifiers.Add(scopedKeyword);
-
-                    // Look if ref/out/in/readonly are next
-                    while (this.CurrentToken.Kind is SyntaxKind.RefKeyword or SyntaxKind.OutKeyword or SyntaxKind.InKeyword or SyntaxKind.ReadOnlyKeyword)
+                    // First scoped-modifier is always considered the modifier.
+                    if (!seenScoped)
                     {
-                        modifiers.Add(this.EatToken());
+                        seenScoped = true;
+                        modifiers.Add(this.EatContextualToken(SyntaxKind.ScopedKeyword));
+                        continue;
+                    }
+                    else
+                    {
+                        // If we've already seen `scoped` then we may have a situation like `scoped scoped`. This could
+                        // be duplicated modifier, or it could be that the second `scoped` is actually the identifier of
+                        // a parameter.
+                        //
+                        // Places where it is an identifier are:
+                        //
+                        //      `(scoped scoped) =>`
+                        //      `(scoped scoped, ...) =>`
+                        //      `(scoped scoped = ...) =>`
+                        if (this.PeekToken(1).Kind is not (SyntaxKind.CloseParenToken or SyntaxKind.CommaToken or SyntaxKind.EqualsToken))
+                        {
+                            modifiers.Add(this.EatContextualToken(SyntaxKind.ScopedKeyword));
+                            continue;
+                        }
                     }
                 }
+
+                // Not a modifier.  We're done.
+                return;
             }
         }
 
@@ -8464,7 +8484,7 @@ done:
                 return true;
             }
 
-            if (IsPossibleScopedKeyword(isFunctionPointerParameter: false))
+            if (IsDefiniteScopedModifier(isFunctionPointerParameter: false, isLambdaParameter: false))
             {
                 return true;
             }
@@ -8480,12 +8500,6 @@ done:
             }
 
             return IsPossibleFirstTypedIdentifierInLocalDeclarationStatement(isGlobalScriptLevel);
-        }
-
-        private bool IsPossibleScopedKeyword(bool isFunctionPointerParameter)
-        {
-            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
-            return ParsePossibleScopedKeyword(isFunctionPointerParameter, isLambdaParameter: false) != null;
         }
 
         private bool IsPossibleFirstTypedIdentifierInLocalDeclarationStatement(bool isGlobalScriptLevel)
@@ -8623,7 +8637,7 @@ done:
             // Skip 'using' keyword
             EatToken();
 
-            if (IsPossibleScopedKeyword(isFunctionPointerParameter: false))
+            if (IsDefiniteScopedModifier(isFunctionPointerParameter: false, isLambdaParameter: false))
             {
                 return true;
             }
@@ -10518,41 +10532,34 @@ done:
             }
         }
 
-        private SyntaxToken ParsePossibleScopedKeyword(
+        private bool IsDefiniteScopedModifier(
             bool isFunctionPointerParameter,
             bool isLambdaParameter)
         {
             if (this.CurrentToken.ContextualKind != SyntaxKind.ScopedKeyword)
-                return null;
+                return false;
 
-            // In C# 14 we decided that within a lambda 'scoped' would *always* be a keyword.
+            // In C# 14 we decided that within a lambda 'scoped' would *always* be a modifier, not a type.
+            // so `scoped scoped` is `modifier-scoped identifier-scoped` not `type-scoped identifier-scoped`.
+            // Note: this only applies the modifier/type portion.  We still allow the identifier of a lambda
+            // to be named 'scoped'.
             if (isLambdaParameter && IsFeatureEnabled(MessageID.IDS_FeatureSimpleLambdaParameterModifiers))
-                return this.EatContextualToken(SyntaxKind.ScopedKeyword);
+                return true;
 
-            using var beforeScopedResetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
+            using var beforeScopedResetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
 
             var scopedKeyword = this.EatContextualToken(SyntaxKind.ScopedKeyword);
 
-            // trivial case.  scoped ref/out/in  is definitely the scoped keyword.
-            if (this.CurrentToken.Kind is (SyntaxKind.RefKeyword or SyntaxKind.OutKeyword or SyntaxKind.InKeyword))
-                return scopedKeyword;
+            // trivial case.  scoped ref/out/in/this  is definitely the scoped keyword. Note: the only actual legal
+            // cases are `scoped ref`, `scoped out`, and `scoped in`.  But we detect and allow `scoped this`, `scoped
+            // params` and `scoped readonly` as well.  These will be reported as errors later in binding.
+            if (IsParameterModifierExcludingScoped(this.CurrentToken))
+                return true;
 
             // More complex cases.  We have to check for `scoped Type ...` now.
-            using var afterScopedResetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
-
-            if (ScanType() is ScanTypeFlags.NotType ||
-                !isValidScopedTypeCase())
-            {
-                // We didn't see a type, or it wasn't a legal usage of a type.  This is not a scoped-keyword.  Rollback to
-                // before the keyword so the caller has to handle it.
-                beforeScopedResetPoint.Reset();
-                return null;
-            }
-
-            // We had a Type syntax in a supported production.  Roll back to just after the scoped-keyword and
-            // return it successfully.
-            afterScopedResetPoint.Reset();
-            return scopedKeyword;
+            //
+            // Note that `scoped scoped` can be valid here as a type called scoped and a variable called scoped.
+            return ScanType() is not ScanTypeFlags.NotType && isValidScopedTypeCase();
 
             bool isValidScopedTypeCase()
             {
@@ -10572,6 +10579,15 @@ done:
 
                 return false;
             }
+        }
+
+        private SyntaxToken ParsePossibleScopedKeyword(
+            bool isFunctionPointerParameter,
+            bool isLambdaParameter)
+        {
+            return IsDefiniteScopedModifier(isFunctionPointerParameter, isLambdaParameter)
+                ? this.EatContextualToken(SyntaxKind.ScopedKeyword)
+                : null;
         }
 
         private VariableDesignationSyntax ParseDesignation(bool forPattern)
@@ -12028,6 +12044,21 @@ done:
                             {
                                 expr = this.AddError(expr, ErrorCode.ERR_ExpressionExpected);
                             }
+                            else if (
+                                SyntaxFacts.IsBinaryExpression(tk) ||
+                                SyntaxFacts.IsAssignmentExpressionOperatorToken(tk))
+                            {
+                                // We got into the expression parsing path because we saw an error operator (see the
+                                // default case in IsPossibleExpression), knowing we'd create a missing expr which would
+                                // then allow the binary/assignment expr parsing to proceed.  In this case, we want to
+                                // report the invalid expr, but place it next to the operator, not whatever might have
+                                // come arbitrarily far before us.
+                                return WithAdditionalDiagnostics(expr, MakeError(
+                                    offset: this.CurrentToken.GetLeadingTriviaWidth(),
+                                    width: this.CurrentToken.Width,
+                                    ErrorCode.ERR_InvalidExprTerm,
+                                    SyntaxFacts.GetText(tk)));
+                            }
                             else
                             {
                                 expr = this.AddError(expr, ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
@@ -12739,7 +12770,7 @@ done:
             // expression?  Because look-ahead is cheap with our token stream, we check
             // to see if this "looks like" a cast (without constructing any parse trees)
             // to help us make the decision.
-            if (this.ScanCast())
+            if (this.ScanCast(forPattern: false, inSwitchArmPattern: false))
             {
                 if (!IsCurrentTokenQueryKeywordInQuery())
                 {
@@ -12817,8 +12848,10 @@ done:
                 this.EatToken(SyntaxKind.CloseParenToken));
         }
 
-        private bool ScanCast(bool forPattern = false)
+        private bool ScanCast(bool forPattern, bool inSwitchArmPattern)
         {
+            Debug.Assert(!inSwitchArmPattern || forPattern, "Can't be in a switch arm without also being in a pattern");
+
             if (this.CurrentToken.Kind != SyntaxKind.OpenParenToken)
             {
                 return false;
@@ -12841,8 +12874,20 @@ done:
 
             if (forPattern && this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
             {
-                // In a pattern, an identifier can follow a cast unless it's a binary pattern token.
-                return !isBinaryPattern();
+                // In a pattern we might have a cast of a constant, or the start of a legal pattern form.
+                //
+                // For example: `(A.B) and ...` should be treated not as a 'cast' of some variable 'and', but instead as
+                // a conjunctive pattern.
+                if (isBinaryPattern())
+                    return false;
+
+                // Similarly `(A.B) when` directly in a switch arm should be treated as the start of a `when` clause not
+                // a cast of a `when` variable when in a switch expression arm.  This matches the exact checking logic
+                // in IsValidPatternDesignation.
+                if (inSwitchArmPattern && this.CurrentToken.ContextualKind == SyntaxKind.WhenKeyword)
+                    return false;
+
+                return true;
             }
 
             switch (type)
@@ -13184,9 +13229,22 @@ done:
 
         private CollectionElementSyntax ParseCollectionElement()
         {
-            return IsAtDotDotToken()
-                ? _syntaxFactory.SpreadElement(this.EatDotDotToken(), this.ParseExpressionCore())
-                : _syntaxFactory.ExpressionElement(this.ParseExpressionCore());
+            // Even though `with(` could start a legal expression (like `with(x) + y`), spec mandates that if we see
+            // `with(` at the start of a collection element, we only parse it as a with-element.
+            if (this.CurrentToken.ContextualKind == SyntaxKind.WithKeyword &&
+                this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
+            {
+                return _syntaxFactory.WithElement(this.EatContextualToken(SyntaxKind.WithKeyword), this.ParseParenthesizedArgumentList());
+            }
+
+            // Like above, even though `..` could start a legal expression (like `..` (a naked-range)), the spec
+            // mandates that if we see `..` at the start of a collection element, we only parse it as a spread-element.
+            if (this.IsAtDotDotToken())
+            {
+                return _syntaxFactory.SpreadElement(this.EatDotDotToken(), this.ParseExpressionCore());
+            }
+
+            return _syntaxFactory.ExpressionElement(this.ParseExpressionCore());
         }
 
         private bool IsAnonymousType()

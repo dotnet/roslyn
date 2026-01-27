@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -187,23 +188,20 @@ public sealed class RemoveUnnecessaryNullableWarningSuppressionsTests
                 """,
         }.RunAsync();
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81632")]
-    public Task TestGetMethod_NoDiagnostic()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81843")]
+    public Task KeepWhenNeeded_PropertyInitializer_Net9()
         => new VerifyCS.Test
         {
             TestCode = """
                 #nullable enable
-                using System.Reflection;
 
                 class C
                 {
-                    void M()
-                    {
-                        MethodInfo m = typeof(C).GetMethod("M")!;
-                    }
+                    public C() { }
+                    public string S { get; set; } = null!;
                 }
                 """,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+            LanguageVersion = LanguageVersion.CSharp14,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
-
 }

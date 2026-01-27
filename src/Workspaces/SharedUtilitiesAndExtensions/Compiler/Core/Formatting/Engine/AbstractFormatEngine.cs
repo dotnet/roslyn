@@ -75,7 +75,7 @@ internal abstract partial class AbstractFormatEngine
     private static ChainedFormattingRules GetChainedFormattingRules(ImmutableArray<AbstractFormattingRule> formattingRules, SyntaxFormattingOptions options)
     {
         var lastRulesAndOptions = s_lastRulesAndOptions;
-        if (formattingRules != lastRulesAndOptions?.Item1 || options != s_lastRulesAndOptions?.Item2)
+        if (formattingRules != lastRulesAndOptions?.Item1 || options != lastRulesAndOptions?.Item2)
         {
             lastRulesAndOptions = Tuple.Create(formattingRules, options, new ChainedFormattingRules(formattingRules, options));
             s_lastRulesAndOptions = lastRulesAndOptions;

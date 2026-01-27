@@ -1,6 +1,8 @@
+# Compiler Test Plan
+
 This document provides guidance for thinking about language interactions and testing compiler changes.
 
-# General concerns:
+## General concerns
 - Completeness of the specification as a guide for testing (is the spec complete enough to suggest what the compiler should do in each scenario?)
 - *Ping* for new breaking changes and general ping for partner teams (Bill, Kathleen, Mads, IDE, Razor)
 - Help review external documentation
@@ -10,22 +12,22 @@ This document provides guidance for thinking about language interactions and tes
 - Determinism
 - Loading from metadata (source vs. loaded from metadata)
 - Public compiler APIs (including semantic model and other APIs listed below):
-    - GetDeclaredSymbol 
-    - GetEnclosingSymbol 
-    - GetSymbolInfo 
-    - GetSpeculativeSymbolInfo 
-    - GetTypeInfo 
-    - GetSpeculativeTypeInfo 
-    - GetMethodGroup 
-    - GetConstantValue 
-    - GetAliasInfo 
-    - GetSpeculativeAliasInfo 
-    - LookupSymbols 
-    - AnalyzeStatementsControlFlow 
-    - AnalyzeStatementControlFlow 
-    - AnalyzeExpressionDataFlow 
-    - AnalyzeStatementsDataFlow 
-    - AnalyzeStatementDataFlow 
+    - GetDeclaredSymbol
+    - GetEnclosingSymbol
+    - GetSymbolInfo
+    - GetSpeculativeSymbolInfo
+    - GetTypeInfo
+    - GetSpeculativeTypeInfo
+    - GetMethodGroup
+    - GetConstantValue
+    - GetAliasInfo
+    - GetSpeculativeAliasInfo
+    - LookupSymbols
+    - AnalyzeStatementsControlFlow
+    - AnalyzeStatementControlFlow
+    - AnalyzeExpressionDataFlow
+    - AnalyzeStatementsDataFlow
+    - AnalyzeStatementDataFlow
     - ClassifyConversion
     - GetOperation (`IOperation`)
     - GetCFG (`ControlFlowGraph`), including a scenario with some nested conditional
@@ -45,8 +47,11 @@ This document provides guidance for thinking about language interactions and tes
         - **DO NOT** allow using the value of a crypto hash in a field, method or type name
         - **DO** allow using the value of a crypto hash in attribute or field values
     - Any time the compiler reads in metadata containing crypto hashes, even if it's an attribute value, ensure the crypto hash algorithm name is included in the metadata (e.g. prefixing it to the hash value), so that it can be changed over time and the compiler can continue to read both metadata using both the old and new algorithms.
- 
-# Type and members
+
+## Type and members
+
+See also [types](#types) and [members](#members) lists below.
+
 - Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
 - type declarations
   - class with or without primary constructor
@@ -56,7 +61,8 @@ This document provides guidance for thinking about language interactions and tes
   - type parameter
 - file-local types
 - methods
-  - Primary constructors
+- constructors (static, instance, primary)
+- destructors
 - fields (required and not)
 - properties (including get/set/init accessors, required and not)
 - events (including add/remove accessors)
@@ -91,8 +97,8 @@ This document provides guidance for thinking about language interactions and tes
 - SkipLocalsInit
 - Method override or explicit implementation with `where T : { class, struct, default }`
 - `extension` blocks (emitted with content-based names)
- 
-# Code
+
+## Code
 - Operators (see Eric's list below)
 - Lambdas (capture of parameters or locals, target typing)
 - Execution order
@@ -104,16 +110,15 @@ This document provides guidance for thinking about language interactions and tes
 - Inheritance (virtual, override, abstract, new)
 - Anonymous types
 - Tuple types and literals (elements with explicit or inferred names, long tuples), tuple equality
-- Range literals (`1..2`) and Index operator (`^1`) 
+- Range literals (`1..2`) and Index operator (`^1`)
 - Deconstructions
 - Local functions
 - Unsafe code
 - LINQ
-- Constructors, properties, indexers, events, operators, and destructors.
 - Async (task-like types) and async-iterator methods
-- Lvalues: the synthesized fields are mutable 
+- Lvalues: the synthesized fields are mutable
     - Ref / out parameters
-    - Compound operators (`+=`, `/=`, etc ..) 
+    - Compound operators (`+=`, `/=`, etc ..)
     - Assignment exprs
 - Ref return, ref readonly return, ref ternary, ref readonly local, ref local re-assignment, ref foreach
 - Ref fields
@@ -131,9 +136,9 @@ This document provides guidance for thinking about language interactions and tes
 - extension based Dispose, DisposeAsync, GetEnumerator, GetAsyncEnumerator, Deconstruct, GetAwaiter etc.
 - UTF8 String Literals (string literals with 'u8' or 'U8' type suffix).
 - Inline array element access and slicing.
-- Collection expressions and spread elements
+- Collection expressions,  spread-elements (`.. expr`), and with-elements (`[with(...)]`).
 
-# Misc
+## Misc
 - reserved keywords (sometimes contextual)
 - pre-processing directives
 - COM interop
@@ -145,7 +150,7 @@ This document provides guidance for thinking about language interactions and tes
 - UnmanagedCallersOnly
 - telemetry
 
-# Testing in interaction with other components
+## Testing in interaction with other components
 Interaction with IDE, Debugger, and EnC should be worked out with relevant teams. A few highlights:
 - IDE
     - Colorization and formatting
@@ -174,18 +179,16 @@ Interaction with IDE, Debugger, and EnC should be worked out with relevant teams
 
 - Engage with VS Templates team (if applicable)
 
-# Eric's cheatsheet
-
-## Statements 
-```
-{ … }  
-;   
-label : … 
+## Statements
+```cs
+{ … }
+;
+label : …
 T x = whatever; // including `using` and `await` using variants
-M(); 
-++x; 
-x++; 
---x; 
+M();
+++x;
+x++;
+--x;
 x--;
 a?.M(); // conditional access / null-propagating operator
 a?[b] = c;
@@ -193,114 +196,114 @@ a?.b = c;
 a?[b] = c;
 a?.b += c; // and other compound assignment cases
 var x = a?.M(); // similar "value is used" versions of the above '?.' cases
-new C(); 
-if (…) … else … 
-switch(…) { … case (…) when (…): … } 
-while(…) … 
-do … while(…); 
-for( … ; … ; … ) … 
+new C();
+if (…) … else …
+switch(…) { … case (…) when (…): … }
+while(…) …
+do … while(…);
+for( … ; … ; … ) …
 foreach(…) … // including `await` variant
 fixed(…) … // (plain, or custom with `GetPinnableReference`)
-goto … ; 
-throw … ; 
-return … ; 
-try  { … } catch (…) when (…) { … } finally { … } 
-checked { … } 
-unchecked { … } 
+goto … ;
+throw … ;
+return … ;
+try { … } catch (…) when (…) { … } finally { … }
+checked { … }
+unchecked { … }
 lock(…) … // including variant on an instance of the `System.Threading.Lock` type
 using (…) … // including `await` variant
-yield return …; 
-yield break; 
-break; 
-continue; 
+yield return …;
+yield break;
+break;
+continue;
 ```
 
-## Expression classifications 
-  
-Every expression can be classified as exactly one of these: 
-  
-- Value 
-- Variable 
-- Namespace 
-- Type 
-- Method group 
+## Expression classifications
+
+Every expression can be classified as exactly one of these:
+
+- Value
+- Variable
+- Namespace
+- Type
+- Method group
 - Null literal
 - Default literal
-- Anonymous function 
-- Property 
-- Indexer 
-- Event 
-- Void-returning method call 
-- Array initializer (\*) 
-- __arglist (\*)  
+- Anonymous function
+- Property
+- Indexer
+- Event
+- Void-returning method call
+- Array initializer (\*)
+- __arglist (\*)
 
-(\*) Technically not an expression according to the spec. 
-  
-Note that only values, variables, properties, indexers and events have a type. 
-  
-## Variable classifications 
-  
-A variable is a storage location. These are all the different ways to refer to a storage location: 
+(\*) Technically not an expression according to the spec.
 
-- Static field 
-- Instance field 
-- Array element 
-- Formal param, value 
-- Formal param, ref 
-- Formal param, out 
-- Local variable 
-- Pointer dereference 
+Note that only values, variables, properties, indexers and events have a type.
+
+## Variable classifications
+
+A variable is a storage location. These are all the different ways to refer to a storage location:
+
+- Static field
+- Instance field
+- Array element
+- Formal param, value
+- Formal param, ref
+- Formal param, out
+- Local variable
+- Pointer dereference
 - __refvalue
 - Inline array access
 
-## Operators 
+## Operators
 
 ``` c#
-x.y 
-f( ) 
-a[e] 
+x.y
+f( )
+a[e]
 x++ (including instance user defined)
 x-- (including instance user defined)
-new X() 
-new() 
-typeof(T) 
+new X()
+new()
+typeof(T)
 default(T)
-default 
-checked(e) 
-unchecked(e) 
-delegate ( ) { } 
-+x 
--x 
-!x 
-~x 
+default
+checked(e)
+unchecked(e)
+delegate ( ) { }
++x
+-x
+!x
+~x
 ^x
 ++x (including instance user defined)
 --x (including instance user defined)
-(X)x 
-x * y 
-x / y 
-x % y 
-x + y 
-x - y 
-x << y 
-x >> y 
-x >>> y 
-x < y 
-x > y 
-x <= y 
-x >= y 
-x is X 
-x as X 
-x == y 
-x != y 
-x & y 
-x ^ y 
-x | y 
-x && y 
-x || y 
-x ?? y 
+(X)x
+x * y
+x / y
+x % y
+x + y
+x - y
+x << y
+x >> y
+x >>> y
+x < y
+x > y
+x <= y
+x >= y
+x is X
+x as X
+x == y
+x != y
+x & y
+x ^ y
+x | y
+x && y
+x || y
+x ?? y
 x ? : y : z
-x = y 
+x = y
 x *= y (including instance user defined)
 x /= y (including instance user defined)
 x %= y (including instance user defined)
@@ -313,52 +316,52 @@ x &= y (including instance user defined)
 x ^= y (including instance user defined)
 x |= y (including instance user defined)
 x ??= y
-x => { } 
-sizeof( ) 
-*x 
-& x 
-x->y 
+x => { }
+sizeof( )
+*x
+& x
+x->y
 e is pattern
 e switch { ... }
 await x
-__arglist( ) 
-__refvalue( x, X ) 
+__arglist( )
+__refvalue( x, X )
 __reftype( x )
 __makeref( x )
 ```
 
-## Explicit conversions 
-  
-- Numeric 
-- Enum 
-- Nullable 
-- Reference  
-- Unboxing 
-- Dynamic 
-- Type parameter 
-- User defined 
-- Pointer to pointer 
-- Pointer to integral 
-- Integral to pointer 
+## Explicit conversions
+
+- Numeric
+- Enum
+- Nullable
+- Reference
+- Unboxing
+- Dynamic
+- Type parameter
+- User defined
+- Pointer to pointer
+- Pointer to integral
+- Integral to pointer
 - Tuple literal
 - Tuple
 
-## Implicit conversions 
-  
-- Identity 
-- Numeric 
-- Literal zero to enum (we actually do constant zero, not literal zero) 
-- Nullable 
-- Null literal 
-- Reference 
-- Boxing 
-- Dynamic 
-- Constant 
-- Type parameter 
-- User defined 
-- Anonymous function 
-- Method group  
-- Pointer to void pointer 
+## Implicit conversions
+
+- Identity
+- Numeric
+- Literal zero to enum (we actually do constant zero, not literal zero)
+- Nullable
+- Null literal
+- Reference
+- Boxing
+- Dynamic
+- Constant
+- Type parameter
+- User defined
+- Anonymous function
+- Method group
+- Pointer to void pointer
 - Null literal to pointer
 - Interpolated string
 - Tuple literal
@@ -371,14 +374,14 @@ __makeref( x )
 - Collection expression conversions
 - Span conversions (from array to (ReadOnly)Span, or from string or (ReadOnly)Span to ReadOnlySpan)
 
-## Types 
+## Types
 
 - Class
-- Interface 
-- Delegate 
-- Struct 
+- Interface
+- Delegate
+- Struct
 - Enum
-- Nullable 
+- Nullable
 - Pointer
 - Type parameter
 
@@ -386,16 +389,16 @@ __makeref( x )
 
 - Class
 - Struct
-- Interface 
+- Interface
 - Enum
 - Delegate
-- Namespace 
-- Property 
+- Namespace
+- Property
 - Event
-- Constructor 
-- Destructor 
+- Constructor
+- Destructor
 - Method
-- Interface method 
+- Interface method
 - Field
 - User-defined indexer
 - User-defined operator (including checked, including instance increment/decrement and compound assignment)
@@ -415,53 +418,53 @@ __makeref( x )
 - Relational Pattern
 - Type Pattern
 
-## Metadata table numbers / token prefixes 
- 
-If you look at a 32 bit integer token as a hex number, the first two digits identify the “table number” and the last six digits are an offset into that table. The table numbers are: 
+## Metadata table numbers / token prefixes
+
+If you look at a 32 bit integer token as a hex number, the first two digits identify the “table number” and the last six digits are an offset into that table. The table numbers are:
 ```
-00 Module 
-01 TypeRef 
-02 TypeDef 
-03 FieldPtr 
-04 Field 
-05 MethodPtr 
-06 Method 
-07 ParamPtr 
-08 Param 
-09 InterfaceImpl 
-0A MemberRef 
-0B Constant 
-0C CustomAttr 
-0D FieldMarshal 
-0E DeclSecurity 
-0F ClassLayout 
-10 FieldLayout 
-11 StandAloneSig 
-12 EventMap 
-13 EventPtr 
-14 Event 
-15 PropertyMap 
-16 PropertyPtr 
-17 Property 
-18 MethodSemantics 
-19 MethodImpl 
-1A ModuleRef 
-1B TypeSpec 
-1C ImplMap 
-1D FieldRVA 
-1E ENCLog 
-1F ENCMap 
-20 Assembly 
-21 AssemblyProcessor 
-22 AssemblyOS 
-23 AssemblyRef 
-24 AssemblyRefProcessor 
-25 AssemblyRefOS 
-26 File 
-27 ExportedType 
-28 ManifestResource 
-29 NestedClass 
-2A GenericParam 
-2B MethodSpec 
-2C GenericConstraint 
+00 Module
+01 TypeRef
+02 TypeDef
+03 FieldPtr
+04 Field
+05 MethodPtr
+06 Method
+07 ParamPtr
+08 Param
+09 InterfaceImpl
+0A MemberRef
+0B Constant
+0C CustomAttr
+0D FieldMarshal
+0E DeclSecurity
+0F ClassLayout
+10 FieldLayout
+11 StandAloneSig
+12 EventMap
+13 EventPtr
+14 Event
+15 PropertyMap
+16 PropertyPtr
+17 Property
+18 MethodSemantics
+19 MethodImpl
+1A ModuleRef
+1B TypeSpec
+1C ImplMap
+1D FieldRVA
+1E ENCLog
+1F ENCMap
+20 Assembly
+21 AssemblyProcessor
+22 AssemblyOS
+23 AssemblyRef
+24 AssemblyRefProcessor
+25 AssemblyRefOS
+26 File
+27 ExportedType
+28 ManifestResource
+29 NestedClass
+2A GenericParam
+2B MethodSpec
+2C GenericConstraint
 ```
