@@ -46,7 +46,7 @@ internal sealed partial class CSharpExtractMethodService
                 // existing local function instead of the overarching method.
                 var outermostCapturedVariable = analyzerResult.GetOutermostVariableToMoveIntoMethodDefinition();
                 var baseNode = outermostCapturedVariable != null
-                    ? outermostCapturedVariable.GetIdentifierTokenAtDeclaration(document).Parent
+                    ? outermostCapturedVariable.GetOriginalIdentifierToken(cancellationToken).Parent
                     : this.OriginalSelectionResult.GetOutermostCallSiteContainerToProcess(cancellationToken);
 
                 if (baseNode is CompilationUnitSyntax)
