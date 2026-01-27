@@ -1157,7 +1157,7 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
 
     [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
     [WorkItem("https://github.com/dotnet/roslyn/issues/3931")]
-    public async Task TestOpenProject_WithMissingLanguageLibraries_Throws()
+    public async Task TestOpenProject_WithMissingLanguageLibraries()
     {
         // proves that if the language libraries are missing then the appropriate error occurs
         CreateFiles(GetSimpleCSharpSolutionFiles());
