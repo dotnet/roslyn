@@ -503,7 +503,7 @@
       </trans-unit>
       <trans-unit id="_0_implicitly_converts_1_to_2_Add_an_explicit_cast_to_make_intent_clearer_as_it_may_fail_at_runtime">
         <source>'{0}' implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</source>
-        <target state="new">'{0}' implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</target>
+        <target state="translated">“{0}”将“{1}”隐式转换为“{2}”。添加显式强制转换以使意向更清晰，因为它可能会在运行时失败</target>
         <note />
       </trans-unit>
       <trans-unit id="unsafe_modifier_is_unnecessary">
