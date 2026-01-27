@@ -523,7 +523,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // but no argument was supplied for it then the first such method is 
                         // the best bad method.
                         case MemberResolutionKind.RequiredParameterMissing:
-                            if ((binder.Flags & BinderFlags.CollectionExpressionConversionValidation) != 0)
+                            // Special case for collection expressions and 'params' arrays. Note: if the collection
+                            // expression has a 'with' element, we want to do normal diagnostic reporting as we want
+                            // to give accurate information about the arguments they supplied and the end construct
+                            // signature they were trying to create.
+                            if ((binder.Flags & BinderFlags.CollectionExpressionConversionValidation) != 0 &&
+                                !binder.BindingCollectionExpressionWithArguments)
                             {
                                 if (receiver is null)
                                 {
@@ -962,16 +967,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             // error CS1729: 'M' does not contain a constructor that takes n arguments
             // error CS1593: Delegate 'M' does not take n arguments
             // error CS8757: Function pointer 'M' does not take n arguments
+            // error CS9405: No overload for method 'M' takes n 'with(...)' element arguments
 
             FunctionPointerMethodSymbol functionPointerMethodBeingInvoked = symbols.IsDefault || symbols.Length != 1
                 ? null
                 : symbols[0] as FunctionPointerMethodSymbol;
 
-            (ErrorCode code, object target) = (typeContainingConstructor, delegateTypeBeingInvoked, functionPointerMethodBeingInvoked) switch
+            var isWithElementValidation = arguments.Arguments.Count > 0 && !symbols.IsDefaultOrEmpty && symbols[0] is SynthesizedCollectionBuilderProjectedMethodSymbol;
+
+            (ErrorCode code, object target) = (typeContainingConstructor, delegateTypeBeingInvoked, functionPointerMethodBeingInvoked, isWithElementValidation) switch
             {
-                (object t, _, _) => (ErrorCode.ERR_BadCtorArgCount, t),
-                (_, object t, _) => (ErrorCode.ERR_BadDelArgCount, t),
-                (_, _, object t) => (ErrorCode.ERR_BadFuncPointerArgCount, t),
+                (object t, _, _, _) => (ErrorCode.ERR_BadCtorArgCount, t),
+                (_, object t, _, _) => (ErrorCode.ERR_BadDelArgCount, t),
+                (_, _, object t, _) => (ErrorCode.ERR_BadFuncPointerArgCount, t),
+                (_, _, _, true) => (ErrorCode.ERR_BadCollectionArgumentsArgCount, name),
                 _ => (ErrorCode.ERR_BadArgCount, name)
             };
 

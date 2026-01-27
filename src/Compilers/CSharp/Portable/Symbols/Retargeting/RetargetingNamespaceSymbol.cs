@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         /// </summary>
         private readonly NamespaceSymbol _underlyingNamespace;
 
+        /// <summary>
+        /// Cache of the type members.
+        /// </summary>
+        private ImmutableArray<NamedTypeSymbol> _lazyTypeMembers;
+
         public RetargetingNamespaceSymbol(RetargetingModuleSymbol retargetingModule, NamespaceSymbol underlyingNamespace)
         {
             Debug.Assert((object)retargetingModule != null);
@@ -105,12 +110,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         internal override ImmutableArray<NamedTypeSymbol> GetTypeMembersUnordered()
         {
-            return RetargetTypeMembers(_underlyingNamespace.GetTypeMembersUnordered());
+            return GetTypeMembers().ConditionallyDeOrder();
         }
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
         {
-            return RetargetTypeMembers(_underlyingNamespace.GetTypeMembers());
+            if (_lazyTypeMembers.IsDefault)
+            {
+                var typeMembers = RetargetTypeMembers(_underlyingNamespace.GetTypeMembers());
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeMembers, typeMembers);
+            }
+
+            return _lazyTypeMembers;
         }
 
         private ImmutableArray<NamedTypeSymbol> RetargetTypeMembers(ImmutableArray<NamedTypeSymbol> underlyingMembers)

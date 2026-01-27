@@ -934,5 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ExtensionBlockDeclaration = 9079,
 
         IgnoredDirectiveTrivia = 9080,
+
+        WithElement = 9081,
     }
 }

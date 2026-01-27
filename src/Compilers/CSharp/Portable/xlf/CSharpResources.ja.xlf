@@ -69,12 +69,12 @@
       </trans-unit>
       <trans-unit id="ERR_AmbigExtension">
         <source>The extension resolution is ambiguous between the following members: '{0}' and '{1}'</source>
-        <target state="new">The extension resolution is ambiguous between the following members: '{0}' and '{1}'</target>
+        <target state="translated">拡張機能の解決は、次のメンバーの間であいまいです: '{0}' と '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbigOperator">
         <source>Operator resolution is ambiguous between the following members: '{0}' and '{1}'</source>
-        <target state="new">Operator resolution is ambiguous between the following members: '{0}' and '{1}'</target>
+        <target state="translated">演算子の解決は、次のメンバーの間であいまいです: '{0}' と '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver">
@@ -139,7 +139,7 @@
       </trans-unit>
       <trans-unit id="ERR_AttributeCannotBeAppliedManually">
         <source>'{0}' cannot be applied manually.</source>
-        <target state="new">'{0}' cannot be applied manually.</target>
+        <target state="translated">'{0}' を手動で適用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeNotOnEventAccessor">
@@ -232,9 +232,14 @@
         <target state="translated">switch 式の arm が 'case' キーワードで始まりません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadCollectionArgumentsArgCount">
+        <source>No overload for method '{0}' takes {1} 'with(...)' element arguments</source>
+        <target state="new">No overload for method '{0}' takes {1} 'with(...)' element arguments</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadCompoundAssignmentOpArgs">
         <source>Overloaded compound assignment operator '{0}' takes one parameter</source>
-        <target state="new">Overloaded compound assignment operator '{0}' takes one parameter</target>
+        <target state="translated">オーバーロードされた複合代入演算子 '{0}' は 1 つのパラメーターを受け取ります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
@@ -244,27 +249,27 @@
       </trans-unit>
       <trans-unit id="ERR_BadExtensionBinaryOperatorSignature">
         <source>One of the parameters of a binary operator must be the extended type.</source>
-        <target state="new">One of the parameters of a binary operator must be the extended type.</target>
+        <target state="translated">2 項演算子のパラメーターの 1 つは、拡張型である必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadExtensionContainingType">
         <source>Extensions must be declared in a top-level, non-generic, static class</source>
-        <target state="new">Extensions must be declared in a top-level, non-generic, static class</target>
+        <target state="translated">拡張機能は、最上位レベルの非ジェネリック静的クラスで宣言する必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadExtensionIncDecSignature">
         <source>The parameter type for ++ or -- operator must be the extended type.</source>
-        <target state="new">The parameter type for ++ or -- operator must be the extended type.</target>
+        <target state="translated">++ または -- 演算子のパラメーター型は、拡張型である必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadExtensionShiftOperatorSignature">
         <source>The first operand of an overloaded shift operator must have the same type as the extended type</source>
-        <target state="new">The first operand of an overloaded shift operator must have the same type as the extended type</target>
+        <target state="translated">オーバーロードされた shift 演算子の最初のオペランドには拡張された型と同じ型がある必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadExtensionUnaryOperatorSignature">
         <source>The parameter of a unary operator must be the extended type.</source>
-        <target state="new">The parameter of a unary operator must be the extended type.</target>
+        <target state="translated">単項演算子のパラメーターは、拡張型である必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFieldTypeInRecord">
@@ -344,7 +349,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadSpreadInCatchFilter">
         <source>Cannot use '..' spread operator in the filter expression of a catch clause</source>
-        <target state="new">Cannot use '..' spread operator in the filter expression of a catch clause</target>
+        <target state="translated">catch 句のフィルター式で '..' spread 演算子を使用することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadStaticAfterUnsafe">
@@ -369,7 +374,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadVisBaseType">
         <source>Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </source>
-        <target state="new">Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </target>
+        <target state="translated">アクセシビリティに一貫性がありません: 型 '{1}' はクラス '{0}' よりもアクセス性が低くなっています </target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadYieldInUnsafe">
@@ -424,7 +429,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotMatchOnINumberBase">
         <source>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.</source>
-        <target state="needs-review-translation">'INumberBase&lt;T&gt;' を継承または拡張しているため、'{0}' で数値定数またはリレーショナル パターンを使用することはできません。指定された数値型に絞り込むために、型パターンを使用することを検討してください。</target>
+        <target state="translated">'INumberBase&lt;T&gt;' を継承または拡張しているため、'{0}' で数値定数またはリレーショナル パターンを使用することはできません。特定の数値型に絞り込むために、型パターンを使用することを検討してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -499,7 +504,7 @@
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberOperatorMismatch">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because one of them is not an operator.</source>
-        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because one of them is not an operator.</target>
+        <target state="translated">'{0}' はインターフェイス メンバー '{1}' を実装していません。'{2}' は '{1}' を実装できません。そのうちの 1 つが演算子ではないためです。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongInitOnly">
@@ -507,6 +512,7 @@
         <target state="translated">'{0}' は、インターフェイス メンバー '{1}' を実装していません。'{2}' は '{1}' を実装できません。</target>
         <note />
       </trans-unit>
+<<<<<<< HEAD
       <trans-unit id="ERR_ClosedSealedStatic">
         <source>'{0}': a closed type cannot be sealed or static</source>
         <target state="new">'{0}': a closed type cannot be sealed or static</target>
@@ -517,6 +523,29 @@
         <target state="new">Types and aliases cannot be named 'closed'.</target>
         <note />
       </trans-unit>
+||||||| 67697482eba
+=======
+      <trans-unit id="ERR_CollectionArgumentsDynamicBinding">
+        <source>'with(...)' element arguments cannot be dynamic</source>
+        <target state="new">'with(...)' element arguments cannot be dynamic</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsMustBeEmpty">
+        <source>'with(...)' element for a read-only interface must be empty if present</source>
+        <target state="new">'with(...)' element for a read-only interface must be empty if present</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsMustBeFirst">
+        <source>'with(...)' element must be the first element</source>
+        <target state="new">'with(...)' element must be the first element</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsNotSupportedForType">
+        <source>'with(...)' elements are not supported for type '{0}'</source>
+        <target state="new">'with(...)' elements are not supported for type '{0}'</target>
+        <note />
+      </trans-unit>
+>>>>>>> upstream/main
       <trans-unit id="ERR_CollectionBuilderAttributeInvalidMethodName">
         <source>The CollectionBuilderAttribute method name is invalid.</source>
         <target state="translated">CollectionBuilderAttribute メソッド名が無効です。</target>
@@ -528,8 +557,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeMethodNotFound">
-        <source>Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
-        <target state="translated">必要なシグネチャを持つアクセス可能な '{0}' メソッドが見つかりませんでした: 'ReadOnlySpan&lt;{1}&gt;' 型の単一のパラメーターと戻り値の型 '{2}' を持つ静的メソッド。</target>
+        <source>Could not find an accessible '{0}' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
+        <target state="needs-review-translation">必要なシグネチャを持つアクセス可能な '{0}' メソッドが見つかりませんでした: 'ReadOnlySpan&lt;{1}&gt;' 型の単一のパラメーターと戻り値の型 '{2}' を持つ静的メソッド。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderNoElementType">
@@ -577,9 +606,14 @@
         <target state="translated">コレクション初期化子は、コレクション '{0}' のインスタンス化の無限チェーンになります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionRefLikeElementType">
+        <source>Element type of this collection may not be a ref struct or a type parameter allowing ref structs</source>
+        <target state="new">Element type of this collection may not be a ref struct or a type parameter allowing ref structs</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CompilationUnitUnexpected">
         <source>A compilation unit cannot directly contain members such as fields, methods or properties</source>
-        <target state="new">A compilation unit cannot directly contain members such as fields, methods or properties</target>
+        <target state="translated">コンパイル単位に、フィールド、メソッド、プロパティなどのメンバーを直接含めることはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -614,7 +648,7 @@
       </trans-unit>
       <trans-unit id="ERR_DataSectionStringLiteralHashCollision">
         <source>Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</source>
-        <target state="new">Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</target>
+        <target state="translated">XXHash128 が別の文字列リテラルと競合しているため、この文字列リテラルをデータ セクションに出力できません: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
@@ -649,7 +683,7 @@
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeforePropertyPattern">
         <source>A variable designator must come after a property pattern.</source>
-        <target state="new">A variable designator must come after a property pattern.</target>
+        <target state="translated">変数指定子は、プロパティ パターンの後に指定する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
@@ -724,7 +758,7 @@
       </trans-unit>
       <trans-unit id="ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime">
         <source>Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</source>
-        <target state="new">Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</target>
+        <target state="translated">更新には明示的なインターフェイス実装を生成する必要があります。これは、アプリケーションを再起動せずにランタイムでサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
@@ -739,7 +773,7 @@
       </trans-unit>
       <trans-unit id="ERR_EqualityOperatorInPatternNotSupported">
         <source>The '==' operator is not supported in a pattern.</source>
-        <target state="new">The '==' operator is not supported in a pattern.</target>
+        <target state="translated">'==' 演算子はパターンではサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeVariable">
@@ -759,12 +793,12 @@
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceMemberReturnTypeMismatch">
         <source>'{0}': return type must be '{1}' to match implemented member '{2}'</source>
-        <target state="new">'{0}': return type must be '{1}' to match implemented member '{2}'</target>
+        <target state="translated">'{0}': 実装されたメンバー '{2}' と一致させるには、戻り値の型を '{1}' にする必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceMemberTypeMismatch">
         <source>'{0}': type must be '{1}' to match implemented member '{2}'</source>
-        <target state="new">'{0}': type must be '{1}' to match implemented member '{2}'</target>
+        <target state="translated">'{0}': 実装されたメンバー '{2}' と一致させるには、型を '{1}' にする必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
@@ -819,12 +853,12 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionBasedConditionalLogicalOperator">
         <source>An expression tree may not contain '&amp;&amp;' or '||' operators that use extension user defined operators.</source>
-        <target state="new">An expression tree may not contain '&amp;&amp;' or '||' operators that use extension user defined operators.</target>
+        <target state="translated">式ツリーには、拡張ユーザー定義演算子を使用する '&amp;&amp;' または '||' 演算子を含めないようにしてください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
         <source>An expression tree may not contain an extension property access</source>
-        <target state="new">An expression tree may not contain an extension property access</target>
+        <target state="translated">式ツリーに拡張プロパティ アクセスを含めないでください</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -844,7 +878,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsNamedArgumentOutOfPosition">
         <source>An expression tree may not contain a named argument specification out of position</source>
-        <target state="new">An expression tree may not contain a named argument specification out of position</target>
+        <target state="translated">式ツリーに、名前付き引数の指定を位置外に含めないでください</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsPatternImplicitIndexer">
@@ -874,37 +908,37 @@
       </trans-unit>
       <trans-unit id="ERR_ExtensionBlockCollision">
         <source>This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</source>
-        <target state="new">This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</target>
+        <target state="translated">この拡張ブロックは、別の拡張ブロックと競合します。メタデータ内のコンテンツ ベースの型名が競合するため、別の静的クラスを囲む必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsMember">
         <source>This member is not allowed in an extension block</source>
-        <target state="new">This member is not allowed in an extension block</target>
+        <target state="translated">このメンバーは拡張ブロックでは使用できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsName">
         <source>Extension declarations may not have a name.</source>
-        <target state="new">Extension declarations may not have a name.</target>
+        <target state="translated">拡張機能の宣言には名前を付けないようにしてください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionParameterDisallowsDefaultValue">
         <source>The receiver parameter of an extension cannot have a default value</source>
-        <target state="new">The receiver parameter of an extension cannot have a default value</target>
+        <target state="translated">拡張機能のレシーバー パラメーターに既定値を指定することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionParameterInStaticContext">
         <source>Static members cannot access the value of extension parameter '{0}'.</source>
-        <target state="new">Static members cannot access the value of extension parameter '{0}'.</target>
+        <target state="translated">静的メンバーは、拡張パラメーター '{0}' の値にアクセスできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionResolutionFailed">
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension member '{1}' for receiver of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
-        <target state="new">'{0}' does not contain a definition for '{1}' and no accessible extension member '{1}' for receiver of type '{0}' could be found (are you missing a using directive or an assembly reference?)</target>
+        <target state="translated">'{0}' に '{1}' の定義が含まれておらず、型 '{0}' の受信者のアクセス可能な拡張メンバー '{1}' が見つかりませんでした (using ディレクティブまたはアセンブリ参照がありませんか?)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionTypeNameDisallowed">
         <source>Types and aliases cannot be named 'extension'.</source>
-        <target state="new">Types and aliases cannot be named 'extension'.</target>
+        <target state="translated">型とエイリアスに 'extension' という名前を付けることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
@@ -944,7 +978,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion14">
         <source>Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</source>
-        <target state="new">Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</target>
+        <target state="translated">機能 '{0}' は C# 14.0 では使用できません。{1} 以上の言語バージョンを使用してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -1129,12 +1163,12 @@
       </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedParamsParameter">
         <source>Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</source>
-        <target state="new">Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</target>
+        <target state="translated">暗黙的に型指定されたラムダ パラメーター '{0}' に 'params' 修飾子を指定することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedVariableUsedInForbiddenZone">
         <source>Reference to an implicitly-typed variable '{0}' is not permitted in this location.</source>
-        <target state="new">Reference to an implicitly-typed variable '{0}' is not permitted in this location.</target>
+        <target state="translated">この場所では、暗黙的に型指定された変数 '{0}' への参照は許可されていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -1144,12 +1178,12 @@
       </trans-unit>
       <trans-unit id="ERR_InExtensionParameterMustBeValueType">
         <source>The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</source>
-        <target state="new">The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</target>
+        <target state="translated">拡張の 'in' または 'ref readonly' レシーバー パラメーターは、具象 (非ジェネリック) 値型である必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InequalityOperatorInPatternNotSupported">
         <source>The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.</source>
-        <target state="new">The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.</target>
+        <target state="translated">'!=' 演算子はパターンではサポートされていません。否定パターンを表すには 'not' を使用します。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
@@ -1164,7 +1198,7 @@
       </trans-unit>
       <trans-unit id="ERR_InitInExtension">
         <source>'{0}': cannot declare init-only accessors in an extension block</source>
-        <target state="new">'{0}': cannot declare init-only accessors in an extension block</target>
+        <target state="translated">'{0}': 拡張ブロックで init のみのアクセサーを宣言できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InlineArrayAttributeOnRecord">
@@ -1204,17 +1238,17 @@
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberWithUnnamedExtensionsParameter">
         <source>'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</source>
-        <target state="new">'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</target>
+        <target state="translated">'{0}': 名前のないレシーバー パラメーターを持つ拡張ブロックでインスタンス メンバーを宣言することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceOperatorExtensionWrongReceiverType">
         <source>Cannot declare instance extension operator for a type that is not known to be a struct and is not known to be a class</source>
-        <target state="new">Cannot declare instance extension operator for a type that is not known to be a struct and is not known to be a class</target>
+        <target state="translated">構造体であることが不明で、かつクラスであることが不明な型のインスタンス拡張演算子を宣言できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceOperatorStructExtensionWrongReceiverRefKind">
         <source>Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter</source>
-        <target state="new">Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter</target>
+        <target state="translated">拡張ブロック レシーバー パラメーターが 'ref' パラメーターでない限り、構造体のインスタンス演算子を宣言できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
@@ -1389,7 +1423,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterpolatedStringHandlerArgumentDisallowed">
         <source>Interpolated string handler arguments are not allowed in this context.</source>
-        <target state="new">Interpolated string handler arguments are not allowed in this context.</target>
+        <target state="translated">補間された文字列のハンドラー引数は、このコンテキストでは使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterpolatedStringHandlerArgumentLocatedAfterInterpolatedString">
@@ -1427,9 +1461,19 @@
         <target state="translated">'Experimental' 属性への diagnosticId 引数は有効な識別子である必要があります</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
+        <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</source>
+        <target state="translated">'{0}' に '{1}' の定義が含まれていません。また、型 '{0}' の最初の引数を受け入れるアクセス可能な拡張メソッド '{1}' が見つかりませんでした (代わりに 'await foreach' を使用して非同期コレクションを反復処理するつもりでしたか?)</target>
+        <note>'await foreach' is not localizable</note>
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
+        <source>The target runtime does not support extended layout types.</source>
+        <target state="translated">ターゲット ランタイムは、拡張レイアウトの種類をサポートしていません。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidExtensionParameterReference">
         <source>Cannot use extension parameter '{0}' in this context.</source>
-        <target state="new">Cannot use extension parameter '{0}' in this context.</target>
+        <target state="translated">このコンテキストでは、拡張パラメーター '{0}' を使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
@@ -1469,7 +1513,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidModifierAfterScoped">
         <source>The '{0}' modifier cannot immediately follow the 'scoped' modifier.</source>
-        <target state="new">The '{0}' modifier cannot immediately follow the 'scoped' modifier.</target>
+        <target state="translated">'{0}' 修飾子は、'scoped' 修飾子の直後に続くことはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidModifierForLanguageVersion">
@@ -1579,17 +1623,17 @@
       </trans-unit>
       <trans-unit id="ERR_LocalSameNameAsExtensionParameter">
         <source>'{0}': a parameter, local variable, or local function cannot have the same name as an extension parameter</source>
-        <target state="new">'{0}': a parameter, local variable, or local function cannot have the same name as an extension parameter</target>
+        <target state="translated">'{0}': パラメーター、ローカル変数またはローカル関数は、拡張パラメーターと同じ名前を持つことができません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalSameNameAsExtensionTypeParameter">
         <source>'{0}': a parameter, local variable, or local function cannot have the same name as an extension container type parameter</source>
-        <target state="new">'{0}': a parameter, local variable, or local function cannot have the same name as an extension container type parameter</target>
+        <target state="translated">'{0}': パラメーター、ローカル変数、またはローカル関数に拡張コンテナー型パラメーターと同じ名前を付けることはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsExtendedType">
         <source>'{0}': extension member names cannot be the same as their extended type</source>
-        <target state="new">'{0}': extension member names cannot be the same as their extended type</target>
+        <target state="translated">'{0}': 拡張メンバー名を拡張型と同じにすることはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
@@ -1599,12 +1643,12 @@
       </trans-unit>
       <trans-unit id="ERR_MethodImplAttributeAsyncCannotBeUsed">
         <source>'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.</source>
-        <target state="new">'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.</target>
+        <target state="translated">'MethodImplAttribute.Async' をメソッドに手動で適用することはできません。メソッド 'async' をマークします。</target>
         <note>'MethodImplAttribute.Async' and 'async' are not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_MisplacedExtension">
         <source>An extension member syntax is disallowed in nested position within an extension member syntax</source>
-        <target state="new">An extension member syntax is disallowed in nested position within an extension member syntax</target>
+        <target state="translated">拡張メンバー構文は、拡張メンバー構文内の入れ子になった位置では許可されません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MisplacedRecord">
@@ -1634,7 +1678,7 @@
       </trans-unit>
       <trans-unit id="ERR_ModifierOnUnnamedReceiverParameter">
         <source>Cannot use modifiers on the unnamed receiver parameter of extension block</source>
-        <target state="new">Cannot use modifiers on the unnamed receiver parameter of extension block</target>
+        <target state="translated">拡張ブロックの名前のないレシーバー パラメーターに修飾子を使用できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerCannotBeUnmanagedCallersOnly">
@@ -1689,7 +1733,7 @@
       </trans-unit>
       <trans-unit id="ERR_NameofExtensionMember">
         <source>Extension members are not allowed as an argument to 'nameof'.</source>
-        <target state="new">Extension members are not allowed as an argument to 'nameof'.</target>
+        <target state="translated">拡張メンバーは 'nameof' への引数として許可されていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -1784,7 +1828,7 @@
       </trans-unit>
       <trans-unit id="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName">
         <source>'{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.</source>
-        <target state="translated">'{0}' はインスタンス メソッドではありません。レシーバーを、補間された文字列ハンドラー引数にすることはできません。</target>
+        <target state="translated">'{0}' はインスタンス メソッドではありません。レシーバー パラメーターまたは拡張レシーバー パラメーターを挿入文字列ハンドラー引数にすることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotOverridableAPIInRecord">
@@ -1834,27 +1878,27 @@
       </trans-unit>
       <trans-unit id="ERR_OperatorInExtensionOfStaticClass">
         <source>An extension block extending a static class cannot contain user-defined operators</source>
-        <target state="new">An extension block extending a static class cannot contain user-defined operators</target>
+        <target state="translated">静的クラスを拡張する拡張ブロックにユーザー定義の演算子を含めることはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorMismatchOnOverride">
         <source>'{0}': cannot override inherited member '{1}' because one of them is not an operator.</source>
-        <target state="new">'{0}': cannot override inherited member '{1}' because one of them is not an operator.</target>
+        <target state="translated">'{0}': 継承されたメンバー '{1}' の 1 つが演算子ではないため、オーバーライドできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorMustReturnVoid">
         <source>The return type for this operator must be void</source>
-        <target state="new">The return type for this operator must be void</target>
+        <target state="translated">この演算子の戻り値の型は void である必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorsMustBePublic">
         <source>User-defined operator '{0}' must be declared public</source>
-        <target state="new">User-defined operator '{0}' must be declared public</target>
+        <target state="translated">ユーザー定義演算子 '{0}' は公開用として宣言する必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorsMustBeStaticAndPublic">
         <source>User-defined operator '{0}' must be declared static and public</source>
-        <target state="new">User-defined operator '{0}' must be declared static and public</target>
+        <target state="translated">ユーザー定義の演算子 '{0}' は static および public として宣言されなければなりません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OutAttrOnRefReadonlyParam">
@@ -1889,22 +1933,22 @@
       </trans-unit>
       <trans-unit id="ERR_PPIgnoredFollowsIf">
         <source>'#:' directives cannot be after '#if' directive</source>
-        <target state="new">'#:' directives cannot be after '#if' directive</target>
+        <target state="translated">'#:' ディレクティブは、'#if' ディレクティブの後にすることはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PPIgnoredFollowsToken">
         <source>'#:' directives cannot be after first token in file</source>
-        <target state="new">'#:' directives cannot be after first token in file</target>
+        <target state="translated">ファイル内の最初のトークンの後に '#:' ディレクティブを指定することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PPIgnoredNeedsFileBasedProgram">
         <source>'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</source>
-        <target state="new">'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</target>
+        <target state="translated">'#:' ディレクティブは、ファイル ベースのプログラムでのみ使用できます ('-features:FileBasedProgram')</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PPShebangInProjectBasedProgram">
         <source>'#!' directives can be only used in scripts or file-based programs</source>
-        <target state="new">'#!' directives can be only used in scripts or file-based programs</target>
+        <target state="translated">'#!' ディレクティブは、スクリプトまたはファイル ベースのプログラムでのみ使用できます</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
@@ -1944,12 +1988,12 @@
       </trans-unit>
       <trans-unit id="ERR_PartialConstructorInitializer">
         <source>'{0}': only the implementing declaration of a partial constructor can have an initializer</source>
-        <target state="new">'{0}': only the implementing declaration of a partial constructor can have an initializer</target>
+        <target state="translated">'{0}': 部分コンストラクターの実装宣言のみが初期化子を持つことができます</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialEventInitializer">
         <source>'{0}': partial event cannot have initializer</source>
-        <target state="new">'{0}': partial event cannot have initializer</target>
+        <target state="translated">'{0}': 部分的イベントには初期化子を持たせることができません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberAccessibilityDifference">
@@ -1964,12 +2008,12 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMemberDuplicateDefinition">
         <source>Partial member '{0}' may not have multiple defining declarations.</source>
-        <target state="new">Partial member '{0}' may not have multiple defining declarations.</target>
+        <target state="translated">部分的メンバー '{0}' には、複数の定義宣言を指定することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberDuplicateImplementation">
         <source>Partial member '{0}' may not have multiple implementing declarations.</source>
-        <target state="new">Partial member '{0}' may not have multiple implementing declarations.</target>
+        <target state="translated">部分的メンバー '{0}' には、複数の実装宣言を含めないでください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberInconsistentTupleNames">
@@ -1979,12 +2023,12 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMemberMissingDefinition">
         <source>Partial member '{0}' must have a definition part.</source>
-        <target state="new">Partial member '{0}' must have a definition part.</target>
+        <target state="translated">部分的メンバー '{0}' には定義パーツが必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberMissingImplementation">
         <source>Partial member '{0}' must have an implementation part.</source>
-        <target state="new">Partial member '{0}' must have an implementation part.</target>
+        <target state="translated">部分的メンバー '{0}' には実装部分が必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberOnlyInPartialClass">
@@ -2014,7 +2058,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMemberTypeDifference">
         <source>Both partial member declarations must have the same type.</source>
-        <target state="new">Both partial member declarations must have the same type.</target>
+        <target state="translated">部分的メンバー宣言はどちらも同じ型である必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberUnsafeDifference">
@@ -2119,7 +2163,7 @@
       </trans-unit>
       <trans-unit id="ERR_ProtectedInExtension">
         <source>'{0}': new protected member declared in an extension block</source>
-        <target state="new">'{0}': new protected member declared in an extension block</target>
+        <target state="translated">'{0}': 拡張ブロックで宣言された新しい保護されたメンバー</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RawStringDelimiterOnOwnLine">
@@ -2154,12 +2198,12 @@
       </trans-unit>
       <trans-unit id="ERR_ReceiverParameterOnlyOne">
         <source>An extension container can have only one receiver parameter</source>
-        <target state="new">An extension container can have only one receiver parameter</target>
+        <target state="translated">拡張コンテナーに指定できるレシーバー パラメーターは 1 つだけです</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReceiverParameterSameNameAsTypeParameter">
         <source>'{0}': a receiver parameter cannot have the same name as an extension container type parameter</source>
-        <target state="new">'{0}': a receiver parameter cannot have the same name as an extension container type parameter</target>
+        <target state="translated">'{0}': レシーバー パラメーターに拡張コンテナー型パラメーターと同じ名前を指定することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RecordAmbigCtor">
@@ -2189,7 +2233,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne">
         <source>The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.</source>
-        <target state="new">The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.</target>
+        <target state="translated">拡張ブロックの 'ref' レシーバー パラメーターは、構造体に制約された値型またはジェネリック型である必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
@@ -2324,7 +2368,7 @@
       </trans-unit>
       <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
         <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
-        <target state="needs-review-translation">型 'Microsoft.CodeAnalysis.EmbeddedAttribute' は、非ジェネリック、内部、シールド、非静的、パラメーターなしのコンストラクターを持ち、System.Attribute から継承し、任意の型に適用できる必要があります。</target>
+        <target state="translated">型 'Microsoft.CodeAnalysis.EmbeddedAttribute' は、非ジェネリック、内部、非ファイル、シール、非静的、パラメーターなしのコンストラクターを持ち、System.Attribute から継承し、任意の型に適用できる必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
@@ -2374,7 +2418,7 @@
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
         <source>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</source>
-        <target state="new">The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</target>
+        <target state="translated">'scoped' 修飾子は、'in'、'out'、'ref'、または 'readonly' 修飾子の後に指定することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedDiscard">
@@ -2444,12 +2488,12 @@
       </trans-unit>
       <trans-unit id="ERR_SingleInapplicableBinaryOperator">
         <source>Operator cannot be applied to operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'</source>
-        <target state="new">Operator cannot be applied to operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'</target>
+        <target state="translated">演算子は '{0}' と '{1}' 型のオペランドに適用することはできません。最も近い適用できない候補は '{2}' です</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SingleInapplicableUnaryOperator">
         <source>Operator cannot be applied to operand of type '{0}'. The closest inapplicable candidate is '{1}'</source>
-        <target state="new">Operator cannot be applied to operand of type '{0}'. The closest inapplicable candidate is '{1}'</target>
+        <target state="translated">演算子 は '{0}' 型のオペランドに適用できません。最も近い適用できない候補は '{1}' です</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SpreadMissingMember">
@@ -2502,6 +2546,11 @@
         <target state="translated">フィールド初期化子を持つ 'struct' には、明示的に宣言されたコンストラクターを含める必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StructLayoutAndExtendedLayout">
+        <source>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</source>
+        <target state="translated">同じ型で 'StructLayoutAttribute' と 'ExtendedLayoutAttribute' を使用することはできません。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StructLayoutCyclePrimaryConstructorParameter">
         <source>Struct primary constructor parameter '{0}' of type '{1}' causes a cycle in the struct layout</source>
         <target state="translated">型 '{1}' の構造体のプライマリ コンストラクター パラメーター '{0}' により、構造体レイアウトで循環が発生します</target>
@@ -2549,7 +2598,7 @@
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings_RestartRequired">
         <source>Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</source>
-        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</target>
+        <target state="translated">プログラムで使用されたユーザー文字列の長さの合計が、許可されている制限を超えています。文字列リテラルを追加するには、アプリケーションを再起動する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
@@ -2589,12 +2638,12 @@
       </trans-unit>
       <trans-unit id="ERR_TypeParameterSameNameAsExtensionParameter">
         <source>Type parameter '{0}' has the same name as an extension parameter</source>
-        <target state="new">Type parameter '{0}' has the same name as an extension parameter</target>
+        <target state="translated">型パラメーター '{0}' の名前は、拡張パラメーターと同じです</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeParameterSameNameAsExtensionTypeParameter">
         <source>Type parameter '{0}' has the same name as an extension container type parameter</source>
-        <target state="new">Type parameter '{0}' has the same name as an extension container type parameter</target>
+        <target state="translated">型パラメーター '{0}' の名前は拡張コンテナー型パラメーターと同じです</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnassignedThisAutoPropertyUnsupportedVersion">
@@ -2609,12 +2658,12 @@
       </trans-unit>
       <trans-unit id="ERR_UnderspecifiedExtension">
         <source>The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</source>
-        <target state="new">The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</target>
+        <target state="translated">型パラメーター `{0}` は、拡張パラメーターまたはこのメンバーのパラメーターによって参照されていません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList">
         <source>Cannot pass arguments to the base type without a parameter list on the type declaration.</source>
-        <target state="new">Cannot pass arguments to the base type without a parameter list on the type declaration.</target>
+        <target state="translated">型宣言のパラメーター リストがない場合、基本型に引数を渡すことはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">
@@ -2664,7 +2713,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedFeatureInRuntimeAsync">
         <source>Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
-        <target state="new">Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</target>
+        <target state="translated">メソッド '{0}' は、現在ランタイム非同期でサポートされていない機能を使用しています。メソッドを 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)' と関連付けて、ランタイム非同期から除外します。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
@@ -2709,17 +2758,17 @@
       </trans-unit>
       <trans-unit id="ERR_ValueParameterSameNameAsExtensionParameter">
         <source>'value': an automatically-generated parameter name conflicts with an extension parameter name</source>
-        <target state="new">'value': an automatically-generated parameter name conflicts with an extension parameter name</target>
+        <target state="translated">'value': 自動生成されたパラメーター名が拡張パラメーター名と競合しています</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ValueParameterSameNameAsExtensionTypeParameter">
         <source>'value': an automatically-generated parameter name conflicts with an extension type parameter name</source>
-        <target state="new">'value': an automatically-generated parameter name conflicts with an extension type parameter name</target>
+        <target state="translated">'value': 自動生成されたパラメーター名が拡張型パラメーター名と競合しています</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VariableDeclarationNamedField">
         <source>In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</source>
-        <target state="new">In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</target>
+        <target state="translated">言語バージョン {0}では、'field' はプロパティ アクセサー内のキーワードです。変数の名前を変更するか、代わりに識別子 '@field' を使用してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
@@ -2739,22 +2788,22 @@
       </trans-unit>
       <trans-unit id="HDN_RedundantPattern">
         <source>The pattern is redundant.</source>
-        <target state="new">The pattern is redundant.</target>
+        <target state="translated">パターンは冗長です。</target>
         <note />
       </trans-unit>
       <trans-unit id="HDN_RedundantPatternStackGuard">
         <source>The pattern is too complex to analyze for redundancy.</source>
-        <target state="new">The pattern is too complex to analyze for redundancy.</target>
+        <target state="translated">パターンが複雑すぎるため、冗長性を分析する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="HDN_RedundantPatternStackGuard_Title">
         <source>The pattern is too complex to analyze for redundancy.</source>
-        <target state="new">The pattern is too complex to analyze for redundancy.</target>
+        <target state="translated">パターンが複雑すぎるため、冗長性を分析する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="HDN_RedundantPattern_Title">
         <source>The pattern is redundant.</source>
-        <target state="new">The pattern is redundant.</target>
+        <target state="translated">パターンは冗長です。</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
@@ -2769,7 +2818,7 @@
       </trans-unit>
       <trans-unit id="IDS_CollectionExpression">
         <source>collection expression</source>
-        <target state="new">collection expression</target>
+        <target state="translated">コレクション式</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAllowsRefStructConstraint">
@@ -2787,11 +2836,20 @@
         <target state="translated">チェックされたユーザー定義演算子</target>
         <note />
       </trans-unit>
+<<<<<<< HEAD
       <trans-unit id="IDS_FeatureClosedClasses">
         <source>closed classes</source>
         <target state="new">closed classes</target>
         <note />
       </trans-unit>
+||||||| 67697482eba
+=======
+      <trans-unit id="IDS_FeatureCollectionExpressionArguments">
+        <source>collection expression arguments</source>
+        <target state="new">collection expression arguments</target>
+        <note />
+      </trans-unit>
+>>>>>>> upstream/main
       <trans-unit id="IDS_FeatureCollectionExpressions">
         <source>collection expressions</source>
         <target state="translated">コレクション式</target>
@@ -2819,7 +2877,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensions">
         <source>extensions</source>
-        <target state="new">extensions</target>
+        <target state="translated">拡張</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureFieldKeyword">
@@ -2919,7 +2977,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureNullConditionalAssignment">
         <source>null conditional assignment</source>
-        <target state="new">null conditional assignment</target>
+        <target state="translated">null 条件付き割り当て</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureOverloadResolutionPriority">
@@ -2939,7 +2997,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeaturePartialEventsAndConstructors">
         <source>partial events and constructors</source>
-        <target state="new">partial events and constructors</target>
+        <target state="translated">部分的なイベントとコンストラクター</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
@@ -2999,7 +3057,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureSimpleLambdaParameterModifiers">
         <source>simple lambda parameter modifiers</source>
-        <target state="new">simple lambda parameter modifiers</target>
+        <target state="translated">単純なラムダ パラメーター修飾子</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStringEscapeCharacter">
@@ -3024,7 +3082,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUserDefinedCompoundAssignmentOperators">
         <source>user-defined compound assignment operators</source>
-        <target state="new">user-defined compound assignment operators</target>
+        <target state="translated">ユーザー定義の複合代入演算子</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUtf8StringLiterals">
@@ -3104,17 +3162,17 @@
       </trans-unit>
       <trans-unit id="NodeIsNotAwaitUsingDeclaration">
         <source>'node' is not an 'await using' declaration</source>
-        <target state="new">'node' is not an 'await using' declaration</target>
+        <target state="translated">'node' は 'await using' 宣言ではありません</target>
         <note>node and await using are not localizable</note>
       </trans-unit>
       <trans-unit id="NodeIsNotAwaitUsingStatement">
         <source>'node' is not an 'await using' statement</source>
-        <target state="new">'node' is not an 'await using' statement</target>
+        <target state="translated">'node' は 'await using' ステートメントではありません</target>
         <note>node and await using are not localizable</note>
       </trans-unit>
       <trans-unit id="ParameterRequiresTypeOrIdentifier">
         <source>ParameterSyntax requires either a type or an identifier.</source>
-        <target state="new">ParameterSyntax requires either a type or an identifier.</target>
+        <target state="translated">ParameterSyntax には、型または識別子が必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AccessorDoesNotUseBackingField">
@@ -3149,12 +3207,12 @@
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
         <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="needs-review-translation">アナライザー アセンブリ '{0}' は、コンパイラのバージョン '{1}' を参照しています。これは、現在実行中のバージョン '{2}' よりも新しいバージョンです。</target>
+        <target state="translated">アナライザー アセンブリ '{0}' は、現在実行中のバージョン '{2}' よりも新しいバージョン '{1}' のコンパイラを参照しているため、使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
         <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
-        <target state="needs-review-translation">アナライザー アセンブリが参照しるコンパイラのバージョンは、現在実行中のバージョンよりも新しいです。</target>
+        <target state="translated">アナライザー アセンブリは、現在実行中のバージョンよりも新しいバージョンのコンパイラを参照しているため、使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedIn">
@@ -3579,12 +3637,12 @@
       </trans-unit>
       <trans-unit id="WRN_PartialMemberSignatureDifference">
         <source>Partial member declarations '{0}' and '{1}' have signature differences.</source>
-        <target state="new">Partial member declarations '{0}' and '{1}' have signature differences.</target>
+        <target state="translated">部分的メンバーの宣言 '{0}' と '{1}' には、シグネチャの違いがあります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PartialMemberSignatureDifference_Title">
         <source>Partial member declarations have signature differences.</source>
-        <target state="new">Partial member declarations have signature differences.</target>
+        <target state="translated">部分的メンバーの宣言には、シグネチャの違いがあります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
@@ -3634,12 +3692,12 @@
       </trans-unit>
       <trans-unit id="WRN_RedundantPattern">
         <source>The pattern is redundant.</source>
-        <target state="new">The pattern is redundant.</target>
+        <target state="translated">パターンは冗長です。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RedundantPattern_Title">
         <source>The pattern is redundant.</source>
-        <target state="new">The pattern is redundant.</target>
+        <target state="translated">パターンは冗長です。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignNarrower">
@@ -4093,117 +4151,117 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="needs-review-translation">
-                            Visual C# Compiler のオプション
+        <target state="translated">
+                             Visual C# Compiler のオプション
 
-                      - 出力ファイル -
+                       - 出力ファイル -
 -out:&lt;file&gt;                   出力ファイル名を指定します (既定値: main クラスを含むファイルの
-                             ベース名また最初のファイル)
+                              ベース名また最初のファイル)
 -target:exe                   コンソール アプリケーションをビルドします (既定) (短い
-                             形式: -t:exe)
+                              形式: -t:exe)
 -target:winexe                Windows 実行可能ファイルをビルドします (短い形式:
-                             -t:winexe)
+                              -t:winexe)
 -target:library               ライブラリをビルドします (短い形式: -t:library)
 -target:module                別のアセンブリに追加できるモジュールを
-                             ビルドします (短い形式: -t:module)
+                              ビルドします (短い形式: -t:module)
 -target:appcontainerexe       Appcontainer 実行可能ファイルをビルドします (短い形式:
-                             -t:appcontainerexe)
+                              -t:appcontainerexe)
 -target:winmdobj              WinMDExp が使用する、Windows ランタイムの
-                             中間ファイルをビルドします (短い形式: -t:winmdobj)
+                              中間ファイルをビルドします (短い形式: -t:winmdobj)
 -doc:&lt;file&gt;                   生成する XML ドキュメント ファイルです
 -refout:&lt;file&gt;                    生成する参照アセンブリ出力です
 -platform:&lt;string&gt;                このコードを実行できるプラットフォームを限定します。x86、
-                             Itanium、x64、arm、arm64、anycpu32bitpreferred、
-                             anycpu のいずれかです。既定値は anycpu です。
+                              Itanium、x64、arm、arm64、anycpu32bitpreferred、または
+                              anycpu のいずれかです。既定値は anycpu です。
 
-                      - 入力ファイル -
+                       - 入力ファイル -
 -recurse:&lt;wildcard&gt;               ワイルドカードの仕様に従って、
-                             現在のディレクトリとサブディレクトリ内のすべてのファイルを
-                             含めます
+                              現在のディレクトリとサブディレクトリ内のすべてのファイルを
+                              含めます
 -reference:&lt;alias&gt;=&lt;file&gt;     指定されたエイリアスを使用して、指定されたアセンブリ ファイルからの
-                             メタデータを参照します (短い形式: -r)
+                              メタデータを参照します (短い形式: -r)
 -reference:&lt;file list&gt;        指定されたアセンブリ ファイルからのメタデータを
-                             参照します (短い形式: -r)
+                              参照します (短い形式: -r)
 -addmodule:&lt;file list&gt;        指定されたモジュールをこのアセンブリにリンクします
 -link:&lt;file list&gt;             指定された相互運用アセンブリからのメタデータを
-                             埋め込みます (短い形式: -l)
+                              埋め込みます (短い形式: -l)
 -analyzer:&lt;file list&gt;         このアセンブリからアナライザーを実行します
-                             (短い形式: -a)
--additionalfile:&lt;file list&gt;   コードの生成に直接影響しないものの、エラーまたは警告を
-                             生成するためにアナライザーが使用する可能性がある
-                             追加ファイルです。
+                              (短い形式: -a)
+-additionalfile:&lt;file list&gt;   コード生成に直接影響を与えない追加ファイルですが、
+                              解析ツールがエラーや警告を生成する際に使用される
+                              可能性があります。
 -embed                        PDB ファイル内にすべてのソース ファイルを埋め込みます。
 -embed:&lt;file list&gt;            PDB に特定のファイルを埋め込みます。
 
-                      - リソース -
+                       - リソース -
 -win32res:&lt;file&gt;              Win32 リソース ファイル (.res) を指定します
 -win32icon:&lt;file&gt;             出力にこのアイコンを使用します
 -win32manifest:&lt;file&gt;         Win32 マニフェスト ファイル (.xml) を指定します
 -nowin32manifest              既定の Win32 マニフェストを含めません
 -resource:&lt;resinfo&gt;           指定されたリソースを埋め込みます (短い形式: -res)
--linkresource:&lt;resinfo&gt;       このアセンブリに指定されたリソースをリンクします
-                             (短い形式: -linkres) resinfo の形式:
-                             &lt;file&gt;[,&lt;string name&gt;[,public|private]]
+-linkresource:&lt;resinfo&gt;       指定されたリソースをこのアセンブリにリンクします
+                              (短縮形：-linkres) なお、resinfo 形式は
+                              &lt;file&gt;[,&lt;string name&gt;[,public|private]] となります
 
-                      - コード生成 -
+                       - コード生成 -
 -debug[+|-]                       デバッグ情報を出力します
 -debug:{full|pdbonly|portable|embedded}
-                             デバッグの種類を指定します ('full' は既定、
-                             'portable' はクロスプラットフォーム形式、
-                             'embedded' はターゲットの .dll または .exe に埋め込まれる
-                             クロスプラットフォーム形式です)
+                              デバッグの種類を指定します ('full' は既定、
+                              'portable' はクロスプラットフォーム形式、
+                              'embedded' はターゲットの .dll または .exe に埋め込まれる
+                              クロスプラットフォーム形式です)
 -optimize[+|-]                最適化を有効にします (短い形式: -o)
 -deterministic                   決定論的アセンブリを生成します
-                             (モジュール バージョン GUID とタイムスタンプを含む)
+                              (モジュール バージョン GUID とタイムスタンプを含む)
 -refonly                          メイン出力の代わりに参照アセンブリを生成します
 -instrument:TestCoverage          カバレッジ情報を収集するようにインストルメント化されたアセンブリを
-                             生成します
+                              生成します
 -sourcelink:&lt;file&gt;                PDB に埋め込むソース リンク情報。
 
-                      - エラーと警告 -
+                       - エラーと警告 -
 -warnaserror[+|-]                 すべての警告をエラーとして報告します
 -warnaserror[+|-]:&lt;warn list&gt; 特定の警告をエラーとして報告します
-                             (すべての NULL 値の許容に関する警告に対して "nullable" を使用します)
+                              (すべての NULL 値の許容に関する警告に対して "nullable" を使用します)
 -warn:&lt;n&gt;                     警告レベル (0 以上) を設定します (短い形式: -w)
 -nowarn:&lt;warn list&gt;           特定の警告メッセージを無効にします
-                             (すべての NULL 値の許容に関する警告に対して "nullable" を使用します)
+                              (すべての NULL 値の許容に関する警告に対して "nullable" を使用します)
 -ruleset:&lt;file&gt;               特定の診断を無効にするルールセット ファイルを
-                             指定します。
+                              指定します。
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
-                             すべてのコンパイラとアナライザーの診断をログに記録するファイルを
-                             指定します。
-                             sarif_version:{1|2|2.1} 既定値は 1 です。2 と 2.1 は
-                             両方とも SARIF バージョン 2.1.0 を意味します。
+                              すべてのコンパイラとアナライザーの診断をログに記録するファイルを
+                              指定します。
+                              sarif_version:{1|2|2.1} 既定値は 1 です。2 と 2.1 は
+                              両方とも SARIF バージョン 2.1.0 を意味します。
 -reportanalyzer               実行時間などの追加のアナライザー情報を
-                             報告します。
+                              報告します。
 -skipanalyzers[+|-]               診断アナライザーの実行をスキップします。
 
-                      - 言語 -
+                       - 言語 -
 -checked[+|-]                 オーバーフロー チェックを生成します
 -unsafe[+|-]                  'unsafe' コードの使用を許可します
 -define:&lt;symbol list&gt;             条件付きコンパイル シンボルを定義します (短い
-                             形式: -d)
--langversion:?              言語バージョンに指定できる値を表示します
--langversion:&lt;string&gt;             次のような言語バージョンを指定します。
-                             'latest' (マイナー バージョンを含む最新バージョン)、
-                             'default' ('latest' と同じ)、
-                             'latestmajor' (マイナー バージョンを含まない最新バージョン)、
-                             'preview' (サポートされていないプレビューの機能を含む最新バージョン)、
-                             '6' や '7.1' などの特定のバージョン
+                              形式: -d)
+-langversion:?               言語バージョンに指定できる値を表示します
+-langversion:&lt;string&gt;             次のような言語バージョンを指定します
+                              `latest` (マイナー バージョンを含む最新バージョン)、
+                              `default` (`latest` と同じ)、
+                              `latestmajor` (マイナー バージョンを含む最新バージョン)、
+                              `preview` (サポートされていないプレビューの機能を含む最新バージョン)、
+                              `6` や `7.1` などの特定のバージョン
 -nullable[+|-]                Null 許容コンテキスト オプションの有効または無効を指定します。
 -nullable:{enable|disable|warnings|annotations}
-                             Null 許容コンテキスト オプションの enable|disable|warnings|annotations を指定します。
+                              Null 許容コンテキスト オプションの enable|disable|warnings|annotations を指定します。
 
-                      - セキュリティ -
+                       - セキュリティ -
 -delaysign[+|-]                   厳密な名前キーの公開部分のみを使用して
-                             アセンブリに遅延署名します
+                              アセンブリに公開署名します
 -publicsign[+|-]                  厳密な名前キーの公開部分のみを使用して
-                             アセンブリに公開署名します
+                              アセンブリに公開署名します
 -keyfile:&lt;file&gt;                   厳密な名前のキー ファイルを指定します
 -keycontainer:&lt;string&gt;            厳密な名前のキー コンテナーを指定します
 -highentropyva[+|-]               高エントロピ ASLR を有効にします
 
-                      - その他 -
+                       - その他 -
 @&lt;file&gt;                       その他のオプションを、応答ファイルから読み取ります
 -help                       この使用法メッセージを表示します (短い形式: -?)
 -nologo                       コンパイラの著作権メッセージを表示しません
@@ -4211,46 +4269,47 @@
 -parallel[+|-]                同時にビルドします。
 -version                      コンパイラのバージョン番号を表示して終了します。
 
-                      - 詳細設定 -
+                       - 詳細設定 -
 -baseaddress:&lt;address&gt;        ビルドするライブラリのベース アドレス
 -checksumalgorithm:&lt;alg&gt;      PDB に格納されているソース ファイル チェックサムを計算するための
-                             アルゴリズムを指定します。サポートされている値:
-                             SHA1 または SHA256 (既定値)。
+                              アルゴリズムを指定します。サポートされている値:
+                              SHA1 または SHA256 (既定値)。
 -codepage:&lt;n&gt;                 ソース ファイルを開くときに使用するコードページを
-                             指定します
+                              指定します
 -utf8output                   UTF-8 エンコードでコンパイラのメッセージを出力します
 -main:&lt;type&gt;                  エントリ ポイントを含む型を指定します
-                             (他のすべてのエントリ ポイントを無視します) (短い
-                             形式: -m)
+                              (他のすべてのエントリ ポイントを無視します) (短い
+                              形式: -m)
 -fullpaths                    コンパイラは完全修飾パスを生成します
 -filealign:&lt;n&gt;                出力ファイルのセクションに使用する配置を
-                             指定します
+                              指定します
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                             コンパイラが出力するソース パス名のマッピングを
-                             指定します。
+                              コンパイラが出力するソース パス名のマッピングを
+                              指定します。
 -pdb:&lt;file&gt;                   デバッグ情報のファイル名を指定します (既定値:
-                             出力ファイル名と .pdb 拡張子)
+                              出力ファイル名と .pdb 拡張子)
 -errorendlocation             各エラーの終了位置の出力行と
-                             出力列です
+                              出力列です
 -preferreduilang                  優先する出力言語名を指定します。
 -nosdkpath                    標準ライブラリ アセンブリの既定の SDK パスの検索を無効にします。
+-sdkpath:&lt;path&gt;         標準ライブラリ アセンブリの検索に使用されるパス。
 -nostdlib[+|-]                標準ライブラリ (mscorlib.dll) を参照しません
 -subsystemversion:&lt;string&gt;    このアセンブリのサブシステム バージョンを指定します
 -lib:&lt;file list&gt;              参照を検索する追加のディレクトリを
-                             指定します
--errorreport:&lt;string&gt;         内部コンパイラ エラーを処理する方法を指定します。
-                             prompt、send、queue、none のいずれかです。既定値は
-                             queue です。
+                              指定します
+-errorreport:&lt;string&gt;         内部コンパイラ エラーを処理する方法を指定します:
+                              prompt、send、queue、none のいずれかです。既定値は 
+                              queue です。
 -appconfig:&lt;file&gt;             アセンブリ バインド設定を含むアプリケーション
-                             構成ファイルを指定します
+                              構成ファイルを指定します
 -moduleassemblyname:&lt;string&gt;  このモジュールが属することになるアセンブリの
-                             名前です
+                              名前です
 -modulename:&lt;string&gt;          ソース モジュールの名前を指定します
 -generatedfilesout:&lt;dir&gt;      コンパイル中に生成されたファイルを指定したディレクトリに
-                             配置します。
+                              配置します。
 -reportivts[+|-]                  すべての依存関係によってこのアセンブリに
-                             付与されたすべての IVT に関する情報を出力し、外部アセンブリの
-                             アクセシビリティ エラーに、発生元のアセンブリに関する注釈をつけます。
+                              付与されたすべての IVT に関する情報を出力し、外部アセンブリの
+                              アクセシビリティ エラーに、発生元のアセンブリに関する注釈をつけます。
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -5756,12 +5815,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField">
         <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
-        <target state="translated">null 非許容の {0} '{1}' には、コンストラクターの終了時に null 以外の値が入っていなければなりません。'required' 修飾子を追加するか、{0} を null 許容として宣言するか、'[field: MaybeNull, AllowNull]' 属性を追加することを検討してください。</target>
+        <target state="translated">null 非許容の {0} '{1}' には、コンストラクターの終了時に null 以外の値が入っていなければなりません。'required' 修飾子を追加するか、{0} を null 許容として宣言するか、'get' アクセサーで 'field' が null の場合を安全に処理することを検討してください。</target>
         <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField_Title">
         <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
-        <target state="translated">null 非許容プロパティには、コンストラクターの終了時に null 以外の値が入っていなければなりません。'required' 修飾子を追加するか、プロパティを null 許容として宣言するか、'[field: MaybeNull, AllowNull]' 属性を追加することを検討してください。</target>
+        <target state="translated">null 非許容プロパティには、コンストラクターの終了時に null 以外の値が入っていなければなりません。'required' 修飾子を追加するか、プロパティを null 許容として宣言するか、'get' アクセサーで 'field' が null である場合を安全に処理することを検討してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
@@ -6176,7 +6235,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadVisIndexerParam">
         <source>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</source>
-        <target state="needs-review-translation">アクセシビリティに一貫性がありません。パラメーター型 '{1}' のアクセシビリティはインデクサー '{0}' よりも低く設定されています</target>
+        <target state="translated">アクセシビリティに一貫性がありません: パラメーターの型 '{1}' はインデクサーまたはプロパティ '{0}' よりもアクセス性が低くなっています</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisOpReturn">
@@ -7101,7 +7160,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
         <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</source>
-        <target state="needs-review-translation">'partial' 修飾子は、'class'、'record'、'struct'、'interface'、またはメソッドまだはプロパティの戻り値の型の直前にのみ指定できます。</target>
+        <target state="translated">'partial' 修飾子は、'class'、'record'、'struct'、'interface'、'event'、インスタンス コンストラクター名、またはメソッドまたはプロパティの戻り値の型の直前にのみ使用できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -8075,7 +8134,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_DllImportOnInvalidMethod">
         <source>The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member</source>
-        <target state="needs-review-translation">static または extern に指定されているメソッドでは、DllImport 属性を指定する必要があります</target>
+        <target state="translated">DllImport 属性は、'static' または拡張メンバーのいずれかである 'extern' とマークされたメソッドで指定する必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
@@ -9174,7 +9233,7 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="ERR_BadTypeforThis">
         <source>The receiver parameter of an extension cannot be of type '{0}'</source>
-        <target state="needs-review-translation">拡張メソッドの最初のパラメーターを型 '{0}' にすることはできません</target>
+        <target state="translated">拡張のレシーバー パラメーターの型を '{0}' にすることはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamModThis">
@@ -9204,7 +9263,7 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="ERR_ExtensionAttrNotFound">
         <source>Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
-        <target state="needs-review-translation">コンパイラで必要とされる型 '{0}' が見つからないため、新しい拡張メソッドを定義できません。System.Core.dll への参照が指定されていることを確認してください。</target>
+        <target state="translated">コンパイラに必要な型 '{0}' が見つからないため、新しい拡張機能を定義できません。System.Core.dll への参照が不足していませんか?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitExtension">
@@ -9299,7 +9358,7 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
         <source>Invalid token '{0}' in a member declaration</source>
-        <target state="needs-review-translation">クラス、レコード、構造体、またはインターフェイス メンバーの宣言でトークン '{0}' が無効です</target>
+        <target state="translated">メンバー宣言のトークン '{0}' が無効です</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">
@@ -11879,7 +11938,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_InvalidDynamicCondition">
         <source>Expression must be implicitly convertible to Boolean or its type '{0}' must not be an interface and must define operator '{1}'.</source>
-        <target state="needs-review-translation">式はブール型に暗黙的に変換できるか、式の型 '{0}' で演算子 '{1}' を定義する必要があります。</target>
+        <target state="translated">式はブール値に暗黙的に変換できる必要があります。または、式の型 '{0}' はインターフェイスではなく、演算子 '{1}' を定義する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MixingWinRTEventWithRegular">
@@ -13302,7 +13361,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_CompilerAndLanguageVersion">
         <source>Compiler version: '{0}'. Language version: {1}. Compiler path: '{2}'.</source>
-        <target state="new">Compiler version: '{0}'. Language version: {1}. Compiler path: '{2}'.</target>
+        <target state="translated">コンパイラのバージョン: '{0}'。言語バージョン: {1}。コンパイラ パス: '{2}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAsyncMain">

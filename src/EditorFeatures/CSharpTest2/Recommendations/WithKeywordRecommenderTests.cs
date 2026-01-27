@@ -268,4 +268,52 @@ public sealed class WithKeywordRecommenderTests : KeywordRecommenderTests
                 public int RandomValue() => 0;
             }
             """);
+
+    [Fact]
+    public Task TestInCollectionExpression1()
+        => VerifyKeywordAsync(
+            """
+            var v = [$$];
+            """);
+
+    [Fact]
+    public Task TestInCollectionExpression2()
+        => VerifyKeywordAsync(
+            """
+            var v = [$$, 1];
+            """);
+
+    [Fact]
+    public Task TestInCollectionExpression3()
+        => VerifyAbsenceAsync(
+            """
+            var v = [1, $$];
+            """);
+
+    [Fact]
+    public Task TestInCollectionExpression4()
+        => VerifyAbsenceAsync(
+            """
+            var v = [1, $$
+            """);
+
+    [Fact]
+    public Task TestInCollectionExpression5()
+        => VerifyKeywordAsync(
+            """
+            void M()
+            {
+                Goo([$$
+            }
+            """);
+
+    [Fact]
+    public Task TestInCollectionExpression6()
+        => VerifyKeywordAsync(
+            """
+            void M()
+            {
+                Goo([$$]);
+            }
+            """);
 }
