@@ -80,12 +80,10 @@ internal abstract class AbstractCodeCleanupService(ICodeFixService codeFixServic
 
         if (enabledDiagnostics.FormatDocument)
         {
-            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
-
             progressTracker.Report(CodeAnalysisProgress.Description(FeaturesResources.Formatting_document));
             using (Logger.LogBlock(FunctionId.CodeCleanup_Format, cancellationToken))
             {
-                document = await Formatter.FormatAsync(document, formattingOptions, cancellationToken).ConfigureAwait(false);
+                document = await Formatter.FormatAsync(document, cancellationToken).ConfigureAwait(false);
                 progressTracker.ItemCompleted();
             }
         }
