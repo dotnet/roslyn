@@ -63,8 +63,8 @@ public abstract class CodeActionWithOptions : CodeAction
     /// </summary>
     /// <param name="options">An object instance returned from a call to <see cref="GetOptions(CancellationToken)"/>.</param>
     /// <param name="cancellationToken">A cancellation token.</param>
-    protected virtual Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
-        => SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
+    protected virtual async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+        => [];
 
     /// <summary>
     /// Override this method to compute the operations that implement this <see cref="CodeAction"/>. Prefer
@@ -74,6 +74,6 @@ public abstract class CodeActionWithOptions : CodeAction
     protected virtual Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         => ComputeOperationsAsync(options, cancellationToken);
 
-    protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
-        => SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
+    protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+        => [];
 }

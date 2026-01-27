@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             var envVars = BuildServerConnection.GetServerEnvironmentVariables(currentEnvironment);
 
-            if (RuntimeHostInfo.GetToolDotNetRoot(Logger.Log) is { } dotNetRoot)
+            if (BuildServerConnection.IsBuiltinToolRunningOnCoreClr && RuntimeHostInfo.GetToolDotNetRoot(Logger.Log) is { } dotNetRoot)
             {
                 // Should have environment variables including DOTNET_ROOT
                 Assert.NotNull(envVars);
@@ -192,7 +192,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             if (envVars != null)
             {
-
                 // Should set DOTNET_ROOT* variants to empty string to prevent inheritance
                 foreach (var testEnvVar in testEnvVars)
                 {

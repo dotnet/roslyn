@@ -6789,7 +6789,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>There is no target type for the collection expression.</value>
   </data>
   <data name="ERR_CollectionBuilderAttributeMethodNotFound" xml:space="preserve">
-    <value>Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</value>
+    <value>Could not find an accessible '{0}' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</value>
   </data>
   <data name="ERR_CollectionBuilderNoElementType" xml:space="preserve">
     <value>'{0}' has a CollectionBuilderAttribute but no element type.</value>
@@ -8108,6 +8108,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PPShebangInProjectBasedProgram" xml:space="preserve">
     <value>'#!' directives can be only used in scripts or file-based programs</value>
   </data>
+  <data name="ERR_StructLayoutAndExtendedLayout" xml:space="preserve">
+    <value>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportExtendedLayoutTypes" xml:space="preserve">
+    <value>The target runtime does not support extended layout types.</value>
+  </data>
   <data name="ERR_MisplacedExtension" xml:space="preserve">
     <value>An extension member syntax is disallowed in nested position within an extension member syntax</value>
   </data>
@@ -8195,6 +8201,27 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadVisBaseType" xml:space="preserve">
     <value>Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </value>
   </data>
+  <data name="IDS_FeatureCollectionExpressionArguments" xml:space="preserve">
+    <value>collection expression arguments</value>
+  </data>
+  <data name="ERR_CollectionArgumentsMustBeFirst" xml:space="preserve">
+    <value>'with(...)' element must be the first element</value>
+  </data>
+  <data name="ERR_CollectionArgumentsNotSupportedForType" xml:space="preserve">
+    <value>'with(...)' elements are not supported for type '{0}'</value>
+  </data>
+  <data name="ERR_CollectionArgumentsDynamicBinding" xml:space="preserve">
+    <value>'with(...)' element arguments cannot be dynamic</value>
+  </data>
+  <data name="ERR_CollectionArgumentsMustBeEmpty" xml:space="preserve">
+    <value>'with(...)' element for a read-only interface must be empty if present</value>
+  </data>
+  <data name="ERR_CollectionRefLikeElementType" xml:space="preserve">
+    <value>Element type of this collection may not be a ref struct or a type parameter allowing ref structs</value>
+  </data>
+  <data name="ERR_BadCollectionArgumentsArgCount" xml:space="preserve">
+    <value>No overload for method '{0}' takes {1} 'with(...)' element arguments</value>
+  </data>
   <data name="ERR_AmbigExtension" xml:space="preserve">
     <value>The extension resolution is ambiguous between the following members: '{0}' and '{1}'</value>
   </data>
@@ -8206,5 +8233,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_AmbigOperator" xml:space="preserve">
     <value>Operator resolution is ambiguous between the following members: '{0}' and '{1}'</value>
+  </data>
+  <data name="ERR_NoAwaitOnAsyncEnumerable" xml:space="preserve">
+    <value>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</value>
+    <comment>'await foreach' is not localizable</comment>
   </data>
 </root>

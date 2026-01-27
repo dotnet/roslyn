@@ -12770,7 +12770,7 @@ done:
             // expression?  Because look-ahead is cheap with our token stream, we check
             // to see if this "looks like" a cast (without constructing any parse trees)
             // to help us make the decision.
-            if (this.ScanCast())
+            if (this.ScanCast(forPattern: false, inSwitchArmPattern: false))
             {
                 if (!IsCurrentTokenQueryKeywordInQuery())
                 {
@@ -12848,8 +12848,10 @@ done:
                 this.EatToken(SyntaxKind.CloseParenToken));
         }
 
-        private bool ScanCast(bool forPattern = false)
+        private bool ScanCast(bool forPattern, bool inSwitchArmPattern)
         {
+            Debug.Assert(!inSwitchArmPattern || forPattern, "Can't be in a switch arm without also being in a pattern");
+
             if (this.CurrentToken.Kind != SyntaxKind.OpenParenToken)
             {
                 return false;
@@ -12872,8 +12874,20 @@ done:
 
             if (forPattern && this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
             {
-                // In a pattern, an identifier can follow a cast unless it's a binary pattern token.
-                return !isBinaryPattern();
+                // In a pattern we might have a cast of a constant, or the start of a legal pattern form.
+                //
+                // For example: `(A.B) and ...` should be treated not as a 'cast' of some variable 'and', but instead as
+                // a conjunctive pattern.
+                if (isBinaryPattern())
+                    return false;
+
+                // Similarly `(A.B) when` directly in a switch arm should be treated as the start of a `when` clause not
+                // a cast of a `when` variable when in a switch expression arm.  This matches the exact checking logic
+                // in IsValidPatternDesignation.
+                if (inSwitchArmPattern && this.CurrentToken.ContextualKind == SyntaxKind.WhenKeyword)
+                    return false;
+
+                return true;
             }
 
             switch (type)
@@ -13215,9 +13229,22 @@ done:
 
         private CollectionElementSyntax ParseCollectionElement()
         {
-            return IsAtDotDotToken()
-                ? _syntaxFactory.SpreadElement(this.EatDotDotToken(), this.ParseExpressionCore())
-                : _syntaxFactory.ExpressionElement(this.ParseExpressionCore());
+            // Even though `with(` could start a legal expression (like `with(x) + y`), spec mandates that if we see
+            // `with(` at the start of a collection element, we only parse it as a with-element.
+            if (this.CurrentToken.ContextualKind == SyntaxKind.WithKeyword &&
+                this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
+            {
+                return _syntaxFactory.WithElement(this.EatContextualToken(SyntaxKind.WithKeyword), this.ParseParenthesizedArgumentList());
+            }
+
+            // Like above, even though `..` could start a legal expression (like `..` (a naked-range)), the spec
+            // mandates that if we see `..` at the start of a collection element, we only parse it as a spread-element.
+            if (this.IsAtDotDotToken())
+            {
+                return _syntaxFactory.SpreadElement(this.EatDotDotToken(), this.ParseExpressionCore());
+            }
+
+            return _syntaxFactory.ExpressionElement(this.ParseExpressionCore());
         }
 
         private bool IsAnonymousType()

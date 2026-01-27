@@ -85,6 +85,9 @@ variables:
   - group: DotNet-Roslyn-Insertion-Variables
   - group: AzureDevOps-Artifact-Feeds-Pats
 
+  - name: BranchName
+    value: $[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]
+
   - name: BuildConfiguration
     value: release
   - name: Roslyn.GitHubEmail
@@ -143,11 +146,11 @@ extends:
       displayName: Build and Test
 
       jobs:
-      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev18.0') }}:
+      - ${{ if or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')) }}:
         - template: /eng/common/templates-official/job/onelocbuild.yml@self
           parameters:
             MirrorRepo: roslyn
-            MirrorBranch: release/dev18.0
+            MirrorBranch: $(BranchName)
             LclSource: lclFilesfromPackage
             LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
@@ -297,7 +300,7 @@ extends:
             zipSources: false
             feedSource: https://dnceng.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json
             # Set ConnectedPMEServiceName if the build is a CI build, otherwise it is not needed
-            ${{ if eq(variables['Build.Reason'], 'IndividualCI') }}:
+            ${{ if or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'Schedule')) }}:
               ConnectedPMEServiceName: 248d384a-b39b-46e3-8ad5-c2c210d5e7ca
           condition: and(succeeded(), in('${{ parameters.SignType }}', 'test', 'real'))
 

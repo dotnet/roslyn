@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="ERR_AttributeCannotBeAppliedManually">
         <source>'{0}' cannot be applied manually.</source>
-        <target state="new">'{0}' cannot be applied manually.</target>
+        <target state="translated">Atrybutu „{0}” nie można zastosować ręcznie.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
@@ -64,12 +64,17 @@
       </trans-unit>
       <trans-unit id="ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime">
         <source>Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</source>
-        <target state="new">Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</target>
+        <target state="translated">Aktualizacja wymaga wygenerowania jawnej implementacji interfejsu, co nie jest obsługiwane przez środowisko uruchomieniowe bez ponownego uruchomienia aplikacji.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidExperimentalDiagID">
         <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
         <target state="translated">Argument diagnosticId atrybutu „Experimental” musi być prawidłowym identyfikatorem</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
+        <source>The target runtime does not support extended layout types.</source>
+        <target state="translated">Docelowe środowisko uruchomieniowe nie obsługuje rozszerzonych typów układu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormatDeterministic">
@@ -84,7 +89,7 @@
       </trans-unit>
       <trans-unit id="ERR_MethodImplAttributeAsyncCannotBeUsed">
         <source>'MethodImplAttribute.Async' cannot be manually applied to methods.</source>
-        <target state="new">'MethodImplAttribute.Async' cannot be manually applied to methods.</target>
+        <target state="translated">Nie można ręcznie zastosować „MethodImplAttribute.Async” do metod.</target>
         <note>'MethodImplAttribute.Async' is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -142,6 +147,11 @@
         <target state="translated">Zdarzenia udostępnionych zmiennych WithEvents nie mogą zostać obsłużone przez metody w innym typie.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StructLayoutAndExtendedLayout">
+        <source>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</source>
+        <target state="translated">Nie można używać jednocześnie atrybutów „StructLayoutAttribute” i „ExtendedLayoutAttribute” w tym samym typie.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SymbolDefinedInAssembly">
         <source>'{0}' is defined in assembly '{1}'.</source>
         <target state="translated">„{0}” jest zdefiniowany w zestawie „{1}”.</target>
@@ -149,7 +159,7 @@
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings_RestartRequired">
         <source>Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</source>
-        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</target>
+        <target state="translated">Całkowita długość ciągów użytkownika używanych przez program przekracza dozwolony limit. Dodanie ciągu lub literału XML wymaga ponownego uruchomienia aplikacji.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeReserved">
@@ -381,7 +391,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="needs-review-translation">                  Opcje kompilatora Visual Basic
+        <target state="translated">                  Opcje kompilatora Visual Basic
 
                                   - PLIK WYJŚCIOWY -
 -out:&lt;file&gt;                       Określa nazwę pliku wyjściowego.
@@ -400,10 +410,10 @@
 
                                   - PLIKI WEJŚCIOWE -
 -addmodule:&lt;file_list&gt;            Metadane odwołania z określonych modułów
--link:&lt;file_list&gt;                 Osadzone metadane z określonego zestawu
-                                  międzyoperacyjności. (skrócona postać: -l)
+-link:&lt;file_list&gt;                 Osadzone metadane z określonego międzyoperacyjnego
+                                  zestawu. (skrócona postać: -l)
 -recurse:&lt;wildcard&gt;               Uwzględnianie wszystkich plików w bieżącym katalogu
-                                  i podkatalogach zgodnie z
+                                  i podkatalogach zgodnie ze
                                   specyfikacjami symboli wieloznacznych.
 -reference:&lt;file_list&gt;            Metadane odwołania z określonego elementu
                                   zestawu. (skrócona postać: -r)
@@ -423,12 +433,12 @@
 -resource:&lt;resinfo&gt;               Dodaje określony plik jako osadzony
                                   zasób zestawu.
                                   resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
-                                  (Krótka postać: -res)
+                                  (krótka postać: -res)
 -win32icon:&lt;file&gt;                 Określa plik ikony Win32 (.ico) dla
                                   domyślnych zasobów Win32.
 -win32manifest:&lt;file&gt;             Podany plik jest osadzony w sekcji
                                   manifestu wyjściowego środowiska PE.
--win32resource:&lt;file&gt;             Określa plik zasobów Win32 (.res)
+-win32resource:&lt;file&gt;             Określa plik zasobów Win32 (.res).
 
                                   - GENEROWANIE KODU -
 -optimize[+|-]                    Włączanie optymalizacji.
@@ -440,8 +450,8 @@
 -debug:embedded                   Emitowanie informacji o debugowaniu międzyplatformowym do
                                   docelowego pliku dll lub exe.
 -deterministic                    Generowanie zestawu deterministycznego
-                                  (w tym identyfikatora GUID i sygnatury czasowa wersji modułu)
--refonly                          Tworzenie zestawu referencyjnego zamiast głównego wyjścia
+                                  (w tym identyfikatora GUID i sygnatury czasowej wersji modułu)
+-refonly                          Tworzenie zestawu referencyjnego zamiast głównego wyniku
 -instrument:TestCoverage          Tworzenie zestawu instrumentowanego do zbierania
                                   informacji o pokryciach
 -sourcelink:&lt;file&gt;                Informacje o linku źródłowym, aby osadzić w pliku PDB.
@@ -467,10 +477,10 @@
                                   warunkowej. symbol_list:name=value,...
                                   (skrócona postać: -d)
 -imports:&lt;import_list&gt;            Deklarowanie globalnych importów dla przestrzeni nazw w
-                                  przywoływanych plików metadanych.
+                                  przywoływanych plikach metadanych.
                                   import_list:namespace,...
 -langversion:?                    Wyświetlanie dozwolonych wartości dla wersji językowej
--langversion:&lt;string&gt;             Określanie wersji języka, na przykład
+-langversion:&lt;string&gt;             Określanie wersji językowej, na przykład
                                   „default” (najnowsza wersja główna) lub
                                   „latest” (najnowsza wersja, w tym wersje pomocnicze),
                                   albo dokładnych wersji, takich jak „14” lub „15.3”
@@ -529,7 +539,7 @@
                                   (plik system.dll i VBC.RSP).
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                                   Określanie mapowania dla wyjścia nazw ścieżek źródłowych przez
-                                  kompilatora.
+                                  kompilator.
 -platform:&lt;string&gt;                Ograniczanie platform, na których można uruchomić ten kod;
                                   musi być x86, x64, Itanium, arm, arm64
                                   AnyCPU32BitPreferred lub anycpu (domyślna).
@@ -538,8 +548,7 @@
 -reportivts[+|-]                  Informacje dotyczące danych wyjściowych o wszystkich plikach IVT przyznanych temu
                                   zestawowi przez wszystkie zależności i adnotowanie błędów
                                   dotyczących dostępności zestawu, z którego one pochodzą.
--sdkpath:&lt;path&gt;                   Lokalizacja katalogu zestawu .NET Framework SDK (mscorlib.dll)
-                                  (mscorlib.dll).
+-sdkpath:&lt;path&gt;             Ścieżka używana do wyszukiwania zestawów biblioteki standardowej.
 -subsystemversion:&lt;version&gt;       Określanie wersji podsystemu wyjściowego środowiska PE.
                                   version:&lt;number&gt;[.&lt;number&gt;]
 -utf8output[+|-]                  Emitowanie danych wyjściowych kompilatora w kodowaniu
@@ -644,12 +653,12 @@
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
         <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="needs-review-translation">Zestaw analizatora „{0}” odwołuje się do wersji „{1}” kompilatora, która jest nowsza niż obecnie uruchomiona wersja „{2}”.</target>
+        <target state="translated">Zestaw analizatora „{0}” nie może być użyty, ponieważ odwołuje się do wersji „{1}” kompilatora, która jest nowsza niż obecnie uruchomiona wersja „{2}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
         <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
-        <target state="needs-review-translation">Zestaw analizatora odwołuje się do nowszej wersji kompilatora niż obecnie uruchomiona wersja.</target>
+        <target state="translated">Nie można użyć zestawu analizatora, ponieważ odwołuje się on do nowszej wersji kompilatora niż ta, która jest aktualnie uruchomiona.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">

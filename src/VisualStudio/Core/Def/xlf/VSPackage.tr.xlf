@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="101">
         <source>.editorconfig Designer</source>
-        <target state="new">.editorconfig Designer</target>
+        <target state="translated">.editorconfig Tasarımcısı</target>
         <note />
       </trans-unit>
     </body>

@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 
             foreach (var capture in flow.Captured)
             {
-                if (capture.Name != null && capture.Locations != null)
+                if (capture is { Name: not null, Locations.IsDefault: false })
                 {
                     foreach (var l in capture.Locations)
                     {

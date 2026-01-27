@@ -3525,5 +3525,515 @@ ref int GetRef() => throw null;";
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "GetRef()").WithArguments("Program.<<Main>$>g__GetRef|0_0()").WithLocation(2, 1)
             );
         }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81784")]
+        [CombinatorialData]
+        public void GotoCase_01(
+            [CombinatorialValues("byte", "sbyte", "short", "ushort", "int", "uint", "long", "ulong", "nint", "nuint")] string type1,
+            [CombinatorialValues("byte", "sbyte", "short", "ushort", "int", "uint", "long", "ulong", "nint", "nuint")] string type2)
+        {
+            if (type1 == type2)
+            {
+                return;
+            }
+
+            var source = $$$"""
+class Program
+{
+    static void Main()
+    {
+        int count = 0;
+
+        switch ((object)({{{type1}}})2)
+        {
+            case ({{{type2}}})2:
+                break;
+            case ({{{type1}}})2:
+                System.Console.Write("Case 2");
+                count++;
+
+                if (count == 3) break;
+                goto case ({{{type1}}})2;
+        }
+    }
+}    
+""";
+
+            CompileAndVerify(source, expectedOutput: "Case 2Case 2Case 2").VerifyDiagnostics();
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Case 2Case 2Case 2" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81784")]
+        public void GotoCase_02()
+        {
+            var source = $$$"""
+class Program
+{
+    static void Main()
+    {
+        int count = 0;
+
+        switch ((object)(System.IntPtr)2)
+        {
+            case (nint)2:
+                break;
+            case (System.IntPtr)2:
+                System.Console.Write("Case 2");
+                count++;
+
+                if (count == 3) break;
+                goto case (System.IntPtr)2;
+        }
+    }
+}    
+""";
+
+            var expected1 = new[] {
+                // (11,18): error CS0150: A constant value is expected
+                //             case (System.IntPtr)2:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(System.IntPtr)2").WithLocation(11, 18),
+                // (16,17): error CS0150: A constant value is expected
+                //                 goto case (System.IntPtr)2;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "goto case (System.IntPtr)2;").WithLocation(16, 17),
+                // (11,13): error CS8070: Control cannot fall out of switch from final case label ('case (System.IntPtr)2:')
+                //             case (System.IntPtr)2:
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case (System.IntPtr)2:").WithArguments("case (System.IntPtr)2:").WithLocation(11, 13)
+            };
+
+            CreateCompilation(source).VerifyDiagnostics(expected1);
+            CreateCompilation(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(expected1);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected1);
+
+            var expected2 = new[] {
+                // (11,13): error CS0152: The switch statement contains multiple cases with the label value '2'
+                //             case (System.IntPtr)2:
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case (System.IntPtr)2:").WithArguments("2").WithLocation(11, 13)
+            };
+            CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(expected2);
+            CreateCompilation(source, targetFramework: TargetFramework.Net100, parseOptions: TestOptions.Regular10).VerifyDiagnostics(expected2);
+            CreateCompilation(source, targetFramework: TargetFramework.Net100, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected2);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81784")]
+        public void GotoCase_03()
+        {
+            var source = $$$"""
+class Program
+{
+    static void Main()
+    {
+        int count = 0;
+
+        switch ((object)(nint)2)
+        {
+            case (System.IntPtr)2:
+                break;
+            case (nint)2:
+                System.Console.Write("Case 2");
+                count++;
+
+                if (count == 3) break;
+                goto case (nint)2;
+        }
+    }
+}    
+""";
+
+            var expected1 = new[] {
+                // (9,18): error CS0150: A constant value is expected
+                //             case (System.IntPtr)2:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(System.IntPtr)2").WithLocation(9, 18)
+            };
+
+            CreateCompilation(source).VerifyDiagnostics(expected1);
+            CreateCompilation(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(expected1);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected1);
+
+            var expected2 = new[] {
+                // (11,13): error CS0152: The switch statement contains multiple cases with the label value '2'
+                //             case (nint)2:
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case (nint)2:").WithArguments("2").WithLocation(11, 13)
+            };
+            CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(expected2);
+            CreateCompilation(source, targetFramework: TargetFramework.Net100, parseOptions: TestOptions.Regular10).VerifyDiagnostics(expected2);
+            CreateCompilation(source, targetFramework: TargetFramework.Net100, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected2);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81784")]
+        public void GotoCase_04()
+        {
+            var source = $$$"""
+class Program
+{
+    static void Main()
+    {
+        int count = 0;
+
+        switch ((object)(System.UIntPtr)2)
+        {
+            case (nuint)2:
+                break;
+            case (System.UIntPtr)2:
+                System.Console.Write("Case 2");
+                count++;
+
+                if (count == 3) break;
+                goto case (System.UIntPtr)2;
+        }
+    }
+}    
+""";
+
+            var expected1 = new[] {
+                // (11,18): error CS0150: A constant value is expected
+                //             case (System.UIntPtr)2:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(System.UIntPtr)2").WithLocation(11, 18),
+                // (16,17): error CS0150: A constant value is expected
+                //                 goto case (System.UIntPtr)2;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "goto case (System.UIntPtr)2;").WithLocation(16, 17),
+                // (11,13): error CS8070: Control cannot fall out of switch from final case label ('case (System.UIntPtr)2:')
+                //             case (System.UIntPtr)2:
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case (System.UIntPtr)2:").WithArguments("case (System.UIntPtr)2:").WithLocation(11, 13)
+            };
+
+            CreateCompilation(source).VerifyDiagnostics(expected1);
+            CreateCompilation(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(expected1);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected1);
+
+            var expected2 = new[] {
+                // (11,13): error CS0152: The switch statement contains multiple cases with the label value '2'
+                //             case (System.UIntPtr)2:
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case (System.UIntPtr)2:").WithArguments("2").WithLocation(11, 13)
+            };
+            CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(expected2);
+            CreateCompilation(source, targetFramework: TargetFramework.Net100, parseOptions: TestOptions.Regular10).VerifyDiagnostics(expected2);
+            CreateCompilation(source, targetFramework: TargetFramework.Net100, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected2);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81784")]
+        public void GotoCase_05()
+        {
+            var source = $$$"""
+class Program
+{
+    static void Main()
+    {
+        int count = 0;
+
+        switch ((object)(nuint)2)
+        {
+            case (System.UIntPtr)2:
+                break;
+            case (nuint)2:
+                System.Console.Write("Case 2");
+                count++;
+
+                if (count == 3) break;
+                goto case (nuint)2;
+        }
+    }
+}    
+""";
+
+            var expected1 = new[] {
+                // (9,18): error CS0150: A constant value is expected
+                //             case (System.UIntPtr)2:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(System.UIntPtr)2").WithLocation(9, 18)
+            };
+
+            CreateCompilation(source).VerifyDiagnostics(expected1);
+            CreateCompilation(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(expected1);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected1);
+
+            var expected2 = new[] {
+                // (11,13): error CS0152: The switch statement contains multiple cases with the label value '2'
+                //             case (nuint)2:
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case (nuint)2:").WithArguments("2").WithLocation(11, 13)
+            };
+            CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(expected2);
+            CreateCompilation(source, targetFramework: TargetFramework.Net100, parseOptions: TestOptions.Regular10).VerifyDiagnostics(expected2);
+            CreateCompilation(source, targetFramework: TargetFramework.Net100, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected2);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81784")]
+        public void GotoCase_06()
+        {
+            var source = $$$"""
+class Program
+{
+    static void Main()
+    {
+        int count = 0;
+
+        switch ((object)(nint)2)
+        {
+            case (int)2:
+                break;
+            case (nint)2:
+                System.Console.Write("Case 2");
+                count++;
+
+                if (count == 3) break;
+                goto case (System.IntPtr)2;
+        }
+    }
+} 
+""";
+
+            var expected1 = new[] {
+                // (16,17): error CS0150: A constant value is expected
+                //                 goto case (System.IntPtr)2;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "goto case (System.IntPtr)2;").WithLocation(16, 17),
+                // (11,13): error CS8070: Control cannot fall out of switch from final case label ('case (nint)2:')
+                //             case (nint)2:
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case (nint)2:").WithArguments("case (nint)2:").WithLocation(11, 13)
+            };
+
+            CreateCompilation(source).VerifyDiagnostics(expected1);
+            CreateCompilation(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(expected1);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected1);
+
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Case 2Case 2Case 2" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, parseOptions: TestOptions.Regular10, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Case 2Case 2Case 2" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, parseOptions: TestOptions.Regular11, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Case 2Case 2Case 2" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81784")]
+        public void GotoCase_07()
+        {
+            var source = $$$"""
+class Program
+{
+    static void Main()
+    {
+        int count = 0;
+
+        switch ((object)(nint)2)
+        {
+            case (int)2:
+                break;
+            case (System.IntPtr)2:
+                System.Console.Write("Case 2");
+                count++;
+
+                if (count == 3) break;
+                goto case (nint)2;
+        }
+    }
+} 
+""";
+
+            var expected1 = new[] {
+                // (11,18): error CS0150: A constant value is expected
+                //             case (System.IntPtr)2:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(System.IntPtr)2").WithLocation(11, 18),
+                // (16,17): error CS0159: No such label 'case 2:' within the scope of the goto statement
+                //                 goto case (nint)2;
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case (nint)2;").WithArguments("case 2:").WithLocation(16, 17),
+                // (11,13): error CS8070: Control cannot fall out of switch from final case label ('case (System.IntPtr)2:')
+                //             case (System.IntPtr)2:
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case (System.IntPtr)2:").WithArguments("case (System.IntPtr)2:").WithLocation(11, 13)
+            };
+
+            CreateCompilation(source).VerifyDiagnostics(expected1);
+            CreateCompilation(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(expected1);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected1);
+
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Case 2Case 2Case 2" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, parseOptions: TestOptions.Regular10, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Case 2Case 2Case 2" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, parseOptions: TestOptions.Regular11, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Case 2Case 2Case 2" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81784")]
+        public void GotoCase_08()
+        {
+            var source = $$$"""
+class Program
+{
+    static void Main()
+    {
+        int count = 0;
+
+        switch ((object)(nint)2)
+        {
+            case (int)2:
+                break;
+            case (System.IntPtr)2:
+                System.Console.Write("Case 2");
+                count++;
+
+                if (count == 3) break;
+                goto case (System.IntPtr)2;
+        }
+    }
+} 
+""";
+
+            var expected1 = new[] {
+                // (11,18): error CS0150: A constant value is expected
+                //             case (System.IntPtr)2:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(System.IntPtr)2").WithLocation(11, 18),
+                // (16,17): error CS0150: A constant value is expected
+                //                 goto case (System.IntPtr)2;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "goto case (System.IntPtr)2;").WithLocation(16, 17),
+                // (11,13): error CS8070: Control cannot fall out of switch from final case label ('case (System.IntPtr)2:')
+                //             case (System.IntPtr)2:
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case (System.IntPtr)2:").WithArguments("case (System.IntPtr)2:").WithLocation(11, 13)
+            };
+
+            CreateCompilation(source).VerifyDiagnostics(expected1);
+            CreateCompilation(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(expected1);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected1);
+
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Case 2Case 2Case 2" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, parseOptions: TestOptions.Regular10, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Case 2Case 2Case 2" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, parseOptions: TestOptions.Regular11, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Case 2Case 2Case 2" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81784")]
+        public void GotoCase_09()
+        {
+            var source = $$$"""
+class Program
+{
+    static void Main()
+    {
+        int count = 0;
+
+        switch ((object)(nuint)2)
+        {
+            case (uint)2:
+                break;
+            case (nuint)2:
+                System.Console.Write("Case 2");
+                count++;
+
+                if (count == 3) break;
+                goto case (System.UIntPtr)2;
+        }
+    }
+} 
+""";
+
+            var expected1 = new[] {
+                // (16,17): error CS0150: A constant value is expected
+                //                 goto case (System.UIntPtr)2;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "goto case (System.UIntPtr)2;").WithLocation(16, 17),
+                // (11,13): error CS8070: Control cannot fall out of switch from final case label ('case (nuint)2:')
+                //             case (nuint)2:
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case (nuint)2:").WithArguments("case (nuint)2:").WithLocation(11, 13)
+            };
+
+            CreateCompilation(source).VerifyDiagnostics(expected1);
+            CreateCompilation(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(expected1);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected1);
+
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Case 2Case 2Case 2" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, parseOptions: TestOptions.Regular10, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Case 2Case 2Case 2" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, parseOptions: TestOptions.Regular11, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Case 2Case 2Case 2" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81784")]
+        public void GotoCase_10()
+        {
+            var source = $$$"""
+class Program
+{
+    static void Main()
+    {
+        int count = 0;
+
+        switch ((object)(nuint)2)
+        {
+            case (uint)2:
+                break;
+            case (System.UIntPtr)2:
+                System.Console.Write("Case 2");
+                count++;
+
+                if (count == 3) break;
+                goto case (nuint)2;
+        }
+    }
+} 
+""";
+
+            var expected1 = new[] {
+                // (11,18): error CS0150: A constant value is expected
+                //             case (System.UIntPtr)2:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(System.UIntPtr)2").WithLocation(11, 18),
+                // (16,17): error CS0159: No such label 'case 2:' within the scope of the goto statement
+                //                 goto case (nuint)2;
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case (nuint)2;").WithArguments("case 2:").WithLocation(16, 17),
+                // (11,13): error CS8070: Control cannot fall out of switch from final case label ('case (System.UIntPtr)2:')
+                //             case (System.UIntPtr)2:
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case (System.UIntPtr)2:").WithArguments("case (System.UIntPtr)2:").WithLocation(11, 13)
+            };
+
+            CreateCompilation(source).VerifyDiagnostics(expected1);
+            CreateCompilation(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(expected1);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected1);
+
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Case 2Case 2Case 2" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, parseOptions: TestOptions.Regular10, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Case 2Case 2Case 2" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, parseOptions: TestOptions.Regular11, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Case 2Case 2Case 2" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81784")]
+        public void GotoCase_11()
+        {
+            var source = $$$"""
+class Program
+{
+    static void Main()
+    {
+        int count = 0;
+
+        switch ((object)(nuint)2)
+        {
+            case (uint)2:
+                break;
+            case (System.UIntPtr)2:
+                System.Console.Write("Case 2");
+                count++;
+
+                if (count == 3) break;
+                goto case (System.UIntPtr)2;
+        }
+    }
+} 
+""";
+
+            var expected1 = new[] {
+                // (11,18): error CS0150: A constant value is expected
+                //             case (System.UIntPtr)2:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(System.UIntPtr)2").WithLocation(11, 18),
+                // (16,17): error CS0150: A constant value is expected
+                //                 goto case (System.UIntPtr)2;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "goto case (System.UIntPtr)2;").WithLocation(16, 17),
+                // (11,13): error CS8070: Control cannot fall out of switch from final case label ('case (System.UIntPtr)2:')
+                //             case (System.UIntPtr)2:
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case (System.UIntPtr)2:").WithArguments("case (System.UIntPtr)2:").WithLocation(11, 13)
+            };
+
+            CreateCompilation(source).VerifyDiagnostics(expected1);
+            CreateCompilation(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(expected1);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected1);
+
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Case 2Case 2Case 2" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, parseOptions: TestOptions.Regular10, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Case 2Case 2Case 2" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, parseOptions: TestOptions.Regular11, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Case 2Case 2Case 2" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
     }
 }

@@ -122,7 +122,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="SymbolSearch\Windows\**\*.cs" Condition="'$(DotNetBuildSourceOnly)' == 'true'" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\PEWriter\CompilationOptionNames.cs" Link="PdbSourceDocument\CompilationOptionNames.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\Text\TextUtilities.cs" Link="Shared\Utilities\TextUtilities.cs" />
   </ItemGroup>
   <ItemGroup>

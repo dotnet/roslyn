@@ -73,6 +73,9 @@
   <ItemGroup>
     <!-- Include MIBC data if available.  This is produced by a separate profiling pipeline for the C# extension, and injected in official builds -->
     <PublishReadyToRunPgoFiles Condition="'$(VSCodeOptimizationDataRoot)'!=''" Include="$(VSCodeOptimizationDataRoot)\*.mibc" />
+
+    <!-- Workaround https://github.com/dotnet/dotnet/issues/3995 -->
+    <PublishReadyToRunExclude Include="Microsoft.VisualStudio.TestPlatform.Common.dll" />
   </ItemGroup>
 
   <Target Name="SetCrossgen2ExtraArgs" BeforeTargets="ResolveReadyToRunCompilers" Condition="'$(PublishReadyToRun)' == 'true'">
@@ -103,7 +106,10 @@
   </Target>
 
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Workspaces\MSBuild\Core\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
+    <!-- An extern alias is necessary to prevent ambiguity between shared projects linked to both Workspace and BuildHost -->
+    <ProjectReference Include="..\..\Workspaces\MSBuild\Core\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" Aliases="MSBuildWorkspaces" />
+    <ProjectReference Include="..\..\Workspaces\MSBuild\Contracts\Microsoft.CodeAnalysis.Workspaces.MSBuild.Contracts.csproj" Aliases="MSBuildWorkspacesContracts" />
+
     <ProjectReference Include="..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
     <ProjectReference Include="..\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
 
