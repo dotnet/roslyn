@@ -661,10 +661,11 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                 // completely remove the ResourceManager class if the disk space saving optimization to strip resources
                 // (/DisableExceptionMessages) is turned on in the compiler.
                 string result;
+                string resourceManagerArguments;
                 switch (language)
                 {
                     case Lang.CSharp:
-                        var resourceManagerArguments = ResourceInformation.ResourceName == ResourceInformation.ResourceClassName
+                        resourceManagerArguments = ResourceInformation.ResourceName == ResourceInformation.ResourceClassName
                             ? $"typeof({className})"
                             : $"\"{ResourceInformation.ResourceName}\", typeof({className}).Assembly";
                         result = $$"""
@@ -692,7 +693,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                         break;
 
                     case Lang.VisualBasic:
-                        var resourceManagerArguments = ResourceInformation.ResourceName == ResourceInformation.ResourceClassName
+                        resourceManagerArguments = ResourceInformation.ResourceName == ResourceInformation.ResourceClassName
                             ? $"GetType({className})"
                             : $"\"{ResourceInformation.ResourceName}\", GetType({className}).Assembly";
                         result = $"""
