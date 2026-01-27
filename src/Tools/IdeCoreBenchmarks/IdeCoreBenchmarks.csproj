@@ -9,6 +9,7 @@
     <IsShipping>false</IsShipping>
     <LangVersion>11</LangVersion>
     <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
+    <NoWarn>$(NoWarn);NETSDK1206</NoWarn>
     <!-- This project is not a test project in context of how this repo views test projects.
          Marking it as such will change TFMs, bring in additional targets, and generally fail to build.
          However, it is a 'test' type project and depends on other test utility projects that may be built in
