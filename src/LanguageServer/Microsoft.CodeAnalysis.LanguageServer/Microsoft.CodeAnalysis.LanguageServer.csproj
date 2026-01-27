@@ -10,13 +10,13 @@
     <!-- .NET Tool configuration -->
     <IsPackable>true</IsPackable>
     <PackAsTool>true</PackAsTool>
-    <ToolCommandName>Microsoft.CodeAnalysis.LanguageServer</ToolCommandName>
+    <PackageId>roslyn-ls</PackageId>
+    <ToolCommandName>roslyn-ls</ToolCommandName>
 
     <!--
-      NU5100: Since this is a .NET tool, we don't care if the folder structure doesn't match what nuget expects for a library.
       NETSDK1206: Until we move to a newer release of the SQLitePCLRaw packages (2.1.6+) that removes the libs for alpine RIDs, we have to ignore the SDK warning about distribution specific RIDs.
     -->
-    <NoWarn>$(NoWarn);NU5100;NETSDK1206</NoWarn>
+    <NoWarn>$(NoWarn);NETSDK1206</NoWarn>
 
     <!-- Publishing settings -->
     <SelfContained>false</SelfContained>
@@ -137,5 +137,34 @@
 
   <Target Name="PublishRoslynVersion" AfterTargets="Publish">
     <Copy SourceFiles="@(RoslynVersionFile)" DestinationFolder="$(PublishDir)" />
+  </Target>
+
+  <!--
+    Verify that the SymbolPublishingExclusionsFile.txt contains the required entries for the native SQLite library.
+    These don't have symbols we need to publish and they cause symbol check to fail.
+  -->
+  <Target Name="ValidateSymbolPublishingExclusions"
+          BeforeTargets="Build">
+    <PropertyGroup>
+      <_SymbolExclusionsFile>$(RepoRoot)eng\SymbolPublishingExclusionsFile.txt</_SymbolExclusionsFile>
+      <_ExpectedArm64Entry>tools/$(TargetFramework)/linux-musl-arm64/libe_sqlite3.so</_ExpectedArm64Entry>
+      <_ExpectedX64Entry>tools/$(TargetFramework)/linux-musl-x64/libe_sqlite3.so</_ExpectedX64Entry>
+    </PropertyGroup>
+
+    <ReadLinesFromFile File="$(_SymbolExclusionsFile)">
+      <Output TaskParameter="Lines" ItemName="_SymbolExclusionLines" />
+    </ReadLinesFromFile>
+
+    <PropertyGroup>
+      <_ExclusionFileContent>@(_SymbolExclusionLines)</_ExclusionFileContent>
+      <_HasArm64Entry>$(_ExclusionFileContent.Contains('$(_ExpectedArm64Entry)'))</_HasArm64Entry>
+      <_HasX64Entry>$(_ExclusionFileContent.Contains('$(_ExpectedX64Entry)'))</_HasX64Entry>
+    </PropertyGroup>
+
+    <Error Condition="!$(_HasArm64Entry)"
+           Text="SymbolPublishingExclusionsFile.txt is missing required entry: $(_ExpectedArm64Entry). Please add this entry to $(_SymbolExclusionsFile) to exclude the native SQLite library from symbol publishing." />
+
+    <Error Condition="!$(_HasX64Entry)"
+           Text="SymbolPublishingExclusionsFile.txt is missing required entry: $(_ExpectedX64Entry). Please add this entry to $(_SymbolExclusionsFile) to exclude the native SQLite library from symbol publishing." />
   </Target>
 </Project>
