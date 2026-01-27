@@ -57,10 +57,13 @@ static class S2
                 "void S1.E(object x, object y)",
                 "void S2.E<T, U>(T t, U u)");
 
-            for (int i = 0; i < sourceMethods.Count; i++)
-            {
-                CheckMethods(sourceMethods[i], retargetingMethods[i]);
-            }
+            var s1SourceMethod = sourceMethods.Single(m => m.ContainingType.Name == "S1");
+            var s1RetargetingMethod = retargetingMethods.Single(m => m.ContainingType.Name == "S1");
+            CheckMethods(s1SourceMethod, s1RetargetingMethod);
+
+            var s2SourceMethod = sourceMethods.Single(m => m.ContainingType.Name == "S2");
+            var s2RetargetingMethod = retargetingMethods.Single(m => m.ContainingType.Name == "S2");
+            CheckMethods(s2SourceMethod, s2RetargetingMethod);
 
             sourceMethods = new ArrayBuilder<Symbol>();
             sourceNamespace.GetAllExtensionMembers(sourceMethods, name: "E", alternativeName: null, arity: 2, LookupOptions.Default, fieldsBeingBound: null);
@@ -89,7 +92,7 @@ static class S2
         {
             var source =
 @"interface I
-{
+classicExtensionUseSiteInfo{
     object this[string x, object y] { get; set; }
 }
 struct S
