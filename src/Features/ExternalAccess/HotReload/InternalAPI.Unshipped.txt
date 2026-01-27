@@ -62,7 +62,7 @@ static Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.GetT
 static Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.WithProjectInfo(Microsoft.CodeAnalysis.Solution! solution, Microsoft.CodeAnalysis.ProjectInfo! info) -> Microsoft.CodeAnalysis.Solution!
 static Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal.ContractConversions.Convert(this Microsoft.CodeAnalysis.MSBuild.DocumentFileInfo! info) -> Microsoft.CodeAnalysis.MSBuild.DocumentFileInfo!
 static Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal.ContractConversions.Convert(this Microsoft.CodeAnalysis.MSBuild.FileGlobs! globs) -> Microsoft.CodeAnalysis.MSBuild.FileGlobs!
-static Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal.ContractConversions.Convert(this Microsoft.CodeAnalysis.MSBuild.MetadataReferenceItem! reference) -> Microsoft.CodeAnalysis.MSBuild.MetadataReferenceItem!
-static Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal.ContractConversions.Convert(this Microsoft.CodeAnalysis.MSBuild.PackageReference! reference) -> Microsoft.CodeAnalysis.MSBuild.PackageReference!
+static Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal.ContractConversions.Convert(this Microsoft.CodeAnalysis.MSBuild.MetadataReferenceItem reference) -> Microsoft.CodeAnalysis.MSBuild.MetadataReferenceItem
+static Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal.ContractConversions.Convert(this Microsoft.CodeAnalysis.MSBuild.PackageReferenceItem! reference) -> Microsoft.CodeAnalysis.MSBuild.PackageReferenceItem!
 static Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal.ContractConversions.Convert(this Microsoft.CodeAnalysis.MSBuild.ProjectFileInfo! info) -> Microsoft.CodeAnalysis.MSBuild.ProjectFileInfo!
 static Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal.ContractConversions.Convert(this Microsoft.CodeAnalysis.MSBuild.ProjectFileReference! reference) -> Microsoft.CodeAnalysis.MSBuild.ProjectFileReference!
