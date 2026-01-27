@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MethodSymbol overridden = m.OverriddenMethod;
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 if ((object)overridden == null ||
-                    (accessingTypeOpt is { } && !AccessCheck.IsSymbolAccessible(overridden, accessingTypeOpt, ref discardedUseSiteInfo)) ||
+                    (accessingTypeOpt is { } && !AccessCheck.IsSymbolAccessible(overridden, accessingTypeOpt, ref discardedUseSiteInfo, skipContainingTypeCheck: true)) ||
                     (requireSameReturnType && !this.ReturnType.Equals(overridden.ReturnType, TypeCompareKind.AllIgnoreOptions)))
                 {
                     break;

@@ -38,10 +38,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol symbol,
             NamedTypeSymbol within,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
-            TypeSymbol throughTypeOpt = null)
+            TypeSymbol throughTypeOpt = null,
+            bool skipContainingTypeCheck = false)
         {
             bool failedThroughTypeCheck;
-            return IsSymbolAccessibleCore(symbol, within, throughTypeOpt, out failedThroughTypeCheck, within.DeclaringCompilation, ref useSiteInfo);
+            return IsSymbolAccessibleCore(symbol, within, throughTypeOpt, out failedThroughTypeCheck, within.DeclaringCompilation, ref useSiteInfo, basesBeingResolved: null, skipContainingTypeCheck);
         }
 
         /// <summary>
@@ -55,9 +56,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol throughTypeOpt,
             out bool failedThroughTypeCheck,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
-            ConsList<TypeSymbol> basesBeingResolved = null)
+            ConsList<TypeSymbol> basesBeingResolved = null,
+            bool skipContainingTypeCheck = false)
         {
-            return IsSymbolAccessibleCore(symbol, within, throughTypeOpt, out failedThroughTypeCheck, within.DeclaringCompilation, ref useSiteInfo, basesBeingResolved);
+            return IsSymbolAccessibleCore(symbol, within, throughTypeOpt, out failedThroughTypeCheck, within.DeclaringCompilation, ref useSiteInfo, basesBeingResolved, skipContainingTypeCheck);
         }
 
         /// <summary>
@@ -137,7 +139,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool failedThroughTypeCheck,
             CSharpCompilation compilation,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
-            ConsList<TypeSymbol> basesBeingResolved = null)
+            ConsList<TypeSymbol> basesBeingResolved = null,
+            bool skipContainingTypeCheck = false)
         {
             Debug.Assert((object)symbol != null);
             Debug.Assert((object)within != null);
@@ -209,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         throughTypeOpt = null;
                     }
 
-                    return IsMemberAccessible(symbol.ContainingType, symbol.DeclaredAccessibility, within, throughTypeOpt, out failedThroughTypeCheck, compilation, ref useSiteInfo);
+                    return IsMemberAccessible(symbol.ContainingType, symbol.DeclaredAccessibility, within, throughTypeOpt, out failedThroughTypeCheck, compilation, ref useSiteInfo, basesBeingResolved, skipContainingTypeCheck);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
@@ -302,7 +305,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool failedThroughTypeCheck,
             CSharpCompilation compilation,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
-            ConsList<TypeSymbol> basesBeingResolved = null)
+            ConsList<TypeSymbol> basesBeingResolved = null,
+            bool skipContainingTypeCheck = false)
         {
             Debug.Assert(within is NamedTypeSymbol || within is AssemblySymbol);
             Debug.Assert((object)containingType != null);
@@ -316,7 +320,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // A nested symbol is only accessible to us if its container is accessible as well.
-            if (!IsNamedTypeAccessible(containingType, within, ref useSiteInfo, basesBeingResolved))
+            // Skip this check when checking overridden members, as the containing type could have
+            // type arguments from unrelated assemblies.
+            if (!skipContainingTypeCheck && !IsNamedTypeAccessible(containingType, within, ref useSiteInfo, basesBeingResolved))
             {
                 return false;
             }
@@ -336,7 +342,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out failedThroughTypeCheck,
                 compilation,
                 ref useSiteInfo,
-                basesBeingResolved);
+                basesBeingResolved,
+                skipContainingTypeCheck);
         }
 
         private static bool IsNonPublicMemberAccessible(
@@ -347,7 +354,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool failedThroughTypeCheck,
             CSharpCompilation compilation,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
-            ConsList<TypeSymbol> basesBeingResolved = null)
+            ConsList<TypeSymbol> basesBeingResolved = null,
+            bool skipContainingTypeCheck = false)
         {
             failedThroughTypeCheck = false;
 

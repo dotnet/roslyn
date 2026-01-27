@@ -3096,5 +3096,50 @@ public class Test1
                     m.GlobalNamespace.GetMember("Test1.<P1>k__BackingField").GetAttributes().Select(a => a.ToString()));
             }
         }
+
+        [Fact]
+        public void PropertyIsReadOnly_WithTypeArgumentFromUnrelatedAssembly()
+        {
+            // This test verifies that checking PropertySymbol.IsReadOnly doesn't trigger
+            // an assertion when the containing type has type arguments from unrelated assemblies.
+            // Based on issue #81937 pattern where overridden members cause accessibility checks
+            // on type arguments that may be from unrelated assemblies.
+            string source1 = """
+                public class C0<T>
+                {
+                    public virtual int P { get; set; }
+                }
+
+                public class C1<T> : C0<T>
+                {
+                    public override int P { get; set; }
+                }
+                """;
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics();
+
+            string source2 = """
+                internal class C2 { }
+
+                internal class C3 : C1<C2>
+                {
+                    public override int P { get; set; }
+                }
+                """;
+
+            var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()]);
+            comp2.VerifyDiagnostics();
+
+            // Get the property symbol and check IsReadOnly
+            var c3 = comp2.GlobalNamespace.GetTypeMember("C3");
+            var property = c3.GetMember<PropertySymbol>("P");
+
+            // This should not throw an assertion
+            var isReadOnly = property.IsReadOnly;
+            Assert.False(isReadOnly);
+
+            var isWriteOnly = property.IsWriteOnly;
+            Assert.False(isWriteOnly);
+        }
     }
 }
