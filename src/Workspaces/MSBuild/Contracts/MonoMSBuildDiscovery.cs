@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
@@ -19,6 +18,9 @@ internal static class MonoMSBuildDiscovery
     private static string? s_monoLibDirPath;
     private static string? s_monoMSBuildDirectory;
     private static string? s_monoVersionString;
+
+    private static void RequireUnix()
+        => Contract.ThrowIfTrue(Path.DirectorySeparatorChar == '\\');
 
     private static IEnumerable<string> GetSearchPaths()
     {
@@ -53,10 +55,7 @@ internal static class MonoMSBuildDiscovery
     /// </summary>
     private static string? RealPath(string path)
     {
-        if (PlatformInformation.IsWindows)
-        {
-            throw new PlatformNotSupportedException($"{nameof(RealPath)} can only be called on Unix.");
-        }
+        RequireUnix();
 
         var ptr = Unix_realpath(path, IntPtr.Zero);
         var result = Marshal.PtrToStringAnsi(ptr); // uses UTF8 on Unix
@@ -70,7 +69,7 @@ internal static class MonoMSBuildDiscovery
     /// </summary>
     private static string? GetMonoRuntimeExecutablePath()
     {
-        Contract.ThrowIfTrue(PlatformInformation.IsWindows);
+        RequireUnix();
 
         if (s_monoRuntimeExecutablePath == null)
         {
@@ -94,7 +93,7 @@ internal static class MonoMSBuildDiscovery
     /// </summary>
     private static string? GetMonoLibDirPath()
     {
-        Contract.ThrowIfTrue(PlatformInformation.IsWindows);
+        RequireUnix();
 
         const string DefaultMonoLibPath = "/usr/lib/mono";
         if (Directory.Exists(DefaultMonoLibPath))
@@ -131,7 +130,7 @@ internal static class MonoMSBuildDiscovery
     /// </summary>
     public static string? GetMonoMSBuildDirectory()
     {
-        Contract.ThrowIfTrue(PlatformInformation.IsWindows);
+        RequireUnix();
 
         if (s_monoMSBuildDirectory == null)
         {
@@ -164,7 +163,7 @@ internal static class MonoMSBuildDiscovery
 
     public static string? GetMonoMSBuildVersion()
     {
-        Contract.ThrowIfTrue(PlatformInformation.IsWindows);
+        RequireUnix();
 
         if (s_monoVersionString == null)
         {
