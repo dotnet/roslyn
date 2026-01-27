@@ -204,7 +204,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var candidate in extensionCandidates)
             {
-                SingleLookupResult resultOfThisMember = originalBinder.CheckViability(candidate, arity, options, null, diagnose: true, useSiteInfo: ref useSiteInfo);
+                bool isExtensionMethod = candidate is MethodSymbol { IsExtensionMethod: true };
+                ref var useSiteInfoToUse = ref isExtensionMethod ? ref classicExtensionUseSiteInfo : ref useSiteInfo;
+                SingleLookupResult resultOfThisMember = originalBinder.CheckViability(candidate, arity, options, null, diagnose: true, useSiteInfo: ref useSiteInfoToUse);
                 if (resultOfThisMember.Kind == LookupResultKind.Empty)
                 {
                     continue;
