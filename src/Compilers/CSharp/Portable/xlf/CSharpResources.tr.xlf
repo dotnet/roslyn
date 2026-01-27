@@ -512,7 +512,6 @@
         <target state="translated">'{0}, '{1}' arabirim üyesini uygulamıyor. '{2}', '{1}' üyesini uygulayamaz.</target>
         <note />
       </trans-unit>
-<<<<<<< HEAD
       <trans-unit id="ERR_ClosedSealedStatic">
         <source>'{0}': a closed type cannot be sealed or static</source>
         <target state="new">'{0}': a closed type cannot be sealed or static</target>
@@ -523,8 +522,6 @@
         <target state="new">Types and aliases cannot be named 'closed'.</target>
         <note />
       </trans-unit>
-||||||| 67697482eba
-=======
       <trans-unit id="ERR_CollectionArgumentsDynamicBinding">
         <source>'with(...)' element arguments cannot be dynamic</source>
         <target state="new">'with(...)' element arguments cannot be dynamic</target>
@@ -545,7 +542,6 @@
         <target state="new">'with(...)' elements are not supported for type '{0}'</target>
         <note />
       </trans-unit>
->>>>>>> upstream/main
       <trans-unit id="ERR_CollectionBuilderAttributeInvalidMethodName">
         <source>The CollectionBuilderAttribute method name is invalid.</source>
         <target state="translated">CollectionBuilderAttribute yöntemi adı geçersiz.</target>
@@ -2836,20 +2832,16 @@
         <target state="translated">kullanıcı tanımlı işleçler işaretlendi</target>
         <note />
       </trans-unit>
-<<<<<<< HEAD
       <trans-unit id="IDS_FeatureClosedClasses">
         <source>closed classes</source>
         <target state="new">closed classes</target>
         <note />
       </trans-unit>
-||||||| 67697482eba
-=======
       <trans-unit id="IDS_FeatureCollectionExpressionArguments">
         <source>collection expression arguments</source>
         <target state="new">collection expression arguments</target>
         <note />
       </trans-unit>
->>>>>>> upstream/main
       <trans-unit id="IDS_FeatureCollectionExpressions">
         <source>collection expressions</source>
         <target state="translated">koleksiyon ifadeleri</target>
