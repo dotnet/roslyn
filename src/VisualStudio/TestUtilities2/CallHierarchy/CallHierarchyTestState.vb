@@ -194,22 +194,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
             Next
         End Sub
 
-        Friend Sub VerifyResultNameWithGlyph(root As CallHierarchyItem, searchCategory As String, expectedCallers As String(), Optional scope As CallHierarchySearchScope = CallHierarchySearchScope.EntireSolution, Optional documents As IImmutableSet(Of Document) = Nothing)
-            Dim callers = New List(Of String)
-            SearchRoot(root, searchCategory, Sub(c As ICallHierarchyNameItem)
-                                                 callers.Add(ConvertToName(c))
-                                                 Dim glyph = c.DisplayGlyph
-                                                 Assert.NotNull(glyph)
-                                             End Sub,
-                scope,
-                documents)
-
-            Assert.Equal(callers.Count, expectedCallers.Length)
-            For Each expected In expectedCallers
-                Assert.Contains(expected, callers)
-            Next
-        End Sub
-
         Friend Sub VerifyResult(root As CallHierarchyItem, searchCategory As String, expectedCallers As String(), Optional scope As CallHierarchySearchScope = CallHierarchySearchScope.EntireSolution, Optional documents As IImmutableSet(Of Document) = Nothing)
             Dim callers = New List(Of String)
             SearchRoot(root, searchCategory, Sub(c As CallHierarchyItem)
