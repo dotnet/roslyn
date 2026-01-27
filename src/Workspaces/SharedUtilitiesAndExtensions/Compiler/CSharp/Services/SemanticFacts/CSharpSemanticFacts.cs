@@ -70,6 +70,14 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
             if (ancestor is TypeArgumentListSyntax)
                 return null;
 
+            // If we're inside the return type of a conversion operator (`Repro1` in `operator Repro1(C _)`),
+            // we want to get the type symbol, not the conversion operator.
+            if (ancestor is ConversionOperatorDeclarationSyntax conversionOperator &&
+                conversionOperator.Type.Span.Contains(token.Span))
+            {
+                return null;
+            }
+
             var symbol = semanticModel.GetDeclaredSymbol(ancestor, cancellationToken);
             if (symbol != null)
             {
