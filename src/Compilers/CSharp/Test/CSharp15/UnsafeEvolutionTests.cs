@@ -33,10 +33,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CSharpParseOptions? parseOptions = null,
         CSharpCompilationOptions? optionsDll = null,
         TargetFramework targetFramework = TargetFramework.Standard,
-        DiagnosticDescription[]? expectedDiagnosticsWhenReferencingLegacyLib = null)
+        DiagnosticDescription[]? expectedDiagnosticsWhenReferencingLegacyLib = null,
+        DiagnosticDescription[]? expectedDiagnosticsForLegacyCaller = null)
     {
         optionsDll ??= TestOptions.UnsafeReleaseDll;
         var optionsExe = optionsDll.WithOutputKind(OutputKind.ConsoleApplication);
+
+        Assert.False(optionsDll.UseUpdatedMemorySafetyRules);
 
         CreateCompilation([lib, caller, .. additionalSources],
             targetFramework: targetFramework,
@@ -64,6 +67,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 .GetReferencedAssemblySymbol(libUpdatedRef);
 
             symbolValidator(libAssemblySymbol.Modules.Single());
+
+            // Updated-rules library referenced by legacy-rules caller.
+            CreateCompilation(caller, [libUpdatedRef],
+                targetFramework: targetFramework,
+                parseOptions: parseOptions,
+                options: optionsExe)
+                .VerifyDiagnostics(expectedDiagnosticsForLegacyCaller ?? []);
         }
 
         var libLegacy = CompileAndVerify([lib, .. additionalSources],
@@ -88,6 +98,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             parseOptions: parseOptions,
             options: optionsExe.WithUpdatedMemorySafetyRules())
             .VerifyEmitDiagnostics(expectedDiagnosticsWhenReferencingLegacyLib ?? []);
+
+        // Legacy-rules library referenced by legacy-rules caller.
+        CreateCompilation(caller, [libLegacy],
+            targetFramework: targetFramework,
+            parseOptions: parseOptions,
+            options: optionsExe)
+            .VerifyEmitDiagnostics(expectedDiagnosticsForLegacyCaller ?? []);
 
         void symbolValidator(ModuleSymbol module)
         {
@@ -2996,6 +3013,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (1,22): error CS9502: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // delegate*<void> p1 = &C.M;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "&C.M").WithArguments("C.M()").WithLocation(1, 22),
+            ],
+            expectedDiagnosticsForLegacyCaller:
+            [
+                // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // delegate*<void> p1 = &C.M;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 1),
             ]);
     }
 
@@ -3072,7 +3095,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "F = 0").WithArguments("A.F(int)").WithLocation(3, 4),
                 .. commonDiagnostics,
             ],
-            expectedDiagnosticsWhenReferencingLegacyLib: commonDiagnostics);
+            expectedDiagnosticsWhenReferencingLegacyLib: commonDiagnostics,
+            expectedDiagnosticsForLegacyCaller: commonDiagnostics);
     }
 
     [Fact]
@@ -3867,6 +3891,21 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (2,17): error CS9502: 'C2.GetPinnableReference()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // fixed (int* p = new C2()) { }
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "new C2()").WithArguments("C2.GetPinnableReference()").WithLocation(2, 17),
+            ],
+            expectedDiagnosticsForLegacyCaller:
+            [
+                // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // fixed (int* p = new C1()) { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "fixed (int* p = new C1()) { }").WithLocation(1, 1),
+                // (1,8): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // fixed (int* p = new C1()) { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(1, 8),
+                // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // fixed (int* p = new C2()) { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "fixed (int* p = new C2()) { }").WithLocation(2, 1),
+                // (2,8): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // fixed (int* p = new C2()) { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 8),
             ]);
     }
 
