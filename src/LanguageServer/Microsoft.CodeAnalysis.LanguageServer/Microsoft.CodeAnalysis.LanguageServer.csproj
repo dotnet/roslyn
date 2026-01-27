@@ -10,8 +10,8 @@
     <!-- .NET Tool configuration -->
     <IsPackable>true</IsPackable>
     <PackAsTool>true</PackAsTool>
-    <PackageId>roslyn-ls</PackageId>
-    <ToolCommandName>roslyn-ls</ToolCommandName>
+    <PackageId>roslyn-language-server</PackageId>
+    <ToolCommandName>roslyn-language-server</ToolCommandName>
 
     <!--
       NETSDK1206: Until we move to a newer release of the SQLitePCLRaw packages (2.1.6+) that removes the libs for alpine RIDs, we have to ignore the SDK warning about distribution specific RIDs.
