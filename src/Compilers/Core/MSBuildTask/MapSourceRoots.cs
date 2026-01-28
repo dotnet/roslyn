@@ -174,14 +174,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 // finally, calculate mapped paths of nested roots:
                 foreach (var root in mappedSourceRoots)
                 {
-                    string nestedRoot = root.GetMetadata(Names.NestedRoot);
+                    string nestedRoot = Utilities.FixFilePath(root.GetMetadata(Names.NestedRoot));
                     if (!string.IsNullOrEmpty(nestedRoot))
                     {
-                        string containingRoot = NormalizePath(root.GetMetadata(Names.ContainingRoot));
+                        string containingRoot = NormalizePath(Utilities.FixFilePath(root.GetMetadata(Names.ContainingRoot)));
 
                         // The value of ContainingRoot metadata is a file path that is compared with ItemSpec values of SourceRoot items.
                         // Since the paths in ItemSpec have backslashes replaced with slashes on non-Windows platforms we need to do the same for ContainingRoot.
-                        if (containingRoot != null && topLevelMappedPaths.TryGetValue(Utilities.FixFilePath(containingRoot), out var mappedTopLevelPath))
+                        if (containingRoot != null && topLevelMappedPaths.TryGetValue(containingRoot, out var mappedTopLevelPath))
                         {
                             // Normalize nested root.
                             if (Utilities.TryCombine(containingRoot, nestedRoot, out var combinedPath))
