@@ -189,7 +189,14 @@ internal static class RenameUtilities
         var symbol = semanticFacts.GetDeclaredSymbol(semanticModel, token, cancellationToken);
         if (symbol != null)
         {
-            return TokenRenameInfo.CreateSingleSymbolTokenInfo(symbol);
+            // For conversion operators, GetDeclaredSymbol returns the conversion operator when the token is in
+            // the return type position. But for rename, we wantto rename the type, not the operator.
+            // So skip the declared symbol and fall through to GetSymbolInfo
+            // to get the type symbol instead.
+            if (symbol is not IMethodSymbol { MethodKind: MethodKind.Conversion })
+            {
+                return TokenRenameInfo.CreateSingleSymbolTokenInfo(symbol);
+            }
         }
 
         var symbolInfo = semanticModel.GetSymbolInfo(token, cancellationToken);
