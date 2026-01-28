@@ -1323,7 +1323,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         /// <returns>
         /// If <paramref name="checksumAlgorithm"/> is <see cref="SourceHashAlgorithm.None"/>, returns this instance without modification.
-        /// Otherwise, returns a SourceText with the same <see cref="ChecksumAlgorithm"/> as <paramref name="checksumAlgorithm"/>, potentially by wrapping this instance.
+        /// Otherwise, returns a <see cref="SourceText"/> with the same <see cref="ChecksumAlgorithm"/> as <paramref name="checksumAlgorithm"/>, potentially by wrapping this instance.
         /// </returns>
         internal SourceText WithChecksumAlgorithmIfAny(SourceHashAlgorithm checksumAlgorithm)
         {
