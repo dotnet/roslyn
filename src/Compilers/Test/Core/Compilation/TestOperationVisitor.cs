@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.FlowAnalysis;
@@ -487,8 +488,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitCollectionExpression(ICollectionExpressionOperation operation)
         {
+#pragma warning disable RSEXPERIMENTAL006 // With Element: https://github.com/dotnet/roslyn/issues/80613
             Assert.Equal(OperationKind.CollectionExpression, operation.Kind);
             AssertEx.Equal([.. operation.ConstructArguments, .. operation.Elements], operation.ChildOperations);
+#pragma warning restore RSEXPERIMENTAL006
         }
 
         public override void VisitSpread(ISpreadOperation operation)
@@ -743,11 +746,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Empty(operation.ChildOperations);
         }
 
+#pragma warning disable RSEXPERIMENTAL006 // With Element: https://github.com/dotnet/roslyn/issues/80613
         public override void VisitCollectionExpressionElementsPlaceholder(ICollectionExpressionElementsPlaceholderOperation operation)
         {
             Assert.Equal(OperationKind.CollectionExpressionElementsPlaceholder, operation.Kind);
             Assert.Empty(operation.ChildOperations);
         }
+#pragma warning restore RSEXPERIMENTAL006
 
         public override void VisitUnaryOperator(IUnaryOperation operation)
         {

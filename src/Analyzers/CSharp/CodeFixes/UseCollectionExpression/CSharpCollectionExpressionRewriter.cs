@@ -210,7 +210,9 @@ internal static class CSharpCollectionExpressionRewriter
         CollectionElementSyntax CreateElement(CollectionMatch<TMatchNode> match)
         {
             if (match.Node is ArgumentListSyntax argumentList)
+#pragma warning disable RSEXPERIMENTAL006 // With Element: https://github.com/dotnet/roslyn/issues/80613
                 return WithElement(argumentList.WithoutTrivia());
+#pragma warning restore RSEXPERIMENTAL006
 
             var expression = (ExpressionSyntax)(object)match.Node;
             return match.UseSpread
@@ -592,7 +594,9 @@ internal static class CSharpCollectionExpressionRewriter
             }
             else if (node is ArgumentListSyntax argumentList)
             {
+#pragma warning disable RSEXPERIMENTAL006 // With Element: https://github.com/dotnet/roslyn/issues/80613
                 yield return WithElement(argumentList.WithoutTrivia());
+#pragma warning restore RSEXPERIMENTAL006
             }
             else
             {

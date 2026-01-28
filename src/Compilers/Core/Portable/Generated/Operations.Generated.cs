@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 // < auto-generated />
 #nullable enable
+#pragma warning disable RSEXPERIMENTAL006 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -3968,6 +3969,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <see cref="ICollectionExpressionElementsPlaceholderOperation" />. The actual elements passed
         /// to the creation method are contained in <see cref="Elements" />.
         /// </remarks>
+        [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/80613")]
         ImmutableArray<IOperation> ConstructArguments { get; }
         /// <summary>
         /// Collection expression elements.
@@ -4028,6 +4030,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.</para>
     /// </remarks>
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/80613")]
     public interface ICollectionExpressionElementsPlaceholderOperation : IOperation
     {
     }
@@ -11620,6 +11623,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual void VisitInlineArrayAccess(IInlineArrayAccessOperation operation) => DefaultVisit(operation);
         public virtual void VisitCollectionExpression(ICollectionExpressionOperation operation) => DefaultVisit(operation);
         public virtual void VisitSpread(ISpreadOperation operation) => DefaultVisit(operation);
+        [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/80613")]
         public virtual void VisitCollectionExpressionElementsPlaceholder(ICollectionExpressionElementsPlaceholderOperation operation) => DefaultVisit(operation);
     }
     public abstract partial class OperationVisitor<TArgument, TResult>
@@ -11760,6 +11764,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual TResult? VisitInlineArrayAccess(IInlineArrayAccessOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitCollectionExpression(ICollectionExpressionOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitSpread(ISpreadOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/80613")]
         public virtual TResult? VisitCollectionExpressionElementsPlaceholder(ICollectionExpressionElementsPlaceholderOperation operation, TArgument argument) => DefaultVisit(operation, argument);
     }
     #endregion

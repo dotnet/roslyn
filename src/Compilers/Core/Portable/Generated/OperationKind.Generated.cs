@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 // < auto-generated />
 #nullable enable
+#pragma warning disable RSEXPERIMENTAL006 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 using System;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 namespace Microsoft.CodeAnalysis
@@ -286,6 +288,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>Indicates an <see cref="ISpreadOperation"/>.</summary>
         Spread = 0x80,
         /// <summary>Indicates an <see cref="ICollectionExpressionElementsPlaceholderOperation"/>.</summary>
+        [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/80613")]
         CollectionExpressionElementsPlaceholder = 0x81,
     }
 }
