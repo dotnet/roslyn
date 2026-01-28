@@ -33,12 +33,6 @@
 "Title"="C#/VB LSP semantic tokens experience"
 "PreviewPaneChannels"="IntPreview,int.main"
 
-[$RootKey$\FeatureFlags\Roslyn\OOPServerGC]
-"Description"="Run C#/VB out-of-process code analysis with ServerGC."
-"Value"=dword:00000000
-"Title"="Run C#/VB code analysis with ServerGC (requires restart)"
-"PreviewPaneChannels"="IntPreview,int.main"
-
 [$RootKey$\FeatureFlags\Roslyn\SemanticSearchEnabled]
 "Description"="Enable C# Semantic Search."
 "Value"=dword:00000000
@@ -81,3 +75,10 @@
 
 [$RootKey$\Editors\{68b46364-d378-42f2-9e72-37d86c5f4468}\LogicalViews]
 "{7651a703-06e5-11d1-8ebd-00a0c90f26ea}"=""
+
+[$RootKey$\Services\{89e9dfce-d0f3-48c4-be76-140d5cce69ef}]
+@="{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
+"Name"="RoslynPackageLoadService"
+"IsAsyncQueryable"=dword:00000001
+"IsCacheable"=dword:00000001
+"IsFreeThreaded"=dword:00000001

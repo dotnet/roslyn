@@ -306,6 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureUserDefinedCompoundAssignmentOperators = MessageBase + 12857,
 
+        IDS_FeatureCollectionExpressionArguments = MessageBase + 12858,
         IDS_FeatureClosedClasses = MessageBase + 12865, // PROTOTYPE(cc): pack
     }
 
@@ -487,6 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PREFER reporting diagnostics in binding when diagnostics do not affect the shape of the syntax tree
 
                 // C# preview features.
+                case MessageID.IDS_FeatureCollectionExpressionArguments:
                 case MessageID.IDS_FeatureClosedClasses: // semantic check
                     return LanguageVersion.Preview;
 

@@ -664,8 +664,8 @@ internal sealed partial class ProjectSystemProject
                 _filePath = filePath;
             }
 
-            public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
-                => Task.FromResult(TextAndVersion.Create(_textContainer.CurrentText, VersionStamp.Create(), _filePath));
+            public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+                => TextAndVersion.Create(_textContainer.CurrentText, VersionStamp.Create(), _filePath);
         }
     }
 }

@@ -45,6 +45,7 @@
     <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow" />
     <PackageReference Include="Xunit.Combinatorial" PrivateAssets="all" />
     <PackageReference Include="Basic.Reference.Assemblies.Net60" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net90" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />

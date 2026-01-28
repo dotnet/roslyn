@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotateInternalApiFilesDescription">
         <source>InternalAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, InternalAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="translated">InternalAPI.txt 文件应具有 "#nullable enable" 以跟踪为 Null 性信息，或者应取消显示此诊断。如果启用了为 Null 性，则 InternalAPI.txt 会记录哪些类型可为 Null (类型上带后缀 "?")而哪些不可为 Null (带后缀 "!")。它还会跟踪所有仍在使用不带此信息的引用类型(行上带前缀 "~007E;")的 API。</target>
+        <target state="translated">InternalAPI.txt 文件应具有 `#nullable enable` 以跟踪为 Null 性信息，或者应取消显示此诊断。如果启用了为 Null 性，则 InternalAPI.txt 会记录哪些类型可为 Null (类型上带后缀 `?`)而哪些不可为 Null (带后缀 `!`)。它还会跟踪所有仍在使用不带此信息的引用类型(行上带前缀 `~`)的 API。</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateInternalApiFilesMessage">
@@ -279,7 +279,7 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotatePublicApiFilesDescription">
         <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="translated">PublicAPI.txt 文件应具有 "#nullable enable" 以跟踪为 Null 性信息，或者应取消显示此诊断。如果启用了为 Null 性，则 PublicAPI.txt 会记录哪些类型可为 Null (类型上带后缀 "?")而哪些不可为 Null (带后缀 "!")。它还会跟踪所有仍在使用不带此信息的引用类型(行上带前缀 "~")的 API。</target>
+        <target state="translated">PublicAPI.txt 文件应具有 `#nullable enable` 以跟踪为 Null 性信息，或者应取消显示此诊断。如果启用了为 Null 性，则 PublicAPI.txt 会记录哪些类型可为 Null (类型上带后缀 `?`)而哪些不可为 Null (带后缀 `!`)。它还会跟踪所有仍在使用不带此信息的引用类型(行上带前缀 `~`)的 API。</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotatePublicApiFilesMessage">

@@ -166,7 +166,7 @@ namespace Analyzer.Utilities
 
             private static bool MightBeFilteringBasedOnTheCaughtException(ICatchClauseOperation operation)
             {
-                return operation.ExceptionDeclarationOrExpression != null && operation.Filter != null;
+                return operation is { ExceptionDeclarationOrExpression: not null, Filter: not null };
             }
         }
     }

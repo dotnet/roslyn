@@ -9669,7 +9669,7 @@ class C : ReadWriteControlDesigner
 
         [Fact]
         [WorkItem(668365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/668365")]
-        public void ObsoleteOverrideChain()
+        public void ObsoleteOverrideChain_01()
         {
             var source = @"
 using System;
@@ -9717,6 +9717,46 @@ public class F : E
                 // (31,26): warning CS0809: Obsolete member 'E.M()' overrides non-obsolete member 'D.M()'
                 //     public override void M() { }
                 Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "M").WithArguments("E.M()", "D.M()"));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81937")]
+        public void ObsoleteOverrideChain_02()
+        {
+            string source1 = @"
+using System;
+
+public class C0<T>
+{
+    public virtual void M(){}
+}
+
+public class C1<T> : C0<T>
+{
+    [Obsolete]
+    public override void M(){}
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            string source2 = @"
+using System;
+
+internal class C2 {}
+
+internal class C3: C1<C2>
+{
+    [Obsolete]
+    public override void M() { }
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()]);
+            comp2.VerifyDiagnostics(
+                // (9,26): warning CS0809: Obsolete member 'C3.M()' overrides non-obsolete member 'C0<C2>.M()'
+                //     public override void M() { }
+                Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "M").WithArguments("C3.M()", "C0<C2>.M()").WithLocation(9, 26)
+                );
         }
 
         [Fact]

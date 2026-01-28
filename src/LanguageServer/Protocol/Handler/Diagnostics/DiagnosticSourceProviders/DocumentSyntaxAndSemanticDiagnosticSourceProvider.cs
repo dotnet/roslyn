@@ -22,9 +22,9 @@ internal abstract class AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvide
 
     public bool IsEnabled(ClientCapabilities clientCapabilities) => true;
 
-    public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
+    public async ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        return new([new DocumentDiagnosticSource(kind, context.GetRequiredDocument())]);
+        return [new DocumentDiagnosticSource(kind, context.GetRequiredDocument())];
     }
 
     [Export(typeof(IDiagnosticSourceProvider)), Shared]

@@ -44,7 +44,7 @@ internal abstract class MultiProjectSafeFixAllProvider : FixAllProvider
 
         return CodeAction.Create(
             fixAllContext.GetDefaultFixAllTitle(),
-            (_, _) => Task.FromResult(updatedSolution),
+            async (_, _) => updatedSolution,
             equivalenceKey: null,
             CodeActionPriority.Default
 #if WORKSPACE

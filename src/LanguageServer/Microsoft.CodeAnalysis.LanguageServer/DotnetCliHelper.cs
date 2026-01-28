@@ -5,7 +5,6 @@
 using System.Composition;
 using System.Diagnostics;
 using System.Text;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;

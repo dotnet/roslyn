@@ -1,4 +1,13 @@
 #nullable enable
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadFileChangeKind
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadFileChangeKind.Add = 1 -> Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadFileChangeKind
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadFileChangeKind.Delete = 2 -> Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadFileChangeKind
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadFileChangeKind.Update = 0 -> Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadFileChangeKind
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadMSBuildWorkspace
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadMSBuildWorkspace.HotReloadMSBuildWorkspace(Microsoft.Extensions.Logging.ILogger! logger, System.Func<string!, (System.Collections.Immutable.ImmutableArray<Microsoft.Build.Execution.ProjectInstance!> instances, Microsoft.Build.Evaluation.Project? project)>! getBuildProjects) -> void
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadMSBuildWorkspace.UpdateFileContentAsync(System.Collections.Generic.IEnumerable<(string! path, Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadFileChangeKind change)>! changedFiles, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.Solution!>
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadMSBuildWorkspace.UpdateProjectConeAsync(string! projectPath, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.Solution!>
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadMSBuildWorkspace.UpdateSolution(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ProjectInfo!> projectInfos) -> Microsoft.CodeAnalysis.Solution!
 Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService
 Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.CapabilitiesChanged() -> void
 Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.CommitUpdate() -> void
@@ -41,6 +50,7 @@ Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Updates.Sta
 Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Updates.TransientDiagnostics.get -> System.Collections.Immutable.ImmutableArray<(Microsoft.CodeAnalysis.ProjectId! project, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!> diagnostics)>
 Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Updates.TransientDiagnostics.init -> void
 Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Updates.Updates() -> void
+Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal.ContractConversions
 readonly Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Update.ILDelta -> System.Collections.Immutable.ImmutableArray<byte>
 readonly Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Update.MetadataDelta -> System.Collections.Immutable.ImmutableArray<byte>
 readonly Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Update.ModuleId -> System.Guid
@@ -50,3 +60,8 @@ readonly Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Up
 readonly Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.Update.UpdatedTypes -> System.Collections.Immutable.ImmutableArray<int>
 static Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.GetTargetFramework(Microsoft.CodeAnalysis.Project! project) -> string?
 static Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api.HotReloadService.WithProjectInfo(Microsoft.CodeAnalysis.Solution! solution, Microsoft.CodeAnalysis.ProjectInfo! info) -> Microsoft.CodeAnalysis.Solution!
+static Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal.ContractConversions.Convert(this Microsoft.CodeAnalysis.MSBuild.DocumentFileInfo! info) -> Microsoft.CodeAnalysis.MSBuild.DocumentFileInfo!
+static Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal.ContractConversions.Convert(this Microsoft.CodeAnalysis.MSBuild.FileGlobs! globs) -> Microsoft.CodeAnalysis.MSBuild.FileGlobs!
+static Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal.ContractConversions.Convert(this Microsoft.CodeAnalysis.MSBuild.PackageReference! reference) -> Microsoft.CodeAnalysis.MSBuild.PackageReference!
+static Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal.ContractConversions.Convert(this Microsoft.CodeAnalysis.MSBuild.ProjectFileInfo! info) -> Microsoft.CodeAnalysis.MSBuild.ProjectFileInfo!
+static Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal.ContractConversions.Convert(this Microsoft.CodeAnalysis.MSBuild.ProjectFileReference! reference) -> Microsoft.CodeAnalysis.MSBuild.ProjectFileReference!

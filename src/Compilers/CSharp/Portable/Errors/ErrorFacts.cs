@@ -2546,6 +2546,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.WRN_RedundantPattern
                 or ErrorCode.HDN_RedundantPatternStackGuard
                 or ErrorCode.ERR_BadVisBaseType
+                or ErrorCode.ERR_CollectionArgumentsMustBeFirst
+                or ErrorCode.ERR_CollectionArgumentsNotSupportedForType
+                or ErrorCode.ERR_CollectionArgumentsDynamicBinding
+                or ErrorCode.ERR_CollectionArgumentsMustBeEmpty
+                or ErrorCode.ERR_CollectionRefLikeElementType
+                or ErrorCode.ERR_BadCollectionArgumentsArgCount
                 or ErrorCode.ERR_AmbigExtension
                 or ErrorCode.ERR_SingleInapplicableBinaryOperator
                 or ErrorCode.ERR_SingleInapplicableUnaryOperator
@@ -2557,6 +2563,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_CompilationUnitUnexpected
                 or ErrorCode.ERR_ScopedAfterInOutRefReadonly
                 or ErrorCode.ERR_InvalidModifierAfterScoped
+                or ErrorCode.ERR_StructLayoutAndExtendedLayout
+                or ErrorCode.ERR_RuntimeDoesNotSupportExtendedLayoutTypes
+                or ErrorCode.ERR_NoAwaitOnAsyncEnumerable
                 or ErrorCode.ERR_ClosedTypeNameDisallowed
                 or ErrorCode.ERR_ClosedSealedStatic
                     => false,
