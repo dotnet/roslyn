@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
-  <Source Uri="https://github.com/dotnet/dotnet" Mapping="roslyn" Sha="5661a2c0a84a3fd32916395b254ce50e5ad7e9fe" BarId="295411" />
+  <Source Uri="https://github.com/dotnet/dotnet" Mapping="roslyn" Sha="181f8798913e9c234e19756db58f38a8cac176ea" BarId="298730" />
   <ProductDependencies>
     <!-- RoslynAnalyzers reference older builds of Roslyn and this is necessary for SourceBuild. -->
     <Dependency Name="Microsoft.CodeAnalysis" Version="5.3.0-2.25625.1">
