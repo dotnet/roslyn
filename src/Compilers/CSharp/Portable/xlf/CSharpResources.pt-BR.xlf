@@ -519,7 +519,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeMethodNotFound">
         <source>Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
-        <target state="translated">Não foi possível encontrar um método '{0}' acessível com a assinatura esperada: um método estático com um único parâmetro do tipo 'ReadOnlySpan&lt;{1}&gt;' e tipo de retorno '{2}'.</target>
+        <target state="new">Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderNoElementType">
@@ -4132,7 +4132,7 @@
 
                        - GERAÇÃO DE CÓDIGO -
 -debug[+|-]                   Emitir informações de depuração
--debug:{full|pdscriptly|portable|embedded}
+-debug:{full|pdbonly|portable|embedded}
                               Especificar o tipo de depuração ("full" é padrão,
                               "portable" é um formato de multiplataforma,
                               "embedded" é um formato de multiplataforma inserido
