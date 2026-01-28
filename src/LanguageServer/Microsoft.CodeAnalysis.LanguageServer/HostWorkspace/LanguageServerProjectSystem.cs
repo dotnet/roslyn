@@ -48,7 +48,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectSystem));
         _hostProjectFactory = workspaceFactory.HostProjectFactory;
         var workspace = workspaceFactory.HostWorkspace;
-        _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(workspace.CurrentSolution.Services, new DiagnosticReporter(workspace));
+        _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(new DiagnosticReporter(workspace));
     }
 
     public async Task OpenSolutionAsync(string solutionFilePath)

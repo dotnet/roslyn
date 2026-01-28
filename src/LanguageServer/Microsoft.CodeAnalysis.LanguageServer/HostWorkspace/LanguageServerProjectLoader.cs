@@ -158,7 +158,12 @@ internal abstract class LanguageServerProjectLoader
 
         // TODO: support configuration switching
 
-        await using var buildHostProcessManager = new BuildHostProcessManager(globalMSBuildProperties: AdditionalProperties, binaryLogPathProvider: _binLogPathProvider, loggerFactory: LoggerFactory);
+        await using var buildHostProcessManager = new BuildHostProcessManager(
+            knownCommandLineParserLanguages: _workspaceFactory.HostWorkspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>(),
+            globalMSBuildProperties: AdditionalProperties,
+            binaryLogPathProvider: _binLogPathProvider,
+            loggerFactory: LoggerFactory);
+
         var toastErrorReporter = new ToastErrorReporter();
 
         try

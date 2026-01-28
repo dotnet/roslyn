@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <CodePage>932</CodePage>
+    <PdbChecksumAlgorithm>sha1</PdbChecksumAlgorithm>
   </PropertyGroup>
 
   <ItemGroup>

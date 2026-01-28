@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.Build.Logging;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.UnitTests.TestFiles;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -131,7 +132,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         File.Delete(projectFilePath);
         var projectDir = Path.GetDirectoryName(projectFilePath);
 
-        await using var buildHostProcessManager = new BuildHostProcessManager(ImmutableDictionary<string, string>.Empty);
+        await using var buildHostProcessManager = new BuildHostProcessManager([LanguageNames.CSharp], ImmutableDictionary<string, string>.Empty);
 
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetCore, CancellationToken.None);
         var projectFile = await buildHost.LoadProjectAsync(projectFilePath, content, LanguageNames.CSharp, CancellationToken.None);
@@ -414,11 +415,10 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         }
     }
 
-    [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
-    [CombinatorialData]
-    public async Task TestOpenSolution_NetCoreMultiTFMWithProjectReferenceToFSharp(bool build)
+    public async Task TestOpenSolution_NetCoreMultiTFMWithProjectReferenceToFSharp()
     {
         CreateFiles(GetNetCoreMultiTFMFiles_ProjectReferenceToFSharp());
 
@@ -426,41 +426,40 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
 
         DotNetRestore("Solution.sln");
 
-        if (build)
-        {
-            DotNetBuild("Solution.sln", configuration: "Debug");
-        }
-
         using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false, skipUnrecognizedProjects: true);
         var solution = await workspace.OpenSolutionAsync(solutionFilePath);
 
         var projects = solution.Projects.ToArray();
 
-        Assert.Equal(2, projects.Length);
+        AssertEx.SequenceEqual(
+            ["fsharplib", "csharplib(netstandard2.0)", "csharplib(netcoreapp2.0)"],
+            projects.Select(p => p.Name));
 
-        foreach (var project in projects)
-        {
-            Assert.StartsWith("csharplib", project.Name);
-            Assert.Empty(project.ProjectReferences);
+        var fsharpLib = projects[0];
+        var csharpLibStd = projects[1];
+        var csharpLibApp = projects[2];
 
-            if (build)
-            {
-                Assert.Empty(project.AllProjectReferences);
-                Assert.Contains(project.MetadataReferences, m => m is PortableExecutableReference pe && pe.FilePath.EndsWith("fsharplib.dll"));
-            }
-            else
-            {
-                Assert.Single(project.AllProjectReferences);
-            }
-        }
+        Assert.Empty(fsharpLib.ProjectReferences);
+        Assert.Empty(fsharpLib.AllProjectReferences);
+        Assert.Contains(fsharpLib.MetadataReferences, r => r is PortableExecutableReference per && Path.GetFileName(per.FilePath) == "FSharp.Core.dll");
+
+        var libraryFs = fsharpLib.Documents.Single(d => Path.GetFileName(d.FilePath) == "Library.fs");
+        var text = await libraryFs.GetTextAsync();
+        Assert.Equal(932, text.Encoding.CodePage);
+        Assert.Equal(SourceHashAlgorithm.Sha1, text.ChecksumAlgorithm);
+        Assert.Equal(SourceHashAlgorithm.Sha1, fsharpLib.State.ChecksumAlgorithm);
+
+        AssertEx.SequenceEqual([fsharpLib.Id], csharpLibStd.ProjectReferences.Select(r => r.ProjectId));
+        AssertEx.SequenceEqual([fsharpLib.Id], csharpLibApp.ProjectReferences.Select(r => r.ProjectId));
+        AssertEx.SequenceEqual([fsharpLib.Id], csharpLibStd.AllProjectReferences.Select(r => r.ProjectId));
+        AssertEx.SequenceEqual([fsharpLib.Id], csharpLibApp.AllProjectReferences.Select(r => r.ProjectId));
     }
 
-    [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/81589")]
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/81589")]
-    [CombinatorialData]
-    public async Task TestOpenSolution_NetCoreMultiTFMWithProjectReferenceToFSharp_MultiTFM(bool build)
+    public async Task TestOpenSolution_NetCoreMultiTFMWithProjectReferenceToFSharp_MultiTFM()
     {
         CreateFiles(GetNetCoreMultiTFMFiles_ProjectReferenceToFSharp());
 
@@ -472,33 +471,35 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
 
         DotNetRestore("Solution.sln");
 
-        if (build)
-        {
-            DotNetBuild("Solution.sln", configuration: "Debug");
-        }
-
         using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false, skipUnrecognizedProjects: true);
         var solution = await workspace.OpenSolutionAsync(solutionFilePath);
-
         var projects = solution.Projects.ToArray();
 
-        Assert.Equal(2, projects.Length);
+        AssertEx.SequenceEqual(
+            ["fsharplib(netstandard2.0)", "fsharplib(netcoreapp2.0)", "csharplib(netstandard2.0)", "csharplib(netcoreapp2.0)"],
+            projects.Select(p => p.Name));
 
-        foreach (var project in projects)
+        var fsharpLibStd = projects[0];
+        var fsharpLibApp = projects[1];
+        var csharpLibStd = projects[2];
+        var csharpLibApp = projects[3];
+
+        foreach (var fsharpProj in new[] { fsharpLibApp, fsharpLibStd })
         {
-            Assert.StartsWith("csharplib", project.Name);
-            Assert.Empty(project.ProjectReferences);
-
-            if (build)
-            {
-                Assert.Empty(project.AllProjectReferences);
-                Assert.Contains(project.MetadataReferences, m => m is PortableExecutableReference pe && pe.FilePath.EndsWith("fsharplib.dll"));
-            }
-            else
-            {
-                Assert.Single(project.AllProjectReferences);
-            }
+            Assert.Empty(fsharpProj.ProjectReferences);
+            Assert.Empty(fsharpProj.AllProjectReferences);
+            Assert.Contains(fsharpProj.MetadataReferences, r => r is PortableExecutableReference per && Path.GetFileName(per.FilePath) == "FSharp.Core.dll");
+            Assert.Contains(fsharpProj.Documents, d => Path.GetFileName(d.FilePath) == "Library.fs");
         }
+
+        foreach (var csharpProj in new[] { csharpLibApp, csharpLibStd })
+        {
+            Assert.Contains(csharpProj.MetadataReferences, r => r is PortableExecutableReference per && Path.GetFileName(per.FilePath) == "FSharp.Core.dll");
+            Assert.Contains(csharpProj.Documents, d => Path.GetFileName(d.FilePath) == "Class1.cs");
+        }
+
+        AssertEx.SequenceEqual([fsharpLibApp.Id], csharpLibApp.ProjectReferences.Select(r => r.ProjectId));
+        AssertEx.SequenceEqual([fsharpLibStd.Id], csharpLibStd.AllProjectReferences.Select(r => r.ProjectId));
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
