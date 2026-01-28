@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
-
 using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 
 #if STATS
@@ -38,8 +37,21 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
     ///     We only consider "normal" nodes to be cacheable. 
     ///     Nodes with diagnostics/annotations/directives/skipped, etc... have more complicated identity 
     ///     and are not likely to be repetitive.
-    ///     
     /// </summary>
+    /// <remarks>
+    /// The use of <see cref="GreenNode.RawKind"/>, <see cref="GreenNode.NodeFlags"/> (and any provided child nodes)
+    /// ensures during lookup that we only return a node that is identical in all relevant aspects to the node that
+    /// we're about to create otherwise.  This is a brittle guarantee.  However, given how locked down green nodes are,
+    /// this seems acceptable for now.  Great care needs to be taken if new properties are added to green nodes that
+    /// would affect their identity.
+    /// <para/>
+    /// Only nodes created through SyntaxFactory methods are cached.  Nodes created directly through their constructors
+    /// are not cached.  This is fairly intuitive as a constructor would not be able to somehow return some other
+    /// instance different than the one being constructed.  A subtle aspect of this though is that this is what ensures
+    /// that nodes with diagnostics or annotations on them are not cached.  These nodes are created starting with
+    /// another node and forking it to add diagnostics/annotations.  This forking always calls through a constructor and
+    /// not a factory method.  And as such, never comes through here.
+    /// </remarks>
     internal class GreenStats
     {
         // TODO: remove when done tweaking this cache.
@@ -114,19 +126,14 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         private const int CacheSize = 1 << CacheSizeBits;
         private const int CacheMask = CacheSize - 1;
 
-        private readonly struct Entry
-        {
-            public readonly int hash;
-            public readonly GreenNode? node;
-
-            internal Entry(int hash, GreenNode node)
-            {
-                this.hash = hash;
-                this.node = node;
-            }
-        }
-
-        private static readonly Entry[] s_cache = new Entry[CacheSize];
+        /// <summary>
+        /// Simply array indexed by the hash of the cached node.  Note that unlike a typical dictionary/hashtable, this
+        /// does not exercise any form of collision resolution.  If two different nodes hash to the same index, the
+        /// latter will overwrite the former.  This is acceptable since this is just an opportunistic cache.  Reads from
+        /// the cache validate that the node they get back is actually the one they were looking for.   See the comments
+        /// in <see cref="TryGetNode(int, GreenNode?, out int)"/> for more details.
+        /// </summary>
+        private static readonly GreenNode[] s_cache = new GreenNode[CacheSize];
 
         internal static void AddNode(GreenNode node, int hash)
         {
@@ -134,16 +141,16 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             {
                 GreenStats.ItemAdded();
 
-                Debug.Assert(node.GetCacheHash() == hash);
+                Debug.Assert(GetCacheHash(node) == hash);
 
                 var idx = hash & CacheMask;
-                s_cache[idx] = new Entry(hash, node);
+                s_cache[idx] = node;
             }
         }
 
         private static bool CanBeCached(GreenNode? child1)
         {
-            return child1 == null || child1.IsCacheable;
+            return child1 == null || IsCacheable(child1);
         }
 
         private static bool CanBeCached(GreenNode? child1, GreenNode? child2)
@@ -163,9 +170,9 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             // TODO: should use slotCount
             if (child == null || child.SlotCount == 0) return true;
 
-            int hash = child.GetCacheHash();
+            int hash = GetCacheHash(child);
             int idx = hash & CacheMask;
-            return s_cache[idx].node == child;
+            return s_cache[idx] == child;
         }
 
         private static bool AllChildrenInCache(GreenNode node)
@@ -194,13 +201,18 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             {
                 GreenStats.ItemCacheable();
 
+                // Determine the hash for the node being created, given its kind, flags, and optional single child. Then
+                // grab out a potential cached node from the cache based on that hash.  Note that this may not actually
+                // be a viable match due to potential hash collisions, where we have 'last one wins' semantics.  So if
+                // we do see a node in the cache, we have to validate that it is actually equivalent to the data
+                // being used to populate the cache entry.  This is what IsCacheEquivalent is for.  It allows us to check
+                // that the node already there has that same kind, flags, and the same child (by reference).
                 int h = hash = GetCacheHash(kind, flags, child1);
-                int idx = h & CacheMask;
-                var e = s_cache[idx];
-                if (e.hash == h && e.node != null && e.node.IsCacheEquivalent(kind, flags, child1))
+                var e = s_cache[h & CacheMask];
+                if (IsCacheEquivalent(e, kind, flags, child1))
                 {
                     GreenStats.CacheHit();
-                    return e.node;
+                    return e;
                 }
             }
             else
@@ -223,12 +235,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 GreenStats.ItemCacheable();
 
                 int h = hash = GetCacheHash(kind, flags, child1, child2);
-                int idx = h & CacheMask;
-                var e = s_cache[idx];
-                if (e.hash == h && e.node != null && e.node.IsCacheEquivalent(kind, flags, child1, child2))
+                var e = s_cache[h & CacheMask];
+                if (IsCacheEquivalent(e, kind, flags, child1, child2))
                 {
                     GreenStats.CacheHit();
-                    return e.node;
+                    return e;
                 }
             }
             else
@@ -251,12 +262,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 GreenStats.ItemCacheable();
 
                 int h = hash = GetCacheHash(kind, flags, child1, child2, child3);
-                int idx = h & CacheMask;
-                var e = s_cache[idx];
-                if (e.hash == h && e.node != null && e.node.IsCacheEquivalent(kind, flags, child1, child2, child3))
+                var e = s_cache[h & CacheMask];
+                if (IsCacheEquivalent(e, kind, flags, child1, child2, child3))
                 {
                     GreenStats.CacheHit();
-                    return e.node;
+                    return e;
                 }
             }
             else
@@ -317,6 +327,77 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
             // ensure nonnegative hash
             return code & Int32.MaxValue;
+        }
+
+        private const int MaxCachedChildNum = 3;
+
+        private static bool IsCacheable(GreenNode node)
+        {
+            return ((node.Flags & GreenNode.NodeFlags.InheritMask) == GreenNode.NodeFlags.IsNotMissing) &&
+                node.SlotCount <= MaxCachedChildNum;
+        }
+
+        /// <summary>
+        /// Internal for testing purposes only.  Do not use outside of this type or tests.
+        /// </summary>
+        internal static int GetCacheHash(GreenNode node)
+        {
+            Debug.Assert(IsCacheable(node));
+
+            int code = (int)(node.Flags) ^ node.RawKind;
+            int cnt = node.SlotCount;
+            for (int i = 0; i < cnt; i++)
+            {
+                var child = node.GetSlot(i);
+                if (child != null)
+                {
+                    code = Hash.Combine(RuntimeHelpers.GetHashCode(child), code);
+                }
+            }
+
+            return code & Int32.MaxValue;
+        }
+
+        private static bool IsCacheEquivalent(GreenNode? parent, int kind, GreenNode.NodeFlags flags, GreenNode? child1)
+        {
+            if (parent is null)
+                return false;
+
+            Debug.Assert(IsCacheable(parent));
+
+            return parent.RawKind == kind &&
+                parent.Flags == flags &&
+                parent.SlotCount == 1 &&
+                parent.GetSlot(0) == child1;
+        }
+
+        private static bool IsCacheEquivalent(GreenNode? parent, int kind, GreenNode.NodeFlags flags, GreenNode? child1, GreenNode? child2)
+        {
+            if (parent is null)
+                return false;
+
+            Debug.Assert(IsCacheable(parent));
+
+            return parent.RawKind == kind &&
+                parent.Flags == flags &&
+                parent.SlotCount == 2 &&
+                parent.GetSlot(0) == child1 &&
+                parent.GetSlot(1) == child2;
+        }
+
+        private static bool IsCacheEquivalent(GreenNode? parent, int kind, GreenNode.NodeFlags flags, GreenNode? child1, GreenNode? child2, GreenNode? child3)
+        {
+            if (parent is null)
+                return false;
+
+            Debug.Assert(IsCacheable(parent));
+
+            return parent.RawKind == kind &&
+                parent.Flags == flags &&
+                parent.SlotCount == 3 &&
+                parent.GetSlot(0) == child1 &&
+                parent.GetSlot(1) == child2 &&
+                parent.GetSlot(2) == child3;
         }
     }
 }
