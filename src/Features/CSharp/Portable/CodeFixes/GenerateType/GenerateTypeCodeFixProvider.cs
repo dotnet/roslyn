@@ -32,20 +32,29 @@ internal sealed class GenerateTypeCodeFixProvider() : AbstractGenerateMemberCode
     private const string CS0308 = nameof(CS0308); // error CS0308: The non-generic type 'A' cannot be used with type arguments
     private const string CS0426 = nameof(CS0426); // error CS0426: The type name 'S' does not exist in the type 'Program'
     private const string CS0616 = nameof(CS0616); // error CS0616: 'x' is not an attribute class
+    private const string CS1574 = nameof(CS1574); // warning CS1574: XML comment has cref attribute that could not be resolved
 
     public override ImmutableArray<string> FixableDiagnosticIds
-        => [CS0103, CS0117, CS0234, CS0246, CS0305, CS0308, CS0426, CS0616, IDEDiagnosticIds.UnboundIdentifierId];
+        => [CS0103, CS0117, CS0234, CS0246, CS0305, CS0308, CS0426, CS0616, CS1574, IDEDiagnosticIds.UnboundIdentifierId];
 
     protected override bool IsCandidate(SyntaxNode node, SyntaxToken token, Diagnostic diagnostic)
         => node switch
         {
             QualifiedNameSyntax or MemberAccessExpressionSyntax => true,
             SimpleNameSyntax simple => !simple.IsParentKind(SyntaxKind.QualifiedName),
+            TypeCrefSyntax or NameMemberCrefSyntax or QualifiedCrefSyntax => true,
             _ => false,
         };
 
     protected override SyntaxNode? GetTargetNode(SyntaxNode node)
-        => ((ExpressionSyntax)node).GetRightmostName();
+        => node switch
+        {
+            TypeCrefSyntax typeCref => typeCref.Type,
+            NameMemberCrefSyntax nameMemberCref => nameMemberCref.Name,
+            QualifiedCrefSyntax qualifiedCref => qualifiedCref.Container,
+            ExpressionSyntax expression => expression.GetRightmostName(),
+            _ => null,
+        };
 
     protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
         Document document, SyntaxNode node, CancellationToken cancellationToken)

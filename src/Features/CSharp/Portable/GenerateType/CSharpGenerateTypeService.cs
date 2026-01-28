@@ -170,6 +170,14 @@ internal sealed class CSharpGenerateTypeService() :
             return false;
         }
 
+        // Allow generate type in cref context (<see cref="C"/>)
+        if (simpleName.GetAncestor<CrefSyntax>() != null)
+        {
+            generateTypeServiceStateOptions.NameOrMemberAccessExpression = simpleName;
+            generateTypeServiceStateOptions.IsInDocCommentContext = true;
+            return true;
+        }
+
         // If we can guarantee it's a type only context, great.  Otherwise, we may not want to
         // provide this here.
         var semanticModel = document.SemanticModel;
