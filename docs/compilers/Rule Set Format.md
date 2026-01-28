@@ -11,18 +11,14 @@ Sample
 The following demonstrates a small but complete example of a .ruleset file.
 
 ``` XML
-<RuleSet Name="Project WizBang Rules"
-         ToolsVersion="12.0">
-  <Include Path="..\OtherRules.ruleset" 
-           Action="Default" />
-  <Rules AnalyzerId="System.Runtime.Analyzers"
-         RuleNamespace="System.Runtime.Analyzers">
+<RuleSet Name="Project WizBang Rules" ToolsVersion="12.0">
+  <Include Path="..\OtherRules.ruleset" Action="Default" />
+  <Rules AnalyzerId="System.Runtime.Analyzers" RuleNamespace="System.Runtime.Analyzers">
     <Rule Id="CA1027" Action="Warning" />
     <Rule Id="CA1309" Action="Error" />
     <Rule Id="CA2217" Action="Warning" />
   </Rules>
-  <Rules AnalyzerId="System.Runtime.InteropServices.Analyzers"
-         RuleNamespace="System.Runtime.InteropService.Analyzers">
+  <Rules AnalyzerId="System.Runtime.InteropServices.Analyzers" RuleNamespace="System.Runtime.InteropService.Analyzers">
     <Rule Id="CA1401" Action="None" />
     <Rule Id="CA2101" Action="Error" />
   </Rules>
@@ -84,12 +80,12 @@ Parent: `RuleSet`
 Attributes:
 * Path (**required**): An absolute or relative path to another .ruleset file.
 * Action (**required**): Specifies the effective action of the included rules. Must be one of the following values:
- * Default - The rules use the actions specified in the included file.
- * Error - The included rules are treated as though their action values were all "Error".
- * Warning - The included rules are treated as though their actions values were all "Warning".
- * Info - The included rules are treated as though their actions values were all "Info".
- * Hidden - The included rules are treated as though their actions values were all "Hidden".
- * None - The included rules are treated as though their actions values were all "None".
+    * Default - The rules use the actions specified in the included file.
+    * Error - The included rules are treated as though their action values were all "Error".
+    * Warning - The included rules are treated as though their actions values were all "Warning".
+    * Info - The included rules are treated as though their actions values were all "Info".
+    * Hidden - The included rules are treated as though their actions values were all "Hidden".
+    * None - The included rules are treated as though their actions values were all "None".
 
 Children: None.
 
@@ -116,11 +112,11 @@ Parent: `Rules`
 Attributes:
 * Id (**required**): The ID of the diagnostic rule.
 * Action (**required**): One of the following values:
- * Error - Instances of this diagnostic are treated as compiler errors.
- * Warning - Instances of this diagnostic are treated as compiler warnings.
- * Info - Instances of this diagnostic are treated as compiler messages.
- * Hidden - Instances of this diagnostic are hidden from the user.
- * None - Turns off the diagnostic rule.
+    * Error - Instances of this diagnostic are treated as compiler errors.  
+    * Warning - Instances of this diagnostic are treated as compiler warnings.  
+    * Info - Instances of this diagnostic are treated as compiler messages.  
+    * Hidden - Instances of this diagnostic are hidden from the user.  
+    * None - Turns off the diagnostic rule.
 
 Children: None.
 
