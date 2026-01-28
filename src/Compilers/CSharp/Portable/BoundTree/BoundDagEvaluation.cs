@@ -4,6 +4,7 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -79,6 +80,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract BoundDagTemp MakeResultTemp();
         public new BoundDagEvaluation Update(BoundDagTemp input) => UpdateEvaluationImpl(input);
         public abstract BoundDagEvaluation UpdateEvaluationImpl(BoundDagTemp input);
+
+        public virtual OneOrMany<BoundDagTemp> AllOutputs()
+        {
+            return new OneOrMany<BoundDagTemp>(MakeResultTemp());
+        }
 
 #if DEBUG
         private int _id = -1;
@@ -213,6 +219,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return Update(IndexerType, lengthTemp, Index, IndexerAccess, ReceiverPlaceholder, ArgumentPlaceholder, input);
         }
+
+        public override OneOrMany<BoundDagTemp> AllInputs()
+        {
+            return new OneOrMany<BoundDagTemp>([Input, LengthTemp]);
+        }
     }
 
     partial class BoundDagSliceEvaluation
@@ -249,6 +260,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundDagSliceEvaluation Update(BoundDagTemp lengthTemp, BoundDagTemp input)
         {
             return Update(SliceType, lengthTemp, StartIndex, EndIndex, IndexerAccess, ReceiverPlaceholder, ArgumentPlaceholder, input);
+        }
+
+        public override OneOrMany<BoundDagTemp> AllInputs()
+        {
+            return new OneOrMany<BoundDagTemp>([Input, LengthTemp]);
         }
     }
 
@@ -300,6 +316,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         public new BoundDagDeconstructEvaluation Update(BoundDagTemp input)
         {
             return Update(DeconstructMethod, input);
+        }
+
+        public override OneOrMany<BoundDagTemp> AllOutputs()
+        {
+            var builder = MakeOutParameterTemps();
+
+            if (builder is [var one])
+            {
+                builder.Free();
+                return new OneOrMany<BoundDagTemp>(one);
+            }
+
+            return new OneOrMany<BoundDagTemp>(builder.ToImmutableAndFree());
         }
     }
 }

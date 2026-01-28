@@ -1006,7 +1006,172 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new DecisionDag(initialState);
+            return removeUnnecessaryStates(initialState, new DecisionDag(initialState));
+
+            static DecisionDag removeUnnecessaryStates(DagState initialState, DecisionDag result)
+            {
+                // There still might be states with evaluations that produce results that aren't used, or tests
+                // that make no difference (i.e. the outcome is the same whether the result is true or false)
+                // Let's check for these cases and optimize the Dag
+
+                if (result.TryGetTopologicallySortedReachableStates(out ImmutableArray<DagState> states))
+                {
+                    var tempToIndex = PooledDictionary<BoundDagTemp, int>.GetInstance();
+                    int nextTempIndex = 0;
+                    var stateToIndex = PooledDictionary<DagState, int>.GetInstance();
+                    var usedTempsPerState = ArrayBuilder<BitVector>.GetInstance(states.Length, BitVector.Empty);
+                    BitVector unnecessaryStates = BitVector.Empty;
+
+                    bool changedStates = false;
+                    for (int i = states.Length - 1; i >= 0; i--)
+                    {
+                        DagState state = states[i];
+
+                        DagState? trueBranch = state.TrueBranch;
+                        DagState? falseBranch = state.FalseBranch;
+
+                        var usedTemps = BitVector.Empty;
+
+                        if (state.Cases is [{ PatternIsSatisfied: true } stateForCase, ..])
+                        {
+                            Debug.Assert(state.SelectedTest is null);
+                            markTempsUsedInBindings(tempToIndex, ref nextTempIndex, ref usedTemps, stateForCase);
+                        }
+
+                        if (trueBranch != null)
+                        {
+                            usedTemps.UnionWith(usedTempsPerState[stateToIndex[trueBranch]]);
+                        }
+
+                        if (falseBranch != null)
+                        {
+                            usedTemps.UnionWith(usedTempsPerState[stateToIndex[falseBranch]]);
+                        }
+
+                        if (trueBranch != null && unnecessaryStates[stateToIndex[trueBranch]])
+                        {
+                            state.TrueBranch = trueBranch = trueBranch.TrueBranch;
+                            changedStates = true;
+                        }
+
+                        if (falseBranch != null && unnecessaryStates[stateToIndex[falseBranch]])
+                        {
+                            state.FalseBranch = falseBranch = falseBranch.TrueBranch;
+                            changedStates = true;
+                        }
+
+                        if (state.SelectedTest is BoundDagEvaluation eval)
+                        {
+                            Debug.Assert(state.FalseBranch is null);
+                            Debug.Assert(state.TrueBranch is not null);
+
+                            // Cases in the TrueBranch state might drop some of the cases, but maintain the same relative order for remaining cases 
+                            for (int case1 = 0, case2 = 0; case1 < state.Cases.Count; case1++)
+                            {
+                                StateForCase stateForCases = state.Cases[case1];
+
+                                if (case2 < state.TrueBranch.Cases.Count && stateForCases.CaseLabel == state.TrueBranch.Cases[case2].CaseLabel)
+                                {
+                                    // Found matching case
+                                    Debug.Assert(stateForCases.Index == state.TrueBranch.Cases[case2].Index);
+                                    case2++;
+                                }
+                                else
+                                {
+                                    Debug.Assert(case2 >= state.TrueBranch.Cases.Count || stateForCases.Index != state.TrueBranch.Cases[case2].Index);
+
+                                    // This is to handle the situation when RemoveEvaluation drops the case the evaluation came from
+                                    markTempsUsedInBindings(tempToIndex, ref nextTempIndex, ref usedTemps, stateForCases);
+                                }
+                            }
+
+                            if (eval is BoundDagAssignmentEvaluation)
+                            {
+                                // An assignment evaluation is always meaningful
+                                markUsedTemp(tempToIndex, ref nextTempIndex, ref usedTemps, eval.Input);
+                            }
+                            else
+                            {
+                                OneOrMany<BoundDagTemp> outputs = eval.AllOutputs();
+                                bool anyOutputUsed = false;
+
+                                foreach (var temp in outputs)
+                                {
+                                    if (tempToIndex.TryGetValue(temp, out int index) && usedTemps[index])
+                                    {
+                                        anyOutputUsed = true;
+                                        break;
+                                    }
+                                }
+
+                                if (anyOutputUsed)
+                                {
+                                    markAllInputsUsed(tempToIndex, ref nextTempIndex, ref usedTemps, eval);
+                                }
+                                else
+                                {
+                                    // Evaluation is not necessary
+                                    unnecessaryStates[i] = true;
+                                }
+                            }
+                        }
+                        else if (state.SelectedTest is BoundDagTest test)
+                        {
+                            if (trueBranch == falseBranch)
+                            {
+                                // No need to pass through this state and do the test
+                                unnecessaryStates[i] = true;
+                            }
+                            else
+                            {
+                                markAllInputsUsed(tempToIndex, ref nextTempIndex, ref usedTemps, test);
+                            }
+                        }
+
+                        stateToIndex.Add(state, i);
+                        usedTempsPerState[i] = usedTemps;
+                    }
+
+                    stateToIndex.Free();
+                    usedTempsPerState.Free();
+                    tempToIndex.Free();
+
+                    if (changedStates)
+                    {
+                        result = new DecisionDag(initialState);
+                    }
+                }
+
+                return result;
+            }
+
+            static void markTempsUsedInBindings(PooledDictionary<BoundDagTemp, int> tempToIndex, ref int nextTempIndex, ref BitVector usedTemps, StateForCase stateForCase)
+            {
+                foreach (var b in stateForCase.Bindings)
+                {
+                    markUsedTemp(tempToIndex, ref nextTempIndex, ref usedTemps, b.TempContainingValue);
+                }
+            }
+
+            static void markUsedTemp(PooledDictionary<BoundDagTemp, int> tempToIndex, ref int nextTempIndex, ref BitVector usedTemps, BoundDagTemp temp)
+            {
+                int tempIndex = tempToIndex.GetOrAdd(temp, nextTempIndex);
+
+                if (tempIndex == nextTempIndex)
+                {
+                    nextTempIndex++;
+                }
+
+                usedTemps[tempIndex] = true;
+            }
+
+            static void markAllInputsUsed(PooledDictionary<BoundDagTemp, int> tempToIndex, ref int nextTempIndex, ref BitVector usedTemps, BoundDagTest test)
+            {
+                foreach (var temp in test.AllInputs())
+                {
+                    markUsedTemp(tempToIndex, ref nextTempIndex, ref usedTemps, temp);
+                }
+            }
         }
 
         /// <summary>

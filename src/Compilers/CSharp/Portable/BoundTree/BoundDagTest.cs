@@ -4,6 +4,7 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -48,6 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDagTest Update(BoundDagTemp input) => UpdateTestImpl(input);
         public abstract BoundDagTest UpdateTestImpl(BoundDagTemp input);
+
+        public virtual OneOrMany<BoundDagTemp> AllInputs()
+        {
+            return new OneOrMany<BoundDagTemp>(Input);
+        }
 
 #if DEBUG
         internal new string GetDebuggerDisplay()
