@@ -4,7 +4,9 @@
 
 #nullable disable
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -486,6 +488,49 @@ public class Test
   IL_0038:  ret
 }
 ");
+
+            comp = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsCoreClr ? @"FFABFF" : null, targetFramework: TargetFramework.Net100, verify: Verification.Fails);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Test.Main", """
+                {
+                  // Code size       97 (0x61)
+                  .maxstack  2
+                  .locals init (System.Runtime.CompilerServices.InlineArray5<string> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "System.Runtime.CompilerServices.InlineArray5<string>"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray5<string>, string>(ref System.Runtime.CompilerServices.InlineArray5<string>, int)"
+                  IL_0010:  ldsfld     "string Test.S"
+                  IL_0015:  stind.ref
+                  IL_0016:  ldloca.s   V_0
+                  IL_0018:  ldc.i4.1
+                  IL_0019:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray5<string>, string>(ref System.Runtime.CompilerServices.InlineArray5<string>, int)"
+                  IL_001e:  ldsfld     "string Test.S"
+                  IL_0023:  stind.ref
+                  IL_0024:  ldloca.s   V_0
+                  IL_0026:  ldc.i4.2
+                  IL_0027:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray5<string>, string>(ref System.Runtime.CompilerServices.InlineArray5<string>, int)"
+                  IL_002c:  ldstr      "AB"
+                  IL_0031:  stind.ref
+                  IL_0032:  ldloca.s   V_0
+                  IL_0034:  ldc.i4.3
+                  IL_0035:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray5<string>, string>(ref System.Runtime.CompilerServices.InlineArray5<string>, int)"
+                  IL_003a:  ldsfld     "string Test.S"
+                  IL_003f:  stind.ref
+                  IL_0040:  ldloca.s   V_0
+                  IL_0042:  ldc.i4.4
+                  IL_0043:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray5<string>, string>(ref System.Runtime.CompilerServices.InlineArray5<string>, int)"
+                  IL_0048:  ldsfld     "string Test.S"
+                  IL_004d:  stind.ref
+                  IL_004e:  ldloca.s   V_0
+                  IL_0050:  ldc.i4.5
+                  IL_0051:  call       "System.ReadOnlySpan<string> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<System.Runtime.CompilerServices.InlineArray5<string>, string>(in System.Runtime.CompilerServices.InlineArray5<string>, int)"
+                  IL_0056:  call       "string string.Concat(params System.ReadOnlySpan<string>)"
+                  IL_005b:  call       "void System.Console.WriteLine(string)"
+                  IL_0060:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -1749,7 +1794,7 @@ public class Test
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"a1
+            var expectedOutput = @"a1
 2b
 c3
 4d
@@ -1761,7 +1806,8 @@ c10d11
 a14b15a16
 c17d18c19
 2021cdcd
-22c23dcd");
+22c23dcd";
+            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
 
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
@@ -1943,6 +1989,240 @@ c17d18c19
   IL_01dc:  ret
 }
 ");
+
+            comp = CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.Fails, expectedOutput: ExecutionConditionUtil.IsCoreClr ? expectedOutput : null);
+            comp.VerifyIL("Test.Main", """
+                {
+                  // Code size      657 (0x291)
+                  .maxstack  4
+                  .locals init (char V_0, //c
+                                char V_1, //d
+                                System.Runtime.CompilerServices.InlineArray6<string> V_2,
+                                System.Runtime.CompilerServices.InlineArray6<string> V_3,
+                                System.Runtime.CompilerServices.InlineArray6<string> V_4,
+                                char V_5,
+                                char V_6,
+                                bool V_7,
+                                System.IntPtr V_8,
+                                System.UIntPtr V_9,
+                                char V_10,
+                                char V_11,
+                                char V_12,
+                                char V_13,
+                                int V_14)
+                  IL_0000:  ldc.i4.s   99
+                  IL_0002:  stloc.0
+                  IL_0003:  ldc.i4.s   100
+                  IL_0005:  stloc.1
+                  IL_0006:  ldstr      "a1"
+                  IL_000b:  call       "void System.Console.WriteLine(string)"
+                  IL_0010:  ldstr      "2b"
+                  IL_0015:  call       "void System.Console.WriteLine(string)"
+                  IL_001a:  ldloc.0
+                  IL_001b:  stloc.s    V_5
+                  IL_001d:  ldloca.s   V_5
+                  IL_001f:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
+                  IL_0024:  ldstr      "3"
+                  IL_0029:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_002e:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0033:  call       "void System.Console.WriteLine(string)"
+                  IL_0038:  ldstr      "4"
+                  IL_003d:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_0042:  ldloc.1
+                  IL_0043:  stloc.s    V_6
+                  IL_0045:  ldloca.s   V_6
+                  IL_0047:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
+                  IL_004c:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0051:  call       "void System.Console.WriteLine(string)"
+                  IL_0056:  ldc.i4.1
+                  IL_0057:  stloc.s    V_7
+                  IL_0059:  ldloca.s   V_7
+                  IL_005b:  call       "string bool.ToString()"
+                  IL_0060:  ldstr      "5"
+                  IL_0065:  ldloca.s   V_0
+                  IL_0067:  call       "string char.ToString()"
+                  IL_006c:  call       "string string.Concat(string, string, string)"
+                  IL_0071:  call       "void System.Console.WriteLine(string)"
+                  IL_0076:  ldstr      "6"
+                  IL_007b:  ldloca.s   V_1
+                  IL_007d:  call       "string char.ToString()"
+                  IL_0082:  ldc.i4.7
+                  IL_0083:  conv.i
+                  IL_0084:  stloc.s    V_8
+                  IL_0086:  ldloca.s   V_8
+                  IL_0088:  call       "string System.IntPtr.ToString()"
+                  IL_008d:  call       "string string.Concat(string, string, string)"
+                  IL_0092:  call       "void System.Console.WriteLine(string)"
+                  IL_0097:  ldstr      "8"
+                  IL_009c:  ldc.i4.s   9
+                  IL_009e:  conv.i
+                  IL_009f:  stloc.s    V_9
+                  IL_00a1:  ldloca.s   V_9
+                  IL_00a3:  call       "string System.UIntPtr.ToString()"
+                  IL_00a8:  ldc.i4.0
+                  IL_00a9:  stloc.s    V_7
+                  IL_00ab:  ldloca.s   V_7
+                  IL_00ad:  call       "string bool.ToString()"
+                  IL_00b2:  call       "string string.Concat(string, string, string)"
+                  IL_00b7:  call       "void System.Console.WriteLine(string)"
+                  IL_00bc:  ldloc.0
+                  IL_00bd:  stloc.s    V_10
+                  IL_00bf:  ldloca.s   V_10
+                  IL_00c1:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
+                  IL_00c6:  ldstr      "10"
+                  IL_00cb:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_00d0:  ldloc.1
+                  IL_00d1:  stloc.s    V_11
+                  IL_00d3:  ldloca.s   V_11
+                  IL_00d5:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
+                  IL_00da:  ldstr      "11"
+                  IL_00df:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_00e4:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_00e9:  call       "void System.Console.WriteLine(string)"
+                  IL_00ee:  ldstr      "12"
+                  IL_00f3:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_00f8:  ldloc.0
+                  IL_00f9:  stloc.s    V_12
+                  IL_00fb:  ldloca.s   V_12
+                  IL_00fd:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
+                  IL_0102:  ldstr      "13"
+                  IL_0107:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_010c:  ldloc.1
+                  IL_010d:  stloc.s    V_13
+                  IL_010f:  ldloca.s   V_13
+                  IL_0111:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
+                  IL_0116:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_011b:  call       "void System.Console.WriteLine(string)"
+                  IL_0120:  ldstr      "a14b15a16"
+                  IL_0125:  call       "void System.Console.WriteLine(string)"
+                  IL_012a:  ldloca.s   V_2
+                  IL_012c:  initobj    "System.Runtime.CompilerServices.InlineArray6<string>"
+                  IL_0132:  ldloca.s   V_2
+                  IL_0134:  ldc.i4.0
+                  IL_0135:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray6<string>, string>(ref System.Runtime.CompilerServices.InlineArray6<string>, int)"
+                  IL_013a:  ldloca.s   V_0
+                  IL_013c:  call       "string char.ToString()"
+                  IL_0141:  stind.ref
+                  IL_0142:  ldloca.s   V_2
+                  IL_0144:  ldc.i4.1
+                  IL_0145:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray6<string>, string>(ref System.Runtime.CompilerServices.InlineArray6<string>, int)"
+                  IL_014a:  ldstr      "17"
+                  IL_014f:  stind.ref
+                  IL_0150:  ldloca.s   V_2
+                  IL_0152:  ldc.i4.2
+                  IL_0153:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray6<string>, string>(ref System.Runtime.CompilerServices.InlineArray6<string>, int)"
+                  IL_0158:  ldloca.s   V_1
+                  IL_015a:  call       "string char.ToString()"
+                  IL_015f:  stind.ref
+                  IL_0160:  ldloca.s   V_2
+                  IL_0162:  ldc.i4.3
+                  IL_0163:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray6<string>, string>(ref System.Runtime.CompilerServices.InlineArray6<string>, int)"
+                  IL_0168:  ldstr      "18"
+                  IL_016d:  stind.ref
+                  IL_016e:  ldloca.s   V_2
+                  IL_0170:  ldc.i4.4
+                  IL_0171:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray6<string>, string>(ref System.Runtime.CompilerServices.InlineArray6<string>, int)"
+                  IL_0176:  ldloca.s   V_0
+                  IL_0178:  call       "string char.ToString()"
+                  IL_017d:  stind.ref
+                  IL_017e:  ldloca.s   V_2
+                  IL_0180:  ldc.i4.5
+                  IL_0181:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray6<string>, string>(ref System.Runtime.CompilerServices.InlineArray6<string>, int)"
+                  IL_0186:  ldstr      "19"
+                  IL_018b:  stind.ref
+                  IL_018c:  ldloca.s   V_2
+                  IL_018e:  ldc.i4.6
+                  IL_018f:  call       "System.ReadOnlySpan<string> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<System.Runtime.CompilerServices.InlineArray6<string>, string>(in System.Runtime.CompilerServices.InlineArray6<string>, int)"
+                  IL_0194:  call       "string string.Concat(params System.ReadOnlySpan<string>)"
+                  IL_0199:  call       "void System.Console.WriteLine(string)"
+                  IL_019e:  ldloca.s   V_3
+                  IL_01a0:  initobj    "System.Runtime.CompilerServices.InlineArray6<string>"
+                  IL_01a6:  ldloca.s   V_3
+                  IL_01a8:  ldc.i4.0
+                  IL_01a9:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray6<string>, string>(ref System.Runtime.CompilerServices.InlineArray6<string>, int)"
+                  IL_01ae:  ldstr      "20"
+                  IL_01b3:  stind.ref
+                  IL_01b4:  ldloca.s   V_3
+                  IL_01b6:  ldc.i4.1
+                  IL_01b7:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray6<string>, string>(ref System.Runtime.CompilerServices.InlineArray6<string>, int)"
+                  IL_01bc:  ldc.i4.s   21
+                  IL_01be:  stloc.s    V_14
+                  IL_01c0:  ldloca.s   V_14
+                  IL_01c2:  call       "string int.ToString()"
+                  IL_01c7:  stind.ref
+                  IL_01c8:  ldloca.s   V_3
+                  IL_01ca:  ldc.i4.2
+                  IL_01cb:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray6<string>, string>(ref System.Runtime.CompilerServices.InlineArray6<string>, int)"
+                  IL_01d0:  ldloca.s   V_0
+                  IL_01d2:  call       "string char.ToString()"
+                  IL_01d7:  stind.ref
+                  IL_01d8:  ldloca.s   V_3
+                  IL_01da:  ldc.i4.3
+                  IL_01db:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray6<string>, string>(ref System.Runtime.CompilerServices.InlineArray6<string>, int)"
+                  IL_01e0:  ldloca.s   V_1
+                  IL_01e2:  call       "string char.ToString()"
+                  IL_01e7:  stind.ref
+                  IL_01e8:  ldloca.s   V_3
+                  IL_01ea:  ldc.i4.4
+                  IL_01eb:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray6<string>, string>(ref System.Runtime.CompilerServices.InlineArray6<string>, int)"
+                  IL_01f0:  ldloca.s   V_0
+                  IL_01f2:  call       "string char.ToString()"
+                  IL_01f7:  stind.ref
+                  IL_01f8:  ldloca.s   V_3
+                  IL_01fa:  ldc.i4.5
+                  IL_01fb:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray6<string>, string>(ref System.Runtime.CompilerServices.InlineArray6<string>, int)"
+                  IL_0200:  ldloca.s   V_1
+                  IL_0202:  call       "string char.ToString()"
+                  IL_0207:  stind.ref
+                  IL_0208:  ldloca.s   V_3
+                  IL_020a:  ldc.i4.6
+                  IL_020b:  call       "System.ReadOnlySpan<string> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<System.Runtime.CompilerServices.InlineArray6<string>, string>(in System.Runtime.CompilerServices.InlineArray6<string>, int)"
+                  IL_0210:  call       "string string.Concat(params System.ReadOnlySpan<string>)"
+                  IL_0215:  call       "void System.Console.WriteLine(string)"
+                  IL_021a:  ldloca.s   V_4
+                  IL_021c:  initobj    "System.Runtime.CompilerServices.InlineArray6<string>"
+                  IL_0222:  ldloca.s   V_4
+                  IL_0224:  ldc.i4.0
+                  IL_0225:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray6<string>, string>(ref System.Runtime.CompilerServices.InlineArray6<string>, int)"
+                  IL_022a:  ldstr      "22"
+                  IL_022f:  stind.ref
+                  IL_0230:  ldloca.s   V_4
+                  IL_0232:  ldc.i4.1
+                  IL_0233:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray6<string>, string>(ref System.Runtime.CompilerServices.InlineArray6<string>, int)"
+                  IL_0238:  ldloca.s   V_0
+                  IL_023a:  call       "string char.ToString()"
+                  IL_023f:  stind.ref
+                  IL_0240:  ldloca.s   V_4
+                  IL_0242:  ldc.i4.2
+                  IL_0243:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray6<string>, string>(ref System.Runtime.CompilerServices.InlineArray6<string>, int)"
+                  IL_0248:  ldstr      "23"
+                  IL_024d:  stind.ref
+                  IL_024e:  ldloca.s   V_4
+                  IL_0250:  ldc.i4.3
+                  IL_0251:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray6<string>, string>(ref System.Runtime.CompilerServices.InlineArray6<string>, int)"
+                  IL_0256:  ldloca.s   V_1
+                  IL_0258:  call       "string char.ToString()"
+                  IL_025d:  stind.ref
+                  IL_025e:  ldloca.s   V_4
+                  IL_0260:  ldc.i4.4
+                  IL_0261:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray6<string>, string>(ref System.Runtime.CompilerServices.InlineArray6<string>, int)"
+                  IL_0266:  ldloca.s   V_0
+                  IL_0268:  call       "string char.ToString()"
+                  IL_026d:  stind.ref
+                  IL_026e:  ldloca.s   V_4
+                  IL_0270:  ldc.i4.5
+                  IL_0271:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray6<string>, string>(ref System.Runtime.CompilerServices.InlineArray6<string>, int)"
+                  IL_0276:  ldloca.s   V_1
+                  IL_0278:  call       "string char.ToString()"
+                  IL_027d:  stind.ref
+                  IL_027e:  ldloca.s   V_4
+                  IL_0280:  ldc.i4.6
+                  IL_0281:  call       "System.ReadOnlySpan<string> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<System.Runtime.CompilerServices.InlineArray6<string>, string>(in System.Runtime.CompilerServices.InlineArray6<string>, int)"
+                  IL_0286:  call       "string string.Concat(params System.ReadOnlySpan<string>)"
+                  IL_028b:  call       "void System.Console.WriteLine(string)"
+                  IL_0290:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -2033,7 +2313,8 @@ class Test
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "S13O1S24O2");
+            var expectedOutput = "S13O1S24O2";
+            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Print<T1, T2, T3>", @"
 {
@@ -2103,6 +2384,88 @@ class Test
   IL_007f:  call       ""void System.Console.WriteLine(string)""
   IL_0084:  ret
 }");
+
+            comp = CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.Fails, expectedOutput: ExecutionConditionUtil.IsCoreClr ? expectedOutput : null);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Test.Print<T1, T2, T3>", """
+                {
+                  // Code size      179 (0xb3)
+                  .maxstack  3
+                  .locals init (System.Runtime.CompilerServices.InlineArray6<string> V_0,
+                                T2 V_1,
+                                T3 V_2)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "System.Runtime.CompilerServices.InlineArray6<string>"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray6<string>, string>(ref System.Runtime.CompilerServices.InlineArray6<string>, int)"
+                  IL_0010:  ldarg.0
+                  IL_0011:  ldind.ref
+                  IL_0012:  stind.ref
+                  IL_0013:  ldloca.s   V_0
+                  IL_0015:  ldc.i4.1
+                  IL_0016:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray6<string>, string>(ref System.Runtime.CompilerServices.InlineArray6<string>, int)"
+                  IL_001b:  ldarg.1
+                  IL_001c:  call       "string int.ToString()"
+                  IL_0021:  stind.ref
+                  IL_0022:  ldloca.s   V_0
+                  IL_0024:  ldc.i4.2
+                  IL_0025:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray6<string>, string>(ref System.Runtime.CompilerServices.InlineArray6<string>, int)"
+                  IL_002a:  ldarg.2
+                  IL_002b:  ldind.ref
+                  IL_002c:  dup
+                  IL_002d:  brtrue.s   IL_0033
+                  IL_002f:  pop
+                  IL_0030:  ldnull
+                  IL_0031:  br.s       IL_0038
+                  IL_0033:  callvirt   "string object.ToString()"
+                  IL_0038:  stind.ref
+                  IL_0039:  ldloca.s   V_0
+                  IL_003b:  ldc.i4.3
+                  IL_003c:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray6<string>, string>(ref System.Runtime.CompilerServices.InlineArray6<string>, int)"
+                  IL_0041:  ldarg.3
+                  IL_0042:  ldobj      "T1"
+                  IL_0047:  box        "T1"
+                  IL_004c:  dup
+                  IL_004d:  brtrue.s   IL_0053
+                  IL_004f:  pop
+                  IL_0050:  ldnull
+                  IL_0051:  br.s       IL_0058
+                  IL_0053:  callvirt   "string object.ToString()"
+                  IL_0058:  stind.ref
+                  IL_0059:  ldloca.s   V_0
+                  IL_005b:  ldc.i4.4
+                  IL_005c:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray6<string>, string>(ref System.Runtime.CompilerServices.InlineArray6<string>, int)"
+                  IL_0061:  ldarg.s    V_4
+                  IL_0063:  ldobj      "T2"
+                  IL_0068:  stloc.1
+                  IL_0069:  ldloca.s   V_1
+                  IL_006b:  constrained. "T2"
+                  IL_0071:  callvirt   "string object.ToString()"
+                  IL_0076:  stind.ref
+                  IL_0077:  ldloca.s   V_0
+                  IL_0079:  ldc.i4.5
+                  IL_007a:  call       "ref string <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray6<string>, string>(ref System.Runtime.CompilerServices.InlineArray6<string>, int)"
+                  IL_007f:  ldarg.s    V_5
+                  IL_0081:  ldobj      "T3"
+                  IL_0086:  stloc.2
+                  IL_0087:  ldloc.2
+                  IL_0088:  box        "T3"
+                  IL_008d:  brtrue.s   IL_0092
+                  IL_008f:  ldnull
+                  IL_0090:  br.s       IL_009f
+                  IL_0092:  ldloca.s   V_2
+                  IL_0094:  constrained. "T3"
+                  IL_009a:  callvirt   "string object.ToString()"
+                  IL_009f:  stind.ref
+                  IL_00a0:  ldloca.s   V_0
+                  IL_00a2:  ldc.i4.6
+                  IL_00a3:  call       "System.ReadOnlySpan<string> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<System.Runtime.CompilerServices.InlineArray6<string>, string>(in System.Runtime.CompilerServices.InlineArray6<string>, int)"
+                  IL_00a8:  call       "string string.Concat(params System.ReadOnlySpan<string>)"
+                  IL_00ad:  call       "void System.Console.WriteLine(string)"
+                  IL_00b2:  ret
+                }
+                """);
         }
 
         [Fact]
