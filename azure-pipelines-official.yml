@@ -7,6 +7,7 @@ trigger:
     - release/dev16.*-vs-deps
     - release/dev17.*
     - release/dev18.*
+    - release/insiders
     - features/lsp_tools_host
     - features/runtime-async
     exclude:

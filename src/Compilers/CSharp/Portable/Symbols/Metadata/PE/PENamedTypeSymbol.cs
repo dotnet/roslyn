@@ -929,52 +929,72 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return ImmutableArray<CSharpAttributeData>.Empty;
             }
 
-            if (uncommon.lazyCustomAttributes.IsDefault)
+            if (RoslynImmutableInterlocked.VolatileRead(in uncommon.lazyCustomAttributes).IsDefault)
             {
-                ImmutableArray<CSharpAttributeData> loadedCustomAttributes;
-                CustomAttributeHandle requiredHandle;
+                ImmutableArray<CSharpAttributeData> loadedCustomAttributes = loadAndFilterAttributes(out var hasRequiredMembers);
+
+                if (!uncommon.lazyHasRequiredMembers.HasValue())
+                {
+                    uncommon.lazyHasRequiredMembers = hasRequiredMembers.ToThreeState();
+                }
+                Debug.Assert(uncommon.lazyHasRequiredMembers.Value() == hasRequiredMembers);
+
+                ImmutableInterlocked.InterlockedInitialize(ref uncommon.lazyCustomAttributes, loadedCustomAttributes);
+            }
+
+            return uncommon.lazyCustomAttributes;
+
+            ImmutableArray<CSharpAttributeData> loadAndFilterAttributes(out bool hasRequiredMembers)
+            {
+                hasRequiredMembers = false;
 
                 if (IsExtension)
                 {
                     // We do not recognize any attributes on extension blocks
-                    loadedCustomAttributes = [];
-                    requiredHandle = default;
+                    return [];
                 }
-                else
+
+                var containingModule = ContainingPEModule;
+                if (!containingModule.TryGetNonEmptyCustomAttributes(_handle, out var customAttributeHandles))
                 {
-                    loadedCustomAttributes = ContainingPEModule.GetCustomAttributesForToken(
-                        Handle,
-                        out _,
-                        // Filter out [Extension]
-                        MightContainExtensionMethods ? AttributeDescription.CaseSensitiveExtensionAttribute : default,
-                        out _,
-                        // Filter out [Obsolete], unless it was user defined
-                        (IsRefLikeType && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default,
-                        out _,
-                        // Filter out [IsReadOnly]
-                        IsReadOnly ? AttributeDescription.IsReadOnlyAttribute : default,
-                        out _,
-                        // Filter out [IsByRefLike]
-                        IsRefLikeType ? AttributeDescription.IsByRefLikeAttribute : default,
-                        out _,
-                        // Filter out [CompilerFeatureRequired]
-                        (IsRefLikeType && DeriveCompilerFeatureRequiredDiagnostic() is null) ? AttributeDescription.CompilerFeatureRequiredAttribute : default,
-                        out requiredHandle,
-                        // Filter out [RequiredMember]
-                        AttributeDescription.RequiredMemberAttribute);
+                    return [];
                 }
 
-                ImmutableInterlocked.InterlockedInitialize(ref uncommon.lazyCustomAttributes, loadedCustomAttributes);
+                var filterExtensionAttribute = MightContainExtensionMethods;
+                var filterObsoleteAttribute = IsRefLikeType && ObsoleteAttributeData is null;
+                var filterIsReadOnlyAttribute = IsReadOnly;
+                var filterIsByRefLikeAttribute = IsRefLikeType;
+                var filterCompilerFeatureRequiredAttribute = filterIsByRefLikeAttribute && DeriveCompilerFeatureRequiredDiagnostic() is null;
 
-                if (!uncommon.lazyHasRequiredMembers.HasValue())
+                using var builder = TemporaryArray<CSharpAttributeData>.Empty;
+                foreach (var handle in customAttributeHandles)
                 {
-                    uncommon.lazyHasRequiredMembers = (!requiredHandle.IsNil).ToThreeState();
+                    if (filterExtensionAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.CaseSensitiveExtensionAttribute))
+                        continue;
+
+                    if (filterObsoleteAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.ObsoleteAttribute))
+                        continue;
+
+                    if (filterIsReadOnlyAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.IsReadOnlyAttribute))
+                        continue;
+
+                    if (filterIsByRefLikeAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.IsByRefLikeAttribute))
+                        continue;
+
+                    if (filterCompilerFeatureRequiredAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.CompilerFeatureRequiredAttribute))
+                        continue;
+
+                    if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.RequiredMemberAttribute))
+                    {
+                        hasRequiredMembers = true;
+                        continue;
+                    }
+
+                    builder.Add(new PEAttributeData(containingModule, handle));
                 }
 
-                Debug.Assert(uncommon.lazyHasRequiredMembers.Value() != requiredHandle.IsNil);
+                return builder.ToImmutableAndClear();
             }
-
-            return uncommon.lazyCustomAttributes;
         }
 
         internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)

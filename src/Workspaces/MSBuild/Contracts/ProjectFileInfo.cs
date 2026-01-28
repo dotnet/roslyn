@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Runtime.Serialization;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
@@ -144,7 +143,7 @@ internal sealed class ProjectFileInfo
     public ImmutableArray<FileGlobs> FileGlobs { get; init; }
 
     public override string ToString()
-        => RoslynString.IsNullOrWhiteSpace(TargetFramework)
+        => string.IsNullOrWhiteSpace(TargetFramework)
             ? FilePath ?? string.Empty
             : $"{FilePath} ({TargetFramework})";
 
