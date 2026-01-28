@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal ImmutableArray<string> lazyConditionalAttributeSymbols;
             internal ObsoleteAttributeData lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
             internal AttributeUsageInfo lazyAttributeUsageInfo = AttributeUsageInfo.Null;
-            internal ThreeState lazyContainsExtensionMethods;
+            internal ThreeState lazyContainsExtensions;
             internal ThreeState lazyIsByRefLike;
             internal ThreeState lazyIsReadOnly;
             internal string lazyDefaultMemberName;
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     lazyConditionalAttributeSymbols.IsDefault &&
                     lazyObsoleteAttributeData == ObsoleteAttributeData.Uninitialized &&
                     lazyAttributeUsageInfo.IsNull &&
-                    !lazyContainsExtensionMethods.HasValue() &&
+                    !lazyContainsExtensions.HasValue() &&
                     lazyDefaultMemberName == null &&
                     (object)lazyComImportCoClassType == (object)ErrorTypeSymbol.UnknownResultType &&
                     !lazyHasEmbeddedAttribute.HasValue() &&
@@ -2005,7 +2005,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return false;
                 }
 
-                if (!uncommon.lazyContainsExtensionMethods.HasValue())
+                if (!uncommon.lazyContainsExtensions.HasValue())
                 {
                     var contains = ThreeState.False;
                     // Dev11 supports extension methods defined on non-static
@@ -2032,10 +2032,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             break;
                     }
 
-                    uncommon.lazyContainsExtensionMethods = contains;
+                    uncommon.lazyContainsExtensions = contains;
                 }
 
-                return uncommon.lazyContainsExtensionMethods.Value();
+                return uncommon.lazyContainsExtensions.Value();
             }
         }
 

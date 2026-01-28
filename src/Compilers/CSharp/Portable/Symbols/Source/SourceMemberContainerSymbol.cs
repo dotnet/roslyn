@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private int _lazyKnownCircularStruct;
         private LexicalSortKey _lazyLexicalSortKey = LexicalSortKey.NotInitialized;
 
-        private ThreeState _lazyContainsExtensionMethods;
+        private ThreeState _lazyContainsExtensions;
         private ThreeState _lazyAnyMemberHasAttributes;
 
         // Tracked by https://github.com/dotnet/roslyn/issues/78827 : Optimize by moving some fields into "uncommon" class field?
@@ -5963,18 +5963,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Extension Methods
 
-        internal bool ContainsExtensionMethods
+        internal bool ContainsExtensions
         {
             get
             {
-                if (!_lazyContainsExtensionMethods.HasValue())
+                if (!_lazyContainsExtensions.HasValue())
                 {
                     bool containsExtensionMethods = ((this.IsStatic && !this.IsGenericType) || this.IsScriptClass) &&
                                                     (this.declaration.ContainsExtensionMethods || this.declaration.ContainsExtensionDeclarations);
-                    _lazyContainsExtensionMethods = containsExtensionMethods.ToThreeState();
+                    _lazyContainsExtensions = containsExtensionMethods.ToThreeState();
                 }
 
-                return _lazyContainsExtensionMethods.Value();
+                return _lazyContainsExtensions.Value();
             }
         }
 
@@ -5996,7 +5996,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.ContainsExtensionMethods;
+                return this.ContainsExtensions;
             }
         }
 
