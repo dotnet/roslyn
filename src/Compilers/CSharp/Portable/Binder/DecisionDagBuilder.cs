@@ -2630,6 +2630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private static void AddTempReplacement(ref ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagTemp oldTemp, BoundDagTemp newTemp)
                 {
                     Debug.Assert(!oldTemp.Equals(newTemp));
+                    Debug.Assert(oldTemp.Type.Equals(newTemp.Type, TypeCompareKind.AllIgnoreOptions));
                     tempMap = tempMap.SetItem(oldTemp, newTemp);
                 }
 
