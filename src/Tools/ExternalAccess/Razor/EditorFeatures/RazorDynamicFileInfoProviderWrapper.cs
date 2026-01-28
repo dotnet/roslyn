@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
     [Export(typeof(IDynamicFileInfoProvider))]
     internal class RazorDynamicFileInfoProviderWrapper : IDynamicFileInfoProvider
     {
-        private readonly Lazy<IRazorDynamicFileInfoProvider> _innerDynamicFileInfoProvider;
+        private readonly Lazy<IRazorDynamicFileInfoProvider>? _innerDynamicFileInfoProvider;
         private readonly object _attachLock = new object();
         private bool _attached;
 
@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RazorDynamicFileInfoProviderWrapper(
-            Lazy<IRazorDynamicFileInfoProvider> innerDynamicFileInfoProvider)
+            [Import(AllowDefault = true)] Lazy<IRazorDynamicFileInfoProvider>? innerDynamicFileInfoProvider)
         {
-            _innerDynamicFileInfoProvider = innerDynamicFileInfoProvider ?? throw new ArgumentNullException(nameof(innerDynamicFileInfoProvider));
+            _innerDynamicFileInfoProvider = innerDynamicFileInfoProvider;
         }
 
         public async Task<DynamicFileInfo?> GetDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)

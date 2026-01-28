@@ -15,22 +15,30 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
     [Shared]
     internal class RazorCSharpInterceptionMiddleLayerWrapper : AbstractLanguageClientMiddleLayer
     {
-        private readonly IRazorCSharpInterceptionMiddleLayer _razorCSharpInterceptionMiddleLayer;
+        private readonly Lazy<IRazorCSharpInterceptionMiddleLayer>? _razorCSharpInterceptionMiddleLayer;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RazorCSharpInterceptionMiddleLayerWrapper(IRazorCSharpInterceptionMiddleLayer razorCSharpInterceptionMiddleLayer)
+        public RazorCSharpInterceptionMiddleLayerWrapper([Import(AllowDefault = true)] Lazy<IRazorCSharpInterceptionMiddleLayer>? razorCSharpInterceptionMiddleLayer)
         {
             _razorCSharpInterceptionMiddleLayer = razorCSharpInterceptionMiddleLayer;
         }
 
         public override bool CanHandle(string methodName)
-            => _razorCSharpInterceptionMiddleLayer.CanHandle(methodName);
+        {
+            if (_razorCSharpInterceptionMiddleLayer is null)
+                return false;
+
+            return _razorCSharpInterceptionMiddleLayer.Value.CanHandle(methodName);
+        }
 
         public override Task HandleNotificationAsync(string methodName, JsonElement methodParam, Func<JsonElement, Task> sendNotification)
         {
+            if (_razorCSharpInterceptionMiddleLayer is null)
+                return Task.CompletedTask;
+
             // Razor only ever looks at the method name, so it is safe to pass null for all the Newtonsoft JToken params.
-            return _razorCSharpInterceptionMiddleLayer.HandleNotificationAsync(methodName, null!, null!);
+            return _razorCSharpInterceptionMiddleLayer.Value.HandleNotificationAsync(methodName, null!, null!);
         }
 
         public override Task<JsonElement> HandleRequestAsync(string methodName, JsonElement methodParam, Func<JsonElement, Task<JsonElement>> sendRequest)
