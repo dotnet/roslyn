@@ -60,9 +60,9 @@ variables:
     # As of 2025-06-12, the non-scouting queue does not have a new enough of an MSBuild to build Roslyn; use the scouting
     # queue which is on 17.14. This likely can be removed by 2025-06-18 when the upgrade to 17.14 Preview 4 is scheduled to complete.
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: windows.vs2022preview.scout.amd64.open
+      value: windows.vs2022.amd64.open
     ${{ else }}:
-      value: windows.vs2022preview.scout.amd64
+      value: windows.vs2022.amd64
 
   - name: Vs2022RegularQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
