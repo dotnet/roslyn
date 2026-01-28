@@ -5915,4 +5915,85 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 }
             }
             """, index: 1);
+
+    #region Generate Type in Cref
+
+    [Fact]
+    public Task TestGenerateTypeInTypeCref()
+    {
+        return TestInRegularAndScriptAsync(
+            """
+            /// <summary><see cref="[|MissingType|]"/></summary>
+            class C
+            {
+            }
+            """,
+            """
+            /// <summary><see cref="MissingType"/></summary>
+            class C
+            {
+            }
+
+            internal class MissingType
+            {
+            }
+            """,
+            index: 1,
+            parameters: new TestParameters(parseOptions: new CSharpParseOptions(documentationMode: DocumentationMode.Diagnose)));
+    }
+
+    [Fact]
+    public Task TestGenerateNestedTypeInTypeCref()
+    {
+        return TestInRegularAndScriptAsync(
+            """
+            /// <summary><see cref="[|MissingType|]"/></summary>
+            class C
+            {
+            }
+            """,
+            """
+            /// <summary><see cref="MissingType"/></summary>
+            class C
+            {
+                private class MissingType
+                {
+                }
+            }
+            """,
+            index: 2,
+            parameters: new TestParameters(parseOptions: new CSharpParseOptions(documentationMode: DocumentationMode.Diagnose)));
+    }
+
+    [Fact]
+    public Task TestGenerateTypeInCrefOnMethod()
+    {
+        return TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                /// <summary><see cref="[|MissingType|]"/></summary>
+                public void M()
+                {
+                }
+            }
+            """,
+            """
+            class C
+            {
+                /// <summary><see cref="MissingType"/></summary>
+                public void M()
+                {
+                }
+
+                private class MissingType
+                {
+                }
+            }
+            """,
+            index: 2,
+            parameters: new TestParameters(parseOptions: new CSharpParseOptions(documentationMode: DocumentationMode.Diagnose)));
+    }
+
+    #endregion
 }

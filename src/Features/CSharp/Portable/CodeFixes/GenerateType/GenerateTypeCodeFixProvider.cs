@@ -42,7 +42,7 @@ internal sealed class GenerateTypeCodeFixProvider() : AbstractGenerateMemberCode
         {
             QualifiedNameSyntax or MemberAccessExpressionSyntax => true,
             SimpleNameSyntax simple => !simple.IsParentKind(SyntaxKind.QualifiedName),
-            TypeCrefSyntax or NameMemberCrefSyntax or QualifiedCrefSyntax => true,
+            TypeCrefSyntax => true,
             _ => false,
         };
 
@@ -50,8 +50,6 @@ internal sealed class GenerateTypeCodeFixProvider() : AbstractGenerateMemberCode
         => node switch
         {
             TypeCrefSyntax typeCref => typeCref.Type,
-            NameMemberCrefSyntax nameMemberCref => nameMemberCref.Name,
-            QualifiedCrefSyntax qualifiedCref => qualifiedCref.Container,
             ExpressionSyntax expression => expression.GetRightmostName(),
             _ => null,
         };
