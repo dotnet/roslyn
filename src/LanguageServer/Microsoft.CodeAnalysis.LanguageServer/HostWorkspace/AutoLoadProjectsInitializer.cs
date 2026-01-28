@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
+namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
 [Shared]
 [ExportCSharpVisualBasicStatelessLspService(typeof(AutoLoadProjectsInitializer))]
@@ -42,7 +42,7 @@ internal sealed class AutoLoadProjectsInitializer(
         var workspaceFolders = initializeParams.WorkspaceFolders;
         if (workspaceFolders is null || workspaceFolders.Length == 0)
         {
-            _logger.LogWarning("No workspace folders provided during initialization, could not auto load projects.");
+            _logger.LogWarning("No workspace folders provided during initialization; could not auto load projects.");
             return;
         }
 
@@ -66,7 +66,7 @@ internal sealed class AutoLoadProjectsInitializer(
             projectFiles.AddRange(Directory.EnumerateFiles(folderPath, "*.csproj", SearchOption.AllDirectories));
         }
 
-        _logger.LogInformation("Discovered {count} projects to auto load: {projects}", projectFiles.Count, string.Join($"{Environment.NewLine}    ", projectFiles));
+        _logger.LogInformation("Discovered {count} projects to auto load", projectFiles.Count);
 
         // We don't want to block initialization on loading projects - fire and forget.
         projectSystem.OpenProjectsAsync(projectFiles.ToImmutable()).ReportNonFatalErrorAsync().Forget();

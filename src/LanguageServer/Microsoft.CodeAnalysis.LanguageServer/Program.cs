@@ -106,7 +106,10 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Automatic);
 
     // The log file directory passed to us by VSCode might not exist yet, though its parent directory is guaranteed to exist.
-    Directory.CreateDirectory(serverConfiguration.ExtensionLogDirectory);
+    if (serverConfiguration.ExtensionLogDirectory is not null)
+    {
+        Directory.CreateDirectory(serverConfiguration.ExtensionLogDirectory);
+    }
 
     // Initialize the server configuration MEF exported value.
     exportProvider.GetExportedValue<ServerConfigurationFactory>().InitializeConfiguration(serverConfiguration);
@@ -290,14 +293,14 @@ static RootCommand CreateCommand()
         var devKitDependencyPath = parseResult.GetValue(devKitDependencyPathOption);
         var razorDesignTimePath = parseResult.GetValue(razorDesignTimePathOption);
         var csharpDesignTimePath = parseResult.GetValue(csharpDesignTimePathOption);
-        var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption) ?? Path.Combine(AppContext.BaseDirectory, "Logs");
+        var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption);
         var serverPipeName = parseResult.GetValue(serverPipeNameOption);
         var useStdIo = parseResult.GetValue(useStdIoOption);
         var autoLoadProjects = parseResult.GetValue(autoLoadProjectsOption);
 
         var serverConfiguration = new ServerConfiguration(
             LaunchDebugger: launchDebugger,
-            LogConfiguration: new LogConfiguration(logLevel),
+            LogConfiguration: new LogConfiguration(logLevel ?? LogLevel.Information),
             StarredCompletionsPath: starredCompletionsPath,
             TelemetryLevel: telemetryLevel,
             SessionId: sessionId,

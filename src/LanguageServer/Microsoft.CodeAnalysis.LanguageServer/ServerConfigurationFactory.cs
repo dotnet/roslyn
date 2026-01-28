@@ -52,16 +52,16 @@ internal sealed record class ServerConfiguration(
     string? CSharpDesignTimePath,
     string? ServerPipeName,
     bool UseStdIo,
-    string ExtensionLogDirectory,
+    string? ExtensionLogDirectory,
     bool AutoLoadProjects);
 
 internal sealed class LogConfiguration
 {
     private int _currentLogLevel;
 
-    public LogConfiguration(LogLevel? initialLogLevel)
+    public LogConfiguration(LogLevel initialLogLevel)
     {
-        _currentLogLevel = (int)(initialLogLevel ?? LogLevel.Information);
+        _currentLogLevel = (int)(initialLogLevel);
     }
 
     public void UpdateLogLevel(LogLevel level)
