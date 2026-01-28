@@ -549,6 +549,17 @@ internal sealed class CSharpGenerateTypeService() :
             }
         }
 
+        // Check if there's a file-scoped namespace declaration in the file.
+        // File-scoped namespaces can't coexist with block namespaces, so we must add
+        // the type to the existing file-scoped namespace instead of creating a nested one.
+        var existingNamespace = FindAnyNamespaceInMemberDeclarations(compilationUnit.Members);
+        if (existingNamespace is FileScopedNamespaceDeclarationSyntax)
+        {
+            var existingNamespaceSymbol = semanticModel.GetSymbolInfo(existingNamespace.Name, cancellationToken);
+            if (existingNamespaceSymbol.Symbol is INamespaceSymbol namespaceSymbol)
+                return (namespaceSymbol, namedTypeSymbol, existingNamespace.GetLastToken().GetLocation());
+        }
+
         var globalNamespace = semanticModel.GetEnclosingNamespace(0, cancellationToken);
         var rootNamespaceOrType = namedTypeSymbol.GenerateRootNamespaceOrType(containers);
         var lastMember = compilationUnit.Members.LastOrDefault();
@@ -569,6 +580,17 @@ internal sealed class CSharpGenerateTypeService() :
                 if (found != null)
                     return found;
             }
+        }
+
+        return null;
+    }
+
+    private static BaseNamespaceDeclarationSyntax FindAnyNamespaceInMemberDeclarations(SyntaxList<MemberDeclarationSyntax> members)
+    {
+        foreach (var member in members)
+        {
+            if (member is BaseNamespaceDeclarationSyntax namespaceDeclaration)
+                return namespaceDeclaration;
         }
 
         return null;
