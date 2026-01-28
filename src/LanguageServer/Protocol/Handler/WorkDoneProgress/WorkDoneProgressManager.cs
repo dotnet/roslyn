@@ -54,7 +54,7 @@ class WorkDoneProgressManager(IClientLanguageServerManager clientLanguageServerM
         IWorkDoneProgressReporter reporter;
 
         // Only report progress to the client if both the client advertised support for progress reporting and the caller requested it.
-        var reportProgress = _initializeManager.GetClientCapabilities().Window?.WorkDoneProgress == true && reportProgressToClient;
+        var reportProgress = reportProgressToClient && _initializeManager.GetClientCapabilities().Window?.WorkDoneProgress == true;
 
         if (reportProgress)
         {
