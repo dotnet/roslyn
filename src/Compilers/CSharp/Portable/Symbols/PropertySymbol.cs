@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 PropertySymbol overridden = p.OverriddenProperty;
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 if ((object)overridden == null ||
-                    (accessingTypeOpt is { } && !AccessCheck.IsSymbolAccessible(overridden, accessingTypeOpt, ref discardedUseSiteInfo)))
+                    (accessingTypeOpt is { } && !AccessCheck.IsSymbolAccessible(overridden, accessingTypeOpt, ref discardedUseSiteInfo, skipContainingTypeCheck: true)))
                 {
                     break;
                 }
