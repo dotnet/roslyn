@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -3477,6 +3478,65 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             ]);
     }
 
+    /// <summary>
+    /// Caller-unsafety should not count as part of the signature for hiding purposes.
+    /// </summary>
+    [Fact]
+    public void Member_Method_Hiding()
+    {
+        DiagnosticDescription[] commonDiagnostics =
+        [
+            // (7,17): warning CS0108: 'C1.M1()' hides inherited member 'B.M1()'. Use the new keyword if hiding was intended.
+            //     public void M1() { }
+            Diagnostic(ErrorCode.WRN_NewRequired, "M1").WithArguments("C1.M1()", "B.M1()").WithLocation(7, 17),
+            // (8,24): warning CS0108: 'C1.M2()' hides inherited member 'B.M2()'. Use the new keyword if hiding was intended.
+            //     public unsafe void M2() { }
+            Diagnostic(ErrorCode.WRN_NewRequired, "M2").WithArguments("C1.M2()", "B.M2()").WithLocation(8, 24),
+            // (14,24): error CS0111: Type 'C2' already defines a member called 'M1' with the same parameter types
+            //     public unsafe void M1() { }
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "C2").WithLocation(14, 24),
+        ];
+
+        DiagnosticDescription[] updatedCallerDiagnostics =
+        [
+            // (3,1): error CS9502: 'C1.M2()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+            // c.M2();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.M2()").WithArguments("C1.M2()").WithLocation(3, 1),
+            .. commonDiagnostics,
+        ];
+
+        CompileAndVerifyUnsafe(
+            lib: """
+                public class B
+                {
+                    public unsafe void M1() { }
+                    public void M2() { }
+                }
+                """,
+            caller: """
+                var c = new C1();
+                c.M1();
+                c.M2();
+
+                class C1 : B
+                {
+                    public void M1() { }
+                    public unsafe void M2() { }
+                }
+
+                class C2
+                {
+                    public void M1() { }
+                    public unsafe void M1() { }
+                }
+                """,
+            expectedUnsafeSymbols: ["B.M1"],
+            expectedSafeSymbols: ["B.M2"],
+            expectedDiagnostics: updatedCallerDiagnostics,
+            expectedDiagnosticsWhenReferencingLegacyLib: updatedCallerDiagnostics,
+            expectedDiagnosticsForLegacyCaller: commonDiagnostics);
+    }
+
     [Fact]
     public void Member_Await()
     {
@@ -4374,6 +4434,45 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // log($"a{0}");
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, @"$""a{0}""").WithArguments("C.C(int, int)").WithLocation(1, 5),
             ]);
+    }
+
+    [Theory, CombinatorialData]
+    public void Member_Interceptor(
+        [CombinatorialValues("unsafe", "")] string unsafe1,
+        [CombinatorialValues("unsafe", "")] string unsafe2)
+    {
+        var source = ($$"""
+            C.M();
+
+            class C
+            {
+                public static {{unsafe1}} void M() { }
+            }
+            """, "Program.cs");
+
+        var comp = CreateCompilation(source);
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var interceptableLocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Select(node => model.GetInterceptableLocation(node)).Single()!;
+
+        var interceptor = ($$"""
+            class D
+            {
+                {{interceptableLocation.GetInterceptsLocationAttributeSyntax()}}
+                public static {{unsafe2}} void M() => System.Console.Write(1);
+            }
+            """, "Interceptor.cs");
+
+        CreateCompilation([source, interceptor, (TestSources.InterceptsLocationAttribute, "Attribute.cs")],
+            parseOptions: TestOptions.RegularPreview.WithFeature(Feature.InterceptorsNamespaces, "global"),
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(unsafe1 == "unsafe"
+            ? [
+                // Program.cs(1,1): error CS9502: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // C.M();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "C.M()").WithArguments("C.M()").WithLocation(1, 1),
+            ]
+            : []);
     }
 
     [Fact]
