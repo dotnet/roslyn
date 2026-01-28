@@ -5969,9 +5969,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (!_lazyContainsExtensions.HasValue())
                 {
-                    bool containsExtensionMethods = ((this.IsStatic && !this.IsGenericType) || this.IsScriptClass) &&
+                    bool containsExtensions = ((this.IsStatic && !this.IsGenericType) || this.IsScriptClass) &&
                                                     (this.declaration.ContainsExtensionMethods || this.declaration.ContainsExtensionDeclarations);
-                    _lazyContainsExtensions = containsExtensionMethods.ToThreeState();
+                    _lazyContainsExtensions = containsExtensions.ToThreeState();
                 }
 
                 return _lazyContainsExtensions.Value();
