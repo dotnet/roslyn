@@ -31,6 +31,7 @@ IDE2003 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-r
 IDE2004 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide2004> | Blank line not allowed after constructor initializer colon |
 IDE2005 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide2005> | Blank line not allowed after conditional expression token |
 IDE2006 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide2006> | Blank line not allowed after arrow expression clause token |
+IDE3000 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide3000> | Implement |
 JSON001 |  | Invalid JSON pattern |
 JSON002 |  | Probable JSON string detected |
 RE0001 |  | Invalid regex pattern |

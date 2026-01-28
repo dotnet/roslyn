@@ -13,11 +13,6 @@
     <PackageId>roslyn-language-server</PackageId>
     <ToolCommandName>roslyn-language-server</ToolCommandName>
 
-    <!--
-      NETSDK1206: Until we move to a newer release of the SQLitePCLRaw packages (2.1.6+) that removes the libs for alpine RIDs, we have to ignore the SDK warning about distribution specific RIDs.
-    -->
-    <NoWarn>$(NoWarn);NETSDK1206</NoWarn>
-
     <!-- Publishing settings -->
     <SelfContained>false</SelfContained>
     <PublishDir Condition="'$(RuntimeIdentifier)' != ''">$(ArtifactsDir)/LanguageServer/$(Configuration)/$(TargetFramework)/$(RuntimeIdentifier)</PublishDir>
