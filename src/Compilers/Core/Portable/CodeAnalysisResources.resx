@@ -134,21 +134,25 @@
   </data>
   <data name="Class1" xml:space="preserve">
     <value>class</value>
+    <comment>Refers to a class type in programming (noun), not the verb "to classify"</comment>
   </data>
   <data name="Attribute" xml:space="preserve">
     <value>attribute</value>
+    <comment>Refers to a programming attribute/annotation (noun), not the verb "to attribute"</comment>
   </data>
   <data name="Constructor" xml:space="preserve">
     <value>constructor</value>
   </data>
   <data name="Delegate1" xml:space="preserve">
     <value>delegate</value>
+    <comment>Refers to a delegate type in programming (noun), not the verb "to delegate"</comment>
   </data>
   <data name="Enum1" xml:space="preserve">
     <value>enum</value>
   </data>
   <data name="Event1" xml:space="preserve">
     <value>event</value>
+    <comment>Refers to a programming event member (noun), not "to occur" or other verb meanings</comment>
   </data>
   <data name="Field" xml:space="preserve">
     <value>field</value>
@@ -158,6 +162,7 @@
   </data>
   <data name="Interface1" xml:space="preserve">
     <value>interface</value>
+    <comment>Refers to an interface type in programming (noun), not the verb "to interface"</comment>
   </data>
   <data name="Method" xml:space="preserve">
     <value>method</value>
@@ -173,6 +178,7 @@
   </data>
   <data name="Return1" xml:space="preserve">
     <value>return</value>
+    <comment>Refers to a method return value/type (noun), not the verb "to return"</comment>
   </data>
   <data name="Struct1" xml:space="preserve">
     <value>struct</value>

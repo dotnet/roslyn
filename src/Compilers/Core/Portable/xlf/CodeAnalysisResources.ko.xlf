@@ -9,8 +9,8 @@
       </trans-unit>
       <trans-unit id="Attribute">
         <source>attribute</source>
-        <target state="translated">특성</target>
-        <note />
+        <target state="needs-review-translation">특성</target>
+        <note>Refers to a programming attribute/annotation (noun), not the verb "to attribute"</note>
       </trans-unit>
       <trans-unit id="BadBuiltInOps1">
         <source>Illegal built-in operator name '{0}'</source>
@@ -300,77 +300,77 @@
       </trans-unit>
       <trans-unit id="Assembly">
         <source>assembly</source>
-        <target state="translated">어셈블리</target>
+        <target state="needs-review-translation">어셈블리</target>
         <note />
       </trans-unit>
       <trans-unit id="Class1">
         <source>class</source>
-        <target state="translated">클래스</target>
-        <note />
+        <target state="needs-review-translation">클래스</target>
+        <note>Refers to a class type in programming (noun), not the verb "to classify"</note>
       </trans-unit>
       <trans-unit id="Constructor">
         <source>constructor</source>
-        <target state="translated">생성자</target>
+        <target state="needs-review-translation">생성자</target>
         <note />
       </trans-unit>
       <trans-unit id="Delegate1">
         <source>delegate</source>
-        <target state="translated">대리자</target>
-        <note />
+        <target state="needs-review-translation">대리자</target>
+        <note>Refers to a delegate type in programming (noun), not the verb "to delegate"</note>
       </trans-unit>
       <trans-unit id="Enum1">
         <source>enum</source>
-        <target state="translated">열거형</target>
+        <target state="needs-review-translation">열거형</target>
         <note />
       </trans-unit>
       <trans-unit id="Event1">
         <source>event</source>
-        <target state="translated">이벤트</target>
-        <note />
+        <target state="needs-review-translation">이벤트</target>
+        <note>Refers to a programming event member (noun), not "to occur" or other verb meanings</note>
       </trans-unit>
       <trans-unit id="Field">
         <source>field</source>
-        <target state="translated">필드</target>
+        <target state="needs-review-translation">필드</target>
         <note />
       </trans-unit>
       <trans-unit id="TypeParameter">
         <source>type parameter</source>
-        <target state="translated">형식 매개 변수</target>
+        <target state="needs-review-translation">형식 매개 변수</target>
         <note />
       </trans-unit>
       <trans-unit id="Interface1">
         <source>interface</source>
-        <target state="translated">인터페이스</target>
-        <note />
+        <target state="needs-review-translation">인터페이스</target>
+        <note>Refers to an interface type in programming (noun), not the verb "to interface"</note>
       </trans-unit>
       <trans-unit id="Method">
         <source>method</source>
-        <target state="translated">메서드</target>
+        <target state="needs-review-translation">메서드</target>
         <note />
       </trans-unit>
       <trans-unit id="Module">
         <source>module</source>
-        <target state="translated">모듈</target>
+        <target state="needs-review-translation">모듈</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter">
         <source>parameter</source>
-        <target state="translated">매개 변수</target>
+        <target state="needs-review-translation">매개 변수</target>
         <note />
       </trans-unit>
       <trans-unit id="Property">
         <source>property, indexer</source>
-        <target state="translated">속성, 인덱서</target>
+        <target state="needs-review-translation">속성, 인덱서</target>
         <note />
       </trans-unit>
       <trans-unit id="Return1">
         <source>return</source>
-        <target state="translated">돌아가기</target>
-        <note />
+        <target state="needs-review-translation">돌아가기</target>
+        <note>Refers to a method return value/type (noun), not the verb "to return"</note>
       </trans-unit>
       <trans-unit id="Struct1">
         <source>struct</source>
-        <target state="translated">구조체</target>
+        <target state="needs-review-translation">구조체</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotCreateReferenceToSubmission">

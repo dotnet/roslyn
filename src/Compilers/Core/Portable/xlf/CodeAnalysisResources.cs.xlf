@@ -9,8 +9,8 @@
       </trans-unit>
       <trans-unit id="Attribute">
         <source>attribute</source>
-        <target state="translated">atribut</target>
-        <note />
+        <target state="needs-review-translation">atribut</target>
+        <note>Refers to a programming attribute/annotation (noun), not the verb "to attribute"</note>
       </trans-unit>
       <trans-unit id="BadBuiltInOps1">
         <source>Illegal built-in operator name '{0}'</source>
@@ -300,77 +300,77 @@
       </trans-unit>
       <trans-unit id="Assembly">
         <source>assembly</source>
-        <target state="translated">sestavení</target>
+        <target state="needs-review-translation">sestavení</target>
         <note />
       </trans-unit>
       <trans-unit id="Class1">
         <source>class</source>
-        <target state="translated">třída</target>
-        <note />
+        <target state="needs-review-translation">třída</target>
+        <note>Refers to a class type in programming (noun), not the verb "to classify"</note>
       </trans-unit>
       <trans-unit id="Constructor">
         <source>constructor</source>
-        <target state="translated">konstruktor</target>
+        <target state="needs-review-translation">konstruktor</target>
         <note />
       </trans-unit>
       <trans-unit id="Delegate1">
         <source>delegate</source>
-        <target state="translated">delegát</target>
-        <note />
+        <target state="needs-review-translation">delegát</target>
+        <note>Refers to a delegate type in programming (noun), not the verb "to delegate"</note>
       </trans-unit>
       <trans-unit id="Enum1">
         <source>enum</source>
-        <target state="translated">výčet</target>
+        <target state="needs-review-translation">výčet</target>
         <note />
       </trans-unit>
       <trans-unit id="Event1">
         <source>event</source>
-        <target state="translated">událost</target>
-        <note />
+        <target state="needs-review-translation">událost</target>
+        <note>Refers to a programming event member (noun), not "to occur" or other verb meanings</note>
       </trans-unit>
       <trans-unit id="Field">
         <source>field</source>
-        <target state="translated">pole</target>
+        <target state="needs-review-translation">pole</target>
         <note />
       </trans-unit>
       <trans-unit id="TypeParameter">
         <source>type parameter</source>
-        <target state="translated">parametr typu</target>
+        <target state="needs-review-translation">parametr typu</target>
         <note />
       </trans-unit>
       <trans-unit id="Interface1">
         <source>interface</source>
-        <target state="translated">rozhraní</target>
-        <note />
+        <target state="needs-review-translation">rozhraní</target>
+        <note>Refers to an interface type in programming (noun), not the verb "to interface"</note>
       </trans-unit>
       <trans-unit id="Method">
         <source>method</source>
-        <target state="translated">metoda</target>
+        <target state="needs-review-translation">metoda</target>
         <note />
       </trans-unit>
       <trans-unit id="Module">
         <source>module</source>
-        <target state="translated">modul</target>
+        <target state="needs-review-translation">modul</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter">
         <source>parameter</source>
-        <target state="translated">parametr</target>
+        <target state="needs-review-translation">parametr</target>
         <note />
       </trans-unit>
       <trans-unit id="Property">
         <source>property, indexer</source>
-        <target state="translated">vlastnost, indexer</target>
+        <target state="needs-review-translation">vlastnost, indexer</target>
         <note />
       </trans-unit>
       <trans-unit id="Return1">
         <source>return</source>
-        <target state="translated">návrat</target>
-        <note />
+        <target state="needs-review-translation">návrat</target>
+        <note>Refers to a method return value/type (noun), not the verb "to return"</note>
       </trans-unit>
       <trans-unit id="Struct1">
         <source>struct</source>
-        <target state="translated">struktura</target>
+        <target state="needs-review-translation">struktura</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotCreateReferenceToSubmission">

@@ -9,8 +9,8 @@
       </trans-unit>
       <trans-unit id="Attribute">
         <source>attribute</source>
-        <target state="translated">öznitelik</target>
-        <note />
+        <target state="needs-review-translation">öznitelik</target>
+        <note>Refers to a programming attribute/annotation (noun), not the verb "to attribute"</note>
       </trans-unit>
       <trans-unit id="BadBuiltInOps1">
         <source>Illegal built-in operator name '{0}'</source>
@@ -300,77 +300,77 @@
       </trans-unit>
       <trans-unit id="Assembly">
         <source>assembly</source>
-        <target state="translated">derleme</target>
+        <target state="needs-review-translation">derleme</target>
         <note />
       </trans-unit>
       <trans-unit id="Class1">
         <source>class</source>
-        <target state="translated">sınıf</target>
-        <note />
+        <target state="needs-review-translation">sınıf</target>
+        <note>Refers to a class type in programming (noun), not the verb "to classify"</note>
       </trans-unit>
       <trans-unit id="Constructor">
         <source>constructor</source>
-        <target state="translated">oluşturucu</target>
+        <target state="needs-review-translation">oluşturucu</target>
         <note />
       </trans-unit>
       <trans-unit id="Delegate1">
         <source>delegate</source>
-        <target state="translated">temsilci</target>
-        <note />
+        <target state="needs-review-translation">temsilci</target>
+        <note>Refers to a delegate type in programming (noun), not the verb "to delegate"</note>
       </trans-unit>
       <trans-unit id="Enum1">
         <source>enum</source>
-        <target state="translated">sabit listesi</target>
+        <target state="needs-review-translation">sabit listesi</target>
         <note />
       </trans-unit>
       <trans-unit id="Event1">
         <source>event</source>
-        <target state="translated">olay</target>
-        <note />
+        <target state="needs-review-translation">olay</target>
+        <note>Refers to a programming event member (noun), not "to occur" or other verb meanings</note>
       </trans-unit>
       <trans-unit id="Field">
         <source>field</source>
-        <target state="translated">alan</target>
+        <target state="needs-review-translation">alan</target>
         <note />
       </trans-unit>
       <trans-unit id="TypeParameter">
         <source>type parameter</source>
-        <target state="translated">tür parametresi</target>
+        <target state="needs-review-translation">tür parametresi</target>
         <note />
       </trans-unit>
       <trans-unit id="Interface1">
         <source>interface</source>
-        <target state="translated">arabirim</target>
-        <note />
+        <target state="needs-review-translation">arabirim</target>
+        <note>Refers to an interface type in programming (noun), not the verb "to interface"</note>
       </trans-unit>
       <trans-unit id="Method">
         <source>method</source>
-        <target state="translated">yöntem</target>
+        <target state="needs-review-translation">yöntem</target>
         <note />
       </trans-unit>
       <trans-unit id="Module">
         <source>module</source>
-        <target state="translated">modül</target>
+        <target state="needs-review-translation">modül</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter">
         <source>parameter</source>
-        <target state="translated">parametre</target>
+        <target state="needs-review-translation">parametre</target>
         <note />
       </trans-unit>
       <trans-unit id="Property">
         <source>property, indexer</source>
-        <target state="translated">özellik, dizin oluşturucusu</target>
+        <target state="needs-review-translation">özellik, dizin oluşturucusu</target>
         <note />
       </trans-unit>
       <trans-unit id="Return1">
         <source>return</source>
-        <target state="translated">dönüş</target>
-        <note />
+        <target state="needs-review-translation">dönüş</target>
+        <note>Refers to a method return value/type (noun), not the verb "to return"</note>
       </trans-unit>
       <trans-unit id="Struct1">
         <source>struct</source>
-        <target state="translated">struct</target>
+        <target state="needs-review-translation">struct</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotCreateReferenceToSubmission">

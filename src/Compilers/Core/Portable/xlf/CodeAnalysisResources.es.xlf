@@ -9,8 +9,8 @@
       </trans-unit>
       <trans-unit id="Attribute">
         <source>attribute</source>
-        <target state="translated">atributo</target>
-        <note />
+        <target state="needs-review-translation">atributo</target>
+        <note>Refers to a programming attribute/annotation (noun), not the verb "to attribute"</note>
       </trans-unit>
       <trans-unit id="BadBuiltInOps1">
         <source>Illegal built-in operator name '{0}'</source>
@@ -300,77 +300,77 @@
       </trans-unit>
       <trans-unit id="Assembly">
         <source>assembly</source>
-        <target state="translated">ensamblado</target>
+        <target state="needs-review-translation">ensamblado</target>
         <note />
       </trans-unit>
       <trans-unit id="Class1">
         <source>class</source>
-        <target state="translated">clase</target>
-        <note />
+        <target state="needs-review-translation">clase</target>
+        <note>Refers to a class type in programming (noun), not the verb "to classify"</note>
       </trans-unit>
       <trans-unit id="Constructor">
         <source>constructor</source>
-        <target state="translated">constructor</target>
+        <target state="needs-review-translation">constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="Delegate1">
         <source>delegate</source>
-        <target state="translated">delegado</target>
-        <note />
+        <target state="needs-review-translation">delegado</target>
+        <note>Refers to a delegate type in programming (noun), not the verb "to delegate"</note>
       </trans-unit>
       <trans-unit id="Enum1">
         <source>enum</source>
-        <target state="translated">enumeración</target>
+        <target state="needs-review-translation">enumeración</target>
         <note />
       </trans-unit>
       <trans-unit id="Event1">
         <source>event</source>
-        <target state="translated">evento</target>
-        <note />
+        <target state="needs-review-translation">evento</target>
+        <note>Refers to a programming event member (noun), not "to occur" or other verb meanings</note>
       </trans-unit>
       <trans-unit id="Field">
         <source>field</source>
-        <target state="translated">Campo</target>
+        <target state="needs-review-translation">Campo</target>
         <note />
       </trans-unit>
       <trans-unit id="TypeParameter">
         <source>type parameter</source>
-        <target state="translated">parámetro de tipo</target>
+        <target state="needs-review-translation">parámetro de tipo</target>
         <note />
       </trans-unit>
       <trans-unit id="Interface1">
         <source>interface</source>
-        <target state="translated">interfaz</target>
-        <note />
+        <target state="needs-review-translation">interfaz</target>
+        <note>Refers to an interface type in programming (noun), not the verb "to interface"</note>
       </trans-unit>
       <trans-unit id="Method">
         <source>method</source>
-        <target state="translated">método</target>
+        <target state="needs-review-translation">método</target>
         <note />
       </trans-unit>
       <trans-unit id="Module">
         <source>module</source>
-        <target state="translated">módulo</target>
+        <target state="needs-review-translation">módulo</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter">
         <source>parameter</source>
-        <target state="translated">parámetro</target>
+        <target state="needs-review-translation">parámetro</target>
         <note />
       </trans-unit>
       <trans-unit id="Property">
         <source>property, indexer</source>
-        <target state="translated">propiedad, indizador</target>
+        <target state="needs-review-translation">propiedad, indizador</target>
         <note />
       </trans-unit>
       <trans-unit id="Return1">
         <source>return</source>
-        <target state="translated">volver</target>
-        <note />
+        <target state="needs-review-translation">volver</target>
+        <note>Refers to a method return value/type (noun), not the verb "to return"</note>
       </trans-unit>
       <trans-unit id="Struct1">
         <source>struct</source>
-        <target state="translated">estructura</target>
+        <target state="needs-review-translation">estructura</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotCreateReferenceToSubmission">
