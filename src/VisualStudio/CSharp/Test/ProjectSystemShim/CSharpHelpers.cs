@@ -80,7 +80,7 @@ internal static class CSharpHelpers
         var hierarchy = environment.CreateHierarchy(projectName, binOutputPath, projectRefPath: null, "CSharp");
         var cpsProjectFactory = environment.ExportProvider.GetExportedValue<IWorkspaceProjectContextFactory>();
 
-        var data = new TestEvaluationData(projectFilePath, binOutputPath, assemblyName: "", binOutputPath, checksumAlgorithm: "SHA256");
+        var data = new TestEvaluationData(projectFilePath, binOutputPath, assemblyName: "", binOutputPath, checksumAlgorithm: "SHA256", targetFramework: "net10.0");
 
         var cpsProject = (CPSProject)await cpsProjectFactory.CreateProjectContextAsync(
             projectGuid,
@@ -100,7 +100,7 @@ internal static class CSharpHelpers
         var hierarchy = environment.CreateHierarchy(projectName, projectBinPath: null, projectRefPath: null, projectCapabilities: "");
         var cpsProjectFactory = environment.ExportProvider.GetExportedValue<IWorkspaceProjectContextFactory>();
 
-        var data = new TestEvaluationData(projectFilePath, targetPath, assemblyName: "", targetPath, checksumAlgorithm: "SHA256");
+        var data = new TestEvaluationData(projectFilePath, targetPath, assemblyName: "", targetPath, checksumAlgorithm: "SHA256", targetFramework: "10.0");
 
         return (CPSProject)await cpsProjectFactory.CreateProjectContextAsync(
             Guid.NewGuid(),

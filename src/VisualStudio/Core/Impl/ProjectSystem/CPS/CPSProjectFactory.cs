@@ -74,6 +74,7 @@ internal sealed partial class CPSProjectFactory : IWorkspaceProjectContextFactor
             FilePath = projectFilePath,
             Hierarchy = hostObject as IVsHierarchy,
             ProjectGuid = id,
+            TargetFramework = data.GetPropertyValue(BuildPropertyNames.TargetFramework),
         };
 
         string? binOutputPath, objOutputPath, commandLineArgs;
@@ -116,7 +117,7 @@ internal sealed partial class CPSProjectFactory : IWorkspaceProjectContextFactor
 
             var shell = await _serviceProvider.GetServiceAsync<SVsShell, IVsShell7>(cancellationToken).ConfigureAwait(true);
 
-            // Force the F# package to load; this is necessary because the F# package listens to WorkspaceChanged to 
+            // Force the F# package to load; this is necessary because the F# package listens to WorkspaceChanged to
             // set up some items, and the F# project system doesn't guarantee that the F# package has been loaded itself
             // so we're caught in the middle doing this.
             var packageId = Guids.FSharpPackageId;

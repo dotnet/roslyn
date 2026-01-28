@@ -628,6 +628,9 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
     public CompilationOutputInfo CompilationOutputInfo => this.ProjectInfo.CompilationOutputInfo;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+    public string? TargetFramework => this.ProjectInfo.TargetFramework;
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
     public string? DefaultNamespace => this.ProjectInfo.DefaultNamespace;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]

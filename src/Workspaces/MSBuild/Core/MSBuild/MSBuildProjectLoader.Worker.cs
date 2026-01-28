@@ -219,7 +219,8 @@ public partial class MSBuildProjectLoader
                             checksumAlgorithm: SourceHashAlgorithms.Default,
                             outputFilePath: projectFileInfo.OutputFilePath,
                             outputRefFilePath: projectFileInfo.OutputRefFilePath,
-                            filePath: projectPath),
+                            filePath: projectPath,
+                            targetFramework: projectFileInfo.TargetFramework),
                         compilationOptions: compilationOptions,
                         parseOptions: parseOptions);
             }
@@ -290,7 +291,8 @@ public partial class MSBuildProjectLoader
                         filePath: projectPath,
                         outputFilePath: projectFileInfo.OutputFilePath,
                         outputRefFilePath: projectFileInfo.OutputRefFilePath,
-                        isSubmission: false),
+                        isSubmission: false,
+                        targetFramework: projectFileInfo.TargetFramework),
                     compilationOptions: compilationOptions,
                     parseOptions: parseOptions,
                     documents: documents,

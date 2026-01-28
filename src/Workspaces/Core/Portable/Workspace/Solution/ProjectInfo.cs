@@ -70,6 +70,11 @@ public sealed class ProjectInfo
     public CompilationOutputInfo CompilationOutputInfo => Attributes.CompilationOutputInfo;
 
     /// <summary>
+    /// The target framework of the project.
+    /// </summary>
+    internal string? TargetFramework => Attributes.TargetFramework;
+
+    /// <summary>
     /// The default namespace of the project ("" if not defined, which means global namespace),
     /// or null if it is unknown or not applicable.
     /// </summary>
@@ -356,6 +361,9 @@ public sealed class ProjectInfo
     public ProjectInfo WithCompilationOutputInfo(in CompilationOutputInfo info)
         => With(attributes: Attributes.With(compilationOutputInfo: info));
 
+    internal ProjectInfo WithTargetFramework(string? targetFramework)
+        => With(attributes: Attributes.With(targetFramework: targetFramework));
+
     public ProjectInfo WithDefaultNamespace(string? defaultNamespace)
         => With(attributes: Attributes.With(defaultNamespace: defaultNamespace));
 
@@ -425,7 +433,8 @@ public sealed class ProjectInfo
         bool isSubmission = false,
         bool hasAllInformation = true,
         bool runAnalyzers = true,
-        bool hasSdkCodeStyleAnalyzers = false)
+        bool hasSdkCodeStyleAnalyzers = false,
+        string? targetFramework = null)
     {
         /// <summary>
         /// Matches names like: Microsoft.CodeAnalysis.Features (netcoreapp3.1)
@@ -476,6 +485,11 @@ public sealed class ProjectInfo
         /// Paths to the compiler output files.
         /// </summary>
         public CompilationOutputInfo CompilationOutputInfo { get; } = compilationOutputInfo;
+
+        /// <summary>
+        /// The target framework of the project.
+        /// </summary>
+        public string? TargetFramework { get; } = targetFramework;
 
         /// <summary>
         /// The default namespace of the project.
@@ -545,7 +559,8 @@ public sealed class ProjectInfo
             Optional<bool> hasAllInformation = default,
             Optional<bool> runAnalyzers = default,
             Optional<Guid> telemetryId = default,
-            Optional<bool> hasSdkCodeStyleAnalyzers = default)
+            Optional<bool> hasSdkCodeStyleAnalyzers = default,
+            Optional<string?> targetFramework = default)
         {
             var newId = id ?? Id;
             var newVersion = version ?? Version;
@@ -562,7 +577,7 @@ public sealed class ProjectInfo
             var newRunAnalyzers = runAnalyzers.HasValue ? runAnalyzers.Value : RunAnalyzers;
             var newTelemetryId = telemetryId.HasValue ? telemetryId.Value : TelemetryId;
             var newHasSdkCodeStyleAnalyzers = hasSdkCodeStyleAnalyzers.HasValue ? hasSdkCodeStyleAnalyzers.Value : HasSdkCodeStyleAnalyzers;
-
+            var newTargetFramework = targetFramework.HasValue ? targetFramework.Value : TargetFramework;
             if (newId == Id &&
                 newVersion == Version &&
                 newName == Name &&
@@ -577,7 +592,8 @@ public sealed class ProjectInfo
                 newHasAllInformation == HasAllInformation &&
                 newRunAnalyzers == RunAnalyzers &&
                 newTelemetryId == TelemetryId &&
-                newHasSdkCodeStyleAnalyzers == HasSdkCodeStyleAnalyzers)
+                newHasSdkCodeStyleAnalyzers == HasSdkCodeStyleAnalyzers &&
+                newTargetFramework == TargetFramework)
             {
                 return this;
             }
@@ -598,7 +614,8 @@ public sealed class ProjectInfo
                 newIsSubmission,
                 newHasAllInformation,
                 newRunAnalyzers,
-                newHasSdkCodeStyleAnalyzers);
+                newHasSdkCodeStyleAnalyzers,
+                newTargetFramework);
         }
 
         public void WriteTo(ObjectWriter writer)
@@ -622,6 +639,7 @@ public sealed class ProjectInfo
             writer.WriteBoolean(RunAnalyzers);
             writer.WriteGuid(TelemetryId);
             writer.WriteBoolean(HasSdkCodeStyleAnalyzers);
+            writer.WriteString(TargetFramework);
 
             // TODO: once CompilationOptions, ParseOptions, ProjectReference, MetadataReference, AnalyzerReference supports
             //       serialization, we should include those here as well.
@@ -646,6 +664,7 @@ public sealed class ProjectInfo
             var runAnalyzers = reader.ReadBoolean();
             var telemetryId = reader.ReadGuid();
             var hasSdkCodeStyleAnalyzers = reader.ReadBoolean();
+            var targetFramework = reader.ReadString();
 
             return new ProjectAttributes(
                 projectId,
@@ -663,7 +682,8 @@ public sealed class ProjectInfo
                 isSubmission: isSubmission,
                 hasAllInformation: hasAllInformation,
                 runAnalyzers: runAnalyzers,
-                hasSdkCodeStyleAnalyzers: hasSdkCodeStyleAnalyzers);
+                hasSdkCodeStyleAnalyzers: hasSdkCodeStyleAnalyzers,
+                targetFramework: targetFramework);
         }
 
         public Checksum Checksum

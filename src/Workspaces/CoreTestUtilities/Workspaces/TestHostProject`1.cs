@@ -27,6 +27,7 @@ public abstract class TestHostProject<TDocument> : AbstractTestHostProject
     private readonly IEnumerable<AnalyzerReference> _analyzerReferences;
     private readonly string _assemblyName;
     private readonly string _defaultNamespace;
+    private readonly string? _targetFramework;
 
     public IEnumerable<TDocument> Documents;
     public IEnumerable<TDocument> AdditionalDocuments;
@@ -101,7 +102,8 @@ public abstract class TestHostProject<TDocument> : AbstractTestHostProject
         bool isSubmission = false,
         string filePath = null,
         IList<AnalyzerReference> analyzerReferences = null,
-        string defaultNamespace = null)
+        string defaultNamespace = null,
+        string targetFramework = null)
     {
         _assemblyName = assemblyName;
         _name = projectName;
@@ -120,6 +122,7 @@ public abstract class TestHostProject<TDocument> : AbstractTestHostProject
         Version = VersionStamp.Create();
         FilePath = filePath;
         _defaultNamespace = defaultNamespace;
+        _targetFramework = targetFramework;
     }
 
     protected TestHostProject(
@@ -135,7 +138,8 @@ public abstract class TestHostProject<TDocument> : AbstractTestHostProject
         IEnumerable<MetadataReference> metadataReferences = null,
         IEnumerable<AnalyzerReference> analyzerReferences = null,
         string assemblyName = null,
-        string defaultNamespace = null)
+        string defaultNamespace = null,
+        string targetFramework = null)
     {
         _name = name ?? "TestProject";
 
@@ -155,6 +159,7 @@ public abstract class TestHostProject<TDocument> : AbstractTestHostProject
         _assemblyName = assemblyName ?? "TestProject";
         Version = VersionStamp.Create();
         _defaultNamespace = defaultNamespace;
+        _targetFramework = targetFramework;
 
         if (documents != null)
         {
@@ -260,7 +265,8 @@ public abstract class TestHostProject<TDocument> : AbstractTestHostProject
                 defaultNamespace: DefaultNamespace,
                 filePath: FilePath,
                 outputFilePath: GetTestOutputFilePath(FilePath, "bin"),
-                isSubmission: IsSubmission),
+                isSubmission: IsSubmission,
+                targetFramework: _targetFramework),
             CompilationOptions,
             ParseOptions,
             documents: Documents.SelectAsArray(d => !d.IsSourceGenerated, d => d.ToDocumentInfo()),
