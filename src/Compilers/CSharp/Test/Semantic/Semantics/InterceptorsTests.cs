@@ -22,16 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 
 public class InterceptorsTests : CSharpTestBase
 {
-    private static readonly (string text, string path) s_attributesSource = ("""
-        namespace System.Runtime.CompilerServices;
-
-        [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
-        public sealed class InterceptsLocationAttribute : Attribute
-        {
-            public InterceptsLocationAttribute(string filePath, int line, int character) { }
-            public InterceptsLocationAttribute(int version, string data) { }
-        }
-        """, "attributes.cs");
+    private static readonly (string text, string path) s_attributesSource = (TestSources.InterceptsLocationAttribute, "attributes.cs");
 
     private static readonly CSharpParseOptions RegularWithInterceptors = TestOptions.Regular.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, "global");
     private static readonly CSharpParseOptions RegularPreviewWithInterceptors = TestOptions.RegularPreview.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, "global");
