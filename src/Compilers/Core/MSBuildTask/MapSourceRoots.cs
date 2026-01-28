@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
@@ -71,7 +72,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             public static readonly string[] SourceRootMetadataNames = new[] { SourceControl, RevisionId, NestedRoot, ContainingRoot, MappedPath, SourceLinkUrl };
         }
 
-        private static string NormalizePath(string path)
+        [return: NotNullIfNotNull(nameof(path))]
+        private static string? NormalizePath(string? path)
         {
             return string.IsNullOrEmpty(path) ? path : EnsureEndsWithSlash(Utilities.GetFullPathNoThrow(path));
         }
