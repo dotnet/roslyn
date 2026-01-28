@@ -6648,7 +6648,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics();
         var libRef = AsReference(lib, useCompilationReference);
 
-        // PROTOTYPE: Should a method like `I<T>.M(T)` be considered caller-unsafe under compat rules when substituted for `T = int*[]`?
         var source = """
             I<int*[]> i = new C1();
             i.M1();
