@@ -382,6 +382,16 @@
         <target state="translated">没有显式返回类型的匿名方法不允许使用 AsyncMethodBuilder 属性。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CallerUnsafeExplicitlyImplementingSafe">
+        <source>Unsafe member '{0}' implements safe member '{1}'</source>
+        <target state="new">Unsafe member '{0}' implements safe member '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CallerUnsafeImplicitlyImplementingSafe">
+        <source>Unsafe member '{0}' implicitly implements safe member '{1}'</source>
+        <target state="new">Unsafe member '{0}' implicitly implements safe member '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CallerUnsafeOverridingSafe">
         <source>Unsafe member '{0}' overrides safe member '{1}'</source>
         <target state="new">Unsafe member '{0}' overrides safe member '{1}'</target>

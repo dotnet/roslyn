@@ -658,6 +658,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_UnsafeMemberOperation
                 or ErrorCode.ERR_UnsafeMemberOperationCompat
                 or ErrorCode.ERR_CallerUnsafeOverridingSafe
+                or ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe
+                or ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe
 
                 or ErrorCode.Unknown
                 or ErrorCode.ERR_NoMetadataFile

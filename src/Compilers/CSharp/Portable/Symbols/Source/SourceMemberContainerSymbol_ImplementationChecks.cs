@@ -990,7 +990,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                             (diagnostics, overriddenEvent, overridingEvent, location) => diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, location),
                                                             overridingMemberLocation);
 
-                            CheckCallerUnsafeMismatch(overriddenEvent, overridingEvent, overridingMemberLocation, static l => l, diagnostics);
+                            CheckCallerUnsafeMismatch(
+                                overriddenEvent,
+                                overridingEvent,
+                                ErrorCode.ERR_CallerUnsafeOverridingSafe,
+                                overridingMemberLocation,
+                                static l => l,
+                                diagnostics);
                         }
                     }
                     else
@@ -1207,7 +1213,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     overridingMemberLocation,
                     invokedAsExtensionMethod: false);
 
-                CheckCallerUnsafeMismatch(overriddenMethod, overridingMethod, overridingMemberLocation, static l => l, diagnostics);
+                CheckCallerUnsafeMismatch(
+                    overriddenMethod,
+                    overridingMethod,
+                    ErrorCode.ERR_CallerUnsafeOverridingSafe,
+                    overridingMemberLocation,
+                    static l => l,
+                    diagnostics);
             }
         }
 
@@ -1553,6 +1565,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static void CheckCallerUnsafeMismatch<TArg>(
             Symbol? overriddenMember,
             Symbol? overridingMember,
+            ErrorCode errorCode,
             TArg arg,
             Func<TArg, Location> overridingMemberLocation,
             BindingDiagnosticBag diagnostics)
@@ -1565,7 +1578,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var leastOverriddenMember = overriddenMember.GetLeastOverriddenMember(overriddenMember.ContainingType);
             if (overridingMember.CallerUnsafeMode == CallerUnsafeMode.Explicit && leastOverriddenMember.CallerUnsafeMode == CallerUnsafeMode.None)
             {
-                diagnostics.Add(ErrorCode.ERR_CallerUnsafeOverridingSafe, overridingMemberLocation(arg), overridingMember, leastOverriddenMember);
+                diagnostics.Add(errorCode, overridingMemberLocation(arg), overridingMember, leastOverriddenMember);
             }
         }
 #nullable disable

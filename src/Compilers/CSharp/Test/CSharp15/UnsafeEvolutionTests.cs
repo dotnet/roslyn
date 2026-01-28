@@ -3417,63 +3417,63 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (7,1): error CS9502: 'I2.M2()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // i2.M2();
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "i2.M2()").WithArguments("I2.M2()").WithLocation(7, 1),
-                // (12,24): error CS9504: Unsafe member 'C3.M2()' overrides safe member 'I1.M2()'
+                // (12,24): error CS9505: Unsafe member 'C3.M2()' implicitly implements safe member 'I1.M2()'
                 //     public unsafe void M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M2").WithArguments("C3.M2()", "I1.M2()").WithLocation(12, 24),
-                // (18,20): error CS9504: Unsafe member 'C4.I1.M2()' overrides safe member 'I1.M2()'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C3.M2()", "I1.M2()").WithLocation(12, 24),
+                // (18,20): error CS9506: Unsafe member 'C4.I1.M2()' implements safe member 'I1.M2()'
                 //     unsafe void I1.M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M2").WithArguments("C4.I1.M2()", "I1.M2()").WithLocation(18, 20),
-                // (23,24): error CS9504: Unsafe member 'C5.M1()' overrides safe member 'I2.M1()'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C4.I1.M2()", "I1.M2()").WithLocation(18, 20),
+                // (23,24): error CS9505: Unsafe member 'C5.M1()' implicitly implements safe member 'I2.M1()'
                 //     public unsafe void M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("C5.M1()", "I2.M1()").WithLocation(23, 24),
-                // (24,24): error CS9504: Unsafe member 'C5.M2()' overrides safe member 'I1.M2()'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C5.M1()", "I2.M1()").WithLocation(23, 24),
+                // (24,24): error CS9505: Unsafe member 'C5.M2()' implicitly implements safe member 'I1.M2()'
                 //     public unsafe void M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M2").WithArguments("C5.M2()", "I1.M2()").WithLocation(24, 24),
-                // (29,24): error CS9504: Unsafe member 'C6.M1()' overrides safe member 'I2.M1()'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C5.M2()", "I1.M2()").WithLocation(24, 24),
+                // (29,24): error CS9505: Unsafe member 'C6.M1()' implicitly implements safe member 'I2.M1()'
                 //     public unsafe void M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("C6.M1()", "I2.M1()").WithLocation(29, 24),
-                // (30,24): error CS9504: Unsafe member 'C6.M2()' overrides safe member 'I1.M2()'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C6.M1()", "I2.M1()").WithLocation(29, 24),
+                // (30,24): error CS9505: Unsafe member 'C6.M2()' implicitly implements safe member 'I1.M2()'
                 //     public unsafe void M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M2").WithArguments("C6.M2()", "I1.M2()").WithLocation(30, 24),
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C6.M2()", "I1.M2()").WithLocation(30, 24),
             ],
             expectedDiagnosticsWhenReferencingLegacyLib:
             [
-                // (11,24): error CS9504: Unsafe member 'C3.M1()' overrides safe member 'I1.M1()'
+                // (11,24): error CS9505: Unsafe member 'C3.M1()' implicitly implements safe member 'I1.M1()'
                 //     public unsafe void M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("C3.M1()", "I1.M1()").WithLocation(11, 24),
-                // (12,24): error CS9504: Unsafe member 'C3.M2()' overrides safe member 'I1.M2()'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C3.M1()", "I1.M1()").WithLocation(11, 24),
+                // (12,24): error CS9505: Unsafe member 'C3.M2()' implicitly implements safe member 'I1.M2()'
                 //     public unsafe void M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M2").WithArguments("C3.M2()", "I1.M2()").WithLocation(12, 24),
-                // (17,20): error CS9504: Unsafe member 'C4.I1.M1()' overrides safe member 'I1.M1()'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C3.M2()", "I1.M2()").WithLocation(12, 24),
+                // (17,20): error CS9506: Unsafe member 'C4.I1.M1()' implements safe member 'I1.M1()'
                 //     unsafe void I1.M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("C4.I1.M1()", "I1.M1()").WithLocation(17, 20),
-                // (18,20): error CS9504: Unsafe member 'C4.I1.M2()' overrides safe member 'I1.M2()'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M1").WithArguments("C4.I1.M1()", "I1.M1()").WithLocation(17, 20),
+                // (18,20): error CS9506: Unsafe member 'C4.I1.M2()' implements safe member 'I1.M2()'
                 //     unsafe void I1.M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M2").WithArguments("C4.I1.M2()", "I1.M2()").WithLocation(18, 20),
-                // (23,24): error CS9504: Unsafe member 'C5.M1()' overrides safe member 'I1.M1()'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C4.I1.M2()", "I1.M2()").WithLocation(18, 20),
+                // (23,24): error CS9505: Unsafe member 'C5.M1()' implicitly implements safe member 'I1.M1()'
                 //     public unsafe void M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("C5.M1()", "I1.M1()").WithLocation(23, 24),
-                // (23,24): error CS9504: Unsafe member 'C5.M1()' overrides safe member 'I2.M1()'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C5.M1()", "I1.M1()").WithLocation(23, 24),
+                // (23,24): error CS9505: Unsafe member 'C5.M1()' implicitly implements safe member 'I2.M1()'
                 //     public unsafe void M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("C5.M1()", "I2.M1()").WithLocation(23, 24),
-                // (24,24): error CS9504: Unsafe member 'C5.M2()' overrides safe member 'I1.M2()'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C5.M1()", "I2.M1()").WithLocation(23, 24),
+                // (24,24): error CS9505: Unsafe member 'C5.M2()' implicitly implements safe member 'I1.M2()'
                 //     public unsafe void M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M2").WithArguments("C5.M2()", "I1.M2()").WithLocation(24, 24),
-                // (24,24): error CS9504: Unsafe member 'C5.M2()' overrides safe member 'I2.M2()'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C5.M2()", "I1.M2()").WithLocation(24, 24),
+                // (24,24): error CS9505: Unsafe member 'C5.M2()' implicitly implements safe member 'I2.M2()'
                 //     public unsafe void M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M2").WithArguments("C5.M2()", "I2.M2()").WithLocation(24, 24),
-                // (29,24): error CS9504: Unsafe member 'C6.M1()' overrides safe member 'I2.M1()'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C5.M2()", "I2.M2()").WithLocation(24, 24),
+                // (29,24): error CS9505: Unsafe member 'C6.M1()' implicitly implements safe member 'I2.M1()'
                 //     public unsafe void M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("C6.M1()", "I2.M1()").WithLocation(29, 24),
-                // (29,24): error CS9504: Unsafe member 'C6.M1()' overrides safe member 'I1.M1()'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C6.M1()", "I2.M1()").WithLocation(29, 24),
+                // (29,24): error CS9505: Unsafe member 'C6.M1()' implicitly implements safe member 'I1.M1()'
                 //     public unsafe void M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("C6.M1()", "I1.M1()").WithLocation(29, 24),
-                // (30,24): error CS9504: Unsafe member 'C6.M2()' overrides safe member 'I2.M2()'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C6.M1()", "I1.M1()").WithLocation(29, 24),
+                // (30,24): error CS9505: Unsafe member 'C6.M2()' implicitly implements safe member 'I2.M2()'
                 //     public unsafe void M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M2").WithArguments("C6.M2()", "I2.M2()").WithLocation(30, 24),
-                // (30,24): error CS9504: Unsafe member 'C6.M2()' overrides safe member 'I1.M2()'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C6.M2()", "I2.M2()").WithLocation(30, 24),
+                // (30,24): error CS9505: Unsafe member 'C6.M2()' implicitly implements safe member 'I1.M2()'
                 //     public unsafe void M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M2").WithArguments("C6.M2()", "I1.M2()").WithLocation(30, 24),
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C6.M2()", "I1.M2()").WithLocation(30, 24),
             ]);
     }
 
@@ -3497,9 +3497,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             getLib("unsafe"),
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (9,24): error CS9504: Unsafe member 'C.OnCompleted(Action)' overrides safe member 'INotifyCompletion.OnCompleted(Action)'
+            // (9,24): error CS9505: Unsafe member 'C.OnCompleted(Action)' implicitly implements safe member 'INotifyCompletion.OnCompleted(Action)'
             //     public unsafe void OnCompleted(Action continuation) { }
-            Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "OnCompleted").WithArguments("C.OnCompleted(System.Action)", "System.Runtime.CompilerServices.INotifyCompletion.OnCompleted(System.Action)").WithLocation(9, 24));
+            Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "OnCompleted").WithArguments("C.OnCompleted(System.Action)", "System.Runtime.CompilerServices.INotifyCompletion.OnCompleted(System.Action)").WithLocation(9, 24));
 
         var lib = getLib("");
 
@@ -4063,9 +4063,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (6,24): error CS9504: Unsafe member 'C.Dispose()' overrides safe member 'IDisposable.Dispose()'
+            // (6,24): error CS9505: Unsafe member 'C.Dispose()' implicitly implements safe member 'IDisposable.Dispose()'
             //     public unsafe void Dispose() { }
-            Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "Dispose").WithArguments("C.Dispose()", "System.IDisposable.Dispose()").WithLocation(6, 24));
+            Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "Dispose").WithArguments("C.Dispose()", "System.IDisposable.Dispose()").WithLocation(6, 24));
     }
 
     [Fact]
@@ -4978,45 +4978,45 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (3,8): error CS9502: 'I.P2.get' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // i.P2 = i.P2 + 123;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "i.P2").WithArguments("I.P2.get").WithLocation(3, 8),
-                // (9,33): error CS9504: Unsafe member 'C1.P2.set' overrides safe member 'I.P2.set'
+                // (9,33): error CS9505: Unsafe member 'C1.P2.set' implicitly implements safe member 'I.P2.set'
                 //     public unsafe int P2 { get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "set").WithArguments("C1.P2.set", "I.P2.set").WithLocation(9, 33),
-                // (10,28): error CS9504: Unsafe member 'C1.P3.get' overrides safe member 'I.P3.get'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "set").WithArguments("C1.P2.set", "I.P2.set").WithLocation(9, 33),
+                // (10,28): error CS9505: Unsafe member 'C1.P3.get' implicitly implements safe member 'I.P3.get'
                 //     public int P3 { unsafe get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "get").WithArguments("C1.P3.get", "I.P3.get").WithLocation(10, 28),
-                // (17,28): error CS9504: Unsafe member 'C2.P3.get' overrides safe member 'I.P3.get'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "get").WithArguments("C1.P3.get", "I.P3.get").WithLocation(10, 28),
+                // (17,28): error CS9505: Unsafe member 'C2.P3.get' implicitly implements safe member 'I.P3.get'
                 //     public unsafe int P3 { get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "get").WithArguments("C2.P3.get", "I.P3.get").WithLocation(17, 28),
-                // (17,33): error CS9504: Unsafe member 'C2.P3.set' overrides safe member 'I.P3.set'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "get").WithArguments("C2.P3.get", "I.P3.get").WithLocation(17, 28),
+                // (17,33): error CS9505: Unsafe member 'C2.P3.set' implicitly implements safe member 'I.P3.set'
                 //     public unsafe int P3 { get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "set").WithArguments("C2.P3.set", "I.P3.set").WithLocation(17, 33),
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "set").WithArguments("C2.P3.set", "I.P3.set").WithLocation(17, 33),
             ],
             expectedDiagnosticsWhenReferencingLegacyLib:
             [
-                // (9,28): error CS9504: Unsafe member 'C1.P2.get' overrides safe member 'I.P2.get'
+                // (9,28): error CS9505: Unsafe member 'C1.P2.get' implicitly implements safe member 'I.P2.get'
                 //     public unsafe int P2 { get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "get").WithArguments("C1.P2.get", "I.P2.get").WithLocation(9, 28),
-                // (9,33): error CS9504: Unsafe member 'C1.P2.set' overrides safe member 'I.P2.set'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "get").WithArguments("C1.P2.get", "I.P2.get").WithLocation(9, 28),
+                // (9,33): error CS9505: Unsafe member 'C1.P2.set' implicitly implements safe member 'I.P2.set'
                 //     public unsafe int P2 { get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "set").WithArguments("C1.P2.set", "I.P2.set").WithLocation(9, 33),
-                // (10,28): error CS9504: Unsafe member 'C1.P3.get' overrides safe member 'I.P3.get'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "set").WithArguments("C1.P2.set", "I.P2.set").WithLocation(9, 33),
+                // (10,28): error CS9505: Unsafe member 'C1.P3.get' implicitly implements safe member 'I.P3.get'
                 //     public int P3 { unsafe get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "get").WithArguments("C1.P3.get", "I.P3.get").WithLocation(10, 28),
-                // (15,28): error CS9504: Unsafe member 'C2.P1.get' overrides safe member 'I.P1.get'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "get").WithArguments("C1.P3.get", "I.P3.get").WithLocation(10, 28),
+                // (15,28): error CS9505: Unsafe member 'C2.P1.get' implicitly implements safe member 'I.P1.get'
                 //     public unsafe int P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "get").WithArguments("C2.P1.get", "I.P1.get").WithLocation(15, 28),
-                // (15,33): error CS9504: Unsafe member 'C2.P1.set' overrides safe member 'I.P1.set'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "get").WithArguments("C2.P1.get", "I.P1.get").WithLocation(15, 28),
+                // (15,33): error CS9505: Unsafe member 'C2.P1.set' implicitly implements safe member 'I.P1.set'
                 //     public unsafe int P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "set").WithArguments("C2.P1.set", "I.P1.set").WithLocation(15, 33),
-                // (16,28): error CS9504: Unsafe member 'C2.P2.get' overrides safe member 'I.P2.get'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "set").WithArguments("C2.P1.set", "I.P1.set").WithLocation(15, 33),
+                // (16,28): error CS9505: Unsafe member 'C2.P2.get' implicitly implements safe member 'I.P2.get'
                 //     public int P2 { unsafe get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "get").WithArguments("C2.P2.get", "I.P2.get").WithLocation(16, 28),
-                // (17,28): error CS9504: Unsafe member 'C2.P3.get' overrides safe member 'I.P3.get'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "get").WithArguments("C2.P2.get", "I.P2.get").WithLocation(16, 28),
+                // (17,28): error CS9505: Unsafe member 'C2.P3.get' implicitly implements safe member 'I.P3.get'
                 //     public unsafe int P3 { get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "get").WithArguments("C2.P3.get", "I.P3.get").WithLocation(17, 28),
-                // (17,33): error CS9504: Unsafe member 'C2.P3.set' overrides safe member 'I.P3.set'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "get").WithArguments("C2.P3.get", "I.P3.get").WithLocation(17, 28),
+                // (17,33): error CS9505: Unsafe member 'C2.P3.set' implicitly implements safe member 'I.P3.set'
                 //     public unsafe int P3 { get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "set").WithArguments("C2.P3.set", "I.P3.set").WithLocation(17, 33),
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "set").WithArguments("C2.P3.set", "I.P3.set").WithLocation(17, 33),
             ]);
     }
 
@@ -5449,27 +5449,27 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (2,1): error CS9502: 'I.E1' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // i.E1 += null;
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "i.E1").WithArguments("I.E1").WithLocation(2, 1),
-                // (10,39): error CS9504: Unsafe member 'C1.E2' overrides safe member 'I.E2'
+                // (10,39): error CS9505: Unsafe member 'C1.E2' implicitly implements safe member 'I.E2'
                 //     public unsafe event System.Action E2;
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "E2").WithArguments("C1.E2", "I.E2").WithLocation(10, 39),
-                // (16,39): error CS9504: Unsafe member 'C2.E2' overrides safe member 'I.E2'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "E2").WithArguments("C1.E2", "I.E2").WithLocation(10, 39),
+                // (16,39): error CS9505: Unsafe member 'C2.E2' implicitly implements safe member 'I.E2'
                 //     public unsafe event System.Action E2 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "E2").WithArguments("C2.E2", "I.E2").WithLocation(16, 39),
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "E2").WithArguments("C2.E2", "I.E2").WithLocation(16, 39),
             ],
             expectedDiagnosticsWhenReferencingLegacyLib:
             [
-                // (10,39): error CS9504: Unsafe member 'C1.E2' overrides safe member 'I.E2'
+                // (10,39): error CS9505: Unsafe member 'C1.E2' implicitly implements safe member 'I.E2'
                 //     public unsafe event System.Action E2;
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "E2").WithArguments("C1.E2", "I.E2").WithLocation(10, 39),
-                // (16,39): error CS9504: Unsafe member 'C2.E2' overrides safe member 'I.E2'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "E2").WithArguments("C1.E2", "I.E2").WithLocation(10, 39),
+                // (16,39): error CS9505: Unsafe member 'C2.E2' implicitly implements safe member 'I.E2'
                 //     public unsafe event System.Action E2 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "E2").WithArguments("C2.E2", "I.E2").WithLocation(16, 39),
-                // (21,39): error CS9504: Unsafe member 'C3.E1' overrides safe member 'I.E1'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "E2").WithArguments("C2.E2", "I.E2").WithLocation(16, 39),
+                // (21,39): error CS9505: Unsafe member 'C3.E1' implicitly implements safe member 'I.E1'
                 //     public unsafe event System.Action E1;
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "E1").WithArguments("C3.E1", "I.E1").WithLocation(21, 39),
-                // (27,39): error CS9504: Unsafe member 'C4.E1' overrides safe member 'I.E1'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "E1").WithArguments("C3.E1", "I.E1").WithLocation(21, 39),
+                // (27,39): error CS9505: Unsafe member 'C4.E1' implicitly implements safe member 'I.E1'
                 //     public unsafe event System.Action E1 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "E1").WithArguments("C4.E1", "I.E1").WithLocation(27, 39),
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "E1").WithArguments("C4.E1", "I.E1").WithLocation(27, 39),
             ]);
     }
 
@@ -6513,12 +6513,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (2,1): error CS9503: 'I.M1()' must be used in an unsafe context because it has pointers in its signature
             // i.M1();
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "i.M1()").WithArguments("I.M1()").WithLocation(2, 1),
-            // (20,24): error CS9504: Unsafe member 'C3.M2()' overrides safe member 'I.M2()'
+            // (20,24): error CS9505: Unsafe member 'C3.M2()' implicitly implements safe member 'I.M2()'
             //     public unsafe void M2() { }
-            Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M2").WithArguments("C3.M2()", "I.M2()").WithLocation(20, 24),
-            // (26,19): error CS9504: Unsafe member 'C4.I.M2()' overrides safe member 'I.M2()'
+            Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C3.M2()", "I.M2()").WithLocation(20, 24),
+            // (26,19): error CS9506: Unsafe member 'C4.I.M2()' implements safe member 'I.M2()'
             //     unsafe void I.M2() { }
-            Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M2").WithArguments("C4.I.M2()", "I.M2()").WithLocation(26, 19));
+            Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C4.I.M2()", "I.M2()").WithLocation(26, 19));
 
         CreateCompilation(source,
             [libRef],
@@ -6584,18 +6584,18 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             [libRef],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (19,26): error CS9504: Unsafe member 'C3.M1()' overrides safe member 'I<int*[]>.M1()'
+            // (19,26): error CS9505: Unsafe member 'C3.M1()' implicitly implements safe member 'I<int*[]>.M1()'
             //     public unsafe int*[] M1() => null;
-            Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("C3.M1()", "I<int*[]>.M1()").WithLocation(19, 26),
-            // (20,24): error CS9504: Unsafe member 'C3.M2()' overrides safe member 'I<int*[]>.M2()'
+            Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C3.M1()", "I<int*[]>.M1()").WithLocation(19, 26),
+            // (20,24): error CS9505: Unsafe member 'C3.M2()' implicitly implements safe member 'I<int*[]>.M2()'
             //     public unsafe void M2() { }
-            Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M2").WithArguments("C3.M2()", "I<int*[]>.M2()").WithLocation(20, 24),
-            // (25,29): error CS9504: Unsafe member 'C4.I<int*[]>.M1()' overrides safe member 'I<int*[]>.M1()'
+            Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C3.M2()", "I<int*[]>.M2()").WithLocation(20, 24),
+            // (25,29): error CS9506: Unsafe member 'C4.I<int*[]>.M1()' implements safe member 'I<int*[]>.M1()'
             //     unsafe int*[] I<int*[]>.M1() => null;
-            Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("C4.I<int*[]>.M1()", "I<int*[]>.M1()").WithLocation(25, 29),
-            // (26,27): error CS9504: Unsafe member 'C4.I<int*[]>.M2()' overrides safe member 'I<int*[]>.M2()'
+            Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M1").WithArguments("C4.I<int*[]>.M1()", "I<int*[]>.M1()").WithLocation(25, 29),
+            // (26,27): error CS9506: Unsafe member 'C4.I<int*[]>.M2()' implements safe member 'I<int*[]>.M2()'
             //     unsafe void I<int*[]>.M2() { }
-            Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M2").WithArguments("C4.I<int*[]>.M2()", "I<int*[]>.M2()").WithLocation(26, 27));
+            Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C4.I<int*[]>.M2()", "I<int*[]>.M2()").WithLocation(26, 27));
 
         CreateCompilation(source,
             [libRef],
@@ -7561,45 +7561,45 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (3,1): error CS9502: 'I.M1()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // i.M1();
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "i.M1()").WithArguments("I.M1()").WithLocation(3, 1),
-                // (21,24): error CS9504: Unsafe member 'C3.M2()' overrides safe member 'I.M2()'
+                // (21,24): error CS9505: Unsafe member 'C3.M2()' implicitly implements safe member 'I.M2()'
                 //     public unsafe void M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M2").WithArguments("C3.M2()", "I.M2()").WithLocation(21, 24),
-                // (27,19): error CS9504: Unsafe member 'C4.I.M2()' overrides safe member 'I.M2()'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C3.M2()", "I.M2()").WithLocation(21, 24),
+                // (27,19): error CS9506: Unsafe member 'C4.I.M2()' implements safe member 'I.M2()'
                 //     unsafe void I.M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M2").WithArguments("C4.I.M2()", "I.M2()").WithLocation(27, 19),
-                // (33,24): error CS9504: Unsafe member 'C5.M2()' overrides safe member 'I.M2()'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C4.I.M2()", "I.M2()").WithLocation(27, 19),
+                // (33,24): error CS9505: Unsafe member 'C5.M2()' implicitly implements safe member 'I.M2()'
                 //     public extern void M2();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M2").WithArguments("C5.M2()", "I.M2()").WithLocation(33, 24),
-                // (39,19): error CS9504: Unsafe member 'C6.I.M2()' overrides safe member 'I.M2()'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C5.M2()", "I.M2()").WithLocation(33, 24),
+                // (39,19): error CS9506: Unsafe member 'C6.I.M2()' implements safe member 'I.M2()'
                 //     extern void I.M2();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M2").WithArguments("C6.I.M2()", "I.M2()").WithLocation(39, 19),
+                Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C6.I.M2()", "I.M2()").WithLocation(39, 19),
             ],
             expectedDiagnosticsWhenReferencingLegacyLib:
             [
-                // (20,24): error CS9504: Unsafe member 'C3.M1()' overrides safe member 'I.M1()'
+                // (20,24): error CS9505: Unsafe member 'C3.M1()' implicitly implements safe member 'I.M1()'
                 //     public unsafe void M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("C3.M1()", "I.M1()").WithLocation(20, 24),
-                // (21,24): error CS9504: Unsafe member 'C3.M2()' overrides safe member 'I.M2()'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C3.M1()", "I.M1()").WithLocation(20, 24),
+                // (21,24): error CS9505: Unsafe member 'C3.M2()' implicitly implements safe member 'I.M2()'
                 //     public unsafe void M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M2").WithArguments("C3.M2()", "I.M2()").WithLocation(21, 24),
-                // (26,19): error CS9504: Unsafe member 'C4.I.M1()' overrides safe member 'I.M1()'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C3.M2()", "I.M2()").WithLocation(21, 24),
+                // (26,19): error CS9506: Unsafe member 'C4.I.M1()' implements safe member 'I.M1()'
                 //     unsafe void I.M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("C4.I.M1()", "I.M1()").WithLocation(26, 19),
-                // (27,19): error CS9504: Unsafe member 'C4.I.M2()' overrides safe member 'I.M2()'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M1").WithArguments("C4.I.M1()", "I.M1()").WithLocation(26, 19),
+                // (27,19): error CS9506: Unsafe member 'C4.I.M2()' implements safe member 'I.M2()'
                 //     unsafe void I.M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M2").WithArguments("C4.I.M2()", "I.M2()").WithLocation(27, 19),
-                // (32,24): error CS9504: Unsafe member 'C5.M1()' overrides safe member 'I.M1()'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C4.I.M2()", "I.M2()").WithLocation(27, 19),
+                // (32,24): error CS9505: Unsafe member 'C5.M1()' implicitly implements safe member 'I.M1()'
                 //     public extern void M1();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("C5.M1()", "I.M1()").WithLocation(32, 24),
-                // (33,24): error CS9504: Unsafe member 'C5.M2()' overrides safe member 'I.M2()'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C5.M1()", "I.M1()").WithLocation(32, 24),
+                // (33,24): error CS9505: Unsafe member 'C5.M2()' implicitly implements safe member 'I.M2()'
                 //     public extern void M2();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M2").WithArguments("C5.M2()", "I.M2()").WithLocation(33, 24),
-                // (38,19): error CS9504: Unsafe member 'C6.I.M1()' overrides safe member 'I.M1()'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C5.M2()", "I.M2()").WithLocation(33, 24),
+                // (38,19): error CS9506: Unsafe member 'C6.I.M1()' implements safe member 'I.M1()'
                 //     extern void I.M1();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("C6.I.M1()", "I.M1()").WithLocation(38, 19),
-                // (39,19): error CS9504: Unsafe member 'C6.I.M2()' overrides safe member 'I.M2()'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M1").WithArguments("C6.I.M1()", "I.M1()").WithLocation(38, 19),
+                // (39,19): error CS9506: Unsafe member 'C6.I.M2()' implements safe member 'I.M2()'
                 //     extern void I.M2();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M2").WithArguments("C6.I.M2()", "I.M2()").WithLocation(39, 19),
+                Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C6.I.M2()", "I.M2()").WithLocation(39, 19),
             ]);
     }
 

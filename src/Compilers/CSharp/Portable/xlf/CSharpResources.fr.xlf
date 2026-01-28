@@ -382,6 +382,16 @@
         <target state="translated">L'attribut AsyncMethodBuilder n'est pas autorisé pour les méthodes anonymes sans type de retour explicite.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CallerUnsafeExplicitlyImplementingSafe">
+        <source>Unsafe member '{0}' implements safe member '{1}'</source>
+        <target state="new">Unsafe member '{0}' implements safe member '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CallerUnsafeImplicitlyImplementingSafe">
+        <source>Unsafe member '{0}' implicitly implements safe member '{1}'</source>
+        <target state="new">Unsafe member '{0}' implicitly implements safe member '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CallerUnsafeOverridingSafe">
         <source>Unsafe member '{0}' overrides safe member '{1}'</source>
         <target state="new">Unsafe member '{0}' overrides safe member '{1}'</target>

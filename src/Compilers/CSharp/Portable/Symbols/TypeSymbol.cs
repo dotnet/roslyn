@@ -1800,6 +1800,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     SourceMemberContainerTypeSymbol.CheckCallerUnsafeMismatch(
                         implementedEvent,
                         implementingEvent,
+                        isExplicit ? ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe : ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe,
                         (implementedEvent, implementingType, implementingEvent),
                         static arg => GetImplicitImplementationDiagnosticLocation(arg.implementedEvent, arg.implementingType, arg.implementingEvent),
                         diagnostics);
@@ -1905,6 +1906,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         SourceMemberContainerTypeSymbol.CheckCallerUnsafeMismatch(
                             implementedMethod,
                             implementingMethod,
+                            isExplicit ? ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe : ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe,
                             (implementedMethod, implementingType, implementingMethod),
                             static arg => GetImplicitImplementationDiagnosticLocation(arg.implementedMethod, arg.implementingType, arg.implementingMethod),
                             diagnostics);

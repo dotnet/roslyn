@@ -8233,4 +8233,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CallerUnsafeOverridingSafe" xml:space="preserve">
     <value>Unsafe member '{0}' overrides safe member '{1}'</value>
   </data>
+  <data name="ERR_CallerUnsafeImplicitlyImplementingSafe" xml:space="preserve">
+    <value>Unsafe member '{0}' implicitly implements safe member '{1}'</value>
+  </data>
+  <data name="ERR_CallerUnsafeExplicitlyImplementingSafe" xml:space="preserve">
+    <value>Unsafe member '{0}' implements safe member '{1}'</value>
+  </data>
 </root>
