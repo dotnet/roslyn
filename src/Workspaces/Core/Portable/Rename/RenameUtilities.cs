@@ -340,7 +340,7 @@ internal static class RenameUtilities
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var semanticInfo = await SymbolFinder.GetSemanticInfoAtPositionAsync(
             semanticModel, position, document.Project.Solution.Services, cancellationToken).ConfigureAwait(false);
-        
+
         var symbol = semanticInfo.GetAnySymbol(includeType: false);
 
         if (symbol == null)
