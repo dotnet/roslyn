@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -707,11 +709,15 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 Inherits C
 
                 Public Sub New()
+            #ExternalSource("file.vb", 101)
                     MyBase.New()
+            #End ExternalSource
                 End Sub
 
                 Public Sub New(i As Integer)
+            #ExternalSource("file.vb", 201)
                     MyBase.New(i)
+            #End ExternalSource
                 End Sub
             End Class
             """;
@@ -723,21 +729,21 @@ public sealed class ClosedClassesTests : CSharpTestBase
         Assert.Equal(2, diagnostics.Length);
         Assert.Equal(36954 /*ERRID.ERR_BadOverloadCandidates2*/, diagnostics[0].Code);
         Assert.Equal(2, diagnostics[0].Arguments.Count);
-        AssertEx.AssertEqualToleratingWhitespaceDifferences("New", diagnostics[0].Arguments[0]!.ToString());
+        AssertEx.AssertEqualToleratingWhitespaceDifferences("New", diagnostics[0].Arguments[0].ToString());
         //error BC0000:
         //        'Public Overloads Sub New()': 'Public Overloads Sub New()' requires compiler feature 'ClosedClasses', which is not supported by this version of the Visual Basic compiler.
         //        'Public Overloads Sub New(i As Integer)': 'Public Overloads Sub New(i As Integer)' requires compiler feature 'ClosedClasses', which is not supported by this version of the Visual Basic compiler.
-        Assert.Contains(expectedSubstring: "ClosedClasses", actualString: diagnostics[0].Arguments[1]!.ToString());
-        Assert.Equal(": (4,15)-(4,18)", diagnostics[0].Location.GetLineSpan().ToString());
+        Assert.Contains(expectedSubstring: "ClosedClasses", actualString: diagnostics[0].Arguments[1].ToString());
+        Assert.Equal("file.vb: (100,15)-(100,18)", diagnostics[0].Location.GetMappedLineSpan().ToString());
 
         Assert.Equal(36954 /*ERRID.ERR_BadOverloadCandidates2*/, diagnostics[1].Code);
         Assert.Equal(2, diagnostics[1].Arguments.Count);
-        AssertEx.AssertEqualToleratingWhitespaceDifferences("New", diagnostics[1].Arguments[0]!.ToString());
+        AssertEx.AssertEqualToleratingWhitespaceDifferences("New", diagnostics[1].Arguments[0].ToString());
         //error BC0000:
         //        'Public Overloads Sub New()': 'Public Overloads Sub New()' requires compiler feature 'ClosedClasses', which is not supported by this version of the Visual Basic compiler.
         //        'Public Overloads Sub New(i As Integer)': 'Public Overloads Sub New(i As Integer)' requires compiler feature 'ClosedClasses', which is not supported by this version of the Visual Basic compiler.
-        Assert.Contains(expectedSubstring: "ClosedClasses", actualString: diagnostics[1].Arguments[1]!.ToString());
-        Assert.Equal(": (8,15)-(8,18)", diagnostics[1].Location.GetLineSpan().ToString());
+        Assert.Contains(expectedSubstring: "ClosedClasses", actualString: diagnostics[1].Arguments[1].ToString());
+        Assert.Equal("file.vb: (200,15)-(200,18)", diagnostics[1].Location.GetMappedLineSpan().ToString());
     }
 
     [Fact]
