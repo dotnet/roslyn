@@ -44,7 +44,7 @@ The language server is designed to be launched by editor clients and typically s
 ### Example
 
 ```bash
-roslyn-language-server --stdio
+roslyn-language-server --stdio --autoLoadProjects
 ```
 
 ## Requirements
