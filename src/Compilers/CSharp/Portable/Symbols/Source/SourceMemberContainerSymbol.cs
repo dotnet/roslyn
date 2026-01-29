@@ -389,6 +389,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Interface:
                     mods |= DeclarationModifiers.Abstract;
                     break;
+                case TypeKind.Class:
+                    if ((mods & DeclarationModifiers.Closed) != 0)
+                        mods |= DeclarationModifiers.Abstract;
+
+                    break;
                 case TypeKind.Struct:
                 case TypeKind.Enum:
                 case TypeKind.Delegate:
@@ -877,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsSealed => HasFlag(DeclarationModifiers.Sealed);
 
-        public override bool IsAbstract => HasFlag(DeclarationModifiers.Abstract) || HasFlag(DeclarationModifiers.Closed);
+        public override bool IsAbstract => HasFlag(DeclarationModifiers.Abstract);
 
         internal bool IsPartial => HasFlag(DeclarationModifiers.Partial);
 
