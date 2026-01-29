@@ -750,16 +750,76 @@ public sealed class ClosedClassesTests : CSharpTestBase
     public void ClosedAttributeExplicitUsage()
     {
         var source1 = """
+            #pragma warning disable CS0067 // The event is never used
             using System.Runtime.CompilerServices;
 
-            [Closed]
-            public class C { }
+            [assembly: Closed] // 1
+            [module: Closed] // 2
+
+            [Closed] public class C // 3
+            {
+                [Closed] public C() { } // 4
+                [Closed] public void M() { } // 5
+                [Closed] public string P { get; set; } // 6
+                [Closed] public string F; // 7
+                [Closed] public event System.Action E; // 8
+
+                public void M1([Closed] int param) { } // 9
+                [return: Closed] public int M2() => 0; // 10
+                public void M3<[Closed] T>() { } // 11
+            }
+            [Closed] public struct S { } // 12
+            [Closed] public enum E { } // 13
+            [Closed] public interface I { } // 14
+            [Closed] public delegate void D(); // 15
             """;
         var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics(
-            // (3,2): error CS8335: Do not use 'System.Runtime.CompilerServices.ClosedAttribute'. This is reserved for compiler usage.
-            // [Closed]
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.ClosedAttribute").WithLocation(3, 2));
+            // (4,12): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
+            // [assembly: Closed] // 1
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(4, 12),
+            // (5,10): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
+            // [module: Closed] // 2
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(5, 10),
+            // (7,2): error CS8335: Do not use 'System.Runtime.CompilerServices.ClosedAttribute'. This is reserved for compiler usage.
+            // [Closed] public class C // 3
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.ClosedAttribute").WithLocation(7, 2),
+            // (9,6): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
+            //     [Closed] public C() { } // 4
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(9, 6),
+            // (10,6): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
+            //     [Closed] public void M() { } // 5
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(10, 6),
+            // (11,6): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
+            //     [Closed] public string P { get; set; } // 6
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(11, 6),
+            // (12,6): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
+            //     [Closed] public string F; // 7
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(12, 6),
+            // (13,6): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
+            //     [Closed] public event System.Action E; // 8
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(13, 6),
+            // (15,21): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
+            //     public void M1([Closed] int param) { } // 9
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(15, 21),
+            // (16,14): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
+            //     [return: Closed] public int M2() => 0; // 10
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(16, 14),
+            // (17,21): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
+            //     public void M3<[Closed] T>() { } // 11
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(17, 21),
+            // (19,2): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
+            // [Closed] public struct S { } // 12
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(19, 2),
+            // (20,2): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
+            // [Closed] public enum E { } // 13
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(20, 2),
+            // (21,2): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
+            // [Closed] public interface I { } // 14
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(21, 2),
+            // (22,2): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
+            // [Closed] public delegate void D(); // 15
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(22, 2));
     }
 
     [Fact]
