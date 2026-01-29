@@ -244,8 +244,6 @@ public class CustomCompletionProvider : CompletionProvider
 
 ---
 
----
-
 ## Related Documentation
 
 **In This Overview:**

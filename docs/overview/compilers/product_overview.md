@@ -266,8 +266,6 @@ var classDeclaration = SyntaxFactory.ClassDeclaration("GeneratedClass")
 
 ---
 
----
-
 ## Related Documentation
 
 **In This Overview:**

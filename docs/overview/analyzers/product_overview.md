@@ -260,8 +260,6 @@ dotnet_diagnostic.IDE0003.severity = warning
 
 ---
 
----
-
 ## Related Documentation
 
 **In This Overview:**

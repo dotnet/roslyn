@@ -237,8 +237,6 @@ workspace.WorkspaceChanged += async (sender, args) =>
 
 ---
 
----
-
 ## Related Documentation
 
 **In This Overview:**

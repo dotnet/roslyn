@@ -273,8 +273,6 @@ public class FormatDocumentHandler : ICommandHandler<FormatDocumentCommandArgs>
 
 ---
 
----
-
 ## Related Documentation
 
 **In This Overview:**

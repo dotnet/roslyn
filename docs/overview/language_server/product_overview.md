@@ -221,8 +221,6 @@ For detailed architecture, see [Codebase Overview](./codebase_overview.md).
 
 ---
 
----
-
 ## Related Documentation
 
 **In This Overview:**
