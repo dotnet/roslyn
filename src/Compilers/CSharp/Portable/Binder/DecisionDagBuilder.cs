@@ -1638,10 +1638,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 // We check test.Equals(other) to handle "bad" constant values
                                 bool sameTest = test.Equals(other);
-                                trueTestPermitsTrueOther = ((IConstantValueSet?)whenTrueValues)?.Any(relation, value) ?? true;
-                                trueTestImpliesTrueOther = sameTest || trueTestPermitsTrueOther && (((IConstantValueSet?)whenTrueValues)?.All(relation, value) ?? false);
-                                falseTestPermitsTrueOther = !sameTest && (((IConstantValueSet?)whenFalseValues)?.Any(relation, value) ?? true);
-                                falseTestImpliesTrueOther = falseTestPermitsTrueOther && (((IConstantValueSet?)whenFalseValues)?.All(relation, value) ?? false);
+                                var whenTrueConstantValueSet = whenTrueValues as IConstantValueSet;
+                                trueTestPermitsTrueOther = whenTrueConstantValueSet?.Any(relation, value) ?? true;
+                                trueTestImpliesTrueOther = sameTest || trueTestPermitsTrueOther && (whenTrueConstantValueSet?.All(relation, value) ?? false);
+                                var whenFalseConstantValueSet = whenFalseValues as IConstantValueSet;
+                                falseTestPermitsTrueOther = !sameTest && (whenFalseConstantValueSet?.Any(relation, value) ?? true);
+                                falseTestImpliesTrueOther = falseTestPermitsTrueOther && (whenFalseConstantValueSet?.All(relation, value) ?? false);
                             }
                     }
                     break;
