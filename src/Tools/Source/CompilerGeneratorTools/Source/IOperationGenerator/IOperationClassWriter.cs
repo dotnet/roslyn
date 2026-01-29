@@ -186,6 +186,7 @@ namespace IOperationGenerator
                 WriteLine("// See the LICENSE file in the project root for more information.");
                 WriteLine("// < auto-generated />");
                 WriteLine("#nullable enable");
+                WriteLine("#pragma warning disable RSEXPERIMENTAL006 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.");
             }
         }
 
