@@ -233,6 +233,7 @@ namespace System.Diagnostics.CodeAnalysis
         protected static readonly string ClosedAttributeDefinition = """
             namespace System.Runtime.CompilerServices
             {
+                [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
                 public class ClosedAttribute : Attribute { }
             }
             """;
