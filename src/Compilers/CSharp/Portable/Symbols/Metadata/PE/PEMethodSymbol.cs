@@ -1518,15 +1518,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             var containingModule = _containingType.ContainingPEModule;
             var decoder = new MetadataDecoder(containingModule, this);
-            var diag = PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(
-                this, containingModule, Handle,
-                allowedFeatures: MethodKind == MethodKind.Constructor ?
-                    CompilerFeatureRequiredFeatures.RequiredMembers | CompilerFeatureRequiredFeatures.ClosedClasses :
-                    (SourceMethodSymbol.IsInstanceIncrementDecrementOrCompoundAssignmentOperator(this) ?
-                        CompilerFeatureRequiredFeatures.UserDefinedCompoundAssignmentOperators :
-                        CompilerFeatureRequiredFeatures.None),
-                decoder);
 
+            var allowedFeatures = CompilerFeatureRequiredFeatures.None;
+            if (MethodKind == MethodKind.Constructor)
+            {
+                allowedFeatures |= CompilerFeatureRequiredFeatures.RequiredMembers;
+                if (ContainingType.IsClosed)
+                    allowedFeatures |= CompilerFeatureRequiredFeatures.ClosedClasses;
+            }
+            else if (SourceMethodSymbol.IsInstanceIncrementDecrementOrCompoundAssignmentOperator(this))
+            {
+                allowedFeatures |= CompilerFeatureRequiredFeatures.UserDefinedCompoundAssignmentOperators;
+            }
+
+            var diag = PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(this, containingModule, Handle, allowedFeatures, decoder);
             if (diag != null)
             {
                 return diag;

@@ -492,6 +492,45 @@ public sealed class ClosedClassesTests : CSharpTestBase
     }
 
     [Fact]
+    public void CompilerFeatureRequired_NonClosedContainingType()
+    {
+        // Constructor has CompilerFeatureRequired("ClosedClasses") yet containing type lacks ClosedAttribute
+        var il = """
+            .assembly extern System.Runtime { .ver 10:0:0:0 .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A) }
+
+            .class public auto ansi abstract beforefieldinit C
+                extends [System.Runtime]System.Object
+            {
+                // Methods
+                .method family hidebysig specialname rtspecialname
+                    instance void .ctor () cil managed
+                {
+                    .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
+                        01 00 0d 43 6c 6f 73 65 64 43 6c 61 73 73 65 73
+                        00 00
+                    )
+                    // Method begins at RVA 0x2050
+                    // Code size 7 (0x7)
+                    .maxstack 8
+                    IL_0000: ldarg.0
+                    IL_0001: call instance void [System.Runtime]System.Object::.ctor()
+                    IL_0006: ret
+                } // end of method C::.ctor
+            } // end of class C
+            """;
+
+        var ilComp = CompileIL(il);
+        var source1 = """
+            public class D : C { }
+            """;
+        var comp1 = CreateCompilation(source1, references: [ilComp], targetFramework: TargetFramework.Net100);
+        comp1.VerifyEmitDiagnostics(
+            // (1,14): error CS9041: 'C.C()' requires compiler feature 'ClosedClasses', which is not supported by this version of the C# compiler.
+            // public class D : C { }
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "D").WithArguments("C.C()", "ClosedClasses").WithLocation(1, 14));
+    }
+
+    [Fact]
     public void GenericSubtype_01()
     {
         // Type parameter is used in base
