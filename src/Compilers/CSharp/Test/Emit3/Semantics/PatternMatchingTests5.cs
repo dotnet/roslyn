@@ -2723,10 +2723,49 @@ class N
 """;
 
             var comp = CreateCompilation(source);
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t1 = t0.e1; [1]
+[1]: t1 == 1 ? [2] : [8]
+[2]: t2 = t0.e2; [3]
+[3]: t2 == 1 ? [4] : [5]
+[4]: leaf <arm> `(Enum.One, Enum.One, _) => 0`
+[5]: t2 == 2 ? [12] : [6]
+[6]: t2 == 0 ? [7] : [18]
+[7]: leaf <arm> `(Enum.One, Enum.Zero, _) => 0`
+[8]: t1 == 2 ? [9] : [10]
+[9]: leaf <arm> `(Enum.Two, _, _) => 0`
+[10]: t2 = t0.e2; [11]
+[11]: t2 == 2 ? [12] : [13]
+[12]: leaf <arm> `(_, Enum.Two, _) => 0`
+[13]: t1 == 0 ? [14] : [24]
+[14]: t2 == 0 ? [15] : [16]
+[15]: leaf <arm> `(Enum.Zero, Enum.Zero, _) => 0`
+[16]: t2 == 1 ? [17] : [18]
+[17]: leaf <arm> `(Enum.Zero, Enum.One, _) => 0`
+[18]: t3 = t0.o; [19]
+[19]: t3 is string ? [20] : [23]
+[20]: t4 = (string)t3; [21]
+[21]: when <true> ? [22] : <unreachable>
+[22]: leaf <arm> `(_, < 0 or > Enum.Two, string s) => 0`
+[23]: leaf <default> `(e1, e2, o) switch
+        {
+            (Enum.One, Enum.One, _) => 0,
+            (Enum.Two, _, _) => 0,
+            (_, Enum.Two, _) => 0,
+            (Enum.Zero, Enum.Zero, _) => 0,
+            (Enum.Zero, Enum.One, _) => 0,
+            (Enum.One, Enum.Zero, _) => 0,
+            ( < 0 or > Enum.Two, _, _) => 0,
+            (_, < 0 or > Enum.Two, string s) => 0,
+        }`
+[24]: leaf <arm> `( < 0 or > Enum.Two, _, _) => 0`
+");
+
             comp.VerifyDiagnostics(
-                // (12,28): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(Enum.One, (Enum)-1, _)' is not covered.
+                // (12,28): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(Enum.One, (Enum)3, _)' is not covered.
                 //         return (e1, e2, o) switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(Enum.One, (Enum)-1, _)").WithLocation(12, 28)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(Enum.One, (Enum)3, _)").WithLocation(12, 28)
                 );
         }
 
@@ -3359,6 +3398,1178 @@ class Outer
                 //         return x0 is {expression};
                 Diagnostic(ErrorCode.ERR_ConstantExpected, expression).WithLocation(6, 22)
             );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82063")]
+        public void SideeffectEvaluations_01()
+        {
+            var src = @"
+interface I1
+{
+    int F {get;}
+}
+
+class C11;
+class C12;
+class C13(int f) : C12, I1
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C13.F "");
+            return f;   
+        }
+    }
+}
+class C14(int f) : I1
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C14.F "");
+            return f;   
+        }
+    }
+}
+class C15(int f) : I1
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C15.F "");
+            return f;   
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        object[] s = [null, new C11(), new C12(), new C13(1), new C14(1), new C15(1), new C13(2), new C14(2), new C15(2), new C13(3), new C14(3), new C15(3)]; 
+        int[] i = [1, 2, 3];
+        foreach (var s1 in s)
+        {
+            foreach (var j in i)
+            {
+                var t = Test1((s1, j));
+                System.Console.WriteLine(t);
+            }
+        }
+    }
+
+    static bool Test1((object, int) u)
+    {
+        return u is (C12 and I1 and { F: 1 }, 2) or (I1 and { F: 1 or 2 }, 1);
+    }   
+}
+";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t1 = t0.Item1; [1]
+[1]: t1 is C12 ? [2] : [9]
+[2]: t2 = (C12)t1; [3]
+[3]: t2 is I1 ? [4] : [17]
+[4]: t3 = (I1)t1; [5]
+[5]: t4 = t3.F; [6]
+[6]: t4 == 1 ? [7] : [13]
+[7]: t5 = t0.Item2; [8]
+[8]: t5 == 2 ? [16] : [15]
+[9]: t1 is I1 ? [10] : [17]
+[10]: t3 = (I1)t1; [11]
+[11]: t4 = t3.F; [12]
+[12]: t4 == 1 ? [14] : [13]
+[13]: t4 == 2 ? [14] : [17]
+[14]: t5 = t0.Item2; [15]
+[15]: t5 == 1 ? [16] : [17]
+[16]: leaf <isPatternSuccess> `(C12 and I1 and { F: 1 }, 2) or (I1 and { F: 1 or 2 }, 1)`
+[17]: leaf <isPatternFailure> `(C12 and I1 and { F: 1 }, 2) or (I1 and { F: 1 or 2 }, 1)`
+");
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+False
+False
+False
+False
+False
+False
+False
+False
+False
+Evaluated C13.F True
+Evaluated C13.F True
+Evaluated C13.F False
+Evaluated C14.F True
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C15.F True
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C13.F True
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C14.F True
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C15.F True
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C15.F False
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size      107 (0x6b)
+  .maxstack  2
+  .locals init (object V_0,
+                C12 V_1,
+                I1 V_2,
+                int V_3,
+                int V_4,
+                bool V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""object System.ValueTuple<object, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  isinst     ""C12""
+  IL_000d:  stloc.1
+  IL_000e:  ldloc.1
+  IL_000f:  brfalse.s  IL_003a
+  IL_0011:  ldloc.1
+  IL_0012:  isinst     ""I1""
+  IL_0017:  brfalse.s  IL_0065
+  IL_0019:  ldloc.0
+  IL_001a:  castclass  ""I1""
+  IL_001f:  stloc.2
+  IL_0020:  ldloc.2
+  IL_0021:  callvirt   ""int I1.F.get""
+  IL_0026:  stloc.3
+  IL_0027:  ldloc.3
+  IL_0028:  ldc.i4.1
+  IL_0029:  bne.un.s   IL_004f
+  IL_002b:  ldarg.0
+  IL_002c:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_0031:  stloc.s    V_4
+  IL_0033:  ldloc.s    V_4
+  IL_0035:  ldc.i4.2
+  IL_0036:  beq.s      IL_0060
+  IL_0038:  br.s       IL_005b
+  IL_003a:  ldloc.0
+  IL_003b:  isinst     ""I1""
+  IL_0040:  stloc.2
+  IL_0041:  ldloc.2
+  IL_0042:  brfalse.s  IL_0065
+  IL_0044:  ldloc.2
+  IL_0045:  callvirt   ""int I1.F.get""
+  IL_004a:  stloc.3
+  IL_004b:  ldloc.3
+  IL_004c:  ldc.i4.1
+  IL_004d:  beq.s      IL_0053
+  IL_004f:  ldloc.3
+  IL_0050:  ldc.i4.2
+  IL_0051:  bne.un.s   IL_0065
+  IL_0053:  ldarg.0
+  IL_0054:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_0059:  stloc.s    V_4
+  IL_005b:  ldloc.s    V_4
+  IL_005d:  ldc.i4.1
+  IL_005e:  bne.un.s   IL_0065
+  IL_0060:  ldc.i4.1
+  IL_0061:  stloc.s    V_5
+  IL_0063:  br.s       IL_0068
+  IL_0065:  ldc.i4.0
+  IL_0066:  stloc.s    V_5
+  IL_0068:  ldloc.s    V_5
+  IL_006a:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82063")]
+        public void SideeffectEvaluations_02()
+        {
+            var src = @"
+interface I1
+{
+    int F {get;}
+}
+
+class C11;
+class C12;
+class C13(int f) : C12, I1
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C13.F "");
+            return f;   
+        }
+    }
+}
+class C14(int f) : I1
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C14.F "");
+            return f;   
+        }
+    }
+}
+class C15(int f) : I1
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C15.F "");
+            return f;   
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        object[] s = [null, new C11(), new C12(), new C13(1), new C14(1), new C15(1), new C13(2), new C14(2), new C15(2), new C13(3), new C14(3), new C15(3)]; 
+        int[] i = [1, 2, 3];
+        foreach (var s1 in s)
+        {
+            foreach (var j in i)
+            {
+                var t = Test1((s1, j));
+                System.Console.WriteLine(t);
+            }
+        }
+    }
+
+    static bool Test1((object, int) u)
+    {
+        return u is (I1 and { F: 1 or 2 }, 1) or (C12 and I1 and { F: 1 }, 2);
+    }   
+}
+";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t1 = t0.Item1; [1]
+[1]: t1 is I1 ? [2] : [13]
+[2]: t2 = (I1)t1; [3]
+[3]: t3 = t2.F; [4]
+[4]: t3 == 1 ? [5] : [9]
+[5]: t4 = t0.Item2; [6]
+[6]: t4 == 1 ? [12] : [7]
+[7]: t1 is C12 ? [8] : [13]
+[8]: t4 == 2 ? [12] : [13]
+[9]: t3 == 2 ? [10] : [13]
+[10]: t4 = t0.Item2; [11]
+[11]: t4 == 1 ? [12] : [13]
+[12]: leaf <isPatternSuccess> `(I1 and { F: 1 or 2 }, 1) or (C12 and I1 and { F: 1 }, 2)`
+[13]: leaf <isPatternFailure> `(I1 and { F: 1 or 2 }, 1) or (C12 and I1 and { F: 1 }, 2)`
+");
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+False
+False
+False
+False
+False
+False
+False
+False
+False
+Evaluated C13.F True
+Evaluated C13.F True
+Evaluated C13.F False
+Evaluated C14.F True
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C15.F True
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C13.F True
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C14.F True
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C15.F True
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C15.F False
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       81 (0x51)
+  .maxstack  2
+  .locals init (object V_0,
+                I1 V_1,
+                int V_2,
+                int V_3,
+                bool V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""object System.ValueTuple<object, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  isinst     ""I1""
+  IL_000d:  stloc.1
+  IL_000e:  ldloc.1
+  IL_000f:  brfalse.s  IL_004b
+  IL_0011:  ldloc.1
+  IL_0012:  callvirt   ""int I1.F.get""
+  IL_0017:  stloc.2
+  IL_0018:  ldloc.2
+  IL_0019:  ldc.i4.1
+  IL_001a:  beq.s      IL_0022
+  IL_001c:  ldloc.2
+  IL_001d:  ldc.i4.2
+  IL_001e:  beq.s      IL_003b
+  IL_0020:  br.s       IL_004b
+  IL_0022:  ldarg.0
+  IL_0023:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_0028:  stloc.3
+  IL_0029:  ldloc.3
+  IL_002a:  ldc.i4.1
+  IL_002b:  beq.s      IL_0046
+  IL_002d:  ldloc.0
+  IL_002e:  isinst     ""C12""
+  IL_0033:  brfalse.s  IL_004b
+  IL_0035:  ldloc.3
+  IL_0036:  ldc.i4.2
+  IL_0037:  beq.s      IL_0046
+  IL_0039:  br.s       IL_004b
+  IL_003b:  ldarg.0
+  IL_003c:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_0041:  stloc.3
+  IL_0042:  ldloc.3
+  IL_0043:  ldc.i4.1
+  IL_0044:  bne.un.s   IL_004b
+  IL_0046:  ldc.i4.1
+  IL_0047:  stloc.s    V_4
+  IL_0049:  br.s       IL_004e
+  IL_004b:  ldc.i4.0
+  IL_004c:  stloc.s    V_4
+  IL_004e:  ldloc.s    V_4
+  IL_0050:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82063")]
+        public void SideeffectEvaluations_03()
+        {
+            var src = @"
+interface I1
+{
+    int F {get;}
+}
+
+interface I2 : I1
+{
+}
+
+class C11;
+class C12;
+class C13(int f) : C12, I1
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C13.F "");
+            return f;   
+        }
+    }
+}
+class C14(int f) : I2
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C14.F "");
+            return f;   
+        }
+    }
+}
+class C15(int f) : I1
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C15.F "");
+            return f;   
+        }
+    }
+}
+class C16(int f) : C12, I2
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C15.F "");
+            return f;   
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        object[] s = [null, new C11(), new C12(), new C13(1), new C14(1), new C15(1), new C16(1), new C13(2), new C14(2), new C15(2), new C16(2), new C13(3), new C14(3), new C15(3), new C16(3)]; 
+        int[] i = [1, 2, 3];
+        foreach (var s1 in s)
+        {
+            foreach (var j in i)
+            {
+                var t = Test1((s1, j));
+                System.Console.WriteLine(t);
+            }
+        }
+    }
+
+    static bool Test1((object, int) u)
+    {
+        return u is (C12 and I1 and { F: 1 }, 2) or (I2 and { F: 1 or 2 }, 1);
+    }   
+}
+";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t1 = t0.Item1; [1]
+[1]: t1 is C12 ? [2] : [12]
+[2]: t2 = (C12)t1; [3]
+[3]: t2 is I1 ? [4] : [20]
+[4]: t3 = (I1)t1; [5]
+[5]: t4 = t3.F; [6]
+[6]: t4 == 1 ? [7] : [10]
+[7]: t5 = t0.Item2; [8]
+[8]: t5 == 2 ? [19] : [9]
+[9]: t1 is I2 ? [18] : [20]
+[10]: t1 is I2 ? [11] : [20]
+[11]: t4 == 2 ? [17] : [20]
+[12]: t1 is I2 ? [13] : [20]
+[13]: t6 = (I2)t1; [14]
+[14]: t7 = t6.F; [15]
+[15]: t7 == 1 ? [17] : [16]
+[16]: t7 == 2 ? [17] : [20]
+[17]: t5 = t0.Item2; [18]
+[18]: t5 == 1 ? [19] : [20]
+[19]: leaf <isPatternSuccess> `(C12 and I1 and { F: 1 }, 2) or (I2 and { F: 1 or 2 }, 1)`
+[20]: leaf <isPatternFailure> `(C12 and I1 and { F: 1 }, 2) or (I2 and { F: 1 or 2 }, 1)`
+");
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+False
+False
+False
+False
+False
+False
+False
+False
+False
+Evaluated C13.F False
+Evaluated C13.F True
+Evaluated C13.F False
+Evaluated C14.F True
+Evaluated C14.F False
+Evaluated C14.F False
+False
+False
+False
+Evaluated C15.F True
+Evaluated C15.F True
+Evaluated C15.F False
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C14.F True
+Evaluated C14.F False
+Evaluated C14.F False
+False
+False
+False
+Evaluated C15.F True
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C14.F False
+False
+False
+False
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C15.F False
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size      126 (0x7e)
+  .maxstack  2
+  .locals init (object V_0,
+                C12 V_1,
+                int V_2,
+                int V_3,
+                I2 V_4,
+                int V_5,
+                bool V_6)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""object System.ValueTuple<object, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  isinst     ""C12""
+  IL_000d:  stloc.1
+  IL_000e:  ldloc.1
+  IL_000f:  brfalse.s  IL_004c
+  IL_0011:  ldloc.1
+  IL_0012:  isinst     ""I1""
+  IL_0017:  brfalse.s  IL_0078
+  IL_0019:  ldloc.0
+  IL_001a:  castclass  ""I1""
+  IL_001f:  callvirt   ""int I1.F.get""
+  IL_0024:  stloc.2
+  IL_0025:  ldloc.2
+  IL_0026:  ldc.i4.1
+  IL_0027:  bne.un.s   IL_003e
+  IL_0029:  ldarg.0
+  IL_002a:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_002f:  stloc.3
+  IL_0030:  ldloc.3
+  IL_0031:  ldc.i4.2
+  IL_0032:  beq.s      IL_0073
+  IL_0034:  ldloc.0
+  IL_0035:  isinst     ""I2""
+  IL_003a:  brtrue.s   IL_006f
+  IL_003c:  br.s       IL_0078
+  IL_003e:  ldloc.0
+  IL_003f:  isinst     ""I2""
+  IL_0044:  brfalse.s  IL_0078
+  IL_0046:  ldloc.2
+  IL_0047:  ldc.i4.2
+  IL_0048:  beq.s      IL_0068
+  IL_004a:  br.s       IL_0078
+  IL_004c:  ldloc.0
+  IL_004d:  isinst     ""I2""
+  IL_0052:  stloc.s    V_4
+  IL_0054:  ldloc.s    V_4
+  IL_0056:  brfalse.s  IL_0078
+  IL_0058:  ldloc.s    V_4
+  IL_005a:  callvirt   ""int I1.F.get""
+  IL_005f:  stloc.s    V_5
+  IL_0061:  ldloc.s    V_5
+  IL_0063:  ldc.i4.1
+  IL_0064:  sub
+  IL_0065:  ldc.i4.1
+  IL_0066:  bgt.un.s   IL_0078
+  IL_0068:  ldarg.0
+  IL_0069:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_006e:  stloc.3
+  IL_006f:  ldloc.3
+  IL_0070:  ldc.i4.1
+  IL_0071:  bne.un.s   IL_0078
+  IL_0073:  ldc.i4.1
+  IL_0074:  stloc.s    V_6
+  IL_0076:  br.s       IL_007b
+  IL_0078:  ldc.i4.0
+  IL_0079:  stloc.s    V_6
+  IL_007b:  ldloc.s    V_6
+  IL_007d:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82063")]
+        public void SideeffectEvaluations_04()
+        {
+            var src = @"
+interface I1
+{
+    int F {get;}
+}
+
+interface I2 : I1
+{
+}
+
+class C11;
+class C12;
+class C13(int f) : C12, I1
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C13.F "");
+            return f;   
+        }
+    }
+}
+class C14(int f) : I2
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C14.F "");
+            return f;   
+        }
+    }
+}
+class C15(int f) : I1
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C15.F "");
+            return f;   
+        }
+    }
+}
+class C16(int f) : C12, I2
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C15.F "");
+            return f;   
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        object[] s = [null, new C11(), new C12(), new C13(1), new C14(1), new C15(1), new C16(1), new C13(2), new C14(2), new C15(2), new C16(2), new C13(3), new C14(3), new C15(3), new C16(3)]; 
+        int[] i = [1, 2, 3];
+        foreach (var s1 in s)
+        {
+            foreach (var j in i)
+            {
+                var t = Test1((s1, j));
+                System.Console.WriteLine(t);
+            }
+        }
+    }
+
+    static bool Test1((object, int) u)
+    {
+        return u is (C12 and I2 and { F: 1 }, 2) or (I1 and { F: 1 or 2 }, 1);
+    }   
+}
+";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t1 = t0.Item1; [1]
+[1]: t1 is C12 ? [2] : [10]
+[2]: t2 = (C12)t1; [3]
+[3]: t2 is I2 ? [4] : [10]
+[4]: t3 = (I2)t1; [5]
+[5]: t4 = t3.F; [6]
+[6]: t4 == 1 ? [7] : [9]
+[7]: t5 = t0.Item2; [8]
+[8]: t5 == 2 ? [17] : [16]
+[9]: t4 == 2 ? [15] : [18]
+[10]: t1 is I1 ? [11] : [18]
+[11]: t6 = (I1)t1; [12]
+[12]: t7 = t6.F; [13]
+[13]: t7 == 1 ? [15] : [14]
+[14]: t7 == 2 ? [15] : [18]
+[15]: t5 = t0.Item2; [16]
+[16]: t5 == 1 ? [17] : [18]
+[17]: leaf <isPatternSuccess> `(C12 and I2 and { F: 1 }, 2) or (I1 and { F: 1 or 2 }, 1)`
+[18]: leaf <isPatternFailure> `(C12 and I2 and { F: 1 }, 2) or (I1 and { F: 1 or 2 }, 1)`
+");
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+False
+False
+False
+False
+False
+False
+False
+False
+False
+Evaluated C13.F True
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C14.F True
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C15.F True
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C15.F True
+Evaluated C15.F True
+Evaluated C15.F False
+Evaluated C13.F True
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C14.F True
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C15.F True
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C15.F True
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C15.F False
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size      110 (0x6e)
+  .maxstack  2
+  .locals init (object V_0,
+                C12 V_1,
+                int V_2,
+                int V_3,
+                I1 V_4,
+                int V_5,
+                bool V_6)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""object System.ValueTuple<object, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  isinst     ""C12""
+  IL_000d:  stloc.1
+  IL_000e:  ldloc.1
+  IL_000f:  brfalse.s  IL_003c
+  IL_0011:  ldloc.1
+  IL_0012:  isinst     ""I2""
+  IL_0017:  brfalse.s  IL_003c
+  IL_0019:  ldloc.0
+  IL_001a:  castclass  ""I2""
+  IL_001f:  callvirt   ""int I1.F.get""
+  IL_0024:  stloc.2
+  IL_0025:  ldloc.2
+  IL_0026:  ldc.i4.1
+  IL_0027:  beq.s      IL_002f
+  IL_0029:  ldloc.2
+  IL_002a:  ldc.i4.2
+  IL_002b:  beq.s      IL_0058
+  IL_002d:  br.s       IL_0068
+  IL_002f:  ldarg.0
+  IL_0030:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_0035:  stloc.3
+  IL_0036:  ldloc.3
+  IL_0037:  ldc.i4.2
+  IL_0038:  beq.s      IL_0063
+  IL_003a:  br.s       IL_005f
+  IL_003c:  ldloc.0
+  IL_003d:  isinst     ""I1""
+  IL_0042:  stloc.s    V_4
+  IL_0044:  ldloc.s    V_4
+  IL_0046:  brfalse.s  IL_0068
+  IL_0048:  ldloc.s    V_4
+  IL_004a:  callvirt   ""int I1.F.get""
+  IL_004f:  stloc.s    V_5
+  IL_0051:  ldloc.s    V_5
+  IL_0053:  ldc.i4.1
+  IL_0054:  sub
+  IL_0055:  ldc.i4.1
+  IL_0056:  bgt.un.s   IL_0068
+  IL_0058:  ldarg.0
+  IL_0059:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_005e:  stloc.3
+  IL_005f:  ldloc.3
+  IL_0060:  ldc.i4.1
+  IL_0061:  bne.un.s   IL_0068
+  IL_0063:  ldc.i4.1
+  IL_0064:  stloc.s    V_6
+  IL_0066:  br.s       IL_006b
+  IL_0068:  ldc.i4.0
+  IL_0069:  stloc.s    V_6
+  IL_006b:  ldloc.s    V_6
+  IL_006d:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82063")]
+        public void SideeffectEvaluations_05()
+        {
+            var src = @"
+interface I1
+{
+    int F {get;}
+}
+
+interface I2 : I1
+{
+}
+
+class C11;
+class C12;
+class C13(int f) : C12, I1
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C13.F "");
+            return f;   
+        }
+    }
+}
+class C14(int f) : I2
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C14.F "");
+            return f;   
+        }
+    }
+}
+class C15(int f) : I1
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C15.F "");
+            return f;   
+        }
+    }
+}
+class C16(int f) : C12, I2
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C15.F "");
+            return f;   
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        object[] s = [null, new C11(), new C12(), new C13(1), new C14(1), new C15(1), new C16(1), new C13(2), new C14(2), new C15(2), new C16(2), new C13(3), new C14(3), new C15(3), new C16(3)]; 
+        int[] i = [1, 2, 3];
+        foreach (var s1 in s)
+        {
+            foreach (var j in i)
+            {
+                var t = Test1((s1, j));
+                System.Console.WriteLine(t);
+            }
+        }
+    }
+
+    static int Test1((object, int) u)
+    {
+        return u switch { (C12 and I1 and { F: 1 and var x1 }, 2) => x1 ,(I2 and { F: (1 or 2) and var x2 }, 1) => x2, _ => -100 };
+    }   
+}
+";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t1 = t0.Item1; [1]
+[1]: t1 is C12 ? [2] : [18]
+[2]: t2 = (C12)t1; [3]
+[3]: t2 is I1 ? [4] : [27]
+[4]: t3 = (I1)t1; [5]
+[5]: t4 = t3.F; [6]
+[6]: t4 == 1 ? [7] : [13]
+[7]: t5 = t0.Item2; [8]
+[8]: t5 == 2 ? [9] : [12]
+[9]: <uninitialized> <-- t4; [10]
+[10]: when <true> ? [11] : <unreachable>
+[11]: leaf <arm> `(C12 and I1 and { F: 1 and var x1 }, 2) => x1`
+[12]: t1 is I2 ? [16] : [27]
+[13]: t1 is I2 ? [14] : [27]
+[14]: t4 == 2 ? [15] : [27]
+[15]: t5 = t0.Item2; [16]
+[16]: t5 == 1 ? [17] : [27]
+[17]: t9 <-- t4; [25]
+[18]: t1 is I2 ? [19] : [27]
+[19]: t8 = (I2)t1; [20]
+[20]: t9 = t8.F; [21]
+[21]: t9 == 1 ? [23] : [22]
+[22]: t9 == 2 ? [23] : [27]
+[23]: t5 = t0.Item2; [24]
+[24]: t5 == 1 ? [25] : [27]
+[25]: when <true> ? [26] : <unreachable>
+[26]: leaf <arm> `(I2 and { F: (1 or 2) and var x2 }, 1) => x2`
+[27]: leaf <arm> `_ => -100`
+");
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+-100
+-100
+-100
+-100
+-100
+-100
+-100
+-100
+-100
+Evaluated C13.F -100
+Evaluated C13.F 1
+Evaluated C13.F -100
+Evaluated C14.F 1
+Evaluated C14.F -100
+Evaluated C14.F -100
+-100
+-100
+-100
+Evaluated C15.F 1
+Evaluated C15.F 1
+Evaluated C15.F -100
+Evaluated C13.F -100
+Evaluated C13.F -100
+Evaluated C13.F -100
+Evaluated C14.F 2
+Evaluated C14.F -100
+Evaluated C14.F -100
+-100
+-100
+-100
+Evaluated C15.F 2
+Evaluated C15.F -100
+Evaluated C15.F -100
+Evaluated C13.F -100
+Evaluated C13.F -100
+Evaluated C13.F -100
+Evaluated C14.F -100
+Evaluated C14.F -100
+Evaluated C14.F -100
+-100
+-100
+-100
+Evaluated C15.F -100
+Evaluated C15.F -100
+Evaluated C15.F -100
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size      159 (0x9f)
+  .maxstack  2
+  .locals init (int V_0, //x1
+                int V_1, //x2
+                int V_2,
+                object V_3,
+                C12 V_4,
+                int V_5,
+                int V_6,
+                I2 V_7)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""object System.ValueTuple<object, int>.Item1""
+  IL_0006:  stloc.3
+  IL_0007:  ldloc.3
+  IL_0008:  isinst     ""C12""
+  IL_000d:  stloc.s    V_4
+  IL_000f:  ldloc.s    V_4
+  IL_0011:  brfalse.s  IL_0069
+  IL_0013:  ldloc.s    V_4
+  IL_0015:  isinst     ""I1""
+  IL_001a:  brfalse.s  IL_009a
+  IL_001c:  ldloc.3
+  IL_001d:  castclass  ""I1""
+  IL_0022:  callvirt   ""int I1.F.get""
+  IL_0027:  stloc.s    V_5
+  IL_0029:  ldloc.s    V_5
+  IL_002b:  ldc.i4.1
+  IL_002c:  bne.un.s   IL_004a
+  IL_002e:  ldarg.0
+  IL_002f:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_0034:  stloc.s    V_6
+  IL_0036:  ldloc.s    V_6
+  IL_0038:  ldc.i4.2
+  IL_0039:  bne.un.s   IL_0040
+  IL_003b:  ldloc.s    V_5
+  IL_003d:  stloc.0
+  IL_003e:  br.s       IL_0092
+  IL_0040:  ldloc.3
+  IL_0041:  isinst     ""I2""
+  IL_0046:  brtrue.s   IL_005f
+  IL_0048:  br.s       IL_009a
+  IL_004a:  ldloc.3
+  IL_004b:  isinst     ""I2""
+  IL_0050:  brfalse.s  IL_009a
+  IL_0052:  ldloc.s    V_5
+  IL_0054:  ldc.i4.2
+  IL_0055:  bne.un.s   IL_009a
+  IL_0057:  ldarg.0
+  IL_0058:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_005d:  stloc.s    V_6
+  IL_005f:  ldloc.s    V_6
+  IL_0061:  ldc.i4.1
+  IL_0062:  bne.un.s   IL_009a
+  IL_0064:  ldloc.s    V_5
+  IL_0066:  stloc.1
+  IL_0067:  br.s       IL_0096
+  IL_0069:  ldloc.3
+  IL_006a:  isinst     ""I2""
+  IL_006f:  stloc.s    V_7
+  IL_0071:  ldloc.s    V_7
+  IL_0073:  brfalse.s  IL_009a
+  IL_0075:  ldloc.s    V_7
+  IL_0077:  callvirt   ""int I1.F.get""
+  IL_007c:  stloc.1
+  IL_007d:  ldloc.1
+  IL_007e:  ldc.i4.1
+  IL_007f:  sub
+  IL_0080:  ldc.i4.1
+  IL_0081:  bgt.un.s   IL_009a
+  IL_0083:  ldarg.0
+  IL_0084:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_0089:  stloc.s    V_6
+  IL_008b:  ldloc.s    V_6
+  IL_008d:  ldc.i4.1
+  IL_008e:  beq.s      IL_0096
+  IL_0090:  br.s       IL_009a
+  IL_0092:  ldloc.0
+  IL_0093:  stloc.2
+  IL_0094:  br.s       IL_009d
+  IL_0096:  ldloc.1
+  IL_0097:  stloc.2
+  IL_0098:  br.s       IL_009d
+  IL_009a:  ldc.i4.s   -100
+  IL_009c:  stloc.2
+  IL_009d:  ldloc.2
+  IL_009e:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82063")]
+        public void SideeffectEvaluations_06()
+        {
+            var src = @"
+#nullable enable
+
+interface I1
+{
+    C2? F { get; }
+}
+
+class C2
+{
+    public string? S = null;
+}
+
+interface I2 : I1
+{
+}
+
+class C11;
+class C12;
+class C13 : C12, I1
+{
+    public C2? F => null;
+}
+class C14 : I2
+{
+    public C2? F => null;
+}
+class C15 : I1
+{
+    public C2? F => null;
+}
+class C16 : C12, I2
+{
+    public C2? F => null;
+}
+
+class Program
+{
+    static int Test1((object, int) u)
+    {
+        return u switch 
+        {
+            (C12 and I1 and { F: { S: ""1"" and var x1 } }, 2) => x1.Length ,
+            (I2 and { F: { S: (""1"" or ""2"") and var x2 } }, 1) => x2.Length,
+            _ => -100
+        };
+    }   
+
+    static int Test2((object, int) u)
+    {
+        return u switch 
+        {
+            (C12 and I1 and { F: { S: ""1"" } x3 }, 2) => x3.S.Length ,
+            (I2 and { F: { S: (""1"" or ""2"") } x4 }, 1) => x4.S.Length,
+            _ => -100
+        };
+    }   
+}
+";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
         }
     }
 }

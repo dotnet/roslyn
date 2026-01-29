@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     evaluations[0] is BoundDagTypeEvaluation { Type: var evaluationType } te &&
                     constraintType.Equals(evaluationType, TypeCompareKind.AllIgnoreOptions))
                 {
-                    var typedTemp = new BoundDagTemp(te.Syntax, te.Type, te);
+                    var typedTemp = te.MakeResultTemp();
                     return SamplePatternForTemp(typedTemp, constraintMap, evaluationMap, requireExactType: true, ref unnamedEnumValue);
                 }
 
@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     evaluations[0] is BoundDagTypeEvaluation { Type: var evaluationType } te &&
                     input.Type.IsNullableType() && input.Type.GetNullableUnderlyingType().Equals(evaluationType, TypeCompareKind.AllIgnoreOptions))
                 {
-                    var typedTemp = new BoundDagTemp(te.Syntax, te.Type, te);
+                    var typedTemp = te.MakeResultTemp();
                     var result = SamplePatternForTemp(typedTemp, constraintMap, evaluationMap, requireExactType: false, ref unnamedEnumValue);
                     // We need a null check. If not included in the result, add it.
                     return (result == "_") ? "not null" : result;
@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    var lengthTemp = new BoundDagTemp(lengthOrCount.Syntax, lengthOrCount.Property.Type, lengthOrCount);
+                    var lengthTemp = lengthOrCount.MakeResultTemp();
                     var lengthValues = (IValueSet<int>)computeRemainingValues(ValueSetFactory.ForLength, getArray(constraintMap, lengthTemp));
                     int lengthValue = lengthValues.Sample.Int32Value;
                     if (slice != null)
@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         switch (evaluations[i])
                         {
                             case BoundDagIndexerEvaluation e:
-                                var indexerTemp = new BoundDagTemp(e.Syntax, e.IndexerType, e);
+                                var indexerTemp = e.MakeResultTemp();
                                 int index = e.Index;
                                 int effectiveIndex = index < 0 ? lengthValue + index : index;
                                 if (effectiveIndex < 0 || effectiveIndex >= lengthValue)
@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (slice != null)
                     {
-                        var sliceTemp = new BoundDagTemp(slice.Syntax, slice.SliceType, slice);
+                        var sliceTemp = slice.MakeResultTemp();
                         var slicePattern = SamplePatternForTemp(sliceTemp, constraintMap, evaluationMap, requireExactType: false, ref unnamedEnumValue);
                         if (slicePattern != "_")
                         {
@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     subpatterns.AddMany("_", cardinality);
                     foreach (BoundDagFieldEvaluation e in evaluations)
                     {
-                        var elementTemp = new BoundDagTemp(e.Syntax, e.Field.Type, e);
+                        var elementTemp = e.MakeResultTemp();
                         var index = e.Field.TupleElementIndex;
                         if (index < 0 || index >= cardinality)
                             return null;
@@ -582,14 +582,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                             int extensionExtra = method.RequiresInstanceReceiver ? 0 : 1;
                             int count = method.Parameters.Length - extensionExtra;
                             var subpatternBuilder = new StringBuilder("(");
-                            for (int j = 0; j < count; j++)
+                            ArrayBuilder<BoundDagTemp> outParamTemps = e.MakeOutParameterTemps();
+                            bool first = true;
+                            foreach (var elementTemp in outParamTemps)
                             {
-                                var elementTemp = new BoundDagTemp(e.Syntax, method.Parameters[j + extensionExtra].Type, e, j);
                                 var newPattern = SamplePatternForTemp(elementTemp, constraintMap, evaluationMap, requireExactType: false, ref unnamedEnumValue);
-                                if (j != 0)
+                                if (first)
+                                {
+                                    first = false;
+                                }
+                                else
+                                {
                                     subpatternBuilder.Append(", ");
+                                }
+
                                 subpatternBuilder.Append(newPattern);
                             }
+                            outParamTemps.Free();
                             subpatternBuilder.Append(')');
                             var result = subpatternBuilder.ToString();
                             if (deconstruction != null && needsPropertyString)
@@ -603,14 +612,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         case BoundDagFieldEvaluation e:
                             {
-                                var subInput = new BoundDagTemp(e.Syntax, e.Field.Type, e);
+                                var subInput = e.MakeResultTemp();
                                 var subPattern = SamplePatternForTemp(subInput, constraintMap, evaluationMap, false, ref unnamedEnumValue);
                                 properties.Add(e.Field, subPattern);
                             }
                             break;
                         case BoundDagPropertyEvaluation e:
                             {
-                                var subInput = new BoundDagTemp(e.Syntax, e.Property.Type, e);
+                                var subInput = e.MakeResultTemp();
                                 var subPattern = SamplePatternForTemp(subInput, constraintMap, evaluationMap, false, ref unnamedEnumValue);
                                 properties.Add(e.Property, subPattern);
                             }
