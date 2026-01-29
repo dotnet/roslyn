@@ -2528,7 +2528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Then the process of removal made another update to that indexer evaluation.
                         // This means that the evaluation would somehow take an input that is calculated
                         // from itself, only then temps update would update the evaluation.
-                        // But a circuarity like this is not possible with indexer evaluations.
+                        // But a circularity like this is not possible with indexer evaluations.
                         // In other words, it is not possible to evaluate an indexer and have an 'output'
                         // that is considered as the same entity as the 'input', so that the next indexer
                         // evaluation on the 'output' would be considered equivalent to the first one.
