@@ -5346,9 +5346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundNode>.GetInstance(syntax.Elements.Count);
             foreach (var element in syntax.Elements)
             {
-#pragma warning disable RSEXPERIMENTAL006 // With Element: https://github.com/dotnet/roslyn/issues/80613
                 if (element is WithElementSyntax withElementSyntax)
-#pragma warning restore RSEXPERIMENTAL006
                 {
                     MessageID.IDS_FeatureCollectionExpressionArguments.CheckFeatureAvailability(diagnostics, syntax, withElementSyntax.WithKeyword.GetLocation());
 
@@ -5441,9 +5439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             static (BoundUnconvertedWithElement? withElement, BoundBadExpression? badExpression) bindWithElement(
                 Binder @this,
                 CollectionExpressionSyntax syntax,
-#pragma warning disable RSEXPERIMENTAL006 // With Element: https://github.com/dotnet/roslyn/issues/80613
                 WithElementSyntax withElementSyntax,
-#pragma warning restore RSEXPERIMENTAL006
                 BindingDiagnosticBag diagnostics)
             {
                 // Report a withElement that is not first. Note: for the purposes of error recovery and diagnostics

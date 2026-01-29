@@ -1979,9 +1979,7 @@ endRegion:
                 case OperationKind.InlineArrayAccess:
                 case OperationKind.CollectionExpression:
                 case OperationKind.Spread:
-#pragma warning disable RSEXPERIMENTAL006 // With Element: https://github.com/dotnet/roslyn/issues/80613
                 case OperationKind.CollectionExpressionElementsPlaceholder:
-#pragma warning restore RSEXPERIMENTAL006
                     return true;
             }
 

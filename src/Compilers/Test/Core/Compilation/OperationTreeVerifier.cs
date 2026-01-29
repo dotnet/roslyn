@@ -1143,13 +1143,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(PlaceholderKind.AggregationGroup, operation.PlaceholderKind);
         }
 
-#pragma warning disable RSEXPERIMENTAL006 // With Element: https://github.com/dotnet/roslyn/issues/80613
         public override void VisitCollectionExpressionElementsPlaceholder(ICollectionExpressionElementsPlaceholderOperation operation)
         {
             LogString(nameof(ICollectionExpressionElementsPlaceholderOperation));
             LogCommonPropertiesAndNewLine(operation);
         }
-#pragma warning restore RSEXPERIMENTAL006
 
         public override void VisitUnaryOperator(IUnaryOperation operation)
         {
@@ -1617,7 +1615,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitCollectionExpression(ICollectionExpressionOperation operation)
         {
-#pragma warning disable RSEXPERIMENTAL006 // With Element: https://github.com/dotnet/roslyn/issues/80613
             LogString(nameof(ICollectionExpressionOperation));
             LogString($" ({operation.Elements.Length} elements");
             LogSymbol(operation.ConstructMethod, $", {nameof(operation.ConstructMethod)}");
@@ -1628,7 +1625,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 VisitArray(operation.ConstructArguments, nameof(operation.ConstructArguments), logElementCount: true);
 
             VisitArray(operation.Elements, nameof(operation.Elements), logElementCount: true);
-#pragma warning restore RSEXPERIMENTAL006
         }
 
         public override void VisitSpread(ISpreadOperation operation)

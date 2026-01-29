@@ -74,9 +74,7 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
                 }
                 else if (match.Node is ArgumentListSyntax argumentList)
                 {
-#pragma warning disable RSEXPERIMENTAL006 // With Element: https://github.com/dotnet/roslyn/issues/80613
                     yield return WithElement(argumentList.WithoutTrivia());
-#pragma warning restore RSEXPERIMENTAL006
                 }
             }
         }

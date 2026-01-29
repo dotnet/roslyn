@@ -167,6 +167,9 @@ dotnet_diagnostic.xUnit2020.severity = none
 dotnet_diagnostic.xUnit2023.severity = none
 dotnet_diagnostic.xUnit2029.severity = none
 
+# RS0006: Roslyn experimental language API
+dotnet_diagnostic.RSEXPERIMENTAL006.severity = none
+
 # CSharp code style settings:
 [*.cs]
 # Newline settings

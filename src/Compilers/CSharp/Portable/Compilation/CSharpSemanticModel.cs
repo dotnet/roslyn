@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
@@ -123,9 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (node is ExpressionSyntax && (isSpeculative || allowNamedArgumentName || !SyntaxFacts.IsNamedArgumentName(node))) ||
                         (node is ConstructorInitializerSyntax
                               or PrimaryConstructorBaseTypeSyntax
-#pragma warning disable RSEXPERIMENTAL006 // With Element: https://github.com/dotnet/roslyn/issues/80613
                               or WithElementSyntax
-#pragma warning restore RSEXPERIMENTAL006
                               or AttributeSyntax
                               or CrefSyntax);
             }
@@ -660,7 +657,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns what symbol(s), if any, the given 'with(...)' element syntax bound to in the program.
         /// </summary>
-        [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/80613")]
         internal SymbolInfo GetSymbolInfo(WithElementSyntax withElement, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(withElement);
@@ -5025,10 +5021,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetSymbolInfo(orderingSyntax, cancellationToken);
                 case PositionalPatternClauseSyntax ppcSyntax:
                     return this.GetSymbolInfo(ppcSyntax, cancellationToken);
-#pragma warning disable RSEXPERIMENTAL006 // With Element: https://github.com/dotnet/roslyn/issues/80613
                 case WithElementSyntax withElement:
                     return this.GetSymbolInfo(withElement, cancellationToken);
-#pragma warning restore RSEXPERIMENTAL006
             }
 
             return SymbolInfo.None;

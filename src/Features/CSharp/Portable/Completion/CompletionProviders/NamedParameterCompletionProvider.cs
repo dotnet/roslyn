@@ -139,9 +139,7 @@ internal sealed partial class NamedParameterCompletionProvider() : LSPCompletion
             ElementAccessExpressionSyntax elementAccessExpression => GetElementAccessExpressionParameterLists(semanticModel, position, elementAccessExpression, cancellationToken),
             BaseObjectCreationExpressionSyntax objectCreationExpression => GetObjectCreationExpressionParameterLists(semanticModel, position, objectCreationExpression, cancellationToken),
             PrimaryConstructorBaseTypeSyntax baseType => GetPrimaryConstructorParameterLists(semanticModel, baseType, cancellationToken),
-#pragma warning disable RSEXPERIMENTAL006 // With Element: https://github.com/dotnet/roslyn/issues/80613
             WithElementSyntax withElement => GetWithElementParameterLists(semanticModel, withElement, cancellationToken),
-#pragma warning restore RSEXPERIMENTAL006
             _ => null,
         };
 
@@ -248,9 +246,7 @@ internal sealed partial class NamedParameterCompletionProvider() : LSPCompletion
 
     private static IEnumerable<ImmutableArray<IParameterSymbol>> GetWithElementParameterLists(
         SemanticModel semanticModel,
-#pragma warning disable RSEXPERIMENTAL006 // With Element: https://github.com/dotnet/roslyn/issues/80613
         WithElementSyntax withElement,
-#pragma warning restore RSEXPERIMENTAL006
         CancellationToken cancellationToken)
     {
         var creationMethods = withElement.GetCreationMethods(semanticModel, cancellationToken);

@@ -23,9 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this.Syntax is InvocationExpressionSyntax
                                 or ConstructorInitializerSyntax
                                 or PrimaryConstructorBaseTypeSyntax { ArgumentList: { } }
-#pragma warning disable RSEXPERIMENTAL006 // With Element: https://github.com/dotnet/roslyn/issues/80613
                                 or WithElementSyntax
-#pragma warning restore RSEXPERIMENTAL006
                                 or CollectionExpressionSyntax,
                     $"Unexpected syntax kind for BoundCall: {this.Syntax.Kind()}");
 

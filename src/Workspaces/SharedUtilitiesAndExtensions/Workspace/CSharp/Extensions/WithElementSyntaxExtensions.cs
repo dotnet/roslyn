@@ -15,9 +15,7 @@ internal static class WithElementSyntaxExtensions
 {
 #if !ROSLYN_4_12_OR_LOWER
     public static ImmutableArray<IMethodSymbol> GetCreationMethods(
-#pragma warning disable RSEXPERIMENTAL006 // With Element: https://github.com/dotnet/roslyn/issues/80613
         this WithElementSyntax? withElement, SemanticModel semanticModel, CancellationToken cancellationToken)
-#pragma warning restore RSEXPERIMENTAL006
     {
         if (withElement?.Parent is not CollectionExpressionSyntax collectionExpression)
             return [];
