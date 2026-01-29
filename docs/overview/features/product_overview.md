@@ -154,30 +154,30 @@ public class AddBracesCodeFixProvider : CodeFixProvider
 ## Architecture at a Glance
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         Feature Layer                                    │
-│                                                                          │
-│  ┌─────────────────────────────────────────────────────────────────────┐│
-│  │                    Core/Portable                                    ││
-│  │  • Abstract feature services                                        ││
-│  │  • Shared logic (ISyntaxFacts, ISemanticFacts)                      ││
-│  │  • Provider infrastructure                                          ││
-│  └─────────────────────────────────────────────────────────────────────┘│
-│         │                                          │                    │
-│         ▼                                          ▼                    │
-│  ┌───────────────┐                      ┌───────────────────┐          │
-│  │    CSharp     │                      │   VisualBasic     │          │
-│  │  • C# syntax  │                      │  • VB syntax      │          │
-│  │  • C# impls   │                      │  • VB impls       │          │
-│  └───────────────┘                      └───────────────────┘          │
-└─────────────────────────────────────────────────────────────────────────┘
-                              │
-                              │ Uses
-                              ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                        Workspaces Layer                                 │
-│         (Document, SemanticModel, Solution)                             │
-└─────────────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────┐
+│                      Feature Layer                        │
+│                                                           │
+│  ┌─────────────────────────────────────────────────────┐  │
+│  │                  Core/Portable                      │  │
+│  │  • Abstract feature services                        │  │
+│  │  • Shared logic (ISyntaxFacts, ISemanticFacts)      │  │
+│  │  • Provider infrastructure                          │  │
+│  └─────────────────────────────────────────────────────┘  │
+│         │                                │                │
+│         ▼                                ▼                │
+│  ┌─────────────┐                ┌─────────────────┐       │
+│  │   CSharp    │                │  VisualBasic    │       │
+│  │ • C# syntax │                │  • VB syntax    │       │
+│  │ • C# impls  │                │  • VB impls     │       │
+│  └─────────────┘                └─────────────────┘       │
+└───────────────────────────────────────────────────────────┘
+                            │
+                            │ Uses
+                            ▼
+┌───────────────────────────────────────────────────────────┐
+│                    Workspaces Layer                       │
+│          (Document, SemanticModel, Solution)              │
+└───────────────────────────────────────────────────────────┘
 ```
 
 For detailed architecture, see [Codebase Overview](./codebase_overview.md).

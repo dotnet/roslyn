@@ -45,30 +45,30 @@ What makes Roslyn technically interesting is its "compiler as a service" archite
 Roslyn follows a strict layering model, from low-level compiler infrastructure to high-level IDE integration:
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    Visual Studio                            │
-│              (VS packages, VSIX deployment)                 │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-┌──────────────────────▼──────────────────────────────────────┐
-│               Editor Features / Language Server             │
-│        (WPF editor integration, LSP implementation)         │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-┌──────────────────────▼──────────────────────────────────────┐
-│                      Features                               │
-│    (Code completion, refactoring, diagnostics, navigation)  │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-┌──────────────────────▼──────────────────────────────────────┐
-│                     Workspaces                              │
-│         (Solution/Project model, document management)       │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-┌──────────────────────▼──────────────────────────────────────┐
-│                     Compilers                               │
-│   (Lexer, Parser, Binder, Semantic Model, Emit, Symbols)    │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│                    Visual Studio                        │
+│            (VS packages, VSIX deployment)               │
+└────────────────────────┬────────────────────────────────┘
+                         │
+┌────────────────────────▼────────────────────────────────┐
+│            Editor Features / Language Server            │
+│      (WPF editor integration, LSP implementation)       │
+└────────────────────────┬────────────────────────────────┘
+                         │
+┌────────────────────────▼────────────────────────────────┐
+│                      Features                           │
+│  (Code completion, refactoring, diagnostics, navigation)│
+└────────────────────────┬────────────────────────────────┘
+                         │
+┌────────────────────────▼────────────────────────────────┐
+│                     Workspaces                          │
+│       (Solution/Project model, document management)     │
+└────────────────────────┬────────────────────────────────┘
+                         │
+┌────────────────────────▼────────────────────────────────┐
+│                     Compilers                           │
+│ (Lexer, Parser, Binder, Semantic Model, Emit, Symbols)  │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ### Core Design Pattern

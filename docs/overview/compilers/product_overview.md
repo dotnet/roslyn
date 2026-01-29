@@ -182,16 +182,16 @@ Source Text (.cs / .vb files)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Public API Surface                        │
-│  Compilation, SyntaxTree, SemanticModel, ISymbol, IOperation │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-         ┌─────────────────┼─────────────────┐
-         │                 │                 │
-    ┌────▼────┐      ┌─────▼─────┐     ┌─────▼─────┐
-    │   C#    │      │   Core    │     │    VB     │
-    │ Compiler│      │  Shared   │     │ Compiler  │
-    └─────────┘      └───────────┘     └───────────┘
+│                     Public API Surface                      │
+│ Compilation, SyntaxTree, SemanticModel, ISymbol, IOperation │
+└────────────────────────────┬────────────────────────────────┘
+                             │
+           ┌─────────────────┼─────────────────┐
+           │                 │                 │
+      ┌────▼────┐      ┌─────▼─────┐     ┌─────▼─────┐
+      │   C#    │      │   Core    │     │    VB     │
+      │Compiler │      │  Shared   │     │ Compiler  │
+      └─────────┘      └───────────┘     └───────────┘
 ```
 
 For detailed architecture, see [Codebase Overview](./codebase_overview.md).

@@ -9,50 +9,50 @@ For product context, see [product_overview.md](./product_overview.md). See [../g
 ## Architecture Overview
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                    LSP Client (VS Code)                                 │
-└─────────────────────────────┬───────────────────────────────────────────┘
-                              │ JSON-RPC (stdio/named pipes)
-                              ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                     RoslynLanguageServer                                │
-│                                                                          │
-│  ┌─────────────────────────────────────────────────────────────────────┐│
-│  │ RequestExecutionQueue                                               ││
-│  │ • Serializes mutating requests (textDocument/didChange, etc.)       ││
-│  │ • Allows concurrent non-mutating requests (completion, hover)       ││
-│  │ • Ensures solution state consistency                                ││
-│  └─────────────────────────────────────────────────────────────────────┘│
-│                              │                                          │
-│                              ▼                                          │
-│  ┌─────────────────────────────────────────────────────────────────────┐│
-│  │ HandlerProvider                                                     ││
-│  │ • Discovers handlers via MEF [Method("...")] attributes             ││
-│  │ • Routes requests to appropriate handler                            ││
-│  └─────────────────────────────────────────────────────────────────────┘│
-│                              │                                          │
-│                              ▼                                          │
-│  ┌─────────────────────────────────────────────────────────────────────┐│
-│  │ IMethodHandler implementations                                      ││
-│  │ CompletionHandler, HoverHandler, RenameHandler, etc.                ││
-│  └─────────────────────────────────────────────────────────────────────┘│
-└─────────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                     LspWorkspaceManager                                 │
-│  • Tracks open LSP documents                                           │
-│  • Manages LspMiscellaneousFilesWorkspace for untracked files          │
-│  • Creates Solution snapshots synchronized with LSP document state     │
-└─────────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                     Roslyn Workspace                                    │
-│  • Solution / Project / Document model                                 │
-│  • Language services (CompletionService, etc.)                         │
-│  • Compiler APIs                                                       │
-└─────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                   LSP Client (VS Code)                      │
+└────────────────────────────┬────────────────────────────────┘
+                             │ JSON-RPC (stdio/named pipes)
+                             ▼
+┌─────────────────────────────────────────────────────────────┐
+│                  RoslynLanguageServer                       │
+│                                                             │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │ RequestExecutionQueue                                 │  │
+│  │ • Serializes mutating requests (didChange, etc.)      │  │
+│  │ • Allows concurrent non-mutating requests             │  │
+│  │ • Ensures solution state consistency                  │  │
+│  └───────────────────────────────────────────────────────┘  │
+│                             │                               │
+│                             ▼                               │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │ HandlerProvider                                       │  │
+│  │ • Discovers handlers via MEF [Method("...")]          │  │
+│  │ • Routes requests to appropriate handler              │  │
+│  └───────────────────────────────────────────────────────┘  │
+│                             │                               │
+│                             ▼                               │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │ IMethodHandler implementations                        │  │
+│  │ CompletionHandler, HoverHandler, RenameHandler, etc.  │  │
+│  └───────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   LspWorkspaceManager                       │
+│  • Tracks open LSP documents                                │
+│  • Manages LspMiscellaneousFilesWorkspace                   │
+│  • Creates Solution snapshots for LSP state                 │
+└─────────────────────────────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Roslyn Workspace                         │
+│  • Solution / Project / Document model                      │
+│  • Language services (CompletionService, etc.)              │
+│  • Compiler APIs                                            │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
