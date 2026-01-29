@@ -61,7 +61,7 @@ The compiler is organized into three main areas that share code:
 **Key files/classes:**
 - `Compilation/Compilation.cs` — Base compilation class
 - `Syntax/SyntaxTree.cs` — Syntax tree abstraction
-- `Semantics/SemanticModel.cs` — Semantic model base
+- `Compilation/SemanticModel.cs` — Semantic model base
 - `Symbols/ISymbol.cs` — Symbol interface hierarchy
 - `Operations/IOperation.cs` — Operation interfaces
 - `Emit/CommonPEModuleBuilder.cs` — PE generation
@@ -82,7 +82,7 @@ The compiler is organized into three main areas that share code:
 - `Parser/LanguageParser.cs` — Parses tokens into syntax tree
 - `Binder/Binder.cs` — Semantic binding (name resolution, type checking)
 - `BoundTree/BoundNode.cs` — Semantic tree nodes
-- `Lowering/LocalRewriter.cs` — Transforms high-level constructs
+- `Lowering/LocalRewriter/LocalRewriter.cs` — Transforms high-level constructs
 - `CodeGen/CodeGenerator.cs` — Emits IL
 
 ### VisualBasic Compiler (`src/Compilers/VisualBasic/Portable/`)
@@ -98,7 +98,7 @@ The compiler is organized into three main areas that share code:
 - `Parser/Parser.vb` — Parses tokens into syntax tree
 - `Binding/Binder.vb` — Semantic binding
 - `BoundTree/BoundNode.vb` — Semantic tree nodes
-- `Lowering/LocalRewriter.vb` — Transforms high-level constructs
+- `Lowering/LocalRewriter/LocalRewriter.vb` — Transforms high-level constructs
 
 ### Compiler Server (`src/Compilers/Server/`)
 
@@ -111,8 +111,8 @@ The compiler is organized into three main areas that share code:
 
 **Key files/classes:**
 - `VBCSCompiler/VBCSCompiler.cs` — Server entry point
-- `ServerCore/BuildServerController.cs` — Manages server lifecycle
-- `ServerCore/ClientConnectionHandler.cs` — Handles client connections
+- `VBCSCompiler/BuildServerController.cs` — Manages server lifecycle
+- `VBCSCompiler/NamedPipeClientConnectionHost.cs` — Handles client connections via named pipes
 
 ---
 

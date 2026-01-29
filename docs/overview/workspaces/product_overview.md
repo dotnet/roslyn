@@ -48,13 +48,17 @@ Workspaces provide an abstraction over compilations optimized for IDE scenarios:
 
 4. **React to changes** — Subscribe to workspace events:
    ```csharp
-   workspace.WorkspaceChanged += (sender, args) =>
+   // Modern API (preferred)
+   workspace.RegisterWorkspaceChangedHandler((sender, args) =>
    {
        if (args.Kind == WorkspaceChangeKind.DocumentChanged)
        {
            // Update UI for changed document
        }
-   };
+   });
+   
+   // Legacy API (still works but deprecated)
+   // workspace.WorkspaceChanged += (sender, args) => { ... };
    ```
 
 **Result**
@@ -75,7 +79,7 @@ The IDE maintains a live model of the entire solution. When the developer types,
 - `MSBuildWorkspace` — Loads from .sln/.csproj files
 - `AdhocWorkspace` — In-memory workspace for testing
 - `VisualStudioWorkspace` — VS-specific integration
-- `RemoteWorkspace` — Out-of-process mirror for ServiceHub
+- `RemoteWorkspace` — Out-of-process mirror for ServiceHub (internal implementation)
 
 ### Solution
 

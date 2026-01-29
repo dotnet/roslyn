@@ -16,8 +16,8 @@ This document maps technologies to their usage across the codebase. Use it to an
 
 | Language | Primary Use | Key Areas |
 |----------|-------------|-----------|
-| **C#** | Main implementation (~14,000 files) | All areas |
-| **VB.NET** | VB compiler, VB tests (~3,600 files) | `src/Compilers/VisualBasic/`, `src/Features/VisualBasic/` |
+| **C#** | Main implementation (~16,000 files) | All areas |
+| **VB.NET** | VB compiler, VB tests (~3,800 files) | `src/Compilers/VisualBasic/`, `src/Features/VisualBasic/` |
 | **XML** | MSBuild, config files | `*.csproj`, `*.props`, `*.targets` |
 | **YAML** | CI/CD pipelines | `eng/pipelines/`, `.github/workflows/` |
 | **JSON** | Configuration, LSP | `global.json`, LSP messages |

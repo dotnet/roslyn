@@ -52,9 +52,9 @@ Roslyn uses solution filters (`.slnf`) to enable focused builds:
 
 | Filter | Projects | Use Case |
 |--------|----------|----------|
-| `Compilers.slnf` | ~89 | Compiler-only development |
-| `Ide.slnf` | ~252 | IDE feature development |
-| `Roslyn.slnx` | All | Full solution |
+| `Compilers.slnf` | ~84 | Compiler-only development |
+| `Ide.slnf` | ~247 | IDE feature development |
+| `Roslyn.slnx` | All (~313) | Full solution |
 
 ### Key Build Configuration Files
 

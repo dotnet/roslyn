@@ -22,7 +22,7 @@ The fundamental problem: understanding code at the level the compiler does—kno
 
 **With Roslyn: Compiler as a Service**
 
-Roslyn exposes every phase of compilation through APIs:
+Roslyn exposes the outputs of each compilation phase through APIs:
 
 1. **Parse the code** — Get a syntax tree that represents every character of the source, including whitespace and comments:
    ```csharp

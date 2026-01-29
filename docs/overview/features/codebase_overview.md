@@ -12,7 +12,7 @@ For product context, see [product_overview.md](./product_overview.md). See [../g
 
 ## Architecture Overview
 
-Features follows Roslyn's core design pattern: **language-agnostic core with language-specific specializations**. The Core/Portable layer contains abstract base classes and shared logic (typically 80-90% of the code), while CSharp and VisualBasic layers provide concrete implementations.
+Features follows Roslyn's core design pattern: **language-agnostic core with language-specific specializations**. The Core/Portable layer contains abstract base classes and shared logic, while CSharp and VisualBasic layers provide concrete implementations.
 
 ```
 src/Features/

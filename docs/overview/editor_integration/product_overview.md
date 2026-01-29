@@ -102,8 +102,10 @@ public class DiagnosticTagger : ITagger<IErrorTag>
 
 **Pattern:**
 ```csharp
-[ExportCommandHandler(nameof(FormatDocumentHandler))]
-public class FormatDocumentHandler : ICommandHandler<FormatDocumentCommandArgs>
+[Export(typeof(ICommandHandler))]
+[ContentType(ContentTypeNames.RoslynContentType)]
+[Name(PredefinedCommandHandlerNames.FormatDocument)]
+public class FormatCommandHandler : ICommandHandler<FormatDocumentCommandArgs>
 {
     public bool ExecuteCommand(FormatDocumentCommandArgs args, CommandExecutionContext context)
     {
@@ -138,15 +140,17 @@ The EditorFeatures layer (`src/EditorFeatures/`) bridges Features to the WPF edi
 | **Adornment Managers** | Manage visual overlays |
 | **Navigation Handlers** | Handle Go to Definition, etc. |
 
-### Tagger Types
+### Tagger Providers
 
-| Tagger | What It Provides |
-|--------|------------------|
-| `ClassificationTagger` | Syntax coloring |
-| `DiagnosticTagger` | Error/warning squiggles |
-| `ReferenceHighlightingTagger` | Symbol highlighting |
-| `BraceMatchingTagger` | Brace highlighting |
-| `LineSeparatorTagger` | Method separators |
+Taggers are created by provider classes (the actual tagger implementations are internal):
+
+| Provider | What It Provides |
+|----------|------------------|
+| `SyntacticClassificationTaggerProvider` | Syntax coloring |
+| `AbstractDiagnosticsTaggerProvider<TTag>` | Error/warning squiggles |
+| `ReferenceHighlightingViewTaggerProvider` | Symbol highlighting |
+| `BraceHighlightingViewTaggerProvider` | Brace highlighting |
+| `LineSeparatorTaggerProvider` | Method separators |
 
 ---
 
@@ -249,20 +253,23 @@ All components are composed via MEF (Managed Extensibility Framework):
 // Tagger provider export
 [Export(typeof(ITaggerProvider))]
 [TagType(typeof(IErrorTag))]
-[ContentType("CSharp")]
+[ContentType(ContentTypeNames.RoslynContentType)]  // Use constants, not string literals
 public class DiagnosticTaggerProvider : ITaggerProvider
 {
     public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
     {
-        return new DiagnosticTagger(buffer) as ITagger<T>;
+        // Returns internal tagger implementation
+        return buffer.Properties.GetOrCreateSingletonProperty(
+            () => new DiagnosticTagger(buffer)) as ITagger<T>;
     }
 }
 
 // Command handler export
 [Export(typeof(ICommandHandler))]
-[ContentType("CSharp")]
-[Name(nameof(FormatDocumentHandler))]
-public class FormatDocumentHandler : ICommandHandler<FormatDocumentCommandArgs>
+[ContentType(ContentTypeNames.RoslynContentType)]
+[Name(PredefinedCommandHandlerNames.FormatDocument)]
+[Order(After = PredefinedCommandHandlerNames.Rename)]
+public class FormatCommandHandler : ICommandHandler<FormatDocumentCommandArgs>
 {
 }
 ```

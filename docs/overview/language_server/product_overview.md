@@ -82,11 +82,12 @@ The same Roslyn features that power Visual Studio now power VS Code—through a 
 [Method("textDocument/completion")]
 internal class CompletionHandler : IRequestHandler<CompletionParams, CompletionList>
 {
-    public async Task<CompletionList> HandleAsync(CompletionParams request, RequestContext context)
+    public async Task<CompletionList> HandleRequestAsync(CompletionParams request, RequestContext context, CancellationToken ct)
     {
         // Use Roslyn's CompletionService to get completions
         var document = context.Document;
-        var completions = await CompletionService.GetCompletionsAsync(document, position);
+        var completionService = document.GetRequiredLanguageService<CompletionService>();
+        var completions = await completionService.GetCompletionsAsync(document, position, ct);
         return ConvertToLspCompletionList(completions);
     }
 }
@@ -136,8 +137,8 @@ internal class CompletionHandler : IRequestHandler<CompletionParams, CompletionL
 | `textDocument/completion` | `CompletionHandler` | `CompletionService` |
 | `textDocument/hover` | `HoverHandler` | `QuickInfoService` |
 | `textDocument/signatureHelp` | `SignatureHelpHandler` | `SignatureHelpService` |
-| `textDocument/definition` | `GoToDefinitionHandler` | `IDefinitionService` |
-| `textDocument/references` | `FindAllReferencesHandler` | `IFindReferencesService` |
+| `textDocument/definition` | `GoToDefinitionHandler` | `INavigableItemsService` |
+| `textDocument/references` | `FindAllReferencesHandler` | `IFindUsagesLSPService` |
 | `textDocument/rename` | `RenameHandler` | `IRenameService` |
 | `textDocument/codeAction` | `CodeActionsHandler` | `ICodeActionService` |
 | `textDocument/formatting` | `FormatDocumentHandler` | `IFormattingService` |

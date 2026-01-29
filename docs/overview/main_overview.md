@@ -34,14 +34,14 @@ Roslyn powers:
 - **Analyzers and code fixes** for code quality and style enforcement
 - **C# scripting** (`.csx` files) and the Interactive Window
 
-What makes Roslyn technically interesting is its "compiler as a service" architecture: instead of being a black box that takes source code and produces binaries, Roslyn exposes every phase of compilation through APIs—syntax trees, semantic models, symbols, and emit infrastructure. This enables tools to understand code at the same level the compiler does.
+What makes Roslyn technically interesting is its "compiler as a service" architecture: instead of being a black box that takes source code and produces binaries, Roslyn exposes the outputs of each compilation phase through APIs—syntax trees, semantic models, symbols, and emit infrastructure. While the internal phase implementations (Lexer, Parser, Binder) remain internal, their outputs are fully accessible. This enables tools to understand code at the same level the compiler does.
 
 ### Codebase at a Glance
 
 | Metric | Value |
 |------------------------|---------------------------|
 | Top-level directories | 18 in `src/` |
-| Primary languages | C# (~14,000 files), VB (~3,600 files) |
+| Primary languages | C# (~16,000 files), VB (~3,800 files) |
 | Build system | MSBuild + Arcade SDK |
 | Repo type | Monorepo |
 | Lines of code | ~2.5 million |

@@ -199,10 +199,10 @@ Internal immutable state containers. Public `Solution`/`Project`/`Document` are 
 Tracks when documents/projects/solutions change. Used for caching and incremental updates.
 
 **Workspace**  
-Abstract base for managing solutions. Subclasses: `MSBuildWorkspace`, `AdhocWorkspace`, `VisualStudioWorkspace`.
+Abstract base for managing solutions. Subclasses: `MSBuildWorkspace`, `AdhocWorkspace`, `VisualStudioWorkspace`. Note: `RemoteWorkspace` also exists but is internal.
 
 **WorkspaceChangeKind**  
-Enum describing workspace change type: `DocumentChanged`, `ProjectAdded`, etc.
+Enum describing workspace change type: `DocumentChanged`, `ProjectAdded`, etc. Used with `RegisterWorkspaceChangedHandler()` (the older `WorkspaceChanged` event is deprecated).
 
 ---
 

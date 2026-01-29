@@ -32,7 +32,7 @@ Roslyn supports both C# and Visual Basic. Writing every feature twice would be:
 
 This is a core design pattern used throughout Roslyn. Features are structured in three tiers:
 
-1. **Core/Portable** — Language-agnostic logic (typically 80-90% of the code)
+1. **Core/Portable** — Language-agnostic logic (the majority of the code)
    ```csharp
    abstract class AbstractIntroduceVariableService<TExpressionSyntax>
    {

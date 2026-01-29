@@ -208,13 +208,12 @@ For product context, see [product_overview.md](./product_overview.md). See [../g
 
 ### Tagger Provider Pattern
 
-Taggers are created by providers:
+Taggers are created by providers (tagger implementations are internal):
 
 ```csharp
 [Export(typeof(ITaggerProvider))]
 [TagType(typeof(IErrorTag))]
-[ContentType("CSharp")]
-[ContentType("Basic")]
+[ContentType(ContentTypeNames.RoslynContentType)]  // Use constants
 public class DiagnosticTaggerProvider : ITaggerProvider
 {
     [ImportingConstructor]
@@ -229,6 +228,9 @@ public class DiagnosticTaggerProvider : ITaggerProvider
             () => new DiagnosticTagger(_diagnosticService, buffer)) as ITagger<T>;
     }
 }
+
+// Note: Some taggers use IViewTaggerProvider instead of ITaggerProvider
+// for taggers that need access to the ITextView (e.g., ReferenceHighlightingViewTaggerProvider)
 ```
 
 ### Async Tagger Pattern
@@ -249,10 +251,12 @@ public class AbstractAsynchronousTaggerProvider<TTag> : ITaggerProvider where TT
 Commands handled via MEF exports:
 
 ```csharp
+[Export]
 [Export(typeof(ICommandHandler))]
-[ContentType("CSharp")]
-[Name(nameof(FormatDocumentHandler))]
-public class FormatDocumentHandler : ICommandHandler<FormatDocumentCommandArgs>
+[ContentType(ContentTypeNames.RoslynContentType)]
+[Name(PredefinedCommandHandlerNames.FormatDocument)]
+[Order(After = PredefinedCommandHandlerNames.Rename)]
+internal sealed partial class FormatCommandHandler : ICommandHandler<FormatDocumentCommandArgs>
 {
     public bool ExecuteCommand(FormatDocumentCommandArgs args, CommandExecutionContext context)
     {
@@ -270,15 +274,18 @@ public class FormatDocumentHandler : ICommandHandler<FormatDocumentCommandArgs>
 
 ### Package Registration
 
-Packages registered via attributes:
+Packages are registered via `[Guid]` attributes with separate `.pkgdef` files for VS registration:
 
 ```csharp
-[PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
-[Guid(RoslynPackageGuid)]
-[ProvideLanguageService(...)]
+// Packages use [Guid] attribute (not [PackageRegistration])
+[Guid(Guids.CSharpPackageIdString)]
 public sealed class CSharpPackage : AbstractPackage<CSharpPackage, CSharpLanguageService>
 {
 }
+
+// Registration is in PackageRegistration.pkgdef files:
+// - src/VisualStudio/CSharp/Impl/PackageRegistration.pkgdef
+// - src/VisualStudio/VisualBasic/Impl/PackageRegistration.pkgdef
 ```
 
 ### VSIX Manifest

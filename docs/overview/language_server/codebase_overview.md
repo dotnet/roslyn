@@ -207,17 +207,18 @@ Each LSP method has a handler:
 [Method("textDocument/hover")]
 internal class HoverHandler : IRequestHandler<HoverParams, Hover?>
 {
-    private readonly IQuickInfoService _quickInfoService;
+    public bool MutatesSolutionState => false;
     
-    public async Task<Hover?> HandleAsync(
+    public async Task<Hover?> HandleRequestAsync(
         HoverParams request, 
         RequestContext context, 
         CancellationToken ct)
     {
         var document = context.Document;
+        var quickInfoService = document.GetRequiredLanguageService<QuickInfoService>();
         var position = ProtocolConversions.PositionToLinePosition(request.Position);
         
-        var quickInfo = await _quickInfoService.GetQuickInfoAsync(document, position, ct);
+        var quickInfo = await quickInfoService.GetQuickInfoAsync(document, position, ct);
         return ProtocolConversions.QuickInfoToHover(quickInfo);
     }
 }

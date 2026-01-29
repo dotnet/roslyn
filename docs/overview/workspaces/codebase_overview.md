@@ -85,12 +85,12 @@ For product context, see [product_overview.md](./product_overview.md). See [../g
 
 **Key files/classes:**
 - `Workspace/Workspace.cs` — Abstract workspace base
-- `Workspace/Solution.cs` — Solution wrapper (public API)
-- `Workspace/Project.cs` — Project wrapper (public API)
-- `Workspace/Document.cs` — Document wrapper (public API)
-- `Workspace/SolutionState.cs` — Internal immutable state
-- `Workspace/ProjectState.cs` — Internal project state
-- `Workspace/DocumentState.cs` — Internal document state
+- `Workspace/Solution/Solution.cs` — Solution wrapper (public API)
+- `Workspace/Solution/Project.cs` — Project wrapper (public API)
+- `Workspace/Solution/Document.cs` — Document wrapper (public API)
+- `Workspace/Solution/SolutionState.cs` — Internal immutable state
+- `Workspace/Solution/ProjectState.cs` — Internal project state
+- `Workspace/Solution/DocumentState.cs` — Internal document state
 
 ### MSBuild Workspace (`src/Workspaces/MSBuild/`)
 
@@ -103,8 +103,8 @@ For product context, see [product_overview.md](./product_overview.md). See [../g
 - Support applying changes back to project files
 
 **Key files/classes:**
-- `MSBuildWorkspace.cs` — Main entry point
-- `MSBuildProjectLoader.cs` — Project file parsing
+- `Core/MSBuild/MSBuildWorkspace.cs` — Main entry point
+- `Core/MSBuild/MSBuildProjectLoader.cs` — Project file parsing
 - `BuildHost/` — Out-of-process MSBuild execution
 
 ### Remote Workspace (`src/Workspaces/Remote/`)
@@ -117,9 +117,9 @@ For product context, see [product_overview.md](./product_overview.md). See [../g
 - Provide solution to ServiceHub services
 
 **Key files/classes:**
-- `RemoteWorkspace.cs` — Remote workspace implementation
-- `AssetProvider.cs` — Asset synchronization
-- `SolutionCreator.cs` — Builds solutions from assets
+- `ServiceHub/Host/RemoteWorkspace.cs` — Remote workspace implementation (internal)
+- `ServiceHub/Host/AssetProvider.cs` — Asset synchronization
+- `ServiceHub/Host/RemoteWorkspace.SolutionCreator.cs` — Builds solutions from assets (nested struct)
 
 ### Shared Utilities (`src/Workspaces/SharedUtilitiesAndExtensions/`)
 
