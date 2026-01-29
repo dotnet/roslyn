@@ -2034,6 +2034,48 @@ End Module
         End Sub
 
         <Theory, CombinatorialData>
+        Public Sub RenameTypeFromConversionOperatorReturnType(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+class C;
+
+class [|Repro1|]
+{
+    public static explicit operator [|$$Repro1|](C _)
+    {
+        return null;
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="Renamed")
+
+            End Using
+        End Sub
+
+        <Theory, CombinatorialData>
+        Public Sub RenameTypeFromGenericConversionOperatorReturnType(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+class [|Repro2|]&lt;T&gt;
+{
+    public static explicit operator [|$$Repro2|]&lt;T&gt;(T _)
+    {
+        return null;
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="Renamed")
+
+            End Using
+        End Sub
+
+        <Theory, CombinatorialData>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530082")>
         Public Sub RenameMethodThatImplementsInterfaceMethod(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
