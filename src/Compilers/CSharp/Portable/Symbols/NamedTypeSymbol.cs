@@ -422,10 +422,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 doGetExtensionMembers(members, name, alternativeName, arity, options, ref implementationsToShadow, fieldsBeingBound);
             }
 
-            DoGetExtensionMethods(members, name, arity, options, implementationsToShadow);
-            if (alternativeName is not null)
+            if (!options.HasFlag(LookupOptions.MustBeOperator))
             {
-                DoGetExtensionMethods(members, alternativeName, arity, options, implementationsToShadow);
+                DoGetExtensionMethods(members, name, arity, options, implementationsToShadow);
+                if (alternativeName is not null)
+                {
+                    DoGetExtensionMethods(members, alternativeName, arity, options, implementationsToShadow);
+                }
             }
 
             implementationsToShadow?.Free();

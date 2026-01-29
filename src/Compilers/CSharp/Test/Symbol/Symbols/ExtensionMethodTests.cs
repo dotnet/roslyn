@@ -4485,5 +4485,20 @@ public static class C
                 //     ptr.M();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("delegate*<void>", "M").WithLocation(4, 9));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82206")]
+        public void MightContainExtensionMethods_01()
+        {
+            // For source assembly symbol, the initial value is always true.
+            var comp = CreateCompilation("");
+            Assert.True(comp.SourceAssembly.MightContainExtensions);
+            Assert.True(comp.SourceAssembly.GetPublicSymbol().MightContainExtensionMethods);
+            comp.VerifyEmitDiagnostics();
+
+            // But once the actual value is determined, it may be updated to false.
+            // This may be surprising from a public API perspective.
+            Assert.False(comp.SourceAssembly.MightContainExtensions);
+            Assert.False(comp.SourceAssembly.GetPublicSymbol().MightContainExtensionMethods);
+        }
     }
 }

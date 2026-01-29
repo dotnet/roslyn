@@ -92,7 +92,7 @@ static class S2
         {
             var source =
 @"interface I
-classicExtensionUseSiteInfo{
+{
     object this[string x, object y] { get; set; }
 }
 struct S

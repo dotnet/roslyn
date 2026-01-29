@@ -1897,13 +1897,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <summary>
+        /// This method returns true until ContainsExtensions() is
+        /// called, after which the correct value will be returned. In other words,
+        /// the return value may change from true to false on subsequent calls.
+        /// </summary>
         public override bool MightContainExtensions
         {
             get
             {
-                // Note this method returns true until ContainsExtensions() is
-                // called, after which the correct value will be returned. In other words,
-                // the return value may change from true to false on subsequent calls.
                 if (_lazyContainsExtensions.HasValue())
                 {
                     return _lazyContainsExtensions.Value();
