@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
         /// corresponds to each <see cref="AnalyzerConfig.NamedSections"/>.
         /// </summary>
         private readonly ImmutableArray<ImmutableArray<SectionNameMatcher?>> _analyzerMatchers;
-        private readonly ImmutableArray<SectionNameMatcher?> _globalConfigSectionMatchers;
+        private readonly ImmutableArray<SectionNameMatcher?> _globalSectionMatchers;
 
         // PERF: diagnostic IDs will appear in the output options for every syntax tree in
         // the solution. We share string instances for each diagnostic ID to avoid creating
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis
                 globalMatchersBuilder.Add(AnalyzerConfig.TryCreateSectionNameMatcher(section.Name));
             }
 
-            _globalConfigSectionMatchers = globalMatchersBuilder.ToImmutableAndFree();
+            _globalSectionMatchers = globalMatchersBuilder.ToImmutableAndFree();
 
         }
 
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                var matcher = _globalConfigSectionMatchers[sectionIndex];
+                var matcher = _globalSectionMatchers[sectionIndex];
                 if (!string.IsNullOrEmpty(globalConfigRelativePath) && matcher?.IsMatch(globalConfigRelativePath) == true)
                 {
                     sectionKey.Add(section);
@@ -228,8 +228,11 @@ namespace Microsoft.CodeAnalysis
             int globalConfigOptionsCount = sectionKey.Count;
 
             // The editorconfig paths are sorted from shortest to longest, so matches
-            // are resolved from most nested to least nested, where last setting wins
-            for (int analyzerConfigIndex = 0; analyzerConfigIndex < _analyzerConfigs.Length; analyzerConfigIndex++)
+            // are resolved from most nested to least nested, where last setting wins.
+            // For generated sources (when globalConfigRelativePath is set) we avoid editorconfig matches.
+            for (int analyzerConfigIndex = 0;
+                analyzerConfigIndex < _analyzerConfigs.Length && globalConfigRelativePath is null;
+                analyzerConfigIndex++)
             {
                 var config = _analyzerConfigs[analyzerConfigIndex];
 

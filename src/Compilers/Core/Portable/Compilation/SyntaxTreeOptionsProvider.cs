@@ -76,8 +76,9 @@ namespace Microsoft.CodeAnalysis
 
         public override bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, CancellationToken _, out ReportDiagnostic severity)
         {
-            if (_options.TryGetValue(tree, out var value) && value.IsGenerated != GeneratedKind.Unknown)
+            if (_options.TryGetValue(tree, out var value))
             {
+                // For generated trees we only honor globalconfig-driven options that were computed when the tree was added.
                 return value.DiagnosticOptions.TryGetValue(diagnosticId, out severity);
             }
             severity = ReportDiagnostic.Default;

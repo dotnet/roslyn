@@ -1155,8 +1155,8 @@ namespace Microsoft.CodeAnalysis
                             embeddedTextBuilder.Add(EmbeddedText.FromSource(tree.FilePath, sourceText));
                             if (analyzerOptionsBuilder is object)
                             {
-                                var globalConfigRelativePath = generatedFilesBaseDirectory is not null && tree.FilePath.StartsWith(generatedFilesBaseDirectory, StringComparison.OrdinalIgnoreCase)
-                                    ? PathUtilities.CollapseWithForwardSlash($"/generated/{tree.FilePath[generatedFilesBaseDirectory.Length..]}")
+                                var globalConfigRelativePath = baseDirectory is not null && tree.FilePath.StartsWith(baseDirectory, StringComparison.OrdinalIgnoreCase)
+                                    ? PathUtilities.CollapseWithForwardSlash($"/generated/{tree.FilePath[baseDirectory.Length..]}")
                                     : null;
                                 analyzerOptionsBuilder.Add(analyzerConfigSet!.GetOptionsForSourcePath(tree.FilePath, globalConfigRelativePath));
                             }
