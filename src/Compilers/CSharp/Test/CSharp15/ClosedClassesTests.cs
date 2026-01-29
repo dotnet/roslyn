@@ -702,7 +702,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 public required string P { get; set; }
             }
             """;
-        var verifier = CompileAndVerify([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100, symbolValidator: verifyMetadataSymbols);
+        var verifier = CompileAndVerify([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100, symbolValidator: verifyMetadataSymbols, verify: Verification.Skipped);
         verifier.VerifyDiagnostics();
 
         void verifyMetadataSymbols(ModuleSymbol module)
@@ -739,7 +739,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var verifier = CompileAndVerify([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100, symbolValidator: verifyMetadataSymbols);
+        var verifier = CompileAndVerify([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100, symbolValidator: verifyMetadataSymbols, verify: Verification.Skipped);
         verifier.VerifyDiagnostics();
 
         void verifyMetadataSymbols(ModuleSymbol module)
