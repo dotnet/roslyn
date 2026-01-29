@@ -705,6 +705,9 @@ public sealed class ClosedClassesTests : CSharpTestBase
         var verifier = CompileAndVerify([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100, symbolValidator: verifyMetadataSymbols, verify: Verification.Skipped);
         verifier.VerifyDiagnostics();
 
+        verifyUse(verifier.Compilation.ToMetadataReference());
+        verifyUse(verifier.GetImageReference());
+
         void verifyMetadataSymbols(ModuleSymbol module)
         {
             var peModule = (PEModuleSymbol)module;
@@ -722,6 +725,44 @@ public sealed class ClosedClassesTests : CSharpTestBase
                     """System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute("RequiredMembers")""",
                     """System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute("ClosedClasses")"""
                 ], GetAttributeStrings(peModule.GetCustomAttributesForToken(ctor.Handle)));
+        }
+
+        void verifyUse(MetadataReference reference)
+        {
+            var comp2 = CreateCompilation("""
+                using System;
+
+                class D : C { }
+                class E() : C { }
+                class F : C
+                {
+                    public F() { }
+                }
+
+                class Program
+                {
+                    public void M(C c)
+                    {
+                        Console.Write(c.P);
+
+                        _ = new D();
+                        _ = new D() { P = "a" };
+                    }
+                }
+                """, references: [reference], targetFramework: TargetFramework.Net100);
+            comp2.VerifyEmitDiagnostics(
+                // (3,7): error CS9367: 'D': cannot use a closed type 'C' from another assembly as a base type.
+                // class D : C { }
+                Diagnostic(ErrorCode.ERR_ClosedBaseTypeBaseFromOtherAssembly, "D").WithArguments("D", "C").WithLocation(3, 7),
+                // (4,7): error CS9367: 'E': cannot use a closed type 'C' from another assembly as a base type.
+                // class E() : C { }
+                Diagnostic(ErrorCode.ERR_ClosedBaseTypeBaseFromOtherAssembly, "E").WithArguments("E", "C").WithLocation(4, 7),
+                // (5,7): error CS9367: 'F': cannot use a closed type 'C' from another assembly as a base type.
+                // class F : C
+                Diagnostic(ErrorCode.ERR_ClosedBaseTypeBaseFromOtherAssembly, "F").WithArguments("F", "C").WithLocation(5, 7),
+                // (16,17): error CS9035: Required member 'C.P' must be set in the object initializer or attribute constructor.
+                //         _ = new D();
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "D").WithArguments("C.P").WithLocation(16, 17));
         }
     }
 
