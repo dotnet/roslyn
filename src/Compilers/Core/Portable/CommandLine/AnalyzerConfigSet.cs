@@ -161,6 +161,14 @@ namespace Microsoft.CodeAnalysis
 
             _analyzerMatchers = allMatchers.ToImmutableAndFree();
 
+            var globalMatchersBuilder = ArrayBuilder<SectionNameMatcher?>.GetInstance(_globalConfig.NamedSections.Length);
+            foreach (var section in _globalConfig.NamedSections)
+            {
+                globalMatchersBuilder.Add(AnalyzerConfig.TryCreateSectionNameMatcher(section.Name));
+            }
+
+            _globalConfigSectionMatchers = globalMatchersBuilder.ToImmutableAndFree();
+
         }
 
         /// <summary>
@@ -210,7 +218,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                var matcher = _globalConfig.SectionMatchers[sectionIndex];
+                var matcher = _globalConfigSectionMatchers[sectionIndex];
                 if (!string.IsNullOrEmpty(globalConfigRelativePath) && matcher?.IsMatch(globalConfigRelativePath) == true)
                 {
                     sectionKey.Add(section);

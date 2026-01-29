@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis
 
         public override bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, CancellationToken _, out ReportDiagnostic severity)
         {
-            if (_options.TryGetValue(tree, out var value))
+            if (_options.TryGetValue(tree, out var value) && value.IsGenerated != GeneratedKind.Unknown)
             {
                 return value.DiagnosticOptions.TryGetValue(diagnosticId, out severity);
             }
