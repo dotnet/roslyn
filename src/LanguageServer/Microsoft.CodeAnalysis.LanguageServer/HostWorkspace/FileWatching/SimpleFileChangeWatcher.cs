@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Roslyn.Utilities;
 
@@ -13,124 +16,153 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 /// use the LSP one.
 /// </summary>
 /// <remarks>
-/// This implementation is not remotely efficient, but is available as a fallback implementation. If this needs to regularly be used, then this should get some improvements.
+/// This implementation creates one <see cref="FileSystemWatcher"/> per root drive and uses glob pattern matching
+/// to filter and route file change events to the appropriate watchers.
 /// </remarks>
 internal sealed class SimpleFileChangeWatcher : IFileChangeWatcher
 {
     public IFileChangeContext CreateContext(ImmutableArray<WatchedDirectory> watchedDirectories)
         => new FileChangeContext(watchedDirectories);
 
-    private sealed class FileChangeContext : IFileChangeContext
+    internal sealed class FileChangeContext : IFileChangeContext
     {
+        private static readonly StringComparison s_stringComparison = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+        private static readonly StringComparer s_stringComparer = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+
         private readonly ImmutableArray<WatchedDirectory> _watchedDirectories;
 
         /// <summary>
-        /// The directory watchers for the <see cref="_watchedDirectories"/>.
+        /// Maps root paths (drive root on Windows, "/" on Unix) to their FileSystemWatcher.
         /// </summary>
-        private readonly ImmutableArray<FileSystemWatcher> _directoryFileSystemWatchers;
-        private readonly ConcurrentSet<IndividualWatchedFile> _individualWatchedFiles = [];
+        private readonly ConcurrentDictionary<string, FileSystemWatcher> _rootWatchers = new(s_stringComparer);
+
+        /// <summary>
+        /// A lock to guard updates to <see cref="_individualWatchedFiles"/>.
+        /// </summary>
+        private readonly ReaderWriterLockSlim _watchedFilesLock = new();
+
+        /// <summary>
+        /// The set of individual file paths being watched (outside of directory watches).
+        /// Maps file path to number of watchers for that file.
+        /// </summary>
+        private readonly ConcurrentDictionary<string, int> _individualWatchedFiles = new(s_stringComparer);
 
         public FileChangeContext(ImmutableArray<WatchedDirectory> watchedDirectories)
         {
-            var watchedDirectoriesBuilder = ImmutableArray.CreateBuilder<WatchedDirectory>(watchedDirectories.Length);
-            var watcherBuilder = ImmutableArray.CreateBuilder<FileSystemWatcher>(watchedDirectories.Length);
+            var watchedDirectoryBuilder = ImmutableArray.CreateBuilder<WatchedDirectory>(watchedDirectories.Length);
 
             foreach (var watchedDirectory in watchedDirectories)
             {
-                // If the directory doesn't exist, we can't create a watcher for changes inside of it. In this case, we'll just skip this as a directory
-                // to watch; any requests for a watch within that directory will still create a one-off watcher for that specific file. That's not likely
-                // to be an issue in practice: directories that are missing would be things like global reference directories -- if it's not there, we
-                // probably won't ever see a watch for a file under there later anyways.
-                if (Directory.Exists(watchedDirectory.Path))
-                {
-                    var watcher = new FileSystemWatcher(watchedDirectory.Path);
-                    watcher.IncludeSubdirectories = true;
+                if (!Directory.Exists(watchedDirectory.Path))
+                    continue;
 
-                    foreach (var filter in watchedDirectory.ExtensionFilters)
-                        watcher.Filters.Add('*' + filter);
-
-                    watcher.Changed += RaiseEvent;
-                    watcher.Created += RaiseEvent;
-                    watcher.Deleted += RaiseEvent;
-                    watcher.Renamed += RaiseEvent;
-
-                    watcher.EnableRaisingEvents = true;
-
-                    watchedDirectoriesBuilder.Add(watchedDirectory);
-                    watcherBuilder.Add(watcher);
-                }
+                watchedDirectoryBuilder.Add(watchedDirectory);
+                TryAddRootWatcher(watchedDirectory.Path);
             }
 
-            _watchedDirectories = watchedDirectoriesBuilder.ToImmutable();
-            _directoryFileSystemWatchers = watcherBuilder.ToImmutable();
+            _watchedDirectories = watchedDirectoryBuilder.ToImmutable();
         }
 
         public event EventHandler<string>? FileChanged;
 
+        private void TryAddRootWatcher(string filePath)
+        {
+            var rootPath = Path.GetPathRoot(filePath);
+            if (rootPath != null && !_rootWatchers.ContainsKey(rootPath) && Directory.Exists(rootPath))
+            {
+                FileSystemWatcher watcher = new(rootPath)
+                {
+                    IncludeSubdirectories = true
+                };
+
+                watcher.Changed += OnFileSystemEvent;
+                watcher.Created += OnFileSystemEvent;
+                watcher.Deleted += OnFileSystemEvent;
+                watcher.Renamed += OnFileSystemEvent;
+
+                watcher.EnableRaisingEvents = true;
+                _rootWatchers.Add(rootPath, watcher);
+            }
+        }
+
         public IWatchedFile EnqueueWatchingFile(string filePath)
         {
             // If this path is already covered by one of our directory watchers, nothing further to do
-            if (WatchedDirectory.FilePathCoveredByWatchedDirectories(_watchedDirectories, filePath, StringComparison.Ordinal))
+            if (WatchedDirectory.FilePathCoveredByWatchedDirectories(_watchedDirectories, filePath, s_stringComparison))
                 return NoOpWatchedFile.Instance;
 
-            var individualWatchedFile = new IndividualWatchedFile(filePath, this);
-            _individualWatchedFiles.Add(individualWatchedFile);
-            return individualWatchedFile;
+            // Individual files are ref counted so we know when to stop watching them
+            using (_watchedFilesLock.DisposableWrite())
+            {
+                _individualWatchedFiles.TryGetValue(filePath, out var existingCount);
+                _individualWatchedFiles[filePath] = existingCount + 1;
+            }
+
+            // Try to add a root watcher that covers this file
+            TryAddRootWatcher(filePath);
+
+            return new IndividualWatchedFile(filePath, this);
         }
 
-        private void RaiseEvent(object sender, FileSystemEventArgs e)
+        private void OnFileSystemEvent(object sender, FileSystemEventArgs e)
         {
-            FileChanged?.Invoke(this, e.FullPath);
+            var filePath = e.FullPath;
+
+            if (!_watchedDirectories.IsEmpty && WatchedDirectory.FilePathCoveredByWatchedDirectories(_watchedDirectories, filePath, s_stringComparison))
+            {
+                FileChanged?.Invoke(this, filePath);
+            }
+            else if (_individualWatchedFiles.ContainsKey(filePath))
+            {
+                FileChanged?.Invoke(this, filePath);
+            }
+        }
+
+        private void StopWatchingFile(string filePath)
+        {
+            using (_watchedFilesLock.DisposableWrite())
+            {
+                if (_individualWatchedFiles.TryGetValue(filePath, out var count))
+                {
+                    if (count == 1)
+                        _individualWatchedFiles.TryRemove(filePath, out _);
+                    else
+                        _individualWatchedFiles[filePath] = count - 1;
+                }
+            }
         }
 
         public void Dispose()
         {
-            foreach (var directoryWatcher in _directoryFileSystemWatchers)
-                directoryWatcher.Dispose();
+            foreach (var (_, watcher) in _rootWatchers)
+            {
+                watcher.Changed -= OnFileSystemEvent;
+                watcher.Created -= OnFileSystemEvent;
+                watcher.Deleted -= OnFileSystemEvent;
+                watcher.Renamed -= OnFileSystemEvent;
+                watcher.Dispose();
+            }
+
+            _rootWatchers.Clear();
+            _watchedFilesLock.Dispose();
+            _individualWatchedFiles.Clear();
         }
 
-        private sealed class IndividualWatchedFile : IWatchedFile
+        private sealed class IndividualWatchedFile(string filePath, SimpleFileChangeWatcher.FileChangeContext context) : IWatchedFile
         {
-            private readonly FileChangeContext _context;
-            private readonly FileSystemWatcher? _watcher;
-
-            public IndividualWatchedFile(string filePath, FileChangeContext context)
-            {
-                _context = context;
-
-                // We always must create a watch on an entire directory, so create that, filtered to the single file name
-                var directoryPath = Path.GetDirectoryName(filePath);
-
-                // TODO: support missing directories properly
-                if (Directory.Exists(directoryPath))
-                {
-                    _watcher = new FileSystemWatcher(directoryPath, Path.GetFileName(filePath));
-                    _watcher.IncludeSubdirectories = false;
-
-                    _watcher.Changed += _context.RaiseEvent;
-                    _watcher.Created += _context.RaiseEvent;
-                    _watcher.Deleted += _context.RaiseEvent;
-                    _watcher.Renamed += _context.RaiseEvent;
-
-                    _watcher.EnableRaisingEvents = true;
-                }
-                else
-                {
-                    _watcher = null;
-                }
-            }
+            private readonly string _filePath = filePath;
+            private readonly FileChangeContext _context = context;
 
             public void Dispose()
             {
-                if (_context._individualWatchedFiles.Remove(this) && _watcher != null)
-                {
-                    _watcher.Changed -= _context.RaiseEvent;
-                    _watcher.Created -= _context.RaiseEvent;
-                    _watcher.Deleted -= _context.RaiseEvent;
-                    _watcher.Renamed -= _context.RaiseEvent;
-                    _watcher.Dispose();
-                }
+                _context.StopWatchingFile(_filePath);
             }
+        }
+
+        internal static class TestAccessor
+        {
+            public static int GetRootWatcherCount(FileChangeContext context)
+                => context._rootWatchers.Count;
         }
     }
 }
