@@ -5553,7 +5553,6 @@ class Program
             """, new(TestOptions.Regular, index: CodeActionIndex));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82031")]
-    [CompilerTrait(CompilerFeature.Patterns)]
     public Task TestVarPatternInCompoundPattern()
         => TestInRegularAndScriptAsync(
             """
