@@ -2454,19 +2454,19 @@ B");
                 var mscorlib = type.GetMember<FieldSymbol>("F").Type.ContainingAssembly;
                 Assert.Equal(RuntimeCorLibName.Name, mscorlib.Name);
                 // We assume every PE assembly may contain extension methods.
-                Assert.True(mscorlib.MightContainExtensionMethods);
+                Assert.True(mscorlib.MightContainExtensions);
 
                 // TODO: Original references are not included in symbol validator.
                 if (isFromSource)
                 {
                     // System.Core.dll
                     var systemCore = type.GetMember<FieldSymbol>("G").Type.ContainingAssembly;
-                    Assert.True(systemCore.MightContainExtensionMethods);
+                    Assert.True(systemCore.MightContainExtensions);
                 }
 
                 // Local assembly.
                 var assembly = type.ContainingAssembly;
-                Assert.True(assembly.MightContainExtensionMethods);
+                Assert.True(assembly.MightContainExtensions);
             };
 
             CompileAndVerify(
@@ -2493,7 +2493,7 @@ B");
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
                 var assembly = module.ContainingAssembly;
-                var mightContainExtensionMethods = assembly.MightContainExtensionMethods;
+                var mightContainExtensionMethods = assembly.MightContainExtensions;
                 // Every PE assembly is assumed to be capable of having an extension method.
                 // The source assembly doesn't know (so reports "true") until all methods have been inspected.
                 Assert.True(mightContainExtensionMethods);
@@ -2505,7 +2505,7 @@ B");
             };
             CompileAndVerify(source, symbolValidator: validator(false), sourceSymbolValidator: validator(true));
             Assert.NotNull(sourceAssembly);
-            Assert.False(sourceAssembly.MightContainExtensionMethods);
+            Assert.False(sourceAssembly.MightContainExtensions);
         }
 
         [ClrOnlyFact]

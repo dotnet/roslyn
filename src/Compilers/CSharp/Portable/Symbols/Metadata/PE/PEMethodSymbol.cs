@@ -978,7 +978,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     bool isExtensionMethod = false;
                     if (this.MethodKind == MethodKind.Ordinary && IsValidExtensionMethodSignature()
-                        && this.ContainingType.MightContainExtensionMethods)
+                        && this.ContainingType.MightContainExtensions)
                     {
                         var moduleSymbol = _containingType.ContainingPEModule;
                         isExtensionMethod = moduleSymbol.Module.HasExtensionAttribute(_handle, ignoreCase: false);
