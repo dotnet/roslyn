@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 #endif
 
-
             Root = Path.Combine(tempDirectory.FullName, "RoslynTests");
             Directory.CreateDirectory(Root);
         }
