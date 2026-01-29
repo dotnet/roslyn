@@ -1,6 +1,10 @@
 # Editor Integration: Product Overview
 
-**Last Updated:** January 29, 2026
+| | |
+|---|---|
+| **Last Updated** | January 29, 2026 |
+| **Git SHA** | `771fe9b8443e955573725b4db6cc019685d8c2d4` |
+| **Parent Doc** | [Main Overview](../main_overview.md) |
 
 ## The Story: From Features to Pixels
 
