@@ -3335,6 +3335,95 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Member_Method_Override_Metadata()
+    {
+        // [module: MemorySafetyRules(updated)]
+        // public class A
+        // {
+        //     public virtual void M() { }
+        // }
+        // public class B : A
+        // {
+        //     [RequiresUnsafe]
+        //     public override void M() { }
+        // }
+        var refA = CompileIL($$"""
+            .assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+            .assembly '<<GeneratedFileName>>' { }
+            .module '<<GeneratedFileName>>.dll'
+            .custom instance void System.Runtime.CompilerServices.MemorySafetyRulesAttribute::.ctor(int32) = { int32({{CSharpCompilationOptions.UpdatedMemorySafetyRulesVersion}}) }
+            .class public System.Runtime.CompilerServices.MemorySafetyRulesAttribute extends [mscorlib]System.Attribute
+            {
+                .method public hidebysig specialname rtspecialname instance void .ctor(int32 version) cil managed { ret }
+            }
+            .class public System.Runtime.CompilerServices.RequiresUnsafeAttribute extends [mscorlib]System.Attribute
+            {
+                .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+            }
+            .class public A
+            {
+                .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+                .method public hidebysig newslot virtual instance void M() cil managed { ret }
+            }
+            .class public B extends A
+            {
+                .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+                .method public hidebysig virtual instance void M() cil managed
+                {
+                    .custom instance void System.Runtime.CompilerServices.RequiresUnsafeAttribute::.ctor()
+                    ret
+                }
+            }
+            """,
+            prependDefaultHeader: false);
+
+        var moduleA = CreateCompilation("", [refA]).GetReferencedAssemblySymbol(refA).Modules.Single();
+        VerifyMemorySafetyRulesAttribute(
+            moduleA,
+            includesAttributeDefinition: true,
+            isSynthesized: false,
+            includesAttributeUse: true);
+        VerifyRequiresUnsafeAttribute(
+            moduleA,
+            includesAttributeDefinition: true,
+            isSynthesized: false,
+            expectedUnsafeSymbols: ["B.M"],
+            expectedSafeSymbols: ["A", "A.M", "B"]);
+
+        CreateCompilation("""
+            var c1 = new C1();
+            c1.M();
+            var c2 = new C2();
+            c2.M();
+            B b = c2;
+            b.M();
+            A a = b;
+            a.M();
+
+            class C1 : B
+            {
+                public override void M() { }
+            }
+            class C2 : B
+            {
+                public unsafe override void M() { }
+            }
+            """,
+            [refA],
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (4,1): error CS9502: 'C2.M()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+            // c2.M();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c2.M()").WithArguments("C2.M()").WithLocation(4, 1),
+            // (6,1): error CS9502: 'B.M()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+            // b.M();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "b.M()").WithArguments("B.M()").WithLocation(6, 1),
+            // (16,33): error CS9504: Unsafe member 'C2.M()' overrides safe member 'A.M()'
+            //     public unsafe override void M() { }
+            Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M").WithArguments("C2.M()", "A.M()").WithLocation(16, 33));
+    }
+
+    [Fact]
     public void Member_Method_Implementation()
     {
         CompileAndVerifyUnsafe(
