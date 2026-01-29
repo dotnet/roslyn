@@ -156,6 +156,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         internal override bool HasDeclaredRequiredMembers => _underlyingType.HasDeclaredRequiredMembers;
 
+        internal override bool IsClosed => _underlyingType.IsClosed;
+
         public override ImmutableArray<Symbol> GetMembers()
         {
             return this.RetargetingTranslator.Retarget(_underlyingType.GetMembers());

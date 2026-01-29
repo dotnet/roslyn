@@ -1039,7 +1039,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 bool checkForRequiredMembers = this.ShouldCheckRequiredMembers() && this.ContainingType.HasAnyRequiredMembers;
                 bool isInstanceIncrementDecrementOrCompoundAssignmentOperator = SourceMethodSymbol.IsInstanceIncrementDecrementOrCompoundAssignmentOperator(this);
-                bool filterCompilerFeatureRequiredAttribute = (checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator) && DeriveCompilerFeatureRequiredDiagnostic() is null;
+                bool isClosedConstructor = MethodKind == MethodKind.Constructor && ContainingType.IsClosed;
+                bool filterCompilerFeatureRequiredAttribute = (checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator || isClosedConstructor) && DeriveCompilerFeatureRequiredDiagnostic() is null;
                 bool filterObsoleteAttribute = checkForRequiredMembers && ObsoleteAttributeData is null;
 
                 using var builder = TemporaryArray<CSharpAttributeData>.Empty;
@@ -1520,7 +1521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var diag = PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(
                 this, containingModule, Handle,
                 allowedFeatures: MethodKind == MethodKind.Constructor ?
-                    CompilerFeatureRequiredFeatures.RequiredMembers :
+                    CompilerFeatureRequiredFeatures.RequiredMembers | CompilerFeatureRequiredFeatures.ClosedClasses :
                     (SourceMethodSymbol.IsInstanceIncrementDecrementOrCompoundAssignmentOperator(this) ?
                         CompilerFeatureRequiredFeatures.UserDefinedCompoundAssignmentOperators :
                         CompilerFeatureRequiredFeatures.None),

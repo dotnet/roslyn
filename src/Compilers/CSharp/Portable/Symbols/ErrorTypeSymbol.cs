@@ -141,6 +141,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasDeclaredRequiredMembers => false;
 
+        internal sealed override bool IsClosed => false;
+
         /// <summary>
         /// Get all the members of this symbol.
         /// </summary>

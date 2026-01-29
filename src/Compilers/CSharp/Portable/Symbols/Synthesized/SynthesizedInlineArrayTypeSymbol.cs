@@ -96,6 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool MangleName => true;
 
         internal override bool HasDeclaredRequiredMembers => false;
+        internal override bool IsClosed => false;
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 

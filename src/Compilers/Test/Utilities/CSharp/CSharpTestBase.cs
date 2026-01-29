@@ -230,6 +230,13 @@ namespace System.Diagnostics.CodeAnalysis
             }
             """;
 
+        protected static readonly string ClosedAttributeDefinition = """
+            namespace System.Runtime.CompilerServices
+            {
+                public class ClosedAttribute : Attribute { }
+            }
+            """;
+
         protected static readonly string IsExternalInitTypeDefinition = @"
 namespace System.Runtime.CompilerServices
 {

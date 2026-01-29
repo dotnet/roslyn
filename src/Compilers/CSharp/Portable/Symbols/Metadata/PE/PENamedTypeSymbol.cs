@@ -150,6 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal ThreeState lazyHasCompilerLoweringPreserveAttribute = ThreeState.Unknown;
             internal ThreeState lazyHasInterpolatedStringHandlerAttribute = ThreeState.Unknown;
             internal ThreeState lazyHasRequiredMembers = ThreeState.Unknown;
+            internal ThreeState lazyIsClosed = ThreeState.Unknown;
 
             internal ImmutableArray<byte> lazyFilePathChecksum = default;
             internal string lazyDisplayFileName;
@@ -170,6 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     !lazyHasEmbeddedAttribute.HasValue() &&
                     !lazyHasInterpolatedStringHandlerAttribute.HasValue() &&
                     !lazyHasRequiredMembers.HasValue() &&
+                    !lazyIsClosed.HasValue() &&
                     (object)lazyCollectionBuilderAttributeData == CollectionBuilderAttributeData.Uninitialized &&
                     lazyFilePathChecksum.IsDefault &&
                     lazyDisplayFileName == null &&
@@ -931,7 +933,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (RoslynImmutableInterlocked.VolatileRead(in uncommon.lazyCustomAttributes).IsDefault)
             {
-                ImmutableArray<CSharpAttributeData> loadedCustomAttributes = loadAndFilterAttributes(out var hasRequiredMembers);
+                ImmutableArray<CSharpAttributeData> loadedCustomAttributes = loadAndFilterAttributes(out var hasRequiredMembers, out var isClosed);
 
                 if (!uncommon.lazyHasRequiredMembers.HasValue())
                 {
@@ -939,14 +941,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
                 Debug.Assert(uncommon.lazyHasRequiredMembers.Value() == hasRequiredMembers);
 
+                if (!uncommon.lazyIsClosed.HasValue())
+                {
+                    uncommon.lazyIsClosed = isClosed.ToThreeState();
+                }
+                Debug.Assert(uncommon.lazyIsClosed.Value() == isClosed);
+
                 ImmutableInterlocked.InterlockedInitialize(ref uncommon.lazyCustomAttributes, loadedCustomAttributes);
             }
 
             return uncommon.lazyCustomAttributes;
 
-            ImmutableArray<CSharpAttributeData> loadAndFilterAttributes(out bool hasRequiredMembers)
+            ImmutableArray<CSharpAttributeData> loadAndFilterAttributes(out bool hasRequiredMembers, out bool isClosed)
             {
                 hasRequiredMembers = false;
+                isClosed = false;
 
                 if (IsExtension)
                 {
@@ -987,6 +996,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.RequiredMemberAttribute))
                     {
                         hasRequiredMembers = true;
+                        continue;
+                    }
+
+                    if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.ClosedAttribute))
+                    {
+                        isClosed = true;
                         continue;
                     }
 
@@ -1154,6 +1169,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var hasRequiredMemberAttribute = ContainingPEModule.Module.HasAttribute(_handle, AttributeDescription.RequiredMemberAttribute);
                 uncommon.lazyHasRequiredMembers = hasRequiredMemberAttribute.ToThreeState();
                 return hasRequiredMemberAttribute;
+            }
+        }
+
+        internal sealed override bool IsClosed
+        {
+            get
+            {
+                var uncommon = GetUncommonProperties();
+                if (uncommon == s_noUncommonProperties)
+                {
+                    return false;
+                }
+
+                if (uncommon.lazyIsClosed.HasValue())
+                {
+                    return uncommon.lazyIsClosed.Value();
+                }
+
+                var hasClosedAttribute = ContainingPEModule.Module.HasAttribute(_handle, AttributeDescription.ClosedAttribute);
+                uncommon.lazyIsClosed = hasClosedAttribute.ToThreeState();
+                return hasClosedAttribute;
             }
         }
 

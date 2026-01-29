@@ -106,6 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasDeclaredRequiredMembers => false;
 
+        internal sealed override bool IsClosed => false;
+
         internal override bool GetGuidString(out string guidString)
         {
             guidString = null;
