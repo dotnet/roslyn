@@ -877,13 +877,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsSealed => HasFlag(DeclarationModifiers.Sealed);
 
-        public override bool IsAbstract => HasFlag(DeclarationModifiers.Abstract);
+        public override bool IsAbstract => HasFlag(DeclarationModifiers.Abstract) || HasFlag(DeclarationModifiers.Closed);
 
         internal bool IsPartial => HasFlag(DeclarationModifiers.Partial);
 
         internal bool IsNew => HasFlag(DeclarationModifiers.New);
 
         internal sealed override bool IsFileLocal => HasFlag(DeclarationModifiers.File);
+
+        internal sealed override bool IsClosed => HasFlag(DeclarationModifiers.Closed);
 
         internal bool IsUnsafe => HasFlag(DeclarationModifiers.Unsafe);
 
@@ -1890,6 +1892,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.IsReadOnly)
             {
                 compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
+
+            if (this.IsClosed)
+            {
+                // Ensure necessary attributes are present
+                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_ClosedAttribute__ctor, diagnostics, GetFirstLocation());
+                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor, diagnostics, GetFirstLocation());
             }
 
             var baseType = BaseTypeNoUseSiteDiagnostics;

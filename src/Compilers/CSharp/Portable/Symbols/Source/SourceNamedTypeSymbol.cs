@@ -1172,7 +1172,8 @@ next:;
                 | ReservedAttributes.NativeIntegerAttribute
                 | ReservedAttributes.CaseSensitiveExtensionAttribute
                 | ReservedAttributes.RequiredMemberAttribute
-                | ReservedAttributes.ExtensionMarkerAttribute))
+                | ReservedAttributes.ExtensionMarkerAttribute
+                | ReservedAttributes.ClosedAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.SecurityCriticalAttribute)
@@ -1774,6 +1775,13 @@ next:;
                 AddSynthesizedAttribute(
                     ref attributes,
                     compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor));
+            }
+
+            if (IsClosed)
+            {
+                AddSynthesizedAttribute(
+                    ref attributes,
+                    compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ClosedAttribute__ctor));
             }
 
             // Add MetadataUpdateOriginalTypeAttribute when a reloadable type is emitted to EnC delta

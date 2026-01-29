@@ -196,6 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (target is SourceConstructorSymbolBase)
             {
                 AddRequiredMembersMarkerAttributes(ref attributes, target);
+                AddClosedClassesFeatureRequiredAttribute(ref attributes, target);
             }
 
             if (target.IsExtensionMethod)

@@ -512,6 +512,11 @@
         <target state="translated">'{0}' は、インターフェイス メンバー '{1}' を実装していません。'{2}' は '{1}' を実装できません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ClosedBaseTypeBaseFromOtherAssembly">
+        <source>'{0}': cannot use a closed type '{1}' from another assembly as a base type.</source>
+        <target state="new">'{0}': cannot use a closed type '{1}' from another assembly as a base type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ClosedSealedStatic">
         <source>'{0}': a closed type cannot be sealed or static</source>
         <target state="new">'{0}': a closed type cannot be sealed or static</target>
@@ -2650,6 +2655,11 @@
       <trans-unit id="ERR_UnassignedThisUnsupportedVersion">
         <source>Field '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the field.</source>
         <target state="translated">コントロールを呼び出し元に返す前に、フィールド '{0}' を完全に割り当てる必要があります。プロパティを自動既定値にするため '{1}' 言語バージョンに更新することを検討してください。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnderspecifiedClosedSubtype">
+        <source>'{0}': The type parameter '{1}' must be referenced in the base type '{2}' because the base type is closed.</source>
+        <target state="new">'{0}': The type parameter '{1}' must be referenced in the base type '{2}' because the base type is closed.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnderspecifiedExtension">

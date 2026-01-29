@@ -404,6 +404,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_FileTypeBase, baseTypeLocation, baseType, this);
                 }
+
+                if (baseType.IsClosed)
+                {
+                    if ((object)baseType.ContainingModule != DeclaringCompilation.SourceModule)
+                    {
+                        // https://github.com/dotnet/csharplang/blob/3e15888c804dc632479c94589dcd02c341fd0a4f/proposals/closed-hierarchies.md#same-assembly-restriction
+                        // > If a class in one assembly is declared closed then it is an error to directly derive from it in another assembly.
+                        // Note that while the spec language is in terms of *other assembly*, the same justification applies for cross-module scenario.
+                        // i.e. the pattern matching in the declaring module needs to know the full set of subtypes, so a referencing module must not introduce new subtypes.
+                        diagnostics.Add(ErrorCode.ERR_ClosedBaseTypeBaseFromOtherAssembly, baseTypeLocation, this, baseType);
+                    }
+
+                    // https://github.com/dotnet/csharplang/blob/3e15888c804dc632479c94589dcd02c341fd0a4f/proposals/closed-hierarchies.md#type-parameter-restriction
+                    // If a generic class directly derives from a closed class, then all of its type parameters must be used in the base class specification:
+                    if (IsGenericType)
+                    {
+                        var usedTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
+                        baseType.VisitType(static (type, arg, _) =>
+                        {
+                            var (usedTypeParameters, @this) = arg;
+                            if (type is TypeParameterSymbol typeParameter)
+                                usedTypeParameters.Add(typeParameter);
+
+                            return false;
+                        }, arg: (usedTypeParameters, this));
+
+                        for (NamedTypeSymbol type = this; type is not null; type = type.ContainingType)
+                        {
+                            foreach (var typeParameter in type.TypeParameters)
+                            {
+                                if (!usedTypeParameters.Contains(typeParameter))
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_UnderspecifiedClosedSubtype, baseTypeLocation, this, typeParameter, baseType);
+                                }
+                            }
+                        }
+
+                        usedTypeParameters.Free();
+                    }
+                }
             }
 
             var baseInterfacesRO = baseInterfaces.ToImmutableAndFree();

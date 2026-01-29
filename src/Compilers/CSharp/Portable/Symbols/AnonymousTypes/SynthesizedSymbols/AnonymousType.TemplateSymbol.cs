@@ -105,6 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override bool HasDeclaredRequiredMembers => false;
 
+            internal override bool IsClosed => false;
+
             public override ImmutableArray<Symbol> GetMembers()
             {
                 return _members;

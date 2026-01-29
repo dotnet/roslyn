@@ -673,6 +673,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasDeclaredRequiredMembers { get; }
 
+        /// <summary>Returns true if the type is 'closed', i.e. an abstract class where subtyping is only permitted in the current module.</summary>
+        internal abstract bool IsClosed { get; }
+
 #nullable enable
         /// <summary>
         /// Whether the type encountered an error while trying to build its complete list of required members.

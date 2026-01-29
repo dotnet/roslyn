@@ -233,6 +233,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasDeclaredRequiredMembers => !_unbound && OriginalDefinition.HasDeclaredRequiredMembers;
 
+        internal sealed override bool IsClosed => OriginalDefinition.IsClosed;
+
         public sealed override ImmutableArray<Symbol> GetMembers()
         {
             if (!_lazyMembers.IsDefault)

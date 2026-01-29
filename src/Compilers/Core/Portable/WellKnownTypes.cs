@@ -319,6 +319,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_DefaultInterpolatedStringHandler,
         System_Runtime_CompilerServices_ScopedRefAttribute,
         System_Runtime_CompilerServices_RefSafetyRulesAttribute,
+        System_Runtime_CompilerServices_ClosedAttribute,
 
         System_ArgumentNullException,
 
@@ -686,6 +687,7 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler",
             "System.Runtime.CompilerServices.ScopedRefAttribute",
             "System.Runtime.CompilerServices.RefSafetyRulesAttribute",
+            "System.Runtime.CompilerServices.ClosedAttribute",
             "System.ArgumentNullException",
 
             "System.Runtime.CompilerServices.RequiredMemberAttribute",

@@ -1299,6 +1299,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        protected static void AddClosedClassesFeatureRequiredAttribute(ref ArrayBuilder<CSharpAttributeData> attributes, MethodSymbol methodToAttribute)
+        {
+            if (methodToAttribute.ContainingType.IsClosed)
+            {
+                CSharpCompilation declaringCompilation = methodToAttribute.DeclaringCompilation;
+                AddSynthesizedAttribute(
+                    ref attributes,
+                    declaringCompilation.TrySynthesizeAttribute(
+                        WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
+                        [new TypedConstant(declaringCompilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, nameof(CompilerFeatureRequiredFeatures.ClosedClasses))]));
+            }
+        }
+
         public MethodSymbol? TryGetCorrespondingExtensionImplementationMethod()
         {
             Debug.Assert(this.IsDefinition);

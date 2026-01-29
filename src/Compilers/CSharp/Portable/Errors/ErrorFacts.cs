@@ -2568,6 +2568,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_NoAwaitOnAsyncEnumerable
                 or ErrorCode.ERR_ClosedTypeNameDisallowed
                 or ErrorCode.ERR_ClosedSealedStatic
+                or ErrorCode.ERR_ClosedBaseTypeBaseFromOtherAssembly
+                or ErrorCode.ERR_UnderspecifiedClosedSubtype
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

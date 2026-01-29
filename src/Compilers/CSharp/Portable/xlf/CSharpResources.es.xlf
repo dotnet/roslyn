@@ -512,6 +512,11 @@
         <target state="translated">"{0}" no implementa el miembro de interfaz "{1}". "{2}" no puede implementar "{1}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ClosedBaseTypeBaseFromOtherAssembly">
+        <source>'{0}': cannot use a closed type '{1}' from another assembly as a base type.</source>
+        <target state="new">'{0}': cannot use a closed type '{1}' from another assembly as a base type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ClosedSealedStatic">
         <source>'{0}': a closed type cannot be sealed or static</source>
         <target state="new">'{0}': a closed type cannot be sealed or static</target>
@@ -2650,6 +2655,11 @@
       <trans-unit id="ERR_UnassignedThisUnsupportedVersion">
         <source>Field '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the field.</source>
         <target state="translated">El campo '{0}' debe estar totalmente asignado antes de que el control se devuelva al autor de la llamada. Considere la posibilidad de actualizar a la versión de idioma "{1}" para establecer automáticamente el valor predeterminado del campo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnderspecifiedClosedSubtype">
+        <source>'{0}': The type parameter '{1}' must be referenced in the base type '{2}' because the base type is closed.</source>
+        <target state="new">'{0}': The type parameter '{1}' must be referenced in the base type '{2}' because the base type is closed.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnderspecifiedExtension">

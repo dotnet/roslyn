@@ -166,6 +166,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override bool HasDeclaredRequiredMembers => false;
 
+        internal override bool IsClosed => false;
+
         public override ImmutableArray<Symbol> GetMembers()
         {
             return Methods.Cast<MethodSymbol, Symbol>();
