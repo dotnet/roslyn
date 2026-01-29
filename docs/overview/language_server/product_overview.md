@@ -93,25 +93,24 @@ internal class CompletionHandler : IRequestHandler<CompletionParams, CompletionL
 ## LSP Message Flow
 
 ```
-┌──────────────────────────────────────────────────────────────────────────┐
-│                         Request Flow                                     │
-│                                                                          │
-│  VS Code                    LSP Server                    Roslyn         │
-│    │                           │                            │            │
-│    │  textDocument/completion  │                            │            │
-│    │ ────────────────────────► │                            │            │
-│    │                           │                            │            │
-│    │                           │  CompletionService         │            │
-│    │                           │  .GetCompletionsAsync()    │            │
-│    │                           │ ─────────────────────────► │            │
-│    │                           │                            │            │
-│    │                           │    CompletionList          │            │
-│    │                           │ ◄───────────────────────── │            │
-│    │                           │                            │            │
-│    │   CompletionList (LSP)    │                            │            │
-│    │ ◄──────────────────────── │                            │            │
-│    │                           │                            │            │
-└──────────────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────┐
+│                       Request Flow                            │
+│                                                               │
+│  VS Code             LSP Server              Roslyn           │
+│    │                     │                     │              │
+│    │ completion request  │                     │              │
+│    │ ──────────────────► │                     │              │
+│    │                     │                     │              │
+│    │                     │ GetCompletions()    │              │
+│    │                     │ ──────────────────► │              │
+│    │                     │                     │              │
+│    │                     │   CompletionList    │              │
+│    │                     │ ◄────────────────── │              │
+│    │                     │                     │              │
+│    │  CompletionList     │                     │              │
+│    │ ◄────────────────── │                     │              │
+│    │                     │                     │              │
+└───────────────────────────────────────────────────────────────┘
 ```
 
 ---

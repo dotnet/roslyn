@@ -131,32 +131,32 @@ Packaged analyzers for external consumption:
 ### Analysis Phases
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                        Analyzer Execution                               |
-│                                                                         |
-│  Source Code                                                            |
-│       │                                                                 |
-│       ▼                                                                 |
-│  ┌────────────────────────────────────────────────────────────────────┐ |
-│  │                    Syntax Analysis                                 │ |
-│  │  RegisterSyntaxNodeAction() — analyze specific syntax nodes        │ |
-│  │  RegisterSyntaxTreeAction() — analyze entire tree                  │ |
-│  └────────────────────────────────────────────────────────────────────┘ |
-│       │                                                                 |
-│       ▼                                                                 |
-│  ┌────────────────────────────────────────────────────────────────────┐ |
-│  │                    Semantic Analysis                               │ |
-│  │  RegisterSymbolAction() — analyze declared symbols                 │ |
-│  │  RegisterOperationAction() — analyze IOperation nodes              │ |
-│  └────────────────────────────────────────────────────────────────────┘ |
-│       │                                                                 |
-│       ▼                                                                 |
-│  ┌────────────────────────────────────────────────────────────────────┐ |
-│  │                    Compilation Analysis                            │ |
-│  │  RegisterCompilationAction() — analyze entire compilation          │ |
-│  │  RegisterCompilationStartAction() — setup + analyze                │ |
-│  └────────────────────────────────────────────────────────────────────┘ |
-└─────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                     Analyzer Execution                      │
+│                                                             │
+│  Source Code                                                │
+│       │                                                     │
+│       ▼                                                     │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │                  Syntax Analysis                      │  │
+│  │  RegisterSyntaxNodeAction() — analyze syntax nodes    │  │
+│  │  RegisterSyntaxTreeAction() — analyze entire tree     │  │
+│  └───────────────────────────────────────────────────────┘  │
+│       │                                                     │
+│       ▼                                                     │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │                 Semantic Analysis                     │  │
+│  │  RegisterSymbolAction() — analyze declared symbols    │  │
+│  │  RegisterOperationAction() — analyze IOperation       │  │
+│  └───────────────────────────────────────────────────────┘  │
+│       │                                                     │
+│       ▼                                                     │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │               Compilation Analysis                    │  │
+│  │  RegisterCompilationAction() — analyze compilation    │  │
+│  │  RegisterCompilationStartAction() — setup + analyze   │  │
+│  └───────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ### Registration Actions

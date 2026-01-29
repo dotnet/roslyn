@@ -9,37 +9,37 @@ For product context, see [product_overview.md](./product_overview.md). See [../g
 ## Architecture Overview
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                           Analyzers                                     │
-│                                                                         │
-│  src/Analyzers/                                                         │
-│  ├── Core/                  # Language-agnostic base classes            │
-│  │   ├── Analyzers/         # Abstract analyzer implementations         │
-│  │   └── CodeFixes/         # Abstract code fix implementations         │
-│  │                                                                      │
-│  ├── CSharp/                # C# specific                               │
-│  │   ├── Analyzers/         # C# analyzer implementations               │
-│  │   ├── CodeFixes/         # C# code fix implementations               │
-│  │   └── Tests/             # C# analyzer tests                         │
-│  │                                                                      │
-│  └── VisualBasic/           # VB specific                               │
-│      ├── Analyzers/         # VB analyzer implementations               │
-│      ├── CodeFixes/         # VB code fix implementations               │
-│      └── Tests/             # VB analyzer tests                         │
-│                                                                         │
-└─────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                        Analyzers                            │
+│                                                             │
+│  src/Analyzers/                                             │
+│  ├── Core/           # Language-agnostic base classes       │
+│  │   ├── Analyzers/  # Abstract analyzer implementations    │
+│  │   └── CodeFixes/  # Abstract code fix implementations    │
+│  │                                                          │
+│  ├── CSharp/         # C# specific                          │
+│  │   ├── Analyzers/  # C# analyzer implementations          │
+│  │   ├── CodeFixes/  # C# code fix implementations          │
+│  │   └── Tests/      # C# analyzer tests                    │
+│  │                                                          │
+│  └── VisualBasic/    # VB specific                          │
+│      ├── Analyzers/  # VB analyzer implementations          │
+│      ├── CodeFixes/  # VB code fix implementations          │
+│      └── Tests/      # VB analyzer tests                    │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
 
-┌─────────────────────────────────────────────────────────────────────────┐
-│                        RoslynAnalyzers                                  │
-│                                                                         |
-│  src/RoslynAnalyzers/                                                   |
-│  ├── Microsoft.CodeAnalysis.Analyzers/     # Analyzer author rules      |
-│  ├── Roslyn.Diagnostics.Analyzers/         # Roslyn-specific rules      |
-│  ├── Microsoft.CodeAnalysis.BannedApiAnalyzers/                         |
-│  ├── PublicApiAnalyzers/                   # API surface tracking       |
-│  └── PerformanceSensitiveAnalyzers/        # Allocation detection       |
-│                                                                         |
-└─────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                     RoslynAnalyzers                         │
+│                                                             │
+│  src/RoslynAnalyzers/                                       │
+│  ├── Microsoft.CodeAnalysis.Analyzers/  # Author rules      │
+│  ├── Roslyn.Diagnostics.Analyzers/      # Roslyn rules      │
+│  ├── Microsoft.CodeAnalysis.BannedApiAnalyzers/             │
+│  ├── PublicApiAnalyzers/       # API surface tracking       │
+│  └── PerformanceSensitiveAnalyzers/  # Allocation detect    │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
