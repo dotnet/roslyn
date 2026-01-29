@@ -708,17 +708,17 @@ public sealed class ClosedClassesTests : CSharpTestBase
             Public Class D
                 Inherits C
 
+            #ExternalSource("file.vb", 100)
                 Public Sub New()
-            #ExternalSource("file.vb", 101)
                     MyBase.New()
-            #End ExternalSource
                 End Sub
+            #End ExternalSource
 
+            #ExternalSource("file.vb", 200)
                 Public Sub New(i As Integer)
-            #ExternalSource("file.vb", 201)
                     MyBase.New(i)
-            #End ExternalSource
                 End Sub
+            #End ExternalSource
             End Class
             """;
         var vbComp = CreateVisualBasicCompilation("Program", source2, referencedCompilations: [comp1], referencedAssemblies: comp1.References);
