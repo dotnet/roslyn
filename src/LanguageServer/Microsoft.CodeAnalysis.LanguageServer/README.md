@@ -49,7 +49,7 @@ roslyn-language-server --stdio
 
 ## Requirements
 
-- .NET 9.0 or later runtime
+- .NET 10.0 or later runtime
 
 ## Editor Integration
 
