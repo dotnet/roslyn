@@ -143,29 +143,7 @@ For product context, see [product_overview.md](./product_overview.md). See [../g
 └───────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Tagger Data Flow
-
-```
-┌───────────────────────────────────────────────────────────────────────────┐
-│                        Tagger Data Flow                                   │
-│                                                                           │
-│  Text Change in Buffer                                                   │
-│         │                                                                 │
-│         ▼                                                                 │
-│  Tagger.GetTags() called for visible spans                              │
-│         │                                                                 │
-│         ▼                                                                 │
-│  Tagger queries Roslyn service (async)                                   │
-│  • DiagnosticTagger → DiagnosticService.GetDiagnosticsAsync()           │
-│  • ClassificationTagger → ClassificationService                         │
-│         │                                                                 │
-│         ▼                                                                 │
-│  Tagger converts results to ITagSpan<T>                                 │
-│         │                                                                 │
-│         ▼                                                                 │
-│  Editor renders tags (squiggles, colors, etc.)                          │
-└───────────────────────────────────────────────────────────────────────────┘
-```
+For a deep dive into tagger architecture, see [**Taggers Deep Dive**](./taggers.md).
 
 ---
 
@@ -206,45 +184,11 @@ For product context, see [product_overview.md](./product_overview.md). See [../g
 
 ## Design Patterns
 
-### Tagger Provider Pattern
+### Tagger Patterns
 
-Taggers are created by providers (tagger implementations are internal):
+Taggers bridge Roslyn's semantic understanding to Visual Studio's visual rendering. They're created by providers via MEF, compute tags asynchronously on background threads, and use incremental caching to minimize work.
 
-```csharp
-[Export(typeof(ITaggerProvider))]
-[TagType(typeof(IErrorTag))]
-[ContentType(ContentTypeNames.RoslynContentType)]  // Use constants
-public class DiagnosticTaggerProvider : ITaggerProvider
-{
-    [ImportingConstructor]
-    public DiagnosticTaggerProvider(IDiagnosticService diagnosticService)
-    {
-        _diagnosticService = diagnosticService;
-    }
-    
-    public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
-    {
-        return buffer.Properties.GetOrCreateSingletonProperty(
-            () => new DiagnosticTagger(_diagnosticService, buffer)) as ITagger<T>;
-    }
-}
-
-// Note: Some taggers use IViewTaggerProvider instead of ITaggerProvider
-// for taggers that need access to the ITextView (e.g., ReferenceHighlightingViewTaggerProvider)
-```
-
-### Async Tagger Pattern
-
-Taggers compute tags asynchronously:
-
-```csharp
-public class AbstractAsynchronousTaggerProvider<TTag> : ITaggerProvider where TTag : ITag
-{
-    // Background computation with cancellation
-    // Results cached and updated incrementally
-    // TagsChanged event fires when new tags available
-}
-```
+**For detailed tagger architecture, patterns, and implementation guidance, see [Taggers Deep Dive](./taggers.md).**
 
 ### Command Handler Pattern
 
@@ -305,10 +249,9 @@ public sealed class CSharpPackage : AbstractPackage<CSharpPackage, CSharpLanguag
 ## Internal Names
 
 - **Subject Buffer** — The `ITextBuffer` being operated on
-- **Tagger** — Provides tags for text spans
-- **Tag Source** — Internal tagger state management
-- **Viewport Tagger** — Tagger optimized for visible area only
 - **Adornment** — Visual overlay on editor surface
+
+For tagger-specific terminology (Tag Source, Viewport Tagger, etc.), see [Taggers Deep Dive](./taggers.md).
 
 See also: [../glossary.md](../glossary.md)
 
@@ -327,6 +270,7 @@ See also: [../glossary.md](../glossary.md)
 
 **Related Docs:**
 - [Product Overview](./product_overview.md)
+- [Taggers Deep Dive](./taggers.md) — Detailed tagger architecture
 - [Glossary](../glossary.md)
 - [Main Overview](../main_overview.md)
 
@@ -340,10 +284,12 @@ See also: [../glossary.md](../glossary.md)
 
 This document provides a high-level architectural overview of the Editor Integration layers. It covers the layering and MEF composition but does not detail each tagger or handler.
 
-**What's covered:** Architecture, tagger/command patterns, package structure, MEF composition
+**What's covered:** Architecture, command patterns, package structure, MEF composition
 
-**What's not covered:** All taggers, all handlers, VS SDK details
+**What's not covered:** All handlers, VS SDK details
 
-**To go deeper:** Start a new AI session using the [Expanding Documentation Prompt](https://github.com/CyrusNajmabadi/codebase-explorer/blob/main/LOADER.md#expanding-documentation-prompt).
+**To go deeper:** 
+- [Taggers Deep Dive](./taggers.md) — Tagger architecture, async patterns, caching
+- Start a new AI session using the [Expanding Documentation Prompt](https://github.com/CyrusNajmabadi/codebase-explorer/blob/main/LOADER.md#expanding-documentation-prompt).
 
 **Parent document:** [Main Overview](../main_overview.md)

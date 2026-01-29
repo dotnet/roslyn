@@ -140,17 +140,11 @@ The EditorFeatures layer (`src/EditorFeatures/`) bridges Features to the WPF edi
 | **Adornment Managers** | Manage visual overlays |
 | **Navigation Handlers** | Handle Go to Definition, etc. |
 
-### Tagger Providers
+### Taggers
 
-Taggers are created by provider classes (the actual tagger implementations are internal):
+Taggers translate Roslyn's semantic understanding into editor visuals—syntax coloring, error squiggles, reference highlighting, and more. They use an async pattern to avoid blocking the UI thread.
 
-| Provider | What It Provides |
-|----------|------------------|
-| `SyntacticClassificationTaggerProvider` | Syntax coloring |
-| `AbstractDiagnosticsTaggerProvider<TTag>` | Error/warning squiggles |
-| `ReferenceHighlightingViewTaggerProvider` | Symbol highlighting |
-| `BraceHighlightingViewTaggerProvider` | Brace highlighting |
-| `LineSeparatorTaggerProvider` | Method separators |
+**For detailed tagger architecture and patterns, see [Taggers Deep Dive](./taggers.md).**
 
 ---
 
@@ -250,20 +244,6 @@ The VisualStudio layer (`src/VisualStudio/`) provides VS-specific integration.
 All components are composed via MEF (Managed Extensibility Framework):
 
 ```csharp
-// Tagger provider export
-[Export(typeof(ITaggerProvider))]
-[TagType(typeof(IErrorTag))]
-[ContentType(ContentTypeNames.RoslynContentType)]  // Use constants, not string literals
-public class DiagnosticTaggerProvider : ITaggerProvider
-{
-    public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
-    {
-        // Returns internal tagger implementation
-        return buffer.Properties.GetOrCreateSingletonProperty(
-            () => new DiagnosticTagger(buffer)) as ITagger<T>;
-    }
-}
-
 // Command handler export
 [Export(typeof(ICommandHandler))]
 [ContentType(ContentTypeNames.RoslynContentType)]
@@ -273,6 +253,8 @@ public class FormatCommandHandler : ICommandHandler<FormatDocumentCommandArgs>
 {
 }
 ```
+
+For tagger-specific MEF patterns, see [Taggers Deep Dive](./taggers.md).
 
 ---
 
@@ -288,6 +270,7 @@ public class FormatCommandHandler : ICommandHandler<FormatDocumentCommandArgs>
 
 **In This Overview:**
 - [Codebase Overview](./codebase_overview.md) — Technical architecture and components
+- [Taggers Deep Dive](./taggers.md) — Detailed tagger architecture and patterns
 - [Main Overview](../main_overview.md) — Full codebase map
 - [Glossary](../glossary.md) — Terminology
 
