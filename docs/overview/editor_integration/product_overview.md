@@ -273,8 +273,25 @@ public class FormatDocumentHandler : ICommandHandler<FormatDocumentCommandArgs>
 
 ---
 
+---
+
+## Expanding This Documentation
+
+This overview provides a high-level introduction. For deeper exploration:
+
+- Ask an AI assistant to "drill into [specific area]" for detailed component-level documentation
+- See the [Codebase Explorer methodology](https://github.com/CyrusNajmabadi/codebase-explorer) for guided deep-dives
+
+---
+
 ## Related Documentation
 
+**In This Overview:**
 - [Codebase Overview](./codebase_overview.md) — Technical architecture and components
 - [Main Overview](../main_overview.md) — Full codebase map
 - [Glossary](../glossary.md) — Terminology
+
+**Existing Roslyn Docs:**
+- [IDE README](../../ide/README.md)
+- [IDE Glossary](../../ide/glossary.md)
+- [Building, Testing, and Debugging](../../wiki/Building-Testing-and-Debugging.md)

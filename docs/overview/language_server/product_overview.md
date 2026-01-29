@@ -221,9 +221,27 @@ For detailed architecture, see [Codebase Overview](./codebase_overview.md).
 
 ---
 
+---
+
+## Expanding This Documentation
+
+This overview provides a high-level introduction. For deeper exploration:
+
+- Ask an AI assistant to "drill into [specific area]" for detailed component-level documentation
+- See the [Codebase Explorer methodology](https://github.com/CyrusNajmabadi/codebase-explorer) for guided deep-dives
+
+---
+
 ## Related Documentation
 
+**In This Overview:**
 - [Codebase Overview](./codebase_overview.md) — Technical architecture and components
 - [Main Overview](../main_overview.md) — Full codebase map
 - [Glossary](../glossary.md) — Terminology
+
+**Existing Roslyn Docs:**
+- [Microsoft.CommonLanguageServerProtocol.Framework README](../../LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework/README.md)
+- [LSP Protocol README](../../LanguageServer/Protocol/Protocol/README.md)
+
+**External:**
 - [LSP Specification](https://microsoft.github.io/language-server-protocol/)

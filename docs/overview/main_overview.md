@@ -71,6 +71,16 @@ Roslyn follows a strict layering model, from low-level compiler infrastructure t
 └─────────────────────────────────────────────────────────────┘
 ```
 
+### Core Design Pattern
+
+A fundamental pattern throughout Roslyn is **language-agnostic core with language-specific specializations**:
+
+- **Core/Portable** components contain shared abstractions and the majority of logic
+- **CSharp** and **VisualBasic** components extend the core with language-specific implementations
+- This allows most features to be written once and work for both languages
+
+This pattern appears in Compilers, Features, Analyzers, and most other areas.
+
 ### Key Technologies
 
 - **C# / .NET** — Primary implementation language; targets .NET 8.0+ and .NET Framework
@@ -241,9 +251,25 @@ Roslyn follows a strict layering model, from low-level compiler infrastructure t
 
 ---
 
+## Expanding This Documentation
+
+This documentation provides a high-level overview and does not drill into implementation details. For deeper exploration:
+
+- Ask an AI assistant to "drill into [specific area]" for detailed component-level documentation
+- See the [Codebase Explorer methodology](https://github.com/CyrusNajmabadi/codebase-explorer) for guided deep-dives
+
+---
+
 ## Related Documents
 
+**In This Overview:**
 - [Glossary](./glossary.md) — All internal terms and acronyms
 - [Technology Mapping](./technology_mapping.md) — What tech is used where
 - [Build System Overview](./build_system_overview.md) — How code is built
-- [Official Roslyn Architecture Docs](https://docs.microsoft.com/en-us/dotnet/csharp/roslyn-sdk/compiler-api-model)
+
+**Existing Roslyn Docs:**
+- [Roslyn Overview](../wiki/Roslyn-Overview.md) — Official architecture deep-dive
+- [Samples and Walkthroughs](../wiki/Samples-and-Walkthroughs.md)
+- [Contributing Code](../wiki/Contributing-Code.md)
+- [Building, Testing, and Debugging](../wiki/Building-Testing-and-Debugging.md)
+- [Official Microsoft Docs](https://docs.microsoft.com/en-us/dotnet/csharp/roslyn-sdk/compiler-api-model)

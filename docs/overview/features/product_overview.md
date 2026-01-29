@@ -24,15 +24,15 @@ Roslyn supports both C# and Visual Basic. Writing every feature twice would be:
 - Error-prone (features could diverge)
 - Hard to maintain (fixes needed in two places)
 
-**The Solution: Abstract + Language-Specific**
+**The Solution: Language-Agnostic Core with Language-Specific Specializations**
 
-Features are structured in three tiers:
+This is a core design pattern used throughout Roslyn. Features are structured in three tiers:
 
-1. **Core/Portable** — Language-agnostic logic
+1. **Core/Portable** — Language-agnostic logic (typically 80-90% of the code)
    ```csharp
    abstract class AbstractIntroduceVariableService<TExpressionSyntax>
    {
-       // 90% of the logic here
+       // Most logic lives here, parameterized by syntax types
        protected abstract ISyntaxFacts SyntaxFacts { get; }
    }
    ```
@@ -47,6 +47,8 @@ Features are structured in three tiers:
    ```
 
 3. **VisualBasic** — VB-specific implementation (same pattern)
+
+This pattern ensures features work consistently across both languages while allowing language-specific customization where needed.
 
 ---
 
@@ -242,8 +244,24 @@ public class CustomCompletionProvider : CompletionProvider
 
 ---
 
+---
+
+## Expanding This Documentation
+
+This overview provides a high-level introduction. For deeper exploration:
+
+- Ask an AI assistant to "drill into [specific area]" for detailed component-level documentation
+- See the [Codebase Explorer methodology](https://github.com/CyrusNajmabadi/codebase-explorer) for guided deep-dives
+
+---
+
 ## Related Documentation
 
+**In This Overview:**
 - [Codebase Overview](./codebase_overview.md) — Technical architecture and components
 - [Main Overview](../main_overview.md) — Full codebase map
 - [Glossary](../glossary.md) — Terminology
+
+**Existing Roslyn Docs:**
+- [Roslyn Overview](../../wiki/Roslyn-Overview.md) — Official architecture deep-dive
+- [Getting Started Writing a Custom Analyzer & Code Fix](../../wiki/Getting-Started-Writing-a-Custom-Analyzer-&-Code-Fix.md)

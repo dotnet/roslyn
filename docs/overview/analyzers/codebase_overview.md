@@ -11,34 +11,34 @@ For product context, see [product_overview.md](./product_overview.md). See [../g
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                           Analyzers                                     │
-│                                                                          │
-│  src/Analyzers/                                                          │
-│  ├── Core/                  # Language-agnostic base classes             │
-│  │   ├── Analyzers/         # Abstract analyzer implementations          │
-│  │   └── CodeFixes/         # Abstract code fix implementations          │
-│  │                                                                       │
-│  ├── CSharp/                # C# specific                                │
-│  │   ├── Analyzers/         # C# analyzer implementations                │
-│  │   ├── CodeFixes/         # C# code fix implementations                │
-│  │   └── Tests/             # C# analyzer tests                          │
-│  │                                                                       │
-│  └── VisualBasic/           # VB specific                                │
-│      ├── Analyzers/         # VB analyzer implementations                │
-│      ├── CodeFixes/         # VB code fix implementations                │
-│      └── Tests/             # VB analyzer tests                          │
-│                                                                          │
+│                                                                         │
+│  src/Analyzers/                                                         │
+│  ├── Core/                  # Language-agnostic base classes            │
+│  │   ├── Analyzers/         # Abstract analyzer implementations         │
+│  │   └── CodeFixes/         # Abstract code fix implementations         │
+│  │                                                                      │
+│  ├── CSharp/                # C# specific                               │
+│  │   ├── Analyzers/         # C# analyzer implementations               │
+│  │   ├── CodeFixes/         # C# code fix implementations               │
+│  │   └── Tests/             # C# analyzer tests                         │
+│  │                                                                      │
+│  └── VisualBasic/           # VB specific                               │
+│      ├── Analyzers/         # VB analyzer implementations               │
+│      ├── CodeFixes/         # VB code fix implementations               │
+│      └── Tests/             # VB analyzer tests                         │
+│                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                        RoslynAnalyzers                                  │
-│                                                                          │
-│  src/RoslynAnalyzers/                                                    │
-│  ├── Microsoft.CodeAnalysis.Analyzers/     # Analyzer author rules       │
-│  ├── Roslyn.Diagnostics.Analyzers/         # Roslyn-specific rules       │
-│  ├── Microsoft.CodeAnalysis.BannedApiAnalyzers/                         │
-│  ├── PublicApiAnalyzers/                   # API surface tracking        │
-│  └── PerformanceSensitiveAnalyzers/        # Allocation detection        │
-│                                                                          │
+│                                                                         |
+│  src/RoslynAnalyzers/                                                   |
+│  ├── Microsoft.CodeAnalysis.Analyzers/     # Analyzer author rules      |
+│  ├── Roslyn.Diagnostics.Analyzers/         # Roslyn-specific rules      |
+│  ├── Microsoft.CodeAnalysis.BannedApiAnalyzers/                         |
+│  ├── PublicApiAnalyzers/                   # API surface tracking       |
+│  └── PerformanceSensitiveAnalyzers/        # Allocation detection       |
+│                                                                         |
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -55,6 +55,8 @@ For product context, see [product_overview.md](./product_overview.md). See [../g
 - Simplification suggestions
 - Modernization recommendations
 - Code quality warnings
+
+**Deployment:** The analyzer code compiles into separate DLLs for the .NET SDK, but is also *linked* into Features DLLs for Visual Studio—ensuring identical behavior in both command-line and IDE scenarios.
 
 **Key directories:**
 - `Core/Analyzers/` — Abstract base classes
@@ -89,22 +91,22 @@ For product context, see [product_overview.md](./product_overview.md). See [../g
 
 ```
 ┌───────────────────────────────────────────────────────────────────────────┐
-│                       Analyzer Registration                               │
-│                                                                           │
-│  1. DiagnosticAnalyzer.Initialize(AnalysisContext context)               │
-│         │                                                                 │
-│         ▼                                                                 │
-│  2. Register analysis callbacks                                          │
-│     • context.RegisterSyntaxNodeAction(callback, SyntaxKind.*)           │
-│     • context.RegisterSymbolAction(callback, SymbolKind.*)               │
-│     • context.RegisterOperationAction(callback, OperationKind.*)         │
-│         │                                                                 │
-│         ▼                                                                 │
-│  3. Compiler/IDE invokes callbacks during analysis                       │
-│         │                                                                 │
-│         ▼                                                                 │
-│  4. Analyzer reports diagnostics                                         │
-│     context.ReportDiagnostic(Diagnostic.Create(descriptor, location))    │
+│                       Analyzer Registration                               |
+│                                                                           |
+│  1. DiagnosticAnalyzer.Initialize(AnalysisContext context)                |
+│         │                                                                 |
+│         ▼                                                                 |
+│  2. Register analysis callbacks                                           |
+│     • context.RegisterSyntaxNodeAction(callback, SyntaxKind.*)            |
+│     • context.RegisterSymbolAction(callback, SymbolKind.*)                |
+│     • context.RegisterOperationAction(callback, OperationKind.*)          |
+│         │                                                                 |
+│         ▼                                                                 |
+│  3. Compiler/IDE invokes callbacks during analysis                        |
+│         │                                                                 |
+│         ▼                                                                 |
+│  4. Analyzer reports diagnostics                                          |
+│     context.ReportDiagnostic(Diagnostic.Create(descriptor, location))     |
 └───────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -113,23 +115,23 @@ For product context, see [product_overview.md](./product_overview.md). See [../g
 ```
 ┌───────────────────────────────────────────────────────────────────────────┐
 │                        Code Fix Flow                                      │
-│                                                                           │
-│  1. Diagnostic reported by analyzer                                      │
-│         │                                                                 │
-│         ▼                                                                 │
-│  2. CodeFixProvider.FixableDiagnosticIds checked                         │
-│         │                                                                 │
-│         ▼                                                                 │
-│  3. RegisterCodeFixesAsync() called with diagnostic context              │
-│         │                                                                 │
-│         ▼                                                                 │
-│  4. Provider creates CodeAction                                          │
-│         │                                                                 │
-│         ▼                                                                 │
-│  5. User selects fix → CodeAction.GetChangedDocumentAsync()              │
-│         │                                                                 │
-│         ▼                                                                 │
-│  6. Changes applied to document                                          │
+│                                                                           |
+│  1. Diagnostic reported by analyzer                                       |
+│         │                                                                 |
+│         ▼                                                                 |
+│  2. CodeFixProvider.FixableDiagnosticIds checked                          |
+│         │                                                                 |
+│         ▼                                                                 |
+│  3. RegisterCodeFixesAsync() called with diagnostic context               |
+│         │                                                                 |
+│         ▼                                                                 |
+│  4. Provider creates CodeAction                                           |
+│         │                                                                 |
+│         ▼                                                                 |
+│  5. User selects fix → CodeAction.GetChangedDocumentAsync()               |
+│         │                                                                 |
+│         ▼                                                                 |
+│  6. Changes applied to document                                           |
 └───────────────────────────────────────────────────────────────────────────┘
 ```
 

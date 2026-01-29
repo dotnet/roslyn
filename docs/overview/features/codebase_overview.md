@@ -8,26 +8,24 @@ For product context, see [product_overview.md](./product_overview.md). See [../g
 
 ## Architecture Overview
 
+Features follows Roslyn's core design pattern: **language-agnostic core with language-specific specializations**. The Core/Portable layer contains abstract base classes and shared logic (typically 80-90% of the code), while CSharp and VisualBasic layers provide concrete implementations.
+
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         Features Organization                            │
-│                                                                          │
-│  src/Features/                                                           │
-│  ├── Core/Portable/           # Language-agnostic implementations        │
-│  │   ├── Completion/          # Abstract completion service              │
-│  │   ├── CodeRefactorings/    # Abstract refactoring infrastructure     │
-│  │   ├── CodeFixes/           # Abstract code fix infrastructure        │
-│  │   ├── Diagnostics/         # Diagnostic analyzer infrastructure      │
-│  │   └── [Feature]/           # Each feature has its own folder          │
-│  │                                                                       │
-│  ├── CSharp/Portable/         # C# specific implementations              │
-│  │   ├── Completion/          # C# completion providers                  │
-│  │   ├── CodeRefactorings/    # C# refactorings                         │
-│  │   └── [Feature]/           # C# implementations                       │
-│  │                                                                       │
-│  └── VisualBasic/Portable/    # VB specific implementations              │
-│      └── ...                  # Same structure as CSharp                 │
-└─────────────────────────────────────────────────────────────────────────┘
+src/Features/
+├── Core/Portable/           # Language-agnostic implementations
+│   ├── Completion/          # Abstract completion service
+│   ├── CodeRefactorings/    # Abstract refactoring infrastructure
+│   ├── CodeFixes/           # Abstract code fix infrastructure
+│   ├── Diagnostics/         # Diagnostic analyzer infrastructure
+│   └── [Feature]/           # Each feature has its own folder
+│
+├── CSharp/Portable/         # C# specific implementations
+│   ├── Completion/          # C# completion providers
+│   ├── CodeRefactorings/    # C# refactorings
+│   └── [Feature]/           # C# implementations
+│
+└── VisualBasic/Portable/    # VB specific implementations
+    └── ...                  # Same structure as CSharp
 ```
 
 ---

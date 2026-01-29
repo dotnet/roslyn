@@ -6,7 +6,7 @@
 
 A developer at a software company needs to enforce coding standards across 500+ C# projects. The team has specific rules: no `public` fields, consistent naming conventions, and required XML documentation on public APIs.
 
-**Before: The Dark Ages of Text Parsing**
+**Before Roslyn**
 
 Without Roslyn, options were limited:
 - Regular expressions that break on edge cases
@@ -14,7 +14,7 @@ Without Roslyn, options were limited:
 - StyleCop with limited extensibility
 - Manual code reviews that don't scale
 
-The fundamental problem: understanding code at the level the compiler does—knowing that `var x = 5;` makes `x` an `int`, that `Foo()` resolves to a specific method overload, that `await` requires an async context—was impossible without reimplementing the compiler.
+The fundamental problem: understanding code at the level the compiler does—knowing that `var x = 5;` makes `x` an `int`, that `Foo()` resolves to a specific method overload, that `await` requires an async context—required reimplementing significant portions of the compiler.
 
 **With Roslyn: Compiler as a Service**
 
@@ -92,21 +92,28 @@ var newTree = tree.WithRootAndOptions(newRoot, tree.Options);
 
 **Why it matters:** Symbols give you the compiler's understanding of your code's structure.
 
-**Symbol hierarchy:**
+**Symbol hierarchy (`ISymbol` is the root):**
 ```
-IAssemblySymbol
-  └── IModuleSymbol
-        └── INamespaceSymbol
-              └── INamedTypeSymbol (class, struct, interface, etc.)
-                    ├── IMethodSymbol
-                    ├── IPropertySymbol
-                    ├── IFieldSymbol
-                    └── IEventSymbol
+ISymbol (root interface)
+├── INamespaceOrTypeSymbol
+│   ├── INamespaceSymbol
+│   └── ITypeSymbol
+│       ├── INamedTypeSymbol (class, struct, interface, enum, delegate)
+│       ├── IArrayTypeSymbol
+│       ├── IPointerTypeSymbol
+│       └── ITypeParameterSymbol
+├── IMethodSymbol
+├── IPropertySymbol
+├── IFieldSymbol
+├── IEventSymbol
+├── IParameterSymbol
+├── ILocalSymbol
+└── IAliasSymbol
 ```
 
-### IOperation
+### IOperation (Semantic AST)
 
-**What it is:** A language-agnostic semantic representation of code operations.
+**What it is:** A language-agnostic semantic representation of code operations. This is commonly referred to as an "Abstract Syntax Tree" (AST) in compiler literature, though in Roslyn it represents semantic operations rather than raw syntax.
 
 **Why it matters:** Write analyzers once that work for both C# and VB. IOperation abstracts away language-specific syntax while preserving semantic meaning.
 
@@ -259,9 +266,26 @@ var classDeclaration = SyntaxFactory.ClassDeclaration("GeneratedClass")
 
 ---
 
+---
+
+## Expanding This Documentation
+
+This overview provides a high-level introduction. For deeper exploration:
+
+- Ask an AI assistant to "drill into [specific area]" for detailed component-level documentation
+- See the [Codebase Explorer methodology](https://github.com/CyrusNajmabadi/codebase-explorer) for guided deep-dives
+
+---
+
 ## Related Documentation
 
+**In This Overview:**
 - [Codebase Overview](./codebase_overview.md) — Technical architecture and components
 - [Main Overview](../main_overview.md) — Full codebase map
 - [Glossary](../glossary.md) — Terminology
+
+**Existing Roslyn Docs:**
+- [Roslyn Overview](../../wiki/Roslyn-Overview.md) — Official architecture deep-dive
+- [Getting Started C# Syntax Analysis](../../wiki/Getting-Started-C%23-Syntax-Analysis.md)
+- [Getting Started C# Semantic Analysis](../../wiki/Getting-Started-C%23-Semantic-Analysis.md)
 - [Official Roslyn APIs](https://docs.microsoft.com/en-us/dotnet/csharp/roslyn-sdk/)

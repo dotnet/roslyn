@@ -11,7 +11,7 @@ For product context, see [product_overview.md](./product_overview.md). See [../g
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                         Compiler Entry Points                           │
-│         csc.exe / vbc.exe → CommonCompiler → BuildClient               │
+│         csc.exe / vbc.exe → CommonCompiler → BuildClient                │
 └──────────────────────────────────┬──────────────────────────────────────┘
                                    │
                                    ▼
@@ -344,3 +344,8 @@ See also: [../glossary.md](../glossary.md)
 - [Product Overview](./product_overview.md)
 - [Glossary](../glossary.md)
 - [Main Overview](../main_overview.md)
+
+**Existing Roslyn Docs:**
+- [Roslyn Overview](../../wiki/Roslyn-Overview.md) — Official architecture deep-dive
+- [Getting Started C# Syntax Analysis](../../wiki/Getting-Started-C%23-Syntax-Analysis.md)
+- [Getting Started C# Semantic Analysis](../../wiki/Getting-Started-C%23-Semantic-Analysis.md)

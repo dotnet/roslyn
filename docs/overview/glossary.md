@@ -85,8 +85,8 @@ Placeholder symbol type used when binding fails. Allows compilation to continue 
 **Flow Analysis**  
 Analysis that tracks variable state (assignment, nullability) through control flow paths. Used for definite assignment, nullable reference types, etc.
 
-**IOperation**  
-Language-agnostic semantic representation. Unlike BoundTree (which is internal and language-specific), IOperation is public API used by analyzers.  
+**IOperation (Semantic AST)**  
+Language-agnostic semantic representation, commonly referred to as an "Abstract Syntax Tree" (AST) in compiler literature and the broader ecosystem. Unlike BoundTree (which is internal and language-specific), IOperation is public API used by analyzers.  
 *See also: BoundTree*
 
 **Lexer / Scanner**  
@@ -128,7 +128,7 @@ Temporary variables introduced during lowering to preserve evaluation order when
 Generated class for async methods and iterators. Contains the suspension/resumption logic.
 
 **Symbol**  
-Represents a named entity: type, method, property, field, parameter, etc. Has source symbols (from code) and metadata symbols (from references).
+Represents a named entity: type, method, property, field, parameter, etc. `ISymbol` is the root interface; derived interfaces include `INamespaceSymbol`, `ITypeSymbol`, `IMethodSymbol`, `IPropertySymbol`, `IFieldSymbol`, `IParameterSymbol`, `ILocalSymbol`, etc. Has source symbols (from code) and metadata symbols (from references).
 
 **Synthesized**  
 Compiler-generated symbols or members not explicitly in source (e.g., default constructors, anonymous type members).
@@ -329,3 +329,15 @@ JSON file that loads a subset of projects from a solution.
 | **MSBuild** | Build system | Project loading, build | [MSBuild Docs](https://docs.microsoft.com/en-us/visualstudio/msbuild/) |
 | **xUnit** | Test framework | Unit testing | [xUnit Docs](https://xunit.net/) |
 | **Arcade** | Build SDK | CI/CD infrastructure | [Arcade Repo](https://github.com/dotnet/arcade) |
+
+---
+
+## Expanding This Documentation
+
+This glossary covers high-level terminology. For deeper exploration:
+
+- Ask an AI assistant to "drill into [specific area]" for detailed component-level documentation
+- See the [Codebase Explorer methodology](https://github.com/CyrusNajmabadi/codebase-explorer) for guided deep-dives
+
+**Existing Roslyn Glossary:**
+- [IDE Glossary](../ide/glossary.md) — IDE-specific terms

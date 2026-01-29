@@ -223,3 +223,12 @@ internal sealed class CSharpMyService : IMyService { }
 | MEF v1 | MEF v2 | Complete |
 | project.json | MSBuild SDK-style | Complete |
 | packages.config | PackageReference | Complete |
+
+---
+
+## Expanding This Documentation
+
+This mapping provides a high-level overview. For deeper exploration:
+
+- Ask an AI assistant to "drill into [specific area]" for detailed component-level documentation
+- See the [Codebase Explorer methodology](https://github.com/CyrusNajmabadi/codebase-explorer) for guided deep-dives

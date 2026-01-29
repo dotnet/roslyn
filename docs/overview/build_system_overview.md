@@ -320,8 +320,24 @@ dotnet nuget locals all --clear
 
 ---
 
+---
+
+## Expanding This Documentation
+
+This overview provides a high-level introduction. For deeper exploration:
+
+- Ask an AI assistant to "drill into [specific area]" for detailed component-level documentation
+- See the [Codebase Explorer methodology](https://github.com/CyrusNajmabadi/codebase-explorer) for guided deep-dives
+
+---
+
 ## Related Documentation
 
+**In This Overview:**
 - [Technology Mapping](./technology_mapping.md) — Technologies used across codebase
 - [Main Overview](./main_overview.md) — Full codebase map
+
+**Existing Roslyn Docs:**
+- [Building, Testing, and Debugging](../wiki/Building-Testing-and-Debugging.md)
+- [Contributing Code](../wiki/Contributing-Code.md)
 - [Official Contributing Guide](https://github.com/dotnet/roslyn/blob/main/CONTRIBUTING.md)
