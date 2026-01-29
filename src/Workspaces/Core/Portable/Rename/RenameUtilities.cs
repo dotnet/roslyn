@@ -346,14 +346,15 @@ internal static class RenameUtilities
         // But for rename, we want to rename the type, not the operator. Check if we have a conversion operator
         // as the declared symbol AND we have a type in the referenced symbols - if so, prefer the type.
         var symbol = semanticInfo.GetAnySymbol(includeType: false);
+
+        if (symbol == null)
+            return null;
+        
         if (symbol is IMethodSymbol { MethodKind: MethodKind.Conversion } &&
             semanticInfo.ReferencedSymbols.FirstOrDefault() is INamedTypeSymbol referencedType)
         {
             symbol = referencedType;
         }
-
-        if (symbol == null)
-            return null;
 
         var definitionSymbol = await FindDefinitionSymbolAsync(symbol, document.Project.Solution, cancellationToken).ConfigureAwait(false);
         Contract.ThrowIfNull(definitionSymbol);
