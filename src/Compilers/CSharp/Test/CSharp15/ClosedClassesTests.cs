@@ -45,7 +45,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
     }
 
     [Fact]
-    public void DoesNotSynthesizeAttribute()
+    public void DoesNotSynthesizeAttribute_01()
     {
         var source1 = """
             public closed class C { }
@@ -59,6 +59,31 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         var comp2 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp2.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void DoesNotSynthesizeAttribute_02()
+    {
+        var source1 = """
+            public closed class C { }
+            """;
+
+        var comp1 = CreateCompilation(source1, targetFramework: TargetFramework.Net100);
+        comp1.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute);
+        comp1.VerifyEmitDiagnostics(
+            // (1,21): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.ClosedAttribute..ctor'
+            // public closed class C { }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C").WithArguments("System.Runtime.CompilerServices.ClosedAttribute", ".ctor").WithLocation(1, 21),
+            // (1,21): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute..ctor'
+            // public closed class C { }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C").WithArguments("System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute", ".ctor").WithLocation(1, 21));
+
+        var comp2 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp2.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor);
+        comp2.VerifyEmitDiagnostics(
+            // (1,21): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute..ctor'
+            // public closed class C { }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C").WithArguments("System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute", ".ctor").WithLocation(1, 21));
     }
 
     [Fact]
