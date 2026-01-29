@@ -40,7 +40,7 @@ All options are optional. One of `--stdio` or `--pipe` should typically be speci
 - `--extensionLogDirectory <path>` - Directory for log files
 - `--extension <path>` - Load extension assemblies (can be specified multiple times)
 - `--debug` - Launch the debugger on startup (default: false)
-- `--telemetryLevel <level>` - Set telemetry level: 'all', 'crash', 'error', or 'off' (default: 'off')
+- `--telemetryLevel <level>` - Set telemetry level: all, crash, error, or off (default: off)
 - And other specialized options for advanced scenarios
 
 ### Example
