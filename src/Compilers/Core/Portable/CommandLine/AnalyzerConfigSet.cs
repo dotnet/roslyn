@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis
         /// corresponds to each <see cref="AnalyzerConfig.NamedSections"/>.
         /// </summary>
         private readonly ImmutableArray<ImmutableArray<SectionNameMatcher?>> _analyzerMatchers;
+        private readonly ImmutableArray<SectionNameMatcher?> _globalConfigSectionMatchers;
 
         // PERF: diagnostic IDs will appear in the output options for every syntax tree in
         // the solution. We share string instances for each diagnostic ID to avoid creating
@@ -176,10 +177,17 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>This method is safe to call from multiple threads.</remarks>
         public AnalyzerConfigOptionsResult GetOptionsForSourcePath(string sourcePath)
         {
+            return GetOptionsForSourcePath(sourcePath, globalConfigRelativePath: null);
+        }
+
+        internal AnalyzerConfigOptionsResult GetOptionsForSourcePath(string sourcePath, string? globalConfigRelativePath)
+        {
             if (sourcePath == null)
             {
                 throw new ArgumentNullException(nameof(sourcePath));
             }
+
+            Debug.Assert(globalConfigRelativePath is null || globalConfigRelativePath.StartsWith("/", StringComparison.Ordinal));
 
             var sectionKey = _sectionKeyPool.Allocate();
 
@@ -188,10 +196,22 @@ namespace Microsoft.CodeAnalysis
             normalizedPath = PathUtilities.NormalizeDriveLetter(normalizedPath);
 
             // If we have a global config, add any sections that match the full path. We can have at most one section since
-            // we would have merged them earlier.
-            foreach (var section in _globalConfig.NamedSections)
+            // we would have merged them earlier (unless `globalConfigRelativePath` is not null).
+            for (var sectionIndex = 0; sectionIndex < _globalConfig.NamedSections.Length; sectionIndex++)
             {
+                var section = _globalConfig.NamedSections[sectionIndex];
+
                 if (normalizedPath.Equals(section.Name, Section.NameComparer))
+                {
+                    sectionKey.Add(section);
+                    if (string.IsNullOrEmpty(globalConfigRelativePath))
+                    {
+                        break;
+                    }
+                }
+
+                var matcher = _globalConfig.SectionMatchers[sectionIndex];
+                if (!string.IsNullOrEmpty(globalConfigRelativePath) && matcher?.IsMatch(globalConfigRelativePath) == true)
                 {
                     sectionKey.Add(section);
                     break;
