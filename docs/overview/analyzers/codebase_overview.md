@@ -316,3 +316,20 @@ See also: [../glossary.md](../glossary.md)
 - [Product Overview](./product_overview.md)
 - [Glossary](../glossary.md)
 - [Main Overview](../main_overview.md)
+
+**Existing Codebase Docs:**
+- [RoslynAnalyzers README](../../src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/readme.md)
+
+---
+
+## Documentation Scope
+
+This document provides a high-level architectural overview of the Analyzers areas. It covers organization and patterns but does not detail each analyzer's implementation.
+
+**What's covered:** Architecture, registration patterns, analyzer organization, deployment
+
+**What's not covered:** Each analyzer's implementation, all diagnostic IDs, performance tuning
+
+**To go deeper:** Start a new AI session using the [Expanding Documentation Prompt](https://github.com/CyrusNajmabadi/codebase-explorer/blob/main/LOADER.md#expanding-documentation-prompt).
+
+**Parent document:** [Main Overview](../main_overview.md)

@@ -12,7 +12,7 @@ A developer opens a large solution with 50 projects in Visual Studio. They type 
 
 **Before: The Challenge**
 
-The compiler APIs (Compilation, SyntaxTree, etc.) are powerful but designed for single-point-in-time compilation. An IDE needs:
+The compiler APIs (Compilation, SyntaxTree, etc.) are designed for single-point-in-time compilation. An IDE needs:
 - To track changes as the user types, character by character
 - To manage multiple projects with complex dependencies
 - To keep semantic information up-to-date without recompiling everything
@@ -239,15 +239,6 @@ workspace.WorkspaceChanged += async (sender, args) =>
 
 ---
 
-## Expanding This Documentation
-
-This overview provides a high-level introduction. For deeper exploration:
-
-- Ask an AI assistant to "drill into [specific area]" for detailed component-level documentation
-- See the [Codebase Explorer methodology](https://github.com/CyrusNajmabadi/codebase-explorer) for guided deep-dives
-
----
-
 ## Related Documentation
 
 **In This Overview:**
@@ -255,6 +246,20 @@ This overview provides a high-level introduction. For deeper exploration:
 - [Main Overview](../main_overview.md) — Full codebase map
 - [Glossary](../glossary.md) — Terminology
 
-**Existing Roslyn Docs:**
-- [Roslyn Overview](../../wiki/Roslyn-Overview.md) — Official architecture deep-dive (see "Working with a Workspace" section)
+**Existing Codebase Docs:**
+- [Roslyn Overview](../../wiki/Roslyn-Overview.md) — Official architecture (see "Working with a Workspace")
 - [Workspace and Source Generated Documents](../../ide/api-designs/Workspace%20and%20Source%20Generated%20Documents.md)
+
+---
+
+## Documentation Scope
+
+This document explains why the Workspaces layer exists and what problems it solves. It provides context for understanding the workspace model but does not cover implementation details.
+
+**What's covered:** Workspace concept, solution/project/document model, change tracking
+
+**What's not covered:** Implementation details, all workspace types, remote workspace internals
+
+**To go deeper:** See [Codebase Overview](./codebase_overview.md) for architecture. For more detail, start a new AI session using the [Expanding Documentation Prompt](https://github.com/CyrusNajmabadi/codebase-explorer/blob/main/LOADER.md#expanding-documentation-prompt).
+
+**Parent document:** [Main Overview](../main_overview.md)

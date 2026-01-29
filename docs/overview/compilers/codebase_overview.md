@@ -345,7 +345,21 @@ See also: [../glossary.md](../glossary.md)
 - [Glossary](../glossary.md)
 - [Main Overview](../main_overview.md)
 
-**Existing Roslyn Docs:**
+**Existing Codebase Docs:**
 - [Roslyn Overview](../../wiki/Roslyn-Overview.md) — Official architecture deep-dive
 - [Getting Started C# Syntax Analysis](../../wiki/Getting-Started-C%23-Syntax-Analysis.md)
 - [Getting Started C# Semantic Analysis](../../wiki/Getting-Started-C%23-Semantic-Analysis.md)
+
+---
+
+## Documentation Scope
+
+This document provides a high-level architectural overview of the Compilers area. It covers major components and their interactions but does not detail internal implementation of each component.
+
+**What's covered:** Architecture, component responsibilities, key patterns, technology choices
+
+**What's not covered:** Detailed implementation, all APIs, performance tuning
+
+**To go deeper:** Start a new AI session using the [Expanding Documentation Prompt](https://github.com/CyrusNajmabadi/codebase-explorer/blob/main/LOADER.md#expanding-documentation-prompt), asking to drill into specific components (e.g., "the Binder", "lowering passes", "emit pipeline").
+
+**Parent document:** [Main Overview](../main_overview.md)

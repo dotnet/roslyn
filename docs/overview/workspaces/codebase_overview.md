@@ -332,3 +332,20 @@ See also: [../glossary.md](../glossary.md)
 - [Product Overview](./product_overview.md)
 - [Glossary](../glossary.md)
 - [Main Overview](../main_overview.md)
+
+**Existing Codebase Docs:**
+- [Roslyn Overview](../../wiki/Roslyn-Overview.md) — See "Working with a Workspace" section
+
+---
+
+## Documentation Scope
+
+This document provides a high-level architectural overview of the Workspaces layer. It covers major components and state management but does not detail all workspace implementations.
+
+**What's covered:** Architecture, state management patterns, MSBuild/Remote workspace concepts
+
+**What's not covered:** All workspace types, serialization details, ServiceHub internals
+
+**To go deeper:** Start a new AI session using the [Expanding Documentation Prompt](https://github.com/CyrusNajmabadi/codebase-explorer/blob/main/LOADER.md#expanding-documentation-prompt).
+
+**Parent document:** [Main Overview](../main_overview.md)

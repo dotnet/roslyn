@@ -251,15 +251,6 @@ This pattern appears in Compilers, Features, Analyzers, and most other areas.
 
 ---
 
-## Expanding This Documentation
-
-This documentation provides a high-level overview and does not drill into implementation details. For deeper exploration:
-
-- Ask an AI assistant to "drill into [specific area]" for detailed component-level documentation
-- See the [Codebase Explorer methodology](https://github.com/CyrusNajmabadi/codebase-explorer) for guided deep-dives
-
----
-
 ## Related Documents
 
 **In This Overview:**
@@ -267,9 +258,32 @@ This documentation provides a high-level overview and does not drill into implem
 - [Technology Mapping](./technology_mapping.md) — What tech is used where
 - [Build System Overview](./build_system_overview.md) — How code is built
 
-**Existing Roslyn Docs:**
+---
+
+## Existing Codebase Documentation
+
+The Roslyn repository contains extensive documentation. This AI-generated overview complements but does not replace it.
+
+- [Main README](../../README.md) — Project overview
 - [Roslyn Overview](../wiki/Roslyn-Overview.md) — Official architecture deep-dive
-- [Samples and Walkthroughs](../wiki/Samples-and-Walkthroughs.md)
-- [Contributing Code](../wiki/Contributing-Code.md)
-- [Building, Testing, and Debugging](../wiki/Building-Testing-and-Debugging.md)
-- [Official Microsoft Docs](https://docs.microsoft.com/en-us/dotnet/csharp/roslyn-sdk/compiler-api-model)
+- [Samples and Walkthroughs](../wiki/Samples-and-Walkthroughs.md) — Getting started guides
+- [Contributing Code](../wiki/Contributing-Code.md) — Development guidelines
+- [Building, Testing, and Debugging](../wiki/Building-Testing-and-Debugging.md) — Setup instructions
+- [Official Microsoft Docs](https://docs.microsoft.com/en-us/dotnet/csharp/roslyn-sdk/compiler-api-model) — External documentation
+
+---
+
+## Documentation Scope
+
+This documentation provides a high-level map of the Roslyn codebase. Individual area documents cover architecture and purpose but do not exhaustively document implementation details.
+
+**What's covered:** Major areas, architecture overview, key patterns, terminology
+
+**What's not covered:** Implementation details, all configuration options, edge cases
+
+**To expand coverage:** Start a new AI session using the [Expanding Documentation Prompt](https://github.com/CyrusNajmabadi/codebase-explorer/blob/main/LOADER.md#expanding-documentation-prompt). Example requests:
+- "Drill deeper into the Binder component"
+- "Trace a compilation through the system"
+- "Document the async/await lowering internals"
+
+**Methodology:** This documentation was created using the [Codebase Explorer methodology](https://github.com/CyrusNajmabadi/codebase-explorer).

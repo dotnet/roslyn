@@ -226,9 +226,14 @@ internal sealed class CSharpMyService : IMyService { }
 
 ---
 
-## Expanding This Documentation
+## Documentation Scope
 
-This mapping provides a high-level overview. For deeper exploration:
+This document maps major technologies to their usage across the codebase. It covers primary technologies but not every library or tool.
 
-- Ask an AI assistant to "drill into [specific area]" for detailed component-level documentation
-- See the [Codebase Explorer methodology](https://github.com/CyrusNajmabadi/codebase-explorer) for guided deep-dives
+**What's covered:** Primary languages, frameworks, build tools, CI/CD
+
+**What's not covered:** Every NuGet package, internal utilities, version history
+
+**To expand:** Start a new AI session using the [Expanding Documentation Prompt](https://github.com/CyrusNajmabadi/codebase-explorer/blob/main/LOADER.md#expanding-documentation-prompt).
+
+**Methodology:** This documentation was created using the [Codebase Explorer methodology](https://github.com/CyrusNajmabadi/codebase-explorer).

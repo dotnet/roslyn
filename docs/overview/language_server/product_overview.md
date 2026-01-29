@@ -223,15 +223,6 @@ For detailed architecture, see [Codebase Overview](./codebase_overview.md).
 
 ---
 
-## Expanding This Documentation
-
-This overview provides a high-level introduction. For deeper exploration:
-
-- Ask an AI assistant to "drill into [specific area]" for detailed component-level documentation
-- See the [Codebase Explorer methodology](https://github.com/CyrusNajmabadi/codebase-explorer) for guided deep-dives
-
----
-
 ## Related Documentation
 
 **In This Overview:**
@@ -239,9 +230,23 @@ This overview provides a high-level introduction. For deeper exploration:
 - [Main Overview](../main_overview.md) — Full codebase map
 - [Glossary](../glossary.md) — Terminology
 
-**Existing Roslyn Docs:**
-- [Microsoft.CommonLanguageServerProtocol.Framework README](../../LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework/README.md)
-- [LSP Protocol README](../../LanguageServer/Protocol/Protocol/README.md)
+**Existing Codebase Docs:**
+- [CLaSP Framework README](../../src/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework/README.md)
+- [LSP Protocol README](../../src/LanguageServer/Protocol/Protocol/README.md)
 
 **External:**
 - [LSP Specification](https://microsoft.github.io/language-server-protocol/)
+
+---
+
+## Documentation Scope
+
+This document explains why the Language Server layer exists and how LSP enables Roslyn in non-VS editors. It covers the architecture but does not detail all protocol handlers.
+
+**What's covered:** LSP architecture, handler pattern, feature mapping
+
+**What's not covered:** All handlers, protocol edge cases, CLaSP internals
+
+**To go deeper:** See [Codebase Overview](./codebase_overview.md) for architecture. For more detail, start a new AI session using the [Expanding Documentation Prompt](https://github.com/CyrusNajmabadi/codebase-explorer/blob/main/LOADER.md#expanding-documentation-prompt).
+
+**Parent document:** [Main Overview](../main_overview.md)

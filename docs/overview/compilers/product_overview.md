@@ -268,15 +268,6 @@ var classDeclaration = SyntaxFactory.ClassDeclaration("GeneratedClass")
 
 ---
 
-## Expanding This Documentation
-
-This overview provides a high-level introduction. For deeper exploration:
-
-- Ask an AI assistant to "drill into [specific area]" for detailed component-level documentation
-- See the [Codebase Explorer methodology](https://github.com/CyrusNajmabadi/codebase-explorer) for guided deep-dives
-
----
-
 ## Related Documentation
 
 **In This Overview:**
@@ -284,8 +275,22 @@ This overview provides a high-level introduction. For deeper exploration:
 - [Main Overview](../main_overview.md) — Full codebase map
 - [Glossary](../glossary.md) — Terminology
 
-**Existing Roslyn Docs:**
+**Existing Codebase Docs:**
 - [Roslyn Overview](../../wiki/Roslyn-Overview.md) — Official architecture deep-dive
 - [Getting Started C# Syntax Analysis](../../wiki/Getting-Started-C%23-Syntax-Analysis.md)
 - [Getting Started C# Semantic Analysis](../../wiki/Getting-Started-C%23-Semantic-Analysis.md)
 - [Official Roslyn APIs](https://docs.microsoft.com/en-us/dotnet/csharp/roslyn-sdk/)
+
+---
+
+## Documentation Scope
+
+This document explains why the Compilers area exists and what problems it solves. It provides context for understanding the compiler's purpose but does not cover implementation details.
+
+**What's covered:** Compiler-as-a-service concept, core abstractions, pipeline overview
+
+**What's not covered:** Implementation details, all APIs, optimization strategies
+
+**To go deeper:** See [Codebase Overview](./codebase_overview.md) for architecture. For more detail, start a new AI session using the [Expanding Documentation Prompt](https://github.com/CyrusNajmabadi/codebase-explorer/blob/main/LOADER.md#expanding-documentation-prompt).
+
+**Parent document:** [Main Overview](../main_overview.md)

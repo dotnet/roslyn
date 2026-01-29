@@ -262,15 +262,6 @@ dotnet_diagnostic.IDE0003.severity = warning
 
 ---
 
-## Expanding This Documentation
-
-This overview provides a high-level introduction. For deeper exploration:
-
-- Ask an AI assistant to "drill into [specific area]" for detailed component-level documentation
-- See the [Codebase Explorer methodology](https://github.com/CyrusNajmabadi/codebase-explorer) for guided deep-dives
-
----
-
 ## Related Documentation
 
 **In This Overview:**
@@ -278,8 +269,25 @@ This overview provides a high-level introduction. For deeper exploration:
 - [Main Overview](../main_overview.md) — Full codebase map
 - [Glossary](../glossary.md) — Terminology
 
-**Existing Roslyn Docs:**
+**Existing Codebase Docs:**
 - [How To Write a C# Analyzer and Code Fix](../../wiki/How-To-Write-a-C%23-Analyzer-and-Code-Fix.md)
 - [How To Write a Visual Basic Analyzer and Code Fix](../../wiki/How-To-Write-a-Visual-Basic-Analyzer-and-Code-Fix.md)
 - [Analyzer Runner](../../wiki/Analyzer-Runner.md)
+- [RoslynAnalyzers README](../../src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/readme.md)
+
+**External:**
 - [Analyzer Docs](https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/)
+
+---
+
+## Documentation Scope
+
+This document explains why the Analyzers areas exist and what types of analyzers Roslyn includes. It covers the analyzer catalog and patterns but does not detail each analyzer's implementation.
+
+**What's covered:** Analyzer types, registration patterns, configuration via EditorConfig
+
+**What's not covered:** Implementation of each analyzer, all diagnostic IDs, code fix details
+
+**To go deeper:** See [Codebase Overview](./codebase_overview.md) for architecture. For more detail, start a new AI session using the [Expanding Documentation Prompt](https://github.com/CyrusNajmabadi/codebase-explorer/blob/main/LOADER.md#expanding-documentation-prompt).
+
+**Parent document:** [Main Overview](../main_overview.md)

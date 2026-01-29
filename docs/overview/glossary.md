@@ -332,12 +332,16 @@ JSON file that loads a subset of projects from a solution.
 
 ---
 
-## Expanding This Documentation
+## Existing Codebase Glossaries
 
-This glossary covers high-level terminology. For deeper exploration:
-
-- Ask an AI assistant to "drill into [specific area]" for detailed component-level documentation
-- See the [Codebase Explorer methodology](https://github.com/CyrusNajmabadi/codebase-explorer) for guided deep-dives
-
-**Existing Roslyn Glossary:**
 - [IDE Glossary](../ide/glossary.md) — IDE-specific terms
+
+---
+
+## Documentation Scope
+
+This glossary covers terminology encountered during high-level codebase exploration. It is not exhaustive.
+
+**To expand:** Start a new AI session using the [Expanding Documentation Prompt](https://github.com/CyrusNajmabadi/codebase-explorer/blob/main/LOADER.md#expanding-documentation-prompt) to add terms for specific areas.
+
+**Methodology:** This documentation was created using the [Codebase Explorer methodology](https://github.com/CyrusNajmabadi/codebase-explorer).

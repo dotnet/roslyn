@@ -275,15 +275,6 @@ public class FormatDocumentHandler : ICommandHandler<FormatDocumentCommandArgs>
 
 ---
 
-## Expanding This Documentation
-
-This overview provides a high-level introduction. For deeper exploration:
-
-- Ask an AI assistant to "drill into [specific area]" for detailed component-level documentation
-- See the [Codebase Explorer methodology](https://github.com/CyrusNajmabadi/codebase-explorer) for guided deep-dives
-
----
-
 ## Related Documentation
 
 **In This Overview:**
@@ -291,7 +282,21 @@ This overview provides a high-level introduction. For deeper exploration:
 - [Main Overview](../main_overview.md) — Full codebase map
 - [Glossary](../glossary.md) — Terminology
 
-**Existing Roslyn Docs:**
-- [IDE README](../../ide/README.md)
-- [IDE Glossary](../../ide/glossary.md)
+**Existing Codebase Docs:**
+- [IDE README](../../docs/ide/README.md)
+- [IDE Glossary](../../docs/ide/glossary.md)
 - [Building, Testing, and Debugging](../../wiki/Building-Testing-and-Debugging.md)
+
+---
+
+## Documentation Scope
+
+This document explains why the Editor Integration layers exist and how they bridge Roslyn features to Visual Studio. It covers the layering but does not detail all taggers or command handlers.
+
+**What's covered:** Layer architecture, tagger/command patterns, VS package structure
+
+**What's not covered:** All taggers, all command handlers, VSIX packaging details
+
+**To go deeper:** See [Codebase Overview](./codebase_overview.md) for architecture. For more detail, start a new AI session using the [Expanding Documentation Prompt](https://github.com/CyrusNajmabadi/codebase-explorer/blob/main/LOADER.md#expanding-documentation-prompt).
+
+**Parent document:** [Main Overview](../main_overview.md)

@@ -322,22 +322,27 @@ dotnet nuget locals all --clear
 
 ---
 
-## Expanding This Documentation
-
-This overview provides a high-level introduction. For deeper exploration:
-
-- Ask an AI assistant to "drill into [specific area]" for detailed component-level documentation
-- See the [Codebase Explorer methodology](https://github.com/CyrusNajmabadi/codebase-explorer) for guided deep-dives
-
----
-
 ## Related Documentation
 
 **In This Overview:**
 - [Technology Mapping](./technology_mapping.md) — Technologies used across codebase
 - [Main Overview](./main_overview.md) — Full codebase map
 
-**Existing Roslyn Docs:**
+**Existing Codebase Docs:**
 - [Building, Testing, and Debugging](../wiki/Building-Testing-and-Debugging.md)
 - [Contributing Code](../wiki/Contributing-Code.md)
 - [Official Contributing Guide](https://github.com/dotnet/roslyn/blob/main/CONTRIBUTING.md)
+
+---
+
+## Documentation Scope
+
+This document provides a high-level overview of the build system. It covers common commands and CI/CD but does not exhaustively document all build options.
+
+**What's covered:** Build commands, CI pipeline, developer workflow, troubleshooting
+
+**What's not covered:** All MSBuild properties, Arcade SDK internals, all CI job configurations
+
+**To go deeper:** Start a new AI session using the [Expanding Documentation Prompt](https://github.com/CyrusNajmabadi/codebase-explorer/blob/main/LOADER.md#expanding-documentation-prompt).
+
+**Methodology:** This documentation was created using the [Codebase Explorer methodology](https://github.com/CyrusNajmabadi/codebase-explorer).

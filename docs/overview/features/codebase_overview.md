@@ -310,3 +310,17 @@ See also: [../glossary.md](../glossary.md)
 - [Product Overview](./product_overview.md)
 - [Glossary](../glossary.md)
 - [Main Overview](../main_overview.md)
+
+---
+
+## Documentation Scope
+
+This document provides a high-level architectural overview of the Features layer. It covers the provider pattern and organization but does not detail each feature's implementation.
+
+**What's covered:** Architecture, provider patterns, MEF composition, feature organization
+
+**What's not covered:** Implementation of each feature, all providers, edge cases
+
+**To go deeper:** Start a new AI session using the [Expanding Documentation Prompt](https://github.com/CyrusNajmabadi/codebase-explorer/blob/main/LOADER.md#expanding-documentation-prompt), asking to drill into specific features (e.g., "completion providers", "refactoring infrastructure").
+
+**Parent document:** [Main Overview](../main_overview.md)

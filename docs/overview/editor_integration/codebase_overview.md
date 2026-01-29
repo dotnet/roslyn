@@ -321,3 +321,21 @@ See also: [../glossary.md](../glossary.md)
 - [Product Overview](./product_overview.md)
 - [Glossary](../glossary.md)
 - [Main Overview](../main_overview.md)
+
+**Existing Codebase Docs:**
+- [IDE README](../../docs/ide/README.md)
+- [IDE Glossary](../../docs/ide/glossary.md)
+
+---
+
+## Documentation Scope
+
+This document provides a high-level architectural overview of the Editor Integration layers. It covers the layering and MEF composition but does not detail each tagger or handler.
+
+**What's covered:** Architecture, tagger/command patterns, package structure, MEF composition
+
+**What's not covered:** All taggers, all handlers, VS SDK details
+
+**To go deeper:** Start a new AI session using the [Expanding Documentation Prompt](https://github.com/CyrusNajmabadi/codebase-explorer/blob/main/LOADER.md#expanding-documentation-prompt).
+
+**Parent document:** [Main Overview](../main_overview.md)
