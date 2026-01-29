@@ -31,14 +31,16 @@ The language server is designed to be launched by editor clients and typically s
 
 ### Command-line Options
 
-- `--stdio` - Use standard I/O for communication with the client
+All options are optional. One of `--stdio` or `--pipe` should typically be specified for communication.
+
+- `--stdio` - Use standard I/O for communication with the client (default: false)
 - `--pipe <name>` - Use a named pipe for communication
+- `--autoLoadProjects` - Automatically discover and load projects based on workspace folders (default: false)
 - `--logLevel <level>` - Set the minimum log verbosity
 - `--extensionLogDirectory <path>` - Directory for log files
 - `--extension <path>` - Load extension assemblies (can be specified multiple times)
-- `--debug` - Launch the debugger on startup
-- `--telemetryLevel <level>` - Set telemetry level (off, crash, error, or all)
-- `--autoLoadProjects` - Automatically discover and load projects
+- `--debug` - Launch the debugger on startup (default: false)
+- `--telemetryLevel <level>` - Set telemetry level: 'all', 'crash', 'error', or 'off' (default: 'off')
 - And other specialized options for advanced scenarios
 
 ### Example
