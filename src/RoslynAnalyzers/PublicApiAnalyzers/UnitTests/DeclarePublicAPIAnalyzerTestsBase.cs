@@ -2783,6 +2783,112 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 [ID1]C.C() -> void
                 """);
 
+        [Fact]
+        [WorkItem(82131, "https://github.com/dotnet/roslyn/pull/82131")]
+        public Task TestExperimentalApi_PropertyAsync()
+            => VerifyNet80CSharpAdditionalFileFixAsync($$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
+                {
+                    [Experimental("ID1")]
+                    {{EnabledModifierCSharp}} int Property { {|{{AddNewApiId}}:get|}; {|{{AddNewApiId}}:set|}; }
+                }
+                """, @"", @"", """
+                C
+                C.C() -> void
+                [ID1]C.Property.get -> int
+                [ID1]C.Property.set -> void
+                """);
+
+        [Fact]
+        [WorkItem(82131, "https://github.com/dotnet/roslyn/pull/82131")]
+        public Task TestExperimentalApi_PropertyGetterOnlyAsync()
+            => VerifyNet80CSharpAdditionalFileFixAsync($$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
+                {
+                    [Experimental("ID1")]
+                    {{EnabledModifierCSharp}} int Property { {|{{AddNewApiId}}:get|}; }
+                }
+                """, @"", @"", """
+                C
+                C.C() -> void
+                [ID1]C.Property.get -> int
+                """);
+
+        [Fact]
+        [WorkItem(82131, "https://github.com/dotnet/roslyn/pull/82131")]
+        public Task TestExperimentalApi_PropertySetterOnlyAsync()
+            => VerifyNet80CSharpAdditionalFileFixAsync($$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
+                {
+                    [Experimental("ID1")]
+                    {{EnabledModifierCSharp}} int Property { {|{{AddNewApiId}}:set|} { } }
+                }
+                """, @"", @"", """
+                C
+                C.C() -> void
+                [ID1]C.Property.set -> void
+                """);
+
+        [Fact]
+        [WorkItem(82131, "https://github.com/dotnet/roslyn/pull/82131")]
+        public Task TestExperimentalApi_IndexerAsync()
+            => VerifyNet80CSharpAdditionalFileFixAsync($$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
+                {
+                    [Experimental("ID1")]
+                    {{EnabledModifierCSharp}} int this[int index] { {|{{AddNewApiId}}:get|} => 0; {|{{AddNewApiId}}:set|} { } }
+                }
+                """, @"", @"", """
+                C
+                C.C() -> void
+                [ID1]C.this[int index].get -> int
+                [ID1]C.this[int index].set -> void
+                """);
+
+        [Fact]
+        [WorkItem(82131, "https://github.com/dotnet/roslyn/pull/82131")]
+        public Task TestExperimentalApi_EventAsync()
+            => VerifyNet80CSharpAdditionalFileFixAsync($$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
+                {
+                    [Experimental("ID1")]
+                    {{EnabledModifierCSharp}} event EventHandler {|{{AddNewApiId}}:MyEvent|};
+                }
+                """, @"", @"", """
+                C
+                C.C() -> void
+                [ID1]C.MyEvent -> System.EventHandler
+                """);
+
+        [Fact]
+        [WorkItem(82131, "https://github.com/dotnet/roslyn/pull/82131")]
+        public Task TestExperimentalApi_PropertyInExperimentalClassAsync()
+            => VerifyNet80CSharpAdditionalFileFixAsync($$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                [Experimental("ID1")]
+                {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
+                {
+                    {{EnabledModifierCSharp}} int Property { {|{{AddNewApiId}}:get|}; {|{{AddNewApiId}}:set|}; }
+                }
+                """, @"", @"", """
+                [ID1]C
+                [ID1]C.C() -> void
+                [ID1]C.Property.get -> int
+                [ID1]C.Property.set -> void
+                """);
+
         [Theory]
         [InlineData("")]
         [InlineData("null")]
