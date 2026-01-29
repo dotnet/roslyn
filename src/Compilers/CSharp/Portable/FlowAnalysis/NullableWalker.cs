@@ -12570,7 +12570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(awaitableInfo);
             RemovePlaceholderReplacement(placeholder);
 
-            if (node.HasErrors || awaitableInfo.GetResult is null)
+            if (awaitableInfo.GetResult is null)
             {
                 SetNotNullResult(node);
             }
