@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override bool HasDeclaredRequiredMembers => false;
 
-            internal override bool IsClosed => false;
+            internal sealed override bool IsClosed => false;
 
             public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
             {
