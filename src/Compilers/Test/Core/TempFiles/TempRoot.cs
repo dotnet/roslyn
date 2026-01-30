@@ -19,7 +19,31 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         static TempRoot()
         {
-            Root = Path.Combine(Path.GetTempPath(), "RoslynTests");
+            var tempDirectory = new DirectoryInfo(Path.GetTempPath());
+
+#if NET
+            if (tempDirectory.LinkTarget != null)
+            {
+                tempDirectory = (DirectoryInfo)Directory.ResolveLinkTarget(tempDirectory.FullName, true);
+            }
+            else
+            {
+                var parentDirectory = tempDirectory.Parent;
+                while (parentDirectory != null && parentDirectory.LinkTarget == null)
+                {
+                    parentDirectory = parentDirectory.Parent;
+                }
+
+                if (parentDirectory != null)
+                {
+                    var relativePath = Path.GetRelativePath(parentDirectory.FullName, tempDirectory.FullName);
+                    var realPath = Directory.ResolveLinkTarget(parentDirectory.FullName, true).FullName;
+                    tempDirectory = new DirectoryInfo(Path.GetFullPath(Path.Combine(realPath, relativePath)));
+                }
+            }
+#endif
+
+            Root = Path.Combine(tempDirectory.FullName, "RoslynTests");
             Directory.CreateDirectory(Root);
         }
 
