@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.ProjectSystem;
 
@@ -23,16 +23,14 @@ internal sealed partial class SimpleFileChangeWatcher : IFileChangeWatcher
     private static readonly StringComparer s_stringComparer = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
         ? StringComparer.OrdinalIgnoreCase
         : StringComparer.Ordinal;
-
-    /// <summary>
-    /// Lock to protect access to <see cref="_sharedRootWatchers"/>.
-    /// </summary>
-    private readonly object _sharedWatchersLock = new();
+    private static readonly StringComparison s_stringComparison = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+        ? StringComparison.OrdinalIgnoreCase
+        : StringComparison.Ordinal;
 
     /// <summary>
     /// Shared FileSystemWatchers for root paths, with reference counts.
     /// </summary>
-    private readonly Dictionary<string, SharedRootWatcher> _sharedRootWatchers = new(s_stringComparer);
+    private readonly ConcurrentDictionary<string, SharedRootWatcher> _sharedRootWatchers = new(s_stringComparer);
 
     public IFileChangeContext CreateContext(ImmutableArray<WatchedDirectory> watchedDirectories)
         => new FileChangeContext(this, watchedDirectories);
@@ -40,68 +38,48 @@ internal sealed partial class SimpleFileChangeWatcher : IFileChangeWatcher
     /// <summary>
     /// Acquires a shared watcher for the given root path, creating one if necessary.
     /// </summary>
-    private SharedRootWatcher AcquireRootWatcher(string rootPath)
+    private SharedRootWatcher GetOrCreateSharedWatcher(string rootPath)
     {
-        lock (_sharedWatchersLock)
-        {
-            if (_sharedRootWatchers.TryGetValue(rootPath, out var existingWatcher))
+        return _sharedRootWatchers.AddOrUpdate(
+            rootPath,
+            new SharedRootWatcher(rootPath),
+            (key, existingWatcher) =>
             {
-                existingWatcher.IncrementRefCount();
+                existingWatcher.AddReference();
                 return existingWatcher;
-            }
-
-            var newWatcher = new SharedRootWatcher(rootPath);
-            _sharedRootWatchers[rootPath] = newWatcher;
-            return newWatcher;
-        }
-    }
-
-    /// <summary>
-    /// Tries to get an existing shared watcher for the given root path.
-    /// </summary>
-    private bool TryGetRootWatcher(string rootPath, [NotNullWhen(returnValue: true)] out SharedRootWatcher? watcher)
-    {
-        lock (_sharedWatchersLock)
-        {
-            _sharedRootWatchers.TryGetValue(rootPath, out var existingWatcher);
-            watcher = existingWatcher;
-            return existingWatcher != null;
-        }
+            });
     }
 
     /// <summary>
     /// Releases a reference to a shared watcher, disposing it if this was the last reference.
     /// </summary>
-    private void ReleaseRootWatcher(string rootPath)
+    private void ReleaseSharedWatcher(SharedRootWatcher watcher)
     {
-        lock (_sharedWatchersLock)
-        {
-            if (_sharedRootWatchers.TryGetValue(rootPath, out var watcher))
-            {
-                if (watcher.DecrementRefCount() == 0)
-                {
-                    watcher.Dispose();
-                    _sharedRootWatchers.Remove(rootPath);
-                }
-            }
-        }
+        if (watcher.Release())
+            _sharedRootWatchers.TryRemove(watcher.RootPath, out _);
     }
 
     /// <summary>
-    /// A shared FileSystemWatcher with reference counting.
+    /// A shared <see cref="FileSystemWatcher"/> that can be used by multiple <see cref="FileChangeContext"/> instances.
+    /// Uses reference counting to track how many contexts are using it. Does not use extension filters so it can be
+    /// shared across contexts with different filters.
     /// </summary>
-    private sealed class SharedRootWatcher : IDisposable
+    private sealed class SharedRootWatcher
     {
         private readonly FileSystemWatcher _watcher;
         private int _refCount = 1;
 
+        public string RootPath { get; }
+
         /// <summary>
         /// Event raised when any file in the watched root changes.
         /// </summary>
-        public event EventHandler<string>? FileChanged;
+        public event EventHandler<FileSystemEventArgs>? FileChanged;
 
         public SharedRootWatcher(string rootPath)
         {
+            RootPath = rootPath;
+
             _watcher = new FileSystemWatcher(rootPath)
             {
                 IncludeSubdirectories = true
@@ -115,39 +93,30 @@ internal sealed partial class SimpleFileChangeWatcher : IFileChangeWatcher
             _watcher.EnableRaisingEvents = true;
         }
 
-        public void IncrementRefCount()
-        {
-            Interlocked.Increment(ref _refCount);
-        }
+        public void AddReference() => Interlocked.Increment(ref _refCount);
 
-        public int DecrementRefCount()
+        /// <summary>
+        /// Releases a reference.
+        /// </summary>
+        /// <returns>Returns true if the watcher should be removed from the shared dictionary (refcount reached zero).</returns>
+        public bool Release()
         {
-            return Interlocked.Decrement(ref _refCount);
+            if (Interlocked.Decrement(ref _refCount) == 0)
+            {
+                _watcher.Dispose();
+                return true;
+            }
+
+            return false;
         }
 
         private void OnFileSystemEvent(object sender, FileSystemEventArgs e)
-        {
-            FileChanged?.Invoke(this, e.FullPath);
-        }
-
-        public void Dispose()
-        {
-            _watcher.Changed -= OnFileSystemEvent;
-            _watcher.Created -= OnFileSystemEvent;
-            _watcher.Deleted -= OnFileSystemEvent;
-            _watcher.Renamed -= OnFileSystemEvent;
-            _watcher.Dispose();
-        }
+            => FileChanged?.Invoke(this, e);
     }
 
     internal static class TestAccessor
     {
         public static int GetSharedRootWatcherCount(SimpleFileChangeWatcher watcher)
-        {
-            lock (watcher._sharedWatchersLock)
-            {
-                return watcher._sharedRootWatchers.Count;
-            }
-        }
+            => watcher._sharedRootWatchers.Count;
     }
 }
