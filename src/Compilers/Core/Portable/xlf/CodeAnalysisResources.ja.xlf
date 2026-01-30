@@ -350,7 +350,7 @@
       </trans-unit>
       <trans-unit id="Return1">
         <source>return</source>
-        <target state="translated">戻る</target>
+        <target state="translated">戻り値</target>
         <note />
       </trans-unit>
       <trans-unit id="Struct1">
