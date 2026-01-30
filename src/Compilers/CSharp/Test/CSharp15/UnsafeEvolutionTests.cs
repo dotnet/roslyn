@@ -3567,6 +3567,98 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             ]);
     }
 
+    [Fact]
+    public void Member_Method_OverrideOfImplementation()
+    {
+        CompileAndVerifyUnsafe(
+            lib: """
+                public interface I
+                {
+                    void M1();
+                    unsafe void M2();
+                }
+
+                public class B1 : I
+                {
+                    public virtual void M1() { }
+                    public unsafe virtual void M2() { }
+                }
+                """,
+            caller: """
+                var c1 = new C1();
+                c1.M1();
+                c1.M2();
+                B1 b1 = c1;
+                b1.M1();
+                b1.M2();
+                I i = b1;
+                i.M1();
+                i.M2();
+
+                class B2 : I
+                {
+                    public unsafe virtual void M1() { }
+                    public virtual void M2() { }
+                }
+
+                class C1 : B1
+                {
+                    public unsafe override void M1() { }
+                    public override void M2() { }
+                }
+
+                class C2 : B1, I
+                {
+                    public unsafe override void M1() { }
+                    public override void M2() { }
+                }
+                """,
+            expectedUnsafeSymbols: ["I.M2", "B1.M2"],
+            expectedSafeSymbols: ["I.M1", "B1.M1"],
+            expectedDiagnostics:
+            [
+                // (2,1): error CS9502: 'C1.M1()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // c1.M1();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c1.M1()").WithArguments("C1.M1()").WithLocation(2, 1),
+                // (6,1): error CS9502: 'B1.M2()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // b1.M2();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "b1.M2()").WithArguments("B1.M2()").WithLocation(6, 1),
+                // (9,1): error CS9502: 'I.M2()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // i.M2();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "i.M2()").WithArguments("I.M2()").WithLocation(9, 1),
+                // (13,32): error CS9505: Unsafe member 'B2.M1()' cannot implicitly implement safe member 'I.M1()'
+                //     public unsafe virtual void M1() { }
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("B2.M1()", "I.M1()").WithLocation(13, 32),
+                // (19,33): error CS9504: Unsafe member 'C1.M1()' cannot override safe member 'B1.M1()'
+                //     public unsafe override void M1() { }
+                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("C1.M1()", "B1.M1()").WithLocation(19, 33),
+                // (25,33): error CS9504: Unsafe member 'C2.M1()' cannot override safe member 'B1.M1()'
+                //     public unsafe override void M1() { }
+                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("C2.M1()", "B1.M1()").WithLocation(25, 33),
+                // (25,33): error CS9505: Unsafe member 'C2.M1()' cannot implicitly implement safe member 'I.M1()'
+                //     public unsafe override void M1() { }
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C2.M1()", "I.M1()").WithLocation(25, 33),
+            ],
+            expectedDiagnosticsWhenReferencingLegacyLib:
+            [
+                // (2,1): error CS9502: 'C1.M1()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // c1.M1();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c1.M1()").WithArguments("C1.M1()").WithLocation(2, 1),
+                // (13,32): error CS9505: Unsafe member 'B2.M1()' cannot implicitly implement safe member 'I.M1()'
+                //     public unsafe virtual void M1() { }
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("B2.M1()", "I.M1()").WithLocation(13, 32),
+                // (19,33): error CS9504: Unsafe member 'C1.M1()' cannot override safe member 'B1.M1()'
+                //     public unsafe override void M1() { }
+                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("C1.M1()", "B1.M1()").WithLocation(19, 33),
+                // (25,33): error CS9504: Unsafe member 'C2.M1()' cannot override safe member 'B1.M1()'
+                //     public unsafe override void M1() { }
+                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("C2.M1()", "B1.M1()").WithLocation(25, 33),
+                // (25,33): error CS9505: Unsafe member 'C2.M1()' cannot implicitly implement safe member 'I.M1()'
+                //     public unsafe override void M1() { }
+                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C2.M1()", "I.M1()").WithLocation(25, 33),
+            ]);
+    }
+
     /// <summary>
     /// Caller-unsafety should not count as part of the signature for hiding purposes.
     /// </summary>
