@@ -33,6 +33,8 @@ The language server is designed to be launched by editor clients and typically s
 
 All options are optional. One of `--stdio` or `--pipe` should typically be specified for communication.
 
+> **Note:** Command-line options are subject to change in future versions.
+
 - `--stdio` - Use standard I/O for communication with the client (default: false)
 - `--pipe <name>` - Use a named pipe for communication
 - `--autoLoadProjects` - Automatically discover and load projects based on workspace folders (default: false)
