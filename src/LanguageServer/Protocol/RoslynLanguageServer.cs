@@ -29,7 +29,6 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         AbstractLspServiceProvider lspServiceProvider,
         JsonRpc jsonRpc,
         JsonSerializerOptions serializerOptions,
-        ICapabilitiesProvider capabilitiesProvider,
         AbstractLspLogger logger,
         HostServices hostServices,
         ImmutableArray<string> supportedLanguages,
@@ -41,7 +40,7 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         _serverKind = serverKind;
 
         // Create services that require base dependencies (jsonrpc) or are more complex to create to the set manually.
-        _baseServices = GetBaseServices(jsonRpc, logger, capabilitiesProvider, hostServices, serverKind, supportedLanguages);
+        _baseServices = GetBaseServices(jsonRpc, logger, hostServices, serverKind, supportedLanguages);
 
         // This spins up the queue and ensure the LSP is ready to start receiving requests
         Initialize();
@@ -68,7 +67,6 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
     private FrozenDictionary<string, ImmutableArray<BaseService>> GetBaseServices(
         JsonRpc jsonRpc,
         AbstractLspLogger logger,
-        ICapabilitiesProvider capabilitiesProvider,
         HostServices hostServices,
         WellKnownLspServerKinds serverKind,
         ImmutableArray<string> supportedLanguages)
@@ -81,7 +79,6 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         AddService<IClientLanguageServerManager>(clientLanguageServerManager);
         AddService<ILspLogger>(logger);
         AddService<AbstractLspLogger>(logger);
-        AddService<ICapabilitiesProvider>(capabilitiesProvider);
         AddLazyService<ILifeCycleManager>(lspServices => lspServices.GetRequiredService<LspServiceLifeCycleManager>());
         AddService(new ServerInfoProvider(serverKind, supportedLanguages));
         AddLazyService<AbstractRequestContextFactory<RequestContext>>(lspServices => new RequestContextFactory(lspServices));
@@ -157,10 +154,9 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         }
     }
 
-    public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
+    public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
         OnInitialized();
-        return Task.CompletedTask;
     }
 
     public override bool TryGetLanguageForRequest(string methodName, object? serializedParameters, [NotNullWhen(true)] out string? language)

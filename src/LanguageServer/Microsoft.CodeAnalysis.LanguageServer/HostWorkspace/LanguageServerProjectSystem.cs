@@ -6,15 +6,12 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
-using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
-using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.MSBuild.BuildHostProcessManager;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
@@ -87,7 +84,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         if (!_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out var languageName))
             return null;
 
-        var preferredBuildHostKind = GetKindForProject(projectPath);
+        var preferredBuildHostKind = BuildHostProcessManager.GetKindForProject(projectPath);
         var (buildHost, actualBuildHostKind) = await buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectPath, cancellationToken);
 
         var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken);
@@ -102,10 +99,9 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         };
     }
 
-    protected override ValueTask OnProjectUnloadedAsync(string projectFilePath)
+    protected override async ValueTask OnProjectUnloadedAsync(string projectFilePath)
     {
         // Nothing else to unload for ordinary projects.
-        return ValueTask.CompletedTask;
     }
 
     protected override async ValueTask TransitionPrimordialProjectToLoaded_NoLockAsync(

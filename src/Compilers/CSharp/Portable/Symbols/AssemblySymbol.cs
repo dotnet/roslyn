@@ -487,6 +487,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Figure out if the target runtime supports extended layout types.
+        /// </summary>
+        internal bool RuntimeSupportsExtendedLayout
+        {
+            // Keep in sync with VB's AssemblySymbol.RuntimeSupportsExtendedLayout
+            get
+            {
+                return GetSpecialTypeMember(SpecialMember.System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor) is object;
+            }
+        }
+
+        /// <summary>
         /// Figure out if the target runtime supports inline array types.
         /// </summary>
         internal bool RuntimeSupportsByRefLikeGenerics

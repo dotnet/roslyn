@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests;
 
 public sealed class SdkIntegrationTests : IDisposable
 {
-    public const string NetCoreTfm = "net9.0";
+    public const string NetCoreTfm = "net10.0";
 
     public ITestOutputHelper TestOutputHelper { get; }
     public TempRoot Temp { get; }

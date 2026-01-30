@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Utilities;

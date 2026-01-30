@@ -306,17 +306,18 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                     .All(static t => t.IsWhitespaceOrEndOfLine()))
             {
                 // Remove any whitespace around the `.`, making the singly-wrapped fluent expression into a single line.
-                postMatchesInReverse.Add(new CollectionMatch<ArgumentSyntax>(
+                postMatchesInReverse.Add(new(
                     Argument(innerInvocation.WithExpression(
                         memberAccess.Update(
                             memberAccess.Expression.WithoutTrailingTrivia(),
                             memberAccess.OperatorToken.WithoutTrivia(),
                             memberAccess.Name.WithoutLeadingTrivia()))),
-                    UseSpread: true));
+                    UseSpread: true,
+                    UseKeyValue: false));
                 return;
             }
 
-            postMatchesInReverse.Add(new CollectionMatch<ArgumentSyntax>(Argument(expression), UseSpread: true));
+            postMatchesInReverse.Add(new(Argument(expression), UseSpread: true, UseKeyValue: false));
         }
 
         // We only want to offer this feature when the original collection was list-like (as opposed to being something
@@ -361,7 +362,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             return;
 
         for (var i = arguments.Count - 1; i >= 0; i--)
-            matchesInReverse.Add(new(arguments[i], useSpread));
+            matchesInReverse.Add(new(arguments[i], useSpread, UseKeyValue: false));
     }
 
     /// <summary>
@@ -405,7 +406,8 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             var name = memberAccess.Name.Identifier.ValueText;
 
             // Check for Add/AddRange/Concat
-            if (state.TryAnalyzeInvocationForCollectionExpression(invocation, allowLinq, cancellationToken, out _, out var useSpread))
+            if (state.TryAnalyzeInvocationForCollectionExpression(
+                    invocation, allowLinq, cancellationToken, out _, out var useSpread, out _))
             {
                 AddArgumentsInReverse(matchesInReverse, invocation.ArgumentList.Arguments, useSpread);
 

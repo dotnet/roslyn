@@ -79,7 +79,7 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler(
 
     protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(DocumentDiagnosticParams diagnosticsParams)
     {
-        if (diagnosticsParams.PreviousResultId != null && diagnosticsParams.TextDocument != null)
+        if (diagnosticsParams is { PreviousResultId: not null, TextDocument: not null })
         {
             return ImmutableArray.Create(new PreviousPullResult(diagnosticsParams.PreviousResultId, diagnosticsParams.TextDocument));
         }

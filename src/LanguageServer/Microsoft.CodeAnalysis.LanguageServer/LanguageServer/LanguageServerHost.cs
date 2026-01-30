@@ -39,7 +39,6 @@ internal sealed class LanguageServerHost
         };
 
         var roslynLspFactory = exportProvider.GetExportedValue<ILanguageServerFactory>();
-        var capabilitiesProvider = new ServerCapabilitiesProvider(exportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>());
 
         _logger = loggerFactory.CreateLogger("LSP");
         var lspLogger = new LspServiceLogger(_logger);
@@ -48,7 +47,6 @@ internal sealed class LanguageServerHost
         _roslynLanguageServer = roslynLspFactory.Create(
             _jsonRpc,
             messageFormatter.JsonSerializerOptions,
-            capabilitiesProvider,
             WellKnownLspServerKinds.CSharpVisualBasicLspServer,
             lspLogger,
             hostServices,

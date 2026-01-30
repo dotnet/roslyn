@@ -36,19 +36,10 @@ internal partial class InvocationExpressionSignatureHelpProviderBase : AbstractO
 
     private async Task<InvocationExpressionSyntax?> TryGetInvocationExpressionAsync(Document document, int position, SignatureHelpTriggerReason triggerReason, CancellationToken cancellationToken)
     {
-        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var expression = await CommonSignatureHelpUtilities.TryGetSyntaxAsync<InvocationExpressionSyntax>(
+            document, position, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken).ConfigureAwait(false);
 
-        if (!CommonSignatureHelpUtilities.TryGetSyntax(
-                root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out InvocationExpressionSyntax? expression))
-        {
-            return null;
-        }
-
-        if (expression.ArgumentList is null)
-            return null;
-
-        return expression;
+        return expression?.ArgumentList is null ? null : expression;
     }
 
     private bool IsTriggerToken(SyntaxToken token)

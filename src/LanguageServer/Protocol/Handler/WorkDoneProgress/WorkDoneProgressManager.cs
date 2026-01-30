@@ -16,9 +16,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 /// Manages server initiated work done progress reporting to the client.
 /// See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#serverInitiatedProgress
 /// </summary>
-class WorkDoneProgressManager(IClientLanguageServerManager clientLanguageServerManager) : ILspService
+class WorkDoneProgressManager(IClientLanguageServerManager clientLanguageServerManager, IInitializeManager initializeManager) : ILspService
 {
     private readonly IClientLanguageServerManager _clientLanguageServerManager = clientLanguageServerManager;
+    private readonly IInitializeManager _initializeManager = initializeManager;
 
     /// <summary>
     /// Guards access to <see cref="_progressReporters"/>.
@@ -51,7 +52,11 @@ class WorkDoneProgressManager(IClientLanguageServerManager clientLanguageServerM
     {
         var token = Guid.NewGuid().ToString();
         IWorkDoneProgressReporter reporter;
-        if (reportProgressToClient)
+
+        // Only report progress to the client if both the client advertised support for progress reporting and the caller requested it.
+        var reportProgress = reportProgressToClient && _initializeManager.GetClientCapabilities().Window?.WorkDoneProgress == true;
+
+        if (reportProgress)
         {
             var clientReporter = new WorkDoneProgressReporter(token, this, serverCancellationToken);
             await clientReporter.SendCreateRequestAsync().ConfigureAwait(false);

@@ -56,6 +56,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         internal static bool IsCompilerServerSupported => GetPipeName("") is object;
 
+        internal static bool IsBuiltinToolRunningOnCoreClr =>
+#if NETFRAMEWORK && SDK_TASK
+                true;
+#else
+                RuntimeHostInfo.IsCoreClrRuntime;
+#endif
+
         /// <summary>
         /// Create a build request for processing on the server. 
         /// </summary>
@@ -483,7 +490,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <returns>Dictionary of environment variables to set, or null if no custom environment is needed</returns>
         internal static Dictionary<string, string>? GetServerEnvironmentVariables(System.Collections.IDictionary currentEnvironment, ICompilerServerLogger? logger = null)
         {
-            if (RuntimeHostInfo.GetToolDotNetRoot(logger is null ? null : logger.Log) is not { } dotNetRoot)
+            if (!IsBuiltinToolRunningOnCoreClr || RuntimeHostInfo.GetToolDotNetRoot(logger is null ? null : logger.Log) is not { } dotNetRoot)
             {
                 return null;
             }

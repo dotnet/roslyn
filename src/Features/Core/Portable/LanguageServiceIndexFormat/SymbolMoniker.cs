@@ -30,12 +30,12 @@ internal sealed class SymbolMoniker(string scheme, string identifier)
 
         // Don't create monikers for built in-operators. We could pick some sort of moniker for these, but I doubt anybody really needs to search for all uses of
         // + in the world's projects at once.
-        if (symbol is IMethodSymbol method && method.MethodKind == MethodKind.BuiltinOperator)
+        if (symbol is IMethodSymbol { MethodKind: MethodKind.BuiltinOperator })
             return false;
 
         // TODO: some symbols for things some things in crefs don't have a ContainingAssembly. We'll skip those for now but do
         // want those to work.
-        if (symbol.Kind != SymbolKind.Namespace && symbol.ContainingAssembly == null)
+        if (symbol is { Kind: not SymbolKind.Namespace, ContainingAssembly: null })
             return false;
 
         return true;

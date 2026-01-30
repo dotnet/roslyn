@@ -171,18 +171,7 @@ internal sealed partial class SolutionCompilationState
         if (stateChange.NewSolutionState == this.SolutionState)
             return this;
 
-        return ForceForkProject(stateChange, translate.Invoke(stateChange, arg), forkTracker);
-    }
-
-    /// <summary>
-    /// Same as <see cref="ForkProject{TArg}(StateChange, Func{StateChange, TArg, TranslationAction?}, bool, TArg)"/>
-    /// except that it will still fork even if newSolutionState is unchanged from <see cref="SolutionState"/>.
-    /// </summary>
-    private SolutionCompilationState ForceForkProject(
-        StateChange stateChange,
-        TranslationAction? translate,
-        bool forkTracker)
-    {
+        var translationAction = translate.Invoke(stateChange, arg);
         var newSolutionState = stateChange.NewSolutionState;
         var newProjectState = stateChange.NewProjectState;
         var projectId = newProjectState.Id;
@@ -200,10 +189,10 @@ internal sealed partial class SolutionCompilationState
                     if (!arg.forkTracker)
                         trackerMap.Remove(arg.projectId);
                     else
-                        trackerMap[arg.projectId] = tracker.Fork(arg.newProjectState, arg.translate);
+                        trackerMap[arg.projectId] = tracker.Fork(arg.newProjectState, arg.translationAction);
                 }
             },
-            (translate, forkTracker, projectId, newProjectState),
+            (translationAction, forkTracker, projectId, newProjectState),
             skipEmptyCallback: true);
 
         return this.Branch(
@@ -605,7 +594,9 @@ internal sealed partial class SolutionCompilationState
             .WithProjectMetadataReferences(projectId, info.MetadataReferences)
             .WithProjectAnalyzerReferences(projectId, info.AnalyzerReferences);
 
-        var oldProjectState = SolutionState.GetRequiredProjectState(projectId);
+        // It is important to get the project state instance with ParseOptions updated
+        // as these new options need to be applied to the documents being updated or added below.
+        var projectStateWithUpdatedOptions = newState.SolutionState.GetRequiredProjectState(projectId);
 
         // Note: buffers are reused across all calls to UpdateDocuments and cleared after each:
         using var _1 = ArrayBuilder<DocumentInfo>.GetInstance(out var addedDocumentInfos);
@@ -625,7 +616,7 @@ internal sealed partial class SolutionCompilationState
 
             using var _3 = ArrayBuilder<TDocumentState>.GetInstance(out var updatedDocuments);
 
-            var oldDocumentStates = oldProjectState.GetDocumentStates<TDocumentState>();
+            var oldDocumentStates = projectStateWithUpdatedOptions.GetDocumentStates<TDocumentState>();
 
             foreach (var newDocumentInfo in newDocumentInfos)
             {
@@ -1852,35 +1843,6 @@ internal sealed partial class SolutionCompilationState
             ImmutableArray<AnalyzerConfigDocumentState> analyzerConfigDocumentStates => new TranslationAction.TouchAnalyzerConfigDocumentsAction(oldProject, oldProject.AddAnalyzerConfigDocuments(analyzerConfigDocumentStates)),
             _ => throw ExceptionUtilities.UnexpectedValue(states)
         };
-
-    /// <inheritdoc cref="Solution.WithCachedSourceGeneratorState(ProjectId, Project)"/>
-    public SolutionCompilationState WithCachedSourceGeneratorState(ProjectId projectToUpdate, Project projectWithCachedGeneratorState)
-    {
-        this.SolutionState.CheckContainsProject(projectToUpdate);
-
-        // First see if we have a generator driver that we can get from the other project.
-
-        if (!projectWithCachedGeneratorState.Solution.CompilationState.TryGetCompilationTracker(projectWithCachedGeneratorState.Id, out var tracker) ||
-            tracker.GeneratorDriver is null)
-        {
-            // We don't actually have any state at all, so no change.
-            return this;
-        }
-
-        var projectToUpdateState = this.SolutionState.GetRequiredProjectState(projectToUpdate);
-
-        // Note: we have to force this fork to happen as the actual solution-state object is not changing. We're just
-        // changing the tracker for a particular project.
-        var newCompilationState = this.ForceForkProject(
-            new(this.SolutionState, projectToUpdateState, projectToUpdateState),
-            translate: new TranslationAction.ReplaceGeneratorDriverAction(
-                oldProjectState: projectToUpdateState,
-                newProjectState: projectToUpdateState,
-                tracker.GeneratorDriver),
-            forkTracker: true);
-
-        return newCompilationState;
-    }
 
     /// <summary>
     /// Creates a new solution instance with all the documents specified updated to have the same specified text.

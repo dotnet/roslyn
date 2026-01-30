@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="ERR_AttributeCannotBeAppliedManually">
         <source>'{0}' cannot be applied manually.</source>
-        <target state="new">'{0}' cannot be applied manually.</target>
+        <target state="translated">Невозможно применить "{0}" вручную.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
@@ -64,12 +64,17 @@
       </trans-unit>
       <trans-unit id="ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime">
         <source>Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</source>
-        <target state="new">Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</target>
+        <target state="translated">Для обновления требуется явная реализация интерфейса. Она не поддерживается средой выполнения без перезапуска приложения.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidExperimentalDiagID">
         <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
         <target state="translated">Аргумент diagnosticId атрибута "Experimental" должен быть допустимым идентификатором</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
+        <source>The target runtime does not support extended layout types.</source>
+        <target state="translated">Целевая среда выполнения не поддерживает расширенные типы структуры.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormatDeterministic">
@@ -84,7 +89,7 @@
       </trans-unit>
       <trans-unit id="ERR_MethodImplAttributeAsyncCannotBeUsed">
         <source>'MethodImplAttribute.Async' cannot be manually applied to methods.</source>
-        <target state="new">'MethodImplAttribute.Async' cannot be manually applied to methods.</target>
+        <target state="translated">Невозможно применить "MethodImplAttribute.Async" к методам вручную.</target>
         <note>'MethodImplAttribute.Async' is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -142,6 +147,11 @@
         <target state="translated">События общих переменных WithEvents не могут обрабатывать методы другого типа.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StructLayoutAndExtendedLayout">
+        <source>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</source>
+        <target state="translated">Запрещается использовать "StructLayoutAttribute" и "ExtendedLayoutAttribute" в одном и том же типе.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SymbolDefinedInAssembly">
         <source>'{0}' is defined in assembly '{1}'.</source>
         <target state="translated">'{0}' определен в сборке '{1}'.</target>
@@ -149,7 +159,7 @@
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings_RestartRequired">
         <source>Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</source>
-        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</target>
+        <target state="translated">Объединенная длина пользовательских строк, используемых программой, превышает допустимый предел. Чтобы добавить строковый литерал или литерал XML, необходимо перезапустить приложение.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeReserved">
@@ -381,56 +391,56 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="needs-review-translation">                  Параметры компилятора Visual Basic 
+        <target state="translated">                  Параметры компилятора Visual Basic
 
-                                  - ВЫХОДНОЙ ФАЙЛ - 
--out:&lt;file&gt;                       Задает имя выходного файла. 
+                                  — ВЫХОДНОЙ ФАЙЛ —
+-out:&lt;файл&gt;                       Задает имя выходного файла.
 -target:exe                       Создать консольное приложение (по умолчанию).
                                   (Краткая форма: -t) 
--target:winexe                    Создать приложение для Windows.
+-target:winexe                    Создать Windows-приложение.
 -target:library                   Создать библиотечную сборку.
--target:module                    Создать модуль, который может быть добавлен в 
+-target:module                    Создать модуль, который может быть добавлен в
                                   сборку.
--target:appcontainerexe           Создать приложение для Windows, выполняемое в
-                                  AppContainer. 
+-target:appcontainerexe           Создать Windows-приложение, выполняемое в
+                                  AppContainer.
 -target:winmdobj                  Создать промежуточный файл метаданных Windows
 -doc[+|-]                         Создает XML-файл документации.
 -doc:&lt;файл&gt;                       Создает XML-файл документации &lt;file&gt;.
 -refout:&lt;файл&gt;                    Указать выходные данные сборки для создания
 
-                                  - ВХОДНЫЕ ФАЙЛЫ - 
+                                  — ВХОДНЫЕ ФАЙЛЫ —
 -addmodule:&lt;список_файлов&gt;           Указать метаданные из заданных модулей
--link:&lt;список_файлов&gt;                 Внедрять метаданные из указанной сборки 
-                                  взаимодействия. (Краткая форма: -l) 
+-link:&lt;список_файлов&gt;                 Внедрять метаданные из указанной сборки
+                                  межпрограммного взаимодействия. (Краткая форма: -l)
 -recurse:&lt;подстановочный знак&gt;               Включить все файлы в текущем каталоге
                                   и подкаталогах в соответствии со
                                   спецификациями подстановочных знаков.
 -reference:&lt;список_файлов&gt;            Указать метаданные из указанной
-                                  сборки. (Краткая форма: -r) 
+                                  сборки. (Краткая форма: -r)
 -analyzer:&lt;список_файлов&gt;             Запустить анализаторы из этой сборки
-                                  (Краткая форма: -а) 
--additionalfile:&lt;список_файлов&gt;      Дополнительные файлы, которые не влияют непосредственно на создание кода
-                                  но которые могут использоваться анализаторами для создания
+                                  (Краткая форма: -а)
+-additionalfile:&lt;список_файлов&gt;      Дополнительные файлы, которые не влияют непосредственно на создание кода,
+                                  но могут использоваться анализаторами для создания
                                   ошибок и предупреждений.
 
-                                  - РЕСУРСЫ - 
+                                  — РЕСУРСЫ —
 -linkresource:&lt;resinfo&gt;           Связывает указанный файл как внешний
-                                  сборочный ресурс. 
-                                  resinfo: &lt;файл&gt;[,&lt;имя&gt;[,общедоступный|частный]]
-                                  (Краткая форма: -linkres) 
+                                  сборочный ресурс.
+                                  resinfo:&lt;файл&gt;[,&lt;имя&gt;[,общедоступный|частный]]
+                                  (Краткая форма: -linkres)
 -nowin32manifest                  Манифест по умолчанию не должен быть внедрен
                                   в раздел манифеста выходного PE.
 -resource:&lt;resinfo&gt;               Добавляет указанный файл как внедренный
-                                  сборочный ресурс. 
-                                  resinfo: &lt;файл&gt;[,&lt;имя&gt;[,общедоступный|частный]]
-                                  (Краткая форма: -res) 
--win32icon:&lt;файл&gt;                  Задает файл значка win32icon (.ico) для
-                                  ресурсов Win32 по умолчанию.
+                                  сборочный ресурс.
+                                  resinfo:&lt;файл&gt;[,&lt;имя&gt;[,общедоступный|частный]]
+                                  (Краткая форма: -res)
+-win32icon:&lt;файл&gt;                  Задает файл значка Win32 (.ico) для
+                                  стандартных ресурсов Win32.
 -win32manifest:&lt;файл&gt;             Предоставленный файл внедрен в раздел
-                                  манифеста выходного PE. 
+                                  манифеста выходного PE.
 -win32resource:&lt;файл&gt;             Задает файл ресурсов Win32 (.res).
 
-                                  - ГЕНЕРАЦИЯ КОДА - 
+                                  — ГЕНЕРАЦИЯ КОДА —
 -optimize[+|-]                    Включить оптимизацию.
 -removeintchecks[+|-]            Удалить целочисленные проверки. По умолчанию отключено.
 -debug[+|-]                       Выдавать отладочные сведения.
@@ -438,54 +448,54 @@
 -debug:pdbonly                    Выдавать полные отладочные сведения.
 -debug:portable                   Выдавать кроссплатформенную информацию отладки.
 -debug:embedded                    Выдавать кроссплатформенную информацию отладки в
-                                  целевой .dll или .exe. 
+                                  целевой .dll или .exe.
 -deterministic                    Создать детерминированную сборку
-                                  (включая GUID версии модуля и метку времени) 
+                                  (включая GUID версии модуля и метку времени)
 -refonly                          Создать базовую сборку в качестве основного вывода
 -instrument:TestCoverage          Создать сборку, оснащенную для сбора
                                   сведений об охвате
 -sourcelink:&lt;файл&gt;                 Сведения об исходной ссылке для встраивания в PDB.
 
-                                  - ОШИБКИ И ПРЕДУПРЕЖДЕНИЯ - 
+                                  — ОШИБКИ И ПРЕДУПРЕЖДЕНИЯ —
 -nowarn                           Отключить все предупреждения.
 -nowarn:&lt;список_чисел&gt;             Отключить список индивидуальных предупреждений.
 -warnaserror[+|-]                 Обрабатывать все предупреждения как ошибки.
 -warnaserror[+|-]:&lt;список_чисел&gt;   Обрабатывать все предупреждения как ошибки.
 -ruleset:&lt;файл&gt;                   Указать файл набора правил, который отключает определенную
                                   диагностику.
--errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
-                                  Укажите файл для регистрации всего компилятора и анализатора 
-                                  диагностики в формате SARIF. 
-                                  sarif_version:{1|2|2.1} По умолчанию 1. 2 и 2.1 
-                                  оба означают SARIF версии 2.1.0. 
+-errorlog:&lt;файл&gt;[,версия=&lt;версия_sarif&gt;]         
+                                  Укажите файл для регистрации всего компилятора и анализатора
+                                  диагностики в формате SARIF.
+                                  sarif_version:{1|2|2.1} По умолчанию 1. 2 и 2.1
+                                  оба означают SARIF версии 2.1.0.
 -reportanalyzer                   Сообщить дополнительные сведения об анализаторе, например
                                   время выполнения.
 -skipanalyzers[+|-]               Пропустить выполнение диагностических анализаторов.
 
-                                  - ЯЗЫК - 
--define:&lt;список_символов&gt;             Объявить глобальные символы условной компиляции.
-                                  символ(ы). список_символов:имя=значение,... 
-                                  (Краткая форма: -d) 
+                                  — ЯЗЫК —
+-define:&lt;список_символов&gt;             Объявить глобальные символы условной
+                                  компиляции. symbol_list:name=value,...
+                                  (Краткая форма: -d)
 -imports:&lt;список_импорта&gt;            Объявить глобальные импорты для пространств имен в
                                   указанных файлах метаданных.
                                   import_list:namespace,...
--langversion:?                    Показать допустимые значения для языковой версии 
+-langversion:?                    Показать допустимые значения для языковой версии
 -langversion:&lt;строка&gt;             Указать версию языка, например
-                                  `по умолчанию` (последняя основная версия) или 
-                                  `latest` (последняя версия, включая дополнительные версии), 
-                                  или специальные версии, такие как «14» или «15.3» 
+                                  "по умолчанию" (последняя основная версия)
+                                  "последняя" (последняя версия, включая дополнительные версии)
+                                  или специальные версии, такие как "14" либо "15.3"
 -optionexplicit[+|-]              Требовать явного объявления переменных.
 -optioninfer[+|-]                Разрешить определение типа переменных.
--rootnamespace:&lt;строка&gt;         Корневое пространство имен для всех типов
-                                  деклараций. 
+-rootnamespace:&lt;строка&gt;         Указывает корневое пространство имен для всех типов
+                                  деклараций.
 optionstrict[+|-]                Принудительное применение строгой семантики языка.
 -optionstrict:custom              Предупреждать, если строгая семантика не
-                                  соблюдается. 
+                                  соблюдается.
 -optioncompare:binary             Задает сравнение строк в двоичном формате.
-                                  Это значение по умолчанию. 
+                                  Это значение по умолчанию.
 -optioncompare:text               Задает сравнение строк в виде текста.
 
-                                  - РАЗНОЕ - 
+                                  — РАЗНОЕ —
 -help                             Отображать сообщение об использовании. (Краткая форма: -?)
 -noconfig                         Не включать в состав файл VBC.RSP автоматически.
 -nologo                           Не отображать баннер компилятора со сведениями об авторских правах.
@@ -494,12 +504,12 @@ optionstrict[+|-]                Принудительное применени
 -parallel[+|-]                    Параллельная сборка.
 -version                         Показать номер версии компилятора и выйти.
 
-                                  - РАСШИРЕННЫЙ - 
+                                  — ДОПОЛНИТЕЛЬНЫЕ ПАРАМЕТРЫ —
 -baseaddress:&lt;число&gt;             Базовый адрес библиотеки или модуля
-                                  (шестнадцатеричный). 
+                                  (шестнадцатеричный).
 -checksumalgorithm:&lt;alg&gt;          Указать алгоритм вычисления контрольной суммы
-                                  исходного файла, хранящегося в PDB. Поддерживаемые значения: 
-                                  SHA1 или SHA256 (по умолчанию). 
+                                  исходного файла, хранящегося в PDB. Поддерживаемые значения:
+                                  SHA1 или SHA256 (по умолчанию).
 -codepage:&lt;число&gt;                Указывает кодовую страницу, используемую при открытии
                                   исходных файлов.
 -delaysign[+|-]                    Отложенная подпись сборки с использованием только общедоступной
@@ -510,45 +520,44 @@ optionstrict[+|-]                Принудительное применени
                                   компилятора; допустимые значения: prompt, send, none или queue
                                   (по умолчанию).
 -generatedfilesout:&lt;dir&gt;          Разместить файлы, созданные во время компиляции, в
-                                  указанный каталог.
--filealign:&lt;число&gt;               Указать выравнивание для секций выходного
+                                  указанном каталоге.
+-filealign:&lt;число&gt;               Указать выравнивание, используемое для разделов выходного
                                   файла.
 -highentropyva[+|-]               Включить ASLR с высокой энтропией.
 -keycontainer:&lt;строка&gt;            Указывает контейнер ключа строгого имени.
 -keyfile:&lt;файл&gt;                   Указывает файл ключа строгого имени.
 -libpath:&lt;список_путей&gt;              Список каталогов для поиска ссылок
-                                  на метаданные. (Разделитель — точка с запятой.)
+                                  на метаданные. (Разделитель — точка с запятой.)
 -main:&lt;класс&gt;                     Указывает класс или модуль, содержащий
-                                  Sub Main. Это также может быть класс, который 
-                                  наследуется от System.Windows.Forms.Form. 
+                                  Sub Main. Это также может быть класс, который
+                                  наследуется от System.Windows.Forms.Form.
                                   (Краткая форма: -m)
 -moduleassemblyname:&lt;строка&gt;      Имя сборки, частью которой будет
                                   данный модуль.
--netcf                            Целевая среда — .NET Compact Framework.
+-netcf                            Целевая среда — .NET Compact Framework.
 -nostdlib                         Не ссылаться на стандартные библиотеки
                                   (system.dll и файл VBC. RSP).
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                                  Укажите сопоставление для имен исходных путей, выводимых с помощью 
-                                  компилятора. 
+                                  Указать сопоставление для имен исходных путей, выводимых с помощью
+                                  компилятора.
 -platform:&lt;строка&gt;                Ограничить платформы, на которых может выполняться этот код;
                                   допустимые значения: x86, x64, Itanium, arm, arm64
-                                  AnyCPU32BitPreferred или любой процессор (по умолчанию). 
+                                  AnyCPU32BitPreferred или любой процессор (по умолчанию).
 -preferreduilang                   Указать предпочитаемое имя языка вывода.
 -nosdkpath                        Отключить поиск стандартных сборок библиотек в пути SDK по умолчанию.
--reportivts[+|-]                  Вывести информацию обо всех IVT, предоставленных этой 
-                                  сборке по всем зависимостям и и аннотировать ошибки доступности сторонних сборок 
-                                  с указанием того, из какой сборки они произошли. 
--sdkpath:&lt;путь&gt;                   Местоположение каталога .NET Framework SDK
-                                  (mscorlib.dll). 
+-reportivts[+|-]                  Вывести информацию обо всех IVT, предоставленных этой
+                                  сборке по всем зависимостям и аннотировать ошибки доступности сторонних сборок
+                                  с указанием того, из какой сборки они произошли.
+-sdkpath:&lt;путь&gt;         Путь, используемый для поиска стандартных сборок библиотек.
 -subsystemversion:&lt;версия&gt;       Указать версию подсистемы выходного PE-файла.
-                                  версия:&lt;номер&gt;[.&lt;номер&gt;] 
+                                  версия:&lt;номер&gt;[.&lt;номер&gt;]
 -utf8output[+|-]                  Выдавать выходные данные компилятора в кодировке
-                                  символов UTF-8. 
+                                  символов UTF-8.
 @&lt;файл&gt;                           Вставить параметры командной строки из текстового файла
 -vbruntime[+|-|*]                 Компиляция с/без среды выполнения Visual Basic
-                                  по умолчанию. 
+                                  по умолчанию.
 -vbruntime:&lt;файл&gt;                Компилировать с альтернативной средой выполнения Visual Basic
-                                  в &lt;файл&gt;. 
+                                  в &lt;файл&gt;.
 </target>
         <note />
       </trans-unit>
@@ -644,12 +653,12 @@ optionstrict[+|-]                Принудительное применени
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
         <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="needs-review-translation">Сборка анализатора "{0}" ссылается на версию "{1}" компилятора, являющуюся более новой, чем версия "{2}".</target>
+        <target state="translated">Невозможно использовать сборку анализатора "{0}", поскольку она ссылается на версию компилятора "{1}". Это более новая версия по сравнению с текущей используемой версией "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
         <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
-        <target state="needs-review-translation">Сборка анализатора ссылается на более новую версию компилятора, чем установленная сейчас.</target>
+        <target state="translated">Невозможно использовать сборку анализатора, поскольку она ссылается на более новую версию компилятора по сравнению с текущей используемой версией.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">

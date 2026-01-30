@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>Does not perform a full viability check</remarks>
         internal void GetExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, ConsList<FieldSymbol> fieldsBeingBound)
         {
-            Debug.Assert((options & ~(LookupOptions.IncludeExtensionMembers | LookupOptions.AllMethodsOnArityZero
+            Debug.Assert((options & ~(LookupOptions.AllMethodsOnArityZero
                 | LookupOptions.MustBeInstance | LookupOptions.MustNotBeInstance | LookupOptions.MustBeInvocableIfMember
                 | LookupOptions.MustBeOperator | LookupOptions.MustNotBeMethodTypeParameter)) == 0);
 
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!this.IsClassType() || !IsStatic || IsGenericType || !MightContainExtensionMethods) return;
 
-            foreach (NamedTypeSymbol nestedType in GetTypeMembersUnordered())
+            foreach (NamedTypeSymbol nestedType in GetTypeMembers(name: ""))
             {
                 if (nestedType is not { IsExtension: true, ExtensionParameter: { } extensionParameter }
                     || !IsValidExtensionReceiverParameter(extensionParameter))
