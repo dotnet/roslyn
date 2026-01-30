@@ -37,5 +37,5 @@ internal static class RoslynLspErrorCodes
     /// is unlikely to be significant to the user (i.e. surface as an actual editor feature failing to function properly.)
     /// For example, if pull diagnostics are requested for a virtual document that was already closed.
     /// </remarks>
-    public const int NonFatalRequestFailure = -32799;
+    public const int NonFatalRequestFailure = -30099;
 }
