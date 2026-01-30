@@ -8993,7 +8993,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool TryBindExtensionIndexer(SyntaxNode syntax, BoundExpression left, AnalyzedArguments analyzedArguments, BindingDiagnosticBag diagnostics, [NotNullWhen(true)] out BoundIndexerAccess? extensionIndexerAccess)
         {
-            if (left.Kind == BoundKind.BaseReference)
+            if (left.Kind == BoundKind.BaseReference || analyzedArguments.HasDynamicArgument)
             {
                 extensionIndexerAccess = null;
                 return false;

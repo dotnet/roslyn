@@ -7536,12 +7536,72 @@ static class E
     }
 }
 """;
-        // PROTOTYPE extension indexer access with dynamic argument should be disallowed
+        // PROTOTYPE diagnostic quality, consider a dedicated error when extension indexer is found given dynamic argument
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
+            // _ = new object()[d];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "new object()[d]").WithArguments("object").WithLocation(2, 5),
             // (3,5): error CS1973: 'object' has no applicable method named 'M' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.
             // _ = new object().M(d);
             Diagnostic(ErrorCode.ERR_BadArgTypeDynamicExtension, "new object().M(d)").WithArguments("object", "M").WithLocation(3, 5));
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var indexerAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "new object()[d]");
+        Assert.Null(model.GetSymbolInfo(indexerAccess).Symbol);
+        Assert.Equal([], model.GetSymbolInfo(indexerAccess).CandidateSymbols.ToDisplayStrings());
+
+        var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new object().M(d)");
+        Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+        Assert.Equal([], model.GetSymbolInfo(invocation).CandidateSymbols.ToDisplayStrings());
+    }
+
+    [Fact]
+    public void Dynamic_02()
+    {
+        var src = """
+dynamic d = new object();
+_ = new C()[d];
+_ = new C().M(d);
+
+static class E
+{
+    extension(C c)
+    {
+        public int this[object o2] { get => 0; }
+        public int this[int i] { get => 0; }
+
+        public void M(object o2) { }
+        public void M(int i) { }
+    }
+}
+
+class C
+{
+    public int this[object o1, object o2] { get => 0; }
+    public int M(object o1, object o2) => 0;
+}
+""";
+        // PROTOTYPE diagnostic quality, consider a dedicated error when extension indexer is found given dynamic argument
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS7036: There is no argument given that corresponds to the required parameter 'o2' of 'C.this[object, object]'
+            // _ = new C()[d];
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new C()[d]").WithArguments("o2", "C.this[object, object]").WithLocation(2, 5),
+            // (3,5): error CS1973: 'C' has no applicable method named 'M' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.
+            // _ = new C().M(d);
+            Diagnostic(ErrorCode.ERR_BadArgTypeDynamicExtension, "new C().M(d)").WithArguments("C", "M").WithLocation(3, 5));
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var indexerAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[d]");
+        Assert.Null(model.GetSymbolInfo(indexerAccess).Symbol);
+        Assert.Equal(["C.this[object, object]"], model.GetSymbolInfo(indexerAccess).CandidateSymbols.ToDisplayStrings());
+
+        var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new C().M(d)");
+        Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+        Assert.Equal(["C.M(object, object)"], model.GetSymbolInfo(invocation).CandidateSymbols.ToDisplayStrings());
     }
 
     [Fact]
