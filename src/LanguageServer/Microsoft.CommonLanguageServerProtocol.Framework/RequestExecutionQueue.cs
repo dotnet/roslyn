@@ -269,7 +269,7 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
                         else
                         {
                             work.FailRequest(message);
-                            return;
+                            continue;
                         }
                     }
 
