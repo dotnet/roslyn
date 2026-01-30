@@ -383,18 +383,18 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeExplicitlyImplementingSafe">
-        <source>Unsafe member '{0}' implements safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' implements safe member '{1}'</target>
+        <source>Unsafe member '{0}' cannot implement safe member '{1}'</source>
+        <target state="new">Unsafe member '{0}' cannot implement safe member '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeImplicitlyImplementingSafe">
-        <source>Unsafe member '{0}' implicitly implements safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' implicitly implements safe member '{1}'</target>
+        <source>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</source>
+        <target state="new">Unsafe member '{0}' cannot implicitly implement safe member '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallerUnsafeOverridingSafe">
-        <source>Unsafe member '{0}' overrides safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' overrides safe member '{1}'</target>
+        <source>Unsafe member '{0}' cannot override safe member '{1}'</source>
+        <target state="new">Unsafe member '{0}' cannot override safe member '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
