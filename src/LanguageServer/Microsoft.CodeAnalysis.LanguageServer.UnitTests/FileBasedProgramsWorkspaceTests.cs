@@ -9,10 +9,12 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
+using StreamJsonRpc;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -429,18 +431,22 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         await testLspServer.CloseDocumentAsync(nonFileUri).ConfigureAwait(false);
 
         // Issue a "textDocument/diagnostic" request for the closed document
-        var diagnostics = await testLspServer.ExecuteRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>>(
+        var exception = await Assert.ThrowsAsync<RemoteInvocationException>(() =>
+            testLspServer.ExecuteRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>>(
                 Methods.TextDocumentDiagnosticName,
                 new DocumentDiagnosticParams() { TextDocument = new TextDocumentIdentifier { DocumentUri = nonFileUri } },
-                CancellationToken.None).ConfigureAwait(false);
-        Assert.Empty(((FullDocumentDiagnosticReport)diagnostics).Items);
+                CancellationToken.None));
+        Assert.Equal(RoslynLspErrorCodes.NonFatalRequestFailure, exception.ErrorCode);
 
         // Issue a "textDocument/hover" request for the closed document
-        // At the time of authoring this test, the HoverHandler calls 'GetRequiredDocument' which we would expect to fail.
-        var hover = await testLspServer.ExecuteRequestAsync<HoverParams, Hover>(
+        // At the time of authoring this test, the HoverHandler calls 'GetRequiredDocument'.
+        // Demonstrate that instead of calling the handler (which would fail, due to the request not having any document),
+        // we throw an exception with a known error code.
+        exception = await Assert.ThrowsAsync<RemoteInvocationException>(() =>
+            testLspServer.ExecuteRequestAsync<HoverParams, Hover>(
                 Methods.TextDocumentHoverName,
                 new HoverParams() { Position = new Position(0, 0), TextDocument = new TextDocumentIdentifier { DocumentUri = nonFileUri } },
-                CancellationToken.None).ConfigureAwait(false);
-        Assert.Null(hover);
+                CancellationToken.None));
+        Assert.Equal(RoslynLspErrorCodes.NonFatalRequestFailure, exception.ErrorCode);
     }
 }
