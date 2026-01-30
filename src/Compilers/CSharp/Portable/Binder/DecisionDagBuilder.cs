@@ -1063,6 +1063,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (state.SelectedTest is BoundDagEvaluation eval)
                         {
                             Debug.Assert(state.FalseBranch is null);
+                            Debug.Assert(trueBranch is not null);
                             Debug.Assert(state.TrueBranch is not null);
 
                             // Cases in the TrueBranch state might drop some of the cases, but maintain the same relative order for remaining cases 
@@ -1117,6 +1118,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else if (state.SelectedTest is BoundDagTest test)
                         {
+                            Debug.Assert(trueBranch is not null);
+                            Debug.Assert(falseBranch is not null);
+
                             if (trueBranch == falseBranch)
                             {
                                 // No need to pass through this state and do the test
@@ -2614,7 +2618,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (IsEquivalentEvaluation(tests, e1, out var eval))
                     {
-                        // Refer to the result of e1 instead of result of eval, this will allow to reuse results of evaluations that might be coming next
+                        // Refer to the result of e1 instead of result of eval, this will allow reusing results of evaluations that might be coming next
                         AddResultTempReplacement(ref tempMap, eval, e1);
                         return Tests.True.Instance;
                     }
@@ -2638,15 +2642,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (IsEquivalentEvaluation(tests, e1, out var eval))
                     {
-                        // Refer to the result of e1 instead of result of eval, this will allow to reuse results of evaluations that might be coming next
-                        AddOutParameterTempsReplacemet(ref tempMap, (BoundDagDeconstructEvaluation)eval, e1);
+                        // Refer to the result of e1 instead of result of eval, this will allow reusing results of evaluations that might be coming next
+                        AddOutParameterTempsReplacement(ref tempMap, (BoundDagDeconstructEvaluation)eval, e1);
                         return Tests.True.Instance;
                     }
 
                     return tests;
                 }
 
-                private static void AddOutParameterTempsReplacemet(ref ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagDeconstructEvaluation oldDeconstruct, BoundDagDeconstructEvaluation newDeconstruct)
+                private static void AddOutParameterTempsReplacement(ref ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagDeconstructEvaluation oldDeconstruct, BoundDagDeconstructEvaluation newDeconstruct)
                 {
                     ArrayBuilder<BoundDagTemp> newOutParamTemps = newDeconstruct.MakeOutParameterTemps();
                     ArrayBuilder<BoundDagTemp> oldOutParamTemps = oldDeconstruct.MakeOutParameterTemps();
@@ -2666,13 +2670,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (e1.Type.Equals(typeEval.Type, TypeCompareKind.AllIgnoreOptions))
                         {
-                            // Refer to the result of e1 instead of result of typeEval, this will allow to reuse results of evaluations that might be coming next
+                            // Refer to the result of e1 instead of result of typeEval, this will allow reusing results of evaluations that might be coming next
                             AddResultTempReplacement(ref tempMap, typeEval, e1);
                             return Tests.True.Instance;
                         }
                         else if (!typeEval.Input.Equals(e1.Input))
                         {
-                            // Change typeEval to use input of e1 instead, this will allow to reuse results of evaluations that might be coming next
+                            // Change typeEval to use input of e1 instead, this will allow reusing results of evaluations that might be coming next
                             var newTypeEval = typeEval.Update(e1.Input);
                             AddResultTempReplacement(ref tempMap, typeEval, newTypeEval);
                             return new Tests.One(newTypeEval);
@@ -2768,7 +2772,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     case BoundDagFieldEvaluation:
                                     case BoundDagPropertyEvaluation:
                                         {
-                                            return updateDagTempsForSimpleEvaluation((BoundDagEvaluation)test, ref tempMap);
+                                            if (!TryGetTempReplacement(tempMap, eval.Input, out BoundDagTemp? replacement))
+                                            {
+                                                return eval;
+                                            }
+
+                                            var updated = eval.Update(replacement);
+                                            AddResultTempReplacement(ref tempMap, eval, updated);
+                                            return updated;
                                         }
 
                                     case BoundDagIndexerEvaluation indexer:
@@ -2831,7 +2842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             }
 
                                             var deconstructEvaluation = deconstruct.Update(replacement);
-                                            AddOutParameterTempsReplacemet(ref tempMap, deconstruct, deconstructEvaluation);
+                                            AddOutParameterTempsReplacement(ref tempMap, deconstruct, deconstructEvaluation);
                                             return deconstructEvaluation;
                                         }
 
@@ -2846,33 +2857,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundDagExplicitNullTest:
                         case BoundDagValueTest:
                             {
-                                return updateDagTempsForNonEvaluation(test, tempMap);
+                                Debug.Assert(test is not BoundDagEvaluation);
+                                if (!TryGetTempReplacement(tempMap, test.Input, out BoundDagTemp? replacement))
+                                {
+                                    return test;
+                                }
+
+                                return test.Update(replacement);
                             }
+
                         default:
                             throw ExceptionUtilities.UnexpectedValue(test);
-                    }
-
-                    static BoundDagTest updateDagTempsForSimpleEvaluation(BoundDagEvaluation eval, ref ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap)
-                    {
-                        if (!TryGetTempReplacement(tempMap, eval.Input, out BoundDagTemp? replacement))
-                        {
-                            return eval;
-                        }
-
-                        var updated = eval.Update(replacement);
-                        AddResultTempReplacement(ref tempMap, eval, updated);
-                        return updated;
-                    }
-
-                    static BoundDagTest updateDagTempsForNonEvaluation(BoundDagTest test, ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap)
-                    {
-                        Debug.Assert(test is not BoundDagEvaluation);
-                        if (!TryGetTempReplacement(tempMap, test.Input, out BoundDagTemp? replacement))
-                        {
-                            return test;
-                        }
-
-                        return test.Update(replacement);
                     }
                 }
             }
