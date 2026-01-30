@@ -467,7 +467,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Changing_source_file_0_in_a_stale_project_1_has_no_effect_until_the_project_is_rebuilt_2">
         <source>Changing source file '{0}' in a stale project '{1}' has no effect until the project is rebuit; {2}</source>
-        <target state="new">Changing source file '{0}' in a stale project '{1}' has no effect until the project is rebuit; {2}</target>
+        <target state="translated">在專案重新建置之前，於過時的專案 '{1}' 中變更來源檔案 '{0}' 不會產生效果; {2}</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_th_application">
@@ -4432,17 +4432,17 @@ When this standard format specifier is used, the formatting or parsing operation
       </trans-unit>
       <trans-unit id="the_content_of_the_document_is_stale">
         <source>the content of the document is stale.</source>
-        <target state="new">the content of the document is stale.</target>
+        <target state="translated">文件內容已過時。</target>
         <note />
       </trans-unit>
       <trans-unit id="the_project_contains_stale_document_0">
         <source>the project contains stale document '{0}'.</source>
-        <target state="new">the project contains stale document '{0}'.</target>
+        <target state="translated">專案包含過時的文件 '{0}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="the_project_has_not_been_built">
         <source>the project has not been built.</source>
-        <target state="new">the project has not been built.</target>
+        <target state="translated">專案尚未建置。</target>
         <note />
       </trans-unit>
       <trans-unit id="time_separator">
