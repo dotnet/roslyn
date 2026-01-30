@@ -100,7 +100,7 @@
       "NonShipping"
     ],
     "vsBranch": "main",
-    "insertionCreateDraftPR": true,
+    "insertionCreateDraftPR": false,
     "insertionTitlePrefix": "[InsidersVNext]"
   }
 }
