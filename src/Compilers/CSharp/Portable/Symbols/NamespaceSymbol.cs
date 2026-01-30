@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var assembly = this.ContainingAssembly;
 
             // Only MergedNamespaceSymbol should have a null ContainingAssembly
-            // and MergedNamespaceSymbol overrides GetExtensionMembers.
+            // and MergedNamespaceSymbol overrides GetAllExtensionMembers.
             Debug.Assert((object)assembly != null);
 
             if (!assembly.MightContainExtensions)
