@@ -2368,7 +2368,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int signature;
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
 
-            if (attribute.IsTargetAttribute(AttributeDescription.InternalsVisibleToAttribute))
+            if (ReportExplicitUseOfReservedAttributes(in arguments,
+                permitted: ReservedAttributes.DynamicAttribute
+                    | ReservedAttributes.IsReadOnlyAttribute
+                    | ReservedAttributes.IsUnmanagedAttribute
+                    | ReservedAttributes.IsByRefLikeAttribute
+                    | ReservedAttributes.TupleElementNamesAttribute
+                    | ReservedAttributes.NullableAttribute
+                    | ReservedAttributes.NullableContextAttribute
+                    | ReservedAttributes.NullablePublicOnlyAttribute
+                    | ReservedAttributes.NativeIntegerAttribute
+                    | ReservedAttributes.CaseSensitiveExtensionAttribute
+                    | ReservedAttributes.RequiredMemberAttribute
+                    | ReservedAttributes.ScopedRefAttribute
+                    | ReservedAttributes.RefSafetyRulesAttribute
+                    | ReservedAttributes.RequiresLocationAttribute
+                    | ReservedAttributes.ExtensionMarkerAttribute))
+            {
+            }
+            else if (attribute.IsTargetAttribute(AttributeDescription.InternalsVisibleToAttribute))
             {
                 DecodeOneInternalsVisibleToAttribute(arguments.AttributeSyntaxOpt, attribute, diagnostics, index, ref _lazyInternalsVisibleToMap);
             }
