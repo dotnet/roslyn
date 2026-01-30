@@ -38279,5 +38279,67 @@ public static class E
             // System.Nullable<System.ValueTuple<object, object>>.P = 0;
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "System.Nullable<System.ValueTuple<object, object>>").WithArguments("(object, object)?", "(object?, object?)?", "t", "E.extension((object?, object?)?)").WithLocation(4, 1));
     }
+
+    [Fact]
+    public void Script_01()
+    {
+        var source = """
+static class E
+{
+    extension(object o)
+    {
+        static void F() { }
+    }
+}
+
+class C
+{
+    void M() { this.F(); }
+}
+
+new object().F();
+""";
+        CreateCompilation(source, parseOptions: TestOptions.Script).VerifyEmitDiagnostics(
+            // (3,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //     extension(object o)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5),
+            // (11,21): error CS1061: 'C' does not contain a definition for 'F' and no accessible extension method 'F' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            //     void M() { this.F(); }
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("C", "F").WithLocation(11, 21),
+            // (14,14): error CS1061: 'object' does not contain a definition for 'F' and no accessible extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // new object().F();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(14, 14));
+    }
+
+    [Fact]
+    public void Script_02()
+    {
+        var source = """
+static class E
+{
+    extension(object o)
+    {
+        static int Property => 42;
+    }
+}
+
+class C
+{
+    void M() { this.F(); }
+}
+
+_ = new object().Property;
+""";
+        CreateCompilation(source, parseOptions: TestOptions.Script).VerifyEmitDiagnostics(
+            // (3,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //     extension(object o)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5),
+            // (11,21): error CS1061: 'C' does not contain a definition for 'F' and no accessible extension method 'F' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            //     void M() { this.F(); }
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("C", "F").WithLocation(11, 21),
+            // (14,18): error CS1061: 'object' does not contain a definition for 'Property' and no accessible extension method 'Property' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // _ = new object().Property;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Property").WithArguments("object", "Property").WithLocation(14, 18));
+    }
 }
 

@@ -57,11 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool MightContainExtensionMethods
+        public override bool MightContainExtensions
         {
             get
             {
-                return _underlyingType.MightContainExtensionMethods;
+                return _underlyingType.MightContainExtensions;
             }
         }
 

@@ -153,6 +153,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
             return _lazyCustomAttributes;
+<<<<<<< HEAD
+||||||| parent of 7b9ce4ad370 (Extensions: Merge lookup of classic and new extensions   (#82165))
+
+            ImmutableArray<CSharpAttributeData> loadAndFilterAttributes()
+            {
+                var containingModule = this.PrimaryModule;
+                if (!containingModule.TryGetNonEmptyCustomAttributes(_assembly.Handle, out var customAttributeHandles))
+                {
+                    return [];
+                }
+
+                var mightContainExtensionMethods = this.MightContainExtensionMethods;
+                using var builder = TemporaryArray<CSharpAttributeData>.Empty;
+                foreach (var handle in customAttributeHandles)
+                {
+                    if (mightContainExtensionMethods && containingModule.AttributeMatchesFilter(handle, AttributeDescription.CaseSensitiveExtensionAttribute))
+                        continue;
+
+                    builder.Add(new PEAttributeData(containingModule, handle));
+                }
+
+                return builder.ToImmutableAndClear();
+            }
+=======
+
+            ImmutableArray<CSharpAttributeData> loadAndFilterAttributes()
+            {
+                var containingModule = this.PrimaryModule;
+                if (!containingModule.TryGetNonEmptyCustomAttributes(_assembly.Handle, out var customAttributeHandles))
+                {
+                    return [];
+                }
+
+                var mightContainExtensions = this.MightContainExtensions;
+                using var builder = TemporaryArray<CSharpAttributeData>.Empty;
+                foreach (var handle in customAttributeHandles)
+                {
+                    if (mightContainExtensions && containingModule.AttributeMatchesFilter(handle, AttributeDescription.CaseSensitiveExtensionAttribute))
+                        continue;
+
+                    builder.Add(new PEAttributeData(containingModule, handle));
+                }
+
+                return builder.ToImmutableAndClear();
+            }
+>>>>>>> 7b9ce4ad370 (Extensions: Merge lookup of classic and new extensions   (#82165))
         }
 
         /// <summary>
@@ -276,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override bool MightContainExtensionMethods
+        public override bool MightContainExtensions
         {
             get
             {
