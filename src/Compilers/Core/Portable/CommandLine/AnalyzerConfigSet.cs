@@ -168,18 +168,30 @@ namespace Microsoft.CodeAnalysis
         public AnalyzerConfigOptionsResult GlobalConfigOptions
             => _lazyConfigOptions.Initialize(static @this => @this.ParseGlobalConfigOptions(), this);
 
+        /// <inheritdoc cref="GetOptionsForSourcePath(string, string?, bool)"/>
+        public AnalyzerConfigOptionsResult GetOptionsForSourcePath(string sourcePath)
+        {
+            return GetOptionsForSourcePath(sourcePath, globalConfigRelativePath: null);
+        }
+
         /// <summary>
         /// Returns a <see cref="AnalyzerConfigOptionsResult"/> for a source file. This computes which <see cref="AnalyzerConfig"/> rules applies to this file, and correctly applies
         /// precedence rules if there are multiple rules for the same file.
         /// </summary>
         /// <param name="sourcePath">The path to a file such as a source file or additional file. Must be non-null.</param>
+        /// <param name="globalConfigRelativePath">
+        /// If this is not null or empty, relative sections in the global config matching this are applied.
+        /// Only some relative sections are supported in global config files, see <see cref="GlobalAnalyzerConfigBuilder.IsAllowedRelativeSectionName"/>.
+        /// </param>
         /// <remarks>This method is safe to call from multiple threads.</remarks>
-        public AnalyzerConfigOptionsResult GetOptionsForSourcePath(string sourcePath)
+        internal AnalyzerConfigOptionsResult GetOptionsForSourcePath(string sourcePath, string? globalConfigRelativePath, bool excludeEditorConfigSections = false)
         {
             if (sourcePath == null)
             {
                 throw new ArgumentNullException(nameof(sourcePath));
             }
+
+            Debug.Assert(string.IsNullOrEmpty(globalConfigRelativePath) || globalConfigRelativePath.StartsWith("/"));
 
             var sectionKey = _sectionKeyPool.Allocate();
 
@@ -188,49 +200,62 @@ namespace Microsoft.CodeAnalysis
             normalizedPath = PathUtilities.NormalizeDriveLetter(normalizedPath);
 
             // If we have a global config, add any sections that match the full path. We can have at most one section since
-            // we would have merged them earlier.
-            foreach (var section in _globalConfig.NamedSections)
+            // we would have merged them earlier (unless `globalConfigRelativePath` is not null or empty).
+            for (var sectionIndex = 0; sectionIndex < _globalConfig.NamedSections.Length; sectionIndex++)
             {
+                var section = _globalConfig.NamedSections[sectionIndex];
+
                 if (normalizedPath.Equals(section.Name, Section.NameComparer))
                 {
+                    Debug.Assert(_globalConfig.SectionMatchers[sectionIndex] is null);
                     sectionKey.Add(section);
-                    break;
+                    if (string.IsNullOrEmpty(globalConfigRelativePath)) break;
+                }
+
+                var matcher = _globalConfig.SectionMatchers[sectionIndex];
+                if (!string.IsNullOrEmpty(globalConfigRelativePath) &&
+                    matcher?.IsMatch(globalConfigRelativePath) == true)
+                {
+                    sectionKey.Add(section);
                 }
             }
             int globalConfigOptionsCount = sectionKey.Count;
 
-            // The editorconfig paths are sorted from shortest to longest, so matches
-            // are resolved from most nested to least nested, where last setting wins
-            for (int analyzerConfigIndex = 0; analyzerConfigIndex < _analyzerConfigs.Length; analyzerConfigIndex++)
+            if (!excludeEditorConfigSections)
             {
-                var config = _analyzerConfigs[analyzerConfigIndex];
-
-                if (PathUtilities.IsSameDirectoryOrChildOf(normalizedPath, config.NormalizedDirectory, StringComparison.Ordinal))
+                // The editorconfig paths are sorted from shortest to longest, so matches
+                // are resolved from most nested to least nested, where last setting wins
+                for (int analyzerConfigIndex = 0; analyzerConfigIndex < _analyzerConfigs.Length; analyzerConfigIndex++)
                 {
-                    // If this config is a root config, then clear earlier options since they don't apply
-                    // to this source file.
-                    if (config.IsRoot)
-                    {
-                        sectionKey.RemoveRange(globalConfigOptionsCount, sectionKey.Count - globalConfigOptionsCount);
-                    }
+                    var config = _analyzerConfigs[analyzerConfigIndex];
 
-                    int dirLength = config.NormalizedDirectory.Length;
-                    // Leave '/' if the normalized directory ends with a '/'. This can happen if
-                    // we're in a root directory (e.g. '/' or 'Z:/'). The section matching
-                    // always expects that the relative path start with a '/'. 
-                    if (config.NormalizedDirectory[dirLength - 1] == '/')
+                    if (PathUtilities.IsSameDirectoryOrChildOf(normalizedPath, config.NormalizedDirectory, StringComparison.Ordinal))
                     {
-                        dirLength--;
-                    }
-                    string relativePath = normalizedPath.Substring(dirLength);
-
-                    ImmutableArray<SectionNameMatcher?> matchers = _analyzerMatchers[analyzerConfigIndex];
-                    for (int sectionIndex = 0; sectionIndex < matchers.Length; sectionIndex++)
-                    {
-                        if (matchers[sectionIndex]?.IsMatch(relativePath) == true)
+                        // If this config is a root config, then clear earlier options since they don't apply
+                        // to this source file.
+                        if (config.IsRoot)
                         {
-                            var section = config.NamedSections[sectionIndex];
-                            sectionKey.Add(section);
+                            sectionKey.RemoveRange(globalConfigOptionsCount, sectionKey.Count - globalConfigOptionsCount);
+                        }
+
+                        int dirLength = config.NormalizedDirectory.Length;
+                        // Leave '/' if the normalized directory ends with a '/'. This can happen if
+                        // we're in a root directory (e.g. '/' or 'Z:/'). The section matching
+                        // always expects that the relative path start with a '/'. 
+                        if (config.NormalizedDirectory[dirLength - 1] == '/')
+                        {
+                            dirLength--;
+                        }
+                        string relativePath = normalizedPath.Substring(dirLength);
+
+                        ImmutableArray<SectionNameMatcher?> matchers = _analyzerMatchers[analyzerConfigIndex];
+                        for (int sectionIndex = 0; sectionIndex < matchers.Length; sectionIndex++)
+                        {
+                            if (matchers[sectionIndex]?.IsMatch(relativePath) == true)
+                            {
+                                var section = config.NamedSections[sectionIndex];
+                                sectionKey.Add(section);
+                            }
                         }
                     }
                 }
@@ -480,6 +505,20 @@ namespace Microsoft.CodeAnalysis
             internal const string GlobalConfigPath = "<Global Config>";
             internal const string GlobalSectionName = "Global Section";
 
+            private static bool IsAllowedRelativeSectionName(string sectionName)
+            {
+                return sectionName.StartsWith("generated/", Section.NameComparer);
+            }
+
+            internal static string GetGlobalConfigRelativePathForGeneratedFile(string baseDirectory, string filePath)
+            {
+                var result = filePath.StartsWith(baseDirectory, StringComparison.OrdinalIgnoreCase)
+                    ? PathUtilities.CollapseWithForwardSlash($"/generated/{filePath[baseDirectory.Length..]}")
+                    : null;
+                Debug.Assert(result is not null);
+                return result;
+            }
+
             internal void MergeIntoGlobalConfig(AnalyzerConfig config, DiagnosticBag diagnostics)
             {
                 if (_values is null)
@@ -498,6 +537,10 @@ namespace Microsoft.CodeAnalysis
 
                         MergeSection(config.PathToFile, unescapedSection, config.GlobalLevel, isGlobalSection: false);
                     }
+                    else if (IsAllowedRelativeSectionName(section.Name))
+                    {
+                        MergeSection(config.PathToFile, section, config.GlobalLevel, isGlobalSection: false);
+                    }
                     else
                     {
                         diagnostics.Add(Diagnostic.Create(
@@ -513,7 +556,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (_values is null || _duplicates is null)
                 {
-                    return new GlobalAnalyzerConfig(new Section(GlobalSectionName, AnalyzerOptions.Empty), ImmutableArray<Section>.Empty);
+                    return new GlobalAnalyzerConfig(new Section(GlobalSectionName, AnalyzerOptions.Empty), [], []);
                 }
 
                 // issue diagnostics for any duplicate keys
@@ -538,13 +581,15 @@ namespace Microsoft.CodeAnalysis
                 _values.Remove(string.Empty);
 
                 ArrayBuilder<Section> namedSectionBuilder = new ArrayBuilder<Section>(_values.Count);
+                var sectionMatchersBuilder = new ArrayBuilder<SectionNameMatcher?>(_values.Count);
                 foreach (var sectionName in _values.Keys.Order())
                 {
                     namedSectionBuilder.Add(GetSection(sectionName));
+                    sectionMatchersBuilder.Add(IsAllowedRelativeSectionName(sectionName) ? TryCreateSectionNameMatcher(sectionName) : null);
                 }
 
                 // create the global config
-                GlobalAnalyzerConfig globalConfig = new GlobalAnalyzerConfig(globalSection, namedSectionBuilder.ToImmutableAndFree());
+                GlobalAnalyzerConfig globalConfig = new GlobalAnalyzerConfig(globalSection, namedSectionBuilder.ToImmutableAndFree(), sectionMatchersBuilder.ToImmutableAndFree());
                 _values = null;
                 return globalConfig;
             }
@@ -645,10 +690,15 @@ namespace Microsoft.CodeAnalysis
 
             internal ImmutableArray<AnalyzerConfig.Section> NamedSections { get; }
 
-            public GlobalAnalyzerConfig(AnalyzerConfig.Section globalSection, ImmutableArray<AnalyzerConfig.Section> namedSections)
+            internal ImmutableArray<SectionNameMatcher?> SectionMatchers { get; }
+
+            public GlobalAnalyzerConfig(AnalyzerConfig.Section globalSection, ImmutableArray<AnalyzerConfig.Section> namedSections, ImmutableArray<SectionNameMatcher?> sectionMatchers)
             {
+                Debug.Assert(namedSections.Length == sectionMatchers.Length);
+
                 GlobalSection = globalSection;
                 NamedSections = namedSections;
+                SectionMatchers = sectionMatchers;
             }
         }
     }
