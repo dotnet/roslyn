@@ -4,6 +4,7 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
@@ -63,16 +64,17 @@ internal sealed partial class SimpleFileChangeWatcher
 
         private void RaiseEvent(object? sender, FileSystemEventArgs e)
         {
-            var filePath = e.FullPath;
-            if (!_watchedDirectories.IsEmpty &&
-                WatchedDirectory.FilePathCoveredByWatchedDirectories(_watchedDirectories, filePath, s_stringComparison))
-            {
-                FileChanged?.Invoke(this, filePath);
-            }
-            else if (_individualWatchedFiles.ContainsKey(filePath))
-            {
-                FileChanged?.Invoke(this, filePath);
-            }
+            // If the changed file is not covered by our watched directories or individual files, ignore it
+            if ((_watchedDirectories.IsEmpty || !WatchedDirectory.FilePathCoveredByWatchedDirectories(_watchedDirectories, e.FullPath, s_stringComparison))
+                 && !_individualWatchedFiles.ContainsKey(e.FullPath))
+                return;
+
+            FileChanged?.Invoke(this, e.FullPath);
+
+            // On Windows we only get a renamed event instead of separate delete/create events, so also raise
+            // a change event for the old file path.
+            if (e is RenamedEventArgs re && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                FileChanged?.Invoke(this, re.OldFullPath);
         }
 
         public IWatchedFile EnqueueWatchingFile(string filePath)
