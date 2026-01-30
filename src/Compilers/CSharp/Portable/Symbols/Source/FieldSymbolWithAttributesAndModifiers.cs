@@ -205,10 +205,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
                 permitted: ReservedAttributes.NullableContextAttribute
-                | ReservedAttributes.NullablePublicOnlyAttribute
-                | ReservedAttributes.CaseSensitiveExtensionAttribute
-                | ReservedAttributes.ScopedRefAttribute
-                | ReservedAttributes.RefSafetyRulesAttribute))
+                    | ReservedAttributes.NullablePublicOnlyAttribute
+                    | ReservedAttributes.CaseSensitiveExtensionAttribute
+                    | ReservedAttributes.ScopedRefAttribute
+                    | ReservedAttributes.RefSafetyRulesAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.DateTimeConstantAttribute))
