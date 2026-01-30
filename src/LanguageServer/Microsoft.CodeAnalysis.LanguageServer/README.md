@@ -38,7 +38,7 @@ All options are optional. One of `--stdio` or `--pipe` should typically be speci
 - `--stdio` - Use standard I/O for communication with the client (default: false)
 - `--pipe <name>` - Use a named pipe for communication
 - `--autoLoadProjects` - Automatically discover and load projects based on workspace folders (default: false)
-- `--logLevel <level>` - Set the minimum log verbosity
+- `--logLevel <level>` - Set the minimum log verbosity: Trace, Debug, Information, Warning, Error, or None (default: Information)
 - `--extensionLogDirectory <path>` - Directory for log files
 - `--extension <path>` - Load extension assemblies (can be specified multiple times)
 - `--debug` - Launch the debugger on startup (default: false)
