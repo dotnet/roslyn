@@ -467,7 +467,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit">
         <source>Changing source file '{0}' in a stale project has no effect until the project is rebuit.</source>
-        <target state="translated">Alterar o arquivo de origem "{0}" em um projeto obsoleto não tem efeito até que o projeto seja reconstruído.</target>
+        <target state="new">Changing source file '{0}' in a stale project has no effect until the project is rebuit.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_th_application">
