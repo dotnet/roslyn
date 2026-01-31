@@ -31,9 +31,8 @@ public class TestClass
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
                 // (11,36): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //          string nonNullableString = result; // warn
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "result")
-                    .WithLocation(11, 36));
+                //         string nonNullableString = result;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "result").WithLocation(11, 36));
         }
 
         [Fact]
@@ -57,9 +56,8 @@ public class TestClass
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
                 // (11,36): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //          string nonNullableString = result; // warn
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "result")
-                    .WithLocation(11, 36));
+                //         string nonNullableString = result;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "result").WithLocation(11, 36));
         }
 
         [Fact]
@@ -84,9 +82,8 @@ public class TestClass
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
                 // (11,30): warning CS8629: Nullable value type may be null.
-                //          int nonNullableInt = result.Value; // warn expected
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "result")
-                    .WithLocation(11, 30));
+                //         int nonNullableInt = result.Value;
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "result").WithLocation(11, 30));
         }
 
         [Fact]
@@ -110,9 +107,8 @@ public class TestClass
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
                 // (11,30): warning CS8629: Nullable value type may be null.
-                //          int nonNullableInt = result.Value; // warn
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "result")
-                    .WithLocation(11, 30));
+                //         int nonNullableInt = result.Value;
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "result").WithLocation(11, 30));
         }
 
         [Fact]
@@ -134,9 +130,8 @@ public class TestClass
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
                 // (9,30): warning CS8629: Nullable value type may be null.
-                //         int nonNullableInt = result.Value; // warn
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "result")
-                    .WithLocation(9, 30));
+                //         int nonNullableInt = result.Value;
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "result").WithLocation(9, 30));
         }
 
         [Fact]
@@ -164,13 +159,11 @@ class C
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
                 // (14,9): warning CS8602: Dereference of a possibly null reference.
-                //         res.Key.ToString(); // expect warning on receiver of 'ToString()'
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "res.Key")
-                    .WithLocation(14, 9),
+                //         res.Key.ToString();   // expect warning on receiver of 'ToString()'
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "res.Key").WithLocation(14, 9),
                 // (15,13): warning CS8629: Nullable value type may be null.
-                //          _ = res.Value.Value; // warn
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "res.Value")
-                    .WithLocation(15, 13));
+                //         _ = res.Value.Value;  // warn
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "res.Value").WithLocation(15, 13));
         }
 
         [Fact]
@@ -195,20 +188,15 @@ class C
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
             comp.VerifyDiagnostics(
-                // (9,17): error CS0161: 'C.M1()': not all code paths return a value
-                //         public Task M1()
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "M1")
-                    .WithArguments("C.M1()")
-                    .WithLocation(9, 17),
                 // (12,19): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<Task>'.
-                //          var res = await M(s); // error: 'await' without 'async'
-                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await M(s)")
-                    .WithArguments("System.Threading.Tasks.Task")
-                    .WithLocation(12, 19),
+                //         var res = await M(s); // error: 'await' without 'async'
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await M(s)").WithArguments("System.Threading.Tasks.Task").WithLocation(12, 19),
                 // (13,9): warning CS8602: Dereference of a possibly null reference.
                 //         res[0].ToString();    // expect warning on receiver of 'ToString()'
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "res[0]")
-                    .WithLocation(13, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "res[0]").WithLocation(13, 9),
+                // (9,17): error CS0161: 'C.M1()': not all code paths return a value
+                //     public Task M1()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M1").WithArguments("C.M1()").WithLocation(9, 17));
         }
     }
 }
