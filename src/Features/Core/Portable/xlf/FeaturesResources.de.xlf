@@ -467,7 +467,7 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       </trans-unit>
       <trans-unit id="Changing_source_file_0_in_a_stale_project_1_has_no_effect_until_the_project_is_rebuilt_2">
         <source>Changing source file '{0}' in a stale project '{1}' has no effect until the project is rebuit; {2}</source>
-        <target state="new">Changing source file '{0}' in a stale project '{1}' has no effect until the project is rebuit; {2}</target>
+        <target state="translated">Das Ändern der Quelldatei „{0}“ in einem veralteten Projekt „{1}“ hat keine Wirkung, bis das Projekt neu erstellt wird; {2}</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_th_application">
@@ -4432,17 +4432,17 @@ Bei Verwendung dieses Standardformatbezeichners wird zur Formatierung oder Analy
       </trans-unit>
       <trans-unit id="the_content_of_the_document_is_stale">
         <source>the content of the document is stale.</source>
-        <target state="new">the content of the document is stale.</target>
+        <target state="translated">der Inhalt des Dokuments ist veraltet.</target>
         <note />
       </trans-unit>
       <trans-unit id="the_project_contains_stale_document_0">
         <source>the project contains stale document '{0}'.</source>
-        <target state="new">the project contains stale document '{0}'.</target>
+        <target state="translated">das Projekt enthält das veraltete Dokument „{0}“.</target>
         <note />
       </trans-unit>
       <trans-unit id="the_project_has_not_been_built">
         <source>the project has not been built.</source>
-        <target state="new">the project has not been built.</target>
+        <target state="translated">das Projekt wurde nicht erstellt.</target>
         <note />
       </trans-unit>
       <trans-unit id="time_separator">
