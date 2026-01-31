@@ -357,7 +357,7 @@ internal sealed partial class SolutionCompilationState
         if (projectIds.Count == 0)
             return this;
 
-        // Now go and remove the projects from teh solution-state itself.
+        // Now go and remove the projects from the solution-state itself.
         var newSolutionState = this.SolutionState.RemoveProjects(projectIds);
 
         var originalDependencyGraph = this.SolutionState.GetProjectDependencyGraph();
@@ -372,7 +372,7 @@ internal sealed partial class SolutionCompilationState
 
         // Now for each compilation tracker.
         // 1. remove the compilation tracker if we're removing the project.
-        // 2. fork teh compilation tracker if it depended on a removed project.
+        // 2. fork the compilation tracker if it depended on a removed project.
         // 3. do nothing for the rest.
         var newTrackerMap = CreateCompilationTrackerMap(
             // Can reuse the compilation tracker for a project, unless it is some project that had a dependency on one

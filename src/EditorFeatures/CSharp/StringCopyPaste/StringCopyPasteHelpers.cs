@@ -416,7 +416,7 @@ internal static class StringCopyPasteHelpers
         // First, go through and see if we're escaping *anything* in the original.  If so, then we'll escape
         // everything.  In other words, say we're pasting `[SuppressMessage("", "CA2013")]`.  We technically don't
         // need to escape the `""` (since that is legal in a verbatim string).  However, we will be escaping the
-        // quotes in teh `"CA2013"` to become `""CA2013""`.  Once we decide we're escaping some quotes, we should
+        // quotes in the `"CA2013"` to become `""CA2013""`.  Once we decide we're escaping some quotes, we should
         // then realize that we *should* escape the `""` to `""""` to be consistent.
 
         // So if we determine that we will be escaping all code, then just recurse, this time setting
