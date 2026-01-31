@@ -8668,6 +8668,45 @@ static class Test1
                 """, sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
+        [Fact]
+        public void RuntimeAsync_SequencePoints_ClosingBrace()
+        {
+            var source = """
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static async Task Main()
+                    {
+                        await Task.CompletedTask;
+                        System.Console.WriteLine(1);
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugDll);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with { ILVerifyMessage = ReturnValueMissing("Main", "0x13") });
+
+            verifier.VerifyIL("Program.Main()", """
+                {
+                  // Code size       20 (0x14)
+                  .maxstack  1
+                  // sequence point: {
+                  IL_0000:  nop
+                  // sequence point: await Task.CompletedTask;
+                  IL_0001:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
+                  IL_0006:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_000b:  nop
+                  // sequence point: System.Console.WriteLine(1);
+                  IL_000c:  ldc.i4.1
+                  IL_000d:  call       "void System.Console.WriteLine(int)"
+                  IL_0012:  nop
+                  // sequence point: }
+                  IL_0013:  ret
+                }
+                """, sequencePointDisplay: SequencePointDisplayMode.Enhanced);
+        }
+
         [Theory]
         [CombinatorialData]
         public void RuntimeAsync_CompilerFeatureFlag_EnabledWithoutRuntimeAsync(bool withNonCoreLibSources)
