@@ -8634,6 +8634,40 @@ static class Test1
                 """, sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
+        [Fact]
+        public void RuntimeAsync_SequencePoints_ImplicitReturn()
+        {
+            var source = """
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static async Task Main()
+                    {
+                        await Task.CompletedTask;
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugDll);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with { ILVerifyMessage = ReturnValueMissing("Main", "0xc") });
+
+            verifier.VerifyIL("Program.Main()", """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  1
+                  // sequence point: {
+                  IL_0000:  nop
+                  // sequence point: await Task.CompletedTask;
+                  IL_0001:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
+                  IL_0006:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_000b:  nop
+                  // sequence point: }
+                  IL_000c:  ret
+                }
+                """, sequencePointDisplay: SequencePointDisplayMode.Enhanced);
+        }
+
         [Theory]
         [CombinatorialData]
         public void RuntimeAsync_CompilerFeatureFlag_EnabledWithoutRuntimeAsync(bool withNonCoreLibSources)
