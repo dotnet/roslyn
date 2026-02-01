@@ -12,106 +12,106 @@
       <Sha>db3b7424251b47d9474dbbe3b4fa7a81fe2915b7</Sha>
     </Dependency>
     <!-- Necessary for source-build. This allows the live version of the package to be used by source-build. -->
-    <Dependency Name="Microsoft.Bcl.AsyncInterfaces" Version="9.0.0">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    <Dependency Name="Microsoft.Bcl.AsyncInterfaces" Version="10.0.1">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Configuration" Version="9.0.0">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    <Dependency Name="Microsoft.Extensions.Configuration" Version="10.0.1">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.DependencyInjection" Version="9.0.0">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    <Dependency Name="Microsoft.Extensions.DependencyInjection" Version="10.0.1">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.FileSystemGlobbing" Version="8.0.0">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>5535e31a712343a63f5d7d796cd874e563e5ac14</Sha>
+    <Dependency Name="Microsoft.Extensions.FileSystemGlobbing" Version="10.0.1">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Logging" Version="9.0.0">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    <Dependency Name="Microsoft.Extensions.Logging" Version="10.0.1">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    <Dependency Name="Microsoft.Extensions.Logging.Abstractions" Version="10.0.1">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Logging.Console" Version="9.0.0">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    <Dependency Name="Microsoft.Extensions.Logging.Console" Version="10.0.1">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Options.ConfigurationExtension" Version="8.0.0">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>5535e31a712343a63f5d7d796cd874e563e5ac14</Sha>
+    <Dependency Name="Microsoft.Extensions.Options.ConfigurationExtension" Version="10.0.1">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Options" Version="9.0.0">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    <Dependency Name="Microsoft.Extensions.Options" Version="10.0.1">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Primitives" Version="9.0.0">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    <Dependency Name="Microsoft.Extensions.Primitives" Version="10.0.1">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Collections.Immutable" Version="9.0.0">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    <Dependency Name="System.Collections.Immutable" Version="10.0.1">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.ComponentModel.Composition" Version="9.0.0">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    <Dependency Name="System.ComponentModel.Composition" Version="10.0.1">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Diagnostics.DiagnosticSource" Version="9.0.0">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    <Dependency Name="System.Diagnostics.DiagnosticSource" Version="10.0.1">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.IO.Hashing" Version="9.0.0">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    <Dependency Name="System.IO.Hashing" Version="10.0.1">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.IO.Pipelines" Version="9.0.0">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    <Dependency Name="System.IO.Pipelines" Version="10.0.1">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Resources.Extensions" Version="9.0.0">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    <Dependency Name="System.Resources.Extensions" Version="10.0.1">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Text.Encodings.Web" Version="9.0.0">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    <Dependency Name="System.Text.Encodings.Web" Version="10.0.1">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
     <!-- Note: When updating SystemTextJsonVersion ensure that the version is no higher than what is used by MSBuild in VS (would lead to NGEN failures on insertion). -->
-    <Dependency Name="System.Text.Json" Version="9.0.0">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    <Dependency Name="System.Text.Json" Version="10.0.1">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Threading.Tasks.Dataflow" Version="9.0.0">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    <Dependency Name="System.Threading.Tasks.Dataflow" Version="10.0.1">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Reflection.Metadata" Version="9.0.0">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    <Dependency Name="System.Reflection.Metadata" Version="10.0.1">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Configuration.ConfigurationManager" Version="9.0.0">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    <Dependency Name="System.Configuration.ConfigurationManager" Version="10.0.1">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Diagnostics.EventLog" Version="9.0.0">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    <Dependency Name="System.Diagnostics.EventLog" Version="10.0.1">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Security.Cryptography.ProtectedData" Version="9.0.0">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    <Dependency Name="System.Security.Cryptography.ProtectedData" Version="10.0.1">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Security.Permissions" Version="9.0.0">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    <Dependency Name="System.Security.Permissions" Version="10.0.1">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Windows.Extensions" Version="9.0.0">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    <Dependency Name="System.Windows.Extensions" Version="10.0.1">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
@@ -143,15 +143,11 @@
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>db3b7424251b47d9474dbbe3b4fa7a81fe2915b7</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.0-preview.25375.1">
-      <Uri>https://github.com/dotnet/roslyn-analyzers</Uri>
-      <Sha>dd67b33c8b4164fa2c2c1dd13b616aea3948f7da</Sha>
-    </Dependency>
     <!-- Entries below are necessary for source-build. This allows the packages to be retrieved from previously-source-built
          artifacts and flow in as dependencies of the packages produced by roslyn. -->
-    <Dependency Name="System.Composition" Version="9.0.0">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    <Dependency Name="System.Composition" Version="10.0.1">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
     <Dependency Name="Microsoft.CodeAnalysis.Analyzers" Version="5.3.0-2.25625.1">
       <Uri>https://github.com/dotnet/roslyn</Uri>

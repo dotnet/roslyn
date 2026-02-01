@@ -232,6 +232,11 @@
         <target state="translated">ARM выражения переключателя не начинается с ключевого слова "case".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadCollectionArgumentsArgCount">
+        <source>No overload for method '{0}' takes {1} 'with(...)' element arguments</source>
+        <target state="translated">Ни одна из перегрузок метода "{0}" не принимает аргументы элемента "with(...)" ({1})</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadCompoundAssignmentOpArgs">
         <source>Overloaded compound assignment operator '{0}' takes one parameter</source>
         <target state="translated">Перегруженный составной оператор назначения "{0}" принимает один параметр</target>
@@ -507,6 +512,26 @@
         <target state="translated">"{0}" не реализует элемент интерфейса "{1}". "{2}" не может реализовывать "{1}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsDynamicBinding">
+        <source>'with(...)' element arguments cannot be dynamic</source>
+        <target state="translated">Аргументы элемента "with(...)" не могут быть динамическими</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsMustBeEmpty">
+        <source>'with(...)' element for a read-only interface must be empty if present</source>
+        <target state="translated">Элемент "with(...)" для интерфейса только для чтения должен быть пустым, если он присутствует</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsMustBeFirst">
+        <source>'with(...)' element must be the first element</source>
+        <target state="translated">Элемент "with(...)" должен быть первым элементом</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsNotSupportedForType">
+        <source>'with(...)' elements are not supported for type '{0}'</source>
+        <target state="translated">Элементы "with(...)" не поддерживаются для типа "{0}"</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeInvalidMethodName">
         <source>The CollectionBuilderAttribute method name is invalid.</source>
         <target state="translated">Недопустимое имя метода CollectionBuilderAttribute.</target>
@@ -518,8 +543,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeMethodNotFound">
-        <source>Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
-        <target state="translated">Не удалось найти доступный метод "{0}" с ожидаемой подписью: статический метод с одним параметром типа "ReadOnlySpan&lt;{1}&gt;" и типом возвращаемого значения "{2}".</target>
+        <source>Could not find an accessible '{0}' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
+        <target state="translated">Не удалось найти доступный метод "{0}" с ожидаемой подписью: статический метод с последним параметром типа "ReadOnlySpan&lt;{1}&gt;" и типом возвращаемого значения "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderNoElementType">
@@ -565,6 +590,11 @@
       <trans-unit id="ERR_CollectionInitializerInfiniteChainOfAddCalls">
         <source>Collection initializer results in an infinite chain of instantiations of collection '{0}'.</source>
         <target state="translated">Инициализатор коллекции приводит к созданию бесконечной цепочки экземпляров коллекции "{0}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionRefLikeElementType">
+        <source>Element type of this collection may not be a ref struct or a type parameter allowing ref structs</source>
+        <target state="translated">Тип элемента этой коллекции не может быть ссылочной структурой или параметром типа, допускающим ссылочные структуры</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilationUnitUnexpected">
@@ -1416,6 +1446,11 @@
         <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
         <target state="translated">Аргумент diagnosticId атрибута "Experimental" должен быть допустимым идентификатором</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
+        <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</source>
+        <target state="translated">"{0}" не содержит определение для "{1}", не найден доступный метод расширения "{1}", принимающий первый аргумент типа "{0}" (возможно, нужно было выполнить итерацию для синхронной коллекции с помощью "await foreach"?)</target>
+        <note>'await foreach' is not localizable</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
         <source>The target runtime does not support extended layout types.</source>
@@ -2785,6 +2820,11 @@
       <trans-unit id="IDS_FeatureCheckedUserDefinedOperators">
         <source>checked user-defined operators</source>
         <target state="translated">проверенные операторы, определяемые пользователем</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureCollectionExpressionArguments">
+        <source>collection expression arguments</source>
+        <target state="translated">аргументы выражения коллекции</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressions">

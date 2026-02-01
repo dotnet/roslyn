@@ -9,9 +9,12 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
+using StreamJsonRpc;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -395,5 +398,55 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.Contains(fullFileBasedDocumentOne!.Project.Documents, d => d.Name == "SomeFile.AssemblyInfo.cs");
         // Because it is loaded as a file-based program, it should be considered to have all information (semantic diagnostics should be reported etc.)
         Assert.True(canonicalDocumentOne.Project.State.HasAllInformation);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/81410")]
+    public async Task TestDiagnosticsRequestedAfterDocumentClosed(bool mutatingLspWorkspace)
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+
+        var nonFileUri = ProtocolConversions.CreateAbsoluteDocumentUri("untitled:Untitled-1");
+        await testLspServer.OpenDocumentAsync(nonFileUri, """
+            Console.WriteLine("Hello World");
+            """, languageId: "csharp").ConfigureAwait(false);
+
+        // Get the document info once to kickoff the canonical project loading process
+        _ = await GetRequiredLspWorkspaceAndDocumentAsync(nonFileUri, testLspServer).ConfigureAwait(false);
+        await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+
+        // Verify the document is loaded in the canonical project.
+        var (miscWorkspace, canonicalDocument) = await GetRequiredLspWorkspaceAndDocumentAsync(nonFileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, miscWorkspace.Kind);
+        Assert.NotNull(canonicalDocument);
+        // Should have the appropriate generated files now that we ran a design time build
+        Assert.Contains(canonicalDocument.Project.Documents, d => d.Name == "Canonical.AssemblyInfo.cs");
+
+        // File was saved to disk. Simulate this by opening the document under its new name and closing it under its old name.
+        var fileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\MyFile.cs");
+        await testLspServer.OpenDocumentAsync(fileUri, """
+            Console.WriteLine("Hello World");
+            """).ConfigureAwait(false);
+
+        await testLspServer.CloseDocumentAsync(nonFileUri).ConfigureAwait(false);
+
+        // Issue a "textDocument/diagnostic" request for the closed document
+        var exception = await Assert.ThrowsAsync<RemoteInvocationException>(() =>
+            testLspServer.ExecuteRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>>(
+                Methods.TextDocumentDiagnosticName,
+                new DocumentDiagnosticParams() { TextDocument = new TextDocumentIdentifier { DocumentUri = nonFileUri } },
+                CancellationToken.None));
+        Assert.Equal(RoslynLspErrorCodes.NonFatalRequestFailure, exception.ErrorCode);
+
+        // Issue a "textDocument/hover" request for the closed document
+        // At the time of authoring this test, the HoverHandler calls 'GetRequiredDocument'.
+        // Demonstrate that instead of calling the handler (which would fail, due to the request not having any document),
+        // we throw an exception with a known error code.
+        exception = await Assert.ThrowsAsync<RemoteInvocationException>(() =>
+            testLspServer.ExecuteRequestAsync<HoverParams, Hover>(
+                Methods.TextDocumentHoverName,
+                new HoverParams() { Position = new Position(0, 0), TextDocument = new TextDocumentIdentifier { DocumentUri = nonFileUri } },
+                CancellationToken.None));
+        Assert.Equal(RoslynLspErrorCodes.NonFatalRequestFailure, exception.ErrorCode);
     }
 }

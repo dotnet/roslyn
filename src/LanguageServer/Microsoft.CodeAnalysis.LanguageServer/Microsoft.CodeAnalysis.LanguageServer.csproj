@@ -6,43 +6,16 @@
     <Nullable>enable</Nullable>
 
     <ServerGarbageCollection>true</ServerGarbageCollection>
-    <!--
-        Build a nuget package for this project.  This is not consumed as a standard NuGet package; it just contains
-        the server executables that we need to ship inside the extension vsix.  The extension will download this and extract the
-        executables when it builds.  NuGet just happens to be a convenient way to share build artifacts.
-    -->
+
+    <!-- .NET Tool configuration -->
     <IsPackable>true</IsPackable>
-    <!-- Our outer Pack task (defined in PackAllRids.targets) invokes Pack passing in a PackRuntimeIdentifier to produce one package per RID; from that we can set everything else. -->
-    <RuntimeIdentifier Condition="'$(PackRuntimeIdentifier)' != '' and '$(PackRuntimeIdentifier)' != 'neutral'">$(PackRuntimeIdentifier)</RuntimeIdentifier>
-
-    <!--
-        By default since this is an Exe project and we build on windows, we'll get a .exe as output from a platform neutral build.
-        However, we really only want an executable if we're building for a specific platform (aka have a runtime identifier).
-
-        So if we don't have a platform, tell the build not to output a .exe file because we're building platform neutral bits.
-    -->
-    <UseAppHost Condition="'$(RuntimeIdentifier)' == ''">false</UseAppHost>
-
-    <PackageId>$(AssemblyName).$(PackRuntimeIdentifier)</PackageId>
-    <!--
-        Publish the platform specific executables before any of the pack related targets run.
-        This is important to ensure that the content files exist on the project before nuget looks for them.
-
-        Note that BeforeTargets="Pack" is not enough, as the determination of what to include in the package runs
-        before the actual "Pack" target runs.
-    -->
-    <BeforePack>PackPublishContent;$(BeforePack)</BeforePack>
-
-    <!--
-      NU5100: Since this is not a standard nuget package and is only consumed by the extension build, we don't care if the folder structure doesn't match what nuget expects.
-      NETSDK1206: Until we move to a newer release of the SQLitePCLRaw packages (2.1.6+) that removes the libs for alpine RIDs, we have to ignore the SDK warning about distribution specific RIDs.
-    -->
-    <NoWarn>$(NoWarn);NU5100;NETSDK1206</NoWarn>
+    <PackAsTool>true</PackAsTool>
+    <PackageId>roslyn-language-server</PackageId>
+    <ToolCommandName>roslyn-language-server</ToolCommandName>
 
     <!-- Publishing settings -->
     <SelfContained>false</SelfContained>
     <PublishDir Condition="'$(RuntimeIdentifier)' != ''">$(ArtifactsDir)/LanguageServer/$(Configuration)/$(TargetFramework)/$(RuntimeIdentifier)</PublishDir>
-    <PublishDir Condition="'$(RuntimeIdentifier)' == ''">$(ArtifactsDir)/LanguageServer/$(Configuration)/$(TargetFramework)/neutral</PublishDir>
 
     <!-- List of runtime identifiers that we want to publish an executable for. -->
     <!-- When building a VMR vertical, we don't need to pack everything. Just pack the passed in TargetRid or PortableTargetRid.
@@ -53,22 +26,10 @@
     <RuntimeIdentifiers Condition="'$(PortableTargetRid)' != ''">$(PortableTargetRid)</RuntimeIdentifiers>
     <RuntimeIdentifiers Condition="'$(TargetRid)' == '' and '$(PortableTargetRid)' == ''">win-x64;win-arm64;linux-x64;linux-arm64;linux-musl-x64;linux-musl-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
 
-    <!-- These indicate that the runtime/apphost packages should not be downloaded as part of build/restore -->
-    <EnableRuntimePackDownload>false</EnableRuntimePackDownload>
-    <EnableAppHostPackDownload>false</EnableAppHostPackDownload>
-
     <!-- Publish ready to run executables when we're publishing platform specific executables. -->
-    <PublishReadyToRun Condition="'$(RuntimeIdentifier)' != '' AND '$(Configuration)' == 'Release' ">true</PublishReadyToRun>
+    <PublishReadyToRun Condition="'$(Configuration)' == 'Release' ">true</PublishReadyToRun>
 
   </PropertyGroup>
-
-  <!-- When we are packing each RID, we set PackRuntimeIdentifier; by default this will also get passed to the builds of all ResolveProjectReferences
-       which causes a lot of duplicate building. This removes it. -->
-  <ItemDefinitionGroup>
-    <ProjectReference>
-      <GlobalPropertiesToRemove>PackRuntimeIdentifier</GlobalPropertiesToRemove>
-    </ProjectReference>
-  </ItemDefinitionGroup>
 
   <ItemGroup>
     <!-- Include MIBC data if available.  This is produced by a separate profiling pipeline for the C# extension, and injected in official builds -->
@@ -106,7 +67,10 @@
   </Target>
 
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Workspaces\MSBuild\Core\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
+    <!-- An extern alias is necessary to prevent ambiguity between shared projects linked to both Workspace and BuildHost -->
+    <ProjectReference Include="..\..\Workspaces\MSBuild\Core\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" Aliases="MSBuildWorkspaces" />
+    <ProjectReference Include="..\..\Workspaces\MSBuild\Contracts\Microsoft.CodeAnalysis.Workspaces.MSBuild.Contracts.csproj" Aliases="MSBuildWorkspacesContracts" />
+
     <ProjectReference Include="..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
     <ProjectReference Include="..\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
 
@@ -173,20 +137,32 @@
     <Copy SourceFiles="@(RoslynVersionFile)" DestinationFolder="$(PublishDir)" />
   </Target>
 
-  <Target Name="PackPublishContent" DependsOnTargets="Publish">
-    <!-- We have to add the content files in a target (and not just defined in a normal item group) since they are produced by the prior step and won't exist at evaluation time. -->
-    <ItemGroup>
-      <Content Include="$(PublishDir)/**/*.*">
-        <Pack>true</Pack>
-        <PackagePath>content\LanguageServer\$(PackRuntimeIdentifier)</PackagePath>
-        <CopyToOutput>false</CopyToOutput>
-        <BuildAction>None</BuildAction>
-      </Content>
-    </ItemGroup>
-  </Target>
+  <!--
+    Verify that the SymbolPublishingExclusionsFile.txt contains the required entries for the native SQLite library.
+    These don't have symbols we need to publish and they cause symbol check to fail.
+  -->
+  <Target Name="ValidateSymbolPublishingExclusions"
+          BeforeTargets="Build">
+    <PropertyGroup>
+      <_SymbolExclusionsFile>$(RepoRoot)eng\SymbolPublishingExclusionsFile.txt</_SymbolExclusionsFile>
+      <_ExpectedArm64Entry>tools/$(TargetFramework)/linux-musl-arm64/libe_sqlite3.so</_ExpectedArm64Entry>
+      <_ExpectedX64Entry>tools/$(TargetFramework)/linux-musl-x64/libe_sqlite3.so</_ExpectedX64Entry>
+    </PropertyGroup>
 
-  <!-- If we don't have a PackRuntimeIdentifier set, that means pack has been invoked on the project directly, with say dotnet pack. In this case
-       we'll replace the Pack target with one that instead recursively invokes pack for each runtime identifier. We define those targets
-       in a separate .targets file, since we can't say to MSBuild "only consider our Pack target as a definition based on this condition" any other way. -->
-  <Import Project="PackAllRids.targets" Condition="'$(PackRuntimeIdentifier)' == ''" />
+    <ReadLinesFromFile File="$(_SymbolExclusionsFile)">
+      <Output TaskParameter="Lines" ItemName="_SymbolExclusionLines" />
+    </ReadLinesFromFile>
+
+    <PropertyGroup>
+      <_ExclusionFileContent>@(_SymbolExclusionLines)</_ExclusionFileContent>
+      <_HasArm64Entry>$(_ExclusionFileContent.Contains('$(_ExpectedArm64Entry)'))</_HasArm64Entry>
+      <_HasX64Entry>$(_ExclusionFileContent.Contains('$(_ExpectedX64Entry)'))</_HasX64Entry>
+    </PropertyGroup>
+
+    <Error Condition="!$(_HasArm64Entry)"
+           Text="SymbolPublishingExclusionsFile.txt is missing required entry: $(_ExpectedArm64Entry). Please add this entry to $(_SymbolExclusionsFile) to exclude the native SQLite library from symbol publishing." />
+
+    <Error Condition="!$(_HasX64Entry)"
+           Text="SymbolPublishingExclusionsFile.txt is missing required entry: $(_ExpectedX64Entry). Please add this entry to $(_SymbolExclusionsFile) to exclude the native SQLite library from symbol publishing." />
+  </Target>
 </Project>

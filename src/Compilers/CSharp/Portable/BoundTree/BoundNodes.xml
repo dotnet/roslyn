@@ -175,6 +175,10 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
 
+  <!-- This node represents the ReadOnlySpan<T> for the elements passed as the last argument to a collection builder
+       method. It does not survive lowering. -->
+  <Node Name="BoundCollectionBuilderElementsPlaceholder" Base="BoundValuePlaceholderBase" DoesNotSurvive="LocalRewriting"  />
+
   <!-- only used by codegen -->
   <Node Name="BoundDup" Base="BoundExpression">
     <!-- when duplicating a local or parameter, must remember original ref kind -->
@@ -1917,7 +1921,7 @@
     <Field Name="WasTargetTyped" Type="bool" PropertyOverrides="true"/>
   </Node>
 
-  <AbstractNode Name="BoundCollectionExpressionBase" Base="BoundExpression">
+  <AbstractNode Name="BoundCollectionExpressionBase" Base="BoundExpression" HasValidate="true">
     <!-- Collection expression elements. -->
     <Field Name="Elements" Type="ImmutableArray&lt;BoundNode&gt;"/>
   </AbstractNode>
@@ -1928,24 +1932,37 @@
   <Node Name="BoundUnconvertedCollectionExpression" Base="BoundCollectionExpressionBase" DoesNotSurvive="InitialBinding">
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
+    <Field Name="WithElement" Type="BoundUnconvertedWithElement?" Null="allow"/>
   </Node>
 
-  <Node Name="BoundCollectionExpression" Base="BoundCollectionExpressionBase">
+  <Node Name="BoundUnconvertedWithElement" Base="BoundNode">
+    <!-- With-arguments support for collection expression with(...) syntax -->
+    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;(string Name, Location Location)?&gt;" Null="allow"/>
+    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
+  </Node>
+  
+  <Node Name="BoundCollectionExpression" Base="BoundCollectionExpressionBase" HasValidate="true">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="CollectionTypeKind" Type="CollectionExpressionTypeKind"/>
     <!-- An expression placeholder value representing the initialized collection. -->
     <Field Name="Placeholder" Type="BoundObjectOrCollectionValuePlaceholder?" Null="allow" SkipInVisitor="true"/>
-    <!-- Constructor call to create the empty collection type. -->
-    <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
-    <!-- Construct method for collection types with [CollectionBuilder]. -->
+    <!-- Call to instantiate a collection with a constructor or through a builder method.
+         In former case this should be a BoundObjectCreationExpression.  In the latter
+         this should be a BoundCall (possibly wrapped in a conversion). -->
+    <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow"/>
+    <!-- Collection builder method being invoked. Null for all other collection expression types. If generic, this will
+         be the constructed form.   -->
     <Field Name="CollectionBuilderMethod" Type="MethodSymbol?" Null="allow"/>
-    <!-- Placeholder for collection builder method invocation. -->
-    <Field Name="CollectionBuilderInvocationPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
-    <!-- Conversion from collection builder method invocation to collection type. -->
-    <Field Name="CollectionBuilderInvocationConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
-    <!-- Indicates whether the collection expression was successfully target-typed (it is inside a conversion) -->
+    <!-- Placeholder location where the collection builder elements will be placed.  Null for all other collection
+         expression types.  For example, if the collection is `[with(a, b, c), x, y, z]` initial binding will produce
+         `Factory.Create(a, b, c, <placeholder>)`.  The last arg will be replaced in lowering with the ReadOnlySpan for
+         and will naturally be visited during all binding phases.  It is just the packaging and movement into the final
+         arg that the lowering phase concerns itself with. -->
+    <Field Name="CollectionBuilderElementsPlaceholder" Type="BoundCollectionBuilderElementsPlaceholder?" Null="allow" SkipInVisitor="true"/>
     <Field Name="WasTargetTyped" Type="bool" />
+    <Field Name="HasWithElement" Type="bool" />
     <Field Name="UnconvertedCollectionExpression" Type="BoundUnconvertedCollectionExpression" Null="disallow" SkipInVisitor="true"/>
   </Node>
 

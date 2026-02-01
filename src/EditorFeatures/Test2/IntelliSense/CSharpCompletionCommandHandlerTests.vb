@@ -13598,5 +13598,190 @@ class Program
                 Await state.AssertCompletionItemsDoNotContainAny("ExtProp1")
             End Using
         End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function PreselectIEnumerablePropertyInForeach_Var(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Collections.Generic;
+namespace NS
+{
+    public class C
+    {
+        public object Prop { get; set; }
+        public IEnumerable<int> PropWithEnumerable { get; set; }
+
+        public void M(C c)
+        {
+            foreach (var x in c$$
+        }
+    }
+}
+                ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="PropWithEnumerable", isHardSelected:=True)
+
+                Dim item = state.GetSelectedItem()
+                Assert.Equal(SymbolMatchPriority.PreferFieldOrProperty, item.Rules.MatchPriority)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function PreselectIEnumerablePropertyInForeach_SpecifiedType(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Collections.Generic;
+namespace NS
+{
+    public class C
+    {
+        public object Prop { get; set; }
+        public IEnumerable<int> PropWithEnumerable { get; set; }
+        public IEnumerable<string> PropWithStringEnumerable { get; set; }
+
+        public void M(C c)
+        {
+            foreach (int x in c$$
+        }
+    }
+}
+                ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="PropWithEnumerable", isHardSelected:=True)
+
+                Dim item = state.GetSelectedItem()
+                Assert.Equal(SymbolMatchPriority.PreferFieldOrProperty, item.Rules.MatchPriority)
+
+                Await state.AssertCompletionItemsContain("PropWithStringEnumerable", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function PreselectIAsyncEnumerablePropertyInAwaitForEach_Var_ReferenceType(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Collections.Generic;
+using System.Threading.Tasks;
+namespace NS
+{
+    public class C
+    {
+        public object Prop { get; set; }
+        public IAsyncEnumerable<string> PropWithAsyncEnumerable { get; set; }
+
+        public async Task M(C c)
+        {
+            await foreach (var x in c$$
+        }
+    }
+}
+                ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12, commonReferencesAttribute:="CommonReferencesNet6")
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="PropWithAsyncEnumerable", isHardSelected:=True)
+
+                Dim item = state.GetSelectedItem()
+                Assert.Equal(SymbolMatchPriority.PreferFieldOrProperty, item.Rules.MatchPriority)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function PreselectIAsyncEnumerablePropertyInAwaitForEach_Var_ValueType(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Collections.Generic;
+using System.Threading.Tasks;
+namespace NS
+{
+    public class C
+    {
+        public object Prop { get; set; }
+        public IAsyncEnumerable<int> PropWithAsyncEnumerable { get; set; }
+
+        public async Task M(C c)
+        {
+            await foreach (var x in c$$
+        }
+    }
+}
+                ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12, commonReferencesAttribute:="CommonReferencesNet6")
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="PropWithAsyncEnumerable", isHardSelected:=True)
+
+                Dim item = state.GetSelectedItem()
+                Assert.Equal(SymbolMatchPriority.PreferFieldOrProperty, item.Rules.MatchPriority)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function PreselectIAsyncEnumerablePropertyInAwaitForEach_SpecifiedType(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Collections.Generic;
+using System.Threading.Tasks;
+namespace NS
+{
+    public class C
+    {
+        public object Prop { get; set; }
+        public IAsyncEnumerable<int> PropWithAsyncEnumerable { get; set; }
+
+        public async Task M(C c)
+        {
+            await foreach (int x in c$$
+        }
+    }
+}
+                ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12, commonReferencesAttribute:="CommonReferencesNet6")
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="PropWithAsyncEnumerable", isHardSelected:=True)
+
+                Dim item = state.GetSelectedItem()
+                Assert.Equal(SymbolMatchPriority.PreferFieldOrProperty, item.Rules.MatchPriority)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function PreselectSubtypeInAssignment(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Collections.Generic;
+namespace NS
+{
+    public class C
+    {
+        public List<int> PropWithList { get; set; }
+
+        public void M(C c)
+        {
+            IEnumerable<int> x = c$$
+        }
+    }
+}
+                ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="PropWithList", isHardSelected:=True)
+
+                Dim item = state.GetSelectedItem()
+                Assert.Equal(SymbolMatchPriority.PreferFieldOrProperty, item.Rules.MatchPriority)
+            End Using
+        End Function
     End Class
 End Namespace
