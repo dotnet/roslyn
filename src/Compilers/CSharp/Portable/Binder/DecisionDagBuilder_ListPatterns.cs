@@ -13,7 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private Tests MakeTestsAndBindingsForListPattern(BoundDagTemp input, BoundListPattern list, out BoundDagTemp output, ArrayBuilder<BoundPatternBinding> bindings)
         {
-            Debug.Assert(input.Type.IsErrorType() || list.HasErrors || list.InputType.IsErrorType() ||
+            Debug.Assert(input.Type.IsErrorType() ||
+                         list.HasErrors ||
+                         list.InputType.IsErrorType() ||
                          input.Type.Equals(list.InputType, TypeCompareKind.AllIgnoreOptions) &&
                          input.Type.StrippedType().Equals(list.NarrowedType, TypeCompareKind.ConsiderEverything) &&
                          list.Subpatterns.Count(p => p.Kind == BoundKind.SlicePattern) == (list.HasSlice ? 1 : 0) &&
