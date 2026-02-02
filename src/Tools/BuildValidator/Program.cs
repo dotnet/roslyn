@@ -358,7 +358,7 @@ namespace BuildValidator
             {
                 logger.LogError(ex.Message);
                 logger.LogError(ex.StackTrace);
-                return CompilationDiff.CreateMiscError(assemblyInfo, ex.Message);
+                return CompilationDiff.CreateMiscError(assemblyInfo, ex.Message + " " + ex.StackTrace);
             }
         }
 
