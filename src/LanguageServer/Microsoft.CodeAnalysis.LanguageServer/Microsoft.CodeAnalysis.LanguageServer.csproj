@@ -18,13 +18,7 @@
     <PublishDir Condition="'$(RuntimeIdentifier)' != ''">$(ArtifactsDir)/LanguageServer/$(Configuration)/$(TargetFramework)/$(RuntimeIdentifier)</PublishDir>
 
     <!-- List of runtime identifiers that we want to publish an executable for. -->
-    <!-- When building a VMR vertical, we don't need to pack everything. Just pack the passed in TargetRid or PortableTargetRid.
-         TargetRid and PortableTargetRid are provided to roslyn via the build arguments passed in the VMR orchestrator's repo project.
-         https://github.com/dotnet/dotnet/blob/main/repo-projects/roslyn.proj. For definitions of the TargetRid
-         and other common properties, see https://github.com/dotnet/arcade/blob/main/Documentation/UnifiedBuild/Unified-Build-Controls.md -->
-    <RuntimeIdentifiers Condition="'$(TargetRid)' != ''">$(TargetRid)</RuntimeIdentifiers>
-    <RuntimeIdentifiers Condition="'$(PortableTargetRid)' != ''">$(PortableTargetRid)</RuntimeIdentifiers>
-    <RuntimeIdentifiers Condition="'$(TargetRid)' == '' and '$(PortableTargetRid)' == ''">win-x64;win-arm64;linux-x64;linux-arm64;linux-musl-x64;linux-musl-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>win-x64;win-arm64;linux-x64;linux-arm64;linux-musl-x64;linux-musl-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
 
     <!-- Publish ready to run executables when we're publishing platform specific executables. -->
     <PublishReadyToRun Condition="'$(Configuration)' == 'Release' ">true</PublishReadyToRun>
