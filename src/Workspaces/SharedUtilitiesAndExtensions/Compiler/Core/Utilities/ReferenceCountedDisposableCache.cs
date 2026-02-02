@@ -15,8 +15,18 @@ namespace Roslyn.Utilities;
 internal sealed class ReferenceCountedDisposableCache<TKey, TValue> where TValue : class, IDisposable
     where TKey : notnull
 {
-    private readonly Dictionary<TKey, ReferenceCountedDisposable<Entry>.WeakReference> _cache = [];
+    private readonly Dictionary<TKey, ReferenceCountedDisposable<Entry>.WeakReference> _cache;
     private readonly object _gate = new();
+
+    public ReferenceCountedDisposableCache()
+    {
+        _cache = [];
+    }
+
+    public ReferenceCountedDisposableCache(IEqualityComparer<TKey> comparer)
+    {
+        _cache = new(comparer);
+    }
 
     public IReferenceCountedDisposable<ICacheEntry<TKey, TValue>> GetOrCreate<TArg>(TKey key, Func<TKey, TArg, TValue> valueCreator, TArg arg)
     {
@@ -71,5 +81,11 @@ internal sealed class ReferenceCountedDisposableCache<TKey, TValue> where TValue
             // Dispose the underlying value
             Value.Dispose();
         }
+    }
+
+    internal static class TestAccessor
+    {
+        public static IEnumerable<TKey> GetCacheKeys(ReferenceCountedDisposableCache<TKey, TValue> cache)
+            => cache._cache.Keys;
     }
 }

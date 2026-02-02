@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
 public sealed class SimpleFileChangeWatcherTests : IDisposable
 {
-    private const int FileChangeTimeout = 10;
+    private readonly TimeSpan _fileChangeTimeout = TimeSpan.FromSeconds(10);
     private readonly TempRoot _tempRoot = new();
 
     public void Dispose() => _tempRoot.Dispose();
@@ -18,33 +18,33 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
     [Fact]
     public void CreateContext_WithEmptyDirectories_DoesNotAddRootWatcher()
     {
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         using var context = watcher.CreateContext([]);
 
-        Assert.Equal(0, SimpleFileChangeWatcher.FileChangeContext.TestAccessor.GetSharedWatcherCount((SimpleFileChangeWatcher.FileChangeContext)context));
+        Assert.Empty(DefaultFileChangeWatcher.FileChangeContext.TestAccessor.GetWatchedRootPaths((DefaultFileChangeWatcher.FileChangeContext)context));
     }
 
     [Fact]
     public void CreateContext_WithExistingDirectory_AddsRootWatcher()
     {
         var tempDirectory = _tempRoot.CreateDirectory();
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         using var context = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [])]);
 
-        Assert.Equal(1, SimpleFileChangeWatcher.FileChangeContext.TestAccessor.GetSharedWatcherCount((SimpleFileChangeWatcher.FileChangeContext)context));
+        Assert.Single(DefaultFileChangeWatcher.FileChangeContext.TestAccessor.GetWatchedRootPaths((DefaultFileChangeWatcher.FileChangeContext)context));
     }
 
     [Fact]
     public void CreateContext_WithNonExistentDirectory_DoesNotAddRootWatcher()
     {
-        var nonExistentPath = Path.Combine(TempRoot.Root, "NonExistent", "Directory");
-        var watcher = new SimpleFileChangeWatcher();
+        var nonExistentPath = Path.Combine(TempRoot.Root, "NonExistent", "Directory", Guid.NewGuid().ToString());
+        var watcher = new DefaultFileChangeWatcher();
 
         using var context = watcher.CreateContext([new WatchedDirectory(nonExistentPath, extensionFilters: [])]);
 
-        Assert.Equal(0, SimpleFileChangeWatcher.FileChangeContext.TestAccessor.GetSharedWatcherCount((SimpleFileChangeWatcher.FileChangeContext)context));
+        Assert.Empty(DefaultFileChangeWatcher.FileChangeContext.TestAccessor.GetWatchedRootPaths((DefaultFileChangeWatcher.FileChangeContext)context));
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
         var rootDir = _tempRoot.CreateDirectory();
         var subDir1 = rootDir.CreateDirectory("sub1");
         var subDir2 = rootDir.CreateDirectory("sub2");
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         // Both directories are under the same root
         using var context = watcher.CreateContext([
@@ -61,7 +61,7 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
             new WatchedDirectory(subDir2.Path, extensionFilters: [])
         ]);
 
-        Assert.Equal(1, SimpleFileChangeWatcher.FileChangeContext.TestAccessor.GetSharedWatcherCount((SimpleFileChangeWatcher.FileChangeContext)context));
+        Assert.Single(DefaultFileChangeWatcher.FileChangeContext.TestAccessor.GetWatchedRootPaths((DefaultFileChangeWatcher.FileChangeContext)context));
     }
 
     [Fact]
@@ -69,7 +69,7 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
     {
         var tempDirectory = _tempRoot.CreateDirectory();
         var filePath = Path.Combine(tempDirectory.Path, "test.cs");
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         using var context = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [".cs"])]);
         var watchedFile = context.EnqueueWatchingFile(filePath);
@@ -84,14 +84,13 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
         var watchedDir = _tempRoot.CreateDirectory();
         var otherDir = _tempRoot.CreateDirectory();
         var filePath = Path.Combine(otherDir.Path, "test.cs");
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         using var context = watcher.CreateContext([new WatchedDirectory(watchedDir.Path, extensionFilters: [])]);
-        var watchedFile = context.EnqueueWatchingFile(filePath);
+        using var watchedFile = context.EnqueueWatchingFile(filePath);
 
         // When a file is not covered, it returns an actual watcher
         Assert.NotSame(NoOpWatchedFile.Instance, watchedFile);
-        watchedFile.Dispose();
     }
 
     [Fact]
@@ -99,10 +98,10 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
     {
         var tempDirectory = _tempRoot.CreateDirectory();
         var filePath = Path.Combine(tempDirectory.Path, "test.cs");
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         using var context = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [".cs"])]);
-        var watchedFile = context.EnqueueWatchingFile(filePath);
+        using var watchedFile = context.EnqueueWatchingFile(filePath);
 
         Assert.Same(NoOpWatchedFile.Instance, watchedFile);
     }
@@ -112,15 +111,14 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
     {
         var tempDirectory = _tempRoot.CreateDirectory();
         var filePath = Path.Combine(tempDirectory.Path, "test.txt");
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         // Only watching for .cs files
         using var context = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [".cs"])]);
-        var watchedFile = context.EnqueueWatchingFile(filePath);
+        using var watchedFile = context.EnqueueWatchingFile(filePath);
 
         // .txt file is not covered by .cs filter, so it gets an individual watcher
         Assert.NotSame(NoOpWatchedFile.Instance, watchedFile);
-        watchedFile.Dispose();
     }
 
     [Fact]
@@ -128,19 +126,17 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
     {
         var tempDirectory = _tempRoot.CreateDirectory();
         var filePath = Path.Combine(tempDirectory.Path, "multi.txt");
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         using var context = watcher.CreateContext([]);
 
-        var watcher1 = context.EnqueueWatchingFile(filePath);
-        var watcher2 = context.EnqueueWatchingFile(filePath);
+        using var watcher1 = context.EnqueueWatchingFile(filePath);
+        using var watcher2 = context.EnqueueWatchingFile(filePath);
 
         // Both should be valid individual watchers
         Assert.NotSame(NoOpWatchedFile.Instance, watcher1);
         Assert.NotSame(NoOpWatchedFile.Instance, watcher2);
-
-        watcher1.Dispose();
-        watcher2.Dispose();
+        Assert.NotSame(watcher1, watcher2);
     }
 
     [Fact]
@@ -149,10 +145,10 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
         var tempDirectory = _tempRoot.CreateDirectory();
         var subDirectory = tempDirectory.CreateDirectory("subdir");
         var filePath = Path.Combine(subDirectory.Path, "nested.cs");
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         using var context = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [])]);
-        var watchedFile = context.EnqueueWatchingFile(filePath);
+        using var watchedFile = context.EnqueueWatchingFile(filePath);
 
         // File in subdirectory should be covered by parent directory watch
         Assert.Same(NoOpWatchedFile.Instance, watchedFile);
@@ -161,15 +157,14 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
     [Fact]
     public void EnqueueWatchingFile_WithNonExistentDirectory_HandlesGracefully()
     {
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
         var nonExistentPath = Path.Combine(TempRoot.Root, "NonExistent", "file.cs");
 
         using var context = watcher.CreateContext([]);
 
         // Should not throw, though the file won't actually be watched until the directory exists
-        var watchedFile = context.EnqueueWatchingFile(nonExistentPath);
+        using var watchedFile = context.EnqueueWatchingFile(nonExistentPath);
         Assert.NotNull(watchedFile);
-        watchedFile.Dispose();
     }
 
     [Fact]
@@ -179,13 +174,13 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
         var csFilePath = Path.Combine(tempDirectory.Path, "test.cs");
         var vbFilePath = Path.Combine(tempDirectory.Path, "test.vb");
         var txtFilePath = Path.Combine(tempDirectory.Path, "test.txt");
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         using var context = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [".cs", ".vb"])]);
 
-        var csWatcher = context.EnqueueWatchingFile(csFilePath);
-        var vbWatcher = context.EnqueueWatchingFile(vbFilePath);
-        var txtWatcher = context.EnqueueWatchingFile(txtFilePath);
+        using var csWatcher = context.EnqueueWatchingFile(csFilePath);
+        using var vbWatcher = context.EnqueueWatchingFile(vbFilePath);
+        using var txtWatcher = context.EnqueueWatchingFile(txtFilePath);
 
         // .cs and .vb should be covered by directory watch
         Assert.Same(NoOpWatchedFile.Instance, csWatcher);
@@ -193,7 +188,6 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
 
         // .txt should need individual watch
         Assert.NotSame(NoOpWatchedFile.Instance, txtWatcher);
-        txtWatcher.Dispose();
     }
 
     [Fact]
@@ -204,10 +198,10 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
         var level2 = level1.CreateDirectory("level2");
         var level3 = level2.CreateDirectory("level3");
         var filePath = Path.Combine(level3.Path, "deep.cs");
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         using var context = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [".cs"])]);
-        var watchedFile = context.EnqueueWatchingFile(filePath);
+        using var watchedFile = context.EnqueueWatchingFile(filePath);
 
         // Deeply nested file should still be covered by root directory watch
         Assert.Same(NoOpWatchedFile.Instance, watchedFile);
@@ -220,14 +214,13 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
         var watchedDir = rootDir.CreateDirectory("watched");
         var siblingDir = rootDir.CreateDirectory("sibling");
         var filePath = Path.Combine(siblingDir.Path, "test.cs");
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         using var context = watcher.CreateContext([new WatchedDirectory(watchedDir.Path, extensionFilters: [])]);
-        var watchedFile = context.EnqueueWatchingFile(filePath);
+        using var watchedFile = context.EnqueueWatchingFile(filePath);
 
         // File in sibling directory should not be covered
         Assert.NotSame(NoOpWatchedFile.Instance, watchedFile);
-        watchedFile.Dispose();
     }
 
     [Fact]
@@ -236,14 +229,13 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
         var rootDir = _tempRoot.CreateDirectory();
         var watchedDir = rootDir.CreateDirectory("subdir");
         var filePath = Path.Combine(rootDir.Path, "test.cs");
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         using var context = watcher.CreateContext([new WatchedDirectory(watchedDir.Path, extensionFilters: [])]);
-        var watchedFile = context.EnqueueWatchingFile(filePath);
+        using var watchedFile = context.EnqueueWatchingFile(filePath);
 
         // File in parent directory should not be covered
         Assert.NotSame(NoOpWatchedFile.Instance, watchedFile);
-        watchedFile.Dispose();
     }
 
     [Fact]
@@ -251,16 +243,15 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
     {
         var tempDirectory = _tempRoot.CreateDirectory();
         var filePath = Path.Combine(tempDirectory.Path, "test.txt");
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         using var context = watcher.CreateContext([]);
 
-        var watcher1 = context.EnqueueWatchingFile(filePath);
+        using var watcher1 = context.EnqueueWatchingFile(filePath);
         watcher1.Dispose();
 
-        var watcher2 = context.EnqueueWatchingFile(filePath);
+        using var watcher2 = context.EnqueueWatchingFile(filePath);
         Assert.NotSame(NoOpWatchedFile.Instance, watcher2);
-        watcher2.Dispose();
     }
 
     #region File System Event Tests
@@ -268,17 +259,30 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
     /// <summary>
     /// Helper method to wait for a file change event with timeout.
     /// </summary>
-    private static async Task<bool> WaitForFileChangeAsync(TaskCompletionSource eventSource, TimeSpan timeout)
+    private static async Task<bool> WaitForFileChangeAsync(Task fileChangeTask, TimeSpan timeout)
     {
-        var completed = await Task.WhenAny(eventSource.Task, Task.Delay(timeout));
-        return completed == eventSource.Task;
+        var completed = await Task.WhenAny(fileChangeTask, Task.Delay(timeout));
+        return completed == fileChangeTask;
     }
 
-    private static async Task<bool> WaitForAllFileChangesAsync(TaskCompletionSource[] eventSource, TimeSpan timeout)
+    private static async Task<bool> WaitForAllFileChangesAsync(Task[] fileChangeTasks, TimeSpan timeout)
     {
         var delay = Task.Delay(timeout);
-        var completed = await Task.WhenAny(Task.WhenAll(eventSource.Select(e => e.Task)), delay);
+        var completed = await Task.WhenAny(Task.WhenAll(fileChangeTasks), delay);
         return completed != delay;
+    }
+
+    private static Task ListenForFileChangeAsync(DefaultFileChangeWatcher.FileChangeContext context, string filePath)
+    {
+        var eventSource = new TaskCompletionSource();
+
+        context.FileChanged += (sender, path) =>
+        {
+            if (path == filePath)
+                eventSource.TrySetResult();
+        };
+
+        return eventSource.Task;
     }
 
     [Fact]
@@ -286,22 +290,16 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
     {
         var tempDirectory = _tempRoot.CreateDirectory();
         var filePath = Path.Combine(tempDirectory.Path, "created.cs");
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         using var context = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [])]);
-
-        var eventSource = new TaskCompletionSource();
-        context.FileChanged += (sender, path) =>
-        {
-            if (path == filePath)
-                eventSource.TrySetResult();
-        };
+        var fileChangeTask = ListenForFileChangeAsync((DefaultFileChangeWatcher.FileChangeContext)context, filePath);
 
         // Create the file
         File.WriteAllText(filePath, "initial content");
 
         // Wait for the event
-        var eventFired = await WaitForFileChangeAsync(eventSource, TimeSpan.FromSeconds(FileChangeTimeout));
+        var eventFired = await WaitForFileChangeAsync(fileChangeTask, _fileChangeTimeout);
 
         Assert.True(eventFired, "FileChanged event should fire when a file is created");
     }
@@ -311,25 +309,19 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
     {
         var tempDirectory = _tempRoot.CreateDirectory();
         var filePath = Path.Combine(tempDirectory.Path, "modified.cs");
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         // Create file first before setting up the watcher
         File.WriteAllText(filePath, "initial content");
 
         using var context = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [])]);
-
-        var eventSource = new TaskCompletionSource();
-        context.FileChanged += (sender, path) =>
-        {
-            if (path == filePath)
-                eventSource.TrySetResult();
-        };
+        var fileChangeTask = ListenForFileChangeAsync((DefaultFileChangeWatcher.FileChangeContext)context, filePath);
 
         // Modify the file
         File.WriteAllText(filePath, "modified content");
 
         // Wait for the event
-        var eventFired = await WaitForFileChangeAsync(eventSource, TimeSpan.FromSeconds(FileChangeTimeout));
+        var eventFired = await WaitForFileChangeAsync(fileChangeTask, _fileChangeTimeout);
 
         Assert.True(eventFired, "FileChanged event should fire when a file is modified");
     }
@@ -339,25 +331,19 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
     {
         var tempDirectory = _tempRoot.CreateDirectory();
         var filePath = Path.Combine(tempDirectory.Path, "deleted.cs");
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         // Create file first before setting up the watcher
         File.WriteAllText(filePath, "content to delete");
 
         using var context = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [])]);
-
-        var eventSource = new TaskCompletionSource();
-        context.FileChanged += (sender, path) =>
-        {
-            if (path == filePath)
-                eventSource.TrySetResult();
-        };
+        var fileChangeTask = ListenForFileChangeAsync((DefaultFileChangeWatcher.FileChangeContext)context, filePath);
 
         // Delete the file
         File.Delete(filePath);
 
         // Wait for the event
-        var eventFired = await WaitForFileChangeAsync(eventSource, TimeSpan.FromSeconds(FileChangeTimeout));
+        var eventFired = await WaitForFileChangeAsync(fileChangeTask, _fileChangeTimeout);
 
         Assert.True(eventFired, "FileChanged event should fire when a file is deleted");
     }
@@ -367,22 +353,16 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
     {
         var tempDirectory = _tempRoot.CreateDirectory();
         var filePath = Path.Combine(tempDirectory.Path, "filtered.cs");
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         using var context = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [".cs"])]);
-
-        var eventSource = new TaskCompletionSource();
-        context.FileChanged += (sender, path) =>
-        {
-            if (path == filePath)
-                eventSource.TrySetResult();
-        };
+        var fileChangeTask = ListenForFileChangeAsync((DefaultFileChangeWatcher.FileChangeContext)context, filePath);
 
         // Create a .cs file (should match filter)
         File.WriteAllText(filePath, "content");
 
         // Wait for the event
-        var eventFired = await WaitForFileChangeAsync(eventSource, TimeSpan.FromSeconds(FileChangeTimeout));
+        var eventFired = await WaitForFileChangeAsync(fileChangeTask, _fileChangeTimeout);
 
         Assert.True(eventFired, "FileChanged event should fire for files matching extension filter");
     }
@@ -392,17 +372,11 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
     {
         var tempDirectory = _tempRoot.CreateDirectory();
         var txtFilePath = Path.Combine(tempDirectory.Path, "filtered.txt");
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         // Only watching for .cs files
         using var context = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [".cs"])]);
-
-        var eventFired = false;
-        context.FileChanged += (sender, path) =>
-        {
-            if (path == txtFilePath)
-                eventFired |= true;
-        };
+        var fileChangeTask = ListenForFileChangeAsync((DefaultFileChangeWatcher.FileChangeContext)context, txtFilePath);
 
         // Create a .txt file (should not match filter)
         File.WriteAllText(txtFilePath, "content");
@@ -410,7 +384,7 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
         // Wait a bit to ensure no event fires
         await Task.Delay(TimeSpan.FromSeconds(1));
 
-        Assert.False(eventFired, "FileChanged event should NOT fire for files not matching extension filter");
+        Assert.False(fileChangeTask.IsCompleted, "FileChanged event should NOT fire for files not matching extension filter");
     }
 
     [Fact]
@@ -419,22 +393,16 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
         var tempDirectory = _tempRoot.CreateDirectory();
         var subDirectory = tempDirectory.CreateDirectory("subdir");
         var filePath = Path.Combine(subDirectory.Path, "nested.cs");
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         using var context = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [])]);
-
-        var eventSource = new TaskCompletionSource();
-        context.FileChanged += (sender, path) =>
-        {
-            if (path == filePath)
-                eventSource.TrySetResult();
-        };
+        var fileChangeTask = ListenForFileChangeAsync((DefaultFileChangeWatcher.FileChangeContext)context, filePath);
 
         // Create file in subdirectory
         File.WriteAllText(filePath, "nested content");
 
         // Wait for the event
-        var eventFired = await WaitForFileChangeAsync(eventSource, TimeSpan.FromSeconds(FileChangeTimeout));
+        var eventFired = await WaitForFileChangeAsync(fileChangeTask, _fileChangeTimeout);
 
         Assert.True(eventFired, "FileChanged event should fire for files created in subdirectories");
     }
@@ -444,30 +412,22 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
     {
         var tempDirectory = _tempRoot.CreateDirectory();
         var filePath = Path.Combine(tempDirectory.Path, "individual.txt");
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         // Create context without directory watches
         using var context = watcher.CreateContext([]);
-
-        var eventSource = new TaskCompletionSource();
-        context.FileChanged += (sender, path) =>
-        {
-            if (path == filePath)
-                eventSource.TrySetResult();
-        };
+        var fileChangeTask = ListenForFileChangeAsync((DefaultFileChangeWatcher.FileChangeContext)context, filePath);
 
         // Watch the specific file
-        var watchedFile = context.EnqueueWatchingFile(filePath);
+        using var watchedFile = context.EnqueueWatchingFile(filePath);
 
         // Create the file
         File.WriteAllText(filePath, "individual file content");
 
         // Wait for the event
-        var eventFired = await WaitForFileChangeAsync(eventSource, TimeSpan.FromSeconds(FileChangeTimeout));
+        var eventFired = await WaitForFileChangeAsync(fileChangeTask, _fileChangeTimeout);
 
         Assert.True(eventFired, "FileChanged event should fire for individually watched files");
-
-        watchedFile.Dispose();
     }
 
     [Fact]
@@ -475,7 +435,7 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
     {
         var tempDirectory = _tempRoot.CreateDirectory();
         var filePath = Path.Combine(tempDirectory.Path, "individual_modify.txt");
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         // Create the file first
         File.WriteAllText(filePath, "initial content");
@@ -484,24 +444,16 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
         using var context = watcher.CreateContext([]);
 
         // Watch the specific file
-        var watchedFile = context.EnqueueWatchingFile(filePath);
-
-        var eventSource = new TaskCompletionSource();
-        context.FileChanged += (sender, path) =>
-        {
-            if (path == filePath)
-                eventSource.TrySetResult();
-        };
+        using var watchedFile = context.EnqueueWatchingFile(filePath);
+        var fileChangeTask = ListenForFileChangeAsync((DefaultFileChangeWatcher.FileChangeContext)context, filePath);
 
         // Modify the file
         File.WriteAllText(filePath, "modified content");
 
         // Wait for the event
-        var eventFired = await WaitForFileChangeAsync(eventSource, TimeSpan.FromSeconds(FileChangeTimeout));
+        var eventFired = await WaitForFileChangeAsync(fileChangeTask, _fileChangeTimeout);
 
         Assert.True(eventFired, "FileChanged event should fire when individually watched file is modified");
-
-        watchedFile.Dispose();
     }
 
     [Fact]
@@ -509,7 +461,7 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
     {
         var tempDirectory = _tempRoot.CreateDirectory();
         var filePath = Path.Combine(tempDirectory.Path, "disposed.txt");
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         using var context = watcher.CreateContext([]);
 
@@ -531,7 +483,7 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
         File.WriteAllText(filePath, "content after dispose");
 
         // Wait to see if any events fire
-        await Task.Delay(TimeSpan.FromSeconds(1));
+        await Task.Delay(_fileChangeTimeout);
 
         Assert.False(eventFired, "FileChanged event should NOT fire after individual file watch is disposed");
     }
@@ -540,7 +492,7 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
     public async Task MultipleFileChanges_AllRaiseEvents()
     {
         var tempDirectory = _tempRoot.CreateDirectory();
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         using var context = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [])]);
 
@@ -570,7 +522,7 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
         File.WriteAllText(file3, "content3");
 
         // Wait for all events
-        var completed = await Task.WhenAny(allEventsReceived.Task, Task.Delay(TimeSpan.FromSeconds(15)));
+        var completed = await Task.WhenAny(allEventsReceived.Task, Task.Delay(_fileChangeTimeout));
 
         Assert.True(completed == allEventsReceived.Task, "Should receive events for all file changes");
         Assert.Contains(file1, changedFiles);
@@ -584,25 +536,19 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
         var tempDirectory = _tempRoot.CreateDirectory();
         var originalPath = Path.Combine(tempDirectory.Path, "original.cs");
         var renamedPath = Path.Combine(tempDirectory.Path, "renamed.cs");
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         // Create original file
         File.WriteAllText(originalPath, "content");
 
         using var context = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [])]);
-
-        var eventSource = new TaskCompletionSource();
-        context.FileChanged += (sender, path) =>
-        {
-            if (path == originalPath)
-                eventSource.TrySetResult();
-        };
+        var fileChangeTask = ListenForFileChangeAsync((DefaultFileChangeWatcher.FileChangeContext)context, originalPath);
 
         // Rename the file
         File.Move(originalPath, renamedPath);
 
         // Wait for the event
-        var eventFired = await WaitForFileChangeAsync(eventSource, TimeSpan.FromSeconds(FileChangeTimeout));
+        var eventFired = await WaitForFileChangeAsync(fileChangeTask, _fileChangeTimeout);
 
         Assert.True(eventFired, "FileChanged event should fire when a file is renamed");
     }
@@ -613,25 +559,19 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
         var tempDirectory = _tempRoot.CreateDirectory();
         var originalPath = Path.Combine(tempDirectory.Path, "original.cs");
         var renamedPath = Path.Combine(tempDirectory.Path, "renamed.cs");
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         // Create original file
         File.WriteAllText(originalPath, "content");
 
         using var context = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [])]);
-
-        var eventSource = new TaskCompletionSource();
-        context.FileChanged += (sender, path) =>
-        {
-            if (path == renamedPath)
-                eventSource.TrySetResult();
-        };
+        var fileChangeTask = ListenForFileChangeAsync((DefaultFileChangeWatcher.FileChangeContext)context, renamedPath);
 
         // Rename the file
         File.Move(originalPath, renamedPath);
 
         // Wait for the event
-        var eventFired = await WaitForFileChangeAsync(eventSource, TimeSpan.FromSeconds(FileChangeTimeout));
+        var eventFired = await WaitForFileChangeAsync(fileChangeTask, _fileChangeTimeout);
 
         Assert.True(eventFired, "FileChanged event should fire when a file is renamed");
     }
@@ -644,42 +584,42 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
     public void SharedWatcher_MultipleContexts_ShareSameRootWatcher()
     {
         var tempDirectory = _tempRoot.CreateDirectory();
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         using var context1 = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [])]);
         using var context2 = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [".cs"])]);
 
         // Both contexts should have acquired 1 root path
-        Assert.Equal(1, SimpleFileChangeWatcher.FileChangeContext.TestAccessor.GetSharedWatcherCount((SimpleFileChangeWatcher.FileChangeContext)context1));
-        Assert.Equal(1, SimpleFileChangeWatcher.FileChangeContext.TestAccessor.GetSharedWatcherCount((SimpleFileChangeWatcher.FileChangeContext)context2));
+        Assert.Single(DefaultFileChangeWatcher.FileChangeContext.TestAccessor.GetWatchedRootPaths((DefaultFileChangeWatcher.FileChangeContext)context1));
+        Assert.Single(DefaultFileChangeWatcher.FileChangeContext.TestAccessor.GetWatchedRootPaths((DefaultFileChangeWatcher.FileChangeContext)context2));
 
         // The watcher should only have 1 shared root watcher
-        Assert.Equal(1, SimpleFileChangeWatcher.TestAccessor.GetSharedRootWatcherCount(watcher));
+        Assert.Single(DefaultFileChangeWatcher.TestAccessor.GetWatchedRootPaths(watcher));
     }
 
     [Fact]
     public void SharedWatcher_DisposingOneContext_KeepsWatcherForOther()
     {
         var tempDirectory = _tempRoot.CreateDirectory();
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         var context1 = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [])]);
         var context2 = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [".cs"])]);
 
         // Shared watcher should exist
-        Assert.Equal(1, SimpleFileChangeWatcher.TestAccessor.GetSharedRootWatcherCount(watcher));
+        Assert.Single(DefaultFileChangeWatcher.TestAccessor.GetWatchedRootPaths(watcher));
 
         // Dispose context1
         context1.Dispose();
 
         // Shared watcher should still exist for context2
-        Assert.Equal(1, SimpleFileChangeWatcher.TestAccessor.GetSharedRootWatcherCount(watcher));
+        Assert.Single(DefaultFileChangeWatcher.TestAccessor.GetWatchedRootPaths(watcher));
 
         // Dispose context2
         context2.Dispose();
 
         // Now shared watcher should be disposed
-        Assert.Equal(0, SimpleFileChangeWatcher.TestAccessor.GetSharedRootWatcherCount(watcher));
+        Assert.Empty(DefaultFileChangeWatcher.TestAccessor.GetWatchedRootPaths(watcher));
     }
 
     [Fact]
@@ -687,31 +627,22 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
     {
         var tempDirectory = _tempRoot.CreateDirectory();
         var filePath = Path.Combine(tempDirectory.Path, "test.cs");
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         using var context1 = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [])]);
         using var context2 = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [".cs"])]);
 
-        var context1Received = new TaskCompletionSource();
-        var context2Received = new TaskCompletionSource();
-
-        context1.FileChanged += (sender, path) =>
+        var fileChangeTasks = new[]
         {
-            if (path == filePath)
-                context1Received.TrySetResult();
-        };
-
-        context2.FileChanged += (sender, path) =>
-        {
-            if (path == filePath)
-                context2Received.TrySetResult();
+            ListenForFileChangeAsync((DefaultFileChangeWatcher.FileChangeContext)context1, filePath),
+            ListenForFileChangeAsync((DefaultFileChangeWatcher.FileChangeContext)context2, filePath)
         };
 
         // Create file
         File.WriteAllText(filePath, "content");
 
         // Both contexts should receive the event
-        var bothReceived = await WaitForAllFileChangesAsync([context1Received, context2Received], TimeSpan.FromSeconds(FileChangeTimeout));
+        var bothReceived = await WaitForAllFileChangesAsync(fileChangeTasks, _fileChangeTimeout);
 
         Assert.True(bothReceived, "Both contexts should have received FileChanged events");
     }
@@ -721,20 +652,15 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
     {
         var tempDirectory = _tempRoot.CreateDirectory();
         var filePath = Path.Combine(tempDirectory.Path, "test.cs");
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         var context1 = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [])]);
         using var context2 = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [".cs"])]);
 
         var context1Events = new List<string>();
-        var context2Received = new TaskCompletionSource();
+        var context2Received = ListenForFileChangeAsync((DefaultFileChangeWatcher.FileChangeContext)context2, filePath);
 
         context1.FileChanged += (sender, path) => context1Events.Add(path);
-        context2.FileChanged += (sender, path) =>
-        {
-            if (path == filePath)
-                context2Received.TrySetResult();
-        };
 
         // Dispose context1 before creating file
         context1.Dispose();
@@ -743,7 +669,7 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
         File.WriteAllText(filePath, "content");
 
         // Only context2 should receive the event
-        var context2ReceivedEvent = await WaitForFileChangeAsync(context2Received, TimeSpan.FromSeconds(FileChangeTimeout));
+        var context2ReceivedEvent = await WaitForFileChangeAsync(context2Received, _fileChangeTimeout);
 
         Assert.True(context2ReceivedEvent, "Context 2 should receive FileChanged event");
         Assert.DoesNotContain(filePath, context1Events);
@@ -753,18 +679,18 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
     public void SharedWatcher_NewContextAfterDispose_CreatesNewWatcher()
     {
         var tempDirectory = _tempRoot.CreateDirectory();
-        var watcher = new SimpleFileChangeWatcher();
+        var watcher = new DefaultFileChangeWatcher();
 
         // Create and dispose first context
         var context1 = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [])]);
         context1.Dispose();
 
-        Assert.Equal(0, SimpleFileChangeWatcher.TestAccessor.GetSharedRootWatcherCount(watcher));
+        Assert.Empty(DefaultFileChangeWatcher.TestAccessor.GetWatchedRootPaths(watcher));
 
         // Create new context - should create a new watcher
         using var context2 = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [])]);
 
-        Assert.Equal(1, SimpleFileChangeWatcher.TestAccessor.GetSharedRootWatcherCount(watcher));
+        Assert.Single(DefaultFileChangeWatcher.TestAccessor.GetWatchedRootPaths(watcher));
     }
 
     #endregion
