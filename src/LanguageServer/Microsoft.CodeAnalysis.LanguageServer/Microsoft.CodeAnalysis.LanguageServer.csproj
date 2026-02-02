@@ -11,7 +11,7 @@
     <!-- Workaround https://github.com/dotnet/dotnet/issues/4604.
          The VMR builds this once per architecture and does not correctly aggregate the packages when publishing.
          Disable the package in VMR until there is a fix -->
-    <IsPackable Condition="'$(DotNetBuildSourceOnly)' != 'true'">true</IsPackable>
+    <IsPackable Condition="'$(DotNetBuildFromVMR)' != 'true'">true</IsPackable>
     <PackAsTool>true</PackAsTool>
     <PackageId>roslyn-language-server</PackageId>
     <ToolCommandName>roslyn-language-server</ToolCommandName>
