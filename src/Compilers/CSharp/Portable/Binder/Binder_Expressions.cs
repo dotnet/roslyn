@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>True if a reference to "this" is available.</returns>
         internal bool HasThis(bool isExplicit, out bool inStaticContext)
         {
-            if (!isExplicit && IsInsideNameof && Compilation.IsFeatureEnabled(MessageID.IDS_FeatureInstanceMemberInNameof))
+            if (IsInsideNameof && Compilation.IsFeatureEnabled(MessageID.IDS_FeatureInstanceMemberInNameof))
             {
                 inStaticContext = false;
                 return true;
@@ -2578,8 +2578,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool inStaticContext;
             if (!HasThis(isExplicit: true, inStaticContext: out inStaticContext))
             {
-                //this error is returned in the field initializer case
-                Error(diagnostics, inStaticContext ? ErrorCode.ERR_ThisInStaticMeth : ErrorCode.ERR_ThisInBadContext, node);
+                if (IsInsideNameof)
+                {
+                    var nameofFeatureAvailable = CheckFeatureAvailability(node, MessageID.IDS_FeatureInstanceMemberInNameof, diagnostics);
+                    Debug.Assert(!nameofFeatureAvailable);
+                }
+                else
+                {
+                    //this error is returned in the field initializer case
+                    Error(diagnostics, inStaticContext ? ErrorCode.ERR_ThisInStaticMeth : ErrorCode.ERR_ThisInBadContext, node);
+                }
             }
             else
             {
@@ -2631,8 +2639,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!HasThis(isExplicit: true, inStaticContext: out inStaticContext))
             {
-                //this error is returned in the field initializer case
-                Error(diagnostics, inStaticContext ? ErrorCode.ERR_BaseInStaticMeth : ErrorCode.ERR_BaseInBadContext, node.Token);
+                if (IsInsideNameof)
+                {
+                    var nameofFeatureAvailable = CheckFeatureAvailability(node, MessageID.IDS_FeatureInstanceMemberInNameof, diagnostics);
+                    Debug.Assert(!nameofFeatureAvailable);
+                }
+                else
+                {
+                    //this error is returned in the field initializer case
+                    Error(diagnostics, inStaticContext ? ErrorCode.ERR_BaseInStaticMeth : ErrorCode.ERR_BaseInBadContext, node.Token);
+                }
+
                 hasErrors = true;
             }
             else if ((object)baseType == null) // e.g. in System.Object

@@ -139,6 +139,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.LessThanOrEqualExpression:
                 case SyntaxKind.InvocationExpression: //  To support nameof(); anything else will be a compile-time error
                 case SyntaxKind.ConditionalExpression: //  The ?: conditional operator.
+                // Allowed inside nameof()
+                case SyntaxKind.ThisExpression:
+                case SyntaxKind.BaseExpression:
                     return true;
 
                 default:

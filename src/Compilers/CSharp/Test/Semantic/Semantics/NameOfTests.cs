@@ -1997,6 +1997,61 @@ public class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "S").WithArguments("instance member in 'nameof'", "12.0").WithLocation(5, 29));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82251")]
+        public void TestCanReferenceInstanceMembersFromAttributeInNameof_This()
+        {
+            var source = """
+                var p = new C().P;
+                class C
+                {
+                    [System.Obsolete(nameof(this.S.Length))]
+                    public int P { get; }
+                    public string S { get; }
+                }
+                """;
+            var expectedDiagnostics = new[]
+            {
+                // (1,9): warning CS0618: 'C.P' is obsolete: 'Length'
+                // var p = new C().P;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "new C().P").WithArguments("C.P", "Length").WithLocation(1, 9)
+            };
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (4,29): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
+                //     [System.Obsolete(nameof(this.S.Length))]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "this").WithArguments("instance member in 'nameof'", "12.0").WithLocation(4, 29));
+        }
+
+        [Fact]
+        public void TestCanReferenceInstanceMembersFromAttributeInNameof_Base()
+        {
+            var source = """
+                var p = new C().P;
+                class C : B
+                {
+                    [System.Obsolete(nameof(base.S.Length))]
+                    public int P { get; }
+                }
+                class B
+                {
+                    public string S { get; }
+                }
+                """;
+            var expectedDiagnostics = new[]
+            {
+                // (1,9): warning CS0618: 'C.P' is obsolete: 'Length'
+                // var p = new C().P;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "new C().P").WithArguments("C.P", "Length").WithLocation(1, 9)
+            };
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (4,29): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
+                //     [System.Obsolete(nameof(base.S.Length))]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "base").WithArguments("instance member in 'nameof'", "12.0").WithLocation(4, 29));
+        }
+
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
         public void TestCanReferenceInstanceMembersFromConstructorInitializersInNameof()
         {
@@ -2401,15 +2456,12 @@ class C
     C P => default;
 }
 class Attr : System.Attribute { public Attr(string s) {} }";
-            var expectedDiagnostics = new[]
-            {
-                // (4,18): error CS0027: Keyword 'this' is not available in the current context
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (4,18): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     [Attr(nameof(this.P.P))]
-                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(4, 18)
-            };
-            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "this").WithArguments("instance member in 'nameof'", "12.0").WithLocation(4, 18));
         }
 
         [Fact]
