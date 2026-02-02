@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundDagFieldEvaluation f:
                         {
                             FieldSymbol field = f.Field;
-                            var outputTemp = new BoundDagTemp(f.Syntax, field.Type, f);
+                            var outputTemp = f.MakeResultTemp();
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             BoundExpression access = _localRewriter.MakeFieldAccess(f.Syntax, input, field, null, LookupResultKind.Viable, field.Type);
                             access.WasCompilerGenerated = true;
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundDagPropertyEvaluation p:
                         {
                             PropertySymbol property = p.Property;
-                            var outputTemp = new BoundDagTemp(p.Syntax, property.Type, p);
+                            var outputTemp = p.MakeResultTemp();
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, Consider preserving the BoundConversion from initial binding instead of using markAsChecked here
                             input = _localRewriter.ConvertReceiverForExtensionMemberIfNeeded(property, input, markAsChecked: true);
@@ -170,28 +170,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             Debug.Assert(method.Name == WellKnownMemberNames.DeconstructMethodName);
-                            int extensionExtra;
                             if (method.IsStatic)
                             {
                                 Debug.Assert(method.IsExtensionMethod);
                                 receiver = _factory.Type(method.ContainingType);
                                 // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, Consider preserving the BoundConversion from initial binding instead of using markAsChecked here
                                 addArg(method.ParameterRefKinds[0], _localRewriter.ConvertReceiverForExtensionIfNeeded(input, markAsChecked: true, method.Parameters[0]));
-                                extensionExtra = 1;
                             }
                             else
                             {
                                 receiver = input;
-                                extensionExtra = 0;
                             }
 
-                            for (int i = extensionExtra; i < method.ParameterCount; i++)
+                            ArrayBuilder<BoundDagTemp> outParamTemps = d.MakeOutParameterTemps();
+                            foreach (var outputTemp in outParamTemps)
                             {
-                                ParameterSymbol parameter = method.Parameters[i];
-                                Debug.Assert(parameter.RefKind == RefKind.Out);
-                                var outputTemp = new BoundDagTemp(d.Syntax, parameter.Type, d, i - extensionExtra);
                                 addArg(RefKind.Out, _tempAllocator.GetTemp(outputTemp));
                             }
+                            outParamTemps.Free();
 
                             // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, Consider preserving the BoundConversion from initial binding instead of using markAsChecked here
                             receiver = _localRewriter.ConvertReceiverForExtensionMemberIfNeeded(method, receiver, markAsChecked: true);
@@ -211,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             TypeSymbol type = t.Type;
-                            var outputTemp = new BoundDagTemp(t.Syntax, type, t);
+                            var outputTemp = t.MakeResultTemp();
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = _localRewriter.GetNewCompoundUseSiteInfo();
                             Conversion conversion = _factory.Compilation.Conversions.ClassifyBuiltInConversion(inputType, output.Type, isChecked: false, ref useSiteInfo);
@@ -249,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(e.Property.GetMethod.ParameterCount == 1);
                             Debug.Assert(e.Property.GetMethod.Parameters[0].Type.SpecialType == SpecialType.System_Int32);
                             TypeSymbol type = e.Property.GetMethod.ReturnType;
-                            var outputTemp = new BoundDagTemp(e.Syntax, type, e);
+                            var outputTemp = e.MakeResultTemp();
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             return _factory.AssignmentExpression(output, _factory.Indexer(input, e.Property, _factory.Literal(e.Index)));
                         }
@@ -274,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             var access = (BoundExpression)_localRewriter.Visit(indexerAccess);
 
-                            var outputTemp = new BoundDagTemp(e.Syntax, e.IndexerType, e);
+                            var outputTemp = e.MakeResultTemp();
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             return _factory.AssignmentExpression(output, access);
                         }
@@ -300,12 +296,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             var access = (BoundExpression)_localRewriter.Visit(indexerAccess);
 
-                            var outputTemp = new BoundDagTemp(e.Syntax, e.SliceType, e);
+                            var outputTemp = e.MakeResultTemp();
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             return _factory.AssignmentExpression(output, access);
                         }
 
-                    case BoundDagAssignmentEvaluation:
+                    case BoundDagAssignmentEvaluation e:
+                        {
+                            Debug.Assert(!e.Target.Equals(e.Input));
+                            BoundExpression left = _tempAllocator.GetTemp(e.Target);
+                            BoundExpression right = _tempAllocator.GetTemp(e.Input);
+                            return _factory.AssignmentExpression(left, right);
+                        }
                     default:
                         throw ExceptionUtilities.UnexpectedValue(evaluation);
                 }
@@ -481,10 +483,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     evaluation is BoundDagTypeEvaluation typeEvaluation1 &&
                     typeDecision.Type.IsReferenceType &&
                     typeEvaluation1.Type.Equals(typeDecision.Type, TypeCompareKind.AllIgnoreOptions) &&
-                    typeEvaluation1.Input == typeDecision.Input)
+                    typeEvaluation1.Input.Equals(typeDecision.Input))
                 {
                     BoundExpression input = _tempAllocator.GetTemp(test.Input);
-                    BoundExpression output = _tempAllocator.GetTemp(new BoundDagTemp(evaluation.Syntax, typeEvaluation1.Type, evaluation));
+                    BoundExpression output = _tempAllocator.GetTemp(evaluation.MakeResultTemp());
                     Debug.Assert(output.Type is { });
                     sideEffect = _factory.AssignmentExpression(output, _factory.As(input, typeEvaluation1.Type));
                     testExpression = _factory.ObjectNotEqual(output, _factory.Null(output.Type));
@@ -500,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundExpression input = _tempAllocator.GetTemp(test.Input);
                     var baseType = typeEvaluation2.Type;
-                    BoundExpression output = _tempAllocator.GetTemp(new BoundDagTemp(evaluation.Syntax, baseType, evaluation));
+                    BoundExpression output = _tempAllocator.GetTemp(evaluation.MakeResultTemp());
                     sideEffect = _factory.AssignmentExpression(output, _factory.Convert(baseType, input, conv));
                     testExpression = _factory.ObjectNotEqual(output, _factory.Null(baseType));
                     _localRewriter._diagnostics.Add(test.Syntax, useSiteInfo);
@@ -637,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(field != null);
                     var expr = loweredInput.Arguments[i];
                     var fieldFetchEvaluation = new BoundDagFieldEvaluation(expr.Syntax, field, originalInput);
-                    var temp = new BoundDagTemp(expr.Syntax, expr.Type, fieldFetchEvaluation);
+                    var temp = fieldFetchEvaluation.MakeResultTemp();
                     storeToTemp(temp, expr);
                     newArguments.Add(_tempAllocator.GetTemp(temp));
                 }

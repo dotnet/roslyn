@@ -957,7 +957,7 @@ namespace BoundTreeGenerator
         private void WriteUpdatedMethodCSharp(Node node, bool emitNew)
         {
             Blank();
-            Write("public{1} {0} Update", node.Name, emitNew ? " new" : "");
+            Write("public{1} {0} Update", node.Name, (emitNew ? " new" : "") + (string.IsNullOrEmpty(node.UpdateMethodModifiers) ? "" : (" " + node.UpdateMethodModifiers)));
             Paren();
             Comma(AllSpecifiableFields(node), field => string.Format("{0} {1}", GetField(node, field.Name).Type, ToCamelCase(field.Name)));
             UnParen();
@@ -1006,7 +1006,7 @@ namespace BoundTreeGenerator
         private void WriteUpdatedMethodVB(Node node, bool emitNew)
         {
             Blank();
-            Write("Public{0} Function Update", emitNew ? " Shadows" : "");
+            Write("Public{0} Function Update", (emitNew ? " Shadows" : "") + (string.IsNullOrEmpty(node.UpdateMethodModifiers) ? "" : (" " + node.UpdateMethodModifiers)));
             Paren();
             Comma(AllSpecifiableFields(node), field => string.Format("{1} As {0}", field.Type, ToCamelCase(field.Name)));
             UnParen();
