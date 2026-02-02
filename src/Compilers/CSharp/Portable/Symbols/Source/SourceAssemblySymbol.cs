@@ -2368,22 +2368,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int signature;
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
 
-            if (ReportExplicitUseOfReservedAttributes(in arguments,
-                permitted: ReservedAttributes.DynamicAttribute
-                    | ReservedAttributes.IsReadOnlyAttribute
-                    | ReservedAttributes.IsUnmanagedAttribute
-                    | ReservedAttributes.IsByRefLikeAttribute
-                    | ReservedAttributes.TupleElementNamesAttribute
-                    | ReservedAttributes.NullableAttribute
-                    | ReservedAttributes.NullableContextAttribute
-                    | ReservedAttributes.NullablePublicOnlyAttribute
-                    | ReservedAttributes.NativeIntegerAttribute
-                    | ReservedAttributes.CaseSensitiveExtensionAttribute
-                    | ReservedAttributes.RequiredMemberAttribute
-                    | ReservedAttributes.ScopedRefAttribute
-                    | ReservedAttributes.RefSafetyRulesAttribute
-                    | ReservedAttributes.RequiresLocationAttribute
-                    | ReservedAttributes.ExtensionMarkerAttribute))
+            if (attribute is SourceAttributeData
+                && ReportExplicitUseOfReservedAttributes(in arguments,
+                    permitted: ReservedAttributes.DynamicAttribute
+                        | ReservedAttributes.IsReadOnlyAttribute
+                        | ReservedAttributes.IsUnmanagedAttribute
+                        | ReservedAttributes.IsByRefLikeAttribute
+                        | ReservedAttributes.TupleElementNamesAttribute
+                        | ReservedAttributes.NullableAttribute
+                        | ReservedAttributes.NullableContextAttribute
+                        | ReservedAttributes.NullablePublicOnlyAttribute
+                        | ReservedAttributes.NativeIntegerAttribute
+                        | ReservedAttributes.CaseSensitiveExtensionAttribute
+                        | ReservedAttributes.RequiredMemberAttribute
+                        | ReservedAttributes.ScopedRefAttribute
+                        | ReservedAttributes.RefSafetyRulesAttribute
+                        | ReservedAttributes.RequiresLocationAttribute
+                        | ReservedAttributes.ExtensionMarkerAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.InternalsVisibleToAttribute))
