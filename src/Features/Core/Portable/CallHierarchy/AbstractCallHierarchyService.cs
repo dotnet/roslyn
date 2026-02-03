@@ -227,7 +227,22 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
                         callGroups[calledSymbol] = locations;
                     }
 
-                    locations.Add((declarationDoc.Id, node.Span));
+                    // Check if we already have an overlapping span for this symbol in the same document
+                    // This handles cases like N() where both the invocation and identifier resolve to the same symbol
+                    var alreadyHasOverlapping = false;
+                    foreach (var (docId, existingSpan) in locations)
+                    {
+                        if (docId == declarationDoc.Id && existingSpan.OverlapsWith(node.Span))
+                        {
+                            alreadyHasOverlapping = true;
+                            break;
+                        }
+                    }
+
+                    if (!alreadyHasOverlapping)
+                    {
+                        locations.Add((declarationDoc.Id, node.Span));
+                    }
                 }
             }
 
