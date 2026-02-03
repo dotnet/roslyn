@@ -3475,7 +3475,7 @@ class Program
 [1]: t1 is C12 ? [2] : [9]
 [2]: t2 = (C12)t1; [3]
 [3]: t2 is I1 ? [4] : [17]
-[4]: t3 = (I1)t1; [5]
+[4]: t3 = (I1)t2; [5]
 [5]: t4 = t3.F; [6]
 [6]: t4 == 1 ? [7] : [13]
 [7]: t5 = t0.Item2; [8]
@@ -3534,7 +3534,7 @@ Evaluated C15.F False
 
             verifier.VerifyIL("Program.Test1", @"
 {
-  // Code size      107 (0x6b)
+  // Code size      102 (0x66)
   .maxstack  2
   .locals init (object V_0,
                 C12 V_1,
@@ -3549,53 +3549,52 @@ Evaluated C15.F False
   IL_0008:  isinst     ""C12""
   IL_000d:  stloc.1
   IL_000e:  ldloc.1
-  IL_000f:  brfalse.s  IL_003a
+  IL_000f:  brfalse.s  IL_0035
   IL_0011:  ldloc.1
   IL_0012:  isinst     ""I1""
-  IL_0017:  brfalse.s  IL_0065
-  IL_0019:  ldloc.0
-  IL_001a:  castclass  ""I1""
-  IL_001f:  stloc.2
-  IL_0020:  ldloc.2
-  IL_0021:  callvirt   ""int I1.F.get""
-  IL_0026:  stloc.3
-  IL_0027:  ldloc.3
-  IL_0028:  ldc.i4.1
-  IL_0029:  bne.un.s   IL_004f
-  IL_002b:  ldarg.0
-  IL_002c:  ldfld      ""int System.ValueTuple<object, int>.Item2""
-  IL_0031:  stloc.s    V_4
-  IL_0033:  ldloc.s    V_4
-  IL_0035:  ldc.i4.2
-  IL_0036:  beq.s      IL_0060
-  IL_0038:  br.s       IL_005b
-  IL_003a:  ldloc.0
-  IL_003b:  isinst     ""I1""
-  IL_0040:  stloc.2
-  IL_0041:  ldloc.2
-  IL_0042:  brfalse.s  IL_0065
-  IL_0044:  ldloc.2
-  IL_0045:  callvirt   ""int I1.F.get""
-  IL_004a:  stloc.3
-  IL_004b:  ldloc.3
-  IL_004c:  ldc.i4.1
-  IL_004d:  beq.s      IL_0053
-  IL_004f:  ldloc.3
-  IL_0050:  ldc.i4.2
-  IL_0051:  bne.un.s   IL_0065
-  IL_0053:  ldarg.0
-  IL_0054:  ldfld      ""int System.ValueTuple<object, int>.Item2""
-  IL_0059:  stloc.s    V_4
-  IL_005b:  ldloc.s    V_4
-  IL_005d:  ldc.i4.1
-  IL_005e:  bne.un.s   IL_0065
-  IL_0060:  ldc.i4.1
+  IL_0017:  stloc.2
+  IL_0018:  ldloc.2
+  IL_0019:  brfalse.s  IL_0060
+  IL_001b:  ldloc.2
+  IL_001c:  callvirt   ""int I1.F.get""
+  IL_0021:  stloc.3
+  IL_0022:  ldloc.3
+  IL_0023:  ldc.i4.1
+  IL_0024:  bne.un.s   IL_004a
+  IL_0026:  ldarg.0
+  IL_0027:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_002c:  stloc.s    V_4
+  IL_002e:  ldloc.s    V_4
+  IL_0030:  ldc.i4.2
+  IL_0031:  beq.s      IL_005b
+  IL_0033:  br.s       IL_0056
+  IL_0035:  ldloc.0
+  IL_0036:  isinst     ""I1""
+  IL_003b:  stloc.2
+  IL_003c:  ldloc.2
+  IL_003d:  brfalse.s  IL_0060
+  IL_003f:  ldloc.2
+  IL_0040:  callvirt   ""int I1.F.get""
+  IL_0045:  stloc.3
+  IL_0046:  ldloc.3
+  IL_0047:  ldc.i4.1
+  IL_0048:  beq.s      IL_004e
+  IL_004a:  ldloc.3
+  IL_004b:  ldc.i4.2
+  IL_004c:  bne.un.s   IL_0060
+  IL_004e:  ldarg.0
+  IL_004f:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_0054:  stloc.s    V_4
+  IL_0056:  ldloc.s    V_4
+  IL_0058:  ldc.i4.1
+  IL_0059:  bne.un.s   IL_0060
+  IL_005b:  ldc.i4.1
+  IL_005c:  stloc.s    V_5
+  IL_005e:  br.s       IL_0063
+  IL_0060:  ldc.i4.0
   IL_0061:  stloc.s    V_5
-  IL_0063:  br.s       IL_0068
-  IL_0065:  ldc.i4.0
-  IL_0066:  stloc.s    V_5
-  IL_0068:  ldloc.s    V_5
-  IL_006a:  ret
+  IL_0063:  ldloc.s    V_5
+  IL_0065:  ret
 }
 ");
         }
@@ -3875,7 +3874,7 @@ class Program
 [1]: t1 is C12 ? [2] : [12]
 [2]: t2 = (C12)t1; [3]
 [3]: t2 is I1 ? [4] : [20]
-[4]: t3 = (I1)t1; [5]
+[4]: t3 = (I1)t2; [5]
 [5]: t4 = t3.F; [6]
 [6]: t4 == 1 ? [7] : [10]
 [7]: t5 = t0.Item2; [8]
@@ -3946,15 +3945,16 @@ Evaluated C15.F False
 
             verifier.VerifyIL("Program.Test1", @"
 {
-  // Code size      126 (0x7e)
+  // Code size      127 (0x7f)
   .maxstack  2
   .locals init (object V_0,
-                C12 V_1,
-                int V_2,
-                int V_3,
-                I2 V_4,
-                int V_5,
-                bool V_6)
+            C12 V_1,
+            I1 V_2,
+            int V_3,
+            int V_4,
+            I2 V_5,
+            int V_6,
+            bool V_7)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""object System.ValueTuple<object, int>.Item1""
   IL_0006:  stloc.0
@@ -3962,60 +3962,61 @@ Evaluated C15.F False
   IL_0008:  isinst     ""C12""
   IL_000d:  stloc.1
   IL_000e:  ldloc.1
-  IL_000f:  brfalse.s  IL_004c
+  IL_000f:  brfalse.s  IL_004b
   IL_0011:  ldloc.1
   IL_0012:  isinst     ""I1""
-  IL_0017:  brfalse.s  IL_0078
-  IL_0019:  ldloc.0
-  IL_001a:  castclass  ""I1""
-  IL_001f:  callvirt   ""int I1.F.get""
-  IL_0024:  stloc.2
-  IL_0025:  ldloc.2
-  IL_0026:  ldc.i4.1
-  IL_0027:  bne.un.s   IL_003e
-  IL_0029:  ldarg.0
-  IL_002a:  ldfld      ""int System.ValueTuple<object, int>.Item2""
-  IL_002f:  stloc.3
-  IL_0030:  ldloc.3
-  IL_0031:  ldc.i4.2
-  IL_0032:  beq.s      IL_0073
-  IL_0034:  ldloc.0
-  IL_0035:  isinst     ""I2""
-  IL_003a:  brtrue.s   IL_006f
-  IL_003c:  br.s       IL_0078
-  IL_003e:  ldloc.0
-  IL_003f:  isinst     ""I2""
-  IL_0044:  brfalse.s  IL_0078
-  IL_0046:  ldloc.2
-  IL_0047:  ldc.i4.2
-  IL_0048:  beq.s      IL_0068
-  IL_004a:  br.s       IL_0078
-  IL_004c:  ldloc.0
-  IL_004d:  isinst     ""I2""
-  IL_0052:  stloc.s    V_4
-  IL_0054:  ldloc.s    V_4
-  IL_0056:  brfalse.s  IL_0078
-  IL_0058:  ldloc.s    V_4
-  IL_005a:  callvirt   ""int I1.F.get""
-  IL_005f:  stloc.s    V_5
-  IL_0061:  ldloc.s    V_5
-  IL_0063:  ldc.i4.1
-  IL_0064:  sub
-  IL_0065:  ldc.i4.1
-  IL_0066:  bgt.un.s   IL_0078
-  IL_0068:  ldarg.0
-  IL_0069:  ldfld      ""int System.ValueTuple<object, int>.Item2""
-  IL_006e:  stloc.3
-  IL_006f:  ldloc.3
-  IL_0070:  ldc.i4.1
-  IL_0071:  bne.un.s   IL_0078
-  IL_0073:  ldc.i4.1
-  IL_0074:  stloc.s    V_6
-  IL_0076:  br.s       IL_007b
-  IL_0078:  ldc.i4.0
-  IL_0079:  stloc.s    V_6
-  IL_007b:  ldloc.s    V_6
-  IL_007d:  ret
+  IL_0017:  stloc.2
+  IL_0018:  ldloc.2
+  IL_0019:  brfalse.s  IL_0079
+  IL_001b:  ldloc.2
+  IL_001c:  callvirt   ""int I1.F.get""
+  IL_0021:  stloc.3
+  IL_0022:  ldloc.3
+  IL_0023:  ldc.i4.1
+  IL_0024:  bne.un.s   IL_003d
+  IL_0026:  ldarg.0
+  IL_0027:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_002c:  stloc.s    V_4
+  IL_002e:  ldloc.s    V_4
+  IL_0030:  ldc.i4.2
+  IL_0031:  beq.s      IL_0074
+  IL_0033:  ldloc.0
+  IL_0034:  isinst     ""I2""
+  IL_0039:  brtrue.s   IL_006f
+  IL_003b:  br.s       IL_0079
+  IL_003d:  ldloc.0
+  IL_003e:  isinst     ""I2""
+  IL_0043:  brfalse.s  IL_0079
+  IL_0045:  ldloc.3
+  IL_0046:  ldc.i4.2
+  IL_0047:  beq.s      IL_0067
+  IL_0049:  br.s       IL_0079
+  IL_004b:  ldloc.0
+  IL_004c:  isinst     ""I2""
+  IL_0051:  stloc.s    V_5
+  IL_0053:  ldloc.s    V_5
+  IL_0055:  brfalse.s  IL_0079
+  IL_0057:  ldloc.s    V_5
+  IL_0059:  callvirt   ""int I1.F.get""
+  IL_005e:  stloc.s    V_6
+  IL_0060:  ldloc.s    V_6
+  IL_0062:  ldc.i4.1
+  IL_0063:  sub
+  IL_0064:  ldc.i4.1
+  IL_0065:  bgt.un.s   IL_0079
+  IL_0067:  ldarg.0
+  IL_0068:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_006d:  stloc.s    V_4
+  IL_006f:  ldloc.s    V_4
+  IL_0071:  ldc.i4.1
+  IL_0072:  bne.un.s   IL_0079
+  IL_0074:  ldc.i4.1
+  IL_0075:  stloc.s    V_7
+  IL_0077:  br.s       IL_007c
+  IL_0079:  ldc.i4.0
+  IL_007a:  stloc.s    V_7
+  IL_007c:  ldloc.s    V_7
+  IL_007e:  ret
 }
 ");
         }
@@ -4110,7 +4111,7 @@ class Program
 [1]: t1 is C12 ? [2] : [10]
 [2]: t2 = (C12)t1; [3]
 [3]: t2 is I2 ? [4] : [10]
-[4]: t3 = (I2)t1; [5]
+[4]: t3 = (I2)t2; [5]
 [5]: t4 = t3.F; [6]
 [6]: t4 == 1 ? [7] : [9]
 [7]: t5 = t0.Item2; [8]
@@ -4179,15 +4180,16 @@ Evaluated C15.F False
 
             verifier.VerifyIL("Program.Test1", @"
 {
-  // Code size      110 (0x6e)
+  // Code size      111 (0x6f)
   .maxstack  2
   .locals init (object V_0,
-                C12 V_1,
-                int V_2,
-                int V_3,
-                I1 V_4,
-                int V_5,
-                bool V_6)
+            C12 V_1,
+            I2 V_2,
+            int V_3,
+            int V_4,
+            I1 V_5,
+            int V_6,
+            bool V_7)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""object System.ValueTuple<object, int>.Item1""
   IL_0006:  stloc.0
@@ -4195,54 +4197,55 @@ Evaluated C15.F False
   IL_0008:  isinst     ""C12""
   IL_000d:  stloc.1
   IL_000e:  ldloc.1
-  IL_000f:  brfalse.s  IL_003c
+  IL_000f:  brfalse.s  IL_003b
   IL_0011:  ldloc.1
   IL_0012:  isinst     ""I2""
-  IL_0017:  brfalse.s  IL_003c
-  IL_0019:  ldloc.0
-  IL_001a:  castclass  ""I2""
-  IL_001f:  callvirt   ""int I1.F.get""
-  IL_0024:  stloc.2
-  IL_0025:  ldloc.2
-  IL_0026:  ldc.i4.1
-  IL_0027:  beq.s      IL_002f
-  IL_0029:  ldloc.2
-  IL_002a:  ldc.i4.2
-  IL_002b:  beq.s      IL_0058
-  IL_002d:  br.s       IL_0068
-  IL_002f:  ldarg.0
-  IL_0030:  ldfld      ""int System.ValueTuple<object, int>.Item2""
-  IL_0035:  stloc.3
-  IL_0036:  ldloc.3
-  IL_0037:  ldc.i4.2
-  IL_0038:  beq.s      IL_0063
-  IL_003a:  br.s       IL_005f
-  IL_003c:  ldloc.0
-  IL_003d:  isinst     ""I1""
-  IL_0042:  stloc.s    V_4
-  IL_0044:  ldloc.s    V_4
-  IL_0046:  brfalse.s  IL_0068
-  IL_0048:  ldloc.s    V_4
-  IL_004a:  callvirt   ""int I1.F.get""
-  IL_004f:  stloc.s    V_5
-  IL_0051:  ldloc.s    V_5
-  IL_0053:  ldc.i4.1
-  IL_0054:  sub
-  IL_0055:  ldc.i4.1
-  IL_0056:  bgt.un.s   IL_0068
-  IL_0058:  ldarg.0
-  IL_0059:  ldfld      ""int System.ValueTuple<object, int>.Item2""
-  IL_005e:  stloc.3
-  IL_005f:  ldloc.3
-  IL_0060:  ldc.i4.1
-  IL_0061:  bne.un.s   IL_0068
-  IL_0063:  ldc.i4.1
-  IL_0064:  stloc.s    V_6
-  IL_0066:  br.s       IL_006b
-  IL_0068:  ldc.i4.0
-  IL_0069:  stloc.s    V_6
-  IL_006b:  ldloc.s    V_6
-  IL_006d:  ret
+  IL_0017:  stloc.2
+  IL_0018:  ldloc.2
+  IL_0019:  brfalse.s  IL_003b
+  IL_001b:  ldloc.2
+  IL_001c:  callvirt   ""int I1.F.get""
+  IL_0021:  stloc.3
+  IL_0022:  ldloc.3
+  IL_0023:  ldc.i4.1
+  IL_0024:  beq.s      IL_002c
+  IL_0026:  ldloc.3
+  IL_0027:  ldc.i4.2
+  IL_0028:  beq.s      IL_0057
+  IL_002a:  br.s       IL_0069
+  IL_002c:  ldarg.0
+  IL_002d:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_0032:  stloc.s    V_4
+  IL_0034:  ldloc.s    V_4
+  IL_0036:  ldc.i4.2
+  IL_0037:  beq.s      IL_0064
+  IL_0039:  br.s       IL_005f
+  IL_003b:  ldloc.0
+  IL_003c:  isinst     ""I1""
+  IL_0041:  stloc.s    V_5
+  IL_0043:  ldloc.s    V_5
+  IL_0045:  brfalse.s  IL_0069
+  IL_0047:  ldloc.s    V_5
+  IL_0049:  callvirt   ""int I1.F.get""
+  IL_004e:  stloc.s    V_6
+  IL_0050:  ldloc.s    V_6
+  IL_0052:  ldc.i4.1
+  IL_0053:  sub
+  IL_0054:  ldc.i4.1
+  IL_0055:  bgt.un.s   IL_0069
+  IL_0057:  ldarg.0
+  IL_0058:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_005d:  stloc.s    V_4
+  IL_005f:  ldloc.s    V_4
+  IL_0061:  ldc.i4.1
+  IL_0062:  bne.un.s   IL_0069
+  IL_0064:  ldc.i4.1
+  IL_0065:  stloc.s    V_7
+  IL_0067:  br.s       IL_006c
+  IL_0069:  ldc.i4.0
+  IL_006a:  stloc.s    V_7
+  IL_006c:  ldloc.s    V_7
+  IL_006e:  ret
 }
 ");
         }
@@ -4334,33 +4337,32 @@ class Program
 
             VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
 @"[0]: t1 = t0.Item1; [1]
-[1]: t1 is C12 ? [2] : [18]
+[1]: t1 is C12 ? [2] : [17]
 [2]: t2 = (C12)t1; [3]
-[3]: t2 is I1 ? [4] : [27]
-[4]: t3 = (I1)t1; [5]
+[3]: t2 is I1 ? [4] : [26]
+[4]: t3 = (I1)t2; [5]
 [5]: t4 = t3.F; [6]
-[6]: t4 == 1 ? [7] : [13]
+[6]: t4 == 1 ? [7] : [12]
 [7]: t5 = t0.Item2; [8]
-[8]: t5 == 2 ? [9] : [12]
-[9]: <uninitialized> <-- t4; [10]
-[10]: when <true> ? [11] : <unreachable>
-[11]: leaf <arm> `(C12 and I1 and { F: 1 and var x1 }, 2) => x1`
-[12]: t1 is I2 ? [16] : [27]
-[13]: t1 is I2 ? [14] : [27]
-[14]: t4 == 2 ? [15] : [27]
-[15]: t5 = t0.Item2; [16]
-[16]: t5 == 1 ? [17] : [27]
-[17]: t9 <-- t4; [25]
-[18]: t1 is I2 ? [19] : [27]
-[19]: t8 = (I2)t1; [20]
-[20]: t9 = t8.F; [21]
-[21]: t9 == 1 ? [23] : [22]
-[22]: t9 == 2 ? [23] : [27]
-[23]: t5 = t0.Item2; [24]
-[24]: t5 == 1 ? [25] : [27]
-[25]: when <true> ? [26] : <unreachable>
-[26]: leaf <arm> `(I2 and { F: (1 or 2) and var x2 }, 1) => x2`
-[27]: leaf <arm> `_ => -100`
+[8]: t5 == 2 ? [9] : [11]
+[9]: when <true> ? [10] : <unreachable>
+[10]: leaf <arm> `(C12 and I1 and { F: 1 and var x1 }, 2) => x1`
+[11]: t1 is I2 ? [15] : [26]
+[12]: t1 is I2 ? [13] : [26]
+[13]: t4 == 2 ? [14] : [26]
+[14]: t5 = t0.Item2; [15]
+[15]: t5 == 1 ? [16] : [26]
+[16]: t8 <-- t4; [24]
+[17]: t1 is I2 ? [18] : [26]
+[18]: t7 = (I2)t1; [19]
+[19]: t8 = t7.F; [20]
+[20]: t8 == 1 ? [22] : [21]
+[21]: t8 == 2 ? [22] : [26]
+[22]: t5 = t0.Item2; [23]
+[23]: t5 == 1 ? [24] : [26]
+[24]: when <true> ? [25] : <unreachable>
+[25]: leaf <arm> `(I2 and { F: (1 or 2) and var x2 }, 1) => x2`
+[26]: leaf <arm> `_ => -100`
 ");
 
             var verifier = CompileAndVerify(
@@ -4415,16 +4417,16 @@ Evaluated C15.F -100
 
             verifier.VerifyIL("Program.Test1", @"
 {
-  // Code size      159 (0x9f)
+  // Code size      150 (0x96)
   .maxstack  2
   .locals init (int V_0, //x1
-                int V_1, //x2
-                int V_2,
-                object V_3,
-                C12 V_4,
-                int V_5,
-                int V_6,
-                I2 V_7)
+            int V_1, //x2
+            int V_2,
+            object V_3,
+            C12 V_4,
+            I1 V_5,
+            int V_6,
+            I2 V_7)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""object System.ValueTuple<object, int>.Item1""
   IL_0006:  stloc.3
@@ -4432,75 +4434,73 @@ Evaluated C15.F -100
   IL_0008:  isinst     ""C12""
   IL_000d:  stloc.s    V_4
   IL_000f:  ldloc.s    V_4
-  IL_0011:  brfalse.s  IL_0069
+  IL_0011:  brfalse.s  IL_0060
   IL_0013:  ldloc.s    V_4
   IL_0015:  isinst     ""I1""
-  IL_001a:  brfalse.s  IL_009a
-  IL_001c:  ldloc.3
-  IL_001d:  castclass  ""I1""
+  IL_001a:  stloc.s    V_5
+  IL_001c:  ldloc.s    V_5
+  IL_001e:  brfalse.s  IL_0091
+  IL_0020:  ldloc.s    V_5
   IL_0022:  callvirt   ""int I1.F.get""
-  IL_0027:  stloc.s    V_5
-  IL_0029:  ldloc.s    V_5
-  IL_002b:  ldc.i4.1
-  IL_002c:  bne.un.s   IL_004a
-  IL_002e:  ldarg.0
-  IL_002f:  ldfld      ""int System.ValueTuple<object, int>.Item2""
-  IL_0034:  stloc.s    V_6
-  IL_0036:  ldloc.s    V_6
-  IL_0038:  ldc.i4.2
-  IL_0039:  bne.un.s   IL_0040
-  IL_003b:  ldloc.s    V_5
-  IL_003d:  stloc.0
-  IL_003e:  br.s       IL_0092
-  IL_0040:  ldloc.3
-  IL_0041:  isinst     ""I2""
-  IL_0046:  brtrue.s   IL_005f
-  IL_0048:  br.s       IL_009a
-  IL_004a:  ldloc.3
-  IL_004b:  isinst     ""I2""
-  IL_0050:  brfalse.s  IL_009a
-  IL_0052:  ldloc.s    V_5
-  IL_0054:  ldc.i4.2
-  IL_0055:  bne.un.s   IL_009a
-  IL_0057:  ldarg.0
-  IL_0058:  ldfld      ""int System.ValueTuple<object, int>.Item2""
-  IL_005d:  stloc.s    V_6
-  IL_005f:  ldloc.s    V_6
-  IL_0061:  ldc.i4.1
-  IL_0062:  bne.un.s   IL_009a
-  IL_0064:  ldloc.s    V_5
-  IL_0066:  stloc.1
-  IL_0067:  br.s       IL_0096
-  IL_0069:  ldloc.3
-  IL_006a:  isinst     ""I2""
-  IL_006f:  stloc.s    V_7
-  IL_0071:  ldloc.s    V_7
-  IL_0073:  brfalse.s  IL_009a
-  IL_0075:  ldloc.s    V_7
-  IL_0077:  callvirt   ""int I1.F.get""
-  IL_007c:  stloc.1
-  IL_007d:  ldloc.1
-  IL_007e:  ldc.i4.1
-  IL_007f:  sub
-  IL_0080:  ldc.i4.1
-  IL_0081:  bgt.un.s   IL_009a
-  IL_0083:  ldarg.0
-  IL_0084:  ldfld      ""int System.ValueTuple<object, int>.Item2""
-  IL_0089:  stloc.s    V_6
-  IL_008b:  ldloc.s    V_6
-  IL_008d:  ldc.i4.1
-  IL_008e:  beq.s      IL_0096
-  IL_0090:  br.s       IL_009a
-  IL_0092:  ldloc.0
+  IL_0027:  stloc.0
+  IL_0028:  ldloc.0
+  IL_0029:  ldc.i4.1
+  IL_002a:  bne.un.s   IL_0043
+  IL_002c:  ldarg.0
+  IL_002d:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_0032:  stloc.s    V_6
+  IL_0034:  ldloc.s    V_6
+  IL_0036:  ldc.i4.2
+  IL_0037:  beq.s      IL_0089
+  IL_0039:  ldloc.3
+  IL_003a:  isinst     ""I2""
+  IL_003f:  brtrue.s   IL_0057
+  IL_0041:  br.s       IL_0091
+  IL_0043:  ldloc.3
+  IL_0044:  isinst     ""I2""
+  IL_0049:  brfalse.s  IL_0091
+  IL_004b:  ldloc.0
+  IL_004c:  ldc.i4.2
+  IL_004d:  bne.un.s   IL_0091
+  IL_004f:  ldarg.0
+  IL_0050:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_0055:  stloc.s    V_6
+  IL_0057:  ldloc.s    V_6
+  IL_0059:  ldc.i4.1
+  IL_005a:  bne.un.s   IL_0091
+  IL_005c:  ldloc.0
+  IL_005d:  stloc.1
+  IL_005e:  br.s       IL_008d
+  IL_0060:  ldloc.3
+  IL_0061:  isinst     ""I2""
+  IL_0066:  stloc.s    V_7
+  IL_0068:  ldloc.s    V_7
+  IL_006a:  brfalse.s  IL_0091
+  IL_006c:  ldloc.s    V_7
+  IL_006e:  callvirt   ""int I1.F.get""
+  IL_0073:  stloc.1
+  IL_0074:  ldloc.1
+  IL_0075:  ldc.i4.1
+  IL_0076:  sub
+  IL_0077:  ldc.i4.1
+  IL_0078:  bgt.un.s   IL_0091
+  IL_007a:  ldarg.0
+  IL_007b:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_0080:  stloc.s    V_6
+  IL_0082:  ldloc.s    V_6
+  IL_0084:  ldc.i4.1
+  IL_0085:  beq.s      IL_008d
+  IL_0087:  br.s       IL_0091
+  IL_0089:  ldloc.0
+  IL_008a:  stloc.2
+  IL_008b:  br.s       IL_0094
+  IL_008d:  ldloc.1
+  IL_008e:  stloc.2
+  IL_008f:  br.s       IL_0094
+  IL_0091:  ldc.i4.s   -100
   IL_0093:  stloc.2
-  IL_0094:  br.s       IL_009d
-  IL_0096:  ldloc.1
-  IL_0097:  stloc.2
-  IL_0098:  br.s       IL_009d
-  IL_009a:  ldc.i4.s   -100
-  IL_009c:  stloc.2
-  IL_009d:  ldloc.2
-  IL_009e:  ret
+  IL_0094:  ldloc.2
+  IL_0095:  ret
 }
 ");
         }
@@ -4570,6 +4570,367 @@ class Program
 ";
             var comp = CreateCompilation(src, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82063")]
+        public void SideeffectEvaluations_07()
+        {
+            var src = @"
+class C0;
+
+class C01(bool p) : C0
+{
+    public bool P => p;
+}
+
+
+class C1(bool p) : C01(p);
+
+class C02(bool p) : C0
+{
+    public bool P => p;
+}
+
+class C2(bool p) : C02(p);
+
+class C3(bool p) : C01(p);
+
+class C4(bool p) : C01(p);
+
+class C03(bool p) : C0
+{
+    public bool P => p;
+}
+
+class C5(bool p) : C03(p);
+
+class C6(bool p) : C01(p);
+
+static class Program
+{
+    static void Main()
+    {
+        C0[] s = [null, new C1(true), new C2(true), new C3(true), new C4(true), new C5(true), new C6(true), new C1(false), new C2(false), new C3(false), new C4(false), new C5(false), new C6(false)]; 
+        foreach (var s1 in s)
+        {
+            var t = s1.Test1();
+            System.Console.WriteLine(t);
+        }
+    }
+
+    internal static bool Test1(this C0 c)
+    {
+        return c
+            is C1 { P: true }
+            or C2 { P: true }
+            or C3 { P: true }
+            or C4 { P: true }
+            or C5 { P: true }
+            or C6 { P: true };
+    }
+}
+";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t0 is C1 ? [1] : [4]
+[1]: t1 = (C1)t0; [2]
+[2]: t2 = t1.P; [3]
+[3]: t2 == True ? [24] : [25]
+[4]: t0 is C2 ? [5] : [8]
+[5]: t3 = (C2)t0; [6]
+[6]: t4 = t3.P; [7]
+[7]: t4 == True ? [24] : [25]
+[8]: t0 is C3 ? [9] : [12]
+[9]: t5 = (C3)t0; [10]
+[10]: t6 = t5.P; [11]
+[11]: t6 == True ? [24] : [25]
+[12]: t0 is C4 ? [13] : [16]
+[13]: t7 = (C4)t0; [14]
+[14]: t8 = t7.P; [15]
+[15]: t8 == True ? [24] : [25]
+[16]: t0 is C5 ? [17] : [20]
+[17]: t9 = (C5)t0; [18]
+[18]: t10 = t9.P; [19]
+[19]: t10 == True ? [24] : [25]
+[20]: t0 is C6 ? [21] : [25]
+[21]: t11 = (C6)t0; [22]
+[22]: t12 = t11.P; [23]
+[23]: t12 == True ? [24] : [25]
+[24]: leaf <isPatternSuccess> `C1 { P: true }
+            or C2 { P: true }
+            or C3 { P: true }
+            or C4 { P: true }
+            or C5 { P: true }
+            or C6 { P: true }`
+[25]: leaf <isPatternFailure> `C1 { P: true }
+            or C2 { P: true }
+            or C3 { P: true }
+            or C4 { P: true }
+            or C5 { P: true }
+            or C6 { P: true }`
+");
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+False
+True
+True
+True
+True
+True
+True
+False
+False
+False
+False
+False
+False
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size      135 (0x87)
+  .maxstack  1
+  .locals init (C1 V_0,
+            C2 V_1,
+            C3 V_2,
+            C4 V_3,
+            C5 V_4,
+            C6 V_5,
+            bool V_6)
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""C1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0014
+  IL_000a:  ldloc.0
+  IL_000b:  callvirt   ""bool C01.P.get""
+  IL_0010:  brtrue.s   IL_007c
+  IL_0012:  br.s       IL_0081
+  IL_0014:  ldarg.0
+  IL_0015:  isinst     ""C2""
+  IL_001a:  stloc.1
+  IL_001b:  ldloc.1
+  IL_001c:  brfalse.s  IL_0028
+  IL_001e:  ldloc.1
+  IL_001f:  callvirt   ""bool C02.P.get""
+  IL_0024:  brtrue.s   IL_007c
+  IL_0026:  br.s       IL_0081
+  IL_0028:  ldarg.0
+  IL_0029:  isinst     ""C3""
+  IL_002e:  stloc.2
+  IL_002f:  ldloc.2
+  IL_0030:  brfalse.s  IL_003c
+  IL_0032:  ldloc.2
+  IL_0033:  callvirt   ""bool C01.P.get""
+  IL_0038:  brtrue.s   IL_007c
+  IL_003a:  br.s       IL_0081
+  IL_003c:  ldarg.0
+  IL_003d:  isinst     ""C4""
+  IL_0042:  stloc.3
+  IL_0043:  ldloc.3
+  IL_0044:  brfalse.s  IL_0050
+  IL_0046:  ldloc.3
+  IL_0047:  callvirt   ""bool C01.P.get""
+  IL_004c:  brtrue.s   IL_007c
+  IL_004e:  br.s       IL_0081
+  IL_0050:  ldarg.0
+  IL_0051:  isinst     ""C5""
+  IL_0056:  stloc.s    V_4
+  IL_0058:  ldloc.s    V_4
+  IL_005a:  brfalse.s  IL_0067
+  IL_005c:  ldloc.s    V_4
+  IL_005e:  callvirt   ""bool C03.P.get""
+  IL_0063:  brtrue.s   IL_007c
+  IL_0065:  br.s       IL_0081
+  IL_0067:  ldarg.0
+  IL_0068:  isinst     ""C6""
+  IL_006d:  stloc.s    V_5
+  IL_006f:  ldloc.s    V_5
+  IL_0071:  brfalse.s  IL_0081
+  IL_0073:  ldloc.s    V_5
+  IL_0075:  callvirt   ""bool C01.P.get""
+  IL_007a:  brfalse.s  IL_0081
+  IL_007c:  ldc.i4.1
+  IL_007d:  stloc.s    V_6
+  IL_007f:  br.s       IL_0084
+  IL_0081:  ldc.i4.0
+  IL_0082:  stloc.s    V_6
+  IL_0084:  ldloc.s    V_6
+  IL_0086:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82063")]
+        public void SideeffectEvaluations_08()
+        {
+            var src = @"
+interface I1
+{
+    int F {get;}
+}
+
+class C12;
+class C13(int f) : C12, I1
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C13.F "");
+            return f;   
+        }
+    }
+}
+class C14(int f) : I1
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C14.F "");
+            return f;   
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        I1[] s = [null, new C13(1), new C14(1), new C13(2), new C14(2), new C13(3), new C14(3)]; 
+        int[] i = [1, 2, 3];
+        foreach (var s1 in s)
+        {
+            foreach (var j in i)
+            {
+                var t = Test1((s1, j));
+                System.Console.WriteLine(t);
+            }
+        }
+    }
+
+    static bool Test1((I1, int) u)
+    {
+        return u is (C12 and I1 and { F: 1 }, 2) or ({ F: 1 or 2 }, 1);
+    }   
+}
+";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t1 = t0.Item1; [1]
+[1]: t1 is C12 ? [2] : [8]
+[2]: t2 = (C12)t1; [3]
+[3]: t2 is I1 ? [4] : [9]
+[4]: t3 = t1.F; [5]
+[5]: t3 == 1 ? [6] : [11]
+[6]: t4 = t0.Item2; [7]
+[7]: t4 == 2 ? [14] : [13]
+[8]: t1 != null ? [9] : [15]
+[9]: t3 = t1.F; [10]
+[10]: t3 == 1 ? [12] : [11]
+[11]: t3 == 2 ? [12] : [15]
+[12]: t4 = t0.Item2; [13]
+[13]: t4 == 1 ? [14] : [15]
+[14]: leaf <isPatternSuccess> `(C12 and I1 and { F: 1 }, 2) or ({ F: 1 or 2 }, 1)`
+[15]: leaf <isPatternFailure> `(C12 and I1 and { F: 1 }, 2) or ({ F: 1 or 2 }, 1)`
+");
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+False
+False
+False
+Evaluated C13.F True
+Evaluated C13.F True
+Evaluated C13.F False
+Evaluated C14.F True
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C13.F True
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C14.F True
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C14.F False
+").VerifyDiagnostics(
+                // (49,30): hidden CS9335: The pattern is redundant.
+                //         return u is (C12 and I1 and { F: 1 }, 2) or ({ F: 1 or 2 }, 1);
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "I1").WithLocation(49, 30)
+                );
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       89 (0x59)
+  .maxstack  2
+  .locals init (I1 V_0,
+            C12 V_1,
+            int V_2,
+            int V_3,
+            bool V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""I1 System.ValueTuple<I1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  isinst     ""C12""
+  IL_000d:  stloc.1
+  IL_000e:  ldloc.1
+  IL_000f:  brfalse.s  IL_0031
+  IL_0011:  ldloc.1
+  IL_0012:  isinst     ""I1""
+  IL_0017:  brfalse.s  IL_0034
+  IL_0019:  ldloc.0
+  IL_001a:  callvirt   ""int I1.F.get""
+  IL_001f:  stloc.2
+  IL_0020:  ldloc.2
+  IL_0021:  ldc.i4.1
+  IL_0022:  bne.un.s   IL_003f
+  IL_0024:  ldarg.0
+  IL_0025:  ldfld      ""int System.ValueTuple<I1, int>.Item2""
+  IL_002a:  stloc.3
+  IL_002b:  ldloc.3
+  IL_002c:  ldc.i4.2
+  IL_002d:  beq.s      IL_004e
+  IL_002f:  br.s       IL_004a
+  IL_0031:  ldloc.0
+  IL_0032:  brfalse.s  IL_0053
+  IL_0034:  ldloc.0
+  IL_0035:  callvirt   ""int I1.F.get""
+  IL_003a:  stloc.2
+  IL_003b:  ldloc.2
+  IL_003c:  ldc.i4.1
+  IL_003d:  beq.s      IL_0043
+  IL_003f:  ldloc.2
+  IL_0040:  ldc.i4.2
+  IL_0041:  bne.un.s   IL_0053
+  IL_0043:  ldarg.0
+  IL_0044:  ldfld      ""int System.ValueTuple<I1, int>.Item2""
+  IL_0049:  stloc.3
+  IL_004a:  ldloc.3
+  IL_004b:  ldc.i4.1
+  IL_004c:  bne.un.s   IL_0053
+  IL_004e:  ldc.i4.1
+  IL_004f:  stloc.s    V_4
+  IL_0051:  br.s       IL_0056
+  IL_0053:  ldc.i4.0
+  IL_0054:  stloc.s    V_4
+  IL_0056:  ldloc.s    V_4
+  IL_0058:  ret
+}
+");
         }
     }
 }

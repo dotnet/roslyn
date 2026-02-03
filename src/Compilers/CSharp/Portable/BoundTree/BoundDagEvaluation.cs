@@ -16,9 +16,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         public sealed override bool Equals([NotNullWhen(true)] object? obj) => obj is BoundDagEvaluation other && this.Equals(other);
         public virtual bool Equals(BoundDagEvaluation other)
         {
-            return this == other ||
-                this.IsEquivalentTo(other) &&
-                this.Input.Equals(other.Input);
+            if (DecisionDagBuilder.IsEqualEvaluation(this, other))
+            {
+                Debug.Assert(other.GetHashCode() == this.GetHashCode());
+                Debug.Assert(DecisionDagBuilder.IsEqualEvaluation(other, this));
+                Debug.Assert(other is BoundDagIndexerEvaluation or BoundDagTypeEvaluation ||
+                             this is BoundDagIndexerEvaluation or BoundDagTypeEvaluation ||
+                             DecisionDagBuilder.OriginalInput(other.Input).Equals(DecisionDagBuilder.OriginalInput(this.Input)));
+                return true;
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine((int)Kind, this.Symbol?.GetHashCode() ?? 0);
         }
 
         /// <summary>
@@ -68,11 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.Combine(Input.GetHashCode(), this.Symbol?.GetHashCode() ?? 0);
         }
 
         public sealed override BoundDagTest UpdateTestImpl(BoundDagTemp input) => Update(input);
@@ -132,6 +140,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return Update(Type, input);
         }
+
+        public override int GetHashCode()
+        {
+            return DecisionDagBuilder.SkipAllTypeEvaluations(this)?.GetHashCode() ?? 0;
+        }
     }
 
     partial class BoundDagFieldEvaluation
@@ -187,16 +200,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundDagIndexerEvaluation
     {
-        public override int GetHashCode() => base.GetHashCode() ^ this.Index;
+        public override int GetHashCode()
+        {
+            var (input, _, index) = DecisionDagBuilder.GetCanonicalInput(this);
+            return Hash.Combine(DecisionDagBuilder.OriginalInput(input), Hash.Combine((int)Kind, index));
+        }
+
         public override bool IsEquivalentTo(BoundDagEvaluation obj)
         {
             return base.IsEquivalentTo(obj) &&
                 this.Index == ((BoundDagIndexerEvaluation)obj).Index;
-        }
-
-        public override bool Equals(BoundDagEvaluation other)
-        {
-            return base.Equals(other) && LengthTemp.Equals(((BoundDagIndexerEvaluation)other).LengthTemp);
         }
 
         private partial void Validate()
@@ -236,11 +249,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.StartIndex == e.StartIndex && this.EndIndex == e.EndIndex;
         }
 
-        public override bool Equals(BoundDagEvaluation other)
-        {
-            return base.Equals(other) && LengthTemp.Equals(((BoundDagSliceEvaluation)other).LengthTemp);
-        }
-
         private partial void Validate()
         {
             Debug.Assert(IndexerAccess is BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess);
@@ -275,6 +283,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return base.IsEquivalentTo(obj) &&
                 this.Target.Equals(((BoundDagAssignmentEvaluation)obj).Target);
+        }
+
+        public override bool Equals(BoundDagEvaluation other)
+        {
+            return this == other ||
+               other is BoundDagAssignmentEvaluation assignment &&
+               this.Target.Equals(assignment.Target) &&
+               this.Input.Equals(assignment.Input);
         }
 
         public override BoundDagTemp MakeResultTemp()

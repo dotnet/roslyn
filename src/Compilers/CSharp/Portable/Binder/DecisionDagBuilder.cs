@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static BoundDagTemp OriginalInput(BoundDagTemp input)
+        internal static BoundDagTemp OriginalInput(BoundDagTemp input)
         {
             // Type evaluations do not change identity
             while (input.Source is BoundDagTypeEvaluation source)
@@ -1399,6 +1399,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (lengthTemp, offset);
         }
 
+        internal static (BoundDagTemp input, BoundDagTemp lengthTemp, int index) GetCanonicalInput(BoundDagIndexerEvaluation e)
+        {
+            int index = e.Index;
+            BoundDagTemp input = e.Input;
+            BoundDagTemp lengthTemp = e.LengthTemp;
+            while (input.Source is BoundDagSliceEvaluation slice)
+            {
+                Debug.Assert(input.Index == 0);
+                index = index < 0 ? index - slice.EndIndex : index + slice.StartIndex;
+                lengthTemp = slice.LengthTemp;
+                input = slice.Input;
+            }
+            return (input, lengthTemp, index);
+        }
+
         private FrozenArrayBuilder<StateForCase> RemoveEvaluation(DagState state, BoundDagEvaluation e)
         {
             FrozenArrayBuilder<StateForCase> cases = state.Cases;
@@ -1641,6 +1656,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case var (s1, s2) when s1 == s2:
                         return true;
 
+                    // Even though the two tests appear unrelated (with different inputs),
+                    // it is possible that they are in fact related under certain conditions.
+                    // For instance, the inputs [0] and [^1] point to the same element when length is 1.
+                    case (BoundDagIndexerEvaluation s1, BoundDagIndexerEvaluation s2):
+                        // Take the top-level input and normalize indices to account for indexer accesses inside a slice.
+                        // For instance [0] in nested list pattern [ 0, ..[$$], 2 ] refers to [1] in the containing list.
+                        (s1Input, BoundDagTemp s1LengthTemp, int s1Index) = GetCanonicalInput(s1);
+                        (s2Input, BoundDagTemp s2LengthTemp, int s2Index) = GetCanonicalInput(s2);
+
+                        s1Input = OriginalInput(s1Input);
+                        s2Input = OriginalInput(s2Input);
+
+                        // Ignore input source as it will be matched in the subsequent iterations.
+                        if (s1Input.Index == s2Input.Index)
+                        {
+                            Debug.Assert(s1LengthTemp.IsEquivalentTo(s2LengthTemp));
+                            if (s1Index == s2Index)
+                            {
+                                continue;
+                            }
+                        }
+                        break;
+
                     case (BoundDagEvaluation s1, BoundDagEvaluation s2) when s1.IsEquivalentTo(s2):
                         s1Input = OriginalInput(s1.Input);
                         s2Input = OriginalInput(s2.Input);
@@ -1651,6 +1689,105 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // unrelated
             return false;
+        }
+
+        /// <summary>
+        /// Determine if two evaluations, if successfully performed, producing the same value.
+        /// This function is used to inplement equality of evaluations, which affects how states are merged
+        /// during Dag construction.
+        /// The logic is stricter than <see cref="IsSameEntity"/>, in that it doesn't allow for result types and
+        /// input types to differ. It is however skips intermediate type evaluations that might be performed during
+        /// the evaluation process for an input for other kinds of evaluations.
+        /// The strictness around the types is necessary because the result must not depend on the fact 
+        /// whether a specific evaluation is reachable according to the tests that are performed
+        /// before the evaluation. The <see cref="IsSameEntity"/> helper is more lenient because
+        /// it is allowed to rely on the fact that an evaluation wouldn't be reachable when preceeding tests fail.
+        /// </summary>
+        internal static bool IsEqualEvaluation(BoundDagEvaluation? s1Source, BoundDagEvaluation? s2Source)
+        {
+            while (true)
+            {
+                switch (s1Source, s2Source)
+                {
+                    // If we have two identical evaluations
+                    case var (s1, s2) when s1 == s2:
+                        return true;
+
+                    // Even though the two tests appear unrelated (with different inputs),
+                    // it is possible that they are in fact related under certain conditions.
+                    // For instance, the inputs [0] and [^1] point to the same element when length is 1.
+                    case (BoundDagIndexerEvaluation s1, BoundDagIndexerEvaluation s2):
+                        // Take the top-level input and normalize indices to account for indexer accesses inside a slice.
+                        // For instance [0] in nested list pattern [ 0, ..[$$], 2 ] refers to [1] in the containing list.
+                        (BoundDagTemp s1Input, BoundDagTemp s1LengthTemp, int s1Index) = GetCanonicalInput(s1);
+                        (BoundDagTemp s2Input, BoundDagTemp s2LengthTemp, int s2Index) = GetCanonicalInput(s2);
+
+                        if (s1Index == s2Index)
+                        {
+                            return s1Input.Equals(s2Input);
+                        }
+
+                        // different
+                        return false;
+
+                    case (BoundDagTypeEvaluation s1, BoundDagTypeEvaluation s2):
+                        {
+                            if (!s1.Type.Equals(s2.Type, TypeCompareKind.AllIgnoreOptions))
+                            {
+                                // different
+                                return false;
+                            }
+
+                            return OriginalInput(s1.Input).Equals(OriginalInput(s2.Input));
+                        }
+
+                    case (BoundDagTypeEvaluation s1, BoundDagIndexerEvaluation or BoundDagFieldEvaluation or BoundDagPropertyEvaluation or BoundDagIndexEvaluation or BoundDagSliceEvaluation): // s2Source can be anything with an output, obtainable via MakeResultTemp().  
+                        {
+                            if (!s1.Type.Equals(s2Source.MakeResultTemp().Type, TypeCompareKind.AllIgnoreOptions))
+                            {
+                                // different
+                                return false;
+                            }
+
+                            s1Source = SkipAllTypeEvaluations(s1);
+                            continue;
+                        }
+
+                    case (BoundDagIndexerEvaluation or BoundDagFieldEvaluation or BoundDagPropertyEvaluation or BoundDagIndexEvaluation or BoundDagSliceEvaluation, BoundDagTypeEvaluation s2):
+                        {
+                            if (!s2.Type.Equals(s1Source.MakeResultTemp().Type, TypeCompareKind.AllIgnoreOptions))
+                            {
+                                // different
+                                return false;
+                            }
+
+                            s2Source = SkipAllTypeEvaluations(s2);
+                            continue;
+                        }
+
+                    case (BoundDagEvaluation s1, BoundDagEvaluation s2) when s1.IsEquivalentTo(s2):
+                        {
+                            return s1.Input.Equals(s2.Input);
+                        }
+
+                    default:
+                        // different
+                        return false;
+                }
+
+                throw ExceptionUtilities.Unreachable();
+            }
+        }
+
+        internal static BoundDagEvaluation? SkipAllTypeEvaluations(BoundDagTypeEvaluation typeEval)
+        {
+            while (typeEval.Input.Source is BoundDagTypeEvaluation source)
+            {
+                Debug.Assert(typeEval.Input.Index == 0);
+                typeEval = source;
+            }
+
+            return typeEval.Input.Source;
         }
 
         /// <summary>
@@ -2295,8 +2432,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                Debug.Assert(oldTempMap.Count < newTempMap.Count);
-
                 foreach (BoundPatternBinding b in bindings)
                 {
                     if (TryGetTempReplacement(newTempMap, b.TempContainingValue, out BoundDagTemp? useValueFrom))
@@ -2633,7 +2768,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 private static void AddTempReplacement(ref ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagTemp oldTemp, BoundDagTemp newTemp)
                 {
-                    Debug.Assert(!oldTemp.Equals(newTemp));
+                    var current = newTemp;
+
+                    do
+                    {
+                        if (current.Equals(oldTemp))
+                        {
+                            throw ExceptionUtilities.Unreachable();
+                        }
+                    }
+                    while (tempMap.TryGetValue(current, out current));
+
                     Debug.Assert(oldTemp.Type.Equals(newTemp.Type, TypeCompareKind.AllIgnoreOptions));
                     tempMap = tempMap.SetItem(oldTemp, newTemp);
                 }
@@ -2674,13 +2819,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             AddResultTempReplacement(ref tempMap, typeEval, e1);
                             return Tests.True.Instance;
                         }
-                        else if (!typeEval.Input.Equals(e1.Input))
-                        {
-                            // Change typeEval to use input of e1 instead, this will allow reusing results of evaluations that might be coming next
-                            var newTypeEval = typeEval.Update(e1.Input);
-                            AddResultTempReplacement(ref tempMap, typeEval, newTypeEval);
-                            return new Tests.One(newTypeEval);
-                        }
                     }
 
                     return tests;
@@ -2696,8 +2834,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // Take the top-level input and normalize indices to account for indexer accesses inside a slice.
                         // For instance [0] in nested list pattern [ 0, ..[$$], 2 ] refers to [1] in the containing list.
-                        (BoundDagTemp s1Input, BoundDagTemp s1LengthTemp, int s1Index) = getCanonicalInput(s1);
-                        (BoundDagTemp s2Input, BoundDagTemp s2LengthTemp, int s2Index) = getCanonicalInput(s2);
+                        (BoundDagTemp s1Input, BoundDagTemp s1LengthTemp, int s1Index) = GetCanonicalInput(s1);
+                        (BoundDagTemp s2Input, BoundDagTemp s2LengthTemp, int s2Index) = GetCanonicalInput(s2);
 
                         if (IsSameEntity(s1Input, s2Input))
                         {
@@ -2742,21 +2880,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     condition = null;
                     return tests;
-
-                    static (BoundDagTemp input, BoundDagTemp lengthTemp, int index) getCanonicalInput(BoundDagIndexerEvaluation e)
-                    {
-                        int index = e.Index;
-                        BoundDagTemp input = e.Input;
-                        BoundDagTemp lengthTemp = e.LengthTemp;
-                        while (input.Source is BoundDagSliceEvaluation slice)
-                        {
-                            Debug.Assert(input.Index == 0);
-                            index = index < 0 ? index - slice.EndIndex : index + slice.StartIndex;
-                            lengthTemp = slice.LengthTemp;
-                            input = slice.Input;
-                        }
-                        return (input, lengthTemp, index);
-                    }
                 }
 
                 private static BoundDagTest UpdateDagTempReferences(BoundDagTest test, ref ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap)
@@ -2786,17 +2909,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         {
                                             if (!TryGetTempReplacement(tempMap, indexer.Input, out BoundDagTemp? inputReplacement))
                                             {
-                                                inputReplacement = indexer.Input;
+                                                return eval;
                                             }
 
                                             if (!TryGetTempReplacement(tempMap, indexer.LengthTemp, out BoundDagTemp? lengthReplacement))
                                             {
                                                 lengthReplacement = indexer.LengthTemp;
-                                            }
-
-                                            if (inputReplacement == (object)indexer.Input && lengthReplacement == (object)indexer.LengthTemp)
-                                            {
-                                                return test;
                                             }
 
                                             var indexerEvaluation = indexer.Update(lengthReplacement, inputReplacement);
@@ -2807,17 +2925,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         {
                                             if (!TryGetTempReplacement(tempMap, slice.Input, out BoundDagTemp? inputReplacement))
                                             {
-                                                inputReplacement = slice.Input;
+                                                return eval;
                                             }
 
                                             if (!TryGetTempReplacement(tempMap, slice.LengthTemp, out BoundDagTemp? lengthReplacement))
                                             {
                                                 lengthReplacement = slice.LengthTemp;
-                                            }
-
-                                            if (inputReplacement == (object)slice.Input && lengthReplacement == (object)slice.LengthTemp)
-                                            {
-                                                return test;
                                             }
 
                                             var sliceEvaluation = slice.Update(lengthReplacement, inputReplacement);
