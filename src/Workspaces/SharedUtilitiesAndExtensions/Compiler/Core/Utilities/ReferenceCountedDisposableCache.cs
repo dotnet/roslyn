@@ -68,7 +68,6 @@ internal sealed class ReferenceCountedDisposableCache<TKey, TValue> where TValue
 
     private sealed class Entry(ReferenceCountedDisposableCache<TKey, TValue> cache, TKey key, TValue value) : IDisposable, ICacheEntry<TKey, TValue>
     {
-
         public TKey Key { get; } = key;
         public TValue Value { get; } = value;
 
@@ -86,6 +85,11 @@ internal sealed class ReferenceCountedDisposableCache<TKey, TValue> where TValue
     internal static class TestAccessor
     {
         public static IEnumerable<TKey> GetCacheKeys(ReferenceCountedDisposableCache<TKey, TValue> cache)
-            => cache._cache.Keys;
+        {
+            lock (cache._gate)
+            {
+                return [.. cache._cache.Keys];
+            }
+        }
     }
 }

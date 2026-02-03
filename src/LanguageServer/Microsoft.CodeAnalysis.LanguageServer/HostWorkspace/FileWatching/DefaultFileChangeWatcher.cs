@@ -34,14 +34,32 @@ internal sealed partial class DefaultFileChangeWatcher : IFileChangeWatcher
 
     private IReferenceCountedDisposable<ICacheEntry<string, FileSystemWatcher>> GetOrCreateSharedWatcher(string rootPath)
     {
-        return _sharedRootWatchers.GetOrCreate<object?>(
-            rootPath,
-            static (key, _) => new FileSystemWatcher(key)
-            {
-                IncludeSubdirectories = true,
-                EnableRaisingEvents = true,
-            },
-            arg: null);
+        var rootWatcher = _sharedRootWatchers.GetOrCreate<object?>(rootPath, static (key, _) => new FileSystemWatcher(key), arg: null);
+        rootWatcher.Target.Value.IncludeSubdirectories = true;
+        rootWatcher.Target.Value.EnableRaisingEvents = true;
+        return rootWatcher;
+    }
+
+    private static void AttachWatcher(IEventRaiser eventRaiser, IReferenceCountedDisposable<ICacheEntry<string, FileSystemWatcher>> watcher)
+    {
+        watcher.Target.Value.Changed += eventRaiser.RaiseEvent;
+        watcher.Target.Value.Created += eventRaiser.RaiseEvent;
+        watcher.Target.Value.Deleted += eventRaiser.RaiseEvent;
+        watcher.Target.Value.Renamed += eventRaiser.RaiseEvent;
+    }
+
+    private static void DetachAndDisposeWatcher(IEventRaiser eventRaiser, IReferenceCountedDisposable<ICacheEntry<string, FileSystemWatcher>> watcher)
+    {
+        watcher.Target.Value.Changed -= eventRaiser.RaiseEvent;
+        watcher.Target.Value.Created -= eventRaiser.RaiseEvent;
+        watcher.Target.Value.Deleted -= eventRaiser.RaiseEvent;
+        watcher.Target.Value.Renamed -= eventRaiser.RaiseEvent;
+        watcher.Dispose();
+    }
+
+    internal interface IEventRaiser
+    {
+        void RaiseEvent(object? sender, FileSystemEventArgs e);
     }
 
     internal static class TestAccessor

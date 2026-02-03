@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
 public sealed class SimpleFileChangeWatcherTests : IDisposable
 {
-    private readonly TimeSpan _fileChangeTimeout = TimeSpan.FromSeconds(10);
+    private readonly TimeSpan _fileChangeTimeout = TimeSpan.FromSeconds(1);
     private readonly TempRoot _tempRoot = new();
 
     public void Dispose() => _tempRoot.Dispose();
@@ -382,7 +382,7 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
         File.WriteAllText(txtFilePath, "content");
 
         // Wait a bit to ensure no event fires
-        await Task.Delay(TimeSpan.FromSeconds(1));
+        await Task.Delay(_fileChangeTimeout);
 
         Assert.False(fileChangeTask.IsCompleted, "FileChanged event should NOT fire for files not matching extension filter");
     }
@@ -465,12 +465,7 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
 
         using var context = watcher.CreateContext([]);
 
-        var eventFired = false;
-        context.FileChanged += (sender, path) =>
-        {
-            if (path == filePath)
-                eventFired = true;
-        };
+        var fileChangeTask = ListenForFileChangeAsync((DefaultFileChangeWatcher.FileChangeContext)context, filePath);
 
         // Watch and then immediately dispose
         var watchedFile = context.EnqueueWatchingFile(filePath);
@@ -485,7 +480,7 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
         // Wait to see if any events fire
         await Task.Delay(_fileChangeTimeout);
 
-        Assert.False(eventFired, "FileChanged event should NOT fire after individual file watch is disposed");
+        Assert.False(fileChangeTask.IsCompleted, "FileChanged event should NOT fire after individual file watch is disposed");
     }
 
     [Fact]
@@ -496,23 +491,16 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
 
         using var context = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [])]);
 
-        var changedFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var allEventsReceived = new TaskCompletionSource<bool>();
-
         // Create file paths first
         var file1 = Path.Combine(tempDirectory.Path, "file1.cs");
         var file2 = Path.Combine(tempDirectory.Path, "file2.cs");
         var file3 = Path.Combine(tempDirectory.Path, "file3.cs");
 
-        context.FileChanged += (sender, path) =>
+        var fileChangeTasks = new[]
         {
-            lock (changedFiles)
-            {
-                changedFiles.Add(path);
-                // Check if we've seen all 3 files (regardless of how many events each generated)
-                if (changedFiles.Contains(file1) && changedFiles.Contains(file2) && changedFiles.Contains(file3))
-                    allEventsReceived.TrySetResult(true);
-            }
+            ListenForFileChangeAsync((DefaultFileChangeWatcher.FileChangeContext)context, file1),
+            ListenForFileChangeAsync((DefaultFileChangeWatcher.FileChangeContext)context, file2),
+            ListenForFileChangeAsync((DefaultFileChangeWatcher.FileChangeContext)context, file3)
         };
 
         File.WriteAllText(file1, "content1");
@@ -522,12 +510,9 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
         File.WriteAllText(file3, "content3");
 
         // Wait for all events
-        var completed = await Task.WhenAny(allEventsReceived.Task, Task.Delay(_fileChangeTimeout));
+        var allEventsFired = await WaitForAllFileChangesAsync(fileChangeTasks, _fileChangeTimeout);
 
-        Assert.True(completed == allEventsReceived.Task, "Should receive events for all file changes");
-        Assert.Contains(file1, changedFiles);
-        Assert.Contains(file2, changedFiles);
-        Assert.Contains(file3, changedFiles);
+        Assert.True(allEventsFired, "Should receive events for all file changes");
     }
 
     [Fact]
@@ -642,9 +627,9 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
         File.WriteAllText(filePath, "content");
 
         // Both contexts should receive the event
-        var bothReceived = await WaitForAllFileChangesAsync(fileChangeTasks, _fileChangeTimeout);
+        var allEventsFired = await WaitForAllFileChangesAsync(fileChangeTasks, _fileChangeTimeout);
 
-        Assert.True(bothReceived, "Both contexts should have received FileChanged events");
+        Assert.True(allEventsFired, "Both contexts should have received FileChanged events");
     }
 
     [Fact]
