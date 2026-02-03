@@ -51,7 +51,7 @@ internal sealed class CallHierarchyIncomingCallsHandler :
         if (itemData == null)
             return null;
 
-        var item = CallHierarchyHelpers.ReconstructCallHierarchyItem(itemData, solution);
+        var item = await CallHierarchyHelpers.ReconstructCallHierarchyItemAsync(itemData, solution, cancellationToken).ConfigureAwait(false);
         if (item == null)
             return null;
 

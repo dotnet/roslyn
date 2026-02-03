@@ -4,6 +4,8 @@
 
 using System;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using LSP = Roslyn.LanguageServer.Protocol;
 
@@ -44,9 +46,10 @@ internal static class CallHierarchyHelpers
     /// <summary>
     /// Reconstructs a CallHierarchyItem from the serialized data.
     /// </summary>
-    public static CodeAnalysis.CallHierarchy.CallHierarchyItem? ReconstructCallHierarchyItem(
+    public static async Task<CodeAnalysis.CallHierarchy.CallHierarchyItem?> ReconstructCallHierarchyItemAsync(
         CallHierarchyItemData itemData,
-        Solution solution)
+        Solution solution,
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -56,11 +59,11 @@ internal static class CallHierarchyHelpers
             if (document == null)
                 return null;
 
-            var compilation = document.Project.GetCompilationAsync().Result;
+            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             if (compilation == null)
                 return null;
 
-            var symbolKey = SymbolKey.ResolveString(itemData.SymbolKey, compilation, cancellationToken: default);
+            var symbolKey = SymbolKey.ResolveString(itemData.SymbolKey, compilation, cancellationToken: cancellationToken);
             var symbol = symbolKey.Symbol;
             if (symbol == null)
                 return null;
@@ -68,7 +71,7 @@ internal static class CallHierarchyHelpers
             var span = new TextSpan(itemData.SpanStart, itemData.SpanLength);
 
             return new CodeAnalysis.CallHierarchy.CallHierarchyItem(
-                symbolKey: SymbolKey.Create(symbol),
+                symbolKey: SymbolKey.Create(symbol, cancellationToken),
                 name: symbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat),
                 kind: symbol.Kind,
                 detail: symbol.ContainingType?.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat) ?? "",

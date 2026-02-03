@@ -184,7 +184,7 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
         if (symbol is null)
             return [];
 
-        var declarations = await GetDeclarationsAsync(symbol, cancellationToken).ConfigureAwait(false);
+        var declarations = GetDeclarations(symbol);
 
         using var _ = ArrayBuilder<CallHierarchyOutgoingCall>.GetInstance(out var results);
         var callGroups = PooledDictionary<ISymbol, ArrayBuilder<(DocumentId, TextSpan)>>.GetInstance();
@@ -268,9 +268,7 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
         return results.ToImmutableAndClear();
     }
 
-    private static async Task<ImmutableArray<Location>> GetDeclarationsAsync(
-        ISymbol symbol,
-        CancellationToken cancellationToken)
+    private static ImmutableArray<Location> GetDeclarations(ISymbol symbol)
     {
         using var _ = ArrayBuilder<Location>.GetInstance(out var results);
 
