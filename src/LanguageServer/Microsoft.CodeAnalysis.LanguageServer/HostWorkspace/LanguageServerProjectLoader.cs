@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Options;
@@ -114,6 +115,7 @@ internal abstract class LanguageServerProjectLoader
             listenerProvider.GetListener(FeatureAttribute.Workspace),
             CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
 
+        // Note: if we ever support shutting down an instance of the project loader, then we should unsubscribe this handler at that time.
         globalOptionService.AddOptionChangedHandler(this, (_, _, args) => OnGlobalOptionChanged(args));
     }
 
@@ -143,9 +145,7 @@ internal abstract class LanguageServerProjectLoader
                             {
                                 var oldParseOptions = solution.GetRequiredProject(primordialProjectId).ParseOptions;
                                 Contract.ThrowIfNull(oldParseOptions);
-                                var newParseOptions = oldParseOptions.WithFeatures(enableFileBasedPrograms
-                                    ? [.. oldParseOptions.Features, new("FileBasedProgram", "true")]
-                                    : [.. oldParseOptions.Features.Where(pair => pair.Key != "FileBasedProgram")]);
+                                var newParseOptions = MiscellaneousFileUtilities.WithFileBasedProgramFeatureFlag(oldParseOptions, enableFileBasedPrograms);
                                 return solution.WithProjectParseOptions(primordialProjectId, newParseOptions);
                             }, WorkspaceChangeKind.ProjectChanged);
                         });

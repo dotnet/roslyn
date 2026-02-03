@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -15,6 +16,20 @@ namespace Microsoft.CodeAnalysis.Features.Workspaces;
 
 internal static class MiscellaneousFileUtilities
 {
+    internal static ParseOptions WithFileBasedProgramFeatureFlag(ParseOptions options, bool enableFileBasedPrograms)
+    {
+        if (options.Kind == SourceCodeKind.Script)
+        {
+            // Scripts are never supposed to be treated as file-based programs
+            Contract.ThrowIfTrue(options.Features.ContainsKey("FileBasedProgram"));
+            return options;
+        }
+
+        return options.WithFeatures(enableFileBasedPrograms
+            ? [.. options.Features, new("FileBasedProgram", "true")]
+            : [.. options.Features.Where(pair => pair.Key != "FileBasedProgram")]);
+    }
+
     /// <param name="enableFileBasedPrograms">Whether the host has globally enabled the C# file-based programs feature.</param>
     internal static ProjectInfo CreateMiscellaneousProjectInfoForDocument(
         Workspace workspace,
@@ -56,12 +71,8 @@ internal static class MiscellaneousFileUtilities
                 parseOptions = parseOptions.WithKind(SourceCodeKind.Script);
                 compilationOptions = GetCompilationOptionsWithScriptReferenceResolvers(services, compilationOptions, filePath);
             }
-            else if (enableFileBasedPrograms)
-            {
-                // When the file-based programs feature is enabled in the editor, we pass this option
-                // to all non-script misc files, to avoid spurious errors about usage of '#:' directives, etc.
-                parseOptions = parseOptions.WithFeatures([.. parseOptions.Features, new("FileBasedProgram", "true")]);
-            }
+
+            parseOptions = WithFileBasedProgramFeatureFlag(parseOptions, enableFileBasedPrograms);
         }
 
         var projectId = ProjectId.CreateNewId(debugName: $"{workspace.GetType().Name} Files Project for {filePath}");
