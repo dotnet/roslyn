@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Options;
@@ -114,45 +113,6 @@ internal abstract class LanguageServerProjectLoader
             ProjectToLoad.Comparer,
             listenerProvider.GetListener(FeatureAttribute.Workspace),
             CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
-
-        // Note: if we ever support shutting down an instance of the project loader, then we should unsubscribe this handler at that time.
-        globalOptionService.AddOptionChangedHandler(this, (_, _, args) => OnGlobalOptionChanged(args));
-    }
-
-    private void OnGlobalOptionChanged(OptionChangedEventArgs args)
-    {
-        foreach (var (option, value) in args.ChangedOptions)
-        {
-            if (option.Equals(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms))
-            {
-                Contract.ThrowIfNull(value);
-                HandleEnableFileBasedProgramsChanged((bool)value);
-                break;
-            }
-        }
-
-        void HandleEnableFileBasedProgramsChanged(bool enableFileBasedPrograms)
-        {
-            using (_gate.DisposableWait(CancellationToken.None))
-            {
-                foreach ((_, ProjectLoadState state) in _loadedProjects)
-                {
-                    if (state is ProjectLoadState.Primordial(ProjectSystemProjectFactory projectFactory, ProjectId primordialProjectId))
-                    {
-                        projectFactory.ApplyChangeToWorkspace(workspace =>
-                        {
-                            workspace.SetCurrentSolution(solution =>
-                            {
-                                var oldParseOptions = solution.GetRequiredProject(primordialProjectId).ParseOptions;
-                                Contract.ThrowIfNull(oldParseOptions);
-                                var newParseOptions = MiscellaneousFileUtilities.WithFileBasedProgramFeatureFlag(oldParseOptions, enableFileBasedPrograms);
-                                return solution.WithProjectParseOptions(primordialProjectId, newParseOptions);
-                            }, WorkspaceChangeKind.ProjectChanged);
-                        });
-                    }
-                }
-            }
-        }
     }
 
     private static ImmutableDictionary<string, string> BuildAdditionalProperties(ServerConfiguration? serverConfiguration)
@@ -243,14 +203,6 @@ internal abstract class LanguageServerProjectLoader
     /// <remarks>Caller needs to catch exceptions to avoid bringing down the project loader queue.</remarks>
     protected abstract Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken);
-
-    /// <summary>Called after a project is unloaded to allow the subtype to clean up any resources associated with the project.</summary>
-    /// <remarks>
-    /// Note that this refers to unloading of the project on the project-system level.
-    /// So, for example, changing the target frameworks of a project, or transitioning between
-    /// "file-based program" and "true miscellaneous file", will not result in this being called.
-    /// </remarks>
-    protected abstract ValueTask OnProjectUnloadedAsync(string projectFilePath);
 
     /// <summary>
     /// Called when transitioning from a primordial project to loaded targets.
@@ -525,36 +477,54 @@ internal abstract class LanguageServerProjectLoader
 
     protected Task WaitForProjectsToFinishLoadingAsync() => _projectsToReload.WaitUntilCurrentBatchCompletesAsync();
 
+    /// <summary>Unloads all projects associated with this project loader.</summary>
+    protected async ValueTask UnloadAllProjectsAsync()
+    {
+        using (await _gate.DisposableWaitAsync(CancellationToken.None))
+        {
+            foreach (var key in _loadedProjects.Keys)
+            {
+                // Note that .NET supports removing dictionary entries while enumerating
+                var removed = await TryUnloadProject_NoLockAsync(key);
+                Contract.ThrowIfFalse(removed); // We obtained lock before enumerating, how was this already removed?
+            }
+        }
+    }
+
     protected async ValueTask<bool> TryUnloadProjectAsync(string projectPath)
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
-            if (!_loadedProjects.Remove(projectPath, out var loadState))
-            {
-                // It is common to be called with a path to a project which is already not loaded.
-                // In this case, we should do nothing.
-                return false;
-            }
+            return await TryUnloadProjectAsync(projectPath);
+        }
+    }
 
-            if (loadState is ProjectLoadState.Primordial(var projectFactory, var projectId))
-            {
-                await projectFactory.ApplyChangeToWorkspaceAsync(workspace => workspace.OnProjectRemoved(projectId));
-            }
-            else if (loadState is ProjectLoadState.LoadedTargets(var existingProjects))
-            {
-                foreach (var existingProject in existingProjects)
-                {
-                    // Disposing a LoadedProject unloads it and removes it from the workspace.
-                    existingProject.Dispose();
-                }
-            }
-            else
-            {
-                throw ExceptionUtilities.UnexpectedValue(loadState);
-            }
+    private async ValueTask<bool> TryUnloadProject_NoLockAsync(string projectPath)
+    {
+        if (!_loadedProjects.Remove(projectPath, out var loadState))
+        {
+            // It is common to be called with a path to a project which is already not loaded.
+            // In this case, we should do nothing.
+            return false;
         }
 
-        await OnProjectUnloadedAsync(projectPath);
+        if (loadState is ProjectLoadState.Primordial(var projectFactory, var projectId))
+        {
+            await projectFactory.ApplyChangeToWorkspaceAsync(workspace => workspace.OnProjectRemoved(projectId));
+        }
+        else if (loadState is ProjectLoadState.LoadedTargets(var existingProjects))
+        {
+            foreach (var existingProject in existingProjects)
+            {
+                // Disposing a LoadedProject unloads it and removes it from the workspace.
+                existingProject.Dispose();
+            }
+        }
+        else
+        {
+            throw ExceptionUtilities.UnexpectedValue(loadState);
+        }
+
         return true;
     }
 }

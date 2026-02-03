@@ -66,6 +66,38 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 serverConfigurationFactory,
                 binLogPathProvider,
                 dotnetCliHelper);
+
+        // Note: if we ever support shutting down an instance of the project loader, then we should unsubscribe this handler at that time.
+        globalOptionService.AddOptionChangedHandler(this, (_, _, args) => OnGlobalOptionChanged(args));
+    }
+
+    private void OnGlobalOptionChanged(OptionChangedEventArgs args)
+    {
+        foreach (var (key, _) in args.ChangedOptions)
+        {
+            if (key.Option.Equals(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms))
+            {
+                // This event handler can't be async, so we ignore the resulting task here,
+                // and take care that the ignored call doesn't throw an exception
+                _ = HandleEnableFileBasedProgramsChangedAsync();
+                break;
+            }
+        }
+
+        async Task HandleEnableFileBasedProgramsChangedAsync()
+        {
+            try
+            {
+                // Note: Changing the 'enableFileBasedPrograms' setting causes many subtle differences in how loose files are handled.
+                // For example, loose files which don't look like file-based programs, are put in projects forked from the canonical project loader, only when the setting is enabled, etc.
+                // We anticipate that changing this setting will be infrequent, and, the cost of needing to reload will be acceptable given that.
+                await UnloadAllProjectsAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error when changing enableFileBasedPrograms setting");
+            }
+        }
     }
 
     private string GetDocumentFilePath(DocumentUri uri) => uri.ParsedUri is { } parsedUri ? ProtocolConversions.GetDocumentFilePathFromUri(parsedUri) : uri.UriString;
@@ -217,10 +249,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             PreferredBuildHostKind = buildHostKind,
             ActualBuildHostKind = buildHostKind,
         };
-    }
-
-    protected override async ValueTask OnProjectUnloadedAsync(string projectFilePath)
-    {
     }
 
     protected override async ValueTask TransitionPrimordialProjectToLoaded_NoLockAsync(
