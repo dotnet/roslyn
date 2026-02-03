@@ -8615,6 +8615,7 @@ static class Test1
                   IL_0001:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
                   IL_0006:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
                   IL_000b:  nop
+                  // sequence point: }
                   IL_000c:  ret
                 } 
                 """, sequencePointDisplay: SequencePointDisplayMode.Enhanced);
@@ -8629,6 +8630,7 @@ static class Test1
                   IL_0001:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
                   IL_0006:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
                   IL_000b:  nop
+                  // sequence point: }
                   IL_000c:  ret
                 }
                 """, sequencePointDisplay: SequencePointDisplayMode.Enhanced);
@@ -9341,6 +9343,7 @@ static class Test1
                   IL_006a:  ldloc.0
                   IL_006b:  call       "void System.Console.Write(int)"
                   IL_0070:  nop
+                  // sequence point: }
                   IL_0071:  ret
                 }
                 """, sequencePointDisplay: SequencePointDisplayMode.Enhanced);
