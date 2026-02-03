@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (tempDirectory.LinkTarget != null)
             {
-                tempDirectory = (DirectoryInfo)Directory.ResolveLinkTarget(tempDirectory.FullName, true);
+                tempDirectory = (DirectoryInfo)Directory.ResolveLinkTarget(tempDirectory.FullName, returnFinalTarget: true);
             }
             else
             {
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 if (parentDirectory != null)
                 {
                     var relativePath = Path.GetRelativePath(parentDirectory.FullName, tempDirectory.FullName);
-                    var realPath = Directory.ResolveLinkTarget(parentDirectory.FullName, true).FullName;
+                    var realPath = Directory.ResolveLinkTarget(parentDirectory.FullName, returnFinalTarget: true).FullName;
                     tempDirectory = new DirectoryInfo(Path.GetFullPath(Path.Combine(realPath, relativePath)));
                 }
             }
