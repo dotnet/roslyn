@@ -29,7 +29,14 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
 
         private readonly CancellationTokenSource _shutdownNotificationSource = new();
         private readonly CancellationToken _shutdownToken;
-        private readonly AsyncBatchingWorkQueue<Func<Task>> _eventProcessingQueue;
+
+        /// <summary>
+        /// A piece of work logged into the work coordinator queue. Includes the time the work was added, so when looking at a dump you can
+        /// get a sense how long things have been waiting in the queue and whether it was a slow but continuous trickle or a burst of work.
+        /// </summary>
+        private record struct TimestampedWorkItem(Func<Task> Work, DateTime TimestampAdded);
+
+        private readonly AsyncBatchingWorkQueue<TimestampedWorkItem> _eventProcessingQueue;
 
         // points to processor task
         private readonly UnitTestingIncrementalAnalyzerProcessor _documentAndProjectWorkerProcessor;
@@ -70,13 +77,13 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
             _semanticChangeProcessor = new UnitTestingSemanticChangeProcessor(listener, Registration, _documentAndProjectWorkerProcessor, semanticBackOffTimeSpan, projectBackOffTimeSpan, _shutdownToken);
         }
 
-        private async ValueTask ProcessWorkQueueAsync(ImmutableSegmentedList<Func<Task>> list, CancellationToken cancellationToken)
+        private async ValueTask ProcessWorkQueueAsync(ImmutableSegmentedList<TimestampedWorkItem> list, CancellationToken cancellationToken)
         {
-            foreach (var taskCreator in list)
+            foreach (var workItem in list)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var task = Task.Run(taskCreator, cancellationToken);
+                var task = Task.Run(workItem.Work, cancellationToken);
                 _ = task.ReportNonFatalErrorAsync();
                 await task.NoThrowAwaitableInternal(captureContext: false);
             }
@@ -97,7 +104,7 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
 
         public void Reanalyze(IUnitTestingIncrementalAnalyzer analyzer, UnitTestingReanalyzeScope scope)
         {
-            _eventProcessingQueue.AddWork(() => EnqueueWorkItemAsync(analyzer, scope));
+            AddWork(() => EnqueueWorkItemAsync(analyzer, scope));
 
             if (scope.HasMultipleDocuments)
             {
@@ -107,6 +114,11 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
                 UnitTestingSolutionCrawlerLogger.LogReanalyze(
                     CorrelationId, analyzer, scope.GetDocumentCount(solution), scope.GetLanguagesStringForTelemetry(solution));
             }
+        }
+
+        private void AddWork(Func<Task> work)
+        {
+            _eventProcessingQueue.AddWork(new TimestampedWorkItem(work, DateTime.UtcNow));
         }
 
         public void OnWorkspaceChanged(WorkspaceChangeEventArgs args)
@@ -217,7 +229,7 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
 
         private void EnqueueSolutionChangedEvent(Solution oldSolution, Solution newSolution)
         {
-            _eventProcessingQueue.AddWork(
+            AddWork(
                 async () =>
                 {
                     var solutionChanges = newSolution.GetChanges(oldSolution);
@@ -242,7 +254,7 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
 
         private void EnqueueFullSolutionEvent(Solution solution, UnitTestingInvocationReasons invocationReasons)
         {
-            _eventProcessingQueue.AddWork(
+            AddWork(
                 async () =>
                 {
                     foreach (var projectId in solution.ProjectIds)
@@ -254,7 +266,7 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
 
         private void EnqueueProjectChangedEvent(Solution oldSolution, Solution newSolution, ProjectId projectId)
         {
-            _eventProcessingQueue.AddWork(
+            AddWork(
                 async () =>
                 {
                     var oldProject = oldSolution.GetRequiredProject(projectId);
@@ -266,13 +278,13 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
 
         private void EnqueueFullProjectEvent(Solution solution, ProjectId projectId, UnitTestingInvocationReasons invocationReasons)
         {
-            _eventProcessingQueue.AddWork(
+            AddWork(
                 () => EnqueueFullProjectWorkItemAsync(solution.GetRequiredProject(projectId), invocationReasons));
         }
 
         private void EnqueueFullDocumentEvent(Solution solution, DocumentId documentId, UnitTestingInvocationReasons invocationReasons)
         {
-            _eventProcessingQueue.AddWork(
+            AddWork(
                 () =>
                 {
                     var project = solution.GetRequiredProject(documentId.ProjectId);
@@ -283,7 +295,7 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
         private void EnqueueDocumentChangedEvent(Solution oldSolution, Solution newSolution, DocumentId documentId)
         {
             // document changed event is the special one.
-            _eventProcessingQueue.AddWork(
+            AddWork(
                 async () =>
                 {
                     var oldProject = oldSolution.GetRequiredProject(documentId.ProjectId);
