@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis;
@@ -22,76 +23,21 @@ public readonly struct ProjectChanges
     public Project NewProject { get; }
 
     public IEnumerable<ProjectReference> GetAddedProjectReferences()
-    {
-        var oldRefs = new HashSet<ProjectReference>(OldProject.ProjectReferences);
-        foreach (var reference in NewProject.ProjectReferences)
-        {
-            if (!oldRefs.Contains(reference))
-            {
-                yield return reference;
-            }
-        }
-    }
+        => NewProject.ProjectReferences.Except(OldProject.ProjectReferences);
 
     public IEnumerable<ProjectReference> GetRemovedProjectReferences()
-    {
-        var newRefs = new HashSet<ProjectReference>(NewProject.ProjectReferences);
-        foreach (var reference in OldProject.ProjectReferences)
-        {
-            if (!newRefs.Contains(reference))
-            {
-                yield return reference;
-            }
-        }
-    }
+        => OldProject.ProjectReferences.Except(NewProject.ProjectReferences);
 
     public IEnumerable<MetadataReference> GetAddedMetadataReferences()
-    {
-        var oldMetadata = new HashSet<MetadataReference>(OldProject.MetadataReferences);
-        foreach (var metadata in NewProject.MetadataReferences)
-        {
-            if (!oldMetadata.Contains(metadata))
-            {
-                yield return metadata;
-            }
-        }
-    }
-
+        => NewProject.MetadataReferences == OldProject.MetadataReferences ? [] : NewProject.MetadataReferences.Except(OldProject.MetadataReferences);
     public IEnumerable<MetadataReference> GetRemovedMetadataReferences()
-    {
-        var newMetadata = new HashSet<MetadataReference>(NewProject.MetadataReferences);
-        foreach (var metadata in OldProject.MetadataReferences)
-        {
-            if (!newMetadata.Contains(metadata))
-            {
-                yield return metadata;
-            }
-        }
-    }
+        => NewProject.MetadataReferences == OldProject.MetadataReferences ? [] : OldProject.MetadataReferences.Except(NewProject.MetadataReferences);
 
     public IEnumerable<AnalyzerReference> GetAddedAnalyzerReferences()
-    {
-        var oldAnalyzerReferences = new HashSet<AnalyzerReference>(OldProject.AnalyzerReferences);
-        foreach (var analyzerReference in NewProject.AnalyzerReferences)
-        {
-            if (!oldAnalyzerReferences.Contains(analyzerReference))
-            {
-                yield return analyzerReference;
-            }
-        }
-    }
+        => NewProject.AnalyzerReferences == OldProject.AnalyzerReferences ? [] : NewProject.AnalyzerReferences.Except(OldProject.AnalyzerReferences);
 
     public IEnumerable<AnalyzerReference> GetRemovedAnalyzerReferences()
-    {
-        var newAnalyzerReferences = new HashSet<AnalyzerReference>(NewProject.AnalyzerReferences);
-        foreach (var analyzerReference in OldProject.AnalyzerReferences)
-        {
-            if (!newAnalyzerReferences.Contains(analyzerReference))
-            {
-                yield return analyzerReference;
-            }
-        }
-    }
+        => NewProject.AnalyzerReferences == OldProject.AnalyzerReferences ? [] : OldProject.AnalyzerReferences.Except(NewProject.AnalyzerReferences);
 
     /// <summary>
     /// Get <see cref="DocumentId"/>s of added documents in the order they appear in <see cref="Project.DocumentIds"/> of the <see cref="NewProject"/>.
