@@ -4,7 +4,6 @@
 
 using System;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CallHierarchy;
@@ -12,6 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
@@ -19,7 +19,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CallHierarchy;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(CallHierarchyIncomingCallsHandler)), Shared]
 [Method(LSP.Methods.CallHierarchyIncomingCallsName)]
-internal sealed class CallHierarchyIncomingCallsHandler : ILspServiceRequestHandler<LSP.CallHierarchyIncomingCallsParams, LSP.CallHierarchyIncomingCall[]?>
+internal sealed class CallHierarchyIncomingCallsHandler :
+    ILspServiceRequestHandler<LSP.CallHierarchyIncomingCallsParams, LSP.CallHierarchyIncomingCall[]?>,
+    ITextDocumentIdentifierHandler<LSP.CallHierarchyIncomingCallsParams, LSP.TextDocumentIdentifier?>
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -29,6 +31,12 @@ internal sealed class CallHierarchyIncomingCallsHandler : ILspServiceRequestHand
 
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => true;
+
+    public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CallHierarchyIncomingCallsParams request)
+    {
+        // Extract text document identifier from the item's URI
+        return new LSP.TextDocumentIdentifier { DocumentUri = request.Item.Uri };
+    }
 
     public async Task<LSP.CallHierarchyIncomingCall[]?> HandleRequestAsync(
         LSP.CallHierarchyIncomingCallsParams request,

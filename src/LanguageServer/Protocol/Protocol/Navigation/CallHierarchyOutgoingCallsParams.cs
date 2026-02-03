@@ -8,13 +8,13 @@ using System.Text.Json.Serialization;
 namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
-/// The params sent in a 'callHierarchy/incomingCalls' request.
+/// The params sent in a 'callHierarchy/outgoingCalls' request.
 /// <para>
-/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#callHierarchyIncomingCallsParams">Language Server Protocol specification</see> for additional information.
+/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#callHierarchyOutgoingCallsParams">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal sealed class CallHierarchyOutgoingCallsParams : TextDocumentPositionParams, IWorkDoneProgressParams, IPartialResultParams<CallHierarchyOutgoingCall[]>
+internal sealed class CallHierarchyOutgoingCallsParams : IWorkDoneProgressParams, IPartialResultParams<CallHierarchyOutgoingCall[]>
 {
     /// <summary>
     /// The item returned from `textDocument/prepareCallHierarchy`
