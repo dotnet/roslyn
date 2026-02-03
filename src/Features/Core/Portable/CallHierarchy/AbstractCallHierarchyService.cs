@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CallHierarchy;
 
@@ -76,7 +77,7 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
             var callerItem = await CreateItemAsync(caller.CallingSymbol, project, cancellationToken).ConfigureAwait(false);
             if (callerItem is not null)
             {
-                using var _1 = ArrayBuilder<(DocumentId DocumentId, Microsoft.CodeAnalysis.Text.TextSpan Span)>.GetInstance(out var callLocations);
+                using var _1 = ArrayBuilder<(DocumentId DocumentId, TextSpan Span)>.GetInstance(out var callLocations);
                 foreach (var location in caller.Locations)
                 {
                     if (location.IsInSource)
@@ -109,7 +110,7 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
                 var callerItem = await CreateItemAsync(caller.CallingSymbol, project, cancellationToken).ConfigureAwait(false);
                 if (callerItem is not null)
                 {
-                    using var _2 = ArrayBuilder<(DocumentId DocumentId, Microsoft.CodeAnalysis.Text.TextSpan Span)>.GetInstance(out var callLocations);
+                    using var _2 = ArrayBuilder<(DocumentId DocumentId, TextSpan Span)>.GetInstance(out var callLocations);
                     foreach (var location in caller.Locations)
                     {
                         if (location.IsInSource)
@@ -145,7 +146,7 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
                     var callerItem = await CreateItemAsync(caller.CallingSymbol, project, cancellationToken).ConfigureAwait(false);
                     if (callerItem is not null)
                     {
-                        using var _3 = ArrayBuilder<(DocumentId DocumentId, Microsoft.CodeAnalysis.Text.TextSpan Span)>.GetInstance(out var callLocations);
+                        using var _3 = ArrayBuilder<(DocumentId DocumentId, TextSpan Span)>.GetInstance(out var callLocations);
                         foreach (var location in caller.Locations)
                         {
                             if (location.IsInSource)
@@ -192,7 +193,7 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
         var declarations = await GetDeclarationsAsync(symbol, project.Solution, cancellationToken).ConfigureAwait(false);
 
         using var _ = ArrayBuilder<CallHierarchyOutgoingCall>.GetInstance(out var results);
-        var callGroups = PooledDictionary<ISymbol, ArrayBuilder<(DocumentId, Microsoft.CodeAnalysis.Text.TextSpan)>>.GetInstance();
+        var callGroups = PooledDictionary<ISymbol, ArrayBuilder<(DocumentId, TextSpan)>>.GetInstance();
 
         try
         {
@@ -228,7 +229,7 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
 
                     if (!callGroups.TryGetValue(calledSymbol, out var locations))
                     {
-                        locations = ArrayBuilder<(DocumentId, Microsoft.CodeAnalysis.Text.TextSpan)>.GetInstance();
+                        locations = ArrayBuilder<(DocumentId, TextSpan)>.GetInstance();
                         callGroups[calledSymbol] = locations;
                     }
 
@@ -256,18 +257,6 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
         }
 
         return results.ToImmutableAndClear();
-    }
-
-    protected virtual Task<ImmutableArray<CallHierarchyOutgoingCall>> FindOutgoingCallsInNodeAsync(
-        SyntaxNode node,
-        SemanticModel semanticModel,
-        Document document,
-        Project project,
-        CancellationToken cancellationToken)
-    {
-        // This method is kept for potential language-specific overrides
-        // but the default implementation is in GetOutgoingCallsAsync
-        throw new System.NotImplementedException();
     }
 
     private static async Task<ImmutableArray<Location>> GetDeclarationsAsync(
