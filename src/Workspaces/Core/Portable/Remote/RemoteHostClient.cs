@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -22,7 +21,8 @@ internal abstract class RemoteHostClient : IDisposable
 
     public static Task WaitForClientCreationAsync(Workspace workspace, CancellationToken cancellationToken)
     {
-        if (!SupportsRemoteHostClient(workspace.Services.SolutionServices, out var service))
+        var service = workspace.Services.GetService<IRemoteHostClientProvider>();
+        if (service == null)
             return Task.CompletedTask;
 
         return service.WaitForClientCreationAsync(cancellationToken);
@@ -41,15 +41,10 @@ internal abstract class RemoteHostClient : IDisposable
     public static Task<RemoteHostClient?> TryGetClientAsync(Workspace workspace, CancellationToken cancellationToken)
         => TryGetClientAsync(workspace.Services.SolutionServices, cancellationToken);
 
-    public static bool SupportsRemoteHostClient(SolutionServices services, [NotNullWhen(true)] out IRemoteHostClientProvider? service)
-    {
-        service = services.GetService<IRemoteHostClientProvider>();
-        return service != null;
-    }
-
     public static Task<RemoteHostClient?> TryGetClientAsync(SolutionServices services, CancellationToken cancellationToken)
     {
-        if (!SupportsRemoteHostClient(services, out var service))
+        var service = services.GetService<IRemoteHostClientProvider>();
+        if (service == null)
         {
             return SpecializedTasks.Null<RemoteHostClient>();
         }
