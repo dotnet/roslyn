@@ -94,7 +94,7 @@ internal sealed class DefaultNavigateToSearchHost(
             if (s_remoteHostHydrateTask == null)
             {
                 // If there are no projects in this solution that use OOP, then there's nothing we need to do.
-                if (_solution.Projects.All(p => !RemoteSupportedLanguages.IsSupported(p.Language)))
+                if (_solution.Projects.All(p => !RemoteSupportedLanguages.IsSupported(p.Language) || !RemoteHostClient.SupportsRemoteHostClient(_solution.Services, out var _)))
                 {
                     s_remoteHostHydrateTask = Task.CompletedTask;
                 }
