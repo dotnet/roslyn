@@ -29,15 +29,16 @@ public readonly struct ProjectChanges
         => OldProject.ProjectReferences.Except(NewProject.ProjectReferences);
 
     public IEnumerable<MetadataReference> GetAddedMetadataReferences()
-        => NewProject.MetadataReferences == OldProject.MetadataReferences ? [] : NewProject.MetadataReferences.Except(OldProject.MetadataReferences);
+        => GetChangedItems(NewProject.MetadataReferences, OldProject.MetadataReferences);
+
     public IEnumerable<MetadataReference> GetRemovedMetadataReferences()
-        => NewProject.MetadataReferences == OldProject.MetadataReferences ? [] : OldProject.MetadataReferences.Except(NewProject.MetadataReferences);
+        => GetChangedItems(OldProject.MetadataReferences, NewProject.MetadataReferences);
 
     public IEnumerable<AnalyzerReference> GetAddedAnalyzerReferences()
-        => NewProject.AnalyzerReferences == OldProject.AnalyzerReferences ? [] : NewProject.AnalyzerReferences.Except(OldProject.AnalyzerReferences);
+        => GetChangedItems(NewProject.AnalyzerReferences, OldProject.AnalyzerReferences);
 
     public IEnumerable<AnalyzerReference> GetRemovedAnalyzerReferences()
-        => NewProject.AnalyzerReferences == OldProject.AnalyzerReferences ? [] : OldProject.AnalyzerReferences.Except(NewProject.AnalyzerReferences);
+        => GetChangedItems(OldProject.AnalyzerReferences, NewProject.AnalyzerReferences);
 
     /// <summary>
     /// Get <see cref="DocumentId"/>s of added documents in the order they appear in <see cref="Project.DocumentIds"/> of the <see cref="NewProject"/>.
@@ -106,4 +107,7 @@ public readonly struct ProjectChanges
     /// </summary>
     public IEnumerable<DocumentId> GetRemovedAnalyzerConfigDocuments()
         => NewProject.State.AnalyzerConfigDocumentStates.GetRemovedStateIds(OldProject.State.AnalyzerConfigDocumentStates);
+
+    private static IEnumerable<T> GetChangedItems<T>(IEnumerable<T> newItems, IEnumerable<T> oldItems)
+        => newItems == oldItems ? [] : newItems.Except(oldItems);
 }
