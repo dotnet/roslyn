@@ -2470,5 +2470,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnsafeUninitializedStackAlloc = 9501,
         ERR_UnsafeMemberOperation = 9502,
         ERR_UnsafeMemberOperationCompat = 9503,
+        ERR_CallerUnsafeOverridingSafe = 9504,
+        ERR_CallerUnsafeImplicitlyImplementingSafe = 9505,
+        ERR_CallerUnsafeExplicitlyImplementingSafe = 9506,
     }
 }

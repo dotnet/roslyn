@@ -382,6 +382,21 @@
         <target state="translated">Açık dönüş türü olmadan, anonim yöntemlerde AsyncMethodBuilder özniteliğine izin verilmez.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CallerUnsafeExplicitlyImplementingSafe">
+        <source>Unsafe member '{0}' cannot implement safe member '{1}'</source>
+        <target state="new">Unsafe member '{0}' cannot implement safe member '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CallerUnsafeImplicitlyImplementingSafe">
+        <source>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</source>
+        <target state="new">Unsafe member '{0}' cannot implicitly implement safe member '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CallerUnsafeOverridingSafe">
+        <source>Unsafe member '{0}' cannot override safe member '{1}'</source>
+        <target state="new">Unsafe member '{0}' cannot override safe member '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
         <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
         <target state="translated">Bu üyede 'OverloadResolutionPriorityAttribute' kullanılamaz.</target>
