@@ -1003,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // but when a pointer is converted to a user-defined ref local, it becomes a use of a "safe" feature where we should guarantee the ref is tracked by GC.
                 else if (localSymbol.RefKind != RefKind.None &&
                     localSymbol.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
-                    right.Kind == BoundKind.PointerIndirectionOperator)
+                    usesPointerIndirection(right))
                 {
                     ShouldNotSchedule(localSymbol);
                 }
@@ -1013,6 +1013,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             return node.Update(left, right, node.IsRef, node.Type);
+
+            static bool usesPointerIndirection(BoundExpression expr)
+            {
+                return expr switch
+                {
+                    BoundPointerIndirectionOperator => true,
+                    BoundFieldAccess { ReceiverOpt: BoundPointerIndirectionOperator } => true,
+                    BoundConditionalOperator cond => usesPointerIndirection(cond.Consequence) || usesPointerIndirection(cond.Alternative),
+                    _ => false,
+                };
+            }
         }
 
         /// <summary>
