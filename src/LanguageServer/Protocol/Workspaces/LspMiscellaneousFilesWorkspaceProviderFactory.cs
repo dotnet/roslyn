@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
@@ -20,10 +21,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 [ExportCSharpVisualBasicStatelessLspService(typeof(ILspMiscellaneousFilesWorkspaceProviderFactory)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class LspMiscellaneousFilesWorkspaceProviderFactory() : ILspMiscellaneousFilesWorkspaceProviderFactory
+internal sealed class LspMiscellaneousFilesWorkspaceProviderFactory(IGlobalOptionService globalOptionService) : ILspMiscellaneousFilesWorkspaceProviderFactory
 {
     public ILspMiscellaneousFilesWorkspaceProvider CreateLspMiscellaneousFilesWorkspaceProvider(ILspServices lspServices, HostServices hostServices)
     {
-        return new LspMiscellaneousFilesWorkspaceProvider(lspServices, hostServices);
+        return new LspMiscellaneousFilesWorkspaceProvider(lspServices, hostServices, globalOptionService);
     }
 }

@@ -151,8 +151,9 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         {
             var workspace = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace;
             var sourceTextLoader = new SourceTextLoader(documentText, documentFilePath);
+            var enableFileBasedPrograms = GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms);
             var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
-                workspace, documentFilePath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, workspace.Services.SolutionServices, []);
+                workspace, documentFilePath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, workspace.Services.SolutionServices, [], enableFileBasedPrograms);
 
             _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.ApplyChangeToWorkspace(workspace => workspace.OnProjectAdded(projectInfo));
 

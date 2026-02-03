@@ -207,7 +207,8 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
             new LanguageInformation(LanguageNames.CSharp, scriptExtension: null),
             canonicalText.ChecksumAlgorithm,
             _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace.Services.SolutionServices,
-            metadataReferences: []);
+            metadataReferences: [],
+            enableFileBasedPrograms: GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms));
 
         // Add the project first, then add the requested document
         _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.ApplyChangeToWorkspace(workspace =>

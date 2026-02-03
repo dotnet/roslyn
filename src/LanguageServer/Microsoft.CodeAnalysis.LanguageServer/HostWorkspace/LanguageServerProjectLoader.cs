@@ -113,6 +113,46 @@ internal abstract class LanguageServerProjectLoader
             ProjectToLoad.Comparer,
             listenerProvider.GetListener(FeatureAttribute.Workspace),
             CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
+
+        globalOptionService.AddOptionChangedHandler(this, (_, _, args) => OnGlobalOptionChanged(args));
+    }
+
+    private void OnGlobalOptionChanged(OptionChangedEventArgs args)
+    {
+        foreach (var (option, value) in args.ChangedOptions)
+        {
+            if (option.Equals(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms))
+            {
+                Contract.ThrowIfNull(value);
+                HandleEnableFileBasedProgramsChanged((bool)value);
+                break;
+            }
+        }
+
+        void HandleEnableFileBasedProgramsChanged(bool enableFileBasedPrograms)
+        {
+            using (_gate.DisposableWait(CancellationToken.None))
+            {
+                foreach ((_, ProjectLoadState state) in _loadedProjects)
+                {
+                    if (state is ProjectLoadState.Primordial(ProjectSystemProjectFactory projectFactory, ProjectId primordialProjectId))
+                    {
+                        projectFactory.ApplyChangeToWorkspace(workspace =>
+                        {
+                            workspace.SetCurrentSolution(solution =>
+                            {
+                                var oldParseOptions = solution.GetRequiredProject(primordialProjectId).ParseOptions;
+                                Contract.ThrowIfNull(oldParseOptions);
+                                var newParseOptions = oldParseOptions.WithFeatures(enableFileBasedPrograms
+                                    ? [.. oldParseOptions.Features, new("FileBasedProgram", "true")]
+                                    : [.. oldParseOptions.Features.Where(pair => pair.Key != "FileBasedProgram")]);
+                                return solution.WithProjectParseOptions(primordialProjectId, newParseOptions);
+                            }, WorkspaceChangeKind.ProjectChanged);
+                        });
+                    }
+                }
+            }
+        }
     }
 
     private static ImmutableDictionary<string, string> BuildAdditionalProperties(ServerConfiguration? serverConfiguration)

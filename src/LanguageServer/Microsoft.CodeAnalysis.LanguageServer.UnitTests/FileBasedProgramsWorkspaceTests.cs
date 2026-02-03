@@ -275,27 +275,32 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         // File should be a "primordial" miscellaneous document and stay that way.
         var (miscFilesWorkspace, looseDocumentOne) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, miscFilesWorkspace.Kind);
-        verify(looseDocumentOne);
-
-        Assert.Single(looseDocumentOne.Project.Documents);
-        Assert.Empty(looseDocumentOne.Project.MetadataReferences);
-        // Semantic diagnostics are not expected because we haven't loaded references
-        Assert.False(looseDocumentOne.Project.State.HasAllInformation);
+        await verifyAsync(looseDocumentOne);
 
         // Wait for project initialization to complete
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
 
         // Document is still in a primordial miscellaneous project
         var (_, looseDocumentTwo) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
-        verify(looseDocumentTwo);
+        await verifyAsync(looseDocumentTwo);
 
-        void verify(Document looseDocument)
+        async Task verifyAsync(Document looseDocument)
         {
             Assert.Single(looseDocument.Project.Documents);
             Assert.Empty(looseDocument.Project.MetadataReferences);
             // Semantic diagnostics are not expected because we haven't loaded references
             Assert.False(looseDocument.Project.State.HasAllInformation);
+            Assert.DoesNotContain("FileBasedProgram", looseDocument.Project.ParseOptions!.Features);
+
+            // FileBasedProgram feature flag is not passed, so an error is expected on '#:'.
+            var primordialSyntaxTree = await looseDocument.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+            primordialSyntaxTree.GetDiagnostics(CancellationToken.None).Verify(
+                // C:\SomeFile.cs(1,2): error CS9298: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')"
+                // #:sdk Microsoft.Net.Sdk
+                TestHelpers.Diagnostic(code: 9298, squiggledText: ":").WithLocation(1, 2));
         }
+
+        // TODO2: test changing option value after creating the workspace.
     }
 
     [Theory, CombinatorialData]

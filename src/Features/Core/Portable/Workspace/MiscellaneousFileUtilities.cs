@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Features.Workspaces;
 
 internal static class MiscellaneousFileUtilities
 {
+    /// <param name="enableFileBasedPrograms">Whether the host has globally enabled the C# file-based programs feature.</param>
     internal static ProjectInfo CreateMiscellaneousProjectInfoForDocument(
         Workspace workspace,
         string filePath,
@@ -22,7 +23,8 @@ internal static class MiscellaneousFileUtilities
         LanguageInformation languageInformation,
         SourceHashAlgorithm checksumAlgorithm,
         SolutionServices services,
-        ImmutableArray<MetadataReference> metadataReferences)
+        ImmutableArray<MetadataReference> metadataReferences,
+        bool enableFileBasedPrograms)
     {
         var fileExtension = PathUtilities.GetExtension(filePath);
         var fileName = PathUtilities.GetFileName(filePath);
@@ -54,9 +56,10 @@ internal static class MiscellaneousFileUtilities
                 parseOptions = parseOptions.WithKind(SourceCodeKind.Script);
                 compilationOptions = GetCompilationOptionsWithScriptReferenceResolvers(services, compilationOptions, filePath);
             }
-            else
+            else if (enableFileBasedPrograms)
             {
-                // Any non-script misc file should not complain about usage of '#:' ignored directives.
+                // When the file-based programs feature is enabled in the editor, we pass this option
+                // to all non-script misc files, to avoid spurious errors about usage of '#:' directives, etc.
                 parseOptions = parseOptions.WithFeatures([.. parseOptions.Features, new("FileBasedProgram", "true")]);
             }
         }
