@@ -15,15 +15,11 @@ namespace Microsoft.CodeAnalysis.CallHierarchy;
 
 internal abstract class AbstractCallHierarchyService : ICallHierarchyService
 {
-    protected Solution? CurrentSolution { get; set; }
-
     public async Task<ImmutableArray<CallHierarchyItem>> PrepareCallHierarchyAsync(
         Document document,
         int position,
         CancellationToken cancellationToken)
     {
-        CurrentSolution = document.Project.Solution;
-
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -44,14 +40,13 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
     }
 
     public async Task<ImmutableArray<CallHierarchyIncomingCall>> GetIncomingCallsAsync(
+        Solution solution,
         CallHierarchyItem item,
         CancellationToken cancellationToken)
     {
-        var project = GetProject(item);
+        var project = solution.GetProject(item.ProjectId);
         if (project is null)
             return [];
-
-        CurrentSolution = project.Solution;
 
         var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
         if (compilation is null)
@@ -172,14 +167,13 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
     }
 
     public async Task<ImmutableArray<CallHierarchyOutgoingCall>> GetOutgoingCallsAsync(
+        Solution solution,
         CallHierarchyItem item,
         CancellationToken cancellationToken)
     {
-        var project = GetProject(item);
+        var project = solution.GetProject(item.ProjectId);
         if (project is null)
             return [];
-
-        CurrentSolution = project.Solution;
 
         var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
         if (compilation is null)
@@ -310,24 +304,16 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
         if (symbol is IMethodSymbol methodSymbol)
         {
             methodSymbol = methodSymbol.ReducedFrom ?? methodSymbol;
-            methodSymbol = methodSymbol.ConstructedFrom ?? methodSymbol;
+            methodSymbol = methodSymbol.ConstructedFrom;
             return methodSymbol;
         }
 
         return symbol;
     }
 
-    private Project? GetProject(CallHierarchyItem item)
-    {
-        if (CurrentSolution is null)
-            return null;
-
-        return CurrentSolution.GetProject(item.ProjectId);
-    }
-
     private static readonly SymbolDisplayFormat s_memberNameFormat = new(
         globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
-        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
         propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
         genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
         memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeExplicitInterface,

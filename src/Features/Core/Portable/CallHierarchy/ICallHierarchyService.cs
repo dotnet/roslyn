@@ -30,20 +30,24 @@ internal interface ICallHierarchyService : ILanguageService
     /// <summary>
     /// Gets the incoming calls (callers) for the specified call hierarchy item.
     /// </summary>
+    /// <param name="solution">The current solution</param>
     /// <param name="item">The call hierarchy item to find callers for</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Incoming calls to the item</returns>
     Task<ImmutableArray<CallHierarchyIncomingCall>> GetIncomingCallsAsync(
+        Solution solution,
         CallHierarchyItem item,
         CancellationToken cancellationToken);
 
     /// <summary>
     /// Gets the outgoing calls (callees) for the specified call hierarchy item.
     /// </summary>
+    /// <param name="solution">The current solution</param>
     /// <param name="item">The call hierarchy item to find callees for</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Outgoing calls from the item</returns>
     Task<ImmutableArray<CallHierarchyOutgoingCall>> GetOutgoingCallsAsync(
+        Solution solution,
         CallHierarchyItem item,
         CancellationToken cancellationToken);
 }
