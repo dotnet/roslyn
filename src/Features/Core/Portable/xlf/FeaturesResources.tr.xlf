@@ -465,9 +465,9 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">{1} öğesinin '{0}' sahte özel özniteliğinin değiştirilmesi, uygulamanın yeniden başlatılmasını gerektirir</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit">
-        <source>Changing source file '{0}' in a stale project has no effect until the project is rebuit.</source>
-        <target state="translated">Eski bir projedeki '{0}' kaynak dosyasını değiştirmenin, proje yeniden derlenene kadar hiçbir etkisi olmaz.</target>
+      <trans-unit id="Changing_source_file_0_in_a_stale_project_1_has_no_effect_until_the_project_is_rebuilt_2">
+        <source>Changing source file '{0}' in a stale project '{1}' has no effect until the project is rebuit; {2}</source>
+        <target state="translated">Eski bir projedeki ('{1}') kaynak dosyayı ,('{0}') değiştirmenin, proje yeniden derlenene kadar hiçbir etkisi olmaz; {2}</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_th_application">
@@ -4429,6 +4429,21 @@ Bu standart biçim belirticisi kullanıldığında, biçimlendirme veya ayrışt
         <source>{0} '{1}' of {2} '{3}'</source>
         <target state="translated">{0} '{1}' / {2} '{3}'</target>
         <note>e.g. "parameter 'T param' of method 'M'"</note>
+      </trans-unit>
+      <trans-unit id="the_content_of_the_document_is_stale">
+        <source>the content of the document is stale.</source>
+        <target state="translated">belgenin içeriği güncel değil.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="the_project_contains_stale_document_0">
+        <source>the project contains stale document '{0}'.</source>
+        <target state="translated">proje eski belge '{0}' içeriyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="the_project_has_not_been_built">
+        <source>the project has not been built.</source>
+        <target state="translated">proje oluşturulmadı.</target>
+        <note />
       </trans-unit>
       <trans-unit id="time_separator">
         <source>time separator</source>

@@ -5457,7 +5457,7 @@ public static class Extensions
             Assert.False(implementation.HasSpecialName);
             Assert.False(implementation.HasRuntimeSpecialName);
 
-            Assert.True(implementation.ContainingType.MightContainExtensionMethods);
+            Assert.True(implementation.ContainingType.MightContainExtensions);
 
             Assert.Contains("M", extensions.MemberNames);
             Assert.NotEmpty(extensions.GetSimpleNonTypeMembers("M"));
@@ -8527,7 +8527,7 @@ public static class Extensions
             Assert.False(implementation.HasSpecialName);
             Assert.False(implementation.HasRuntimeSpecialName);
 
-            Assert.True(implementation.ContainingType.MightContainExtensionMethods);
+            Assert.True(implementation.ContainingType.MightContainExtensions);
 
             if (m is PEModuleSymbol peModuleSymbol)
             {
@@ -38805,12 +38805,12 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "a.F").ToArray();
         Assert.Null(model.GetSymbolInfo(memberAccess[0]).Symbol);
-        AssertEx.SequenceEqual(["void A.F()"], model.GetSymbolInfo(memberAccess[0]).CandidateSymbols.ToTestDisplayStrings());
-        AssertEx.SequenceEqual(["void A.F()", "void E2.<G>$8048A6C8BE30A622530249B904B537EB<A>.F()", "void A.F<A>()"], model.GetMemberGroup(memberAccess[0]).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["void A.F()"], model.GetSymbolInfo(memberAccess[0]).CandidateSymbols.ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["void A.F()", "void E2.<G>$8048A6C8BE30A622530249B904B537EB<A>.F()", "void A.F<A>()"], model.GetMemberGroup(memberAccess[0]).ToTestDisplayStrings());
 
         Assert.Null(model.GetSymbolInfo(memberAccess[1]).Symbol);
-        AssertEx.SequenceEqual(["void A.F()", "void E2.<G>$8048A6C8BE30A622530249B904B537EB<A>.F()", "void A.F<A>()"], model.GetSymbolInfo(memberAccess[1]).CandidateSymbols.ToTestDisplayStrings());
-        AssertEx.SequenceEqual(["void A.F()", "void E2.<G>$8048A6C8BE30A622530249B904B537EB<A>.F()", "void A.F<A>()"], model.GetMemberGroup(memberAccess[1]).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["void A.F()", "void E2.<G>$8048A6C8BE30A622530249B904B537EB<A>.F()", "void A.F<A>()"], model.GetSymbolInfo(memberAccess[1]).CandidateSymbols.ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["void A.F()", "void E2.<G>$8048A6C8BE30A622530249B904B537EB<A>.F()", "void A.F<A>()"], model.GetMemberGroup(memberAccess[1]).ToTestDisplayStrings());
     }
 
     [Fact]

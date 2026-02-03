@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
-    <MicrosoftCodeAnalysisTestingVersion>1.1.3-beta1.24319.1</MicrosoftCodeAnalysisTestingVersion>
+    <MicrosoftCodeAnalysisTestingVersion>1.1.3-beta1.26059.1</MicrosoftCodeAnalysisTestingVersion>
     <_BasicReferenceAssembliesVersion>1.8.3</_BasicReferenceAssembliesVersion>
     <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
     <CodeStyleAnalyzerVersion>4.8.0-3.final</CodeStyleAnalyzerVersion>
@@ -17,7 +17,7 @@
     <MicrosoftNetCoreAppRuntimePackagesVersion>8.0.10</MicrosoftNetCoreAppRuntimePackagesVersion>
     <MicrosoftWindowsDesktopAppRuntimePackagesVersion>8.0.10</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
     <_xunitVersion>2.9.2</_xunitVersion>
-    <SqliteVersion>2.1.0</SqliteVersion>
+    <SqliteVersion>2.1.6</SqliteVersion>
     <!-- HumanizerVersion is referenced from the Text.Analyzers.Package.csproj -->
     <HumanizerVersion>2.14.1</HumanizerVersion>
   </PropertyGroup>
@@ -245,17 +245,13 @@
     <PackageVersion Include="BenchmarkDotNet" Version="0.13.0" />
     <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.0" />
     <PackageVersion Include="BasicUndo" Version="0.9.3" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary" Version="2.0.0-pre-20160714" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageVersion Include="Microsoft.DiaSymReader.Converter" Version="1.1.0-beta2-22302-02" />
     <PackageVersion Include="Microsoft.DiaSymReader.Converter.Xml" Version="1.1.0-beta2-22302-02" />
     <PackageVersion Include="Microsoft.Metadata.Visualizer" Version="2.0.0-beta1.25425.3" />
@@ -265,7 +261,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.Diagnostics.Measurement" Version="17.9.36343-preview.3" />
     <PackageVersion Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider" Version="17.8.36726" />
     <PackageVersion Include="System.Management" Version="7.0.0" />
-    <PackageVersion Include="System.Drawing.Common" Version="9.0.0" />
+    <PackageVersion Include="System.Drawing.Common" Version="10.0.1" />
     <PackageVersion Include="NuGet.SolutionRestoreManager.Interop" Version="4.8.0" />
     <PackageVersion Include="Moq" Version="4.10.1" />
     <PackageVersion Include="System.CodeDom" Version="8.0.0" />
@@ -312,7 +308,7 @@
       vs-extension-testing
     -->
     <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.106" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
 
     <!--
       Infra

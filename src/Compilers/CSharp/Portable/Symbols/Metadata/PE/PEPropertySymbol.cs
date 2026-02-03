@@ -14,6 +14,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -792,6 +793,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (!_flags.IsCustomAttributesPopulated)
             {
+<<<<<<< HEAD
                 var containingPEModuleSymbol = (PEModuleSymbol)this.ContainingModule;
 
                 ImmutableArray<CSharpAttributeData> attributes = containingPEModuleSymbol.GetCustomAttributesForToken(
@@ -809,14 +811,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                       out _,
                       default);
 
+||||||| ea8b3d6b9a6
+                var containingPEModuleSymbol = (PEModuleSymbol)this.ContainingModule;
+
+                ImmutableArray<CSharpAttributeData> attributes = containingPEModuleSymbol.GetCustomAttributesForToken(
+                      _handle,
+                      out _,
+                      this.RefKind == RefKind.RefReadOnly ? AttributeDescription.IsReadOnlyAttribute : default,
+                      out CustomAttributeHandle required,
+                      AttributeDescription.RequiredMemberAttribute,
+                      out _,
+                      this.IsExtensionBlockMember() ? AttributeDescription.ExtensionMarkerAttribute : default,
+                      out _,
+                      default,
+                      out _,
+                      default,
+                      out _,
+                      default);
+
+=======
+                var attributes = loadAndFilterAttributes(out var hasRequiredMemberAttribute);
+>>>>>>> main
                 if (!attributes.IsEmpty)
                 {
                     ImmutableInterlocked.InterlockedInitialize(ref AccessUncommonFields()._lazyCustomAttributes, attributes);
                 }
 
+                _flags.SetHasRequiredMemberAttribute(hasRequiredMemberAttribute);
                 _flags.SetCustomAttributesPopulated();
+<<<<<<< HEAD
                 _flags.SetHasRequiredMemberAttribute(!required.IsNil);
                 _flags.SetRequiresUnsafe(ComputeRequiresUnsafe(!requiresUnsafe.IsNil));
+||||||| ea8b3d6b9a6
+                _flags.SetHasRequiredMemberAttribute(!required.IsNil);
+=======
+>>>>>>> main
             }
 
             var uncommonFields = _uncommonFields;
@@ -834,6 +863,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 return result;
+            }
+
+            ImmutableArray<CSharpAttributeData> loadAndFilterAttributes(out bool hasRequiredMemberAttribute)
+            {
+                hasRequiredMemberAttribute = false;
+
+                var containingModule = (PEModuleSymbol)this.ContainingModule;
+                if (!containingModule.TryGetNonEmptyCustomAttributes(_handle, out var customAttributeHandles))
+                {
+                    return [];
+                }
+
+                var filterIsReadOnlyAttribute = this.RefKind == RefKind.RefReadOnly;
+                var filterExtensionMarkerAttribute = this.IsExtensionBlockMember();
+
+                using var builder = TemporaryArray<CSharpAttributeData>.Empty;
+                foreach (var handle in customAttributeHandles)
+                {
+                    if (filterIsReadOnlyAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.IsReadOnlyAttribute))
+                        continue;
+
+                    if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.RequiredMemberAttribute))
+                    {
+                        hasRequiredMemberAttribute = true;
+                        continue;
+                    }
+
+                    if (filterExtensionMarkerAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.ExtensionMarkerAttribute))
+                        continue;
+
+                    builder.Add(new PEAttributeData(containingModule, handle));
+                }
+
+                return builder.ToImmutableAndClear();
             }
         }
 

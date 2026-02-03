@@ -1914,11 +1914,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return memberSymbol;
         }
 
-        internal static Symbol GetWellKnownTypeMember(CSharpCompilation compilation, WellKnownMember member, out UseSiteInfo<AssemblySymbol> useSiteInfo, bool isOptional = false)
+#nullable enable
+        internal static Symbol? GetWellKnownTypeMember(CSharpCompilation compilation, WellKnownMember member, out UseSiteInfo<AssemblySymbol> useSiteInfo, bool isOptional = false)
         {
-            Symbol memberSymbol = compilation.GetWellKnownTypeMember(member);
+            Symbol? memberSymbol = compilation.GetWellKnownTypeMember(member);
 
-            if ((object)memberSymbol != null)
+            if (memberSymbol is not null)
             {
                 useSiteInfo = GetUseSiteInfoForWellKnownMemberOrContainingType(memberSymbol);
                 if (useSiteInfo.DiagnosticInfo != null)
@@ -1956,6 +1957,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return memberSymbol;
         }
+#nullable disable
 
         private class ConsistentSymbolOrder : IComparer<Symbol>
         {

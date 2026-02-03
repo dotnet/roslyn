@@ -2454,19 +2454,19 @@ B");
                 var mscorlib = type.GetMember<FieldSymbol>("F").Type.ContainingAssembly;
                 Assert.Equal(RuntimeCorLibName.Name, mscorlib.Name);
                 // We assume every PE assembly may contain extension methods.
-                Assert.True(mscorlib.MightContainExtensionMethods);
+                Assert.True(mscorlib.MightContainExtensions);
 
                 // TODO: Original references are not included in symbol validator.
                 if (isFromSource)
                 {
                     // System.Core.dll
                     var systemCore = type.GetMember<FieldSymbol>("G").Type.ContainingAssembly;
-                    Assert.True(systemCore.MightContainExtensionMethods);
+                    Assert.True(systemCore.MightContainExtensions);
                 }
 
                 // Local assembly.
                 var assembly = type.ContainingAssembly;
-                Assert.True(assembly.MightContainExtensionMethods);
+                Assert.True(assembly.MightContainExtensions);
             };
 
             CompileAndVerify(
@@ -2493,7 +2493,7 @@ B");
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
                 var assembly = module.ContainingAssembly;
-                var mightContainExtensionMethods = assembly.MightContainExtensionMethods;
+                var mightContainExtensionMethods = assembly.MightContainExtensions;
                 // Every PE assembly is assumed to be capable of having an extension method.
                 // The source assembly doesn't know (so reports "true") until all methods have been inspected.
                 Assert.True(mightContainExtensionMethods);
@@ -2505,7 +2505,7 @@ B");
             };
             CompileAndVerify(source, symbolValidator: validator(false), sourceSymbolValidator: validator(true));
             Assert.NotNull(sourceAssembly);
-            Assert.False(sourceAssembly.MightContainExtensionMethods);
+            Assert.False(sourceAssembly.MightContainExtensions);
         }
 
         [ClrOnlyFact]
@@ -4484,6 +4484,21 @@ public static class C
                 // (4,9): error CS1061: 'delegate*<void>' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'delegate*<void>' could be found (are you missing a using directive or an assembly reference?)
                 //     ptr.M();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("delegate*<void>", "M").WithLocation(4, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82206")]
+        public void MightContainExtensionMethods_01()
+        {
+            // For source assembly symbol, the initial value is always true.
+            var comp = CreateCompilation("");
+            Assert.True(comp.SourceAssembly.MightContainExtensions);
+            Assert.True(comp.SourceAssembly.GetPublicSymbol().MightContainExtensionMethods);
+            comp.VerifyEmitDiagnostics();
+
+            // But once the actual value is determined, it may be updated to false.
+            // This may be surprising from a public API perspective.
+            Assert.False(comp.SourceAssembly.MightContainExtensions);
+            Assert.False(comp.SourceAssembly.GetPublicSymbol().MightContainExtensionMethods);
         }
     }
 }

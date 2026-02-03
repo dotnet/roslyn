@@ -69,7 +69,13 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
             foreach (var match in preMatches)
             {
                 if (match.Node is ExpressionSyntax expression)
+                {
                     yield return match.UseSpread ? SpreadElement(expression) : ExpressionElement(expression);
+                }
+                else if (match.Node is ArgumentListSyntax argumentList)
+                {
+                    yield return WithElement(argumentList.WithoutTrivia());
+                }
             }
         }
 
@@ -78,7 +84,31 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
             if (initializer != null)
             {
                 foreach (var expression in initializer.Expressions)
+                {
+                    // Enable when dictionary-expressions come online.
+#if false
+                    if (expression is InitializerExpressionSyntax { Expressions: [var keyExpression, var valueExpression1] })
+                    {
+                        // { k, v } -> [k: v]
+                        yield return KeyValuePairElement(keyExpression, valueExpression1);
+                    }
+                    else if (expression is AssignmentExpressionSyntax
+                    {
+                        Left: ImplicitElementAccessSyntax { ArgumentList.Arguments: [var argument] },
+                        Right: var valueExpression2,
+                    })
+                    {
+                        // [k] = v -> [k: v]
+                        yield return KeyValuePairElement(argument.Expression, valueExpression2);
+                    }
+                    else
+                    {
+                        yield return ExpressionElement(expression);
+                    }
+#else
                     yield return ExpressionElement(expression);
+#endif
+                }
             }
         }
     }

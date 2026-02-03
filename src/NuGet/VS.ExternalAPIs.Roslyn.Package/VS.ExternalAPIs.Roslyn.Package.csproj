@@ -100,6 +100,7 @@
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.VisualBasic.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Workspaces.Desktop\$(Configuration)\net472\Microsoft.CodeAnalysis.Workspaces.Desktop.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost\$(Configuration)\net472\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.exe" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Workspaces.MSBuild.Contracts\$(Configuration)\net472\Microsoft.CodeAnalysis.Workspaces.MSBuild.Contracts.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Workspaces.MSBuild\$(Configuration)\net472\Microsoft.CodeAnalysis.Workspaces.MSBuild.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Workspaces\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Workspaces.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.dll" TargetDir="" />

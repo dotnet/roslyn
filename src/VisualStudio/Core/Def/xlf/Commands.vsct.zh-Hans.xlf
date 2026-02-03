@@ -587,16 +587,6 @@
         <target state="translated">转到实现</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidSolutionExplorerSymbolItemContextMenu|ButtonText">
-        <source>Solution Explorer Symbol Tree</source>
-        <target state="translated">解决方案资源管理器符号树</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidSolutionExplorerSymbolItemContextMenu|MenuText">
-        <source>Solution Explorer Symbol Tree</source>
-        <target state="translated">解决方案资源管理器符号树</target>
-        <note />
-      </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemFindAllReferences|ButtonText">
         <source>Find All References</source>
         <target state="translated">查找全部引用</target>

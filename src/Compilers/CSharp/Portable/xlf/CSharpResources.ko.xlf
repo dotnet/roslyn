@@ -232,6 +232,11 @@
         <target state="translated">스위치 식 arm은 'case' 키워드로 시작하지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadCollectionArgumentsArgCount">
+        <source>No overload for method '{0}' takes {1} 'with(...)' element arguments</source>
+        <target state="translated">{1} 'with(...)' 요소 인수를 사용하는 메서드 '{0}'에 대한 오버로드가 없습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadCompoundAssignmentOpArgs">
         <source>Overloaded compound assignment operator '{0}' takes one parameter</source>
         <target state="translated">오버로드된 복합 할당 연산자 '{0}'은(는) 매개 변수를 한 개 사용합니다.</target>
@@ -522,6 +527,26 @@
         <target state="translated">'{0}'은(는) 인터페이스 멤버 '{1}'을(를) 구현하지 않습니다. '{2}'은(는) '{1}'을(를) 구현할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsDynamicBinding">
+        <source>'with(...)' element arguments cannot be dynamic</source>
+        <target state="translated">'with(...)' 요소 인수는 동적일 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsMustBeEmpty">
+        <source>'with(...)' element for a read-only interface must be empty if present</source>
+        <target state="translated">읽기 전용 인터페이스의 'with(...)' 요소는 비어 있어야 합니다(있는 경우).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsMustBeFirst">
+        <source>'with(...)' element must be the first element</source>
+        <target state="translated">'with(...)' 요소는 첫 번째 요소여야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsNotSupportedForType">
+        <source>'with(...)' elements are not supported for type '{0}'</source>
+        <target state="translated">'with(...)' 요소는 '{0}' 형식에 대해 지원되지 않습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeInvalidMethodName">
         <source>The CollectionBuilderAttribute method name is invalid.</source>
         <target state="translated">CollectionBuilderAttribute 메서드 이름이 잘못되었습니다.</target>
@@ -533,8 +558,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeMethodNotFound">
-        <source>Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
-        <target state="translated">필요한 시그니처가 있는 액세스 가능한 '{0}' 메서드(형식이 'ReadOnlySpan&lt;{1}&gt;'인 단일 매개 변수가 및 '{2}' 반환 형식이 있는 정적 메서드)를 찾을 수 없습니다.</target>
+        <source>Could not find an accessible '{0}' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
+        <target state="translated">필요한 시그니처가 있는 액세스 가능한 '{0}' 메서드(마지막 매개 변수가 'ReadOnlySpan&lt;{1}&gt;' 형식이고 반환 형식이 '{2}'인 정적 메서드)를 찾을 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderNoElementType">
@@ -580,6 +605,11 @@
       <trans-unit id="ERR_CollectionInitializerInfiniteChainOfAddCalls">
         <source>Collection initializer results in an infinite chain of instantiations of collection '{0}'.</source>
         <target state="translated">컬렉션 이니셜라이저를 사용하면 컬렉션 '{0}'의 인스턴스화 체인이 무한해집니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionRefLikeElementType">
+        <source>Element type of this collection may not be a ref struct or a type parameter allowing ref structs</source>
+        <target state="translated">이 컬렉션의 요소 형식은 ref 구조체 또는 ref 구조체를 허용하는 형식 매개 변수일 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilationUnitUnexpected">
@@ -1431,6 +1461,11 @@
         <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
         <target state="translated">'Experimental' 특성에 대한 diagnosticId 인수는 유효한 식별자여야 합니다.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
+        <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</source>
+        <target state="translated">'{0}'에 '{1}'에 대한 정의가 없고, '{1}' 형식의 첫 번째 인수를 받는 액세스 가능한 확장 메서드 '{0}'을(를) 찾을 수 없습니다(대신 'await foreach'를 사용하여 비동기 컬렉션을 반복하려고 한 건가요?).</target>
+        <note>'await foreach' is not localizable</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
         <source>The target runtime does not support extended layout types.</source>
@@ -2820,6 +2855,11 @@
       <trans-unit id="IDS_FeatureCheckedUserDefinedOperators">
         <source>checked user-defined operators</source>
         <target state="translated">확인된 사용자 정의 연산자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureCollectionExpressionArguments">
+        <source>collection expression arguments</source>
+        <target state="translated">컬렉션 식 인수</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressions">

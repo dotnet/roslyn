@@ -465,9 +465,9 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Zmiana atrybutu pseudoniestandardowego elementu „{0}” z {1} wymaga ponownego uruchomienia aplikacji</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit">
-        <source>Changing source file '{0}' in a stale project has no effect until the project is rebuit.</source>
-        <target state="translated">Zmiana pliku źródłowego „{0}” w nieaktualnym projekcie nie ma żadnego efektu, dopóki projekt nie zostanie przebudowany.</target>
+      <trans-unit id="Changing_source_file_0_in_a_stale_project_1_has_no_effect_until_the_project_is_rebuilt_2">
+        <source>Changing source file '{0}' in a stale project '{1}' has no effect until the project is rebuit; {2}</source>
+        <target state="translated">Zmiana pliku źródłowego „{0}” w nieaktualnym projekcie „{1}” nie ma żadnego efektu, dopóki projekt nie zostanie przebudowany; {2}</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_th_application">
@@ -4429,6 +4429,21 @@ Gdy jest używany ten standardowy specyfikator formatu, operacja formatowania lu
         <source>{0} '{1}' of {2} '{3}'</source>
         <target state="translated">{0} „{1}” z {2} „{3}”</target>
         <note>e.g. "parameter 'T param' of method 'M'"</note>
+      </trans-unit>
+      <trans-unit id="the_content_of_the_document_is_stale">
+        <source>the content of the document is stale.</source>
+        <target state="translated">zawartość dokumentu jest nieaktualna.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="the_project_contains_stale_document_0">
+        <source>the project contains stale document '{0}'.</source>
+        <target state="translated">projekt zawiera nieaktualny dokument „{0}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="the_project_has_not_been_built">
+        <source>the project has not been built.</source>
+        <target state="translated">projekt nie został skompilowany.</target>
+        <note />
       </trans-unit>
       <trans-unit id="time_separator">
         <source>time separator</source>

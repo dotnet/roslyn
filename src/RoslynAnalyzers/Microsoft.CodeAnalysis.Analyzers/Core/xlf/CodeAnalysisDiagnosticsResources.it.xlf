@@ -204,7 +204,7 @@
       </trans-unit>
       <trans-unit id="EnableAnalyzerReleaseTrackingRuleDescription">
         <source>Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</source>
-        <target state="translated">L'abilitazione del rilevamento delle versioni per i pacchetti dell'analizzatore consente di tenere traccia e documentare la diagnostica dell'analizzatore che viene inclusa e/o modificata con ogni versione dell'analizzatore. Per informazioni dettagliate, vedere https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</target>
+        <target state="needs-review-translation">L'abilitazione del rilevamento delle versioni per i pacchetti dell'analizzatore consente di tenere traccia e documentare la diagnostica dell'analizzatore che viene inclusa e/o modificata con ogni versione dell'analizzatore. Per informazioni dettagliate, vedere https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableAnalyzerReleaseTrackingRuleMessage">

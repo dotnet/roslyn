@@ -232,6 +232,11 @@
         <target state="translated">Bir switch ifadesi kolu 'case' anahtar sözcüğüyle başlamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadCollectionArgumentsArgCount">
+        <source>No overload for method '{0}' takes {1} 'with(...)' element arguments</source>
+        <target state="translated">'{0}' yöntemi için {1} ‘with(...)’ öğe bağımsız değişkenleri için aşırı yükleme yok</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadCompoundAssignmentOpArgs">
         <source>Overloaded compound assignment operator '{0}' takes one parameter</source>
         <target state="translated">Aşırı yüklenmiş bileşik atama işleci ‘{0}’, bir parametre alır</target>
@@ -522,6 +527,26 @@
         <target state="translated">'{0}, '{1}' arabirim üyesini uygulamıyor. '{2}', '{1}' üyesini uygulayamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsDynamicBinding">
+        <source>'with(...)' element arguments cannot be dynamic</source>
+        <target state="translated">'with(...)' öğe bağımsız değişkenleri dinamik olamaz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsMustBeEmpty">
+        <source>'with(...)' element for a read-only interface must be empty if present</source>
+        <target state="translated">Salt okunur arabirim için 'with(...)' öğesi varsa boş olmalıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsMustBeFirst">
+        <source>'with(...)' element must be the first element</source>
+        <target state="translated">'with(...)' öğesi ilk öğe olmalıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsNotSupportedForType">
+        <source>'with(...)' elements are not supported for type '{0}'</source>
+        <target state="translated">'with(...)' öğeleri '{0}' türü için desteklenmiyor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeInvalidMethodName">
         <source>The CollectionBuilderAttribute method name is invalid.</source>
         <target state="translated">CollectionBuilderAttribute yöntemi adı geçersiz.</target>
@@ -533,7 +558,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeMethodNotFound">
-        <source>Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
+        <source>Could not find an accessible '{0}' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
         <target state="translated">Beklenen imzaya sahip erişilebilir bir '{0}' yöntemi bulunamadı: 'ReadOnlySpan&lt;{1}&gt;' türünde tek bir parametreye ve '{2}' dönüş türüne sahip statik bir yöntem.</target>
         <note />
       </trans-unit>
@@ -580,6 +605,11 @@
       <trans-unit id="ERR_CollectionInitializerInfiniteChainOfAddCalls">
         <source>Collection initializer results in an infinite chain of instantiations of collection '{0}'.</source>
         <target state="translated">Koleksiyon başlatıcısı, '{0}' koleksiyonunun sonsuz sayıda örneklem zinciriyle sonuçlanır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionRefLikeElementType">
+        <source>Element type of this collection may not be a ref struct or a type parameter allowing ref structs</source>
+        <target state="translated">Bu koleksiyonun öğe türü başvuru yapısı veya başvuru yapısına izin veren tür parametresi olamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilationUnitUnexpected">
@@ -1431,6 +1461,11 @@
         <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
         <target state="translated">'Experimental' özniteliğinin diagnosticId bağımsız değişkeni geçerli bir tanımlayıcı olmalıdır</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
+        <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</source>
+        <target state="translated">' {0}' '{1}' için bir tanım içermiyor ve '{0}' türünden ilk bağımsız değişkeni kabul eden erişilebilir '{1}' uzantı yöntemi bulunamadı (zaman uyumsuz koleksiyon üzerinde 'await foreach' ile yineleme yapmak mı istediniz?)</target>
+        <note>'await foreach' is not localizable</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
         <source>The target runtime does not support extended layout types.</source>
@@ -2820,6 +2855,11 @@
       <trans-unit id="IDS_FeatureCheckedUserDefinedOperators">
         <source>checked user-defined operators</source>
         <target state="translated">kullanıcı tanımlı işleçler işaretlendi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureCollectionExpressionArguments">
+        <source>collection expression arguments</source>
+        <target state="translated">koleksiyon ifadesi bağımsız değişkenleri</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressions">

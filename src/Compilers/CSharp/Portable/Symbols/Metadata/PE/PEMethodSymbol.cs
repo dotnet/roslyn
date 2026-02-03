@@ -13,6 +13,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -992,7 +993,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     bool isExtensionMethod = false;
                     if (this.MethodKind == MethodKind.Ordinary && IsValidExtensionMethodSignature()
-                        && this.ContainingType.MightContainExtensionMethods)
+                        && this.ContainingType.MightContainExtensions)
                     {
                         var moduleSymbol = _containingType.ContainingPEModule;
                         isExtensionMethod = moduleSymbol.Module.HasExtensionAttribute(_handle, ignoreCase: false);
@@ -1011,6 +1012,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (!_packedFlags.IsCustomAttributesPopulated)
             {
+<<<<<<< HEAD
                 // Compute the value
                 var attributeData = default(ImmutableArray<CSharpAttributeData>);
                 var containingPEModuleSymbol = _containingType.ContainingPEModule;
@@ -1074,6 +1076,70 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     _packedFlags.InitializeIsReadOnly(isReadOnly);
                 }
+||||||| ea8b3d6b9a6
+                // Compute the value
+                var attributeData = default(ImmutableArray<CSharpAttributeData>);
+                var containingPEModuleSymbol = _containingType.ContainingPEModule;
+
+                // Could this possibly be an extension method?
+                bool isExtensionAlreadySet = _packedFlags.IsExtensionMethodIsPopulated;
+                bool checkForExtension = isExtensionAlreadySet
+                    ? _packedFlags.IsExtensionMethod
+                    : this.MethodKind == MethodKind.Ordinary
+                        && IsValidExtensionMethodSignature()
+                        && _containingType.MightContainExtensionMethods;
+
+                bool isReadOnlyAlreadySet = _packedFlags.IsReadOnlyPopulated;
+                bool checkForIsReadOnly = isReadOnlyAlreadySet
+                     ? _packedFlags.IsReadOnly
+                     : IsValidReadOnlyTarget;
+
+                bool checkForRequiredMembers = this.ShouldCheckRequiredMembers() && this.ContainingType.HasAnyRequiredMembers;
+                bool isInstanceIncrementDecrementOrCompoundAssignmentOperator = SourceMethodSymbol.IsInstanceIncrementDecrementOrCompoundAssignmentOperator(this);
+
+                bool isExtensionBlockMember = this.IsExtensionBlockMember();
+
+                bool isExtensionMethod = false;
+                bool isReadOnly = false;
+                if (checkForExtension || checkForIsReadOnly || checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator || isExtensionBlockMember)
+                {
+                    attributeData = containingPEModuleSymbol.GetCustomAttributesForToken(_handle,
+                        filteredOutAttribute1: out CustomAttributeHandle extensionAttribute,
+                        filterOut1: AttributeDescription.CaseSensitiveExtensionAttribute,
+                        filteredOutAttribute2: out CustomAttributeHandle isReadOnlyAttribute,
+                        filterOut2: AttributeDescription.IsReadOnlyAttribute,
+                        filteredOutAttribute3: out _,
+                        filterOut3: ((checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator) && DeriveCompilerFeatureRequiredDiagnostic() is null) ? AttributeDescription.CompilerFeatureRequiredAttribute : default,
+                        filteredOutAttribute4: out _,
+                        filterOut4: (checkForRequiredMembers && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default,
+                        filteredOutAttribute5: out _,
+                        filterOut5: AttributeDescription.ExtensionMarkerAttribute,
+                        filteredOutAttribute6: out _,
+                        filterOut6: default);
+
+                    isExtensionMethod = !extensionAttribute.IsNil;
+                    isReadOnly = !isReadOnlyAttribute.IsNil;
+                }
+                else
+                {
+                    containingPEModuleSymbol.LoadCustomAttributes(_handle,
+                        ref attributeData);
+                }
+
+                if (!isExtensionAlreadySet)
+                {
+                    _packedFlags.InitializeIsExtensionMethod(isExtensionMethod);
+                }
+
+                if (!isReadOnlyAlreadySet)
+                {
+                    _packedFlags.InitializeIsReadOnly(isReadOnly);
+                }
+=======
+                var attributeData = loadAndFilterAttributes(out var isExtensionMethod, out var isReadOnly);
+                _packedFlags.InitializeIsExtensionMethod(isExtensionMethod);
+                _packedFlags.InitializeIsReadOnly(isReadOnly);
+>>>>>>> main
 
                 if (!requiresUnsafeAlreadySet)
                 {
@@ -1103,6 +1169,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return attributeData.IsDefault
                     ? InterlockedOperations.Initialize(ref uncommonFields._lazyCustomAttributes, ImmutableArray<CSharpAttributeData>.Empty)
                     : attributeData;
+            }
+
+            ImmutableArray<CSharpAttributeData> loadAndFilterAttributes(out bool isExtensionMethod, out bool isReadOnly)
+            {
+                isExtensionMethod = false;
+                isReadOnly = false;
+
+                var containingModule = _containingType.ContainingPEModule;
+                if (!containingModule.TryGetNonEmptyCustomAttributes(_handle, out var customAttributeHandles))
+                {
+                    return [];
+                }
+
+                bool checkForRequiredMembers = this.ShouldCheckRequiredMembers() && this.ContainingType.HasAnyRequiredMembers;
+                bool isInstanceIncrementDecrementOrCompoundAssignmentOperator = SourceMethodSymbol.IsInstanceIncrementDecrementOrCompoundAssignmentOperator(this);
+                bool filterCompilerFeatureRequiredAttribute = (checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator) && DeriveCompilerFeatureRequiredDiagnostic() is null;
+                bool filterObsoleteAttribute = checkForRequiredMembers && ObsoleteAttributeData is null;
+
+                using var builder = TemporaryArray<CSharpAttributeData>.Empty;
+                foreach (var handle in customAttributeHandles)
+                {
+                    if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.CaseSensitiveExtensionAttribute))
+                    {
+                        isExtensionMethod = true;
+                        continue;
+                    }
+
+                    if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.IsReadOnlyAttribute))
+                    {
+                        isReadOnly = true;
+                        continue;
+                    }
+
+                    if (filterCompilerFeatureRequiredAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.CompilerFeatureRequiredAttribute))
+                        continue;
+
+                    if (filterObsoleteAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.ObsoleteAttribute))
+                        continue;
+
+                    if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.ExtensionMarkerAttribute))
+                        continue;
+
+                    builder.Add(new PEAttributeData(containingModule, handle));
+                }
+
+                return builder.ToImmutableAndClear();
             }
         }
 

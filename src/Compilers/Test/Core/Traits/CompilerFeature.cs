@@ -44,6 +44,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         RequiredMembers,
         RefLifetime,
         Extensions,
+<<<<<<< HEAD
         Unsafe,
+||||||| ea8b3d6b9a6
+=======
+        CollectionExpressions,
+>>>>>>> main
     }
 }

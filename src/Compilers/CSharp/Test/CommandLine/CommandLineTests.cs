@@ -8634,7 +8634,7 @@ $@"{fileName}(12,20): error CS1522: Empty switch block
             CleanupAllGeneratedFiles(source);
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/79351"), WorkItem(546025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546025")]
+        [Fact, WorkItem(546025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546025")]
         public void TestWin32ResWithBadResFile_CS1583ERR_BadWin32Res_01()
         {
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"class Test { static void Main() {} }").Path;
@@ -8653,7 +8653,8 @@ $@"{fileName}(12,20): error CS1522: Empty switch block
             }).Run(outWriter);
 
             Assert.Equal(1, exitCode);
-            Assert.Equal("error CS1583: Error reading Win32 resources -- Image is too small.", outWriter.ToString().Trim());
+            // https://github.com/dotnet/roslyn/issues/79351: This used to write "Image is too small." instead of "Unknown file format."
+            Assert.Equal("error CS1583: Error reading Win32 resources -- Unknown file format.", outWriter.ToString().Trim());
 
             CleanupAllGeneratedFiles(source);
             CleanupAllGeneratedFiles(badres);
@@ -12020,7 +12021,7 @@ class C
             // Missing Microsoft.CodeAnalysis.CSharp.dll.
             var result = ProcessUtilities.Run(cscPath, arguments: "/nologo /t:library unknown.cs", workingDirectory: dir.Path);
             Assert.Equal(1, result.ExitCode);
-            Assert.Equal(
+            AssertEx.Equal(
                 $"Could not load file or assembly '{typeof(CSharpCompilation).Assembly.FullName}' or one of its dependencies. The system cannot find the file specified.",
                 result.Output.Trim());
 
@@ -12028,8 +12029,8 @@ class C
             dir.CopyFile(typeof(CSharpCompilation).Assembly.Location);
             result = ProcessUtilities.Run(cscPath, arguments: "/nologo /t:library unknown.cs", workingDirectory: dir.Path);
             Assert.Equal(1, result.ExitCode);
-            Assert.Equal(
-                $"Could not load file or assembly '{typeof(ImmutableArray).Assembly.FullName}' or one of its dependencies. The system cannot find the file specified.",
+            AssertEx.Equal(
+                $"Could not load file or assembly '{typeof(ImmutableArray).Assembly.FullName.Replace(".1", ".0")}' or one of its dependencies. The system cannot find the file specified.",
                 result.Output.Trim());
         }
 

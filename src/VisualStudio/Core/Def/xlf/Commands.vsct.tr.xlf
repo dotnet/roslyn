@@ -587,16 +587,6 @@
         <target state="translated">Uygulamaya Git</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidSolutionExplorerSymbolItemContextMenu|ButtonText">
-        <source>Solution Explorer Symbol Tree</source>
-        <target state="translated">Çözüm Gezgini Sembol Ağacı</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidSolutionExplorerSymbolItemContextMenu|MenuText">
-        <source>Solution Explorer Symbol Tree</source>
-        <target state="translated">Çözüm Gezgini Sembol Ağacı</target>
-        <note />
-      </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemFindAllReferences|ButtonText">
         <source>Find All References</source>
         <target state="translated">Tüm Başvuruları Bul</target>
