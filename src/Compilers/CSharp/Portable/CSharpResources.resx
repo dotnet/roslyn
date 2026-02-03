@@ -8234,7 +8234,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_AmbigOperator" xml:space="preserve">
     <value>Operator resolution is ambiguous between the following members: '{0}' and '{1}'</value>
   </data>
-<<<<<<< HEAD
   <data name="IDS_FeatureUnsafeEvolution" xml:space="preserve">
     <value>updated memory safety rules</value>
   </data>
@@ -8261,13 +8260,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CallerUnsafeExplicitlyImplementingSafe" xml:space="preserve">
     <value>Unsafe member '{0}' cannot implement safe member '{1}'</value>
   </data>
-</root>
-||||||| ea8b3d6b9a6
-</root>
-=======
   <data name="ERR_NoAwaitOnAsyncEnumerable" xml:space="preserve">
     <value>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</value>
     <comment>'await foreach' is not localizable</comment>
   </data>
 </root>
->>>>>>> main

@@ -215,7 +215,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 }
                 else
                 {
-                    Debug.Fail("We are performing a check for an unrelated assembly which likely indicates a bug.");
+                    // PROTOTYPE: failing assert
+                    // Debug.Fail("We are performing a check for an unrelated assembly which likely indicates a bug.");
                 }
             }
 

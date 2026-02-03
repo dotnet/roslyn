@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -370,12 +371,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (checkForRequiresUnsafe)
                 {
-                    ImmutableArray<CSharpAttributeData> attributes = containingPEModuleSymbol.GetCustomAttributesForToken(
-                          _handle,
-                          out CustomAttributeHandle requiresUnsafe,
-                          AttributeDescription.RequiresUnsafeAttribute);
+                    ImmutableArray<CSharpAttributeData> attributes = loadAndFilterAttributes(containingPEModuleSymbol, out var hasRequiresUnsafeAttribute);
 
-                    bool hasRequiresUnsafeAttribute = !requiresUnsafe.IsNil;
                     _lazyRequiresUnsafe = (byte)ComputeRequiresUnsafe(hasRequiresUnsafeAttribute).ToThreeState();
 
                     ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, attributes);
@@ -386,6 +383,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
             return _lazyCustomAttributes;
+
+            ImmutableArray<CSharpAttributeData> loadAndFilterAttributes(PEModuleSymbol containingModule, out bool hasRequiresUnsafeAttribute)
+            {
+                hasRequiresUnsafeAttribute = false;
+
+                if (!containingModule.TryGetNonEmptyCustomAttributes(_handle, out var customAttributeHandles))
+                {
+                    return [];
+                }
+
+                using var builder = TemporaryArray<CSharpAttributeData>.Empty;
+                foreach (var handle in customAttributeHandles)
+                {
+                    if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.RequiresUnsafeAttribute))
+                    {
+                        hasRequiresUnsafeAttribute = true;
+                        continue;
+                    }
+
+                    builder.Add(new PEAttributeData(containingModule, handle));
+                }
+
+                return builder.ToImmutableAndClear();
+            }
         }
 
         internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)

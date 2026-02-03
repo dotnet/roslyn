@@ -1012,139 +1012,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (!_packedFlags.IsCustomAttributesPopulated)
             {
-<<<<<<< HEAD
-                // Compute the value
-                var attributeData = default(ImmutableArray<CSharpAttributeData>);
-                var containingPEModuleSymbol = _containingType.ContainingPEModule;
-
-                // Could this possibly be an extension method?
-                bool isExtensionAlreadySet = _packedFlags.IsExtensionMethodIsPopulated;
-                bool checkForExtension = isExtensionAlreadySet
-                    ? _packedFlags.IsExtensionMethod
-                    : this.MethodKind == MethodKind.Ordinary
-                        && IsValidExtensionMethodSignature()
-                        && _containingType.MightContainExtensionMethods;
-
-                bool isReadOnlyAlreadySet = _packedFlags.IsReadOnlyPopulated;
-                bool checkForIsReadOnly = isReadOnlyAlreadySet
-                     ? _packedFlags.IsReadOnly
-                     : IsValidReadOnlyTarget;
-
-                bool requiresUnsafeAlreadySet = _packedFlags.RequiresUnsafePopulated;
-                bool checkForRequiresUnsafe = !requiresUnsafeAlreadySet || _packedFlags.RequiresUnsafe;
-
-                bool checkForRequiredMembers = this.ShouldCheckRequiredMembers() && this.ContainingType.HasAnyRequiredMembers;
-                bool isInstanceIncrementDecrementOrCompoundAssignmentOperator = SourceMethodSymbol.IsInstanceIncrementDecrementOrCompoundAssignmentOperator(this);
-
-                bool isExtensionBlockMember = this.IsExtensionBlockMember();
-
-                bool isExtensionMethod = false;
-                bool isReadOnly = false;
-                bool hasRequiresUnsafeAttribute = false;
-                if (checkForExtension || checkForIsReadOnly || checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator || isExtensionBlockMember || checkForRequiresUnsafe)
-                {
-                    attributeData = containingPEModuleSymbol.GetCustomAttributesForToken(_handle,
-                        filteredOutAttribute1: out CustomAttributeHandle extensionAttribute,
-                        filterOut1: AttributeDescription.CaseSensitiveExtensionAttribute,
-                        filteredOutAttribute2: out CustomAttributeHandle isReadOnlyAttribute,
-                        filterOut2: AttributeDescription.IsReadOnlyAttribute,
-                        filteredOutAttribute3: out _,
-                        filterOut3: ((checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator) && DeriveCompilerFeatureRequiredDiagnostic() is null) ? AttributeDescription.CompilerFeatureRequiredAttribute : default,
-                        filteredOutAttribute4: out _,
-                        filterOut4: (checkForRequiredMembers && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default,
-                        filteredOutAttribute5: out _,
-                        filterOut5: AttributeDescription.ExtensionMarkerAttribute,
-                        filteredOutAttribute6: out CustomAttributeHandle requiresUnsafeAttribute,
-                        filterOut6: AttributeDescription.RequiresUnsafeAttribute);
-
-                    isExtensionMethod = !extensionAttribute.IsNil;
-                    isReadOnly = !isReadOnlyAttribute.IsNil;
-                    hasRequiresUnsafeAttribute = !requiresUnsafeAttribute.IsNil;
-                }
-                else
-                {
-                    containingPEModuleSymbol.LoadCustomAttributes(_handle,
-                        ref attributeData);
-                }
-
-                if (!isExtensionAlreadySet)
-                {
-                    _packedFlags.InitializeIsExtensionMethod(isExtensionMethod);
-                }
-
-                if (!isReadOnlyAlreadySet)
-                {
-                    _packedFlags.InitializeIsReadOnly(isReadOnly);
-                }
-||||||| ea8b3d6b9a6
-                // Compute the value
-                var attributeData = default(ImmutableArray<CSharpAttributeData>);
-                var containingPEModuleSymbol = _containingType.ContainingPEModule;
-
-                // Could this possibly be an extension method?
-                bool isExtensionAlreadySet = _packedFlags.IsExtensionMethodIsPopulated;
-                bool checkForExtension = isExtensionAlreadySet
-                    ? _packedFlags.IsExtensionMethod
-                    : this.MethodKind == MethodKind.Ordinary
-                        && IsValidExtensionMethodSignature()
-                        && _containingType.MightContainExtensionMethods;
-
-                bool isReadOnlyAlreadySet = _packedFlags.IsReadOnlyPopulated;
-                bool checkForIsReadOnly = isReadOnlyAlreadySet
-                     ? _packedFlags.IsReadOnly
-                     : IsValidReadOnlyTarget;
-
-                bool checkForRequiredMembers = this.ShouldCheckRequiredMembers() && this.ContainingType.HasAnyRequiredMembers;
-                bool isInstanceIncrementDecrementOrCompoundAssignmentOperator = SourceMethodSymbol.IsInstanceIncrementDecrementOrCompoundAssignmentOperator(this);
-
-                bool isExtensionBlockMember = this.IsExtensionBlockMember();
-
-                bool isExtensionMethod = false;
-                bool isReadOnly = false;
-                if (checkForExtension || checkForIsReadOnly || checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator || isExtensionBlockMember)
-                {
-                    attributeData = containingPEModuleSymbol.GetCustomAttributesForToken(_handle,
-                        filteredOutAttribute1: out CustomAttributeHandle extensionAttribute,
-                        filterOut1: AttributeDescription.CaseSensitiveExtensionAttribute,
-                        filteredOutAttribute2: out CustomAttributeHandle isReadOnlyAttribute,
-                        filterOut2: AttributeDescription.IsReadOnlyAttribute,
-                        filteredOutAttribute3: out _,
-                        filterOut3: ((checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator) && DeriveCompilerFeatureRequiredDiagnostic() is null) ? AttributeDescription.CompilerFeatureRequiredAttribute : default,
-                        filteredOutAttribute4: out _,
-                        filterOut4: (checkForRequiredMembers && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default,
-                        filteredOutAttribute5: out _,
-                        filterOut5: AttributeDescription.ExtensionMarkerAttribute,
-                        filteredOutAttribute6: out _,
-                        filterOut6: default);
-
-                    isExtensionMethod = !extensionAttribute.IsNil;
-                    isReadOnly = !isReadOnlyAttribute.IsNil;
-                }
-                else
-                {
-                    containingPEModuleSymbol.LoadCustomAttributes(_handle,
-                        ref attributeData);
-                }
-
-                if (!isExtensionAlreadySet)
-                {
-                    _packedFlags.InitializeIsExtensionMethod(isExtensionMethod);
-                }
-
-                if (!isReadOnlyAlreadySet)
-                {
-                    _packedFlags.InitializeIsReadOnly(isReadOnly);
-                }
-=======
-                var attributeData = loadAndFilterAttributes(out var isExtensionMethod, out var isReadOnly);
+                var attributeData = loadAndFilterAttributes(out var isExtensionMethod, out var isReadOnly, out var hasRequiresUnsafeAttribute);
                 _packedFlags.InitializeIsExtensionMethod(isExtensionMethod);
                 _packedFlags.InitializeIsReadOnly(isReadOnly);
->>>>>>> main
-
-                if (!requiresUnsafeAlreadySet)
-                {
-                    _packedFlags.InitializeRequiresUnsafe(ComputeRequiresUnsafe(hasRequiresUnsafeAttribute));
-                }
+                _packedFlags.InitializeRequiresUnsafe(ComputeRequiresUnsafe(hasRequiresUnsafeAttribute));
 
                 // Store the result in uncommon fields only if it's not empty.
                 Debug.Assert(!attributeData.IsDefault);
@@ -1171,10 +1042,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     : attributeData;
             }
 
-            ImmutableArray<CSharpAttributeData> loadAndFilterAttributes(out bool isExtensionMethod, out bool isReadOnly)
+            ImmutableArray<CSharpAttributeData> loadAndFilterAttributes(out bool isExtensionMethod, out bool isReadOnly, out bool hasRequiresUnsafeAttribute)
             {
                 isExtensionMethod = false;
                 isReadOnly = false;
+                hasRequiresUnsafeAttribute = false;
 
                 var containingModule = _containingType.ContainingPEModule;
                 if (!containingModule.TryGetNonEmptyCustomAttributes(_handle, out var customAttributeHandles))
@@ -1210,6 +1082,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.ExtensionMarkerAttribute))
                         continue;
+
+                    if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.RequiresUnsafeAttribute))
+                    {
+                        hasRequiresUnsafeAttribute = true;
+                        continue;
+                    }
 
                     builder.Add(new PEAttributeData(containingModule, handle));
                 }
