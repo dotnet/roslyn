@@ -442,28 +442,61 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
             // TODO: why solution changes return Project not ProjectId but ProjectChanges return DocumentId not Document?
             var projectConfigurationChange = UnitTestingInvocationReasons.Empty;
 
-            if (projectChanges.GetAddedMetadataReferences().Any() ||
-                projectChanges.GetAddedProjectReferences().Any() ||
-                projectChanges.GetAddedAnalyzerReferences().Any() ||
-                projectChanges.GetRemovedMetadataReferences().Any() ||
-                projectChanges.GetRemovedProjectReferences().Any() ||
-                projectChanges.GetRemovedAnalyzerReferences().Any() ||
-                !object.Equals(oldProject.CompilationOptions, newProject.CompilationOptions) ||
-                !object.Equals(oldProject.AssemblyName, newProject.AssemblyName) ||
-                !object.Equals(oldProject.Name, newProject.Name) ||
-                !object.Equals(oldProject.AnalyzerOptions, newProject.AnalyzerOptions) ||
-                !object.Equals(oldProject.HostAnalyzerOptions, newProject.HostAnalyzerOptions) ||
-                !object.Equals(oldProject.DefaultNamespace, newProject.DefaultNamespace) ||
-                !object.Equals(oldProject.OutputFilePath, newProject.OutputFilePath) ||
-                !object.Equals(oldProject.OutputRefFilePath, newProject.OutputRefFilePath) ||
-                !oldProject.CompilationOutputInfo.Equals(newProject.CompilationOutputInfo) ||
-                oldProject.State.RunAnalyzers != newProject.State.RunAnalyzers)
-            {
-                projectConfigurationChange = projectConfigurationChange.With(UnitTestingInvocationReasons.ProjectConfigurationChanged);
-            }
+            // We will create an invocation reason for each kind of change we might detect; this makes it easy to identify in
+            // a memory dump why a particular project reanalysis was happening.
+            if (projectChanges.GetAddedMetadataReferences().Any())
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.MetadataReferences) + "Added");
+
+            if (projectChanges.GetAddedProjectReferences().Any())
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.ProjectReferences) + "Added");
+
+            if (projectChanges.GetAddedAnalyzerReferences().Any())
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.AnalyzerReferences) + "Added");
+
+            if (projectChanges.GetRemovedMetadataReferences().Any())
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.MetadataReferences) + "Removed");
+
+            if (projectChanges.GetRemovedProjectReferences().Any())
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.ProjectReferences) + "Removed");
+
+            if (projectChanges.GetRemovedAnalyzerReferences().Any())
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.AnalyzerReferences) + "Removed");
+
+            if (!object.Equals(oldProject.CompilationOptions, newProject.CompilationOptions))
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.CompilationOptions) + "Changed");
+
+            if (!object.Equals(oldProject.AssemblyName, newProject.AssemblyName))
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.AssemblyName) + "Changed");
+
+            if (!object.Equals(oldProject.Name, newProject.Name))
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.Name) + "Changed");
+
+            if (!object.Equals(oldProject.AnalyzerOptions, newProject.AnalyzerOptions))
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.AnalyzerOptions) + "Changed");
+
+            if (!object.Equals(oldProject.HostAnalyzerOptions, newProject.HostAnalyzerOptions))
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.HostAnalyzerOptions) + "Changed");
+
+            if (!object.Equals(oldProject.DefaultNamespace, newProject.DefaultNamespace))
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.DefaultNamespace) + "Changed");
+
+            if (!object.Equals(oldProject.OutputFilePath, newProject.OutputFilePath))
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.OutputFilePath) + "Changed");
+
+            if (!object.Equals(oldProject.OutputRefFilePath, newProject.OutputRefFilePath))
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.OutputRefFilePath) + "Changed");
+
+            if (!oldProject.CompilationOutputInfo.Equals(newProject.CompilationOutputInfo))
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.CompilationOutputInfo) + "Changed");
+
+            if (oldProject.State.RunAnalyzers != newProject.State.RunAnalyzers)
+                projectConfigurationChange = projectConfigurationChange.With(nameof(ProjectState.RunAnalyzers) + "Changed");
 
             if (!projectConfigurationChange.IsEmpty)
             {
+                // Also include the generic change reason which is used by other parts of the system, since nothing else looks at the specific
+                // reasons we created above.
+                projectConfigurationChange = projectConfigurationChange.With(UnitTestingPredefinedInvocationReasons.ProjectConfigurationChanged);
                 await EnqueueFullProjectWorkItemAsync(projectChanges.NewProject, projectConfigurationChange).ConfigureAwait(false);
             }
         }
