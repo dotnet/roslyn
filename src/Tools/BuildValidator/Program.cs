@@ -171,6 +171,7 @@ namespace BuildValidator
             catch (Exception ex)
             {
                 logger.LogError(ex, ex.Message);
+                logger.LogError(ex, ex.StackTrace);
                 throw;
             }
         }
@@ -356,7 +357,8 @@ namespace BuildValidator
             catch (Exception ex)
             {
                 logger.LogError(ex.Message);
-                return CompilationDiff.CreateMiscError(assemblyInfo, ex.Message);
+                logger.LogError(ex.StackTrace);
+                return CompilationDiff.CreateMiscError(assemblyInfo, ex.Message + " " + ex.StackTrace);
             }
         }
 
