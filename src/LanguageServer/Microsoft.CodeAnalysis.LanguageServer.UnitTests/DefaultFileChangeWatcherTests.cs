@@ -22,7 +22,7 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
 
         using var context = watcher.CreateContext([]);
 
-        Assert.Empty(DefaultFileChangeWatcher.FileChangeContext.TestAccessor.GetWatchedRootPaths((DefaultFileChangeWatcher.FileChangeContext)context));
+        Assert.Empty(DefaultFileChangeWatcher.FileChangeContext.TestAccessor.GetRootFileWatchers((DefaultFileChangeWatcher.FileChangeContext)context));
     }
 
     [Fact]
@@ -33,7 +33,7 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
 
         using var context = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [])]);
 
-        Assert.Single(DefaultFileChangeWatcher.FileChangeContext.TestAccessor.GetWatchedRootPaths((DefaultFileChangeWatcher.FileChangeContext)context));
+        Assert.Single(DefaultFileChangeWatcher.FileChangeContext.TestAccessor.GetRootFileWatchers((DefaultFileChangeWatcher.FileChangeContext)context));
     }
 
     [Fact]
@@ -44,7 +44,7 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
 
         using var context = watcher.CreateContext([new WatchedDirectory(nonExistentPath, extensionFilters: [])]);
 
-        Assert.Empty(DefaultFileChangeWatcher.FileChangeContext.TestAccessor.GetWatchedRootPaths((DefaultFileChangeWatcher.FileChangeContext)context));
+        Assert.Empty(DefaultFileChangeWatcher.FileChangeContext.TestAccessor.GetRootFileWatchers((DefaultFileChangeWatcher.FileChangeContext)context));
     }
 
     [Fact]
@@ -61,7 +61,7 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
             new WatchedDirectory(subDir2.Path, extensionFilters: [])
         ]);
 
-        Assert.Single(DefaultFileChangeWatcher.FileChangeContext.TestAccessor.GetWatchedRootPaths((DefaultFileChangeWatcher.FileChangeContext)context));
+        Assert.Single(DefaultFileChangeWatcher.FileChangeContext.TestAccessor.GetRootFileWatchers((DefaultFileChangeWatcher.FileChangeContext)context));
     }
 
     [Fact]
@@ -590,8 +590,8 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
         using var context2 = watcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [".cs"])]);
 
         // Both contexts should have acquired 1 root path
-        Assert.Single(DefaultFileChangeWatcher.FileChangeContext.TestAccessor.GetWatchedRootPaths((DefaultFileChangeWatcher.FileChangeContext)context1));
-        Assert.Single(DefaultFileChangeWatcher.FileChangeContext.TestAccessor.GetWatchedRootPaths((DefaultFileChangeWatcher.FileChangeContext)context2));
+        Assert.Single(DefaultFileChangeWatcher.FileChangeContext.TestAccessor.GetRootFileWatchers((DefaultFileChangeWatcher.FileChangeContext)context1));
+        Assert.Single(DefaultFileChangeWatcher.FileChangeContext.TestAccessor.GetRootFileWatchers((DefaultFileChangeWatcher.FileChangeContext)context2));
 
         // The watcher should only have 1 shared root watcher
         Assert.Single(DefaultFileChangeWatcher.TestAccessor.GetWatchedRootPaths(watcher));

@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Roslyn.Utilities;
 
@@ -25,18 +23,15 @@ internal sealed partial class DefaultFileChangeWatcher
     {
         private readonly DefaultFileChangeWatcher _owner;
         private readonly ImmutableArray<WatchedDirectory> _watchedDirectories;
-        private readonly ConcurrentDictionary<string, IReferenceCountedDisposable<ICacheEntry<string, FileSystemWatcher>>> _sharedWatchers = new(s_pathStringComparer);
-
-        /// <summary>
-        /// The set of individual file paths being watched (outside of directory watches).
-        /// Maps file path to number of watchers for that file.
-        /// </summary>
-        private readonly ConcurrentDictionary<string, int> _individualWatchedFiles = new(s_pathStringComparer);
+        private readonly ImmutableArray<IReferenceCountedDisposable<ICacheEntry<string, FileSystemWatcher>>> _rootFileSystemWatchers;
+        private bool _disposed = false;
 
         public FileChangeContext(DefaultFileChangeWatcher owner, ImmutableArray<WatchedDirectory> watchedDirectories)
         {
             _owner = owner;
 
+            var acquiredRoot = new HashSet<string>(s_pathStringComparer);
+            var rootFileSystemWatchersBuilder = ImmutableArray.CreateBuilder<IReferenceCountedDisposable<ICacheEntry<string, FileSystemWatcher>>>();
             var watchedDirectoryBuilder = ImmutableArray.CreateBuilder<WatchedDirectory>(watchedDirectories.Length);
             foreach (var watchedDirectory in watchedDirectories)
             {
@@ -44,34 +39,34 @@ internal sealed partial class DefaultFileChangeWatcher
                     continue;
 
                 watchedDirectoryBuilder.Add(watchedDirectory);
-                AcquireSharedWatcher(watchedDirectory.Path);
+
+                var rootPath = Path.GetPathRoot(watchedDirectory.Path);
+                if (string.IsNullOrEmpty(rootPath) || !Directory.Exists(rootPath))
+                    continue;
+
+                if (!acquiredRoot.Add(rootPath))
+                    continue;
+
+                var rootWatcher = _owner.GetOrCreateSharedWatcher(rootPath);
+                rootWatcher.Target.Value.Changed += RaiseEvent;
+                rootWatcher.Target.Value.Created += RaiseEvent;
+                rootWatcher.Target.Value.Deleted += RaiseEvent;
+                rootWatcher.Target.Value.Renamed += RaiseEvent;
+                rootFileSystemWatchersBuilder.Add(rootWatcher);
             }
 
             _watchedDirectories = watchedDirectoryBuilder.ToImmutable();
+            _rootFileSystemWatchers = rootFileSystemWatchersBuilder.ToImmutable();
         }
 
         public event EventHandler<string>? FileChanged;
 
-        private bool AcquireSharedWatcher(string? filePath)
-        {
-            var rootPath = Path.GetPathRoot(filePath);
-            if (string.IsNullOrEmpty(rootPath) || !Directory.Exists(rootPath))
-                return false;
-
-            var sharedWatcher = _owner.GetOrCreateSharedWatcher(rootPath);
-            sharedWatcher.Target.Value.Changed += RaiseEvent;
-            sharedWatcher.Target.Value.Created += RaiseEvent;
-            sharedWatcher.Target.Value.Deleted += RaiseEvent;
-            sharedWatcher.Target.Value.Renamed += RaiseEvent;
-            _sharedWatchers.TryAdd(rootPath, sharedWatcher);
-            return true;
-        }
-
         private void RaiseEvent(object? sender, FileSystemEventArgs e)
         {
-            // If the changed file is covered by our watched directories or individual files, raise the event
-            if (!_watchedDirectories.IsEmpty && WatchedDirectory.FilePathCoveredByWatchedDirectories(_watchedDirectories, e.FullPath, s_pathStringComparison)
-                 || _individualWatchedFiles.ContainsKey(e.FullPath))
+            if (_watchedDirectories.IsEmpty)
+                return;
+
+            if (WatchedDirectory.FilePathCoveredByWatchedDirectories(_watchedDirectories, e.FullPath, s_pathStringComparison))
             {
                 FileChanged?.Invoke(this, e.FullPath);
 
@@ -88,49 +83,81 @@ internal sealed partial class DefaultFileChangeWatcher
             if (WatchedDirectory.FilePathCoveredByWatchedDirectories(_watchedDirectories, filePath, s_pathStringComparison))
                 return NoOpWatchedFile.Instance;
 
-            // Individual files are ref counted so we know when to stop watching them
-            lock (_individualWatchedFiles)
-                _individualWatchedFiles.AddOrUpdate(filePath, 1, (_, count) => count + 1);
+            // If this path doesn't have a valid root, we can't watch it
+            var rootPath = Path.GetPathRoot(filePath);
+            if (string.IsNullOrEmpty(rootPath) || !Directory.Exists(rootPath))
+                return NoOpWatchedFile.Instance;
 
-            // Try to acquire a root watcher that covers this file
-            AcquireSharedWatcher(filePath);
-
-            return new IndividualWatchedFile(filePath, this);
-        }
-
-        private void StopWatchingFile(string filePath)
-        {
-            lock (_individualWatchedFiles)
-            {
-                if (_individualWatchedFiles.AddOrUpdate(filePath, 0, (_, count) => count - 1) == 0)
-                    _individualWatchedFiles.TryRemove(filePath, out _);
-            }
+            var rootWatcher = _owner.GetOrCreateSharedWatcher(rootPath);
+            return new IndividualWatchedFile(this, filePath, rootWatcher);
         }
 
         public void Dispose()
         {
-            foreach (var (_, sharedWatcher) in _sharedWatchers)
+            if (Interlocked.Exchange(ref _disposed, true) == false)
             {
-                sharedWatcher.Target.Value.Changed -= RaiseEvent;
-                sharedWatcher.Target.Value.Created -= RaiseEvent;
-                sharedWatcher.Target.Value.Deleted -= RaiseEvent;
-                sharedWatcher.Target.Value.Renamed -= RaiseEvent;
-                sharedWatcher.Dispose();
+                foreach (var rootWatcher in _rootFileSystemWatchers)
+                {
+                    rootWatcher.Target.Value.Changed -= RaiseEvent;
+                    rootWatcher.Target.Value.Created -= RaiseEvent;
+                    rootWatcher.Target.Value.Deleted -= RaiseEvent;
+                    rootWatcher.Target.Value.Renamed -= RaiseEvent;
+                    rootWatcher.Dispose();
+                }
             }
-
-            _sharedWatchers.Clear();
-            _individualWatchedFiles.Clear();
         }
 
-        private sealed class IndividualWatchedFile(string filePath, FileChangeContext context) : IWatchedFile
+        private sealed class IndividualWatchedFile : IWatchedFile
         {
-            public void Dispose() => context.StopWatchingFile(filePath);
+            private readonly FileChangeContext _context;
+            private readonly string _filePath;
+            private readonly IReferenceCountedDisposable<ICacheEntry<string, FileSystemWatcher>> _watcher;
+            private bool _disposed = false;
+
+            public IndividualWatchedFile(FileChangeContext context, string filePath, IReferenceCountedDisposable<ICacheEntry<string, FileSystemWatcher>> watcher)
+            {
+                _context = context;
+                _filePath = filePath;
+                _watcher = watcher;
+
+                _watcher.Target.Value.Changed += RaiseEvent;
+                _watcher.Target.Value.Created += RaiseEvent;
+                _watcher.Target.Value.Deleted += RaiseEvent;
+                _watcher.Target.Value.Renamed += RaiseEvent;
+            }
+
+            private void RaiseEvent(object? sender, FileSystemEventArgs e)
+            {
+                if (e.FullPath.Equals(_filePath, s_pathStringComparison))
+                {
+                    _context.FileChanged?.Invoke(this, e.FullPath);
+                }
+                // On Windows we only get a renamed event instead of separate delete/create events, so check
+                // whether the old file path matches.
+                else if (e is RenamedEventArgs re && RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
+                    re.OldFullPath.Equals(_filePath, s_pathStringComparison))
+                {
+                    _context.FileChanged?.Invoke(this, re.OldFullPath);
+                }
+            }
+
+            public void Dispose()
+            {
+                if (Interlocked.Exchange(ref _disposed, true) == false)
+                {
+                    _watcher.Target.Value.Changed -= RaiseEvent;
+                    _watcher.Target.Value.Created -= RaiseEvent;
+                    _watcher.Target.Value.Deleted -= RaiseEvent;
+                    _watcher.Target.Value.Renamed -= RaiseEvent;
+                    _watcher.Dispose();
+                }
+            }
         }
 
         internal static class TestAccessor
         {
-            public static IEnumerable<string> GetWatchedRootPaths(FileChangeContext context)
-                => context._sharedWatchers.Keys;
+            public static ImmutableArray<IReferenceCountedDisposable<ICacheEntry<string, FileSystemWatcher>>> GetRootFileWatchers(FileChangeContext context)
+                => context._rootFileSystemWatchers;
         }
     }
 }
