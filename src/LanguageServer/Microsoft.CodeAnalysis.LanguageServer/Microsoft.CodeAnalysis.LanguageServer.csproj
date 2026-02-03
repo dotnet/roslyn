@@ -12,6 +12,7 @@
     <PackAsTool>true</PackAsTool>
     <PackageId>roslyn-language-server</PackageId>
     <ToolCommandName>roslyn-language-server</ToolCommandName>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
 
     <!-- Publishing settings -->
     <SelfContained>false</SelfContained>
@@ -24,6 +25,10 @@
     <PublishReadyToRun Condition="'$(Configuration)' == 'Release' ">true</PublishReadyToRun>
 
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
 
   <ItemGroup>
     <!-- Include MIBC data if available.  This is produced by a separate profiling pipeline for the C# extension, and injected in official builds -->
