@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static BoundDagTemp OriginalInput(BoundDagTemp input)
+        private static BoundDagTemp OriginalInput(BoundDagTemp input)
         {
             // Type evaluations do not change identity
             while (input.Source is BoundDagTypeEvaluation source)
@@ -1399,21 +1399,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (lengthTemp, offset);
         }
 
-        internal static (BoundDagTemp input, BoundDagTemp lengthTemp, int index) GetCanonicalInput(BoundDagIndexerEvaluation e)
-        {
-            int index = e.Index;
-            BoundDagTemp input = e.Input;
-            BoundDagTemp lengthTemp = e.LengthTemp;
-            while (input.Source is BoundDagSliceEvaluation slice)
-            {
-                Debug.Assert(input.Index == 0);
-                index = index < 0 ? index - slice.EndIndex : index + slice.StartIndex;
-                lengthTemp = slice.LengthTemp;
-                input = slice.Input;
-            }
-            return (input, lengthTemp, index);
-        }
-
         private FrozenArrayBuilder<StateForCase> RemoveEvaluation(DagState state, BoundDagEvaluation e)
         {
             FrozenArrayBuilder<StateForCase> cases = state.Cases;
@@ -1639,28 +1624,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsSameEntity(test.Input, other.Input);
         }
 
-        internal static bool IsSameEntity(BoundDagTemp input1, BoundDagTemp input2)
+        private static bool IsSameEntity(BoundDagTemp input1, BoundDagTemp input2)
         {
             BoundDagTemp s1Input = OriginalInput(input1);
             BoundDagTemp s2Input = OriginalInput(input2);
-
-            if (s1Input.Index != s2Input.Index)
+            while (s1Input.Index == s2Input.Index)
             {
-                // unrelated
-                return false;
-            }
-
-            return IsProducingSameEntity(s1Input.Source, s2Input.Source);
-        }
-
-        internal static bool IsProducingSameEntity(BoundDagEvaluation? s1Source, BoundDagEvaluation? s2Source)
-        {
-            BoundDagTemp s1Input;
-            BoundDagTemp s2Input;
-
-            do
-            {
-                switch (s1Source, s2Source)
+                switch (s1Input.Source, s2Input.Source)
                 {
                     // We should've skipped all type evaluations at this point.
                     case (BoundDagTypeEvaluation, _):
@@ -1671,45 +1641,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case var (s1, s2) when s1 == s2:
                         return true;
 
-                    // Even though the two tests appear unrelated (with different inputs),
-                    // it is possible that they are in fact related under certain conditions.
-                    // For instance, the inputs [0] and [^1] point to the same element when length is 1.
-                    case (BoundDagIndexerEvaluation s1, BoundDagIndexerEvaluation s2):
-                        // Take the top-level input and normalize indices to account for indexer accesses inside a slice.
-                        // For instance [0] in nested list pattern [ 0, ..[$$], 2 ] refers to [1] in the containing list.
-                        (s1Input, BoundDagTemp s1LengthTemp, int s1Index) = GetCanonicalInput(s1);
-                        (s2Input, BoundDagTemp s2LengthTemp, int s2Index) = GetCanonicalInput(s2);
-
-                        s1Input = OriginalInput(s1Input);
-                        s2Input = OriginalInput(s2Input);
-
-                        // Ignore input source as it will be matched in the subsequent iterations.
-                        if (s1Input.Index == s2Input.Index)
-                        {
-                            Debug.Assert(s1LengthTemp.IsEquivalentTo(s2LengthTemp));
-                            if (s1Index == s2Index)
-                            {
-                                break;
-                            }
-                        }
-
-                        // unrelated
-                        return false;
-
                     case (BoundDagEvaluation s1, BoundDagEvaluation s2) when s1.IsEquivalentTo(s2):
                         s1Input = OriginalInput(s1.Input);
                         s2Input = OriginalInput(s2.Input);
-                        break;
-
-                    default:
-                        // unrelated
-                        return false;
+                        continue;
                 }
-
-                s1Source = s1Input.Source;
-                s2Source = s2Input.Source;
+                break;
             }
-            while (s1Input.Index == s2Input.Index);
 
             // unrelated
             return false;
@@ -2357,6 +2295,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
+                Debug.Assert(oldTempMap.Count < newTempMap.Count);
+
                 foreach (BoundPatternBinding b in bindings)
                 {
                     if (TryGetTempReplacement(newTempMap, b.TempContainingValue, out BoundDagTemp? useValueFrom))
@@ -2575,41 +2515,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(savedTempMap == tempsUpdatedResultTempMap);
                     }
 
-                    Tests finalResult = tempsUpdatedResult;
-                    Tests? condition = null;
+                    Tests finalResult = RemoveEvaluation(tempsUpdatedResult, builder, state, ref tempMap, e, out var condition);
 
-                    if (e is BoundDagIndexerEvaluation indexer)
+                    Debug.Assert(!finalResult.Equals(tempsUpdatedResult) || tempsUpdatedResultTempMap == tempMap);
+                    Debug.Assert(condition is null ||
+                                 (!finalResult.Equals(tempsUpdatedResult) &&
+                                  Test is BoundDagIndexerEvaluation &&
+                                  tempsUpdatedResult is One(BoundDagIndexerEvaluation)));
+                    Debug.Assert(Test is not BoundDagIndexerEvaluation ||
+                                 (tempsUpdatedResult == this && tempsUpdatedResultTempMap == savedTempMap) ||
+                                 (finalResult == tempsUpdatedResult && condition is null));
+
+                    if (condition is not null && savedTempMap != tempsUpdatedResultTempMap)
                     {
-                        finalResult = RemoveIndexerEvaluation(tempsUpdatedResult, builder, state, ref tempMap, indexer, out condition);
+                        // The process of updating temps updated the underlying indexer evaluation.
+                        // Then the process of removal made another update to that indexer evaluation.
+                        // This means that the evaluation would somehow take an input that is calculated
+                        // from itself, only then temps update would update the evaluation.
+                        // But a circularity like this is not possible with indexer evaluations.
+                        // In other words, it is not possible to evaluate an indexer and have an 'output'
+                        // that is considered as the same entity as the 'input', so that the next indexer
+                        // evaluation on the 'output' would be considered equivalent to the first one.
+                        // This fact is important because only indexer evaluations can result in a conditional 
+                        // removal, and properly handling the temp map change resulting from the temps update
+                        // in this case, while possible, will add an extra complexity to handle the case that
+                        // we think is impossible. 
+                        Debug.Fail("Unexpected change in temp map during conditional removal of indexer evaluation.");
 
-                        Debug.Assert(!finalResult.Equals(tempsUpdatedResult) || tempsUpdatedResultTempMap == tempMap);
-                        Debug.Assert(condition is null ||
-                                     (!finalResult.Equals(tempsUpdatedResult) &&
-                                      Test is BoundDagIndexerEvaluation &&
-                                      tempsUpdatedResult is One(BoundDagIndexerEvaluation)));
-                        Debug.Assert(Test is not BoundDagIndexerEvaluation ||
-                                     (tempsUpdatedResult == this && tempsUpdatedResultTempMap == savedTempMap) ||
-                                     (finalResult == tempsUpdatedResult && condition is null));
-
-                        if (condition is not null && savedTempMap != tempsUpdatedResultTempMap)
-                        {
-                            // The process of updating temps updated the underlying indexer evaluation.
-                            // Then the process of removal made another update to that indexer evaluation.
-                            // This means that the evaluation would somehow take an input that is calculated
-                            // from itself, only then temps update would update the evaluation.
-                            // But a circularity like this is not possible with indexer evaluations.
-                            // In other words, it is not possible to evaluate an indexer and have an 'output'
-                            // that is considered as the same entity as the 'input', so that the next indexer
-                            // evaluation on the 'output' would be considered equivalent to the first one.
-                            // This fact is important because only indexer evaluations can result in a conditional 
-                            // removal, and properly handling the temp map change resulting from the temps update
-                            // in this case, while possible, will add an extra complexity to handle the case that
-                            // we think is impossible. 
-                            Debug.Fail("Unexpected change in temp map during conditional removal of indexer evaluation.");
-
-                            // In case we somehow get here, it is safe to return the result of updating the temps only.
-                            return new RemoveEvaluationAndUpdateTempReferencesResult(tempsUpdatedResult, tempsUpdatedResultTempMap, null, null);
-                        }
+                        // In case we somehow get here, it is safe to return the result of updating the temps only.
+                        return new RemoveEvaluationAndUpdateTempReferencesResult(tempsUpdatedResult, tempsUpdatedResultTempMap, null, null);
                     }
 
                     return new RemoveEvaluationAndUpdateTempReferencesResult(
@@ -2619,6 +2553,79 @@ namespace Microsoft.CodeAnalysis.CSharp
                         condition is null ? null : tempsUpdatedResult);
                 }
 
+                public static Tests RemoveEvaluation(One tests, DecisionDagBuilder builder, DagState state, ref ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagEvaluation e, out Tests? condition)
+                {
+                    switch (e)
+                    {
+                        case BoundDagTypeEvaluation typeEval:
+                            {
+                                condition = null;
+                                return RemoveTypeEvaluation(tests, ref tempMap, typeEval);
+                            }
+                        case BoundDagIndexerEvaluation indexer:
+                            {
+                                return RemoveIndexerEvaluation(tests, builder, state, ref tempMap, indexer, out condition);
+                            }
+                        case BoundDagDeconstructEvaluation deconstruct:
+                            {
+                                condition = null;
+                                return RemoveDeconstructEvaluation(tests, ref tempMap, deconstruct);
+                            }
+                        case BoundDagFieldEvaluation:
+                        case BoundDagPropertyEvaluation:
+                        case BoundDagIndexEvaluation:
+                        case BoundDagSliceEvaluation:
+                            {
+                                condition = null;
+                                return RemoveSimpleEvaluationWithResultTemp(tests, ref tempMap, e);
+                            }
+                        case BoundDagAssignmentEvaluation assignment:
+                            {
+                                condition = null;
+                                return RemoveAssignmentEvaluation(tests, assignment);
+                            }
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(e);
+                    }
+                }
+
+                private static bool IsEquivalentEvaluation(One tests, BoundDagEvaluation e1, [NotNullWhen(true)] out BoundDagEvaluation? underlying)
+                {
+                    if (tests.Test is BoundDagEvaluation eval &&
+                        e1.IsEquivalentTo(eval) &&
+                        IsSameEntity(eval.Input, e1.Input))
+                    {
+                        Debug.Assert(!eval.Input.Equals(e1.Input));
+                        underlying = eval;
+                        return true;
+                    }
+
+                    underlying = null;
+                    return false;
+                }
+
+                private static Tests RemoveAssignmentEvaluation(One tests, BoundDagAssignmentEvaluation e1)
+                {
+                    if (IsEquivalentEvaluation(tests, e1, out _))
+                    {
+                        return Tests.True.Instance;
+                    }
+
+                    return tests;
+                }
+
+                private static Tests RemoveSimpleEvaluationWithResultTemp(One tests, ref ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagEvaluation e1)
+                {
+                    if (IsEquivalentEvaluation(tests, e1, out var eval))
+                    {
+                        // Refer to the result of e1 instead of result of eval, this will allow reusing results of evaluations that might be coming next
+                        AddResultTempReplacement(ref tempMap, eval, e1);
+                        return Tests.True.Instance;
+                    }
+
+                    return tests;
+                }
+
                 private static void AddResultTempReplacement(ref ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagEvaluation oldEval, BoundDagEvaluation newEval)
                 {
                     AddTempReplacement(ref tempMap, oldEval.MakeResultTemp(), newEval.MakeResultTemp());
@@ -2626,19 +2633,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 private static void AddTempReplacement(ref ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagTemp oldTemp, BoundDagTemp newTemp)
                 {
-                    var current = newTemp;
-
-                    do
-                    {
-                        if (current.Equals(oldTemp))
-                        {
-                            throw ExceptionUtilities.Unreachable();
-                        }
-                    }
-                    while (tempMap.TryGetValue(current, out current));
-
+                    Debug.Assert(!oldTemp.Equals(newTemp));
                     Debug.Assert(oldTemp.Type.Equals(newTemp.Type, TypeCompareKind.AllIgnoreOptions));
                     tempMap = tempMap.SetItem(oldTemp, newTemp);
+                }
+
+                private static Tests RemoveDeconstructEvaluation(One tests, ref ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagDeconstructEvaluation e1)
+                {
+                    if (IsEquivalentEvaluation(tests, e1, out var eval))
+                    {
+                        // Refer to the result of e1 instead of result of eval, this will allow reusing results of evaluations that might be coming next
+                        AddOutParameterTempsReplacement(ref tempMap, (BoundDagDeconstructEvaluation)eval, e1);
+                        return Tests.True.Instance;
+                    }
+
+                    return tests;
                 }
 
                 private static void AddOutParameterTempsReplacement(ref ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagDeconstructEvaluation oldDeconstruct, BoundDagDeconstructEvaluation newDeconstruct)
@@ -2653,6 +2662,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                     oldOutParamTemps.Free();
                 }
 
+                private static Tests RemoveTypeEvaluation(One tests, ref ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagTypeEvaluation e1)
+                {
+                    if (tests.Test is BoundDagTypeEvaluation typeEval && IsSameEntity(typeEval.Input, e1.Input))
+                    {
+                        Debug.Assert(!typeEval.Equals(e1));
+
+                        if (e1.Type.Equals(typeEval.Type, TypeCompareKind.AllIgnoreOptions))
+                        {
+                            // Refer to the result of e1 instead of result of typeEval, this will allow reusing results of evaluations that might be coming next
+                            AddResultTempReplacement(ref tempMap, typeEval, e1);
+                            return Tests.True.Instance;
+                        }
+                        else if (!typeEval.Input.Equals(e1.Input))
+                        {
+                            // Change typeEval to use input of e1 instead, this will allow reusing results of evaluations that might be coming next
+                            var newTypeEval = typeEval.Update(e1.Input);
+                            AddResultTempReplacement(ref tempMap, typeEval, newTypeEval);
+                            return new Tests.One(newTypeEval);
+                        }
+                    }
+
+                    return tests;
+                }
+
                 private static Tests RemoveIndexerEvaluation(One tests, DecisionDagBuilder dagBuilder, DagState state, ref ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagIndexerEvaluation s1, out Tests? condition)
                 {
                     if (tests.Test is BoundDagIndexerEvaluation s2 && s2.IndexerType.Equals(s1.IndexerType, TypeCompareKind.AllIgnoreOptions))
@@ -2663,17 +2696,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // Take the top-level input and normalize indices to account for indexer accesses inside a slice.
                         // For instance [0] in nested list pattern [ 0, ..[$$], 2 ] refers to [1] in the containing list.
-                        (BoundDagTemp s1Input, BoundDagTemp s1LengthTemp, int s1Index) = GetCanonicalInput(s1);
-                        (BoundDagTemp s2Input, BoundDagTemp s2LengthTemp, int s2Index) = GetCanonicalInput(s2);
+                        (BoundDagTemp s1Input, BoundDagTemp s1LengthTemp, int s1Index) = getCanonicalInput(s1);
+                        (BoundDagTemp s2Input, BoundDagTemp s2LengthTemp, int s2Index) = getCanonicalInput(s2);
 
                         if (IsSameEntity(s1Input, s2Input))
                         {
                             Debug.Assert(s1LengthTemp.IsEquivalentTo(s2LengthTemp));
                             if (s1Index == s2Index)
                             {
-                                Debug.Fail("If we get here, evaluations must be equal and should have been handled earlier.");
+                                AddResultTempReplacement(ref tempMap, s2, s1);
+                                condition = null;
+                                return Tests.True.Instance;
                             }
-                            else if (s1Index < 0 != s2Index < 0)
+
+                            if (s1Index < 0 != s2Index < 0)
                             {
                                 Debug.Assert(state.RemainingValues.ContainsKey(s1LengthTemp));
                                 var lengthValues = (IValueSet<int>)state.RemainingValues[s1LengthTemp];
@@ -2706,6 +2742,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     condition = null;
                     return tests;
+
+                    static (BoundDagTemp input, BoundDagTemp lengthTemp, int index) getCanonicalInput(BoundDagIndexerEvaluation e)
+                    {
+                        int index = e.Index;
+                        BoundDagTemp input = e.Input;
+                        BoundDagTemp lengthTemp = e.LengthTemp;
+                        while (input.Source is BoundDagSliceEvaluation slice)
+                        {
+                            Debug.Assert(input.Index == 0);
+                            index = index < 0 ? index - slice.EndIndex : index + slice.StartIndex;
+                            lengthTemp = slice.LengthTemp;
+                            input = slice.Input;
+                        }
+                        return (input, lengthTemp, index);
+                    }
                 }
 
                 private static BoundDagTest UpdateDagTempReferences(BoundDagTest test, ref ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap)

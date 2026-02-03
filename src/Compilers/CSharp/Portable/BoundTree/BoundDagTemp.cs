@@ -24,15 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool Equals(BoundDagTemp other)
         {
-            if (this.Type.Equals(other.Type, TypeCompareKind.AllIgnoreOptions) &&
-                DecisionDagBuilder.IsSameEntity(other, this))
-            {
-                Debug.Assert(other.GetHashCode() == this.GetHashCode());
-                Debug.Assert(Equals(DecisionDagBuilder.OriginalInput(other).Source, DecisionDagBuilder.OriginalInput(this).Source));
-                return true;
-            }
-
-            return false;
+            return
+                this.Type.Equals(other.Type, TypeCompareKind.AllIgnoreOptions) &&
+                object.Equals(this.Source, other.Source) &&
+                this.Index == other.Index;
         }
 
         /// <summary>
@@ -47,13 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override int GetHashCode()
         {
-            var originalInput = DecisionDagBuilder.OriginalInput(this);
-
-            if (originalInput != this)
-            {
-                return Hash.Combine(this.Type.GetHashCode(), originalInput.GetHashCode());
-            }
-
             return Hash.Combine(this.Type.GetHashCode(), Hash.Combine(this.Source?.GetHashCode() ?? 0, this.Index));
         }
 
