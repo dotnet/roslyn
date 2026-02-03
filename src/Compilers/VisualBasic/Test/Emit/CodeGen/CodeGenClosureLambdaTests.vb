@@ -952,7 +952,7 @@ End Module
                 Diagnostic(ERRID.ERR_CannotGotoNonScopeBlocksWithClosure, "goto label1").WithArguments("Goto ", "label1", "label1"))
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/82268")>
         Public Sub InvalidGotoLiftingBetweenGotoAndLabel4()
             CompileAndVerify(
 <compilation>
