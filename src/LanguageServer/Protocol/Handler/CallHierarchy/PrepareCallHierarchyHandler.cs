@@ -54,13 +54,18 @@ internal sealed class PrepareCallHierarchyHandler : ILspServiceDocumentRequestHa
         if (items.IsEmpty)
             return null;
 
+        // Store the items in the cache for later resolution
+        var callHierarchyCache = context.GetRequiredLspService<CallHierarchyCache>();
+        var resultId = callHierarchyCache.UpdateCache(new CallHierarchyCache.CallHierarchyCacheEntry(items));
+
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         using var _ = ArrayBuilder<LSP.CallHierarchyItem>.GetInstance(out var result);
 
-        foreach (var item in items)
+        for (var i = 0; i < items.Length; i++)
         {
+            var item = items[i];
             var lspItem = await ConvertToLspCallHierarchyItemAsync(
-                item, document, text, cancellationToken).ConfigureAwait(false);
+                item, document, text, resultId, i, request.TextDocument, cancellationToken).ConfigureAwait(false);
             result.Add(lspItem);
         }
 
@@ -71,6 +76,9 @@ internal sealed class PrepareCallHierarchyHandler : ILspServiceDocumentRequestHa
         CodeAnalysis.CallHierarchy.CallHierarchyItem item,
         Document document,
         SourceText text,
+        long resultId,
+        int itemIndex,
+        LSP.TextDocumentIdentifier textDocument,
         CancellationToken cancellationToken)
     {
         var itemDocument = document.Project.Solution.GetRequiredDocument(item.DocumentId);
@@ -106,11 +114,7 @@ internal sealed class PrepareCallHierarchyHandler : ILspServiceDocumentRequestHa
             Uri = uri,
             Range = ProtocolConversions.LinePositionToRange(linePositionSpan),
             SelectionRange = selectionRange,
-            Data = new CallHierarchyItemData(
-                item.SymbolKey,
-                item.ProjectId,
-                item.DocumentId,
-                item.Span)
+            Data = new CallHierarchyResolveData(resultId, itemIndex, textDocument)
         };
     }
 }

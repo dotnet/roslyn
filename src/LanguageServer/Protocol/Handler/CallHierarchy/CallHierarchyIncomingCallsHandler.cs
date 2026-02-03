@@ -46,12 +46,13 @@ internal sealed class CallHierarchyIncomingCallsHandler :
         var solution = context.Solution;
         Contract.ThrowIfNull(solution);
 
-        // Deserialize the item data
-        var itemData = CallHierarchyHelpers.GetCallHierarchyItemData(request.Item);
-        if (itemData == null)
+        // Get the item from the cache
+        var resolveData = CallHierarchyHelpers.GetCallHierarchyResolveData(request.Item);
+        if (resolveData == null)
             return null;
 
-        var item = await CallHierarchyHelpers.ReconstructCallHierarchyItemAsync(itemData, solution, cancellationToken).ConfigureAwait(false);
+        var callHierarchyCache = context.GetRequiredLspService<CallHierarchyCache>();
+        var item = CallHierarchyHelpers.GetCallHierarchyItem(resolveData, callHierarchyCache);
         if (item == null)
             return null;
 
@@ -76,8 +77,11 @@ internal sealed class CallHierarchyIncomingCallsHandler :
             var fromDocument = solution.GetRequiredDocument(incomingCall.From.DocumentId);
             var fromText = await fromDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
+            // Store the from item in cache
+            var fromResultId = callHierarchyCache.UpdateCache(new CallHierarchyCache.CallHierarchyCacheEntry([incomingCall.From]));
+            
             var lspFromItem = await PrepareCallHierarchyHandler.ConvertToLspCallHierarchyItemAsync(
-                incomingCall.From, document, fromText, cancellationToken).ConfigureAwait(false);
+                incomingCall.From, document, fromText, fromResultId, 0, resolveData.TextDocument, cancellationToken).ConfigureAwait(false);
 
             // Convert call locations to ranges
             using var rangesBuilder = ArrayBuilder<LSP.Range>.GetInstance(out var ranges);

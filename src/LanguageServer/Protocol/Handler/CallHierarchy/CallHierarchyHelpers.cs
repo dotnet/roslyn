@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CallHierarchy;
@@ -14,9 +15,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CallHierarchy;
 internal static class CallHierarchyHelpers
 {
     /// <summary>
-    /// Extracts CallHierarchyItemData from the LSP CallHierarchyItem.Data field.
+    /// Extracts CallHierarchyResolveData from the LSP CallHierarchyItem.Data field.
     /// </summary>
-    public static CallHierarchyItemData? GetCallHierarchyItemData(LSP.CallHierarchyItem item)
+    public static CallHierarchyResolveData? GetCallHierarchyResolveData(LSP.CallHierarchyItem item)
     {
         if (item.Data == null)
             return null;
@@ -26,11 +27,11 @@ internal static class CallHierarchyHelpers
             // The Data field is a JsonElement when deserialized
             if (item.Data is JsonElement jsonElement)
             {
-                return JsonSerializer.Deserialize<CallHierarchyItemData>(jsonElement.GetRawText());
+                return JsonSerializer.Deserialize<CallHierarchyResolveData>(jsonElement.GetRawText(), ProtocolConversions.LspJsonSerializerOptions);
             }
 
             // If it's already our type, return it
-            if (item.Data is CallHierarchyItemData data)
+            if (item.Data is CallHierarchyResolveData data)
             {
                 return data;
             }
@@ -44,45 +45,16 @@ internal static class CallHierarchyHelpers
     }
 
     /// <summary>
-    /// Reconstructs a CallHierarchyItem from the serialized data.
+    /// Reconstructs a CallHierarchyItem from the cache using resolve data.
     /// </summary>
-    public static async Task<CodeAnalysis.CallHierarchy.CallHierarchyItem?> ReconstructCallHierarchyItemAsync(
-        CallHierarchyItemData itemData,
-        Solution solution,
-        CancellationToken cancellationToken)
+    public static CodeAnalysis.CallHierarchy.CallHierarchyItem? GetCallHierarchyItem(
+        CallHierarchyResolveData resolveData,
+        CallHierarchyCache cache)
     {
-        try
-        {
-            var projectId = ProjectId.CreateFromSerialized(Guid.Parse(itemData.ProjectId));
-            var documentId = DocumentId.CreateFromSerialized(projectId, Guid.Parse(itemData.DocumentId));
-            var document = solution.GetDocument(documentId);
-            if (document == null)
-                return null;
-
-            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            if (compilation == null)
-                return null;
-
-            var symbolKey = SymbolKey.ResolveString(itemData.SymbolKey, compilation, cancellationToken: cancellationToken);
-            var symbol = symbolKey.Symbol;
-            if (symbol == null)
-                return null;
-
-            var span = new TextSpan(itemData.SpanStart, itemData.SpanLength);
-
-            return new CodeAnalysis.CallHierarchy.CallHierarchyItem(
-                symbolKey: SymbolKey.Create(symbol, cancellationToken),
-                name: symbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat),
-                kind: symbol.Kind,
-                detail: symbol.ContainingType?.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat) ?? "",
-                containingNamespace: symbol.ContainingNamespace?.ToDisplayString() ?? "",
-                projectId: projectId,
-                documentId: documentId,
-                span: span);
-        }
-        catch
-        {
+        var cacheEntry = cache.GetCachedEntry(resolveData.ResultId);
+        if (cacheEntry == null || resolveData.ItemIndex >= cacheEntry.CallHierarchyItems.Length)
             return null;
-        }
+
+        return cacheEntry.CallHierarchyItems[resolveData.ItemIndex];
     }
 }
