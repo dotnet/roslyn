@@ -204,6 +204,14 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
             Contract.ThrowIfNull(data, "Failed to document resolve data object");
             uri = data.TextDocument.DocumentUri;
         }
+        else if (parameters.TryGetProperty("item", out var itemToken) && itemToken.TryGetProperty("data", out var itemDataToken))
+        {
+            // Call hierarchy incoming/outgoing calls have the following structure:
+            // { "item": { "data": { "TextDocument": { "uri": "<uri>" ... } ... } ... } ... }
+            var data = JsonSerializer.Deserialize<DocumentResolveData>(itemDataToken, ProtocolConversions.LspJsonSerializerOptions);
+            Contract.ThrowIfNull(data, "Failed to deserialize call hierarchy item data object");
+            uri = data.TextDocument.DocumentUri;
+        }
 
         if (uri == null)
         {
