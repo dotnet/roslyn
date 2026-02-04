@@ -113,12 +113,16 @@ public readonly struct ProjectChanges
 
     private static IEnumerable<ProjectReference> GetChangedProjectReferences(Project newProject, Project oldProject)
     {
-        // AllProjectReferences is equivalent to ProjectReferences only if the set of projects in the solution hasn't changed.
-        if (newProject.Solution.ProjectIds == oldProject.Solution.ProjectIds)
-            return GetChangedItems(newProject.AllProjectReferences, oldProject.AllProjectReferences);
+        // Fast path: if the set of projects in the solution and the underlying project references
+        // collection are identical, then no project references (within the solution) have changed.
+        if (newProject.Solution.ProjectIds == oldProject.Solution.ProjectIds &&
+            newProject.State.ProjectReferences == oldProject.State.ProjectReferences)
+        {
+            return [];
+        }
 
-        // If we can't use AllProjectReferences then there is no point in doing an equality check,
-        // because ProjectReferences is a linq query and will always be different.
+        // Compute the diff based on ProjectReferences, which only includes references to projects
+        // contained in the solution.
         return newProject.ProjectReferences.Except(oldProject.ProjectReferences);
     }
 }
