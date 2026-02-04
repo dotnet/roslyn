@@ -142,10 +142,9 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
             Console.WriteLine("Hello World");
             """).ConfigureAwait(false);
 
-        // File should be initially added as a primordial document in the canonical misc files project with no metadata references.
+        // File should be initially found in a primordial misc files project
         var (_, primordialDocument) = await GetRequiredLspWorkspaceAndDocumentAsync(nonFileUri, testLspServer).ConfigureAwait(false);
-        // Should have the primordial canonical document and the loose document.
-        Assert.Equal(2, primordialDocument.Project.Documents.Count());
+        Assert.Equal(1, primordialDocument.Project.Documents.Count());
         Assert.Empty(primordialDocument.Project.MetadataReferences);
 
         // No errors for '#:' are expected.
@@ -218,11 +217,10 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
             class C { }
             """).ConfigureAwait(false);
 
-        // File should be initially added as a primordial document in the canonical misc files project with no metadata references.
+        // File should be initially found in a primordial misc files project
         var (miscFilesWorkspace, looseDocumentOne) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, miscFilesWorkspace.Kind);
-        // Should have the primordial canonical document and the loose document.
-        Assert.Equal(2, looseDocumentOne.Project.Documents.Count());
+        Assert.Equal(1, looseDocumentOne.Project.Documents.Count());
         Assert.Empty(looseDocumentOne.Project.MetadataReferences);
         // Semantic diagnostics are not expected because we haven't loaded references
         Assert.False(looseDocumentOne.Project.State.HasAllInformation);
@@ -318,11 +316,10 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
             class C { }
             """).ConfigureAwait(false);
 
-        // File should be initially added as a primordial document in the canonical misc files project with no metadata references.
+        // File should be initially found in a primordial misc files project
         var (miscFilesWorkspace, looseDocumentOne) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, miscFilesWorkspace.Kind);
-        // Should have the primordial canonical document and the loose document.
-        Assert.Equal(2, looseDocumentOne.Project.Documents.Count());
+        Assert.Equal(1, looseDocumentOne.Project.Documents.Count());
         Assert.Empty(looseDocumentOne.Project.MetadataReferences);
         // Semantic diagnostics are not expected because we haven't loaded references
         Assert.False(looseDocumentOne.Project.State.HasAllInformation);
@@ -403,11 +400,10 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
             Console.WriteLine("Hello World!");
             """).ConfigureAwait(false);
 
-        // File should be initially added as a primordial document in the canonical misc files project with no metadata references.
+        // File should be initially found in a primordial misc files project
         var (miscFilesWorkspace, looseDocumentOne) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, miscFilesWorkspace.Kind);
-        // Should have the primordial canonical document and the loose document.
-        Assert.Equal(2, looseDocumentOne.Project.Documents.Count());
+        Assert.Equal(1, looseDocumentOne.Project.Documents.Count());
         Assert.Empty(looseDocumentOne.Project.MetadataReferences);
         // Semantic diagnostics are not expected because we haven't loaded references
         Assert.False(looseDocumentOne.Project.State.HasAllInformation);
