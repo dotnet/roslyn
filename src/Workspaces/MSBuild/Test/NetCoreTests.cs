@@ -415,16 +415,22 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         }
     }
 
-    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
-    public async Task TestOpenSolution_NetCoreMultiTFMWithProjectReferenceToFSharp()
+    [CombinatorialData]
+    public async Task TestOpenSolution_NetCoreMultiTFMWithProjectReferenceToFSharp(bool build)
     {
         CreateFiles(GetNetCoreMultiTFMFiles_ProjectReferenceToFSharp());
 
         var solutionFilePath = GetSolutionFileName("Solution.sln");
 
         DotNetRestore("Solution.sln");
+
+        if (build)
+        {
+            DotNetBuild("Solution.sln", configuration: "Debug");
+        }
 
         using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false, skipUnrecognizedProjects: true);
         var solution = await workspace.OpenSolutionAsync(solutionFilePath);
@@ -445,7 +451,10 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
 
         var libraryFs = fsharpLib.Documents.Single(d => Path.GetFileName(d.FilePath) == "Library.fs");
         var text = await libraryFs.GetTextAsync();
-        Assert.Equal(932, text.Encoding.CodePage);
+
+        // F# fails to build with CodePage set: https://github.com/dotnet/fsharp/issues/14693
+        // Assert.Equal(932, text.Encoding.CodePage);
+
         Assert.Equal(SourceHashAlgorithm.Sha1, text.ChecksumAlgorithm);
         Assert.Equal(SourceHashAlgorithm.Sha1, fsharpLib.State.ChecksumAlgorithm);
 
@@ -453,6 +462,21 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         AssertEx.SequenceEqual([fsharpLib.Id], csharpLibApp.ProjectReferences.Select(r => r.ProjectId));
         AssertEx.SequenceEqual([fsharpLib.Id], csharpLibStd.AllProjectReferences.Select(r => r.ProjectId));
         AssertEx.SequenceEqual([fsharpLib.Id], csharpLibApp.AllProjectReferences.Select(r => r.ProjectId));
+
+        // validate we can create C# compilation:
+        var compilation = await csharpLibStd.GetCompilationAsync();
+
+        // The reference is available even if the project is not built and the DLL doesn't exist on disk:
+        var reference = compilation.References.Single(r => r is PortableExecutableReference per && Path.GetFileName(per.FilePath) == "fsharplib.dll");
+
+        if (build)
+        {
+            Assert.NotNull(reference.GetManifestModuleMetadata());
+        }
+        else
+        {
+            Assert.Throws<FileNotFoundException>(reference.GetManifestModuleMetadata);
+        }
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
