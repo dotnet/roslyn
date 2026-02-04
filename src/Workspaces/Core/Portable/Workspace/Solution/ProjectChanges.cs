@@ -23,10 +23,10 @@ public readonly struct ProjectChanges
     public Project NewProject { get; }
 
     public IEnumerable<ProjectReference> GetAddedProjectReferences()
-        => NewProject.ProjectReferences.Except(OldProject.ProjectReferences);
+        => GetChangedProjectReferences(NewProject, OldProject);
 
     public IEnumerable<ProjectReference> GetRemovedProjectReferences()
-        => OldProject.ProjectReferences.Except(NewProject.ProjectReferences);
+        => GetChangedProjectReferences(OldProject, NewProject);
 
     public IEnumerable<MetadataReference> GetAddedMetadataReferences()
         => GetChangedItems(NewProject.MetadataReferences, OldProject.MetadataReferences);
@@ -110,4 +110,15 @@ public readonly struct ProjectChanges
 
     private static IEnumerable<T> GetChangedItems<T>(IEnumerable<T> newItems, IEnumerable<T> oldItems)
         => newItems == oldItems ? [] : newItems.Except(oldItems);
+
+    private static IEnumerable<ProjectReference> GetChangedProjectReferences(Project newProject, Project oldProject)
+    {
+        // AllProjectReferences is equivalent to ProjectReferences only if the set of projects in the solution hasn't changed.
+        if (newProject.Solution.ProjectIds == oldProject.Solution.ProjectIds)
+            return GetChangedItems(newProject.AllProjectReferences, oldProject.AllProjectReferences);
+
+        // If we can't use AllProjectReferences then there is no point in doing an equality check,
+        // because ProjectReferences is a linq query and will always be different.
+        return newProject.ProjectReferences.Except(oldProject.ProjectReferences);
+    }
 }
