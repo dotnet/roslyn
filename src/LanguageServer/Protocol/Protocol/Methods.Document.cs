@@ -568,6 +568,23 @@ partial class Methods
     public static readonly LspRequest<DocumentRangeFormattingParams, TextEdit[]?> TextDocumentRangeFormatting = new(TextDocumentRangeFormattingName);
 
     /// <summary>
+    /// Method name for 'textDocument/rangesFormatting'.
+    /// <para>
+    /// The document ranges formatting request is sent from the client to the server to format multiple ranges in a document at once.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#textDocument_rangesFormatting">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    /// <remarks>Since LSP 3.18</remarks>
+    public const string TextDocumentRangesFormattingName = "textDocument/rangesFormatting";
+
+    /// <summary>
+    /// Strongly typed message object for 'textDocument/rangesFormatting'.
+    /// </summary>
+    public static readonly LspRequest<DocumentRangesFormattingParams, TextEdit[]?> TextDocumentRangesFormatting = new(TextDocumentRangesFormattingName);
+
+    /// <summary>
     /// Method name for 'textDocument/onTypeFormatting'.
     /// <para>
     /// The document on type formatting request is sent from the client to the server to format parts of the document during typing.
