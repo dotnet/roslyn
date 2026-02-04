@@ -761,6 +761,20 @@ internal sealed class CSharpGenerateTypeService() :
                 return updatedSolution;
             }
 
+            // If the document has a file-scoped namespace and the invocation is within it,
+            // don't add a using for a different namespace — the generated type was placed
+            // in the file-scoped namespace, not in the requested container namespace.
+            var fileScopedNs = compilationRoot.Members.OfType<FileScopedNamespaceDeclarationSyntax>().FirstOrDefault();
+            if (fileScopedNs != null)
+            {
+                var fileScopedNsName = fileScopedNs.Name.ToString();
+                if (fileScopedNsName != includeUsingsOrImports &&
+                    await IsWithinTheImportingNamespaceAsync(document, simpleName.SpanStart, fileScopedNsName, cancellationToken).ConfigureAwait(false))
+                {
+                    return updatedSolution;
+                }
+            }
+
             var addImportOptions = await document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);
             var addedCompilationRoot = compilationRoot.AddUsingDirectives([usingDirective], addImportOptions.PlaceSystemNamespaceFirst, Formatter.Annotation);
             updatedSolution = updatedSolution.WithDocumentSyntaxRoot(document.Id, addedCompilationRoot, PreservationMode.PreserveIdentity);
