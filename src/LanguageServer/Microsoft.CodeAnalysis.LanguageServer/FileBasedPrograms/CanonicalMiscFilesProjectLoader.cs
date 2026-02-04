@@ -67,13 +67,6 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
         });
     }
 
-    /// <summary>
-    /// Adds a miscellaneous document to the canonical project.
-    /// If the canonical project doesn't exist, creates a primordial project and starts loading the canonical project.
-    /// </summary>
-    /// <remarks>
-    /// The LSP workspace manager and queue ensure that <see cref="AddMiscellaneousDocumentAsync"/> and <see cref="TryRemoveMiscellaneousDocumentAsync"/> are not called concurrently.
-    /// </remarks>
     public async ValueTask<TextDocument> AddMiscellaneousDocumentAsync(string documentPath, SourceText documentText, CancellationToken cancellationToken)
     {
         return await ExecuteUnderGateAsync(async loadedProjects =>
