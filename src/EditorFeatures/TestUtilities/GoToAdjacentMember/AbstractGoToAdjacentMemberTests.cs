@@ -17,7 +17,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Text.Outlining;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToAdjacentMember;
