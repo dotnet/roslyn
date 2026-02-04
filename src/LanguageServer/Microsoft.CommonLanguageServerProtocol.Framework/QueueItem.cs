@@ -266,7 +266,7 @@ internal sealed class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
         {
             throw new InvalidOperationException("Cannot manually fail queue item after it has started");
         }
-        var exception = new Exception(message);
+        var exception = new LocalRpcException(message) { ErrorCode = RoslynLspErrorCodes.NonFatalRequestFailure };
         _requestTelemetryScope?.RecordException(exception);
         _logger.LogException(exception);
 

@@ -2691,8 +2691,17 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="ChangesRequiredSynthesizedType" xml:space="preserve">
     <value>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</value>
   </data>
-  <data name="Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit" xml:space="preserve">
-    <value>Changing source file '{0}' in a stale project has no effect until the project is rebuit.</value>
+  <data name="Changing_source_file_0_in_a_stale_project_1_has_no_effect_until_the_project_is_rebuilt_2" xml:space="preserve">
+    <value>Changing source file '{0}' in a stale project '{1}' has no effect until the project is rebuit; {2}</value>
+  </data>
+  <data name="the_content_of_the_document_is_stale" xml:space="preserve">
+    <value>the content of the document is stale.</value>
+  </data>
+  <data name="the_project_contains_stale_document_0" xml:space="preserve">
+    <value>the project contains stale document '{0}'.</value>
+  </data>
+  <data name="the_project_has_not_been_built" xml:space="preserve">
+    <value>the project has not been built.</value>
   </data>
   <data name="Miscellaneous_Files" xml:space="preserve">
     <value>Miscellaneous Files</value>

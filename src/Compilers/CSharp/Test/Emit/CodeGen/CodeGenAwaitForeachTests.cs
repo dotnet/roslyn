@@ -15033,5 +15033,74 @@ class C
                 }
                 """);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53426")]
+        public void AwaitAsyncEnumerable()
+        {
+            var source = """
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+
+                public class C 
+                {
+                    public async Task M(IAsyncEnumerable<int> e) 
+                    {
+                        await e;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS9353: 'IAsyncEnumerable<int>' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'IAsyncEnumerable<int>' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)
+                //         await e;
+                Diagnostic(ErrorCode.ERR_NoAwaitOnAsyncEnumerable, "await e").WithArguments("System.Collections.Generic.IAsyncEnumerable<int>", "GetAwaiter").WithLocation(8, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53426")]
+        public void AwaitAsyncEnumerator()
+        {
+            var source = """
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+
+                public class C 
+                {
+                    public async Task M(IAsyncEnumerator<int> e) 
+                    {
+                        await e;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS1061: 'IAsyncEnumerator<int>' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'IAsyncEnumerator<int>' could be found (are you missing a using directive or an assembly reference?)
+                //         await e;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "await e").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>", "GetAwaiter").WithLocation(8, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53426")]
+        public void CallGetAwaiterOnAsyncEnumerable()
+        {
+            var source = """
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+
+                public class C 
+                {
+                    public async Task M(IAsyncEnumerable<int> e) 
+                    {
+                        e.GetAwaiter();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // (8,11): error CS1061: 'IAsyncEnumerable<int>' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'IAsyncEnumerable<int>' could be found (are you missing a using directive or an assembly reference?)
+                //         e.GetAwaiter();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "GetAwaiter").WithArguments("System.Collections.Generic.IAsyncEnumerable<int>", "GetAwaiter").WithLocation(8, 11));
+        }
     }
 }

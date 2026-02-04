@@ -29,6 +29,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeofToNameof\CSharpConvertTypeOfToNameOfDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ForEachCast\CSharpForEachCastDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpFormattingAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)HiddenExplicitCast\CSharpHiddenExplicitCastDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeAnonymousFunctionStatic\MakeAnonymousFunctionStaticDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\CSharpMakeFieldReadonlyDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryAsyncModifier\CSharpMakeMethodSynchronousDiagnosticAnalyzer.cs" />

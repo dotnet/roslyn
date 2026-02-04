@@ -28,7 +28,8 @@ internal sealed class LanguageServerTestComposition
             CSharpDesignTimePath: null,
             ExtensionLogDirectory: string.Empty,
             ServerPipeName: null,
-            UseStdIo: false);
+            UseStdIo: false,
+            AutoLoadProjects: false);
         var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
         var assemblyLoader = new CustomExportAssemblyLoader(extensionManager, loggerFactory);
 

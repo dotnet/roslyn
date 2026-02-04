@@ -1697,17 +1697,6 @@ public partial class Solution
         => WithCompilationState(CompilationState.WithoutFrozenSourceGeneratedDocuments());
 
     /// <summary>
-    /// Returns a new Solution which represents the same state as before, but with the cached generator driver state from the given project updated to match.
-    /// </summary>
-    /// <remarks>
-    /// When generators are ran in a Solution snapshot, they may cache state to speed up future runs. For Razor, we only run their generator on forked
-    /// solutions that are thrown away; this API gives us a way to reuse that cached state in other forked solutions, since otherwise there's no way to reuse
-    /// the cached state.
-    /// </remarks>
-    internal Solution WithCachedSourceGeneratorState(ProjectId projectToUpdate, Project projectWithCachedGeneratorState)
-        => WithCompilationState(CompilationState.WithCachedSourceGeneratorState(projectToUpdate, projectWithCachedGeneratorState));
-
-    /// <summary>
     /// Gets an objects that lists the added, changed and removed projects between
     /// this solution and the specified solution.
     /// </summary>
@@ -1807,7 +1796,7 @@ public partial class Solution
             return;
         }
 
-        throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+        throw ISolutionExtensions.CreateDocumentNotFoundException(documentId);
 
         bool ContainsSourceGeneratedDocument(DocumentId documentId)
         {
@@ -1841,7 +1830,7 @@ public partial class Solution
 
         if (!ContainsAdditionalDocument(documentId))
         {
-            throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+            throw ISolutionExtensions.CreateDocumentNotFoundException(documentId);
         }
     }
 
@@ -1867,7 +1856,7 @@ public partial class Solution
 
         if (!ContainsAnalyzerConfigDocument(documentId))
         {
-            throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+            throw ISolutionExtensions.CreateDocumentNotFoundException(documentId);
         }
     }
 
