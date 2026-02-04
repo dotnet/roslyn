@@ -206,7 +206,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.Empty(canonicalSyntaxTree.GetDiagnostics(CancellationToken.None));
     }
 
-    [Theory, CombinatorialData]
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/82287"), CombinatorialData]
     public async Task TestSemanticDiagnosticsEnabledWhenTopLevelStatementsAdded(bool mutatingLspWorkspace)
     {
         // Create a server that supports LSP misc files and verify no misc files present.
