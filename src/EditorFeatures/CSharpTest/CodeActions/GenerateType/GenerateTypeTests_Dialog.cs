@@ -159,7 +159,7 @@ initial: """
 
             namespace Foo;
 
-            class C(D _);
+            class C([|D$$|] _);
 
             """,
 languageName: LanguageNames.CSharp,

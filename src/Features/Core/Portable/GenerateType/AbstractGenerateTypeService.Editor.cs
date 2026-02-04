@@ -433,6 +433,16 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
                     _cancellationToken).ConfigureAwait(false);
             }
 
+            // If the type was placed in an existing namespace that differs from what the containers
+            // specified (e.g., a file-scoped namespace that doesn't match the default namespace),
+            // don't add a using directive since the type is now in the document's namespace.
+            var enclosingNamespace = enclosingNamespaceGeneratedTypeToAddAndLocation.Item1;
+            if (!enclosingNamespace.IsGlobalNamespace && includeUsingsOrImports != null &&
+                enclosingNamespace.ToDisplayString() != includeUsingsOrImports)
+            {
+                includeUsingsOrImports = null;
+            }
+
             var solution = _semanticDocument.Project.Solution;
             var codeGenResult = await CodeGenerator.AddNamespaceOrTypeDeclarationAsync(
                 new CodeGenerationSolutionContext(
