@@ -167,10 +167,9 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.Empty(canonicalSyntaxTree.GetDiagnostics(CancellationToken.None));
     }
 
-    [Theory, CombinatorialData]
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/81644")]
     public async Task TestScriptsWithIgnoredDirectives(bool mutatingLspWorkspace)
     {
-        // https://github.com/dotnet/roslyn/issues/81644: A csx script with '#:' directives should not be loaded as a file-based program
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
 
@@ -180,29 +179,26 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
             Console.WriteLine("Hello World");
             """).ConfigureAwait(false);
 
-        // File is added to a miscellaneous project containing only the script.
-        var (_, primordialDocument) = await GetRequiredLspWorkspaceAndDocumentAsync(nonFileUri, testLspServer).ConfigureAwait(false);
-        Assert.Equal(1, primordialDocument.Project.Documents.Count());
-        Assert.Empty(primordialDocument.Project.MetadataReferences);
+        var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(nonFileUri, testLspServer).ConfigureAwait(false);
+        await verifyAsync(workspace, document);
 
-        // FileBasedProgram feature flag is not passed, so an error is expected on '#:'.
-        var primordialSyntaxTree = await primordialDocument.GetRequiredSyntaxTreeAsync(CancellationToken.None);
-        primordialSyntaxTree.GetDiagnostics(CancellationToken.None).Verify(
-            // script.csx(1,2): error CS9298: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')"
-            // #:sdk Microsoft.Net.Sdk
-            TestHelpers.Diagnostic(code: 9298, squiggledText: ":").WithLocation(1, 2));
-
-        // Wait for project load to finish
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
 
-        var (miscWorkspace, canonicalDocument) = await GetRequiredLspWorkspaceAndDocumentAsync(nonFileUri, testLspServer).ConfigureAwait(false);
-        Assert.Equal(WorkspaceKind.Host, miscWorkspace.Kind);
-        Assert.NotNull(canonicalDocument);
-        Assert.NotEqual(primordialDocument, canonicalDocument);
-        Assert.Contains(canonicalDocument.Project.Documents, d => d.Name == "script.AssemblyInfo.cs");
+        (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(nonFileUri, testLspServer).ConfigureAwait(false);
+        await verifyAsync(workspace, document);
 
-        var canonicalSyntaxTree = await canonicalDocument.GetRequiredSyntaxTreeAsync(CancellationToken.None);
-        Assert.Empty(canonicalSyntaxTree.GetDiagnostics(CancellationToken.None));
+        async Task verifyAsync(Workspace workspace, Document document)
+        {
+            Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
+            Assert.Equal(1, document.Project.Documents.Count());
+            Assert.Empty(document.Project.MetadataReferences);
+
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+            syntaxTree.GetDiagnostics(CancellationToken.None).Verify(
+                // script.csx(1,2): error CS9298: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')"
+                // #:sdk Microsoft.Net.Sdk
+                TestHelpers.Diagnostic(code: 9298, squiggledText: ":").WithLocation(1, 2));
+        }
     }
 
     [Theory, CombinatorialData]
