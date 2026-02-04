@@ -30,7 +30,7 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
         if (symbol is null)
             return [];
 
-        symbol = GetTargetSymbol(symbol);
+        symbol = CallHierarchyHelpers.GetTargetSymbol(symbol);
 
         if (symbol.Kind is not (SymbolKind.Method or SymbolKind.Property or SymbolKind.Event or SymbolKind.Field))
             return [];
@@ -59,8 +59,8 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
 
         using var _ = ArrayBuilder<CallHierarchyIncomingCall>.GetInstance(out var results);
 
-        // Find direct callers
-        var callers = await SymbolFinder.FindCallersAsync(symbol, project.Solution, cancellationToken).ConfigureAwait(false);
+        // Find direct callers using shared helper
+        var callers = await CallHierarchyHelpers.FindDirectCallersAsync(symbol, project.Solution, documents: null, cancellationToken).ConfigureAwait(false);
         foreach (var caller in callers.Where(c => c.IsDirect))
         {
             if (caller.CallingSymbol.Kind == SymbolKind.Field)
@@ -92,36 +92,32 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
             }
         }
 
-        // Find calls through overrides
-        var overrides = await SymbolFinder.FindOverridesAsync(symbol, project.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
-        foreach (var @override in overrides)
+        // Find calls through overrides using shared helper
+        var callersToOverrides = await CallHierarchyHelpers.FindCallersToOverridesAsync(symbol, project.Solution, documents: null, cancellationToken).ConfigureAwait(false);
+        foreach (var caller in callersToOverrides.Where(c => c.IsDirect))
         {
-            var overrideCallers = await SymbolFinder.FindCallersAsync(@override, project.Solution, cancellationToken).ConfigureAwait(false);
-            foreach (var caller in overrideCallers.Where(c => c.IsDirect))
-            {
-                if (caller.CallingSymbol.Kind == SymbolKind.Field)
-                    continue;
+            if (caller.CallingSymbol.Kind == SymbolKind.Field)
+                continue;
 
-                var callerItem = await CreateItemAsync(caller.CallingSymbol, project, cancellationToken).ConfigureAwait(false);
-                if (callerItem is not null)
+            var callerItem = await CreateItemAsync(caller.CallingSymbol, project, cancellationToken).ConfigureAwait(false);
+            if (callerItem is not null)
+            {
+                using var _2 = ArrayBuilder<(DocumentId DocumentId, TextSpan Span)>.GetInstance(out var callLocations);
+                foreach (var location in caller.Locations)
                 {
-                    using var _2 = ArrayBuilder<(DocumentId DocumentId, TextSpan Span)>.GetInstance(out var callLocations);
-                    foreach (var location in caller.Locations)
+                    if (location.IsInSource)
                     {
-                        if (location.IsInSource)
+                        var doc = project.Solution.GetDocument(location.SourceTree);
+                        if (doc is not null)
                         {
-                            var doc = project.Solution.GetDocument(location.SourceTree);
-                            if (doc is not null)
-                            {
-                                callLocations.Add((doc.Id, location.SourceSpan));
-                            }
+                            callLocations.Add((doc.Id, location.SourceSpan));
                         }
                     }
+                }
 
-                    if (callLocations.Count > 0)
-                    {
-                        results.Add(new CallHierarchyIncomingCall(callerItem, callLocations.ToImmutableArray()));
-                    }
+                if (callLocations.Count > 0)
+                {
+                    results.Add(new CallHierarchyIncomingCall(callerItem, callLocations.ToImmutableArray()));
                 }
             }
         }
@@ -219,7 +215,7 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
                         SymbolEqualityComparer.Default.Equals(method.ContainingType, symbol.ContainingType))
                         continue;
 
-                    calledSymbol = GetTargetSymbol(calledSymbol);
+                    calledSymbol = CallHierarchyHelpers.GetTargetSymbol(calledSymbol);
 
                     if (!callGroups.TryGetValue(calledSymbol, out var locations))
                     {
@@ -286,7 +282,7 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
         Project project,
         CancellationToken cancellationToken)
     {
-        symbol = GetTargetSymbol(symbol);
+        symbol = CallHierarchyHelpers.GetTargetSymbol(symbol);
 
         var location = symbol.Locations.FirstOrDefault(l => l.IsInSource);
         if (location is null)
@@ -309,18 +305,6 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
             project.Id,
             document.Id,
             location.SourceSpan);
-    }
-
-    private static ISymbol GetTargetSymbol(ISymbol symbol)
-    {
-        if (symbol is IMethodSymbol methodSymbol)
-        {
-            methodSymbol = methodSymbol.ReducedFrom ?? methodSymbol;
-            methodSymbol = methodSymbol.ConstructedFrom;
-            return methodSymbol;
-        }
-
-        return symbol;
     }
 
     private static readonly SymbolDisplayFormat s_memberNameFormat = new(
