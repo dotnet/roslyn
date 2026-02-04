@@ -372,7 +372,7 @@ partial class Methods
     /// </para>
     /// <para>
     /// If computing full completion items is expensive, servers can additionally provide a handler for the completion
-    /// item resolve request (‘completionItem/resolve’), which is sent when a completion item is selected in the user interface. 
+    /// item resolve request (‘completionItem/resolve’), which is sent when a completion item is selected in the user interface.
     /// </para>
     /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_completion">Language Server Protocol specification</see> for additional information.
@@ -400,6 +400,26 @@ partial class Methods
     /// Strongly typed message object for 'completionItem/resolve'.
     /// </summary>
     public static readonly LspRequest<CompletionItem, CompletionItem> TextDocumentCompletionResolve = new(TextDocumentCompletionResolveName);
+
+    /// <summary>
+    /// Method name for 'textDocument/inlineCompletion'.
+    /// <para>
+    /// The inline completion request is sent from the client to the server to compute inline
+    /// completions at a given cursor position. Inline completions are similar to completions
+    /// but are displayed inline with the text and can only be accepted or rejected.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_inlineCompletion">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    /// <remarks>Since LSP 3.18</remarks>
+    public const string TextDocumentInlineCompletionName = "textDocument/inlineCompletion";
+
+    /// <summary>
+    /// Strongly typed message object for 'textDocument/inlineCompletion'.
+    /// </summary>
+    /// <remarks>Since LSP 3.18</remarks>
+    public static readonly LspRequest<InlineCompletionParams, SumType<InlineCompletionItem[], InlineCompletionList>?> TextDocumentInlineCompletion = new(TextDocumentInlineCompletionName);
 
     /// <summary>
     /// Method name for 'textDocument/signatureHelp'.
