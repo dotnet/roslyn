@@ -63,6 +63,9 @@
     <NoWarn Condition="'$(DefineConstants.Contains(`CODE_STYLE`))' == 'false'">$(NoWarn);RS1041;RS1038</NoWarn>
 
     <EnableNetAnalyzers>true</EnableNetAnalyzers>
+
+    <!-- Workaround for https://github.com/NuGet/Home/issues/14731 -->
+    <RestoreSerializeGlobalProperties>true</RestoreSerializeGlobalProperties>
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)TargetFrameworks.props" />
