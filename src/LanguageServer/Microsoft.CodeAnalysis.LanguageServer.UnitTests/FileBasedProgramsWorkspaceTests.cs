@@ -92,17 +92,16 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
             }
             """).ConfigureAwait(false);
 
-        // File should be initially added as a primordial document in the canonical misc files project with no metadata references.
+        // Document should be initially found in a primordial misc files project
         var (_, looseDocumentOne) = await GetLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
         Assert.NotNull(looseDocumentOne);
-        // Should have the primordial canonical document and the loose document.
-        Assert.Equal(2, looseDocumentOne.Project.Documents.Count());
+        Assert.Equal(1, looseDocumentOne.Project.Documents.Count());
         Assert.Empty(looseDocumentOne.Project.MetadataReferences);
 
         // Wait for the canonical project to finish loading.
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
 
-        // Verify the document is loaded in the canonical project.
+        // Verify the document is found in a forked canonical project.
         var (_, canonicalDocumentOne) = await GetLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
         Assert.NotNull(canonicalDocumentOne);
         Assert.NotEqual(looseDocumentOne, canonicalDocumentOne);

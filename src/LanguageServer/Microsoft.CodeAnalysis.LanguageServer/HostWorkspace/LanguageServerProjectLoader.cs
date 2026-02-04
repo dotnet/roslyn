@@ -498,11 +498,11 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
-    protected async ValueTask<bool> TryUnloadProjectAsync(string projectPath)
+    internal async ValueTask<bool> TryUnloadProjectAsync(string projectPath)
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
-            return await TryUnloadProjectAsync(projectPath);
+            return await TryUnloadProject_NoLockAsync(projectPath);
         }
     }
 

@@ -97,40 +97,6 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
         }, cancellationToken);
     }
 
-    /// <summary>
-    /// Removes a miscellaneous document from the canonical project.
-    /// The canonical project itself is never removed.
-    /// </summary>
-    /// <remarks>
-    /// The LSP workspace manager and queue ensure that <see cref="AddMiscellaneousDocumentAsync"/> and <see cref="TryRemoveMiscellaneousDocumentAsync"/> are not called concurrently.
-    /// </remarks>
-    public async ValueTask<bool> TryRemoveMiscellaneousDocumentAsync(string documentPath, CancellationToken cancellationToken)
-    {
-        // Project loading happens asynchronously, so we need to execute this under the load gate to ensure consistency.
-        return await ExecuteUnderGateAsync(async loadedProjects =>
-        {
-            // Try to find and remove the document from the miscellaneous workspace only
-            var solution = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace.CurrentSolution;
-
-            // Filter to actual documents, ignoring additional documents like Razor files etc.
-            var documentIds = solution.GetDocumentIdsWithFilePath(documentPath).WhereAsArray(id => solution.GetDocument(id) is not null);
-            if (documentIds.Length > 0)
-            {
-                await _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.ApplyChangeToWorkspaceAsync(workspace =>
-                {
-                    foreach (var documentId in documentIds)
-                    {
-                        workspace.OnDocumentRemoved(documentId);
-                    }
-                }, cancellationToken);
-
-                return true;
-            }
-
-            return false;
-        }, cancellationToken);
-    }
-
     private async ValueTask<TextDocument> AddForkedCanonicalProject_NoLockAsync(Dictionary<string, ProjectLoadState> loadedProjects, string documentPath, SourceText documentText, CancellationToken cancellationToken)
     {
         var newProjectId = ProjectId.CreateNewId(debugName: $"Forked Misc Project for '{documentPath}'");
