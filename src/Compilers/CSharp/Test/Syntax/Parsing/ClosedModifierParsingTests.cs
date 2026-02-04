@@ -43,7 +43,7 @@ public sealed class ClosedModifierParsingTests : ParsingTests
         var tree = UsingTree(text, options, expectedParsingDiagnostics);
         Validate(text, (CSharpSyntaxNode)tree.GetRoot(), expectedParsingDiagnostics);
 
-        var comp = CreateCompilation(tree);
+        var comp = CreateCompilation([text, ClosedAttributeDefinition, CompilerFeatureRequiredAttribute], parseOptions: options);
         comp.VerifyDiagnostics(expectedBindingDiagnostics);
     }
 

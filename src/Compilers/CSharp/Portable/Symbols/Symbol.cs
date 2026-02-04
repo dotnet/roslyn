@@ -1531,84 +1531,90 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefSafetyRulesAttribute = 1 << 13,
             RequiresLocationAttribute = 1 << 14,
             ExtensionMarkerAttribute = 1 << 15,
+            ClosedAttribute = 1 << 16,
         }
 
-        internal bool ReportExplicitUseOfReservedAttributes(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, ReservedAttributes reserved)
+        // PROTOTYPE(cc): Remove unnecessary 'permitted' flags from call sites of this method
+        internal bool ReportExplicitUseOfReservedAttributes(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, ReservedAttributes permitted)
         {
             var attribute = arguments.Attribute;
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
 
             Debug.Assert(attribute is SourceAttributeData);
 
-            if ((reserved & ReservedAttributes.DynamicAttribute) != 0 &&
+            if ((permitted & ReservedAttributes.DynamicAttribute) == 0 &&
                 attribute.IsTargetAttribute(AttributeDescription.DynamicAttribute))
             {
                 // DynamicAttribute should not be set explicitly.
                 diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
             }
-            else if ((reserved & ReservedAttributes.IsReadOnlyAttribute) != 0 &&
+            else if ((permitted & ReservedAttributes.IsReadOnlyAttribute) == 0 &&
                 reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.IsReadOnlyAttribute))
             {
             }
-            else if ((reserved & ReservedAttributes.RequiresLocationAttribute) != 0 &&
+            else if ((permitted & ReservedAttributes.RequiresLocationAttribute) == 0 &&
                 reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.RequiresLocationAttribute))
             {
             }
-            else if ((reserved & ReservedAttributes.IsUnmanagedAttribute) != 0 &&
+            else if ((permitted & ReservedAttributes.IsUnmanagedAttribute) == 0 &&
                 reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.IsUnmanagedAttribute))
             {
             }
-            else if ((reserved & ReservedAttributes.IsByRefLikeAttribute) != 0 &&
+            else if ((permitted & ReservedAttributes.IsByRefLikeAttribute) == 0 &&
                 reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.IsByRefLikeAttribute))
             {
             }
-            else if ((reserved & ReservedAttributes.TupleElementNamesAttribute) != 0 &&
+            else if ((permitted & ReservedAttributes.TupleElementNamesAttribute) == 0 &&
                 attribute.IsTargetAttribute(AttributeDescription.TupleElementNamesAttribute))
             {
                 diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
             }
-            else if ((reserved & ReservedAttributes.NullableAttribute) != 0 &&
+            else if ((permitted & ReservedAttributes.NullableAttribute) == 0 &&
                 attribute.IsTargetAttribute(AttributeDescription.NullableAttribute))
             {
                 // NullableAttribute should not be set explicitly.
                 diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
             }
-            else if ((reserved & ReservedAttributes.NullableContextAttribute) != 0 &&
+            else if ((permitted & ReservedAttributes.NullableContextAttribute) == 0 &&
                 reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.NullableContextAttribute))
             {
             }
-            else if ((reserved & ReservedAttributes.NullablePublicOnlyAttribute) != 0 &&
+            else if ((permitted & ReservedAttributes.NullablePublicOnlyAttribute) == 0 &&
                 reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.NullablePublicOnlyAttribute))
             {
             }
-            else if ((reserved & ReservedAttributes.NativeIntegerAttribute) != 0 &&
+            else if ((permitted & ReservedAttributes.NativeIntegerAttribute) == 0 &&
                 reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.NativeIntegerAttribute))
             {
             }
-            else if ((reserved & ReservedAttributes.CaseSensitiveExtensionAttribute) != 0 &&
+            else if ((permitted & ReservedAttributes.CaseSensitiveExtensionAttribute) == 0 &&
                 attribute.IsTargetAttribute(AttributeDescription.CaseSensitiveExtensionAttribute))
             {
                 // ExtensionAttribute should not be set explicitly.
                 diagnostics.Add(ErrorCode.ERR_ExplicitExtension, arguments.AttributeSyntaxOpt.Location);
             }
-            else if ((reserved & ReservedAttributes.RequiredMemberAttribute) != 0 &&
+            else if ((permitted & ReservedAttributes.RequiredMemberAttribute) == 0 &&
                 attribute.IsTargetAttribute(AttributeDescription.RequiredMemberAttribute))
             {
                 // Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
                 diagnostics.Add(ErrorCode.ERR_ExplicitRequiredMember, arguments.AttributeSyntaxOpt.Location);
             }
-            else if ((reserved & ReservedAttributes.ScopedRefAttribute) != 0 &&
+            else if ((permitted & ReservedAttributes.ScopedRefAttribute) == 0 &&
                 attribute.IsTargetAttribute(AttributeDescription.ScopedRefAttribute))
             {
                 // Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.
                 diagnostics.Add(ErrorCode.ERR_ExplicitScopedRef, arguments.AttributeSyntaxOpt.Location);
             }
-            else if ((reserved & ReservedAttributes.RefSafetyRulesAttribute) != 0 &&
+            else if ((permitted & ReservedAttributes.RefSafetyRulesAttribute) == 0 &&
                 reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.RefSafetyRulesAttribute))
             {
             }
-            else if ((reserved & ReservedAttributes.ExtensionMarkerAttribute) != 0 &&
+            else if ((permitted & ReservedAttributes.ExtensionMarkerAttribute) == 0 &&
                 reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.ExtensionMarkerAttribute))
+            {
+            }
+            else if ((permitted & ReservedAttributes.ClosedAttribute) == 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.ClosedAttribute))
             {
             }
             else

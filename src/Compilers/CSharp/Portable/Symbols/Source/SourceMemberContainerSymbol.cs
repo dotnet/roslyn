@@ -389,6 +389,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Interface:
                     mods |= DeclarationModifiers.Abstract;
                     break;
+                case TypeKind.Class:
+                    if ((mods & DeclarationModifiers.Closed) != 0)
+                        mods |= DeclarationModifiers.Abstract;
+
+                    break;
                 case TypeKind.Struct:
                 case TypeKind.Enum:
                 case TypeKind.Delegate:
@@ -884,6 +889,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool IsNew => HasFlag(DeclarationModifiers.New);
 
         internal sealed override bool IsFileLocal => HasFlag(DeclarationModifiers.File);
+
+        internal sealed override bool IsClosed => HasFlag(DeclarationModifiers.Closed);
 
         internal bool IsUnsafe => HasFlag(DeclarationModifiers.Unsafe);
 
@@ -1890,6 +1897,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.IsReadOnly)
             {
                 compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
+
+            if (this.IsClosed)
+            {
+                // Ensure necessary attributes are present
+                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_ClosedAttribute__ctor, diagnostics, GetFirstLocation());
+                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor, diagnostics, GetFirstLocation());
             }
 
             var baseType = BaseTypeNoUseSiteDiagnostics;

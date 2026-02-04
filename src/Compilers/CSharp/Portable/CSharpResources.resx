@@ -8247,4 +8247,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ClosedSealedStatic" xml:space="preserve">
     <value>'{0}': a closed type cannot be sealed or static</value>
   </data>
+  <data name="ERR_ClosedBaseTypeBaseFromOtherAssembly" xml:space="preserve">
+    <value>'{0}': cannot use a closed type '{1}' from another assembly as a base type.</value>
+  </data>
+  <data name="ERR_UnderspecifiedClosedSubtype" xml:space="preserve">
+    <value>'{0}': The type parameter '{1}' must be referenced in the base type '{2}' because the base type is closed.</value>
+  </data>
 </root>

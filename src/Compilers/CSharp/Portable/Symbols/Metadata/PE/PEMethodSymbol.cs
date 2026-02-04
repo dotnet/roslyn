@@ -1039,7 +1039,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 bool checkForRequiredMembers = this.ShouldCheckRequiredMembers() && this.ContainingType.HasAnyRequiredMembers;
                 bool isInstanceIncrementDecrementOrCompoundAssignmentOperator = SourceMethodSymbol.IsInstanceIncrementDecrementOrCompoundAssignmentOperator(this);
-                bool filterCompilerFeatureRequiredAttribute = (checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator) && DeriveCompilerFeatureRequiredDiagnostic() is null;
+                bool isClosedConstructor = MethodKind == MethodKind.Constructor && ContainingType.IsClosed;
+                bool filterCompilerFeatureRequiredAttribute = (checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator || isClosedConstructor) && DeriveCompilerFeatureRequiredDiagnostic() is null;
                 bool filterObsoleteAttribute = checkForRequiredMembers && ObsoleteAttributeData is null;
 
                 using var builder = TemporaryArray<CSharpAttributeData>.Empty;
@@ -1517,15 +1518,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             var containingModule = _containingType.ContainingPEModule;
             var decoder = new MetadataDecoder(containingModule, this);
-            var diag = PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(
-                this, containingModule, Handle,
-                allowedFeatures: MethodKind == MethodKind.Constructor ?
-                    CompilerFeatureRequiredFeatures.RequiredMembers :
-                    (SourceMethodSymbol.IsInstanceIncrementDecrementOrCompoundAssignmentOperator(this) ?
-                        CompilerFeatureRequiredFeatures.UserDefinedCompoundAssignmentOperators :
-                        CompilerFeatureRequiredFeatures.None),
-                decoder);
 
+            var allowedFeatures = CompilerFeatureRequiredFeatures.None;
+            if (MethodKind == MethodKind.Constructor)
+            {
+                allowedFeatures |= CompilerFeatureRequiredFeatures.RequiredMembers;
+                if (ContainingType.IsClosed)
+                    allowedFeatures |= CompilerFeatureRequiredFeatures.ClosedClasses;
+            }
+            else if (SourceMethodSymbol.IsInstanceIncrementDecrementOrCompoundAssignmentOperator(this))
+            {
+                allowedFeatures |= CompilerFeatureRequiredFeatures.UserDefinedCompoundAssignmentOperators;
+            }
+
+            var diag = PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(this, containingModule, Handle, allowedFeatures, decoder);
             if (diag != null)
             {
                 return diag;

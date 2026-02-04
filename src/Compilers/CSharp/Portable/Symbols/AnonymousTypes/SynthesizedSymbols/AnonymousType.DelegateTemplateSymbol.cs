@@ -230,6 +230,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override bool HasDeclaredRequiredMembers => false;
 
+            internal override bool IsClosed => false;
+
             public override ImmutableArray<Symbol> GetMembers() => _members;
 
             public override ImmutableArray<Symbol> GetMembers(string name) => GetMembers().WhereAsArray((member, name) => member.Name == name, name);

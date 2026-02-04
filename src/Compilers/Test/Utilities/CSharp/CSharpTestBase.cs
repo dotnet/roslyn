@@ -230,6 +230,14 @@ namespace System.Diagnostics.CodeAnalysis
             }
             """;
 
+        protected static readonly string ClosedAttributeDefinition = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+                public sealed class ClosedAttribute : Attribute { }
+            }
+            """;
+
         protected static readonly string IsExternalInitTypeDefinition = @"
 namespace System.Runtime.CompilerServices
 {

@@ -70,6 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasDeclaredRequiredMembers => false;
 
+        internal sealed override bool IsClosed => false;
+
         public override Accessibility DeclaredAccessibility => Accessibility.Internal;
 
         public override TypeKind TypeKind => TypeKind.Class;

@@ -1161,18 +1161,9 @@ next:;
                 diagnostics.Add(ErrorCode.ERR_CantUseRequiredAttribute, arguments.AttributeSyntaxOpt.Name.Location);
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
-                ReservedAttributes.DynamicAttribute
-                | ReservedAttributes.IsReadOnlyAttribute
-                | ReservedAttributes.RequiresLocationAttribute
-                | ReservedAttributes.IsUnmanagedAttribute
-                | ReservedAttributes.IsByRefLikeAttribute
-                | ReservedAttributes.TupleElementNamesAttribute
-                | ReservedAttributes.NullableAttribute
-                | ReservedAttributes.NullableContextAttribute
-                | ReservedAttributes.NativeIntegerAttribute
-                | ReservedAttributes.CaseSensitiveExtensionAttribute
-                | ReservedAttributes.RequiredMemberAttribute
-                | ReservedAttributes.ExtensionMarkerAttribute))
+                permitted: ReservedAttributes.NullablePublicOnlyAttribute
+                    | ReservedAttributes.ScopedRefAttribute
+                    | ReservedAttributes.RefSafetyRulesAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.SecurityCriticalAttribute)
@@ -1774,6 +1765,13 @@ next:;
                 AddSynthesizedAttribute(
                     ref attributes,
                     compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor));
+            }
+
+            if (IsClosed)
+            {
+                AddSynthesizedAttribute(
+                    ref attributes,
+                    compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ClosedAttribute__ctor));
             }
 
             // Add MetadataUpdateOriginalTypeAttribute when a reloadable type is emitted to EnC delta
