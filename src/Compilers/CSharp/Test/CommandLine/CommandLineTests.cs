@@ -15275,7 +15275,7 @@ dotnet_diagnostic.Warning01.severity = error;
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41171")]
-        public void GlobalAnalyzerConfig_SuppressDiagnosticInGeneratedFiles()
+        public void AnalyzerConfig_SuppressDiagnosticInGeneratedFiles()
         {
             var rootDir = Temp.CreateDirectory();
 
@@ -15326,28 +15326,24 @@ dotnet_diagnostic.Warning01.severity = error;
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/41171")]
-        [InlineData("", new[] { "C" })] // editorconfig overrides globalconfig for that source file
-        [InlineData("*.cs", new[] { "C", "D", "G1", "G2" }, true)]
-        [InlineData("generated/Microsoft.CodeAnalysis.Test.Utilities/Roslyn.Test.Utilities.TestGenerators.PipelineCallbackGenerator/*.cs",
+        [InlineData("", new[] { "C", "D", "G1", "G2" })]
+        [InlineData("*.cs", new[] { "C", "D", "G1", "G2" })]
+        [InlineData("$generated$/Microsoft.CodeAnalysis.Test.Utilities/Roslyn.Test.Utilities.TestGenerators.PipelineCallbackGenerator/*.cs",
             new[] { "C", "D", "G2" })]
-        [InlineData("generated/Microsoft.CodeAnalysis.Test.Utilities/Roslyn.Test.Utilities.TestGenerators.PipelineCallbackGenerator2/*.cs",
+        [InlineData("$generated$/Microsoft.CodeAnalysis.Test.Utilities/Roslyn.Test.Utilities.TestGenerators.PipelineCallbackGenerator2/*.cs",
             new[] { "C", "D", "G1" })]
-        [InlineData("generated/Microsoft.CodeAnalysis.Test.Utilities/*.cs", new[] { "C", "D", "G1", "G2" })]
-        [InlineData("generated/Microsoft.CodeAnalysis.Test.Utilities/**/*.cs", new[] { "C", "D" })]
-        public void GlobalAnalyzerConfig_SuppressDiagnosticInGeneratedFiles_NamedSection(
-            string sectionName, string[] expectedSymbolsWithWarnings, bool warningForGlobalSectionName = false)
+        [InlineData("$generated$/Microsoft.CodeAnalysis.Test.Utilities/*.cs", new[] { "C", "D", "G1", "G2" })]
+        [InlineData("$generated$/Microsoft.CodeAnalysis.Test.Utilities/**/*.cs", new[] { "C", "D" })]
+        public void AnalyzerConfig_SuppressDiagnosticInGeneratedFiles_NamedSection(
+            string sectionName, string[] expectedSymbolsWithWarnings)
         {
             var rootDir = Temp.CreateDirectory();
 
             var srcDir = rootDir.CreateDirectory("src");
             var cs = srcDir.CreateFile("test.cs").WriteAllText("class C;");
-            var globalConfig = srcDir.CreateFile(".globalconfig").WriteAllText($"""
-                is_global = true
-
+            var editorConfig = srcDir.CreateFile(".editorconfig").WriteAllText($"""
                 [{sectionName}]
                 dotnet_diagnostic.Warning01.severity = none
-                """);
-            var editorConfig = srcDir.CreateFile(".editorconfig").WriteAllText($"""
                 [*.cs]
                 dotnet_diagnostic.Warning01.severity = warning
                 """);
@@ -15377,20 +15373,15 @@ dotnet_diagnostic.Warning01.severity = error;
             var output = VerifyOutput(
                 srcDir,
                 cs,
-                additionalFlags: [packageCs.Path, $"/analyzerconfig:{globalConfig.Path}", $"/analyzerconfig:{editorConfig.Path}"],
+                additionalFlags: [packageCs.Path, $"/analyzerconfig:{editorConfig.Path}"],
                 analyzers: [new OptionReadingDiagnosticAnalyzer(enabled: true)],
                 generators: [generator1.AsSourceGenerator(), generator2.AsSourceGenerator()],
                 includeCurrentAssemblyAsAnalyzerReference: false,
-                expectedWarningCount: expectedSymbolsWithWarnings.Length + (warningForGlobalSectionName ? 1 : 0));
+                expectedWarningCount: expectedSymbolsWithWarnings.Length);
 
             foreach (var symbol in expectedSymbolsWithWarnings)
             {
                 Assert.Contains($"warning {OptionReadingDiagnosticAnalyzer.DiagnosticId}: {OptionReadingDiagnosticAnalyzer.GetMessage(symbol, "")}", output);
-            }
-
-            if (warningForGlobalSectionName)
-            {
-                Assert.Contains("warning InvalidGlobalSectionName", output);
             }
         }
 
@@ -15399,9 +15390,9 @@ dotnet_diagnostic.Warning01.severity = error;
         [InlineData(".editorconfig", "*.cs", new[] { "C", "G" }, new string[0])]
         [InlineData(".editorconfig", "test.cs", new[] { "C" }, new[] { "G" })]
         [InlineData(".editorconfig", $"**/*.{nameof(PipelineCallbackGenerator)}/**.cs", new[] { "G" }, new[] { "C" })]
+        [InlineData(".editorconfig", $"$generated$/*/*.{nameof(PipelineCallbackGenerator)}/**.cs", new[] { "G" }, new[] { "C" })]
         [InlineData(".globalconfig", "", new[] { "C", "G" }, new string[0])]
-        [InlineData(".globalconfig", $"generated/*/*.{nameof(PipelineCallbackGenerator)}/**.cs", new[] { "G" }, new[] { "C" })]
-        public void GlobalAnalyzerConfig_CustomAnalyzerOption(
+        public void AnalyzerConfig_CustomAnalyzerOption(
             string fileName,
             string sectionName,
             string[] expectedSymbolsWithOption,

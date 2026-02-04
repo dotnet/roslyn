@@ -1156,8 +1156,10 @@ namespace Microsoft.CodeAnalysis
                             embeddedTextBuilder.Add(EmbeddedText.FromSource(tree.FilePath, sourceText));
                             if (analyzerOptionsBuilder is object)
                             {
-                                var globalConfigRelativePath = AnalyzerConfigSet.GlobalAnalyzerConfigBuilder.GetGlobalConfigRelativePathForGeneratedFile(baseDirectory, tree.FilePath);
-                                analyzerOptionsBuilder.Add(analyzerConfigSet!.GetOptionsForSourcePath(tree.FilePath, globalConfigRelativePath));
+                                // standard EditorConfig sections were always applied to generated files here (i.e., the custom analyzer options had an effect on generated files)
+                                // so we preseve that for backcompat and apply both the special and normal sections to generated files
+                                var specialPath = GeneratorDriver.GetAnalyzerConfigSpecialPathForGeneratedFile(baseDirectory, tree.FilePath);
+                                analyzerOptionsBuilder.Add(analyzerConfigSet!.GetOptionsForSourcePath(tree.FilePath, specialPath, requiredEditorConfigSectionPrefix: null));
                             }
 
                             // write out the file if an output path was explicitly provided
