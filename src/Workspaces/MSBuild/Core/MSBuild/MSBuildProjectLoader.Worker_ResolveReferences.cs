@@ -270,7 +270,7 @@ public partial class MSBuildProjectLoader
             return builder.ToResolvedReferences();
         }
 
-        private async Task<bool> TryLoadAndAddReferenceAsync(ProjectId id, string projectReferencePath, ImmutableArray<string> aliases, ResolvedReferencesBuilder builder, CancellationToken cancellationToken)
+        private async Task<bool> TryLoadAndAddReferenceAsync(ProjectId id, string projectReferencePath, string[] aliases, ResolvedReferencesBuilder builder, CancellationToken cancellationToken)
         {
             var projectReferenceInfos = await LoadProjectInfosFromPathAsync(projectReferencePath, _discoveredProjectOptions, cancellationToken).ConfigureAwait(false);
 
@@ -369,9 +369,9 @@ public partial class MSBuildProjectLoader
             return false;
         }
 
-        private ProjectReference CreateProjectReference(ProjectId from, ProjectId to, ImmutableArray<string> aliases)
+        private ProjectReference CreateProjectReference(ProjectId from, ProjectId to, string[] aliases)
         {
-            var newReference = new ProjectReference(to, aliases);
+            var newReference = new ProjectReference(to, aliases.ToImmutableArray());
             _projectIdToProjectReferencesMap.MultiAdd(from, newReference);
             return newReference;
         }
@@ -386,7 +386,7 @@ public partial class MSBuildProjectLoader
         private bool TryAddReferenceToKnownProject(
             ProjectId id,
             string projectReferencePath,
-            ImmutableArray<string> aliases,
+            string[] aliases,
             ResolvedReferencesBuilder builder)
         {
             if (_projectMap.TryGetIdsByProjectPath(projectReferencePath, out var projectReferenceIds))

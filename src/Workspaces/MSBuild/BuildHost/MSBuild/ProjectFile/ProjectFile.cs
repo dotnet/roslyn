@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -24,7 +23,7 @@ internal sealed class ProjectFile(
     public string FilePath
         => project?.FullPath ?? string.Empty;
 
-    public ImmutableArray<DiagnosticLogItem> GetDiagnosticLogItems()
+    public DiagnosticLogItem[] GetDiagnosticLogItems()
         => [.. log];
 
     /// <summary>
@@ -32,7 +31,7 @@ internal sealed class ProjectFile(
     /// instances of <see cref="ProjectFileInfo"/> if the project is multi-targeted: one for
     /// each target framework.
     /// </summary>
-    public async Task<ImmutableArray<ProjectFileInfo>> GetProjectFileInfosAsync(CancellationToken cancellationToken)
+    public async Task<ProjectFileInfo[]> GetProjectFileInfosAsync(CancellationToken cancellationToken)
     {
         if (project is null)
         {
@@ -41,8 +40,8 @@ internal sealed class ProjectFile(
 
         var projectInstances = await buildManager.BuildProjectInstancesAsync(project, log, cancellationToken).ConfigureAwait(false);
 
-        return projectInstances.SelectAsArray(
-            instance => new ProjectInstanceReader(commandLineProvider, instance, project).CreateProjectFileInfo());
+        return projectInstances.Select(
+            instance => new ProjectInstanceReader(commandLineProvider, instance, project).CreateProjectFileInfo()).ToArray();
     }
 
     public void AddDocument(string filePath, string? logicalPath = null)
@@ -86,7 +85,7 @@ internal sealed class ProjectFile(
         }
     }
 
-    public void AddMetadataReference(string metadataReferenceIdentity, ImmutableArray<string> aliases, string? hintPath)
+    public void AddMetadataReference(string metadataReferenceIdentity, string[] aliases, string? hintPath)
     {
         if (project is null)
         {
@@ -94,7 +93,7 @@ internal sealed class ProjectFile(
         }
 
         var metadata = new Dictionary<string, string>();
-        if (!aliases.IsEmpty)
+        if (aliases.Length != 0)
             metadata.Add(MetadataNames.Aliases, string.Join(",", aliases));
 
         if (hintPath is not null)
@@ -172,7 +171,7 @@ internal sealed class ProjectFile(
             { MetadataNames.Name, projectName }
         };
 
-        if (!reference.Aliases.IsEmpty)
+        if (reference.Aliases.Length != 0)
         {
             metadata.Add(MetadataNames.Aliases, string.Join(",", reference.Aliases));
         }

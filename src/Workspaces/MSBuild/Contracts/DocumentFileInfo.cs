@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Runtime.Serialization;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
@@ -11,7 +10,7 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 /// Represents a source file that is part of a project file.
 /// </summary>
 [DataContract]
-internal sealed class DocumentFileInfo(string filePath, string logicalPath, bool isLinked, bool isGenerated, ImmutableArray<string> folders)
+internal sealed class DocumentFileInfo(string filePath, string logicalPath, bool isLinked, bool isGenerated, string[] folders)
 {
     /// <summary>
     /// The absolute path to the document file on disk.
@@ -44,5 +43,5 @@ internal sealed class DocumentFileInfo(string filePath, string logicalPath, bool
     /// Containing folders of the document relative to the containing project root path.
     /// </summary>
     [DataMember(Order = 4)]
-    public ImmutableArray<string> Folders { get; } = folders;
+    public string[] Folders { get; } = folders;
 }

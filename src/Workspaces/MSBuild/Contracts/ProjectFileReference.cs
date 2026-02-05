@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.Serialization;
 
@@ -25,7 +24,7 @@ internal sealed class ProjectFileReference
     /// The aliases assigned to this reference, if any.
     /// </summary>
     [DataMember(Order = 1)]
-    public ImmutableArray<string> Aliases { get; }
+    public string[] Aliases { get; }
 
     /// <summary>
     /// The value of "ReferenceOutputAssembly" metadata.
@@ -33,9 +32,9 @@ internal sealed class ProjectFileReference
     [DataMember(Order = 2)]
     public bool ReferenceOutputAssembly { get; }
 
-    public ProjectFileReference(string path, ImmutableArray<string> aliases, bool referenceOutputAssembly)
+    public ProjectFileReference(string path, string[] aliases, bool referenceOutputAssembly)
     {
-        Debug.Assert(!aliases.IsDefault);
+        Debug.Assert(aliases is not null);
 
         Path = path;
         Aliases = aliases;

@@ -127,7 +127,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
                 throw new Exception($"The build host was started but we were unable to connect to it's pipe. The process exited with {process.ExitCode}. Process output:{Environment.NewLine}{buildHostProcess.GetBuildHostProcessOutput()}", innerException: e);
             }
 
-            await buildHostProcess.BuildHost.ConfigureGlobalStateAsync(_globalMSBuildProperties, _binaryLogPathProvider?.GetNewLogPath(), cancellationToken).ConfigureAwait(false);
+            await buildHostProcess.BuildHost.ConfigureGlobalStateAsync(new Dictionary<string, string>(_globalMSBuildProperties), _binaryLogPathProvider?.GetNewLogPath(), cancellationToken).ConfigureAwait(false);
 
             if (buildHostKind != BuildHostProcessKind.NetCore
                 || projectOrSolutionFilePath is null

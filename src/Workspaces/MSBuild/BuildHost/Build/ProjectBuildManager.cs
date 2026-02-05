@@ -70,9 +70,11 @@ internal sealed class ProjectBuildManager
         }
     }
 
-    public ProjectBuildManager(ImmutableDictionary<string, string> additionalGlobalProperties, ILogger? msbuildLogger = null)
+    public ProjectBuildManager(IDictionary<string, string> additionalGlobalProperties, ILogger? msbuildLogger = null)
     {
-        _additionalGlobalProperties = additionalGlobalProperties ?? ImmutableDictionary<string, string>.Empty;
+        _additionalGlobalProperties = additionalGlobalProperties != null
+            ? additionalGlobalProperties.ToImmutableDictionary()
+            : ImmutableDictionary<string, string>.Empty;
         _msbuildLogger = msbuildLogger;
     }
 

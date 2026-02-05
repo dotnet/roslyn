@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using MSB = Microsoft.Build;
@@ -33,7 +32,7 @@ internal static class Extensions
             .GetItems(ItemNames.ProjectReference)
             .Select(CreateProjectFileReference);
 
-    public static ImmutableArray<PackageReference> GetPackageReferences(this MSB.Execution.ProjectInstance executedProject)
+    public static PackageReference[] GetPackageReferences(this MSB.Execution.ProjectInstance executedProject)
     {
         var packageReferenceItems = executedProject.GetItems(ItemNames.PackageReference);
         using var _ = PooledHashSet<PackageReference>.GetInstance(out var references);
@@ -55,7 +54,7 @@ internal static class Extensions
     private static ProjectFileReference CreateProjectFileReference(MSB.Execution.ProjectItemInstance reference)
         => new(reference.EvaluatedInclude, reference.GetAliases(), reference.ReferenceOutputAssemblyIsTrue());
 
-    public static ImmutableArray<string> GetAliases(this MSB.Framework.ITaskItem item)
+    public static string[] GetAliases(this MSB.Framework.ITaskItem item)
     {
         var aliasesText = item.GetMetadata(MetadataNames.Aliases);
 

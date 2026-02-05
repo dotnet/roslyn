@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,11 +18,11 @@ internal sealed class RemoteProjectFile
         _remoteProjectFileTargetObject = remoteProjectFileTargetObject;
     }
 
-    public Task<ImmutableArray<DiagnosticLogItem>> GetDiagnosticLogItemsAsync(CancellationToken cancellationToken)
-        => _client.InvokeAsync<ImmutableArray<DiagnosticLogItem>>(_remoteProjectFileTargetObject, nameof(IProjectFile.GetDiagnosticLogItems), parameters: [], cancellationToken);
+    public Task<DiagnosticLogItem[]> GetDiagnosticLogItemsAsync(CancellationToken cancellationToken)
+        => _client.InvokeAsync<DiagnosticLogItem[]>(_remoteProjectFileTargetObject, nameof(IProjectFile.GetDiagnosticLogItems), parameters: [], cancellationToken);
 
-    public Task<ImmutableArray<ProjectFileInfo>> GetProjectFileInfosAsync(CancellationToken cancellationToken)
-        => _client.InvokeAsync<ImmutableArray<ProjectFileInfo>>(_remoteProjectFileTargetObject, nameof(IProjectFile.GetProjectFileInfosAsync), parameters: [], cancellationToken);
+    public Task<ProjectFileInfo[]> GetProjectFileInfosAsync(CancellationToken cancellationToken)
+        => _client.InvokeAsync<ProjectFileInfo[]>(_remoteProjectFileTargetObject, nameof(IProjectFile.GetProjectFileInfosAsync), parameters: [], cancellationToken);
 
     public Task AddDocumentAsync(string filePath, string? logicalPath, CancellationToken cancellationToken)
         => _client.InvokeAsync(_remoteProjectFileTargetObject, nameof(IProjectFile.AddDocument), parameters: [filePath, logicalPath], cancellationToken);
@@ -31,7 +30,7 @@ internal sealed class RemoteProjectFile
     public Task RemoveDocumentAsync(string filePath, CancellationToken cancellationToken)
         => _client.InvokeAsync(_remoteProjectFileTargetObject, nameof(IProjectFile.RemoveDocument), parameters: [filePath], cancellationToken);
 
-    public Task AddMetadataReferenceAsync(string metadataReferenceIdentity, ImmutableArray<string> aliases, string? hintPath, CancellationToken cancellationToken)
+    public Task AddMetadataReferenceAsync(string metadataReferenceIdentity, string[] aliases, string? hintPath, CancellationToken cancellationToken)
         => _client.InvokeAsync(_remoteProjectFileTargetObject, nameof(IProjectFile.AddMetadataReference), parameters: [metadataReferenceIdentity, aliases, hintPath], cancellationToken);
 
     public Task RemoveMetadataReferenceAsync(string shortAssemblyName, string fullAssemblyName, string filePath, CancellationToken cancellationToken)

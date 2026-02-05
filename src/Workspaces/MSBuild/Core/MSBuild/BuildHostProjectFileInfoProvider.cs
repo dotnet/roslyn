@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +15,7 @@ internal sealed class BuildHostProjectFileInfoProvider(
     DiagnosticReporter diagnosticReporter,
     IProgress<ProjectLoadProgress>? progress) : IProjectFileInfoProvider
 {
-    public async Task<ImmutableArray<ProjectFileInfo>> LoadProjectFileInfosAsync(string projectPath, DiagnosticReportingOptions reportingOptions, CancellationToken cancellationToken)
+    public async Task<ProjectFileInfo[]> LoadProjectFileInfosAsync(string projectPath, DiagnosticReportingOptions reportingOptions, CancellationToken cancellationToken)
     {
         if (!projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, reportingOptions.OnLoaderFailure, out var languageName))
         {
@@ -55,7 +54,7 @@ internal sealed class BuildHostProjectFileInfoProvider(
         return projectFileInfos;
     }
 
-    public async Task<ImmutableArray<string>> GetProjectOutputPathsAsync(string projectPath, CancellationToken cancellationToken)
+    public async Task<string[]> GetProjectOutputPathsAsync(string projectPath, CancellationToken cancellationToken)
     {
         // TODO: Should return multiple output paths for multi-targeted projects.
         // https://github.com/dotnet/roslyn/issues/81589
