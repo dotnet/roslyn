@@ -1378,7 +1378,7 @@ unsafe struct S
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82137")]
-        public void Retrack_PointerToRefLocal_Conditional_Field()
+        public void Retrack_PointerToRefLocal_Conditional_Field_01()
         {
             var source = """
                 class C
@@ -1427,6 +1427,58 @@ unsafe struct S
                   IL_0013:  call       "string byte.ToString()"
                   IL_0018:  pop
                   IL_0019:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82137")]
+        public void Retrack_PointerToRefLocal_Conditional_Field_02()
+        {
+            var source = """
+                class C
+                {
+                    unsafe void M(bool c, System.ValueTuple<byte>* t1, System.ValueTuple<byte>* t2)
+                    {
+                        ref byte b = ref (c ? ref *t1 : ref *t2).Item1;
+                        b.ToString();
+                    }
+                }
+                """;
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeDebugDll).VerifyIL("C.M", """
+                {
+                  // Code size       22 (0x16)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  nop
+                  IL_0001:  ldarg.1
+                  IL_0002:  brtrue.s   IL_0007
+                  IL_0004:  ldarg.3
+                  IL_0005:  br.s       IL_0008
+                  IL_0007:  ldarg.2
+                  IL_0008:  ldflda     "byte System.ValueTuple<byte>.Item1"
+                  IL_000d:  stloc.0
+                  IL_000e:  ldloc.0
+                  IL_000f:  call       "string byte.ToString()"
+                  IL_0014:  pop
+                  IL_0015:  ret
+                }
+                """);
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", """
+                {
+                  // Code size       21 (0x15)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  ldarg.1
+                  IL_0001:  brtrue.s   IL_0006
+                  IL_0003:  ldarg.3
+                  IL_0004:  br.s       IL_0007
+                  IL_0006:  ldarg.2
+                  IL_0007:  ldflda     "byte System.ValueTuple<byte>.Item1"
+                  IL_000c:  stloc.0
+                  IL_000d:  ldloc.0
+                  IL_000e:  call       "string byte.ToString()"
+                  IL_0013:  pop
+                  IL_0014:  ret
                 }
                 """);
         }
