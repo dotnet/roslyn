@@ -1019,7 +1019,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return expr switch
                 {
                     BoundPointerIndirectionOperator => true,
-                    BoundFieldAccess { ReceiverOpt: BoundPointerIndirectionOperator } => true,
+                    BoundFieldAccess { ReceiverOpt: { } receiver } => usesPointerIndirection(receiver),
                     BoundConditionalOperator cond => usesPointerIndirection(cond.Consequence) || usesPointerIndirection(cond.Alternative),
                     _ => false,
                 };

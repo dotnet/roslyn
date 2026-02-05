@@ -988,8 +988,58 @@ unsafe struct S
                 """);
         }
 
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/82137")]
+        [InlineData("s->F")]
+        [InlineData("(*s).F")]
+        [InlineData("s[0].F")]
+        public void Retrack_PointerToRefLocal_Field_Field(string expr)
+        {
+            var source = $$"""
+                struct S
+                {
+                    System.ValueTuple<byte> F;
+                    unsafe void M(S* s)
+                    {
+                        ref byte b = ref {{expr}}.Item1;
+                        b.ToString();
+                    }
+                }
+                """;
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeDebugDll).VerifyIL("S.M", """
+                {
+                  // Code size       21 (0x15)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  nop
+                  IL_0001:  ldarg.1
+                  IL_0002:  ldflda     "System.ValueTuple<byte> S.F"
+                  IL_0007:  ldflda     "byte System.ValueTuple<byte>.Item1"
+                  IL_000c:  stloc.0
+                  IL_000d:  ldloc.0
+                  IL_000e:  call       "string byte.ToString()"
+                  IL_0013:  pop
+                  IL_0014:  ret
+                }
+                """);
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeReleaseDll).VerifyIL("S.M", """
+                {
+                  // Code size       20 (0x14)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  ldarg.1
+                  IL_0001:  ldflda     "System.ValueTuple<byte> S.F"
+                  IL_0006:  ldflda     "byte System.ValueTuple<byte>.Item1"
+                  IL_000b:  stloc.0
+                  IL_000c:  ldloc.0
+                  IL_000d:  call       "string byte.ToString()"
+                  IL_0012:  pop
+                  IL_0013:  ret
+                }
+                """);
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82137")]
-        public void Retrack_PointerToRefLocal_Field_Field()
+        public void Retrack_PointerToRefLocal_FieldPointer_Field()
         {
             var source = """
                 struct S
