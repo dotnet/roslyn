@@ -42,18 +42,22 @@ record Data(string field1, int field2);
 
 This basically works by having the `dotnet` command line interpret the `#:` directives in source files, produce a C# project XML document in memory, and pass it off to MSBuild. The in-memory project is sometimes called a "virtual project".
 
-## Miscellaneous files changes
+## Rich miscellaneous files
 
 There is a long-standing backlog item to enhance the experience of working with miscellaneous files ("loose files" not associated with any project). We think that as part of the "file-based program" work, we can enable the following in such files without substantial issues:
 - Syntax diagnostics.
 - Intellisense for the "default" set of references. e.g. those references which are included in the project created by `dotnet new console` with the current SDK.
+
+These changes to misc files behavior are called "rich misc files".
+
+The implementation strategy is: the editor creates a "canonical misc files project" under the temp directory, and uses the resulting project info as a "base project" for loose files that are opened in the IDE.
 
 ### File-based app detection
 
 A C# file has multiple possible *classifications* in the editor:
 - **Project-Based App**. The file is part of an ordinary `.csproj` project.
 - **File-Based App**. The file is part of a "file-based app" project, i.e. it is either the entry point of a file-based app or it is `#:include`d by the entry point of the same.
-- **Misc File**. The file is not part of an ordinary project or file-based app project.
+- **Misc File**. The file is not part of an ordinary project or file-based app project. The editor does not know what, if any, project this file is a part of.
     - In these files, we can optionally provide information we think is likely to be helpful, such as semantic info for the core library, or syntax errors. But we don't report semantic errors for these.
     - We do not perform disruptive actions on these files, such as implicitly restoring them, like we would with an ordinary project or the entry point of a file-based program.
 
