@@ -130,8 +130,25 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
         }
 
         var root = await tree.GetRootAsync(cancellationToken);
-        if (root is CompilationUnitSyntax compilationUnit)
-            return compilationUnit.Members.Any(member => member.IsKind(SyntaxKind.GlobalStatement));
+        var containsTopLevelStatements = root is CompilationUnitSyntax compilationUnit
+            && compilationUnit.Members.Any(member => member.IsKind(SyntaxKind.GlobalStatement));
+        return containsTopLevelStatements && !ContainedInCsprojCone(tree.FilePath);
+    }
+
+    internal static bool ContainedInCsprojCone(string csFilePath)
+    {
+        Contract.ThrowIfFalse(PathUtilities.GetExtension(csFilePath) == ".cs");
+
+        var directoryName = PathUtilities.GetDirectoryName(csFilePath);
+        var driveRoot = PathUtilities.GetPathRoot(directoryName);
+        while (!string.IsNullOrEmpty(directoryName) && directoryName != driveRoot)
+        {
+            var containsCsproj = Directory.EnumerateFiles(directoryName, "*.csproj").FirstOrDefault() != null;
+            if (containsCsproj)
+                return true;
+
+            directoryName = PathUtilities.GetDirectoryName(directoryName);
+        }
 
         return false;
     }

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Features.Workspaces;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Options;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Roslyn.LanguageServer.Protocol;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 
@@ -25,9 +27,13 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     private readonly VirtualProjectXmlProvider _projectXmlProvider;
     private readonly CanonicalMiscFilesProjectLoader _canonicalMiscFilesLoader;
 
+    /// <summary>Used for .csproj-in-cone checks.</summary>
+    private IFileChangeContext? _csprojWatcher;
+
     public void Dispose()
     {
         _canonicalMiscFilesLoader.Dispose();
+        _csprojWatcher?.Dispose();
     }
 
     public FileBasedProgramsProjectSystem(
@@ -66,7 +72,60 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 serverConfigurationFactory,
                 binLogPathProvider,
                 dotnetCliHelper);
+
+        var initializeManager = lspServices.GetRequiredService<IInitializeManager>();
+        if (initializeManager.TryGetInitializeParams() is { WorkspaceFolders: [_, ..] nonEmptyWorkspaceFolders })
+        {
+            // TODO2: handle 'workspace/didChangeWorkspaceFolders'
+            _csprojWatcher = fileChangeWatcher.CreateContext(
+                [.. nonEmptyWorkspaceFolders.Select(workspaceFolder => new WatchedDirectory(GetDocumentFilePath(workspaceFolder.DocumentUri), extensionFilters: [".csproj"]))]);
+            _csprojWatcher.FileChanged += OnCsprojFileChanged;
+        }
     }
+
+    private void OnCsprojFileChanged(object? sender, string changedFile)
+    {
+        Contract.ThrowIfFalse(PathUtilities.IsAbsolute(changedFile));
+        if (PathUtilities.GetExtension(changedFile) != ".csproj")
+            return;
+
+        var directoryName = PathUtilities.GetDirectoryName(changedFile);
+        _ = UnloadProjectsFireAndForgetAsync(directoryName);
+
+        async Task UnloadProjectsFireAndForgetAsync(string directoryName)
+        {
+            try
+            {
+                // TODO: unload FBA projects under this cone.
+                _ = await ExecuteUnderGateAsync(loadedProjects =>
+                {
+                    foreach (var loadedFilePath in loadedProjects.Keys)
+                    {
+                        // NOTE: .NET supports removing while enumerating
+                        if (loadedFilePath.StartsWith(directoryName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            // TODO: actually unload.
+                        }
+                    }
+
+                    return ValueTask.FromResult((object?)null);
+                }, CancellationToken.None);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error in OnCsprojFileChanged");
+            }
+        }
+    }
+
+    // /// <summary>
+    // /// Set of directory paths known to contain a csproj file.
+    // /// Guarded by <see cref="_gate"/>.
+    // /// </summary>
+    // private readonly HashSet<(string directoryPath, bool containsCsproj)> _knownCsprojDirectories = [];
+
+    // /// <summary>Guards access to <see cref="_knownCsprojDirectories"/></summary>
+    // private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
     private string GetDocumentFilePath(DocumentUri uri) => uri.ParsedUri is { } parsedUri ? ProtocolConversions.GetDocumentFilePathFromUri(parsedUri) : uri.UriString;
 
