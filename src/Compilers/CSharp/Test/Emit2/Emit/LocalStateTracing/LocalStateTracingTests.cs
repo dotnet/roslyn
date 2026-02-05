@@ -4379,12 +4379,12 @@ class C
 Main: Entered
 M: Entered
 M: P'p'[0] = 2
-M: L'a' = 2
+M: L1 = 2
 F: Entered
 F: P'a'[0] = 1
 F: Returned
-M: L'b' = 1
-M: L'c' = 1
+M: L2 = 1
+M: L3 = 1
 M: Returned
 Main: Returned
 "));
