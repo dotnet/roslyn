@@ -239,6 +239,26 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
             expected: """<Component RequiredParameter="" />""");
     }
 
+    [Fact]
+    public async Task ComponentWithClassName()
+    {
+        await VerifyUriPresentationAsync(
+            input: """
+                This is a Razor document.
+
+                <div>
+                    [||]
+                </div>
+
+                The end.
+                """,
+            additionalFiles: [
+                (FilePath("Component.razor"), "@classname OtherComponent")
+            ],
+            uris: [FileUri("Component.razor")],
+            expected: "<OtherComponent />");
+    }
+
     private async Task VerifyUriPresentationAsync(string input, Uri[] uris, string? expected, WorkspaceEdit? htmlResponse = null, (string fileName, string contents)[]? additionalFiles = null)
     {
         TestFileMarkupParser.GetSpan(input, out input, out var span);
