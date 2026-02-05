@@ -3263,6 +3263,445 @@ public static class E
         }
     }
 
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/81654")]
+    public void Nullability_NullableContext_03(bool useCompilationReference)
+    {
+        var libSrc = """
+#nullable enable
+
+public static class E
+{
+    public static void X1(object o) { }
+    public static void X2(object o) { }
+    public static void X3(object o) { }
+    public static void X4(object o) { }
+    public static void X5(object o) { }
+    public static void X6(object o) { }
+    extension(int i)
+    {
+        public void M2<T>() { }
+    }
+}
+""";
+
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net100);
+        var verifier = CompileAndVerify(libComp, symbolValidator: validate, verify: Verification.Skipped);
+        verifier.VerifyDiagnostics();
+
+        static void validate(ModuleSymbol m)
+        {
+            var e = m.GlobalNamespace.GetTypeMember("E");
+
+            AssertEx.SetEqual([
+                "System.Runtime.CompilerServices.NullableContextAttribute(1)",
+                "System.Runtime.CompilerServices.NullableAttribute(0)"
+                ], e.GetAttributes().ToStrings());
+
+            var extensionMethod = e.GetTypeMembers().Single().GetMember<MethodSymbol>("M2");
+            AssertEx.Equal(["System.Runtime.CompilerServices.NullableContextAttribute(2)"], extensionMethod.GetAttributes().ToStrings());
+            var implementationMethod = e.GetMember<MethodSymbol>("M2");
+            Assert.Empty(implementationMethod.GetAttributes());
+        }
+
+        var src = """
+#nullable enable
+
+class C
+{
+    void Test()
+    {
+        int i = 42;
+        i.M2<string?>();
+        E.M2<string?>(i);
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, references: [AsReference(libComp, useCompilationReference)], targetFramework: TargetFramework.Net100);
+
+        var extensionMethod = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single().GetMember<MethodSymbol>("M2");
+        Assert.True(extensionMethod.IsExtensionBlockMember());
+        var extensionTypeParam = extensionMethod.TypeParameters.Single();
+        Assert.False(extensionTypeParam.HasNotNullConstraint);
+
+        var implementationMethod = comp.GetMember<MethodSymbol>("E.M2");
+        var implementationTypeParam = implementationMethod.TypeParameters.Single();
+
+        if (useCompilationReference)
+        {
+            Assert.False(implementationTypeParam.HasNotNullConstraint);
+
+            comp.VerifyEmitDiagnostics();
+        }
+        else
+        {
+            Assert.True(implementationTypeParam.HasNotNullConstraint);
+
+            comp.VerifyEmitDiagnostics(
+                // (9,9): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'E.M2<T>(int)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                //         E.M2<string?>(42);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "E.M2<string?>").WithArguments("E.M2<T>(int)", "T", "string?").WithLocation(9, 9));
+        }
+
+        verifier.VerifyTypeIL("E", """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends [System.Runtime]System.Object
+{
+    .custom instance void [System.Runtime]System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
+        01 00 01 00 00
+    )
+    .custom instance void [System.Runtime]System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
+        01 00 00 00 00
+    )
+    .custom instance void [System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends [System.Runtime]System.Object
+    {
+        .custom instance void [System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$F4B4FFE41AB49E80A4ECF390CF6EB372'
+            extends [System.Runtime]System.Object
+        {
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    int32 i
+                ) cil managed 
+            {
+                .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x206f
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$F4B4FFE41AB49E80A4ECF390CF6EB372'::'<Extension>$'
+        } // end of class <M>$F4B4FFE41AB49E80A4ECF390CF6EB372
+        // Methods
+        .method public hidebysig 
+            instance void M2<T> () cil managed 
+        {
+            .custom instance void [System.Runtime]System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
+                01 00 02 00 00
+            )
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
+            )
+            // Method begins at RVA 0x2071
+            // Code size 6 (0x6)
+            .maxstack 8
+            IL_0000: newobj instance void [System.Runtime]System.NotSupportedException::.ctor()
+            IL_0005: throw
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M2
+    } // end of class <G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+    // Methods
+    .method public hidebysig static 
+        void X1 (
+            object o
+        ) cil managed 
+    {
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::X1
+    .method public hidebysig static 
+        void X2 (
+            object o
+        ) cil managed 
+    {
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::X2
+    .method public hidebysig static 
+        void X3 (
+            object o
+        ) cil managed 
+    {
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::X3
+    .method public hidebysig static 
+        void X4 (
+            object o
+        ) cil managed 
+    {
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::X4
+    .method public hidebysig static 
+        void X5 (
+            object o
+        ) cil managed 
+    {
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::X5
+    .method public hidebysig static 
+        void X6 (
+            object o
+        ) cil managed 
+    {
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::X6
+    .method public hidebysig static 
+        void M2<T> (
+            int32 i
+        ) cil managed 
+    {
+        .custom instance void [System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::M2
+} // end of class E
+""");
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/81654")]
+    public void Nullability_NullableContext_04(bool useCompilationReference)
+    {
+        var libSrc = """
+#nullable enable
+
+public static class E
+{
+    public static void X1(object? o) { }
+    public static void X2(object? o) { }
+    public static void X3(object? o) { }
+    public static void X4(object? o) { }
+    public static void X5(object? o) { }
+    public static void X6(object? o) { }
+    extension(int i)
+    {
+        public void M2<T>() where T : notnull { }
+    }
+}
+""";
+
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net100);
+        var verifier = CompileAndVerify(libComp, symbolValidator: validate, verify: Verification.Skipped);
+        verifier.VerifyDiagnostics();
+
+        static void validate(ModuleSymbol m)
+        {
+            var e = m.GlobalNamespace.GetTypeMember("E");
+
+            AssertEx.SetEqual([
+                "System.Runtime.CompilerServices.NullableContextAttribute(2)",
+                "System.Runtime.CompilerServices.NullableAttribute(0)"
+                ], e.GetAttributes().ToStrings());
+
+            var extensionMethod = e.GetTypeMembers().Single().GetMember<MethodSymbol>("M2");
+            AssertEx.SetEqual(["System.Runtime.CompilerServices.NullableContextAttribute(1)"], extensionMethod.GetAttributes().ToStrings());
+            var implementationMethod = e.GetMember<MethodSymbol>("M2");
+            Assert.Empty(implementationMethod.GetAttributes());
+        }
+
+        var src = """
+#nullable enable
+
+class C
+{
+    void Test()
+    {
+        int i = 42;
+        i.M2<string?>();
+        E.M2<string?>(i);
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, references: [AsReference(libComp, useCompilationReference)], targetFramework: TargetFramework.Net100);
+
+        var extensionMethod = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single().GetMember<MethodSymbol>("M2");
+        Assert.True(extensionMethod.IsExtensionBlockMember());
+        var extensionTypeParam = extensionMethod.TypeParameters.Single();
+
+        var implementationMethod = comp.GetMember<MethodSymbol>("E.M2");
+        var implementationTypeParam = implementationMethod.TypeParameters.Single();
+
+        if (useCompilationReference)
+        {
+            Assert.True(extensionTypeParam.HasNotNullConstraint);
+            Assert.True(implementationTypeParam.HasNotNullConstraint);
+
+            comp.VerifyEmitDiagnostics(
+                // (8,9): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'E.extension(int).M2<T>()'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                //         i.M2<string?>();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "i.M2<string?>").WithArguments("E.extension(int).M2<T>()", "T", "string?").WithLocation(8, 9),
+                // (9,9): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'E.M2<T>(int)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                //         E.M2<string?>(i);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "E.M2<string?>").WithArguments("E.M2<T>(int)", "T", "string?").WithLocation(9, 9));
+        }
+        else
+        {
+            Assert.True(extensionTypeParam.HasNotNullConstraint);
+            Assert.False(implementationTypeParam.HasNotNullConstraint);
+
+            comp.VerifyEmitDiagnostics(
+                // (8,9): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'E.extension(int).M2<T>()'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                //         i.M2<string?>();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "i.M2<string?>").WithArguments("E.extension(int).M2<T>()", "T", "string?").WithLocation(8, 9));
+        }
+
+        verifier.VerifyTypeIL("E", """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends [System.Runtime]System.Object
+{
+    .custom instance void [System.Runtime]System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
+        01 00 02 00 00
+    )
+    .custom instance void [System.Runtime]System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
+        01 00 00 00 00
+    )
+    .custom instance void [System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends [System.Runtime]System.Object
+    {
+        .custom instance void [System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$F4B4FFE41AB49E80A4ECF390CF6EB372'
+            extends [System.Runtime]System.Object
+        {
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    int32 i
+                ) cil managed 
+            {
+                .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x206f
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$F4B4FFE41AB49E80A4ECF390CF6EB372'::'<Extension>$'
+        } // end of class <M>$F4B4FFE41AB49E80A4ECF390CF6EB372
+        // Methods
+        .method public hidebysig 
+            instance void M2<T> () cil managed 
+        {
+            .custom instance void [System.Runtime]System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
+                01 00 01 00 00
+            )
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
+            )
+            // Method begins at RVA 0x2071
+            // Code size 6 (0x6)
+            .maxstack 8
+            IL_0000: newobj instance void [System.Runtime]System.NotSupportedException::.ctor()
+            IL_0005: throw
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M2
+    } // end of class <G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+    // Methods
+    .method public hidebysig static 
+        void X1 (
+            object o
+        ) cil managed 
+    {
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::X1
+    .method public hidebysig static 
+        void X2 (
+            object o
+        ) cil managed 
+    {
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::X2
+    .method public hidebysig static 
+        void X3 (
+            object o
+        ) cil managed 
+    {
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::X3
+    .method public hidebysig static 
+        void X4 (
+            object o
+        ) cil managed 
+    {
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::X4
+    .method public hidebysig static 
+        void X5 (
+            object o
+        ) cil managed 
+    {
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::X5
+    .method public hidebysig static 
+        void X6 (
+            object o
+        ) cil managed 
+    {
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::X6
+    .method public hidebysig static 
+        void M2<T> (
+            int32 i
+        ) cil managed 
+    {
+        .custom instance void [System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::M2
+} // end of class E
+""");
+    }
+
     [Fact]
     public void Nullability_PropertyPattern_01()
     {
@@ -38280,4 +38719,3 @@ public static class E
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "System.Nullable<System.ValueTuple<object, object>>").WithArguments("(object, object)?", "(object?, object?)?", "t", "E.extension((object?, object?)?)").WithLocation(4, 1));
     }
 }
-
