@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Text
     {
         private const int LargeObjectHeapLimitInChars = 40 * 1024; // 40KB
 
-        private static bool s_registeredEncodingProvider = CodePagesEncodingProvider.Instance == null;
+        private static volatile bool s_encodingProviderRegistered;
 
         /// <summary>
         /// Encoding to use when there is no byte order mark (BOM) on the stream. This encoder may throw a <see cref="DecoderFallbackException"/>
@@ -40,11 +41,15 @@ namespace Microsoft.CodeAnalysis.Text
 
         internal static Encoding? TryGetCodePageEncoding(int codePage)
         {
+            // Read to local to avoid race condition when multiple threads fail to get the encoding,
+            // only one of them executes the filter to retry, sets the static field and suppresses retry for the other threads.
+            var encodingProviderRegistered = s_encodingProviderRegistered;
+
             try
             {
                 return Encoding.GetEncoding(codePage);
             }
-            catch (NotSupportedException) when (!s_registeredEncodingProvider)
+            catch (NotSupportedException) when (!encodingProviderRegistered)
             {
                 // From documentation:
                 //   - 'GetEncoding' throws NotSupportedException when codepage is not supported by the underlying platform.
@@ -76,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Text
                 {
                 }
 
-                s_registeredEncodingProvider = true;
+                s_encodingProviderRegistered = true;
 
                 // Try to get the encoding again after attempting to register the provider.
                 // Since we set `s_registeredEncodingProvider` to true, we won't get here again.
