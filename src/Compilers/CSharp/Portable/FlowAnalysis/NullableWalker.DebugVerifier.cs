@@ -363,7 +363,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 VisitList(node.Subpatterns);
                 Visit(node.VariableAccess);
-                // Ignore indexer access (just a node to hold onto some symbols)
+                if (!node.HasErrors &&
+                    node.IndexerAccess is BoundIndexerAccess { Indexer: { } indexer } indexerAccess &&
+                    indexer.IsExtensionBlockMember())
+                {
+                    VisitList(indexerAccess.Arguments);
+                }
                 return null;
             }
 

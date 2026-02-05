@@ -6470,7 +6470,7 @@ public static class E
         CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics();
     }
 
-    [Fact(Skip = "PROTOTYPE assertion in NullableWalker.DebugVerifier")]
+    [Fact]
     public void Nullability_ListPattern_01()
     {
         string source = """
