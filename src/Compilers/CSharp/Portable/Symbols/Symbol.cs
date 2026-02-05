@@ -1684,10 +1684,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.AddValue(((ParameterSymbol)this).TypeWithAnnotations);
                     break;
                 case SymbolKind.TypeParameter:
-                    if (this is SourceTypeParameterSymbol typeParameter)
+                    SourceTypeParameterSymbol sourceTypeParameter = null;
+                    if (this is SynthesizedTypeParameterSymbol { UnderlyingTypeParameter: SourceTypeParameterSymbol underlying })
                     {
-                        builder.AddValue(typeParameter.GetSynthesizedNullableAttributeValue());
-                        foreach (var constraintType in typeParameter.ConstraintTypesNoUseSiteDiagnostics)
+                        sourceTypeParameter = underlying;
+                    }
+                    else
+                    {
+                        sourceTypeParameter = this as SourceTypeParameterSymbol;
+                    }
+
+                    if (sourceTypeParameter is not null)
+                    {
+                        builder.AddValue(sourceTypeParameter.GetSynthesizedNullableAttributeValue());
+                        foreach (var constraintType in sourceTypeParameter.ConstraintTypesNoUseSiteDiagnostics)
                         {
                             builder.AddValue(constraintType);
                         }

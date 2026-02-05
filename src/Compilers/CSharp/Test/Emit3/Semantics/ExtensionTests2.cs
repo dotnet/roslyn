@@ -3195,8 +3195,8 @@ public class Derived : Base { }
             Diagnostic(ErrorCode.WRN_NullAsNonNullable, "(Derived?)null").WithLocation(9, 16));
     }
 
-    [Fact]
-    public void Nullability_NullableContext_01()
+    [Theory, CombinatorialData]
+    public void Nullability_NullableContext_01(bool useCompilationReference)
     {
         var src = """
 #nullable enable
@@ -3227,10 +3227,27 @@ public static class E
             AssertEx.SetEqual(m is SourceModuleSymbol ? new string[] { } : ["System.Runtime.CompilerServices.NullableContextAttribute(1)", "System.Runtime.CompilerServices.NullableAttribute(0)"],
                 m.GlobalNamespace.GetTypeMember("E").GetAttributes().ToStrings());
         }
+
+        var src2 = """
+#nullable enable
+
+object.M1(null);
+object.M1(new object());
+E.M1(null);
+E.M1(new object());
+""";
+        var comp2 = CreateCompilation(src2, references: [AsReference(comp, useCompilationReference)], targetFramework: TargetFramework.Net90);
+        comp2.VerifyEmitDiagnostics(
+            // (3,11): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // object.M1(null);
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 11),
+            // (5,6): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // E.M1(null);
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 6));
     }
 
-    [Fact]
-    public void Nullability_NullableContext_02()
+    [Theory, CombinatorialData]
+    public void Nullability_NullableContext_02(bool useCompilationReference)
     {
         var src = """
 #nullable enable
@@ -3261,6 +3278,17 @@ public static class E
             AssertEx.SetEqual(m is SourceModuleSymbol ? new string[] { } : ["System.Runtime.CompilerServices.NullableContextAttribute(2)", "System.Runtime.CompilerServices.NullableAttribute(0)"],
                 m.GlobalNamespace.GetTypeMember("E").GetAttributes().ToStrings());
         }
+
+        var src2 = """
+#nullable enable
+
+object.M1(null);
+object.M1(new object());
+E.M1(null);
+E.M1(new object());
+""";
+        var comp2 = CreateCompilation(src2, references: [AsReference(comp, useCompilationReference)], targetFramework: TargetFramework.Net90);
+        comp2.VerifyEmitDiagnostics();
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/81654")]
@@ -3300,7 +3328,7 @@ public static class E
             var extensionMethod = e.GetTypeMembers().Single().GetMember<MethodSymbol>("M2");
             AssertEx.Equal(["System.Runtime.CompilerServices.NullableContextAttribute(2)"], extensionMethod.GetAttributes().ToStrings());
             var implementationMethod = e.GetMember<MethodSymbol>("M2");
-            Assert.Empty(implementationMethod.GetAttributes());
+            AssertEx.Equal(["System.Runtime.CompilerServices.NullableContextAttribute(2)"], implementationMethod.GetAttributes().ToStrings());
         }
 
         var src = """
@@ -3318,6 +3346,7 @@ class C
 """;
 
         var comp = CreateCompilation(src, references: [AsReference(libComp, useCompilationReference)], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
 
         var extensionMethod = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single().GetMember<MethodSymbol>("M2");
         Assert.True(extensionMethod.IsExtensionBlockMember());
@@ -3326,22 +3355,7 @@ class C
 
         var implementationMethod = comp.GetMember<MethodSymbol>("E.M2");
         var implementationTypeParam = implementationMethod.TypeParameters.Single();
-
-        if (useCompilationReference)
-        {
-            Assert.False(implementationTypeParam.HasNotNullConstraint);
-
-            comp.VerifyEmitDiagnostics();
-        }
-        else
-        {
-            Assert.True(implementationTypeParam.HasNotNullConstraint);
-
-            comp.VerifyEmitDiagnostics(
-                // (9,9): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'E.M2<T>(int)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
-                //         E.M2<string?>(42);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "E.M2<string?>").WithArguments("E.M2<T>(int)", "T", "string?").WithLocation(9, 9));
-        }
+        Assert.False(implementationTypeParam.HasNotNullConstraint);
 
         verifier.VerifyTypeIL("E", """
 .class public auto ansi abstract sealed beforefieldinit E
@@ -3467,6 +3481,9 @@ class C
             int32 i
         ) cil managed 
     {
+        .custom instance void [System.Runtime]System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
+            01 00 02 00 00
+        )
         .custom instance void [System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
@@ -3516,7 +3533,7 @@ public static class E
             var extensionMethod = e.GetTypeMembers().Single().GetMember<MethodSymbol>("M2");
             AssertEx.SetEqual(["System.Runtime.CompilerServices.NullableContextAttribute(1)"], extensionMethod.GetAttributes().ToStrings());
             var implementationMethod = e.GetMember<MethodSymbol>("M2");
-            Assert.Empty(implementationMethod.GetAttributes());
+            AssertEx.SetEqual(["System.Runtime.CompilerServices.NullableContextAttribute(1)"], implementationMethod.GetAttributes().ToStrings());
         }
 
         var src = """
@@ -3542,29 +3559,16 @@ class C
         var implementationMethod = comp.GetMember<MethodSymbol>("E.M2");
         var implementationTypeParam = implementationMethod.TypeParameters.Single();
 
-        if (useCompilationReference)
-        {
-            Assert.True(extensionTypeParam.HasNotNullConstraint);
-            Assert.True(implementationTypeParam.HasNotNullConstraint);
+        Assert.True(extensionTypeParam.HasNotNullConstraint);
+        Assert.True(implementationTypeParam.HasNotNullConstraint);
 
-            comp.VerifyEmitDiagnostics(
-                // (8,9): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'E.extension(int).M2<T>()'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
-                //         i.M2<string?>();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "i.M2<string?>").WithArguments("E.extension(int).M2<T>()", "T", "string?").WithLocation(8, 9),
-                // (9,9): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'E.M2<T>(int)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
-                //         E.M2<string?>(i);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "E.M2<string?>").WithArguments("E.M2<T>(int)", "T", "string?").WithLocation(9, 9));
-        }
-        else
-        {
-            Assert.True(extensionTypeParam.HasNotNullConstraint);
-            Assert.False(implementationTypeParam.HasNotNullConstraint);
-
-            comp.VerifyEmitDiagnostics(
-                // (8,9): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'E.extension(int).M2<T>()'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
-                //         i.M2<string?>();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "i.M2<string?>").WithArguments("E.extension(int).M2<T>()", "T", "string?").WithLocation(8, 9));
-        }
+        comp.VerifyEmitDiagnostics(
+            // (8,9): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'E.extension(int).M2<T>()'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+            //         i.M2<string?>();
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "i.M2<string?>").WithArguments("E.extension(int).M2<T>()", "T", "string?").WithLocation(8, 9),
+            // (9,9): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'E.M2<T>(int)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+            //         E.M2<string?>(i);
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "E.M2<string?>").WithArguments("E.M2<T>(int)", "T", "string?").WithLocation(9, 9));
 
         verifier.VerifyTypeIL("E", """
 .class public auto ansi abstract sealed beforefieldinit E
@@ -3690,6 +3694,9 @@ class C
             int32 i
         ) cil managed 
     {
+        .custom instance void [System.Runtime]System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
+            01 00 01 00 00
+        )
         .custom instance void [System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
@@ -3700,6 +3707,80 @@ class C
     } // end of method E::M2
 } // end of class E
 """);
+    }
+
+    [Theory, CombinatorialData]
+    public void Nullability_NullableContext_05(bool useCompilationReference)
+    {
+        var libSrc = """
+#nullable enable
+
+public static class E
+{
+    public static object? X1() => throw null!;
+    public static object? X2() => throw null!;
+    public static object? X3() => throw null!;
+    public static object? X4() => throw null!;
+    public static object? X5() => throw null!;
+    public static object? X6() => throw null!;
+    extension(object)
+    {
+        public static object M() => throw null!;
+    }
+}
+""";
+
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics();
+
+        var src = """
+#nullable enable
+
+object.M().ToString();;
+E.M().ToString();
+""";
+
+        var comp = CreateCompilation(src, references: [AsReference(libComp, useCompilationReference)], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void Nullability_NullableContext_06(bool useCompilationReference)
+    {
+        var libSrc = """
+#nullable enable
+
+public static class E
+{
+    public static object X1() => throw null!;
+    public static object X2() => throw null!;
+    public static object X3() => throw null!;
+    public static object X4() => throw null!;
+    public static object X5() => throw null!;
+    public static object X6() => throw null!;
+    extension(object)
+    {
+        public static object? M() => throw null!;
+    }
+}
+""";
+
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics();
+
+        var src = """
+#nullable enable
+
+object.M().ToString();
+E.M().ToString();
+""";
+
+        var comp = CreateCompilation(src, references: [AsReference(libComp, useCompilationReference)], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (3,1): warning CS8602: Dereference of a possibly null reference.
+            // object.M().ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "object.M()").WithLocation(3, 1),
+            // (4,1): warning CS8602: Dereference of a possibly null reference.
+            // E.M().ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "E.M()").WithLocation(4, 1));
     }
 
     [Fact]
