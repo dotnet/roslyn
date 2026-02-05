@@ -245,13 +245,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.Sequence:
-                    // An Index or Range pattern-based indexer, or an interpolated string handler conversion
-                    // that uses an indexer argument, produces a sequence with a nested
-                    // BoundIndexerAccess. We need to lower the final expression and produce an
-                    // update sequence
-                    var sequence = (BoundSequence)rewrittenLeft;
-                    if (sequence.Value.Kind == BoundKind.IndexerAccess)
                     {
+                        // An Index or Range pattern-based indexer, or an interpolated string handler conversion
+                        // that uses an indexer argument, produces a sequence with a BoundIndexerAccess as the value.
+                        // Similarly, a ref-returning extension indexer in an object initializer produces
+                        // a sequence with a BoundCall to the getter as the value.
+                        // To respect requirements from later phases, we need to rewrite the assignment to the value of the sequence.
+                        var sequence = (BoundSequence)rewrittenLeft;
                         return sequence.Update(
                             sequence.Locals,
                             sequence.SideEffects,
@@ -264,22 +264,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 assignmentKind),
                             sequence.Type);
                     }
-                    else if (sequence.Value is BoundCall { Method.RefKind: not RefKind.None })
-                    {
-                        // Similarly, a ref-returning extension indexer in an object initializer produces
-                        // a sequence with a BoundCall (to the getter) as the value a nested.
-                        // We need to produce an update sequence whose value is an assignment to that call.
-                        return sequence.Update(
-                            sequence.Locals,
-                            sequence.SideEffects,
-                            _factory.AssignmentExpression(
-                                syntax,
-                                sequence.Value,
-                                rewrittenRight,
-                                isRef: false),
-                            sequence.Type);
-                    }
-                    goto default;
 
                 default:
                     {

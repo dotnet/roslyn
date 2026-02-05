@@ -8169,11 +8169,14 @@ static class E
     public void RefAnalysis_ObjectCreation_04()
     {
         string source = """
-System.Span<byte> span = stackalloc byte[10];
+System.Span<int> span = stackalloc int[10];
 _ = new S() { [span] = 42 };
+System.Console.Write(span[0]);
 
+System.Span<int> span2 = stackalloc int[10];
 S s = new S();
-E.get_Item(s, span) = 42;
+E.get_Item(s, span2) = 43;
+System.Console.Write(span2[0]);
 
 ref struct S { }
 
@@ -8181,13 +8184,13 @@ static class E
 {
     extension(S s)
     {
-        public ref int this[System.Span<byte> s2] { get => throw null; }
+        public ref int this[System.Span<int> s2] { get => ref s2[0]; }
     }
 }
 """;
 
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("4243"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
     [Fact]
