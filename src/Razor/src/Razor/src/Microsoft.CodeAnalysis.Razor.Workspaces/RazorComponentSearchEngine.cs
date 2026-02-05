@@ -69,14 +69,20 @@ internal class RazorComponentSearchEngine(ILoggerFactory loggerFactory) : IRazor
                     continue;
                 }
 
-                // Rule out if not Razor component with correct name
-                if (!document.IsPathCandidateForComponent(lookupSymbolName))
+                // Rule out if not a Razor component
+                if (document.FileKind != RazorFileKind.Component)
                 {
                     continue;
                 }
 
                 var razorCodeDocument = await document.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
                 if (razorCodeDocument is null)
+                {
+                    continue;
+                }
+
+                // Check if the component class name matches
+                if (!razorCodeDocument.ComponentClassNameMatches(lookupSymbolName))
                 {
                     continue;
                 }

@@ -160,6 +160,13 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
             return null;
         }
 
+        var codeDocument = await context.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        if (codeDocument.HasExplicitClassName())
+        {
+            // if the document has an explicit class name, we don't need to do anything for a file rename as it isn't used
+            return null;
+        }
+
         var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
         var text = await generatedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var tree = await generatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

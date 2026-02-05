@@ -58,27 +58,38 @@ internal class RenameService(
         }
 
         var originComponentDocumentFilePath = originComponentDocumentSnapshot.FilePath;
-        var newPath = MakeNewPath(originComponentDocumentFilePath, newName);
-        if (_fileSystem.FileExists(newPath))
-        {
-            // We found a tag, but the new name would cause a conflict, so we can't proceed with the rename,
-            // even if C# might have worked.
-            return new(Edit: null, FallbackToCSharp: false);
-        }
-
         using var documentChanges = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
 
-        var fileRename = GetRenameFileEdit(originComponentDocumentFilePath, newPath);
-        documentChanges.Add(fileRename);
+        RenameFile? fileRename = null;
+        var originComponentCodeDocument = await originComponentDocumentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
-        AddAdditionalFileRenames(ref documentChanges.AsRef(), originComponentDocumentFilePath, newPath);
-
-        foreach (var documentChange in documentChanges)
+        // Don't rename the file if it contains an explicit class name (e.g. via @classname). C# will handle renaming that via source mapping.
+        if (!originComponentCodeDocument.HasExplicitClassName())
         {
-            if (documentChange.TryGetFirst(out var textDocumentEdit) &&
-                textDocumentEdit.TextDocument.DocumentUri == fileRename.OldDocumentUri)
+            // Rename the file itself
+            var newPath = MakeNewPath(originComponentDocumentFilePath, newName);
+            if (_fileSystem.FileExists(newPath))
             {
-                textDocumentEdit.TextDocument.DocumentUri = fileRename.NewDocumentUri;
+                // We found a tag, but the new name would cause a conflict, so we can't proceed with the rename,
+                // even if C# might have worked.
+                return new(Edit: null, FallbackToCSharp: false);
+            }
+
+            fileRename = GetRenameFileEdit(originComponentDocumentFilePath, newPath);
+            documentChanges.Add(fileRename);
+
+            AddAdditionalFileRenames(ref documentChanges.AsRef(), originComponentDocumentFilePath, newPath);
+        }
+
+        if (fileRename is not null)
+        {
+            foreach (var documentChange in documentChanges)
+            {
+                if (documentChange.TryGetFirst(out var textDocumentEdit) &&
+                    textDocumentEdit.TextDocument.DocumentUri == fileRename.OldDocumentUri)
+                {
+                    textDocumentEdit.TextDocument.DocumentUri = fileRename.NewDocumentUri;
+                }
             }
         }
 

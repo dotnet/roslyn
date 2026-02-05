@@ -322,4 +322,9 @@ public sealed partial class RazorCodeDocument
             Debug.Assert(validateNamespace == @namespace, $"We cached a namespace of {@namespace} but calculated that it should be {validateNamespace}");
         }
     }
+
+    /// <summary>
+    /// Determines if a user has explicitly provided a class name for this document
+    /// </summary>
+    internal bool HasExplicitClassName() => _documentNode?.FindPrimaryClass()?.Name?.Source is not null;
 }
