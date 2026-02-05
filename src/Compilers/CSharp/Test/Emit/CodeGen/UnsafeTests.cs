@@ -945,6 +945,59 @@ unsafe struct S
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82137")]
+        public void Retrack_PointerToRefLocal_NestedAssignment()
+        {
+            var source = """
+                class C
+                {
+                    unsafe void M(byte* p)
+                    {
+                        ref byte b1 = ref F();
+                        ref byte b2 = ref (b1 = ref *p);
+                        b2.ToString();
+                    }
+                    ref byte F() => throw null;
+                }
+                """;
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeDebugDll).VerifyIL("C.M", """
+                {
+                  // Code size       20 (0x14)
+                  .maxstack  2
+                  .locals init (byte& V_0, //b1
+                                byte& V_1) //b2
+                  IL_0000:  nop
+                  IL_0001:  ldarg.0
+                  IL_0002:  call       "ref byte C.F()"
+                  IL_0007:  stloc.0
+                  IL_0008:  ldarg.1
+                  IL_0009:  dup
+                  IL_000a:  stloc.0
+                  IL_000b:  stloc.1
+                  IL_000c:  ldloc.1
+                  IL_000d:  call       "string byte.ToString()"
+                  IL_0012:  pop
+                  IL_0013:  ret
+                }
+                """);
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", """
+                {
+                  // Code size       17 (0x11)
+                  .maxstack  2
+                  .locals init (byte& V_0) //b1
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "ref byte C.F()"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldarg.1
+                  IL_0008:  dup
+                  IL_0009:  stloc.0
+                  IL_000a:  call       "string byte.ToString()"
+                  IL_000f:  pop
+                  IL_0010:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82137")]
         public void Retrack_PointerToRefLocal_Field()
         {
             var source = """

@@ -400,6 +400,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private ExprContext _context;
         private BoundLocal _assignmentLocal;
 
+        /// <summary>
+        /// Whether we have seen a pointer indirection that may directly contribute to the final by-ref result of the currently visited expression.
+        /// For example, <c>*ptr</c> or <c>ptr->Field</c>, but not <c>Method(ref *ptr)</c>.
+        /// If such expression is assigned to a ref local, we cannot optimize that local away, so that GC can retrack the address.
+        /// This is a conservative check (we prefer correctness over optimization).
+        /// </summary>
+        private bool _pointerIndirectionMayFlowToRefResult;
+
         private readonly Dictionary<LocalSymbol, LocalDefUseInfo> _locals;
 
         // we need to guarantee same stack patterns at branches and labels.
@@ -956,7 +964,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 PushEvalStack(null, ExprContext.None);
             }
 
+            var previousPointerIndirectionMayFlowToRefResult = _pointerIndirectionMayFlowToRefResult;
+            _pointerIndirectionMayFlowToRefResult = false;
             right = VisitExpression(node.Right, rhsContext);
+            var pointerIndirectionMayFlowToRefRHS = _pointerIndirectionMayFlowToRefResult;
+            _pointerIndirectionMayFlowToRefResult = previousPointerIndirectionMayFlowToRefResult;
 
             if (mayPushReceiver)
             {
@@ -1003,7 +1015,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // but when a pointer is converted to a user-defined ref local, it becomes a use of a "safe" feature where we should guarantee the ref is tracked by GC.
                 else if (localSymbol.RefKind != RefKind.None &&
                     localSymbol.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
-                    usesPointerIndirection(right))
+                    pointerIndirectionMayFlowToRefRHS)
                 {
                     ShouldNotSchedule(localSymbol);
                 }
@@ -1013,17 +1025,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             return node.Update(left, right, node.IsRef, node.Type);
+        }
 
-            static bool usesPointerIndirection(BoundExpression expr)
-            {
-                return expr switch
-                {
-                    BoundPointerIndirectionOperator => true,
-                    BoundFieldAccess { ReceiverOpt: { } receiver } => usesPointerIndirection(receiver),
-                    BoundConditionalOperator cond => usesPointerIndirection(cond.Consequence) || usesPointerIndirection(cond.Alternative),
-                    _ => false,
-                };
-            }
+        public override BoundNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
+        {
+            _pointerIndirectionMayFlowToRefResult = true;
+            return base.VisitPointerIndirectionOperator(node);
         }
 
         /// <summary>
@@ -1294,7 +1301,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             ExprContext context = (argRefKind == RefKind.None) ? ExprContext.Value : ExprContext.Address;
 
             var arg = arguments[i];
+
+            var previousPointerIndirectionMayFlowToRefResult = _pointerIndirectionMayFlowToRefResult;
+            _pointerIndirectionMayFlowToRefResult = false;
+
             BoundExpression rewrittenArg = VisitExpression(arg, context);
+
+            _pointerIndirectionMayFlowToRefResult = previousPointerIndirectionMayFlowToRefResult;
 
             if (rewrittenArguments == null && arg != rewrittenArg)
             {
