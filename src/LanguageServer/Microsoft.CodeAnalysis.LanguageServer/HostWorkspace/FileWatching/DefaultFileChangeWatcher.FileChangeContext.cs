@@ -45,12 +45,16 @@ internal sealed partial class DefaultFileChangeWatcher
                     continue;
 
                 var rootWatcher = _owner.GetOrCreateSharedWatcher(rootPath);
-                AttachWatcher(this, rootWatcher);
                 fileSystemWatchersForWatchedDirectoriesBuilder.Add(rootWatcher);
             }
 
             _watchedDirectories = watchedDirectoryBuilder.ToImmutable();
             _fileSystemWatchersForWatchedDirectories = fileSystemWatchersForWatchedDirectoriesBuilder.ToImmutable();
+
+            // Attach watchers after fields are assigned to avoid race conditions where events
+            // fire before _watchedDirectories is initialized.
+            foreach (var rootWatcher in _fileSystemWatchersForWatchedDirectories)
+                AttachWatcher(this, rootWatcher);
         }
 
         public event EventHandler<string>? FileChanged;
