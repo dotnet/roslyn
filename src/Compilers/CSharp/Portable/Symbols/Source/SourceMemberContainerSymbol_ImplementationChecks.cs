@@ -1575,6 +1575,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
+            overriddenMember = overriddenMember.OriginalDefinition;
             var leastOverriddenMember = overriddenMember.GetLeastOverriddenMember(overriddenMember.ContainingType);
             if (overridingMember.CallerUnsafeMode == CallerUnsafeMode.Explicit && leastOverriddenMember.CallerUnsafeMode == CallerUnsafeMode.None)
             {

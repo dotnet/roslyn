@@ -6873,18 +6873,18 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             [libRef],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (19,26): error CS9505: Unsafe member 'C3.M1()' cannot implicitly implement safe member 'I<int*[]>.M1()'
+            // (19,26): error CS9505: Unsafe member 'C3.M1()' cannot implicitly implement safe member 'I<T>.M1()'
             //     public unsafe int*[] M1() => null;
-            Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C3.M1()", "I<int*[]>.M1()").WithLocation(19, 26),
-            // (20,24): error CS9505: Unsafe member 'C3.M2()' cannot implicitly implement safe member 'I<int*[]>.M2()'
+            Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C3.M1()", "I<T>.M1()").WithLocation(19, 26),
+            // (20,24): error CS9505: Unsafe member 'C3.M2()' cannot implicitly implement safe member 'I<T>.M2()'
             //     public unsafe void M2() { }
-            Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C3.M2()", "I<int*[]>.M2()").WithLocation(20, 24),
-            // (25,29): error CS9506: Unsafe member 'C4.I<int*[]>.M1()' cannot implement safe member 'I<int*[]>.M1()'
+            Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C3.M2()", "I<T>.M2()").WithLocation(20, 24),
+            // (25,29): error CS9506: Unsafe member 'C4.I<int*[]>.M1()' cannot implement safe member 'I<T>.M1()'
             //     unsafe int*[] I<int*[]>.M1() => null;
-            Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M1").WithArguments("C4.I<int*[]>.M1()", "I<int*[]>.M1()").WithLocation(25, 29),
-            // (26,27): error CS9506: Unsafe member 'C4.I<int*[]>.M2()' cannot implement safe member 'I<int*[]>.M2()'
+            Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M1").WithArguments("C4.I<int*[]>.M1()", "I<T>.M1()").WithLocation(25, 29),
+            // (26,27): error CS9506: Unsafe member 'C4.I<int*[]>.M2()' cannot implement safe member 'I<T>.M2()'
             //     unsafe void I<int*[]>.M2() { }
-            Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C4.I<int*[]>.M2()", "I<int*[]>.M2()").WithLocation(26, 27));
+            Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C4.I<int*[]>.M2()", "I<T>.M2()").WithLocation(26, 27));
 
         CreateCompilation(source,
             [libRef],

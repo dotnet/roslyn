@@ -69,9 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                // PROTOTYPE: failing assert
-                _ = assertUnexpectedGiver;
-                // Debug.Assert(!assertUnexpectedGiver, "We are performing a check for an unrelated assembly which likely indicates a bug.");
+                Debug.Assert(!assertUnexpectedGiver, "We are performing a check for an unrelated assembly which likely indicates a bug.");
             }
 
             return result;
