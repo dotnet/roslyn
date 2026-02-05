@@ -48,11 +48,43 @@ There is a long-standing backlog item to enhance the experience of working with 
 - Syntax diagnostics.
 - Intellisense for the "default" set of references. e.g. those references which are included in the project created by `dotnet new console` with the current SDK.
 
-### Heuristic
-The IDE considers a file to be a file-based program, if:
-- It has any `#:` directives which configure the file-based program project, or,
-- It has any top-level statements.
-Any of the above is met, and, the file is not included in an ordinary `.csproj` project (i.e. it is not part of any ordinary project's list of `Compile` items).
+### File-based app detection
+
+A C# file has multiple possible *classifications* in the editor:
+- **Project-Based App**. The file is part of an ordinary `.csproj` project.
+- **File-Based App**. The file is part of a "file-based app" project, i.e. it is either the entry point of a file-based app or it is `#:include`d by the entry point of the same.
+- **Misc File**. The file is not part of an ordinary project or file-based app project.
+    - In these files, we can optionally provide information we think is likely to be helpful, such as semantic info for the core library, or syntax errors. But we don't report semantic errors for these.
+    - We do not perform disruptive actions on these files, such as implicitly restoring them, like we would with an ordinary project or the entry point of a file-based program.
+
+This is the decision tree for determining how to classify a C# file:
+
+1. **Is the file in a currently loaded project?**
+   - **Yes** → Classify as **Project-Based App**
+   - **No** → Continue to next check
+
+2. **Is `enableFileBasedPrograms` enabled?** (default: `true` in release)
+   - **No** → Classify as **Misc File**
+   - **Yes** → Continue to next check
+
+3. **Does the file have `#:` or `#!` directives?**
+   - **Yes** → Classify as **File-Based App**
+   - **No** → Continue to next check
+
+4. **Is `enableFileBasedProgramsWhenAmbiguous` enabled?** (default: `false` in release)
+   - **No** → Classify as **Misc File**
+   - **Yes** → Continue to heuristic detection
+
+**Heuristic Detection (when `enableFileBasedProgramsWhenAmbiguous: true`):**
+
+5. **Is the file included in a `.csproj` cone?**
+   - "Cone" means that a containing directory, at some level of nesting, has a `.csproj` file in it.
+   - **Yes** → Classify as **Misc File** (wait for project to load)
+   - **No** → Continue to next check
+
+6. **Are top-level statements present?**
+   - **Yes** → Classify as **File-Based App**
+   - **No** → Classify as **Misc File**
 
 ### Opt-out
 
