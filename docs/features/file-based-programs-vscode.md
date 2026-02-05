@@ -71,7 +71,7 @@ This is the decision tree for determining how to classify a C# file:
    - **Yes** → Classify as **File-Based App**
    - **No** → Continue to next check
 
-4. **Is `enableFileBasedProgramsWhenAmbiguous` enabled?** (default: `false` in release)
+4. **Is `enableFileBasedProgramsWhenAmbiguous` enabled?** (default: `false` in release, `true` in prerelease)
    - **No** → Classify as **Misc File**
    - **Yes** → Continue to heuristic detection
 
