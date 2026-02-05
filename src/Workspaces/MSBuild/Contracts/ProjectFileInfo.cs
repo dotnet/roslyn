@@ -82,43 +82,43 @@ internal sealed class ProjectFileInfo
     /// The command line args used to compile the project.
     /// </summary>
     [DataMember]
-    public string[] CommandLineArgs { get; init; }
+    public string[] CommandLineArgs { get; init; } = [];
 
     /// <summary>
     /// The source documents.
     /// </summary>
     [DataMember]
-    public DocumentFileInfo[] Documents { get; init; }
+    public DocumentFileInfo[] Documents { get; init; } = [];
 
     /// <summary>
     /// The additional documents.
     /// </summary>
     [DataMember]
-    public DocumentFileInfo[] AdditionalDocuments { get; init; }
+    public DocumentFileInfo[] AdditionalDocuments { get; init; } = [];
 
     /// <summary>
     /// The analyzer config documents.
     /// </summary>
     [DataMember]
-    public DocumentFileInfo[] AnalyzerConfigDocuments { get; init; }
+    public DocumentFileInfo[] AnalyzerConfigDocuments { get; init; } = [];
 
     /// <summary>
     /// References to other projects.
     /// </summary>
     [DataMember]
-    public ProjectFileReference[] ProjectReferences { get; init; }
+    public ProjectFileReference[] ProjectReferences { get; init; } = [];
 
     /// <summary>
     /// The msbuild project capabilities.
     /// </summary>
     [DataMember]
-    public string[] ProjectCapabilities { get; init; }
+    public string[] ProjectCapabilities { get; init; } = [];
 
     /// <summary>
     /// The paths to content files included in the project.
     /// </summary>
     [DataMember]
-    public string[] ContentFilePaths { get; init; }
+    public string[] ContentFilePaths { get; init; } = [];
 
     /// <summary>
     /// The path to the project.assets.json path in obj/.
@@ -130,7 +130,7 @@ internal sealed class ProjectFileInfo
     /// Any package references defined on the project.
     /// </summary>
     [DataMember]
-    public PackageReference[] PackageReferences { get; init; }
+    public PackageReference[] PackageReferences { get; init; } = [];
 
     /// <summary>
     /// Target framework version (for .net framework projects)
@@ -139,7 +139,7 @@ internal sealed class ProjectFileInfo
     public string? TargetFrameworkVersion { get; init; }
 
     [DataMember]
-    public FileGlobs[] FileGlobs { get; init; }
+    public FileGlobs[] FileGlobs { get; init; } = [];
 
     public override string ToString()
         => string.IsNullOrWhiteSpace(TargetFramework)
