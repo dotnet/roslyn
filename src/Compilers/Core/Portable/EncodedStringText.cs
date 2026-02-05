@@ -14,7 +14,8 @@ namespace Microsoft.CodeAnalysis.Text
     {
         private const int LargeObjectHeapLimitInChars = 40 * 1024; // 40KB
 
-        private static volatile bool s_encodingProviderRegistered;
+        // Note: CodePagesEncodingProvider.Instance may be null on .NET Framework.
+        private static volatile bool s_encodingProviderRegistered = CodePagesEncodingProvider.Instance == null;
 
         /// <summary>
         /// Encoding to use when there is no byte order mark (BOM) on the stream. This encoder may throw a <see cref="DecoderFallbackException"/>
