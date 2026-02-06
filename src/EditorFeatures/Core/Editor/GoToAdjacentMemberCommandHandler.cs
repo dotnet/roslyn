@@ -93,9 +93,6 @@ internal sealed class GoToAdjacentMemberCommandHandler(IOutliningManagerService 
         if (targetPosition != null)
         {
             args.TextView.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(subjectBuffer.CurrentSnapshot, targetPosition.Value), _outliningManagerService);
-
-            // Moving caret doesn't clear previous selection so we need to clear it manually to avoid modifying previously selected text
-            args.TextView.Selection.Clear();
         }
 
         return true;

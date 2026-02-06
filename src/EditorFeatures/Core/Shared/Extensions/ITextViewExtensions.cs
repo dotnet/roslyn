@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Outlining;
+using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -143,6 +144,9 @@ internal static partial class ITextViewExtensions
 
             outliningManager?.ExpandAll(new SnapshotSpan(pointInView.Value, length: 0), match: _ => true);
         }
+
+        // Moving caret doesn't clear previous selection so we need to clear it manually to avoid modifying previously selected text
+        textView.Selection.Clear();
 
         var newPosition = textView.Caret.MoveTo(new VirtualSnapshotPoint(pointInView.Value, point.VirtualSpaces));
 
