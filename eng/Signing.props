@@ -60,5 +60,10 @@
     <FileSignInfo Include="Microsoft.VisualStudio.Telemetry.dll" CertificateName="MicrosoftSHA2" />
     <FileSignInfo Include="Microsoft.VisualStudio.Threading.dll" CertificateName="MicrosoftSHA2" />
     <FileSignInfo Include="StreamJsonRpc.dll" CertificateName="MicrosoftSHA2" />
+
+    <!--
+      These are test-only resources and do not need to be signed.
+    -->
+    <FileSignInfo Include="Microsoft.CodeAnalysis.Compiler.Test.Resources.dll" CertificateName="None" />
   </ItemGroup>
 </Project>
