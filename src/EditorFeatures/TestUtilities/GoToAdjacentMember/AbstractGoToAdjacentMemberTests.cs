@@ -51,31 +51,15 @@ public abstract class AbstractGoToAdjacentMemberTests
 
             if (hostDocument.AnnotatedSpans.TryGetValue("selection", out var annotatedSelection) && annotatedSelection.Any())
             {
-                var firstSpan = annotatedSelection.First();
-                var lastSpan = annotatedSelection.Last();
-                var cursorPosition = hostDocument.CursorPosition ?? firstSpan.Start;
+                var span = annotatedSelection.SingleOrDefault();
+                var cursorPosition = hostDocument.CursorPosition ?? span.Start;
 
-                textView.Selection.Mode = annotatedSelection.Length > 1
-                    ? TextSelectionMode.Box
-                    : TextSelectionMode.Stream;
+                textView.Selection.Mode = TextSelectionMode.Stream;
 
-                SnapshotPoint boxSelectionStart, boxSelectionEnd;
-                bool isReversed;
+                var snapshotSpan = new SnapshotSpan(subjectBuffer.CurrentSnapshot, span.Start, span.Length);
+                var isReversed = cursorPosition == span.Start;
 
-                if (cursorPosition == firstSpan.Start || cursorPosition == lastSpan.End)
-                {
-                    boxSelectionStart = new SnapshotPoint(subjectBuffer.CurrentSnapshot, firstSpan.Start);
-                    boxSelectionEnd = new SnapshotPoint(subjectBuffer.CurrentSnapshot, lastSpan.End);
-                    isReversed = cursorPosition == firstSpan.Start;
-                }
-                else
-                {
-                    boxSelectionStart = new SnapshotPoint(subjectBuffer.CurrentSnapshot, firstSpan.End);
-                    boxSelectionEnd = new SnapshotPoint(subjectBuffer.CurrentSnapshot, lastSpan.Start);
-                    isReversed = cursorPosition == firstSpan.End;
-                }
-
-                textView.Selection.Select(new SnapshotSpan(boxSelectionStart, boxSelectionEnd), isReversed);
+                textView.Selection.Select(snapshotSpan, isReversed);
             }
             else
             {
@@ -97,12 +81,6 @@ public abstract class AbstractGoToAdjacentMemberTests
             var finalPosition = textView.Caret.Position.BufferPosition.Position;
 
             Assert.Equal(hostDocument.SelectedSpans.Single().Start, finalPosition);
-
-            if (hostDocument.AnnotatedSpans.ContainsKey("selection") && hostDocument.AnnotatedSpans["selection"].Any())
-            {
-                var selectionSpan = hostDocument.AnnotatedSpans["selection"].Single();
-                Assert.True(selectionSpan.Length > 0, "Selection span should have length > 0");
-            }
         }
     }
 
