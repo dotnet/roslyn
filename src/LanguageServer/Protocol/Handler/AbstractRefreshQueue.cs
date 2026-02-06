@@ -38,19 +38,20 @@ internal abstract class AbstractRefreshQueue :
         IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
         LspWorkspaceManager lspWorkspaceManager,
-        IClientLanguageServerManager notificationManager)
+        IClientLanguageServerManager notificationManager,
+        FeatureProviderRefresher providerRefresher)
     {
         _asyncListener = asynchronousOperationListenerProvider.GetListener(GetFeatureAttribute());
         _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
         _disposalTokenSource = new();
         _lspWorkspaceManager = lspWorkspaceManager;
         _notificationManager = notificationManager;
+        providerRefresher.ProviderRefreshRequested += EnqueueRefreshNotification;
     }
 
-    public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
+    public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
         Initialize(clientCapabilities);
-        return Task.CompletedTask;
     }
 
     public void Initialize(ClientCapabilities clientCapabilities)

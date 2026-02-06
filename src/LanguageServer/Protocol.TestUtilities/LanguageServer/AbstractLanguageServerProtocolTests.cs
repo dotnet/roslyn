@@ -354,7 +354,12 @@ public abstract partial class AbstractLanguageServerProtocolTests
         var workspace = await CreateWorkspaceAsync(lspOptions, workspaceKind, mutatingLspWorkspace);
 
         workspace.InitializeDocuments(XElement.Parse(xmlContent), openDocuments: false);
-        workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([CreateTestAnalyzersReference()]));
+        var analyzerReferences = CreateTestAnalyzersReference();
+
+        if (lspOptions.AdditionalAnalyzers != null)
+            analyzerReferences = analyzerReferences.WithAdditionalAnalyzers(LanguageNames.CSharp, lspOptions.AdditionalAnalyzers);
+
+        workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReferences]));
 
         return await TestLspServer.CreateAsync(workspace, lspOptions, TestOutputLspLogger);
     }
@@ -669,7 +674,6 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         protected virtual RoslynLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, WellKnownLspServerKinds serverKind, AbstractLspLogger logger)
         {
-            var capabilitiesProvider = TestWorkspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
             var factory = TestWorkspace.ExportProvider.GetExportedValue<ILanguageServerFactory>();
 
             var jsonMessageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
@@ -678,7 +682,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
                 ExceptionStrategy = ExceptionProcessing.ISerializable,
             };
 
-            var languageServer = (RoslynLanguageServer)factory.Create(jsonRpc, jsonMessageFormatter.JsonSerializerOptions, capabilitiesProvider, serverKind, logger, TestWorkspace.Services.HostServices);
+            var languageServer = (RoslynLanguageServer)factory.Create(jsonRpc, jsonMessageFormatter.JsonSerializerOptions, serverKind, logger, TestWorkspace.Services.HostServices);
 
             jsonRpc.StartListening();
             return languageServer;

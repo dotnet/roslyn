@@ -42,7 +42,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Add_0_check">
         <source>Add '{0}' check</source>
-        <target state="new">Add '{0}' check</target>
+        <target state="translated">Adicionar verificação "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_DebuggerDisplay_attribute">
@@ -52,12 +52,12 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Add_negative_value_check">
         <source>Add negative value check</source>
-        <target state="new">Add negative value check</target>
+        <target state="translated">Adicionar verificação de valor negativo</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_negative_value_or_zero_check">
         <source>Add negative value or zero check</source>
-        <target state="new">Add negative value or zero check</target>
+        <target state="translated">Adicionar valor negativo ou verificação de zero</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
@@ -452,12 +452,12 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Changing_project_or_package_reference_caused_the_identity_of_referenced_assembly_to_change_from_0_to_1_which_requires_restarting_the_application">
         <source>Changing project or package reference caused the identity of referenced assembly to change from '{0}' to '{1}', which requires restarting the application.</source>
-        <target state="new">Changing project or package reference caused the identity of referenced assembly to change from '{0}' to '{1}', which requires restarting the application.</target>
+        <target state="translated">A alteração da referência de projeto ou pacote fez com que a identidade do assembly referenciado alterava de "{0}" para "{1}", o que requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_project_setting_0_from_1_to_2_requires_restarting_the_application">
         <source>Changing project setting '{0}' from '{1}' to '{2}' requires restarting the application.</source>
-        <target state="new">Changing project setting '{0}' from '{1}' to '{2}' requires restarting the application.</target>
+        <target state="translated">Alterar a configuração do projeto "{0}" de "{1}" para "{2}" requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application">
@@ -465,9 +465,9 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Alterar o atributo pseudo-personalizado '{0}' de {1} requer o reinício do aplicativo</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit">
-        <source>Changing source file '{0}' in a stale project has no effect until the project is rebuit.</source>
-        <target state="new">Changing source file '{0}' in a stale project has no effect until the project is rebuit.</target>
+      <trans-unit id="Changing_source_file_0_in_a_stale_project_1_has_no_effect_until_the_project_is_rebuilt_2">
+        <source>Changing source file '{0}' in a stale project '{1}' has no effect until the project is rebuit; {2}</source>
+        <target state="translated">Alterar o arquivo de origem '{0}' em um projeto obsoleto '{1}' não tem efeito até que o projeto seja reconstruído; {2}</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_th_application">
@@ -532,12 +532,12 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group_number_0">
         <source>Conditional alternation is missing a closing parenthesis after the group number {0}</source>
-        <target state="new">Conditional alternation is missing a closing parenthesis after the group number {0}</target>
+        <target state="translated">A alternância condicional não tem um parêntese de fechamento após o número do grupo {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0</note>
       </trans-unit>
       <trans-unit id="Conditional_alternation_refers_to_an_undefined_group_number_0">
         <source>Conditional alternation refers to an undefined group number {0}</source>
-        <target state="new">Conditional alternation refers to an undefined group number {0}</target>
+        <target state="translated">Alternância condicional refere-se a um número de grupo indefinido {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(1)\1))</note>
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
@@ -587,7 +587,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Convert_to_field_property">
         <source>Convert to 'field' property</source>
-        <target state="new">Convert to 'field' property</target>
+        <target state="translated">Converter em propriedade "field"</target>
         <note>{Locked="field"} "field" is C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -782,12 +782,12 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Extension_0_is_already_registered">
         <source>Extension '{0}' is already registered.</source>
-        <target state="new">Extension '{0}' is already registered.</target>
+        <target state="translated">A extensão "{0}" já está registrada.</target>
         <note />
       </trans-unit>
       <trans-unit id="Extension_0_was_not_registered">
         <source>Extension '{0}' was not registered.</source>
-        <target state="new">Extension '{0}' was not registered.</target>
+        <target state="translated">A extensão "{0}" não foi registrada.</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">
@@ -887,7 +887,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Generate_Equals">
         <source>Generate Equals(...)</source>
-        <target state="new">Generate Equals(...)</target>
+        <target state="translated">Gerar é Igual a(...)</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_comparison_operators">
@@ -1002,7 +1002,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Insufficient_or_invalid_hexadecimal_digits">
         <source>Insufficient or invalid hexadecimal digits</source>
-        <target state="new">Insufficient or invalid hexadecimal digits</target>
+        <target state="translated">Dígitos hexadecimais insuficientes ou inválidos</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \x</note>
       </trans-unit>
       <trans-unit id="Introduce_constant">
@@ -1257,7 +1257,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Multiple_handlers_found_for_message_0">
         <source>Multiple handlers found for message {0}.</source>
-        <target state="new">Multiple handlers found for message {0}.</target>
+        <target state="translated">Vários manipuladores encontrados para a mensagem {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="NET_Code_Actions">
@@ -1282,7 +1282,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
         <source>Nested quantifier '{0}'</source>
-        <target state="needs-review-translation">Quantificador aninhado {0}</target>
+        <target state="translated">Quantificador aninhado "{0}"</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</note>
       </trans-unit>
       <trans-unit id="No_common_root_node_for_extraction">
@@ -1292,17 +1292,17 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="No_extension_registered_as_0">
         <source>No extension registered as '{0}'.</source>
-        <target state="new">No extension registered as '{0}'.</target>
+        <target state="translated">Nenhuma extensão registrada como "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="No_extensions_registered_at_0">
         <source>No extensions registered at '{0}'.</source>
-        <target state="new">No extensions registered at '{0}'.</target>
+        <target state="translated">Nenhuma extensão registrada em "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="No_handler_found_for_message_0">
         <source>No handler found for message {0}.</source>
-        <target state="new">No handler found for message {0}.</target>
+        <target state="translated">Nenhum manipulador encontrado para a mensagem {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="No_source_document_info_found_in_PDB">
@@ -1357,7 +1357,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Project_references_mutliple_assemblies_of_the_same_simple_name_0_1_Changing_a_reference_to_such_an_assembly_requires_restarting_the_application">
         <source>Project references mutliple assemblies of the same simple name '{0}': {1}. Changing a reference to such an assembly requires restarting the application.</source>
-        <target state="new">Project references mutliple assemblies of the same simple name '{0}': {1}. Changing a reference to such an assembly requires restarting the application.</target>
+        <target state="translated">O projeto referencia vários assemblies com o mesmo nome simples "{0}": {1}. Alterar uma referência a esse assembly requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Properties_not_allowed_in_an_array">
@@ -1397,22 +1397,22 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Quantifier_0_following_nothing">
         <source>Quantifier '{0}' following nothing</source>
-        <target state="new">Quantifier '{0}' following nothing</target>
+        <target state="translated">Nada precede o quantificador "{0}"</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: *</note>
       </trans-unit>
       <trans-unit id="Quantifier_and_capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue">
         <source>Quantifier and capture group numbers must be less than or equal to Int32.MaxValue</source>
-        <target state="new">Quantifier and capture group numbers must be less than or equal to Int32.MaxValue</target>
+        <target state="translated">O quantificador e os números do grupo de captura devem ser menores ou iguais a Int32.MaxValue</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a{2147483648}</note>
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group_name_0">
         <source>Reference to undefined group name '{0}'</source>
-        <target state="needs-review-translation">Referência ao nome do grupo indefinido {0}</target>
+        <target state="translated">Referência ao nome do grupo indefinido "{0}"</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \k&lt;a&gt;. Here, {0} will be the name of the undefined group ('a')</note>
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group_number_0">
         <source>Reference to undefined group number {0}</source>
-        <target state="new">Reference to undefined group number {0}</target>
+        <target state="translated">Referência ao grupo número {0} indefinido</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;-1&gt;). Here, {0} will be the number of the undefined group ('1')</note>
       </trans-unit>
       <trans-unit id="Regex_all_control_characters_long">
@@ -2632,12 +2632,12 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       </trans-unit>
       <trans-unit id="SemanticSearch">
         <source>Semantic Search</source>
-        <target state="new">Semantic Search</target>
+        <target state="translated">Pesquisa Semântica</target>
         <note />
       </trans-unit>
       <trans-unit id="Semantic_search_only_supported_on_net_core">
         <source>Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</source>
-        <target state="new">Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</target>
+        <target state="translated">A pesquisa semântica só tem suporte quando a análise de código é executada em um processo separado no .NET mais recente (consulte Ferramentas &gt; Opções &gt; Editor de Texto &gt; C# &gt; Avançado).</target>
         <note />
       </trans-unit>
       <trans-unit id="Silent">
@@ -2732,7 +2732,7 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       </trans-unit>
       <trans-unit id="The_assembly_0_references_compiler_version_1_newer_than_2">
         <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="needs-review-translation">O assembly do analisador '{0}' referencia a versão '{1}' do compilador, que é mais recente que a versão em execução no momento '{2}'.</target>
+        <target state="translated">O assembly do analisador "{0}" não pode ser usado porque faz referência à versão "{1}" do compilador, que é mais recente do que a versão "{2}" em execução no momento.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -2797,7 +2797,7 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       </trans-unit>
       <trans-unit id="Unable_to_get_the_directory_name_for_0">
         <source>Unable to get the directory name for {0}.</source>
-        <target state="new">Unable to get the directory name for {0}.</target>
+        <target state="translated">Não é possível obter o nome do diretório para {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_property">
@@ -3147,12 +3147,12 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       </trans-unit>
       <trans-unit id="_0_cannot_be_negative">
         <source>'{0}' cannot be negative</source>
-        <target state="new">'{0}' cannot be negative</target>
+        <target state="translated">"{0}" não pode ser negativo</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_negative_or_zero">
         <source>'{0}' cannot be negative or zero</source>
-        <target state="new">'{0}' cannot be negative or zero</target>
+        <target state="translated">"{0}" não pode ser negativo ou zero</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
@@ -3227,7 +3227,7 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       </trans-unit>
       <trans-unit id="_0_is_not_nullable_aware">
         <source>'{0}' is not nullable aware.</source>
-        <target state="new">'{0}' is not nullable aware.</target>
+        <target state="translated">"{0}" não reconhece anulabilidade.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_items_in_cache">
@@ -3595,7 +3595,7 @@ Se o especificador de formato "d" for usado sem outros especificadores de format
       </trans-unit>
       <trans-unit id="default">
         <source>default&gt;</source>
-        <target state="new">default&gt;</target>
+        <target state="translated">padrão&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="discard">
@@ -3615,7 +3615,7 @@ Se o especificador de formato "d" for usado sem outros especificadores de format
       </trans-unit>
       <trans-unit id="extension_block">
         <source>extension block</source>
-        <target state="new">extension block</target>
+        <target state="translated">bloco de extensão</target>
         <note />
       </trans-unit>
       <trans-unit id="external">
@@ -4145,7 +4145,7 @@ Deseja continuar?</target>
       </trans-unit>
       <trans-unit id="Change_signature">
         <source>Change signature...</source>
-        <target state="needs-review-translation">Alterar assinatura...</target>
+        <target state="translated">Alterar assinatura...</target>
         <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Generate_new_type">
@@ -4192,7 +4192,7 @@ Deseja continuar?</target>
       </trans-unit>
       <trans-unit id="_0_1">
         <source>{0} - {1}</source>
-        <target state="needs-review-translation">    {0} - {1}</target>
+        <target state="translated">{0} – {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source">
@@ -4429,6 +4429,21 @@ Quando esse especificador de formato padrão é usado, a operação de análise 
         <source>{0} '{1}' of {2} '{3}'</source>
         <target state="translated">{0} '{1}' de {2} '{3}'</target>
         <note>e.g. "parameter 'T param' of method 'M'"</note>
+      </trans-unit>
+      <trans-unit id="the_content_of_the_document_is_stale">
+        <source>the content of the document is stale.</source>
+        <target state="translated">o conteúdo do documento está obsoleto.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="the_project_contains_stale_document_0">
+        <source>the project contains stale document '{0}'.</source>
+        <target state="translated">o projeto contém o documento obsoleto '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="the_project_has_not_been_built">
+        <source>the project has not been built.</source>
+        <target state="translated">o projeto não foi compilado.</target>
+        <note />
       </trans-unit>
       <trans-unit id="time_separator">
         <source>time separator</source>

@@ -355,7 +355,7 @@ internal static partial class SyntaxTreeExtensions
         var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
         var token = leftToken.GetPreviousTokenIfTouchingWord(position);
 
-        // if we're after an attribute, restart the check at teh start of the attribute.
+        // if we're after an attribute, restart the check at the start of the attribute.
         if (token.Kind() == SyntaxKind.CloseBracketToken && token.Parent is AttributeListSyntax)
             return syntaxTree.IsLocalFunctionDeclarationContext(token.Parent.SpanStart, validModifiers, cancellationToken);
 
@@ -1128,7 +1128,7 @@ internal static partial class SyntaxTreeExtensions
         static bool IsSuitableParameterList(ParameterListSyntax parameterList, bool includeOperators)
             => parameterList.Parent switch
             {
-                MethodDeclarationSyntax or LocalFunctionStatementSyntax or ConstructorDeclarationSyntax or DelegateDeclarationSyntax or TypeDeclarationSyntax => true,
+                MethodDeclarationSyntax or LocalFunctionStatementSyntax or ConstructorDeclarationSyntax or DelegateDeclarationSyntax or TypeDeclarationSyntax or ParenthesizedLambdaExpressionSyntax or AnonymousMethodExpressionSyntax => true,
                 OperatorDeclarationSyntax or ConversionOperatorDeclarationSyntax when includeOperators => true,
                 _ => false,
             };

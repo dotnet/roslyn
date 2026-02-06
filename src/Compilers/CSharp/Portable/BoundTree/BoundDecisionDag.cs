@@ -21,12 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableHashSet<LabelSymbol> _reachableLabels;
         private ImmutableArray<BoundDecisionDagNode> _topologicallySortedNodes;
 
-        private partial void Validate()
-        {
-            Debug.Assert(!SuitableForLowering ||
-                         !this.TopologicallySortedNodes.Any(static node => node is BoundEvaluationDecisionDagNode e && e.Evaluation.Kind == BoundKind.DagAssignmentEvaluation));
-        }
-
         internal static void AddSuccessors(ref TemporaryArray<BoundDecisionDagNode> builder, BoundDecisionDagNode node)
         {
             switch (node)

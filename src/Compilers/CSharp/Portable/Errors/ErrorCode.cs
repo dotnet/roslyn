@@ -2454,6 +2454,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_StructLayoutAndExtendedLayout = 9351,
         ERR_RuntimeDoesNotSupportExtendedLayoutTypes = 9352,
 
+        ERR_NoAwaitOnAsyncEnumerable = 9353,
+
+        ERR_CollectionArgumentsMustBeFirst = 9354,
+        ERR_CollectionArgumentsNotSupportedForType = 9355,
+        ERR_CollectionArgumentsDynamicBinding = 9356,
+        ERR_CollectionArgumentsMustBeEmpty = 9357,
+        ERR_CollectionRefLikeElementType = 9358,
+        ERR_BadCollectionArgumentsArgCount = 9359,
+
         // PROTOTYPE: Pack numbers
         ERR_ExpressionTreeContainsUnionConversion = 9400,
 

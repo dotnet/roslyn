@@ -25,13 +25,12 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.CSharp.Testing;
     using Microsoft.CodeAnalysis.Testing;
-    using Microsoft.CodeAnalysis.Testing.Verifiers;
 
     public static partial class CSharpSourceGeneratorVerifier<TSourceGenerator>
         where TSourceGenerator : IIncrementalGenerator, new()
     {
 #pragma warning disable CS0618 // Type or member is obsolete
-        public class Test : CSharpSourceGeneratorTest<EmptySourceGeneratorProvider, XUnitVerifier>
+        public class Test : CSharpSourceGeneratorTest<EmptySourceGeneratorProvider, DefaultVerifier>
 #pragma warning restore CS0618 // Type or member is obsolete
         {
             private readonly string? _testFile;

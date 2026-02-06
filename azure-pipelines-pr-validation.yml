@@ -96,7 +96,7 @@ extends:
             displayName: 'Publish Logs'
             condition: succeededOrFailed()
             targetPath: '$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)'
-            artifactName: 'Build Diagnostic Files'
+            artifactName: 'Build Diagnostic Files - $(System.JobAttempt)'
             publishLocation: Container
 
           - output: pipelineArtifact

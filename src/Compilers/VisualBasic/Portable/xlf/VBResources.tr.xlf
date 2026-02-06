@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="ERR_AttributeCannotBeAppliedManually">
         <source>'{0}' cannot be applied manually.</source>
-        <target state="new">'{0}' cannot be applied manually.</target>
+        <target state="translated">'{0}' el ile uygulanamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime">
         <source>Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</source>
-        <target state="new">Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</target>
+        <target state="translated">Güncelleştirme için açık arabirim uygulamasının yayılması gerekiyor ve bu işlem, uygulama yeniden başlatılmadan çalışma zamanı tarafından desteklenmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidExperimentalDiagID">
@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
         <source>The target runtime does not support extended layout types.</source>
-        <target state="new">The target runtime does not support extended layout types.</target>
+        <target state="translated">Hedef çalışma zamanı, genişletilmiş düzen türlerini desteklemiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormatDeterministic">
@@ -89,7 +89,7 @@
       </trans-unit>
       <trans-unit id="ERR_MethodImplAttributeAsyncCannotBeUsed">
         <source>'MethodImplAttribute.Async' cannot be manually applied to methods.</source>
-        <target state="new">'MethodImplAttribute.Async' cannot be manually applied to methods.</target>
+        <target state="translated">'MethodImplAttribute.Async' yöntemlere el ile uygulanamaz.</target>
         <note>'MethodImplAttribute.Async' is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -149,7 +149,7 @@
       </trans-unit>
       <trans-unit id="ERR_StructLayoutAndExtendedLayout">
         <source>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</source>
-        <target state="new">Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</target>
+        <target state="translated">'StructLayoutAttribute' ve 'ExtendedLayoutAttribute' aynı türde birlikte kullanılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SymbolDefinedInAssembly">
@@ -159,7 +159,7 @@
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings_RestartRequired">
         <source>Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</source>
-        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</target>
+        <target state="translated">Program tarafından kullanılan kullanıcı dizelerinin toplam uzunluğu, izin verilen sınırı aşıyor. Dize veya XML değişmez değerini eklemek için uygulamanın yeniden başlatılması gerekiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeReserved">
@@ -391,7 +391,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="needs-review-translation">                  Visual Basic Derleyicisi Seçenekleri
+        <target state="translated">                  Visual Basic Derleyicisi Seçenekleri
 
                                   - ÇIKIŞ DOSYASI -
 -out:&lt;file&gt;                       Çıkış dosyası adını belirtir.
@@ -399,7 +399,7 @@
                                   (Kısa biçimi: -t)
 -target:winexe                    Windows uygulaması oluşturur.
 -target:library                   Kitaplık derlemesi oluşturur.
--target:module                    Bir derlemeye eklenebilecek bir modül
+-target:module                    Derlemeye eklenebilecek bir modül
                                   oluşturur.
 -target:appcontainerexe           AppContainer içinde çalışan bir Windows uygulaması
                                   oluşturur.
@@ -410,7 +410,7 @@
 
                                   - GİRİŞ DOSYALARI -
 -addmodule:&lt;file_list&gt;            Belirtilen modüllerdeki başvuru meta verileri
--link:&lt;file_list&gt;                 Belirtilen birlikte çalışma derlemesinden meta veri
+-link:&lt;file_list&gt;                 Belirtilen birlikte çalışma derlemesinden ekleme
                                   meta verileri. (Kısa biçimi: -l)
 -recurse:&lt;wildcard&gt;               Joker karakter belirtimlerine göre
                                   geçerli dizindeki ve alt dizinlerdeki tüm
@@ -425,7 +425,7 @@
 
                                   - KAYNAKLAR -
 -linkresource:&lt;resinfo&gt;           Belirtilen dosyayı bir dış derleme kaynağı
-                                  olarak ekler.
+                                  olarak bağlar.
                                   resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
                                   (Kısa biçimi: -linkres)
 -nowin32manifest                  Varsayılan bildirim çıkış PE’sinin bildirim bölümüne
@@ -458,7 +458,7 @@
 
                                   - HATALAR VE UYARILAR - 
 -nowarn                           Tüm uyarıları devre dışı bırakır.
--nowarn:&lt;number_list&gt;             Uyarıların bir kısmını devre dışı bırakır.
+-nowarn:&lt;number_list&gt;             Tek tek uyarıların bir kısmını devre dışı bırakır.
 -warnaserror[+|-]                 Tüm uyarıları hata olarak değerlendirir.
 -warnaserror[+|-]:&lt;number_list&gt;   Uyarıların bir kısmını hata olarak değerlendirir.
 -ruleset:&lt;file&gt;                   Belirli tanılamaları devre dışı bırakan bir
@@ -467,14 +467,14 @@
                                   Tüm derleyici ve çözümleyici tanılamalarının SARIF
                                   biçiminde günlüğe kaydedilmesi için bir dosya belirtir.
                                   sarif_version:{1|2|2.1} Varsayılan olarak 1. 2 ve 2.1
-                                  Her ikisi ise 2.1.0 SARIF sürümünü ifade eder.
+                                  Her ikisi de 2.1.0 SARIF sürümünü ifade eder.
 -reportanalyzer                   Yürütme zamanı gibi ek çözümleyici bilgilerini
                                   raporlar.
 -skipanalyzers[+|-]               Tanılama çözümleyicilerinin yürütülmesini atlar.
 
                                   - DİL - 
--define:&lt;symbol_list&gt;             Genel koşullu derlemeyi bildirir
-                                  symbol(s). symbol_list:name=value,...
+-define:&lt;symbol_list&gt;             Genel koşullu derleme sembollerini
+                                  bildirir. symbol_list:name=value,...
                                   (Kısa biçimi: -d)
 -imports:&lt;import_list&gt;            Başvurulan meta veri dosyalarında ad alanları
                                   için genel İçeri Aktarma işlemlerini bildirir.
@@ -492,7 +492,7 @@
 -optionstrict:custom              Kesin dil semantik kurallarına uyulmadığında
                                   uyarır.
 -optioncompare:binary             İkili stilinde dize karşılaştırmaları yapılacağını belirtir.
-                                  Bu varsayılandır.
+                                  Bu varsayılan değerdir.
 -optioncompare:text               Metin stilinde dize karşılaştırmaları yapılacağını belirtir.
 
                                   - DİĞER - 
@@ -512,10 +512,10 @@
                                   SHA1 veya SHA256 (varsayılan).
 -codepage:&lt;number&gt;                Kaynak dosyalar açılırken kullanılan kod sayfasını
                                   belirtir.
--delaysign[+|-]                   Tanımlayıcı ad anahtarının ortak bölümünü kullanarak
-                                  derlemeyi genel imzalar.
--publicsign[+|-]                   Tanımlayıcı ad anahtarının ortak bölümünü kullanarak
-                                  derlemeyi genel imzalar.
+-delaysign[+|-]                   Tanımlayıcı ad anahtarının yalnızca ortak bölümünü
+                                  kullanarak derlemeyi gecikmeli imzalar.
+-publicsign[+|-]                   Tanımlayıcı ad anahtarının yalnızca ortak bölümünü
+                                  kullanarak derlemeyi genel imzalar.
 -errorreport:&lt;string&gt;             İç derleyici hatalarının nasıl işleneceğini belirtir;
                                   prompt, send, none veya queue (varsayılan)
                                   olmalıdır.
@@ -548,17 +548,15 @@
 -reportivts[+|-]                  Bu derlemeye tüm bağımlılıklar tarafından verilen tüm IVT'ler hakkında çıkış bilgisi
                                   ve hangi derlemeden geldikleri dahil olmak üzere
                                   yabancı derleme erişilebilirlik hataları hakkında ek açıklamalar.
--sdkpath:&lt;path&gt;                   .NET Framework SDK dizininin konumu
-                                  (mscorlib.dll).
+-sdkpath:&lt;path&gt;             Standart kitaplık derlemelerini aramak için kullanılan yol.
 -subsystemversion:&lt;version&gt;       Çıkış PE’sinin alt sistem sürümünü belirtir.
                                   version:&lt;number&gt;[.&lt;number&gt;]
 -utf8output[+|-]                  Derleyici çıkışını UTF-8 karakter kodlamasıyla
                                   gösterir.
-@&lt;file&gt;                           Komut satırı ayarlarını metin dosyasından alarak ekler
--vbruntime[+|-|*]                 Varsayılan Visual Basic çalışma zamanı ile/olmadan
-                                  derler.
+@&lt;file&gt;                           Metin dosyasındaki komut satırı ayarlarını ekler
+-vbruntime[+|-|*]                 Varsayılan Visual Basic çalışma zamanı ile ve 
+                                  çalışma zamanı olmadan derler.
 -vbruntime:&lt;file&gt;                 &lt;file&gt; içindeki alternatif Visual Basic çalışma zamanı ile
-
                                   derler.
 </target>
         <note />
@@ -655,12 +653,12 @@
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
         <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="needs-review-translation">'{0}' çözümleyici bütünleştirilmiş kodu, derleyicinin şu anda çalışan '{2}' sürümünden daha yeni olan '{1}' sürümüne başvurur.</target>
+        <target state="translated">'{0}' çözümleyici bütünleştirilmiş kodu kullanılamaz çünkü derleyicinin şu anda çalışan '{2}' sürümünden daha yeni olan '{1}' sürümüne başvuruyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
         <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
-        <target state="needs-review-translation">Çözümleyici bütünleştirilmiş kodu, derleyicinin şu anda çalışandan daha yeni bir sürümüne başvurur.</target>
+        <target state="translated">Çözümleyici bütünleştirilmiş kodu kullanılamaz çünkü derleyicinin şu anda çalışan sürümünden daha yeni bir sürümüne başvuruyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">

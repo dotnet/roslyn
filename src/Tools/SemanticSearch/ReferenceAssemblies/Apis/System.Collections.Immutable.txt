@@ -1,5 +1,7 @@
 ﻿# Generated, do not update manually
 System.Collections.Frozen.FrozenDictionary
+System.Collections.Frozen.FrozenDictionary.Create``2(System.Collections.Generic.IEqualityComparer{``0},System.ReadOnlySpan{System.Collections.Generic.KeyValuePair{``0,``1}})
+System.Collections.Frozen.FrozenDictionary.Create``2(System.ReadOnlySpan{System.Collections.Generic.KeyValuePair{``0,``1}})
 System.Collections.Frozen.FrozenDictionary.ToFrozenDictionary``2(System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{``0,``1}},System.Collections.Generic.IEqualityComparer{``0})
 System.Collections.Frozen.FrozenDictionary.ToFrozenDictionary``2(System.Collections.Generic.IEnumerable{``0},System.Func{``0,``1},System.Collections.Generic.IEqualityComparer{``1})
 System.Collections.Frozen.FrozenDictionary.ToFrozenDictionary``3(System.Collections.Generic.IEnumerable{``0},System.Func{``0,``1},System.Func{``0,``2},System.Collections.Generic.IEqualityComparer{``1})
@@ -260,6 +262,8 @@ System.Collections.Immutable.ImmutableDictionary.Contains``2(System.Collections.
 System.Collections.Immutable.ImmutableDictionary.CreateBuilder``2
 System.Collections.Immutable.ImmutableDictionary.CreateBuilder``2(System.Collections.Generic.IEqualityComparer{``0})
 System.Collections.Immutable.ImmutableDictionary.CreateBuilder``2(System.Collections.Generic.IEqualityComparer{``0},System.Collections.Generic.IEqualityComparer{``1})
+System.Collections.Immutable.ImmutableDictionary.CreateRangeWithOverwrite``2(System.Collections.Generic.IEqualityComparer{``0},System.ReadOnlySpan{System.Collections.Generic.KeyValuePair{``0,``1}})
+System.Collections.Immutable.ImmutableDictionary.CreateRangeWithOverwrite``2(System.ReadOnlySpan{System.Collections.Generic.KeyValuePair{``0,``1}})
 System.Collections.Immutable.ImmutableDictionary.CreateRange``2(System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{``0,``1}})
 System.Collections.Immutable.ImmutableDictionary.CreateRange``2(System.Collections.Generic.IEqualityComparer{``0},System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{``0,``1}})
 System.Collections.Immutable.ImmutableDictionary.CreateRange``2(System.Collections.Generic.IEqualityComparer{``0},System.Collections.Generic.IEqualityComparer{``1},System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{``0,``1}})
@@ -784,3 +788,4 @@ System.Linq.ImmutableArrayExtensions.Where``1(System.Collections.Immutable.Immut
 System.Runtime.InteropServices.ImmutableCollectionsMarshal
 System.Runtime.InteropServices.ImmutableCollectionsMarshal.AsArray``1(System.Collections.Immutable.ImmutableArray{``0})
 System.Runtime.InteropServices.ImmutableCollectionsMarshal.AsImmutableArray``1(``0[])
+System.Runtime.InteropServices.ImmutableCollectionsMarshal.AsMemory``1(System.Collections.Immutable.ImmutableArray{``0}.Builder)

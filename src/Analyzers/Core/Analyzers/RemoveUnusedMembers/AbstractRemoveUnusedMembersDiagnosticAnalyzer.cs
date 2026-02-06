@@ -286,11 +286,6 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
 
             bool ShouldAnalyze(SymbolStartAnalysisContext context, INamedTypeSymbol namedType)
             {
-                // Extension members are analyzed as part of the enclosing static class.
-                // When we enter the scope of the enclosing static class, we'll analyze extension members there.
-                if (namedType.IsExtension)
-                    return false;
-
                 // Check if we have at least one candidate symbol in analysis scope.
                 foreach (var member in GetMembersIncludingExtensionBlockMembers(namedType))
                 {
@@ -301,7 +296,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                     }
                 }
 
-                // We have to analyze nested types if containing type contains a candidate field in analysis scope.
+                // We have to analyze nested types and extension blocks if containing type contains a candidate field in analysis scope.
                 if (namedType.ContainingType is { } containingType)
                     return ShouldAnalyze(context, containingType);
 
@@ -730,7 +725,6 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
         // We analyze extension block members as part of the enclosing static class.
         private static IEnumerable<ISymbol> GetMembersIncludingExtensionBlockMembers(INamedTypeSymbol namedType)
         {
-            Debug.Assert(!namedType.IsExtension);
             foreach (var member in namedType.GetMembers())
             {
                 if (member is INamedTypeSymbol { IsExtension: true } extensionBlock)
