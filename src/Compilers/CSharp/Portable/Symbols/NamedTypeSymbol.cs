@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal void AddOperators(string name, ArrayBuilder<MethodSymbol> operators)
         {
-            ImmutableArray<Symbol> candidates = GetSimpleNonTypeMembers(name);
+            var candidates = GetSimpleNonTypeMembersAsOneOrMany(name);
             if (candidates.IsEmpty)
                 return;
 
@@ -216,6 +216,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal static void AddOperators(ArrayBuilder<MethodSymbol> operators, ImmutableArray<Symbol> candidates)
+        {
+            foreach (var candidate in candidates)
+            {
+                if (candidate is MethodSymbol { MethodKind: MethodKind.UserDefinedOperator or MethodKind.Conversion } method)
+                {
+                    operators.Add(method);
+                }
+            }
+        }
+
+        internal static void AddOperators(ArrayBuilder<MethodSymbol> operators, OneOrMany<Symbol> candidates)
         {
             foreach (var candidate in candidates)
             {
@@ -316,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                ImmutableArray<Symbol> candidates = GetSimpleNonTypeMembers(WellKnownMemberNames.Indexer);
+                var candidates = GetSimpleNonTypeMembersAsOneOrMany(WellKnownMemberNames.Indexer);
 
                 if (candidates.IsEmpty)
                 {
@@ -351,28 +362,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>Does not perform a full viability check</remarks>
         private void DoGetExtensionMethods(ArrayBuilder<Symbol> methods, string? nameOpt, int arity, LookupOptions options, PooledHashSet<MethodSymbol>? implementationsToShadow)
         {
-            var members = nameOpt == null
-                ? this.GetMembersUnordered()
-                : this.GetSimpleNonTypeMembers(nameOpt);
-
-            foreach (var member in members)
+            if (nameOpt is null)
             {
-                if (member.Kind == SymbolKind.Method)
+                foreach (var member in GetMembersUnordered())
                 {
-                    var method = (MethodSymbol)member;
-                    if (method.IsExtensionMethod &&
-                        ((options & LookupOptions.AllMethodsOnArityZero) != 0 || arity == method.Arity))
+                    if (member.Kind == SymbolKind.Method)
                     {
-                        var thisParam = method.Parameters.First();
-                        if (!IsValidExtensionReceiverParameter(thisParam))
+                        var method = (MethodSymbol)member;
+                        if (method.IsExtensionMethod &&
+                            ((options & LookupOptions.AllMethodsOnArityZero) != 0 || arity == method.Arity))
                         {
-                            continue;
-                        }
+                            var thisParam = method.Parameters.First();
+                            if (!IsValidExtensionReceiverParameter(thisParam))
+                            {
+                                continue;
+                            }
 
-                        if (implementationsToShadow is null || !implementationsToShadow.Remove(method.OriginalDefinition))
+                            if (implementationsToShadow is null || !implementationsToShadow.Remove(method.OriginalDefinition))
+                            {
+                                Debug.Assert(method.MethodKind != MethodKind.ReducedExtension);
+                                methods.Add(method);
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                foreach (var member in GetSimpleNonTypeMembersAsOneOrMany(nameOpt))
+                {
+                    if (member.Kind == SymbolKind.Method)
+                    {
+                        var method = (MethodSymbol)member;
+                        if (method.IsExtensionMethod &&
+                            ((options & LookupOptions.AllMethodsOnArityZero) != 0 || arity == method.Arity))
                         {
-                            Debug.Assert(method.MethodKind != MethodKind.ReducedExtension);
-                            methods.Add(method);
+                            var thisParam = method.Parameters.First();
+                            if (!IsValidExtensionReceiverParameter(thisParam))
+                            {
+                                continue;
+                            }
+
+                            if (implementationsToShadow is null || !implementationsToShadow.Remove(method.OriginalDefinition))
+                            {
+                                Debug.Assert(method.MethodKind != MethodKind.ReducedExtension);
+                                methods.Add(method);
+                            }
                         }
                     }
                 }
@@ -837,6 +872,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal virtual ImmutableArray<Symbol> GetSimpleNonTypeMembers(string name)
         {
             return GetMembers(name);
+        }
+
+        internal virtual OneOrMany<Symbol> GetSimpleNonTypeMembersAsOneOrMany(string name)
+        {
+            return OneOrMany.Create(GetSimpleNonTypeMembers(name));
         }
 
         /// <summary>
