@@ -59,6 +59,16 @@ internal sealed class MemoryUsageLoggerService : IDisposable
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while logging memory usage");
+
+                // Delay after an error to avoid rapid successive error logging if the issue persists
+                try
+                {
+                    await Task.Delay(LoggingInterval, cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
             }
         }
     }
