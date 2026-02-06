@@ -1750,38 +1750,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override ImmutableArray<Symbol> GetSimpleNonTypeMembers(string name)
+        private OneOrMany<Symbol> GetNonTypeMembersOrEmpty(string name)
         {
             EnsureAllMembersAreLoaded();
 
-            if (!_lazyMembersByName.TryGetValue(name, out var m))
-            {
-                return ImmutableArray<Symbol>.Empty;
-            }
+            return _lazyMembersByName.TryGetValue(name, out var members)
+                ? members
+                : OneOrMany<Symbol>.Empty;
+        }
 
-            return m.ToImmutable();
+        internal override ImmutableArray<Symbol> GetSimpleNonTypeMembers(string name)
+        {
+            return GetNonTypeMembersOrEmpty(name).ToImmutable();
         }
 
         public override ImmutableArray<Symbol> GetMembers(string name)
         {
-            EnsureAllMembersAreLoaded();
+            var members = GetNonTypeMembersOrEmpty(name);
+            var nameMemory = name.AsMemory();
 
-            if (_lazyMembersByName.TryGetValue(name, out var membersByName))
+            if (members.IsEmpty)
             {
-                var members = membersByName.ToImmutable();
-
-                // nested types are not common, but we need to check just in case
-                if (_lazyNestedTypes.TryGetValue(name.AsMemory(), out var nestedTypes))
-                {
-                    members = members.Concat(StaticCast<Symbol>.From(nestedTypes));
-                }
-
-                return members;
+                return _lazyNestedTypes.TryGetValue(nameMemory, out var typesByName)
+                    ? StaticCast<Symbol>.From(typesByName)
+                    : ImmutableArray<Symbol>.Empty;
             }
 
-            return _lazyNestedTypes.TryGetValue(name.AsMemory(), out var typesByName)
-                ? StaticCast<Symbol>.From(typesByName)
-                : ImmutableArray<Symbol>.Empty;
+            // nested types are not common, but we need to check just in case
+            if (_lazyNestedTypes.TryGetValue(nameMemory, out var nestedTypes))
+            {
+                var builder = ArrayBuilder<Symbol>.GetInstance(members.Count + nestedTypes.Length);
+                members.AddRangeTo(builder);
+                builder.AddRange(nestedTypes);
+                return builder.ToImmutableAndFree();
+            }
+
+            return members.ToImmutable();
         }
 
         internal sealed override bool HasPossibleWellKnownCloneMethod()
@@ -1793,13 +1797,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 FieldSymbol result = null;
 
-                var candidates = this.GetMembers(FixedFieldImplementationType.FixedElementFieldName);
-                if (!candidates.IsDefault && candidates.Length == 1)
+                var name = FixedFieldImplementationType.FixedElementFieldName;
+                var members = GetNonTypeMembersOrEmpty(name);
+                var totalCount = members.Count;
+
+                if (totalCount == 1)
                 {
-                    result = candidates[0] as FieldSymbol;
+                    result = members[0] as FieldSymbol;
                 }
 
-                return result;
+                if (_lazyNestedTypes.TryGetValue(name.AsMemory(), out var nestedTypes))
+                {
+                    totalCount += nestedTypes.Length;
+                }
+
+                return totalCount == 1 ? result : null;
             }
         }
 
