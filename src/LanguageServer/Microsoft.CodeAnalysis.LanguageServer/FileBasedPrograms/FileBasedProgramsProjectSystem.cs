@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
@@ -74,30 +75,32 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
     private void OnGlobalOptionChanged(object sender, object target, OptionChangedEventArgs args)
     {
-        foreach (var (key, _) in args.ChangedOptions)
+        foreach (var (key, value) in args.ChangedOptions)
         {
             if (key.Option.Equals(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms))
             {
                 // This event handler can't be async, so we ignore the resulting task here,
                 // and take care that the ignored call doesn't throw an exception
-                _ = HandleEnableFileBasedProgramsChangedAsync();
+                _ = HandleEnableFileBasedProgramsChangedAsync((bool)value!);
                 break;
             }
         }
 
-        async Task HandleEnableFileBasedProgramsChangedAsync()
+        async Task HandleEnableFileBasedProgramsChangedAsync(bool value)
         {
+            using var token = Listener.BeginAsyncOperation(nameof(HandleEnableFileBasedProgramsChangedAsync));
             try
             {
                 // Note: Changing the 'enableFileBasedPrograms' setting causes many subtle differences in how loose files are handled.
                 // For example, loose files which don't look like file-based programs, are put in projects forked from the canonical project loader, only when the setting is enabled, etc.
                 // We anticipate that changing this setting will be infrequent, and, the cost of needing to reload will be acceptable given that.
+                _logger.LogInformation($"Detected enableFileBasedPrograms changed to '{value}'. Unloading loose file projects.");
                 await UnloadAllProjectsAsync();
                 await _canonicalMiscFilesLoader.UnloadAllProjectsAsync();
             }
-            catch (Exception ex)
+            catch (Exception ex) when (LanguageServerFatalError.ReportAndLogAndPropagate(ex, _logger, "Unexpected error when changing enableFileBasedPrograms setting", ErrorSeverity.General))
             {
-                _logger.LogError(ex, "Unexpected error when changing enableFileBasedPrograms setting");
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }
