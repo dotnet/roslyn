@@ -616,7 +616,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
     {
         // in-cone: csproj in a containing directory (one level of nesting)
         var tempDir = _tempRoot.CreateDirectory();
-        tempDir.CreateFile("Project.csproj");
+        var csprojFile = tempDir.CreateFile("Project.csproj");
 
         var srcDir = tempDir.CreateDirectory("src");
         var fileText = """
@@ -624,7 +624,11 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
             """;
         var file = srcDir.CreateFile("file.cs").WriteAllText(fileText);
 
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            WorkspaceFolders = [new() { DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace" }]
+        });
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
 
         var fileUri = ProtocolConversions.CreateAbsoluteDocumentUri(file.Path);
@@ -637,7 +641,21 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
         Assert.False(document.Project.State.HasAllInformation);
 
-        // TODO2: test deleting, re-creating, and noticing the change
+        File.Delete(csprojFile.Path);
+        await WaitForProjectLoad(fileUri, testLspServer);
+
+        (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(fileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
+        // A csproj is not in cone, so we show semantic errors
+        Assert.True(document.Project.State.HasAllInformation);
+
+        csprojFile = tempDir.CreateFile("Project.csproj");
+        await WaitForProjectLoad(fileUri, testLspServer);
+
+        (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(fileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
+        // A csproj is in cone, so we don't show semantic errors
+        Assert.False(document.Project.State.HasAllInformation);
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/81410")]
@@ -645,14 +663,18 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
     {
         // in-cone: csproj in same directory
         var tempDir = _tempRoot.CreateDirectory();
-        tempDir.CreateFile("Project.csproj");
+        var csprojFile = tempDir.CreateFile("Project.csproj");
 
         var fileText = """
             Console.WriteLine("Hello World");
             """;
         var file = tempDir.CreateFile("file.cs").WriteAllText(fileText);
 
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            WorkspaceFolders = [new() { DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace" }]
+        });
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
 
         var fileUri = ProtocolConversions.CreateAbsoluteDocumentUri(file.Path);
@@ -663,11 +685,24 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
 
         var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(fileUri, testLspServer).ConfigureAwait(false);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
-
         // A csproj is in cone, so we don't show semantic errors
         Assert.False(document.Project.State.HasAllInformation);
 
-        // TODO2: test deleting, re-creating, and noticing the change
+        File.Delete(csprojFile.Path);
+        await WaitForProjectLoad(fileUri, testLspServer);
+
+        (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(fileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
+        // A csproj is not in cone, so we show semantic errors
+        Assert.True(document.Project.State.HasAllInformation);
+
+        csprojFile = tempDir.CreateFile("Project.csproj");
+        await WaitForProjectLoad(fileUri, testLspServer);
+
+        (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(fileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
+        // A csproj is in cone, so we don't show semantic errors
+        Assert.False(document.Project.State.HasAllInformation);
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/81410")]
@@ -675,7 +710,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
     {
         // in-cone: csproj in a nested containing directory
         var tempDir = _tempRoot.CreateDirectory();
-        tempDir.CreateFile("Project.csproj");
+        var csprojFile = tempDir.CreateFile("Project.csproj");
 
         var src1Dir = tempDir.CreateDirectory("src1");
         var src2Dir = src1Dir.CreateDirectory("src2");
@@ -684,7 +719,11 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
             """;
         var file = src2Dir.CreateFile("file.cs").WriteAllText(fileText);
 
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            WorkspaceFolders = [new() { DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace" }]
+        });
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
 
         var fileUri = ProtocolConversions.CreateAbsoluteDocumentUri(file.Path);
@@ -699,7 +738,21 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         // A csproj is in cone, so we don't show semantic errors
         Assert.False(document.Project.State.HasAllInformation);
 
-        // TODO2: test deleting, re-creating, and noticing the change
+        File.Delete(csprojFile.Path);
+        await WaitForProjectLoad(fileUri, testLspServer);
+
+        (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(fileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
+        // A csproj is not in cone, so we show semantic errors
+        Assert.True(document.Project.State.HasAllInformation);
+
+        csprojFile = tempDir.CreateFile("Project.csproj");
+        await WaitForProjectLoad(fileUri, testLspServer);
+
+        (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(fileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
+        // A csproj is in cone, so we don't show semantic errors
+        Assert.False(document.Project.State.HasAllInformation);
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/81410")]
@@ -708,8 +761,8 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         // not-in-cone: csproj in a sibling directory
         var tempDir = _tempRoot.CreateDirectory();
 
-        var src1Dir = tempDir.CreateDirectory("src1");
-        src1Dir.CreateFile("Project.csproj");
+        var src1Dir = tempDir.CreateDirectory("src");
+        var csprojFile = src1Dir.CreateFile("Project.csproj");
 
         var src2Dir = tempDir.CreateDirectory("src2");
         var fileText = """
@@ -717,7 +770,11 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
             """;
         var file = src2Dir.CreateFile("file.cs").WriteAllText(fileText);
 
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            WorkspaceFolders = [new() { DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace" }]
+        });
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
 
         var fileUri = ProtocolConversions.CreateAbsoluteDocumentUri(file.Path);
@@ -727,6 +784,21 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
 
         var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(fileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
+        Assert.True(document.Project.State.HasAllInformation);
+
+        // Test that deleting/re-creating an irrelevant csproj doesn't cause the project system/workspace to behave badly.
+        File.Delete(csprojFile.Path);
+        await WaitForProjectLoad(fileUri, testLspServer);
+
+        (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(fileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
+        Assert.True(document.Project.State.HasAllInformation);
+
+        csprojFile = tempDir.CreateFile("Project.csproj");
+        await WaitForProjectLoad(fileUri, testLspServer);
+
+        (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(fileUri, testLspServer).ConfigureAwait(false);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
         Assert.True(document.Project.State.HasAllInformation);
     }
@@ -744,7 +816,11 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         var src1Dir = tempDir.CreateDirectory("src1");
         src1Dir.CreateFile("Project.csproj");
 
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            WorkspaceFolders = [new() { DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace" }]
+        });
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
 
         var fileUri = ProtocolConversions.CreateAbsoluteDocumentUri(file.Path);

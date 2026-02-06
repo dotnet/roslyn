@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 
 /// <summary>Handles loading both miscellaneous files and file-based program projects.</summary>
-internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoader, ILspMiscellaneousFilesWorkspaceProvider, IDisposable
+internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoader, ILspMiscellaneousFilesWorkspaceProvider, IDisposable, IOnInitialized
 {
     private readonly ILspServices _lspServices;
     private readonly ILogger<FileBasedProgramsProjectSystem> _logger;
@@ -66,6 +66,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 dotnetCliHelper);
 
         var initializeManager = lspServices.GetRequiredService<IInitializeManager>();
+        // TODO2: this is wrong. Need to handle IOnInitialize or something.
+        initializeManager.TryGetInitializeParams
         if (initializeManager.TryGetInitializeParams() is { WorkspaceFolders: [_, ..] nonEmptyWorkspaceFolders })
         {
             // TODO2: handle 'workspace/didChangeWorkspaceFolders'
@@ -128,14 +130,14 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             try
             {
                 // TODO: unload FBA projects under this cone.
-                _ = await ExecuteUnderGateAsync(loadedProjects =>
+                _ = await ExecuteUnderGateAsync(async loadedProjects =>
                 {
                     foreach (var loadedFilePath in loadedProjects.Keys)
                     {
                         // NOTE: .NET supports removing while enumerating
                         if (loadedFilePath.StartsWith(directoryName, StringComparison.OrdinalIgnoreCase))
                         {
-                            // TODO: actually unload.
+                            await TryUnloadProject_NoLockAsync(loadedFilePath);
                         }
                     }
 
@@ -319,5 +321,10 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         await projectState.PrimordialProjectFactory.ApplyChangeToWorkspaceAsync(
             workspace => workspace.OnProjectRemoved(projectState.PrimordialProjectId),
             cancellationToken);
+    }
+
+    public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
     }
 }
