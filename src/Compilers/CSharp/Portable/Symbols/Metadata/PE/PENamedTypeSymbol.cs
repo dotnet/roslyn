@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// A map of members immediately contained within this type 
         /// grouped by their name (case-sensitively).
         /// </summary>
-        private Dictionary<string, ImmutableArray<Symbol>> _lazyMembersByName;
+        private Dictionary<string, OneOrMany<Symbol>> _lazyMembersByName;
 
         /// <summary>
         /// A map of types immediately contained within this type 
@@ -1717,7 +1717,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                 }
 
-                Dictionary<string, ImmutableArray<Symbol>> membersDict = GroupByName(members);
+                Dictionary<string, OneOrMany<Symbol>> membersDict = GroupByName(members);
 
                 var exchangeResult = Interlocked.CompareExchange(ref _lazyMembersByName, membersDict, null);
                 if (exchangeResult == null)
@@ -1754,33 +1754,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             EnsureAllMembersAreLoaded();
 
-            ImmutableArray<Symbol> m;
-            if (!_lazyMembersByName.TryGetValue(name, out m))
+            if (!_lazyMembersByName.TryGetValue(name, out var m))
             {
-                m = ImmutableArray<Symbol>.Empty;
+                return ImmutableArray<Symbol>.Empty;
             }
 
-            return m;
+            return m.ToImmutable();
         }
 
         public override ImmutableArray<Symbol> GetMembers(string name)
         {
             EnsureAllMembersAreLoaded();
 
-            ImmutableArray<Symbol> m;
-            if (!_lazyMembersByName.TryGetValue(name, out m))
+            if (_lazyMembersByName.TryGetValue(name, out var membersByName))
             {
-                m = ImmutableArray<Symbol>.Empty;
+                var members = membersByName.ToImmutable();
+
+                // nested types are not common, but we need to check just in case
+                if (_lazyNestedTypes.TryGetValue(name.AsMemory(), out var nestedTypes))
+                {
+                    members = members.Concat(StaticCast<Symbol>.From(nestedTypes));
+                }
+
+                return members;
             }
 
-            // nested types are not common, but we need to check just in case
-            ImmutableArray<PENamedTypeSymbol> t;
-            if (_lazyNestedTypes.TryGetValue(name.AsMemory(), out t))
-            {
-                m = m.Concat(StaticCast<Symbol>.From(t));
-            }
-
-            return m;
+            return _lazyNestedTypes.TryGetValue(name.AsMemory(), out var typesByName)
+                ? StaticCast<Symbol>.From(typesByName)
+                : ImmutableArray<Symbol>.Empty;
         }
 
         internal sealed override bool HasPossibleWellKnownCloneMethod()
@@ -2503,9 +2504,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return method;
         }
 
-        private static Dictionary<string, ImmutableArray<Symbol>> GroupByName(ArrayBuilder<Symbol> symbols)
+        private static Dictionary<string, OneOrMany<Symbol>> GroupByName(ArrayBuilder<Symbol> symbols)
         {
-            return symbols.ToDictionary(s => s.Name, StringOrdinalComparer.Instance);
+            var result = new Dictionary<string, OneOrMany<Symbol>>(symbols.Count, StringOrdinalComparer.Instance);
+            foreach (var symbol in symbols)
+            {
+                var name = symbol.Name;
+                if (result.TryGetValue(name, out var existing))
+                {
+                    result[name] = existing.Add(symbol);
+                }
+                else
+                {
+                    result.Add(name, OneOrMany.Create(symbol));
+                }
+            }
+
+            return result;
         }
 
         private static Dictionary<ReadOnlyMemory<char>, ImmutableArray<PENamedTypeSymbol>> GroupByName(ArrayBuilder<PENamedTypeSymbol> symbols)
