@@ -16,12 +16,13 @@ internal sealed class MemoryUsageLoggerService : IDisposable
 
     private readonly ILogger _logger;
     private readonly CancellationTokenSource _cancellationTokenSource;
+    private readonly Task _loggingTask;
 
     public MemoryUsageLoggerService(ILoggerFactory loggerFactory)
     {
         _logger = loggerFactory.CreateLogger<MemoryUsageLoggerService>();
         _cancellationTokenSource = new CancellationTokenSource();
-        _ = Task.Run(() => LogMemoryUsagePeriodicAsync(_cancellationTokenSource.Token));
+        _loggingTask = LogMemoryUsagePeriodicAsync(_cancellationTokenSource.Token);
     }
 
     private async Task LogMemoryUsagePeriodicAsync(CancellationToken cancellationToken)
@@ -68,8 +69,18 @@ internal sealed class MemoryUsageLoggerService : IDisposable
     public void Dispose()
     {
         _cancellationTokenSource.Cancel();
-        // Don't wait synchronously - the cancellation token will signal the task to stop
-        // and it will complete on its own. Synchronous waiting can cause deadlocks.
+
+        // Wait for the logging task to complete to avoid race conditions with the token disposal
+        // The task should complete quickly since cancellation was requested
+        try
+        {
+            _loggingTask.GetAwaiter().GetResult();
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected exception when cancellation is requested
+        }
+
         _cancellationTokenSource.Dispose();
     }
 }
