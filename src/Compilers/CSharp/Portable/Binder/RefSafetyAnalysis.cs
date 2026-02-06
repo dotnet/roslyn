@@ -754,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void VisitArgumentsAndGetArgumentPlaceholders(BoundExpression? receiverOpt, ImmutableArray<BoundExpression> arguments, bool isExtensionBlockMethod)
+        private void VisitArgumentsAndGetArgumentPlaceholders(BoundExpression? receiverOpt, ImmutableArray<BoundExpression> arguments, bool isExtensionBlockMember)
         {
             for (int i = 0; i < arguments.Length; i++)
             {
@@ -763,7 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var interpolationData = conversion.Operand.GetInterpolatedStringHandlerData();
                     var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContextAndLocation)>.GetInstance();
-                    GetInterpolatedStringPlaceholders(placeholders, interpolationData, receiverOpt, i, arguments, isExtensionBlockMethod);
+                    GetInterpolatedStringPlaceholders(placeholders, interpolationData, receiverOpt, i, arguments, isExtensionBlockMember);
                     _ = new PlaceholderRegion(this, placeholders);
                 }
                 Visit(arg);
@@ -977,14 +977,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.Constructor is null)
             {
-                VisitArgumentsAndGetArgumentPlaceholders(receiverOpt: null, node.Arguments, isExtensionBlockMethod: false);
+                VisitArgumentsAndGetArgumentPlaceholders(receiverOpt: null, node.Arguments, isExtensionBlockMember: false);
                 Visit(node.InitializerExpressionOpt);
                 return;
             }
 
             var methodInvocationInfo = MethodInvocationInfo.FromObjectCreation(node);
             methodInvocationInfo = ReplaceWithExtensionImplementationIfNeeded(in methodInvocationInfo);
-            VisitArgumentsAndGetArgumentPlaceholders(receiverOpt: null, methodInvocationInfo.ArgsOpt, isExtensionBlockMethod: node.Constructor.IsExtensionBlockMember());
+            VisitArgumentsAndGetArgumentPlaceholders(receiverOpt: null, methodInvocationInfo.ArgsOpt, isExtensionBlockMember: node.Constructor.IsExtensionBlockMember());
             Visit(node.InitializerExpressionOpt);
 
             if (node.HasErrors)
@@ -1060,7 +1060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.AccessorKind is AccessorKind.Set)
             {
                 Visit(node.ReceiverOpt);
-                VisitArgumentsAndGetArgumentPlaceholders(node.ReceiverOpt, node.Arguments, isExtensionBlockMethod: false);
+                VisitArgumentsAndGetArgumentPlaceholders(node.ReceiverOpt, node.Arguments, isExtensionBlockMember: node.Indexer.IsExtensionBlockMember());
                 return null;
             }
 
@@ -1086,7 +1086,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
         {
-            VisitArgumentsAndGetArgumentPlaceholders(receiverOpt: null, node.Arguments, isExtensionBlockMethod: false);
+            VisitArgumentsAndGetArgumentPlaceholders(receiverOpt: null, node.Arguments, isExtensionBlockMember: false);
 
             if (!node.HasErrors)
             {
