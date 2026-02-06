@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             // Note: _currentInterpolatedStringHandlerArgumentContext may be null in error scenarios
             // (for example, indexer with no setter in object initializer where the handler creation is visited
             // as a child of an InvalidOperation rather than through VisitAndPushArguments).
+            Debug.Assert(!assertArgumentContext || _currentInterpolatedStringHandlerArgumentContext != null || placeholderOperation.Parent!.Parent!.HasErrors(_compilation));
             if (assertArgumentContext && _currentInterpolatedStringHandlerArgumentContext != null)
             {
                 Debug.Assert(_currentInterpolatedStringHandlerArgumentContext.ApplicableCreationOperations.Contains((IInterpolatedStringHandlerCreationOperation)operation));
