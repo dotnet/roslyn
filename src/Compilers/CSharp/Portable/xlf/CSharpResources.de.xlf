@@ -464,7 +464,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeMethodNotFound">
         <source>Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
-        <target state="translated">Es wurde keine zugängliche Methode vom Typ "{0}" mit der erwarteten Signatur gefunden: eine statische Methode mit einem einzelnen Parameter vom Typ "ReadOnlySpan&lt;{1}&gt;" und Rückgabetyp "{2}".</target>
+        <target state="new">Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderNoElementType">
