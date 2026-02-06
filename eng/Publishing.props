@@ -14,6 +14,12 @@
     <FilesToPublishToSymbolServer Include="$(ArtifactsBinDir)**/Microsoft.Build.Tasks.CodeAnalysis.Sdk.pdb" />
   </ItemGroup>
 
+  <!-- When EnableDefaultRidSpecificArtifacts is true (dotnet/dotnet build), set the language server package
+       visibility to vertical so that only one leg (win-x64) publishes the RID-specific assets. -->
+  <ItemGroup Condition="'$(EnableDefaultRidSpecificArtifacts)' == 'true'">
+    <Artifact Update="$(ArtifactsPackagesDir)**\roslyn-language-server.*.nupkg" Visibility="Vertical" />
+  </ItemGroup>
+
   <!--
     During PR Validation we only need to publish symbols with Arcade,
     since our packages are published separately to the CoreXT feed.
