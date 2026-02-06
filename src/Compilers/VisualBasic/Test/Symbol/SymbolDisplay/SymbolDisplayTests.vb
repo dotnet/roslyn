@@ -1625,6 +1625,123 @@ end class
         End Sub
 
         <Fact()>
+        Public Sub TestNestedGenericTypeParametersErrorMessageFormat()
+            Dim text =
+<compilation>
+    <file name="a.vb">
+        Imports System.Collections
+        Namespace NS
+            Interface Outer(Of In A As I)
+                Interface C(Of In T, Out U As I, V As IList)
+                End Interface
+            End Interface
+            Interface I
+            End Interface
+        End Namespace
+    </file>
+</compilation>
+
+            Dim code As String = DirectCast(text.FirstNode, XElement).FirstNode.ToString
+            Dim findSymbol As Func(Of NamespaceSymbol, Symbol) = Function(globalns) globalns.GetMember(Of NamedTypeSymbol)("NS.Outer").GetMember(Of NamedTypeSymbol)("C")
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                SymbolDisplayFormat.VisualBasicErrorMessageFormat,
+                "NS.Outer(Of A).C(Of T, U, V)",
+                {
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.InterfaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.InterfaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation})
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                SymbolDisplayFormat.VisualBasicErrorMessageFormat,
+                "C(Of T, U, V)",
+                code.IndexOf("Interface Outer"),
+                {
+                SymbolDisplayPartKind.InterfaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation},
+                minimal:=True)
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                SymbolDisplayFormat.VisualBasicShortErrorMessageFormat,
+                "Outer(Of A).C(Of T, U, V)",
+                {
+                SymbolDisplayPartKind.InterfaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.InterfaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation})
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                SymbolDisplayFormat.VisualBasicShortErrorMessageFormat,
+                "C(Of T, U, V)",
+                code.IndexOf("Interface Outer"),
+                {
+                SymbolDisplayPartKind.InterfaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation},
+                minimal:=True)
+        End Sub
+
+        <Fact()>
         Public Sub TestGenericTypeParametersAndVariance()
             Dim text =
 <compilation>
@@ -1688,6 +1805,59 @@ end class
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation})
+        End Sub
+
+        <Fact()>
+        Public Sub TestNestedAndContainingGenericTypeConstraints()
+            Dim text =
+<compilation>
+    <file name="a.vb">
+        Class C(Of T As C(Of T))
+            Class Nested(Of U as Nested(Of U))
+            End Class
+        End Class
+    </file>
+</compilation>
+            Dim findSymbol As Func(Of NamespaceSymbol, Symbol) = Function(globalns) globalns.GetMember(Of NamedTypeSymbol)("C.Nested")
+            Dim format = New SymbolDisplayFormat(
+                typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+                genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters Or SymbolDisplayGenericsOptions.IncludeTypeConstraints)
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "C(Of T).Nested(Of U As C(Of T).Nested(Of U))",
+                {
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Operator,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword,

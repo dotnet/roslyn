@@ -3396,7 +3396,7 @@ BC30456: 'AttributeValue' is not a member of 'IEnumerable(Of XElement)'.
 BC30456: 'AttributeValue' is not a member of 'IEnumerable(Of X)'.
         o = _7.AttributeValue(name)
             ~~~~~~~~~~~~~~~~~
-BC30456: 'AttributeValue' is not a member of 'IEnumerable(Of T As XElement)'.
+BC30456: 'AttributeValue' is not a member of 'IEnumerable(Of T)'.
         o = _8.AttributeValue(name)
             ~~~~~~~~~~~~~~~~~
 BC30456: 'AttributeValue' is not a member of 'IEnumerableOfXElement'.
