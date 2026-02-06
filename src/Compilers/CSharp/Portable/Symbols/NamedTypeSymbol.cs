@@ -362,54 +362,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>Does not perform a full viability check</remarks>
         private void DoGetExtensionMethods(ArrayBuilder<Symbol> methods, string? nameOpt, int arity, LookupOptions options, PooledHashSet<MethodSymbol>? implementationsToShadow)
         {
+            void addIfExtensionMethod(Symbol member)
+            {
+                if (member is not MethodSymbol method)
+                {
+                    return;
+                }
+
+                if (method.IsExtensionMethod &&
+                    ((options & LookupOptions.AllMethodsOnArityZero) != 0 || arity == method.Arity))
+                {
+                    var thisParam = method.Parameters.First();
+                    if (!IsValidExtensionReceiverParameter(thisParam))
+                    {
+                        return;
+                    }
+
+                    if (implementationsToShadow is null || !implementationsToShadow.Remove(method.OriginalDefinition))
+                    {
+                        Debug.Assert(method.MethodKind != MethodKind.ReducedExtension);
+                        methods.Add(method);
+                    }
+                }
+            }
+
             if (nameOpt is null)
             {
                 foreach (var member in GetMembersUnordered())
                 {
-                    if (member.Kind == SymbolKind.Method)
-                    {
-                        var method = (MethodSymbol)member;
-                        if (method.IsExtensionMethod &&
-                            ((options & LookupOptions.AllMethodsOnArityZero) != 0 || arity == method.Arity))
-                        {
-                            var thisParam = method.Parameters.First();
-                            if (!IsValidExtensionReceiverParameter(thisParam))
-                            {
-                                continue;
-                            }
-
-                            if (implementationsToShadow is null || !implementationsToShadow.Remove(method.OriginalDefinition))
-                            {
-                                Debug.Assert(method.MethodKind != MethodKind.ReducedExtension);
-                                methods.Add(method);
-                            }
-                        }
-                    }
+                    addIfExtensionMethod(member);
                 }
             }
             else
             {
                 foreach (var member in GetSimpleNonTypeMembersAsOneOrMany(nameOpt))
                 {
-                    if (member.Kind == SymbolKind.Method)
-                    {
-                        var method = (MethodSymbol)member;
-                        if (method.IsExtensionMethod &&
-                            ((options & LookupOptions.AllMethodsOnArityZero) != 0 || arity == method.Arity))
-                        {
-                            var thisParam = method.Parameters.First();
-                            if (!IsValidExtensionReceiverParameter(thisParam))
-                            {
-                                continue;
-                            }
-
-                            if (implementationsToShadow is null || !implementationsToShadow.Remove(method.OriginalDefinition))
-                            {
-                                Debug.Assert(method.MethodKind != MethodKind.ReducedExtension);
-                                methods.Add(method);
-                            }
-                        }
-                    }
+                    addIfExtensionMethod(member);
                 }
             }
         }
