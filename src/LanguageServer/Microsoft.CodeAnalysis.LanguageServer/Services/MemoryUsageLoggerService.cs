@@ -16,13 +16,12 @@ internal sealed class MemoryUsageLoggerService : IDisposable
 
     private readonly ILogger _logger;
     private readonly CancellationTokenSource _cancellationTokenSource;
-    private readonly Task _loggingTask;
 
     public MemoryUsageLoggerService(ILoggerFactory loggerFactory)
     {
         _logger = loggerFactory.CreateLogger<MemoryUsageLoggerService>();
         _cancellationTokenSource = new CancellationTokenSource();
-        _loggingTask = Task.Run(() => LogMemoryUsagePeriodicAsync(_cancellationTokenSource.Token));
+        _ = Task.Run(() => LogMemoryUsagePeriodicAsync(_cancellationTokenSource.Token));
     }
 
     private async Task LogMemoryUsagePeriodicAsync(CancellationToken cancellationToken)
@@ -31,8 +30,6 @@ internal sealed class MemoryUsageLoggerService : IDisposable
         {
             try
             {
-                await Task.Delay(LoggingInterval, cancellationToken);
-
                 var gcMemoryInfo = GC.GetGCMemoryInfo();
 
                 // Total committed memory - the total memory committed by the managed heap (reserved from OS)
@@ -50,6 +47,8 @@ internal sealed class MemoryUsageLoggerService : IDisposable
                     BytesToMegabytes(totalCommittedBytes),
                     BytesToMegabytes(heapSizeBytes),
                     BytesToMegabytes(freeNotReleasedBytes));
+
+                await Task.Delay(LoggingInterval, cancellationToken);
             }
             catch (OperationCanceledException)
             {
@@ -69,16 +68,8 @@ internal sealed class MemoryUsageLoggerService : IDisposable
     public void Dispose()
     {
         _cancellationTokenSource.Cancel();
-        try
-        {
-            // Wait for the logging task to complete gracefully
-            _loggingTask.Wait(TimeSpan.FromSeconds(1));
-        }
-        catch (AggregateException)
-        {
-            // Ignore any exceptions during disposal
-        }
-
+        // Don't wait synchronously - the cancellation token will signal the task to stop
+        // and it will complete on its own. Synchronous waiting can cause deadlocks.
         _cancellationTokenSource.Dispose();
     }
 }
