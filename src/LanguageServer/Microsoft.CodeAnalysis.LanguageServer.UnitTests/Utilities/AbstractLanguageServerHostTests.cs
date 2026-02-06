@@ -41,6 +41,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
     {
         private readonly Task _languageServerHostCompletionTask;
         private readonly JsonRpc _clientRpc;
+        private readonly Stream _serverStream;
 
         internal static async Task<TestLspServer> CreateAsync(ClientCapabilities clientCapabilities, ILoggerFactory loggerFactory, string cacheDirectory, bool includeDevKitComponents = true, string[]? extensionPaths = null)
         {
@@ -66,6 +67,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             var typeRefResolver = new ExtensionTypeRefResolver(assemblyLoader, loggerFactory);
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
+            _serverStream = serverStream;
             LanguageServerHost = new LanguageServerHost(serverStream, serverStream, exportProvider, loggerFactory, typeRefResolver);
 
             var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
@@ -83,6 +85,17 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
 
             _languageServerHostCompletionTask = LanguageServerHost.WaitForExitAsync();
             ExportProvider = exportProvider;
+        }
+
+        public Task ServerExitTask => _languageServerHostCompletionTask;
+
+        /// <summary>
+        /// Simulates the transport layer failing by closing the server's stream.
+        /// This forces an exception in the JsonRpc read loop.
+        /// </summary>
+        public void SimulateClientDisconnect()
+        {
+            _serverStream.Close();
         }
 
         public async Task<TResponseType?> ExecuteRequestAsync<TRequestType, TResponseType>(string methodName, TRequestType request, CancellationToken cancellationToken) where TRequestType : class

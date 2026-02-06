@@ -63,7 +63,18 @@ internal sealed class LanguageServerHost
 
     public async Task WaitForExitAsync()
     {
-        await _jsonRpc.Completion;
+        try
+        {
+            await _jsonRpc.Completion;
+        }
+        catch (Exception)
+        {
+            // The JsonRpc connection threw an exception.  This usually means the client disconnected unexpectedly while
+            // the server was reading from it.  We don't need this to cause the process to crash and trigger watsons,
+            // so we handle it and let the process exit.  The server will have gotten and handled the JsonRpc disconnect
+            // event before the task completes, so it will already be shutting down.
+        }
+
         await _roslynLanguageServer.WaitForExitAsync();
     }
 
