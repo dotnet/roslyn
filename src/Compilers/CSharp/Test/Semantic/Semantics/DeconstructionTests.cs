@@ -1993,6 +1993,32 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68979")]
+        public void ChainedAssignmentWithImplicitConversion_GetDeconstructionInfo()
+        {
+            string source = """
+var c1 = new C();
+var c2 = new C();
+c1 = (_, _) = c2;
+
+class C
+{
+    public void Deconstruct(out int a, out string b) => throw null;
+    public static implicit operator C((int, string) tuple) => throw null;
+}
+""";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var discardAssignment = GetSyntax<AssignmentExpressionSyntax>(tree, "(_, _) = c2");
+            var deconstructionInfo = model.GetDeconstructionInfo(discardAssignment);
+            Assert.Equal("void C.Deconstruct(out System.Int32 a, out System.String b)", deconstructionInfo.Method.ToTestDisplayString());
+        }
+
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NestedTypelessTupleAssignment2()
