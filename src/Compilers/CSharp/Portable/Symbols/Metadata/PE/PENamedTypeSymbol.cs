@@ -1759,12 +1759,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 : OneOrMany<Symbol>.Empty;
         }
 
-        internal override ImmutableArray<Symbol> GetSimpleNonTypeMembers(string name)
-        {
-            return GetNonTypeMembersOrEmpty(name).ToImmutable();
-        }
-
-        internal override OneOrMany<Symbol> GetSimpleNonTypeMembersAsOneOrMany(string name)
+        internal override OneOrMany<Symbol> GetSimpleNonTypeMembers(string name)
         {
             return GetNonTypeMembersOrEmpty(name);
         }

@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal void AddOperators(string name, ArrayBuilder<MethodSymbol> operators)
         {
-            var candidates = GetSimpleNonTypeMembersAsOneOrMany(name);
+            var candidates = GetSimpleNonTypeMembers(name);
             if (candidates.IsEmpty)
                 return;
 
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var candidates = GetSimpleNonTypeMembersAsOneOrMany(WellKnownMemberNames.Indexer);
+                var candidates = GetSimpleNonTypeMembers(WellKnownMemberNames.Indexer);
 
                 if (candidates.IsEmpty)
                 {
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                foreach (var member in GetSimpleNonTypeMembersAsOneOrMany(nameOpt))
+                foreach (var member in GetSimpleNonTypeMembers(nameOpt))
                 {
                     addIfExtensionMethod(member);
                 }
@@ -857,14 +857,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasPossibleWellKnownCloneMethod();
 
-        internal virtual ImmutableArray<Symbol> GetSimpleNonTypeMembers(string name)
+        internal virtual OneOrMany<Symbol> GetSimpleNonTypeMembers(string name)
         {
-            return GetMembers(name);
-        }
-
-        internal virtual OneOrMany<Symbol> GetSimpleNonTypeMembersAsOneOrMany(string name)
-        {
-            return OneOrMany.Create(GetSimpleNonTypeMembers(name));
+            return OneOrMany.Create(GetMembers(name));
         }
 
         /// <summary>
