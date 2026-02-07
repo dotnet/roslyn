@@ -3247,5 +3247,46 @@ namespace System
     }
 }
 ";
+
+        protected static void VerifyDecisionDagDump<T>(Compilation comp, string expectedDecisionDag, int index = 0, bool forLowering = false)
+            where T : CSharpSyntaxNode
+        {
+#if DEBUG
+            var tree = comp.SyntaxTrees.First();
+            var node = tree.GetRoot().DescendantNodes().OfType<T>().ElementAt(index);
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(node.SpanStart);
+            BoundDecisionDag decisionDag;
+
+            switch (node)
+            {
+                case SwitchStatementSyntax n:
+                    {
+                        var b = (BoundSwitchStatement)binder.BindStatement(n, BindingDiagnosticBag.Discarded);
+                        decisionDag = forLowering ? b.GetDecisionDagForLowering((CSharpCompilation)comp) : b.ReachabilityDecisionDag;
+                    }
+                    break;
+
+                case SwitchExpressionSyntax n:
+                    {
+                        var b = (BoundSwitchExpression)binder.BindExpression(n, BindingDiagnosticBag.Discarded);
+                        decisionDag = forLowering ? b.GetDecisionDagForLowering((CSharpCompilation)comp, out _) : b.ReachabilityDecisionDag;
+                    }
+                    break;
+
+                case IsPatternExpressionSyntax n:
+                    {
+                        var b = (BoundIsPatternExpression)binder.BindExpression(n, BindingDiagnosticBag.Discarded);
+                        decisionDag = forLowering ? b.GetDecisionDagForLowering((CSharpCompilation)comp) : b.ReachabilityDecisionDag;
+                    }
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node);
+            }
+
+            AssertEx.Equal(expectedDecisionDag, decisionDag.Dump());
+#endif
+        }
     }
 }

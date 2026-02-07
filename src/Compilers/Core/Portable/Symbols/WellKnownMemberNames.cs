@@ -527,5 +527,10 @@ namespace Microsoft.CodeAnalysis
         /// The name for the 'HasValue' property.
         /// </summary>
         public const string HasValuePropertyName = "HasValue";
+
+        /// <summary>
+        /// The name for the 'TryGetValue' method.
+        /// </summary>
+        public const string TryGetValueMethodName = "TryGetValue";
     }
 }

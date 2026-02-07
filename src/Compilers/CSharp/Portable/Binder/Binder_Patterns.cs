@@ -138,6 +138,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             return valueProperty.AsMember(inputUnionType);
         }
 
+        internal static MethodSymbol? GetUnionTypeTryGetValueMethod(NamedTypeSymbol inputUnionType, TypeSymbol type)
+        {
+            Debug.Assert(inputUnionType.IsUnionTypeNoUseSiteDiagnostics);
+
+            // PROTOTYPE: Not dealing with inheritance for now.
+            NamedTypeSymbol unionDefinition = inputUnionType.OriginalDefinition;
+            ImmutableArray<TypeSymbol> caseTypes = unionDefinition.UnionCaseTypes;
+
+            foreach (var m in unionDefinition.GetMembers(WellKnownMemberNames.TryGetValueMethodName))
+            {
+                if (m is MethodSymbol method && isTryGetValueSignature(method))
+                {
+                    var candidate = method.AsMember(inputUnionType);
+                    if (candidate.Parameters[0].Type.Equals(type, TypeCompareKind.AllIgnoreOptions) && // PROTOTYPE: Allow conversions per spec
+                        caseTypes.Contains(method.Parameters[0].Type, Symbols.SymbolEqualityComparer.AllIgnoreOptions)) // PROTOTYPE: Optimize this check?
+                    {
+                        if (method.GetUseSiteInfo().DiagnosticInfo?.DefaultSeverity == DiagnosticSeverity.Error)
+                        {
+                            continue; // PROTOTYPE: Cover this code path
+                        }
+
+                        return candidate;
+                    }
+                }
+            }
+
+            return null;
+
+            static bool isTryGetValueSignature(MethodSymbol method)
+            {
+                // PROTOTYPE: Cover individual conditions with tests
+                return method is
+                {
+                    IsStatic: false,
+                    DeclaredAccessibility: Accessibility.Public,
+                    RefKind: RefKind.None,
+                    Parameters: [{ RefKind: RefKind.Out }],
+                    ReturnType.SpecialType: SpecialType.System_Boolean
+                };
+            }
+        }
+
         internal static bool IsUnionTypeHasValueProperty(NamedTypeSymbol unionType, PropertySymbol property)
         {
             // PROTOTYPE: Deal with inheritance?

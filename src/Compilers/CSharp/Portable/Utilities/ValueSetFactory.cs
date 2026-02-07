@@ -71,30 +71,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static ITypeUnionValueSetFactory? TypeUnionValueSetFactoryForInput(BoundDagTemp input)
         {
-            if (IsUnionMatchingInput(input, out var unionType))
+            if (DecisionDagBuilder.IsUnionValue(input, out BoundDagTemp? unionInstance) && ((NamedTypeSymbol)unionInstance.Type).UnionCaseTypes is not [])
             {
-                return new UnionTypeTypeUnionValueSetFactory(unionType);
+                return new UnionTypeTypeUnionValueSetFactory((NamedTypeSymbol)unionInstance.Type);
             }
 
             return null;
-        }
-
-        private static bool IsUnionMatchingInput(BoundDagTemp input, [NotNullWhen(true)] out NamedTypeSymbol? unionType)
-        {
-            if (input is
-                {
-                    Type.SpecialType: SpecialType.System_Object,
-                    Source: BoundDagPropertyEvaluation { Property: { Name: WellKnownMemberNames.ValuePropertyName } property, Input: { } propertyInput }
-                } &&
-                propertyInput.Type is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true, UnionCaseTypes: not [] } match &&
-                Binder.IsUnionTypeValueProperty(match, property))
-            {
-                unionType = match;
-                return true;
-            }
-
-            unionType = null;
-            return false;
         }
     }
 }
