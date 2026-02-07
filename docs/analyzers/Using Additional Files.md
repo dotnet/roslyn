@@ -67,7 +67,7 @@ ImmutableArray<AdditionalText> additionFiles = context.Options.AdditionalFiles;
 
 From an `AdditionalText` instance, you can access the path to the file or the contents as a `SourceText`:
 ``` C#
-AdditionText additionalFile = ...;
+AdditionalText additionalFile = ...;
 string path = additionalFile.Path;
 SourceText contents = additionalFile.GetText();
 ```
@@ -90,7 +90,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-public class CheckTermsAnalyzer : DiagnosticAnalyzer
+public sealed class CheckTermsAnalyzer : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "CheckTerms001";
 
@@ -107,14 +107,14 @@ public class CheckTermsAnalyzer : DiagnosticAnalyzer
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
     public override void Initialize(AnalysisContext context)
     {
-        context.RegisterCompilationStartAction(compilationStartContext =>
+        context.RegisterCompilationStartAction(context =>
         {
             // Find the file with the invalid terms.
-            ImmutableArray<AdditionalText> additionalFiles = compilationStartContext.Options.AdditionalFiles;
+            ImmutableArray<AdditionalText> additionalFiles = context.Options.AdditionalFiles;
             AdditionalText termsFile = additionalFiles.FirstOrDefault(file => Path.GetFileName(file.Path).Equals("Terms.txt"));
 
             if (termsFile != null)
@@ -122,23 +122,23 @@ public class CheckTermsAnalyzer : DiagnosticAnalyzer
                 HashSet<string> terms = new HashSet<string>();
 
                 // Read the file line-by-line to get the terms.
-                SourceText fileText = termsFile.GetText(compilationStartContext.CancellationToken);
+                SourceText fileText = termsFile.GetText(context.CancellationToken);
                 foreach (TextLine line in fileText.Lines)
                 {
                     terms.Add(line.ToString());
                 }
 
                 // Check every named type for the invalid terms.
-                compilationStartContext.RegisterSymbolAction(symbolAnalysisContext =>
+                context.RegisterSymbolAction(context =>
                 {
-                    INamedTypeSymbol namedTypeSymbol = (INamedTypeSymbol)symbolAnalysisContext.Symbol;
+                    INamedTypeSymbol namedTypeSymbol = (INamedTypeSymbol)context.Symbol;
                     string symbolName = namedTypeSymbol.Name;
 
                     foreach (string term in terms)
                     {
                         if (symbolName.Contains(term))
                         {
-                            symbolAnalysisContext.ReportDiagnostic(Diagnostic.Create(Rule, namedTypeSymbol.Locations[0], term));
+                            context.ReportDiagnostic(Diagnostic.Create(Rule, namedTypeSymbol.Locations[0], term));
                         }
                     }
                 },
@@ -174,7 +174,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-public class CheckTermsXMLAnalyzer : DiagnosticAnalyzer
+public sealed class CheckTermsXMLAnalyzer : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "CheckTerms001";
 
@@ -191,20 +191,20 @@ public class CheckTermsXMLAnalyzer : DiagnosticAnalyzer
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
     public override void Initialize(AnalysisContext context)
     {
-        context.RegisterCompilationStartAction(compilationStartContext =>
+        context.RegisterCompilationStartAction(context =>
         {
             // Find the file with the invalid terms.
-            ImmutableArray<AdditionalText> additionalFiles = compilationStartContext.Options.AdditionalFiles;
+            ImmutableArray<AdditionalText> additionalFiles = context.Options.AdditionalFiles;
             AdditionalText termsFile = additionalFiles.FirstOrDefault(file => Path.GetFileName(file.Path).Equals("Terms.xml"));
 
             if (termsFile != null)
             {
                 HashSet<string> terms = new HashSet<string>();
-                SourceText fileText = termsFile.GetText(compilationStartContext.CancellationToken);
+                SourceText fileText = termsFile.GetText(context.CancellationToken);
 
                 MemoryStream stream = new MemoryStream();
                 using (StreamWriter writer = new StreamWriter(stream, Encoding.UTF8, 1024, true))
@@ -222,16 +222,16 @@ public class CheckTermsXMLAnalyzer : DiagnosticAnalyzer
                 }
 
                 // Check every named type for the invalid terms.
-                compilationStartContext.RegisterSymbolAction(symbolAnalysisContext =>
+                context.RegisterSymbolAction(context =>
                 {
-                    INamedTypeSymbol namedTypeSymbol = (INamedTypeSymbol)symbolAnalysisContext.Symbol;
+                    INamedTypeSymbol namedTypeSymbol = (INamedTypeSymbol)context.Symbol;
                     string symbolName = namedTypeSymbol.Name;
 
                     foreach (string term in terms)
                     {
                         if (symbolName.Contains(term))
                         {
-                            symbolAnalysisContext.ReportDiagnostic(Diagnostic.Create(Rule, namedTypeSymbol.Locations[0], term));
+                            context.ReportDiagnostic(Diagnostic.Create(Rule, namedTypeSymbol.Locations[0], term));
                         }
                     }
                 },
