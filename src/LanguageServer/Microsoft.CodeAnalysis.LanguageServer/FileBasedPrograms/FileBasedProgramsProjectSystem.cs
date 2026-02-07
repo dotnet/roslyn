@@ -98,7 +98,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 await UnloadAllProjectsAsync();
                 await _canonicalMiscFilesLoader.UnloadAllProjectsAsync();
             }
-            catch (Exception ex) when (LanguageServerFatalError.ReportAndLogAndPropagate(ex, _logger, "Unexpected error when changing enableFileBasedPrograms setting", ErrorSeverity.General))
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
             {
                 throw ExceptionUtilities.Unreachable();
             }
