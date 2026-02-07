@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +21,25 @@ using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
+
+/// <summary>
+/// Information needed to adjust completion item positions from a spliced document back to the original.
+/// </summary>
+internal readonly struct SpliceAdjustment
+{
+    /// <param name="spliceStart">The position in the original document where the splice was inserted.</param>
+    /// <param name="insertedLength">The length of text that was inserted during splicing.</param>
+    public SpliceAdjustment(int spliceStart, int insertedLength)
+    {
+        Debug.Assert(spliceStart >= 0);
+        Debug.Assert(insertedLength >= 0);
+        SpliceStart = spliceStart;
+        InsertedLength = insertedLength;
+    }
+
+    public int SpliceStart { get; }
+    public int InsertedLength { get; }
+}
 
 /// <summary>
 /// Handle a completion request.
@@ -66,7 +87,7 @@ internal sealed partial class CompletionHandler : ILspServiceDocumentRequestHand
             cancellationToken).ConfigureAwait(false);
     }
 
-    public static async Task<LSP.VSInternalCompletionList?> GetCompletionListAsync(
+    public static Task<LSP.VSInternalCompletionList?> GetCompletionListAsync(
         Document document,
         int position,
         LSP.CompletionContext? completionContext,
@@ -75,7 +96,44 @@ internal sealed partial class CompletionHandler : ILspServiceDocumentRequestHand
         CompletionListCache completionListCache,
         CancellationToken cancellationToken)
     {
-        var completionOptions = globalOptions.GetCompletionOptionsForLsp(document.Project.Language, capabilityHelper);
+        return GetCompletionListAsync(
+            document,
+            position,
+            completionContext,
+            globalOptions,
+            capabilityHelper,
+            completionListCache,
+            spliceAdjustment: null,
+            completionOptionsOverride: null,
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// Gets a completion list for the specified position.
+    /// </summary>
+    /// <param name="spliceAdjustment">
+    /// Optional splice adjustment for debugger completion. When specified, cached completion items
+    /// will have their positions shifted back by the inserted length to reference the original
+    /// (unspliced) document. This is used by debugger completion where completion is computed
+    /// against a spliced document, but resolve runs against the original document.
+    /// </param>
+    /// <param name="completionOptionsOverride">
+    /// Optional completion options override. When provided, these options are used instead of
+    /// computing options from <paramref name="globalOptions"/>. This is used by debugger completion
+    /// to set options like <see cref="CompletionOptions.FilterOutOfScopeLocals"/> to false.
+    /// </param>
+    public static async Task<LSP.VSInternalCompletionList?> GetCompletionListAsync(
+        Document document,
+        int position,
+        LSP.CompletionContext? completionContext,
+        IGlobalOptionService globalOptions,
+        CompletionCapabilityHelper capabilityHelper,
+        CompletionListCache completionListCache,
+        SpliceAdjustment? spliceAdjustment,
+        CompletionOptions? completionOptionsOverride,
+        CancellationToken cancellationToken)
+    {
+        var completionOptions = completionOptionsOverride ?? globalOptions.GetCompletionOptionsForLsp(document.Project.Language, capabilityHelper);
         var completionListMaxSize = globalOptions.GetOption(LspOptionsStorage.MaxCompletionListSize);
 
         var documentText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
@@ -94,7 +152,7 @@ internal sealed partial class CompletionHandler : ILspServiceDocumentRequestHand
         }
 
         var completionListResult = await GetFilteredCompletionListAsync(
-            completionContext, document, documentText, position, completionOptions, capabilityHelper, completionService, completionListCache, completionListMaxSize, cancellationToken).ConfigureAwait(false);
+            completionContext, document, documentText, position, completionOptions, capabilityHelper, completionService, completionListCache, completionListMaxSize, spliceAdjustment, cancellationToken).ConfigureAwait(false);
 
         if (completionListResult == null)
             return null;
@@ -118,6 +176,7 @@ internal sealed partial class CompletionHandler : ILspServiceDocumentRequestHand
         CompletionService completionService,
         CompletionListCache completionListCache,
         int completionListMaxSize,
+        SpliceAdjustment? spliceAdjustment,
         CancellationToken cancellationToken)
     {
         var completionTrigger = await ProtocolConversions.LSPToRoslynCompletionTriggerAsync(context, document, position, cancellationToken).ConfigureAwait(false);
@@ -129,12 +188,12 @@ internal sealed partial class CompletionHandler : ILspServiceDocumentRequestHand
             // We don't have access to the original trigger, but we know the completion list is already present.
             // It is safe to recompute with the invoked trigger as we will get all the items and filter down based on the current trigger.
             var originalTrigger = CompletionTrigger.Invoke;
-            result = await CalculateListAsync(document, position, originalTrigger, completionOptions, completionService, completionListCache, cancellationToken).ConfigureAwait(false);
+            result = await CalculateListAsync(document, position, originalTrigger, completionOptions, completionService, completionListCache, spliceAdjustment, cancellationToken).ConfigureAwait(false);
         }
         else
         {
             // This is a new completion request, clear out the last result Id for incomplete results.
-            result = await CalculateListAsync(document, position, completionTrigger, completionOptions, completionService, completionListCache, cancellationToken).ConfigureAwait(false);
+            result = await CalculateListAsync(document, position, completionTrigger, completionOptions, completionService, completionListCache, spliceAdjustment, cancellationToken).ConfigureAwait(false);
         }
 
         if (result == null)
@@ -169,6 +228,7 @@ internal sealed partial class CompletionHandler : ILspServiceDocumentRequestHand
         CompletionOptions completionOptions,
         CompletionService completionService,
         CompletionListCache completionListCache,
+        SpliceAdjustment? spliceAdjustment,
         CancellationToken cancellationToken)
     {
         var completionList = await completionService.GetCompletionsAsync(document, position, completionOptions, document.Project.Solution.Options, completionTrigger, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -178,12 +238,108 @@ internal sealed partial class CompletionHandler : ILspServiceDocumentRequestHand
             return null;
         }
 
+        // If a splice adjustment is specified (for debug completions), adjust item positions
+        // so that resolve operations work correctly with the original (unspliced) document.
+        var listToCache = spliceAdjustment.HasValue
+            ? AdjustCompletionListForOriginalDocument(completionList, spliceAdjustment.Value)
+            : completionList;
+
         // Cache the completion list so we can avoid recomputation in the resolve handler
-        var resultId = completionListCache.UpdateCache(new CompletionListCache.CacheEntry(completionList));
+        var resultId = completionListCache.UpdateCache(new CompletionListCache.CacheEntry(listToCache));
 
         return (completionList, resultId);
     }
 
+    /// <summary>
+    /// Creates a copy of the completion list with all item positions shifted back to reference
+    /// the original (unspliced) document. This is the inverse operation of splicing.
+    /// </summary>
+    /// <remarks>
+    /// When splicing, we insert text at <paramref name="adjustment"/>.SpliceStart with length
+    /// <paramref name="adjustment"/>.InsertedLength. To reverse this for resolve:
+    /// <list type="bullet">
+    /// <item>Positions before SpliceStart are unchanged</item>
+    /// <item>Positions within the inserted text map to SpliceStart</item>
+    /// <item>Positions after the inserted text shift back by InsertedLength</item>
+    /// </list>
+    /// IMPORTANT: If a new position-carrying property is added to <see cref="CompletionItem"/>,
+    /// it must also be adjusted here for debugger completion to resolve correctly.
+    /// </remarks>
+    private static CompletionList AdjustCompletionListForOriginalDocument(
+        CompletionList completionList,
+        SpliceAdjustment adjustment)
+    {
+        var adjustedItems = new FixedSizeArrayBuilder<CompletionItem>(completionList.ItemsList.Count);
+        var spliceStart = adjustment.SpliceStart;
+        var insertedLength = adjustment.InsertedLength;
+        var spliceEnd = spliceStart + insertedLength;
+
+        foreach (var item in completionList.ItemsList)
+        {
+            var adjustedPosition = AdjustPosition(item.Span.Start, spliceStart, spliceEnd, insertedLength);
+            var adjustedSpan = new TextSpan(adjustedPosition, 0);
+
+            item.Span = adjustedSpan;
+
+            var properties = item.GetProperties();
+            var adjustedItem = ReplaceContextPosition(properties, adjustedPosition, out var updatedProperties)
+                ? item.WithProperties(updatedProperties)
+                : item;
+
+            adjustedItems.Add(adjustedItem);
+        }
+
+        // Also adjust the list's overall span
+        var adjustedListPosition = AdjustPosition(completionList.Span.Start, spliceStart, spliceEnd, insertedLength);
+        var adjustedListSpan = new TextSpan(adjustedListPosition, 0);
+
+        return completionList.With(
+            span: adjustedListSpan,
+            itemsList: new(adjustedItems.MoveToImmutable()));
+
+        // Adjusts a position from the spliced document back to the original document
+        static int AdjustPosition(int position, int spliceStart, int spliceEnd, int insertedLength)
+        {
+            if (position < spliceStart)
+            {
+                // Position is before the splice - unchanged
+                return position;
+            }
+            else if (position < spliceEnd)
+            {
+                // Position is within the inserted text - map to splice point
+                return spliceStart;
+            }
+
+            // Position is after the inserted text - shift back
+            return position - insertedLength;
+        }
+
+        // Replaces the "ContextPosition" entry (set by SymbolCompletionItem) with the adjusted value
+        // Returns true if a replacement was made
+        static bool ReplaceContextPosition(
+            ImmutableArray<KeyValuePair<string, string>> properties, int adjustedPosition, out ImmutableArray<KeyValuePair<string, string>> updatedProperties)
+        {
+            if (!properties.Any(p => p.Key == CompletionItem.ContextPositionKey))
+            {
+                updatedProperties = default;
+                return false;
+            }
+
+            var builder = new FixedSizeArrayBuilder<KeyValuePair<string, string>>(properties.Length);
+            for (var i = 0; i < properties.Length; i++)
+            {
+                var kvp = properties[i].Key == CompletionItem.ContextPositionKey
+                    ? CompletionItem.CreateContextPositionKvp(adjustedPosition)
+                    : properties[i];
+
+                builder.Add(kvp);
+            }
+
+            updatedProperties = builder.MoveToImmutable();
+            return true;
+        }
+    }
     private static (CompletionList CompletionList, bool IsIncomplete, bool isHardSelection) FilterCompletionList(
         CompletionList completionList,
         int completionListMaxSize,

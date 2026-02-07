@@ -6,6 +6,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
@@ -15,6 +16,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#completionItem">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
+[DebuggerDisplay("{Label} ({Kind})")]
 internal class CompletionItem
 {
     /// <summary>

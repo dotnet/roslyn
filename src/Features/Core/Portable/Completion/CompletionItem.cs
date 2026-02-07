@@ -9,7 +9,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion;
 
@@ -23,6 +22,8 @@ public sealed class CompletionItem : IComparable<CompletionItem>
     private string? _lazyEntireDisplayText;
     private ImmutableDictionary<string, string>? _lazyPropertiesAsImmutableDictionary;
     private readonly ImmutableArray<KeyValuePair<string, string>> _properties;
+
+    internal const string ContextPositionKey = "ContextPosition";
 
     /// <summary>
     /// The text that is displayed to the user.
@@ -552,4 +553,9 @@ public sealed class CompletionItem : IComparable<CompletionItem>
     }
 
     public override string ToString() => GetEntireDisplayText();
+
+    internal static KeyValuePair<string, string> CreateContextPositionKvp(int contextPosition)
+    {
+        return KeyValuePair.Create(ContextPositionKey, contextPosition.ToString());
+    }
 }

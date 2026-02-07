@@ -381,6 +381,20 @@ partial class Methods
     public const string TextDocumentCompletionName = "textDocument/completion";
 
     /// <summary>
+    /// Method name for 'roslyn/debuggerCompletion'.
+    /// <para>
+    /// The debugger completion request is sent from the client to the server to compute completion items
+    /// for debugger expression windows (Quick Watch, Watch, Immediate). The server splices the expression
+    /// into the source document at the current statement position and runs standard completion services
+    /// against the forked document.
+    /// </para>
+    /// <para>
+    /// See <c>docs/features/lsp-debugger-completion.md</c> for additional information.
+    /// </para>
+    /// </summary>
+    public const string RoslynDebuggerCompletionName = "roslyn/debuggerCompletion";
+
+    /// <summary>
     /// Strongly typed message object for 'textDocument/completion'.
     /// </summary>
     public static readonly LspRequest<CompletionParams, SumType<CompletionItem[], CompletionList>?> TextDocumentCompletion = new(TextDocumentCompletionName);
