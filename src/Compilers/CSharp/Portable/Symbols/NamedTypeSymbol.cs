@@ -215,17 +215,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AddOperators(operators, candidates);
         }
 
-        internal static void AddOperators(ArrayBuilder<MethodSymbol> operators, ImmutableArray<Symbol> candidates)
-        {
-            foreach (var candidate in candidates)
-            {
-                if (candidate is MethodSymbol { MethodKind: MethodKind.UserDefinedOperator or MethodKind.Conversion } method)
-                {
-                    operators.Add(method);
-                }
-            }
-        }
-
         internal static void AddOperators(ArrayBuilder<MethodSymbol> operators, OneOrMany<Symbol> candidates)
         {
             foreach (var candidate in candidates)

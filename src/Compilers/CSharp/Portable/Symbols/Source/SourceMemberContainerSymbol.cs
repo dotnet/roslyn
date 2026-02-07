@@ -2800,7 +2800,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (membersByName.TryGetValue(operatorName1.AsMemory(), out ImmutableArray<Symbol> candidates))
                 {
-                    AddOperators(ops1, candidates);
+                    AddOperators(ops1, OneOrMany.Create(candidates));
                 }
             }
         }
