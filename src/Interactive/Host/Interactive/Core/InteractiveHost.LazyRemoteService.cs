@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     initializing = false;
                     if (!result.Success)
                     {
-                        Host.ReportProcessExited(remoteService.Process);
+                        await Host.ReportProcessExitedAsync(remoteService.Process).ConfigureAwait(false);
                         remoteService.Dispose();
 
                         return default;
@@ -159,10 +159,10 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
                 catch (Exception e)
                 {
-                    Host.WriteOutputInBackground(
+                    await Host.WriteOutputInBackgroundAsync(
                         isError: true,
                         string.Format(InteractiveHostResources.Failed_to_create_a_remote_process_for_interactive_code_execution, hostPath),
-                        e.Message);
+                        e.Message).ConfigureAwait(false);
 
                     Host.InteractiveHostProcessCreationFailed?.Invoke(e, TryGetExitCode(newProcess));
                     return null;
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 InteractiveHostPlatformInfo platformInfo;
                 try
                 {
-                    if (!CheckAlive(newProcess, hostPath))
+                    if (!await CheckAliveAsync(newProcess, hostPath).ConfigureAwait(false))
                     {
                         Host.InteractiveHostProcessCreationFailed?.Invoke(null, TryGetExitCode(newProcess));
                         return null;
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
                 catch (Exception e)
                 {
-                    if (CheckAlive(newProcess, hostPath))
+                    if (await CheckAliveAsync(newProcess, hostPath).ConfigureAwait(false))
                     {
                         RemoteService.InitiateTermination(newProcess, newProcessId);
                     }
@@ -230,17 +230,17 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return new RemoteService(Host, newProcess, newProcessId, jsonRpc, platformInfo, Options);
             }
 
-            private bool CheckAlive(Process process, string hostPath)
+            private async Task<bool> CheckAliveAsync(Process process, string hostPath)
             {
                 bool alive = process.IsAlive();
                 if (!alive)
                 {
                     string errorString = process.StandardError.ReadToEnd();
 
-                    Host.WriteOutputInBackground(
+                    await Host.WriteOutputInBackgroundAsync(
                         isError: true,
                         string.Format(InteractiveHostResources.Failed_to_launch_0_process_exit_code_colon_1_with_output_colon, hostPath, process.ExitCode),
-                        errorString);
+                        errorString).ConfigureAwait(false);
                 }
 
                 return alive;
