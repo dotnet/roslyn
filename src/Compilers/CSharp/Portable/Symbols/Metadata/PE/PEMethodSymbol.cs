@@ -1321,10 +1321,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
+            if (GeneratedNameParser.TryParseGeneratedName(_name, out var generatedKind, out _, out _))
+            {
+                return generatedKind switch
+                {
+                    GeneratedNameKind.LambdaMethod => MethodKind.AnonymousFunction,
+                    GeneratedNameKind.LocalFunction => MethodKind.LocalFunction,
+                    _ => MethodKind.Ordinary
+                };
+            }
+
             // Note: this is expensive, so check it last
             // Note: method being processed may have an explicit method .override but still be 
             //       publicly accessible, the decision here is being made based on the method's name
-            if (!SyntaxFacts.IsValidIdentifier(this.Name) && !this.ExplicitInterfaceImplementations.IsEmpty)
+            if (!SyntaxFacts.IsValidIdentifier(_name) && !this.ExplicitInterfaceImplementations.IsEmpty)
             {
                 return MethodKind.ExplicitInterfaceImplementation;
             }
