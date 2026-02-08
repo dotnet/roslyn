@@ -15,14 +15,16 @@ internal sealed class TestEvaluationData : EvaluationData
     public string AssemblyName { get; }
     public string OutputAssembly { get; }
     public string ChecksumAlgorithm { get; }
+    public string TargetFramework { get; }
 
-    public TestEvaluationData(string projectFilePath, string targetPath, string assemblyName, string outputAssembly, string checksumAlgorithm)
+    public TestEvaluationData(string projectFilePath, string targetPath, string assemblyName, string outputAssembly, string checksumAlgorithm, string targetFramework)
     {
         ProjectFilePath = projectFilePath;
         TargetPath = targetPath;
         AssemblyName = assemblyName;
         OutputAssembly = outputAssembly;
         ChecksumAlgorithm = checksumAlgorithm;
+        TargetFramework = targetFramework;
     }
 
     public override string GetPropertyValue(string name)
@@ -32,6 +34,7 @@ internal sealed class TestEvaluationData : EvaluationData
             "TargetPath" => TargetPath,
             "AssemblyName" => AssemblyName,
             "CommandLineArgsForDesignTimeEvaluation" => "-checksumalgorithm:" + ChecksumAlgorithm,
+            "TargetFramework" => TargetFramework,
             _ => throw ExceptionUtilities.UnexpectedValue(name)
         };
 
