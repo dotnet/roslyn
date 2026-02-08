@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Encoding? codepage = null;
             var checksumAlgorithm = SourceHashAlgorithms.Default;
             var defines = ArrayBuilder<string>.GetInstance();
-            List<CommandLineReference> metadataReferences = new List<CommandLineReference>();
+            ArrayBuilder<CommandLineReference> metadataReferences = ArrayBuilder<CommandLineReference>.GetInstance();
             List<CommandLineAnalyzerReference> analyzers = new List<CommandLineAnalyzerReference>();
             List<string> libPaths = new List<string>();
             List<string> sourcePaths = new List<string>();
@@ -1599,7 +1599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SourceFiles = sourceFiles.AsImmutable(),
                 Encoding = codepage,
                 ChecksumAlgorithm = checksumAlgorithm,
-                MetadataReferences = metadataReferences.AsImmutable(),
+                MetadataReferences = metadataReferences.ToImmutableAndFree(),
                 AnalyzerReferences = analyzers.AsImmutable(),
                 AnalyzerConfigPaths = analyzerConfigPaths.ToImmutableAndFree(),
                 AdditionalFiles = additionalFiles.AsImmutable(),
@@ -1926,7 +1926,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Free();
         }
 
-        private static void ParseAssemblyReferences(string arg, ReadOnlyMemory<char>? valueMemory, IList<Diagnostic> diagnostics, bool embedInteropTypes, List<CommandLineReference> commandLineReferences)
+        private static void ParseAssemblyReferences(string arg, ReadOnlyMemory<char>? valueMemory, IList<Diagnostic> diagnostics, bool embedInteropTypes, ArrayBuilder<CommandLineReference> commandLineReferences)
         {
             if (valueMemory is null)
             {
