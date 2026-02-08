@@ -123,13 +123,13 @@ public sealed class MSBuildWorkspace : Workspace
 
     /// <summary>
     /// Determines if unrecognized projects are skipped when solutions or projects are opened.
-    /// 
-    /// An project is unrecognized if it either has 
-    ///   a) an invalid file path, 
+    ///
+    /// An project is unrecognized if it either has
+    ///   a) an invalid file path,
     ///   b) a non-existent project file,
-    ///   c) has an unrecognized file extension or 
+    ///   c) has an unrecognized file extension or
     ///   d) a file extension associated with an unsupported language.
-    /// 
+    ///
     /// If unrecognized projects cannot be skipped a corresponding exception is thrown.
     /// </summary>
     public bool SkipUnrecognizedProjects

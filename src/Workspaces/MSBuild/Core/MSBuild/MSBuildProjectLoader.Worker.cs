@@ -274,7 +274,7 @@ public partial class MSBuildProjectLoader
                 var analyzerConfigDocuments = CreateDocumentInfos(projectFileInfo.AnalyzerConfigDocuments, projectId, commandLineArgs.Encoding);
                 CheckForDuplicateDocuments(documents.Concat(additionalDocuments).Concat(analyzerConfigDocuments), projectPath, projectId);
 
-                var analyzerReferences = ResolveAnalyzerReferences(commandLineArgs);
+                var analyzerReferences = ResolveAnalyzerReferences(projectFileInfo.Language, commandLineArgs);
 
                 var resolvedReferences = await ResolveReferencesAsync(projectId, projectFileInfo, commandLineArgs, cancellationToken).ConfigureAwait(false);
 
@@ -317,7 +317,7 @@ public partial class MSBuildProjectLoader
             return assemblyName;
         }
 
-        private IEnumerable<AnalyzerReference> ResolveAnalyzerReferences(CommandLineArguments commandLineArgs)
+        private IEnumerable<AnalyzerReference> ResolveAnalyzerReferences(string language, CommandLineArguments commandLineArgs)
         {
             var analyzerService = GetWorkspaceService<IAnalyzerService>();
             if (analyzerService is null)
@@ -332,18 +332,66 @@ public partial class MSBuildProjectLoader
             {
                 string? fullPath;
 
-                if (PathUtilities.IsAbsolute(path))
-                {
-                    fullPath = FileUtilities.TryNormalizeAbsolutePath(path);
+                if (!PathUtilities.IsAbsolute(path))
+                    continue;
 
-                    if (fullPath != null && File.Exists(fullPath))
-                    {
-                        analyzerLoader.AddDependencyLocation(fullPath);
-                    }
-                }
+                fullPath = FileUtilities.TryNormalizeAbsolutePath(path);
+
+                if (fullPath != null && File.Exists(fullPath))
+                    analyzerLoader.AddDependencyLocation(fullPath);
             }
 
-            return commandLineArgs.ResolveAnalyzerReferences(analyzerLoader).Distinct(AnalyzerReferencePathComparer.Instance);
+            var analyzerReferences = commandLineArgs.ResolveAnalyzerReferences(analyzerLoader).Distinct(AnalyzerReferencePathComparer.Instance);
+
+            // Force loading of the analyzers so that we can record any load failures now.
+            foreach (var analyzerReference in analyzerReferences.OfType<AnalyzerFileReference>())
+            {
+                analyzerReference.AnalyzerLoadFailed += OnAnalyzerLoadFailed;
+                _ = analyzerReference.GetAnalyzers(language);
+                _ = analyzerReference.GetGenerators(language);
+                analyzerReference.AnalyzerLoadFailed -= OnAnalyzerLoadFailed;
+            }
+
+            return analyzerReferences;
+
+            void OnAnalyzerLoadFailed(object? sender, AnalyzerLoadFailureEventArgs args)
+            {
+                if (sender is not AnalyzerFileReference analyzerFileReference)
+                    return;
+
+                // Compiler error strings are not accessible here, so we will just log the information
+                // that goes into those strings (see CommandLineArguments.ResolveAnalyzersFromArguments)
+
+                StringBuilder message = new();
+
+                message.Append(args.ErrorCode);
+                message.Append(": ");
+                message.Append(analyzerFileReference.FullPath);
+                message.Append(": ");
+
+                switch (args.ErrorCode)
+                {
+                    case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer:
+                        message.Append(args.Exception?.Message ?? args.Message);
+                        break;
+                    case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer:
+                        message.Append(args.TypeName);
+                        message.Append(": ");
+                        message.Append(args.Exception?.Message ?? args.Message);
+                        break;
+                    case AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesNewerCompiler:
+                        message.Append(args.ReferencedCompilerVersion);
+                        break;
+                    case AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesFramework:
+                        message.Append(args.TypeName);
+                        break;
+                    case AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers:
+                    case AnalyzerLoadFailureEventArgs.FailureErrorCode.None:
+                        break;
+                }
+
+                _diagnosticReporter.Report(DiagnosticReportingMode.Log, message.ToString());
+            }
         }
 
         private ImmutableArray<DocumentInfo> CreateDocumentInfos(IReadOnlyList<DocumentFileInfo> documentFileInfos, ProjectId projectId, Encoding? encoding)
