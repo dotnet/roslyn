@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Buffers.Binary;
 
-
 namespace Roslyn.Test.Utilities
 {
     internal static class MetadataReaderUtils
