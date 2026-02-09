@@ -41,7 +41,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
             throw new InvalidOperationException("Server cannot be started with both --stdio and --pipe options.");
         }
 
-        // Redirect Console.Out to try prevent the standard output stream from being corrupted. 
+        // Redirect Console.Out to try prevent the standard output stream from being corrupted.
         // This should be done before the logger is created as it can write to the standard output.
         Console.SetOut(new StreamWriter(Console.OpenStandardError()));
     }
@@ -136,7 +136,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
             PipeTransmissionMode.Byte,
             PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
 
-        // Send the named pipe connection info to the client 
+        // Send the named pipe connection info to the client
         Console.WriteLine(JsonSerializer.Serialize(new NamedPipeInformation(clientPipeName)));
 
         // Wait for connection from client
@@ -152,7 +152,22 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     try
     {
-        await server.WaitForExitAsync();
+        if (serverConfiguration.ParentProcessId is int parentProcessId)
+        {
+            logger.LogInformation("Monitoring parent process {parentProcessId} for exit", parentProcessId);
+            var serverExitTask = server.WaitForExitAsync();
+            var parentProcessExitTask = WaitForParentProcessExitAsync(parentProcessId, logger);
+            var completedTask = await Task.WhenAny(serverExitTask, parentProcessExitTask);
+
+            if (completedTask == parentProcessExitTask)
+            {
+                logger.LogInformation("Parent process {parentProcessId} exited, shutting down server", parentProcessId);
+            }
+        }
+        else
+        {
+            await server.WaitForExitAsync();
+        }
     }
     finally
     {
@@ -265,6 +280,12 @@ static RootCommand CreateCommand()
         DefaultValueFactory = _ => SourceGeneratorExecutionPreference.Automatic,
     };
 
+    var parentProcessIdOption = new Option<int?>("--process-id")
+    {
+        Description = "The process ID of the parent process. The server will terminate when the parent process exits.",
+        Required = false,
+    };
+
     var rootCommand = new RootCommand()
     {
         debugOption,
@@ -283,6 +304,7 @@ static RootCommand CreateCommand()
         useStdIoOption,
         autoLoadProjectsOption,
         sourceGeneratorExecutionOption,
+        parentProcessIdOption,
     };
 
     rootCommand.SetAction((parseResult, cancellationToken) =>
@@ -301,6 +323,7 @@ static RootCommand CreateCommand()
         var useStdIo = parseResult.GetValue(useStdIoOption);
         var autoLoadProjects = parseResult.GetValue(autoLoadProjectsOption);
         var sourceGeneratorExecutionPreference = parseResult.GetValue(sourceGeneratorExecutionOption);
+        var parentProcessId = parseResult.GetValue(parentProcessIdOption);
 
         var serverConfiguration = new ServerConfiguration(
             LaunchDebugger: launchDebugger,
@@ -316,7 +339,8 @@ static RootCommand CreateCommand()
             UseStdIo: useStdIo,
             ExtensionLogDirectory: extensionLogDirectory,
             AutoLoadProjects: autoLoadProjects,
-            SourceGeneratorExecutionPreference: sourceGeneratorExecutionPreference);
+            SourceGeneratorExecutionPreference: sourceGeneratorExecutionPreference,
+            ParentProcessId: parentProcessId);
 
         return RunAsync(serverConfiguration, cancellationToken);
     });
@@ -331,7 +355,7 @@ static (string clientPipe, string serverPipe) CreateNewPipeNames()
     const string WINDOWS_DOTNET_PREFIX = @"\\.\";
 
     // The pipe name constructed by some systems is very long (due to temp path).
-    // Shorten the unique id for the pipe. 
+    // Shorten the unique id for the pipe.
     var newGuid = Guid.NewGuid().ToString();
     var pipeName = newGuid.Split('-')[0];
 
@@ -344,4 +368,18 @@ static string GetUnixTypePipeName(string pipeName)
 {
     // Unix-type pipes are actually writing to a file
     return Path.Combine(Path.GetTempPath(), pipeName + ".sock");
+}
+
+static async Task WaitForParentProcessExitAsync(int parentProcessId, ILogger logger)
+{
+    try
+    {
+        var parentProcess = Process.GetProcessById(parentProcessId);
+        await parentProcess.WaitForExitAsync();
+    }
+    catch (ArgumentException)
+    {
+        // The process has already exited or was never running.
+        logger.LogWarning("Parent process {parentProcessId} is not running", parentProcessId);
+    }
 }

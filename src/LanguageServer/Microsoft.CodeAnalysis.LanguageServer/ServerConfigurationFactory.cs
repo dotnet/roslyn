@@ -55,7 +55,8 @@ internal sealed record class ServerConfiguration(
     bool UseStdIo,
     string? ExtensionLogDirectory,
     bool AutoLoadProjects,
-    SourceGeneratorExecutionPreference SourceGeneratorExecutionPreference);
+    SourceGeneratorExecutionPreference SourceGeneratorExecutionPreference,
+    int? ParentProcessId);
 
 internal sealed class LogConfiguration
 {
