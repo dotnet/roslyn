@@ -213,8 +213,7 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHe
         Assert.Equal("// callCount: 0", text.Text);
 
         // Updating the execution version should trigger source generators to run in both automatic and balanced mode.
-        testLspServer.TestWorkspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: true);
-        await testLspServer.WaitForSourceGeneratorsAsync();
+        await testLspServer.RefreshSourceGeneratorsAsync(forceRegeneration: true);
 
         var secondRequest = await testLspServer.ExecuteRequestAsync<SourceGeneratorGetTextParams, SourceGeneratedDocumentText>(SourceGeneratedDocumentGetTextHandler.MethodName,
             new SourceGeneratorGetTextParams(new LSP.TextDocumentIdentifier { DocumentUri = sourceGeneratorDocumentUri }, ResultId: text.ResultId), CancellationToken.None);
@@ -254,10 +253,9 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHe
         var initialSolution = testLspServer.GetCurrentSolution();
         var initialExecutionMap = initialSolution.CompilationState.SourceGeneratorExecutionVersionMap.Map;
 
-        // Updating the execution version should trigger source generators to run in both automatic and balanced mode.
+        // Updating the execution version should trigger source generators to run if there are any changes in both automatic and balanced mode.
         var forceRegeneration = majorVersionUpdate;
-        testLspServer.TestWorkspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration);
-        await testLspServer.WaitForSourceGeneratorsAsync();
+        await testLspServer.RefreshSourceGeneratorsAsync(forceRegeneration);
 
         var solutionWithChangedExecutionVersion = testLspServer.GetCurrentSolution();
 
@@ -272,6 +270,7 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHe
         }
         else
         {
+            // There are no changes, so source generators won't actually run if we didn't force regeneration
             Assert.Equal(text.ResultId, secondRequest.ResultId);
             Assert.Null(secondRequest.Text);
         }
@@ -374,6 +373,66 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHe
 
         Assert.NotNull(secondRequest);
         Assert.Null(secondRequest.Text);
+    }
+
+    [Theory, CombinatorialData]
+    internal async Task TestSaveRefreshesSourceGenerators(bool mutatingLspWorkspace, SourceGeneratorExecutionPreference sourceGeneratorExecution)
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
+        var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+        var documentUri = document.GetURI();
+
+        var configService = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<TestWorkspaceConfigurationService>();
+        configService.Options = new WorkspaceConfigurationOptions(SourceGeneratorExecution: sourceGeneratorExecution);
+
+        var callCount = 0;
+        var generatorReference = await AddGeneratorAsync(new CallbackGenerator(() => ("hintName.cs", "// callCount: " + callCount++)), testLspServer.TestWorkspace);
+
+        var sourceGeneratedDocuments = await testLspServer.GetCurrentSolution().Projects.Single().GetSourceGeneratedDocumentsAsync();
+        var sourceGeneratedDocumentIdentity = sourceGeneratedDocuments.Single().Identity;
+        var sourceGeneratorDocumentUri = SourceGeneratedDocumentUri.Create(sourceGeneratedDocumentIdentity);
+
+        var text = await testLspServer.ExecuteRequestAsync<SourceGeneratorGetTextParams, SourceGeneratedDocumentText>(SourceGeneratedDocumentGetTextHandler.MethodName,
+            new SourceGeneratorGetTextParams(new LSP.TextDocumentIdentifier { DocumentUri = sourceGeneratorDocumentUri }, ResultId: null), CancellationToken.None);
+
+        AssertEx.NotNull(text);
+        Assert.Equal("// callCount: 0", text.Text);
+
+        await testLspServer.OpenDocumentAsync(documentUri, string.Empty);
+
+        // Modify a normal document in the workspace.
+        // In automatic mode this should trigger generators to re-run.
+        // In balanced mode generators should not re-run.
+        await testLspServer.TestWorkspace.ChangeDocumentAsync(document.Id, SourceText.From("new text"));
+        await testLspServer.WaitForSourceGeneratorsAsync();
+
+        var secondRequest = await testLspServer.ExecuteRequestAsync<SourceGeneratorGetTextParams, SourceGeneratedDocumentText>(SourceGeneratedDocumentGetTextHandler.MethodName,
+            new SourceGeneratorGetTextParams(new LSP.TextDocumentIdentifier { DocumentUri = sourceGeneratorDocumentUri }, ResultId: text.ResultId), CancellationToken.None);
+        AssertEx.NotNull(secondRequest);
+        if (sourceGeneratorExecution == SourceGeneratorExecutionPreference.Automatic)
+        {
+            Assert.NotEqual(text.ResultId, secondRequest.ResultId);
+            Assert.Equal("// callCount: 1", secondRequest.Text);
+        }
+        else
+        {
+            Assert.Equal(text.ResultId, secondRequest.ResultId);
+        }
+
+        var didSaveParams = new LSP.DidSaveTextDocumentParams
+        {
+            TextDocument = new LSP.TextDocumentIdentifier { DocumentUri = documentUri },
+        };
+
+        // The didSave should now trigger generators to run in balanced mode.  In automatic mode it will also trigger but we will already have the updated text.
+        await testLspServer.ExecuteRequestAsync<LSP.DidSaveTextDocumentParams, object>(LSP.Methods.TextDocumentDidSaveName, didSaveParams, CancellationToken.None);
+        await testLspServer.WaitForSourceGeneratorsAsync();
+
+        var thirdRequest = await testLspServer.ExecuteRequestAsync<SourceGeneratorGetTextParams, SourceGeneratedDocumentText>(SourceGeneratedDocumentGetTextHandler.MethodName,
+            new SourceGeneratorGetTextParams(new LSP.TextDocumentIdentifier { DocumentUri = sourceGeneratorDocumentUri }, ResultId: text.ResultId), CancellationToken.None);
+        AssertEx.NotNull(thirdRequest);
+        Assert.NotEqual(secondRequest.ResultId, thirdRequest.ResultId);
+        Assert.Equal("// callCount: 1", thirdRequest.Text);
     }
 
     private async Task<TestLspServer> CreateTestLspServerWithGeneratorAsync(
