@@ -15,7 +15,9 @@ namespace System.Collections.Immutable
 {
     internal readonly struct ImmutableArray<T> : IEnumerable<T>
     {
+#pragma warning disable CS0649 // Field is never assigned to
         private readonly T[]? _items;
+#pragma warning restore CS0649
 
         public bool IsDefaultOrEmpty => _items is null || _items.Length == 0;
 
