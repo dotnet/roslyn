@@ -19,6 +19,8 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Buffers.Binary;
+
 
 namespace Roslyn.Test.Utilities
 {
