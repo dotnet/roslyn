@@ -472,29 +472,30 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             var pool = _pool;
             if (pool != null)
             {
-                // According to the statistics of a C# compiler self-build, the most commonly used builder size is 0.  (808003 uses).
-                // The distant second is the Count == 1 (455619), then 2 (106362) ...
-                // After about 50 (just 67) we have a long tail of infrequently used builder sizes.
-                // However we have builders with size up to 50K   (just one such thing)
-                //
                 // We do not want to retain (potentially indefinitely) very large builders 
-                // while the chance that we will need their size is diminishingly small.
-                // It makes sense to constrain the size to some "not too small" number. 
-                // Overall perf does not seem to be very sensitive to this number, so I picked 128 as a limit.
+                // while the chance that we will need their capacity is diminishingly small.
+                // It makes sense to constrain the capacity to some "not too small" number.
                 if (_builder.Capacity < PooledArrayLengthLimitExclusive)
                 {
                     if (this.Count != 0)
                     {
                         this.Clear();
                     }
-
-                    pool.Free(this);
-                    return;
                 }
                 else
                 {
-                    pool.ForgetTrackedObject(this);
+                    // Set the ImmutableArray<T>.Builder's _count to it's _capacity. This
+                    // allows the MoveToImmutable call to succeed, resetting itself to an
+                    // empty builder without allocating.
+                    this.Count = this.Capacity;
+                    _ = _builder.MoveToImmutable();
+
+                    // Reset to our default capacity, leaving a now empty builder
+                    // (with default capacity) in the pool.
+                    this.Capacity = 8;
                 }
+
+                pool.Free(this);
             }
         }
 
