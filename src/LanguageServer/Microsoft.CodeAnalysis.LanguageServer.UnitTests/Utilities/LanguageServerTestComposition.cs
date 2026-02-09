@@ -32,7 +32,7 @@ internal sealed class LanguageServerTestComposition
             UseStdIo: false,
             AutoLoadProjects: false,
             SourceGeneratorExecutionPreference: SourceGeneratorExecutionPreference.Balanced,
-            ParentProcessId: null);
+            ClientProcessId: null);
         var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
         var assemblyLoader = new CustomExportAssemblyLoader(extensionManager, loggerFactory);
 

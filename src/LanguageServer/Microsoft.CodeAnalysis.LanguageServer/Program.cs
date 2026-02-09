@@ -152,16 +152,16 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     try
     {
-        if (serverConfiguration.ParentProcessId is int parentProcessId)
+        if (serverConfiguration.ClientProcessId is int clientProcessId)
         {
-            logger.LogInformation("Monitoring parent process {parentProcessId} for exit", parentProcessId);
+            logger.LogInformation("Monitoring client process {clientProcessId} for exit", clientProcessId);
             var serverExitTask = server.WaitForExitAsync();
-            var parentProcessExitTask = WaitForParentProcessExitAsync(parentProcessId, logger);
-            var completedTask = await Task.WhenAny(serverExitTask, parentProcessExitTask);
+            var clientProcessExitTask = WaitForClientProcessExitAsync(clientProcessId, logger);
+            var completedTask = await Task.WhenAny(serverExitTask, clientProcessExitTask);
 
-            if (completedTask == parentProcessExitTask)
+            if (completedTask == clientProcessExitTask)
             {
-                logger.LogInformation("Parent process {parentProcessId} exited, shutting down server", parentProcessId);
+                logger.LogInformation("Client process {clientProcessId} exited, shutting down server", clientProcessId);
             }
 
             // Await the task that completed to observe any exceptions.
@@ -283,9 +283,9 @@ static RootCommand CreateCommand()
         DefaultValueFactory = _ => SourceGeneratorExecutionPreference.Automatic,
     };
 
-    var parentProcessIdOption = new Option<int?>("--parentProcessId")
+    var clientProcessIdOption = new Option<int?>("--clientProcessId")
     {
-        Description = "The process ID of the parent process. The server will terminate when the parent process exits.",
+        Description = "The process ID of the client process. The server will terminate when the client process exits.",
         Required = false,
     };
 
@@ -307,7 +307,7 @@ static RootCommand CreateCommand()
         useStdIoOption,
         autoLoadProjectsOption,
         sourceGeneratorExecutionOption,
-        parentProcessIdOption,
+        clientProcessIdOption,
     };
 
     rootCommand.SetAction((parseResult, cancellationToken) =>
@@ -326,7 +326,7 @@ static RootCommand CreateCommand()
         var useStdIo = parseResult.GetValue(useStdIoOption);
         var autoLoadProjects = parseResult.GetValue(autoLoadProjectsOption);
         var sourceGeneratorExecutionPreference = parseResult.GetValue(sourceGeneratorExecutionOption);
-        var parentProcessId = parseResult.GetValue(parentProcessIdOption);
+        var clientProcessId = parseResult.GetValue(clientProcessIdOption);
 
         var serverConfiguration = new ServerConfiguration(
             LaunchDebugger: launchDebugger,
@@ -343,7 +343,7 @@ static RootCommand CreateCommand()
             ExtensionLogDirectory: extensionLogDirectory,
             AutoLoadProjects: autoLoadProjects,
             SourceGeneratorExecutionPreference: sourceGeneratorExecutionPreference,
-            ParentProcessId: parentProcessId);
+            ClientProcessId: clientProcessId);
 
         return RunAsync(serverConfiguration, cancellationToken);
     });
@@ -373,16 +373,16 @@ static string GetUnixTypePipeName(string pipeName)
     return Path.Combine(Path.GetTempPath(), pipeName + ".sock");
 }
 
-static async Task WaitForParentProcessExitAsync(int parentProcessId, ILogger logger)
+static async Task WaitForClientProcessExitAsync(int clientProcessId, ILogger logger)
 {
     try
     {
-        var parentProcess = Process.GetProcessById(parentProcessId);
-        await parentProcess.WaitForExitAsync();
+        using var clientProcess = Process.GetProcessById(clientProcessId);
+        await clientProcess.WaitForExitAsync();
     }
-    catch (ArgumentException ex)
+    catch (ArgumentException)
     {
         // The process has already exited or was never running.
-        logger.LogWarning("Parent process {parentProcessId} is not running: {exceptionMessage}", parentProcessId, ex.Message);
+        logger.LogWarning("Client process {clientProcessId} is not running", clientProcessId);
     }
 }
