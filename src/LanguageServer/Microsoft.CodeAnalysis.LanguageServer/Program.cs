@@ -380,9 +380,9 @@ static async Task WaitForParentProcessExitAsync(int parentProcessId, ILogger log
         var parentProcess = Process.GetProcessById(parentProcessId);
         await parentProcess.WaitForExitAsync();
     }
-    catch (ArgumentException)
+    catch (ArgumentException ex)
     {
         // The process has already exited or was never running.
-        logger.LogWarning("Parent process {parentProcessId} is not running", parentProcessId);
+        logger.LogWarning("Parent process {parentProcessId} is not running: {exceptionMessage}", parentProcessId, ex.Message);
     }
 }
