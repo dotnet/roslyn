@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                 _items.RemoveAt(_items.Count - 1);
         }
 
+        // No-op: this shim is not pooled, so there is nothing to return.
         public void Free() { }
 
         public void ReverseContents() => _items.Reverse();

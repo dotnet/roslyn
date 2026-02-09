@@ -28,6 +28,8 @@ namespace System.Collections.Immutable
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+        // These operators exist solely to satisfy the null-check pattern used in Hash.cs
+        // (e.g. `if (values == null)`). This shim is never instantiated by BuildHost code.
         public static bool operator ==(ImmutableArray<T> left, object? right)
             => right is null && left._items is null;
 
@@ -39,6 +41,8 @@ namespace System.Collections.Immutable
         public override int GetHashCode() => _items?.GetHashCode() ?? 0;
     }
 
+    // Compilation-only shim; the ImmutableDictionary<TKey, TValue> type is referenced
+    // by Hash.CombineValues but never called from BuildHost code paths.
     internal class ImmutableDictionary<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
         where TKey : notnull
     {
