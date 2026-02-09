@@ -2444,11 +2444,8 @@ False
 True
 True
 True
-Length
 True
-Length
 True
-Length
 True
 ";
         var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -2464,17 +2461,12 @@ True
 }"),
             () => verifier.VerifyIL("X.Test2", @"
 {
-  // Code size       14 (0xe)
-  .maxstack  1
+  // Code size        5 (0x5)
+  .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000c
-  IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""int C.Length.get""
-  IL_0009:  pop
-  IL_000a:  ldc.i4.1
-  IL_000b:  ret
-  IL_000c:  ldc.i4.0
-  IL_000d:  ret
+  IL_0001:  ldnull
+  IL_0002:  cgt.un
+  IL_0004:  ret
 }")
         );
     }
@@ -2517,7 +2509,7 @@ class X
     [InlineData(
         "{ null, null, new(0, 0) }",
         "[..{ Length: >=2 }, { X: 0, Y: 0 }]",
-        "e.Length, e[0..^1], e[0..^1].Length, e[^1], e[^1].X, e[^1].Y, True")]
+        "e.Length, e[^1], e[^1].X, e[^1].Y, True")]
     [InlineData(
         "{ null, null, new(0, 0) }",
         "[.., { X: 0, Y: 0 }]",
@@ -4006,7 +3998,7 @@ class C
     }
 
     [Theory]
-    [InlineData("[.._]", "Length True")]
+    [InlineData("[.._]", "True")]
     [InlineData("[..]", "True")]
     [InlineData("[..var unused]", "Length Slice True")]
     [InlineData("[42, ..]", "Length Index True")]
@@ -6342,16 +6334,13 @@ class C
                 );
 
         VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
-@"[0]: t0 != null ? [1] : [9]
+@"[0]: t0 != null ? [1] : [6]
 [1]: t1 = t0.Length; [2]
-[2]: t1 >= 1 ? [3] : [9]
+[2]: t1 >= 1 ? [3] : [6]
 [3]: t2 = t0[-1]; [4]
 [4]: t2 == 42 ? [5] : [6]
 [5]: leaf `case [..,42]:`
-[6]: t1 == 1 ? [7] : [9]
-[7]: t3 = t0[0]; [8]
-[8]: t3 <-- t2; [9]
-[9]: leaf <break> `switch (a)
+[6]: leaf <break> `switch (a)
         {
             case [..,42]:
             case [42]:
@@ -6384,28 +6373,19 @@ class C
 
         VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
 @"[0]: t1 = t0.a; [1]
-[1]: t1 != null ? [2] : [22]
+[1]: t1 != null ? [2] : [13]
 [2]: t2 = t1.Length; [3]
-[3]: t2 >= 1 ? [4] : [22]
+[3]: t2 >= 1 ? [4] : [13]
 [4]: t3 = t1[-1]; [5]
-[5]: t3 == 42 ? [6] : [19]
+[5]: t3 == 42 ? [6] : [13]
 [6]: t4 = t0.b; [7]
-[7]: t4 != null ? [8] : [22]
+[7]: t4 != null ? [8] : [13]
 [8]: t5 = t4.Length; [9]
-[9]: t5 >= 1 ? [10] : [22]
+[9]: t5 >= 1 ? [10] : [13]
 [10]: t6 = t4[-1]; [11]
 [11]: t6 == 43 ? [12] : [13]
 [12]: leaf `case ([.., 42], [.., 43]):`
-[13]: t2 == 1 ? [14] : [22]
-[14]: t7 = t1[0]; [15]
-[15]: t7 <-- t3; [16]
-[16]: t5 == 1 ? [17] : [22]
-[17]: t9 = t4[0]; [18]
-[18]: t9 <-- t6; [22]
-[19]: t2 == 1 ? [20] : [22]
-[20]: t7 = t1[0]; [21]
-[21]: t7 <-- t3; [22]
-[22]: leaf <break> `switch (a, b)
+[13]: leaf <break> `switch (a, b)
         {
             case ([.., 42], [.., 43]):
             case ([42], [43]):
@@ -6471,20 +6451,15 @@ class C
             );
 
         VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
-@"[0]: t0 != null ? [1] : [13]
+@"[0]: t0 != null ? [1] : [8]
 [1]: t1 = t0.Length; [2]
-[2]: t1 >= 2 ? [3] : [13]
+[2]: t1 >= 2 ? [3] : [8]
 [3]: t2 = t0[0]; [4]
-[4]: t2 == 1 ? [5] : [13]
+[4]: t2 == 1 ? [5] : [8]
 [5]: t3 = t0[-1]; [6]
 [6]: t3 == 3 ? [7] : [8]
 [7]: leaf `case [1, .., 3]:`
-[8]: t1 == 3 ? [9] : [13]
-[9]: t4 = t0[1]; [10]
-[10]: t4 == 2 ? [11] : [13]
-[11]: t5 = t0[2]; [12]
-[12]: t5 <-- t3; [13]
-[13]: leaf <break> `switch (a)
+[8]: leaf <break> `switch (a)
         {
             case [1, .., 3]:
             case [1, 2, 3]:
@@ -6651,24 +6626,23 @@ class C
             Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[var unreachable]").WithLocation(17, 18));
 
         VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
-@"[0]: t0 != null ? [1] : [10]
+@"[0]: t0 != null ? [1] : [9]
 [1]: t1 = t0.Length; [2]
-[2]: t1 >= 1 ? [3] : [10]
+[2]: t1 >= 1 ? [3] : [9]
 [3]: t2 = t0[0]; [4]
 [4]: t2 == null ? [5] : [6]
 [5]: leaf `case [null, ..]:`
-[6]: t3 = t0[-1]; [7]
-[7]: t1 == 1 ? [8] : [9]
-[8]: t3 <-- t2; [11]
-[9]: t3 == null ? [10] : [11]
-[10]: leaf <break> `switch (a)
+[6]: t1 == 1 ? [10] : [7]
+[7]: t3 = t0[-1]; [8]
+[8]: t3 == null ? [9] : [10]
+[9]: leaf <break> `switch (a)
         {
             case [null, ..]:
             case [.., not null]:
             case [var unreachable]:
                     break;
         }`
-[11]: leaf `case [.., not null]:`
+[10]: leaf `case [.., not null]:`
 ");
     }
 
@@ -6701,18 +6675,17 @@ class C
         CompileAndVerify(comp, expectedOutput: "2");
 
         VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
-@"[0]: t0 != null ? [1] : [11]
+@"[0]: t0 != null ? [1] : [10]
 [1]: t1 = t0.Length; [2]
-[2]: t1 >= 2 ? [3] : [11]
+[2]: t1 >= 2 ? [3] : [10]
 [3]: t2 = t0[1]; [4]
 [4]: t2 > 0 ? [5] : [6]
 [5]: leaf `case [_, > 0, ..]:`
-[6]: t3 = t0[-2]; [7]
-[7]: t1 == 3 ? [8] : [9]
-[8]: t3 <-- t2; [10]
-[9]: t3 <= 0 ? [10] : [11]
-[10]: leaf `case [.., <= 0, _]:`
-[11]: leaf `default`
+[6]: t1 == 3 ? [9] : [7]
+[7]: t3 = t0[-2]; [8]
+[8]: t3 <= 0 ? [9] : [10]
+[9]: leaf `case [.., <= 0, _]:`
+[10]: leaf `default`
 ");
     }
 
@@ -6824,18 +6797,15 @@ class C
 
         AssertEx.Multiple(
             () => VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 != null ? [1] : [11]
+@"[0]: t0 != null ? [1] : [8]
 [1]: t1 = t0.Length; [2]
-[2]: t1 == 1 ? [3] : [10]
+[2]: t1 == 1 ? [3] : [7]
 [3]: t2 = t0[0]; [4]
 [4]: t2 < 0 ? [5] : [6]
 [5]: leaf <arm> `[<0, ..] => 0`
-[6]: t3 = DagSliceEvaluation(t0); [7]
-[7]: t4 = t3.Length; [8]
-[8]: t5 = t3[0]; [9]
-[9]: leaf <arm> `[..[>= 0]] or [..null] => 1`
-[10]: leaf <arm> `{ Length: not 1 }  => 0`
-[11]: leaf <default> `a switch
+[6]: leaf <arm> `[..[>= 0]] or [..null] => 1`
+[7]: leaf <arm> `{ Length: not 1 }  => 0`
+[8]: leaf <default> `a switch
         {
             { Length: not 1 }  => 0,
             [<0, ..] => 0,
@@ -6845,18 +6815,15 @@ class C
 ", index: 0),
 
             () => VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 != null ? [1] : [11]
+@"[0]: t0 != null ? [1] : [8]
 [1]: t1 = t0.Length; [2]
-[2]: t1 == 1 ? [3] : [10]
+[2]: t1 == 1 ? [3] : [7]
 [3]: t2 = t0[0]; [4]
 [4]: t2 < 0 ? [5] : [6]
 [5]: leaf <arm> `[<0, ..] => 0`
-[6]: t3 = DagSliceEvaluation(t0); [7]
-[7]: t4 = t3.Length; [8]
-[8]: t5 = t3[0]; [9]
-[9]: leaf <arm> `[..[>= 0]] => 1`
-[10]: leaf <arm> `{ Length: not 1 }  => 0`
-[11]: leaf <default> `a switch 
+[6]: leaf <arm> `[..[>= 0]] => 1`
+[7]: leaf <arm> `{ Length: not 1 }  => 0`
+[8]: leaf <default> `a switch 
         {
             { Length: not 1 }  => 0,
             [<0, ..] => 0,
@@ -6892,22 +6859,21 @@ class C
             Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "[var unreachable]").WithLocation(12, 13));
 
         VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 != null ? [1] : [15]
+@"[0]: t0 != null ? [1] : [14]
 [1]: t1 = t0.Length; [2]
-[2]: t1 >= 1 ? [3] : [14]
+[2]: t1 >= 1 ? [3] : [13]
 [3]: t2 = t0[-1]; [4]
 [4]: t2 > 0 ? [5] : [6]
 [5]: leaf <arm> `[.., >0] => 1`
-[6]: t3 = t0[0]; [7]
-[7]: t1 == 1 ? [8] : [10]
-[8]: t3 <-- t2; [9]
-[9]: t3 < 0 ? [11] : [13]
-[10]: t3 < 0 ? [11] : [12]
-[11]: leaf <arm> `[<0, ..] => 2`
-[12]: t3 == 0 ? [13] : [14]
-[13]: leaf <arm> `[0, ..] => 3`
-[14]: leaf <arm> `{ Length: not 1 } => 4`
-[15]: leaf <default> `a switch
+[6]: t1 == 1 ? [7] : [8]
+[7]: t2 < 0 ? [10] : [12]
+[8]: t3 = t0[0]; [9]
+[9]: t3 < 0 ? [10] : [11]
+[10]: leaf <arm> `[<0, ..] => 2`
+[11]: t3 == 0 ? [12] : [13]
+[12]: leaf <arm> `[0, ..] => 3`
+[13]: leaf <arm> `{ Length: not 1 } => 4`
+[14]: leaf <default> `a switch
         {
             [.., >0] => 1,
             [<0, ..] => 2,
@@ -6969,33 +6935,17 @@ class C
             Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[[42]]").WithLocation(9, 18));
 
         VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
-@"[0]: t0 != null ? [1] : [26]
+@"[0]: t0 != null ? [1] : [10]
 [1]: t1 = t0.Length; [2]
-[2]: t1 >= 1 ? [3] : [26]
+[2]: t1 >= 1 ? [3] : [10]
 [3]: t2 = t0[-1]; [4]
-[4]: t2 != null ? [5] : [23]
+[4]: t2 != null ? [5] : [10]
 [5]: t3 = t2.Length; [6]
-[6]: t3 >= 1 ? [7] : [18]
+[6]: t3 >= 1 ? [7] : [10]
 [7]: t4 = t2[-1]; [8]
 [8]: t4 == 42 ? [9] : [10]
 [9]: leaf `case [.., [.., 42]]:`
-[10]: t1 == 1 ? [11] : [26]
-[11]: t5 = t0[0]; [12]
-[12]: t5 <-- t2; [13]
-[13]: t7 = t5.Length; [14]
-[14]: t7 <-- t3; [15]
-[15]: t7 == 1 ? [16] : [26]
-[16]: t9 = t5[0]; [17]
-[17]: t9 <-- t4; [26]
-[18]: t1 == 1 ? [19] : [26]
-[19]: t5 = t0[0]; [20]
-[20]: t5 <-- t2; [21]
-[21]: t7 = t5.Length; [22]
-[22]: t7 <-- t3; [26]
-[23]: t1 == 1 ? [24] : [26]
-[24]: t5 = t0[0]; [25]
-[25]: t5 <-- t2; [26]
-[26]: leaf <break> `switch (a)
+[10]: leaf <break> `switch (a)
         {
             case [.., [.., 42]]:
             case [[42]]:
@@ -7294,21 +7244,20 @@ class C
                 //             case [_]:         
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[_]").WithLocation(11, 18));
         VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
-@"[0]: t0 != null ? [1] : [14]
+@"[0]: t0 != null ? [1] : [13]
 [1]: t1 = t0.Length; [2]
-[2]: t1 >= 1 ? [3] : [14]
+[2]: t1 >= 1 ? [3] : [13]
 [3]: t2 = t0[-1]; [4]
 [4]: t2 == 0 ? [5] : [6]
 [5]: leaf `case [.., 0]:`
-[6]: t3 = t0[0]; [7]
-[7]: t1 == 1 ? [8] : [10]
-[8]: t3 <-- t2; [9]
-[9]: t3 < 0 ? [11] : [13]
-[10]: t3 < 0 ? [11] : [12]
-[11]: leaf `case [<0, ..]:`
-[12]: t2 > 0 ? [13] : [14]
-[13]: leaf `case [.., >0]:`
-[14]: leaf <break> `switch (a)
+[6]: t1 == 1 ? [7] : [8]
+[7]: t2 < 0 ? [10] : [12]
+[8]: t3 = t0[0]; [9]
+[9]: t3 < 0 ? [10] : [11]
+[10]: leaf `case [<0, ..]:`
+[11]: t2 > 0 ? [12] : [13]
+[12]: leaf `case [.., >0]:`
+[13]: leaf <break> `switch (a)
         {
             case [.., 0]:
             case [<0, ..]:

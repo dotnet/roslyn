@@ -88,7 +88,11 @@ internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
         capabilities.TextDocumentSync = new TextDocumentSyncOptions
         {
             Change = TextDocumentSyncKind.Incremental,
-            OpenClose = true
+            OpenClose = true,
+            Save = new SaveOptions
+            {
+                IncludeText = false,
+            }
         };
 
         capabilities.HoverProvider = true;
