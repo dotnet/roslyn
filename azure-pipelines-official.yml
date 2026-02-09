@@ -12,6 +12,8 @@ trigger:
     - features/runtime-async
     exclude:
     - release/dev17.0
+    - release/dev17.15
+    - release/vscode-prerelease
 pr: none
 
 resources:
