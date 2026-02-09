@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -20,14 +19,14 @@ internal sealed partial class HotReloadMSBuildWorkspace
         ProjectFileExtensionRegistry projectFileExtensionRegistry)
         : IProjectFileInfoProvider
     {
-        public Task<ProjectFileInfo[]> LoadProjectFileInfosAsync(string projectPath, DiagnosticReportingOptions reportingOptions, CancellationToken cancellationToken)
+        public Task<ImmutableArray<ProjectFileInfo>> LoadProjectFileInfosAsync(string projectPath, DiagnosticReportingOptions reportingOptions, CancellationToken cancellationToken)
         {
             var (instances, project) = getBuildProjects(projectPath);
 
             if (instances.IsEmpty ||
                 !projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out var languageName))
             {
-                return Task.FromResult(Array.Empty<ProjectFileInfo>());
+                return Task.FromResult(ImmutableArray<ProjectFileInfo>.Empty);
             }
 
             return Task.FromResult(instances.SelectAsArray(instance =>
@@ -38,11 +37,11 @@ internal sealed partial class HotReloadMSBuildWorkspace
                     project);
 
                 return reader.CreateProjectFileInfo();
-            }).ToArray());
+            }));
         }
 
-        public Task<string[]> GetProjectOutputPathsAsync(string projectPath, CancellationToken cancellationToken)
+        public Task<ImmutableArray<string>> GetProjectOutputPathsAsync(string projectPath, CancellationToken cancellationToken)
             => Task.FromResult(
-                getBuildProjects(projectPath).instances.SelectAsArray(static instance => instance.GetPropertyValue(PropertyNames.TargetPath)).ToArray());
+                getBuildProjects(projectPath).instances.SelectAsArray(static instance => instance.GetPropertyValue(PropertyNames.TargetPath)));
     }
 }
