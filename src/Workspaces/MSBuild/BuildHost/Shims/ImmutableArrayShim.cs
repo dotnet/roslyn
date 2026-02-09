@@ -48,6 +48,8 @@ namespace System.Collections.Immutable
     internal class ImmutableDictionary<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
         where TKey : notnull
     {
+        // This method is never called from BuildHost code paths; it exists only to satisfy
+        // the compiler for Hash.CombineValues which is not invoked at runtime.
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
             => throw new NotImplementedException();
 
