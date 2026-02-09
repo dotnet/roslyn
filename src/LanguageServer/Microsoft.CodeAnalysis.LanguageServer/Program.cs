@@ -163,6 +163,9 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
             {
                 logger.LogInformation("Parent process {parentProcessId} exited, shutting down server", parentProcessId);
             }
+
+            // Await the task that completed to observe any exceptions.
+            await completedTask;
         }
         else
         {
@@ -280,7 +283,7 @@ static RootCommand CreateCommand()
         DefaultValueFactory = _ => SourceGeneratorExecutionPreference.Automatic,
     };
 
-    var parentProcessIdOption = new Option<int?>("--process-id")
+    var parentProcessIdOption = new Option<int?>("--parentProcessId")
     {
         Description = "The process ID of the parent process. The server will terminate when the parent process exits.",
         Required = false,
