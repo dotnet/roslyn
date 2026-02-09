@@ -49,7 +49,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Locator" PrivateAssets="All" />
-    <PackageReference Include="System.Collections.Immutable" />
     <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
     <PackageReference Include="System.Text.Json" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
@@ -60,6 +59,22 @@
     <!-- Exclude utilities that use System.Reflection.Metadata -->
     <Compile Remove="..\..\..\Compilers\Core\Portable\InternalUtilities\BlobBuildingStream.cs" />
     <Compile Remove="..\..\..\Compilers\Core\Portable\InternalUtilities\IncrementalHashExtensions.cs" />
+    <!-- Exclude utilities that use System.Collections.Immutable -->
+    <Compile Remove="..\..\..\Compilers\Core\Portable\InternalUtilities\FileLockCheck.cs" />
+    <Compile Remove="..\..\..\Compilers\Core\Portable\InternalUtilities\ISetExtensions.cs" />
+    <Compile Remove="..\..\..\Compilers\Core\Portable\InternalUtilities\ImmutableListExtensions.cs" />
+    <Compile Remove="..\..\..\Compilers\Core\Portable\InternalUtilities\ImmutableSetWithInsertionOrder`1.cs" />
+    <Compile Remove="..\..\..\Compilers\Core\Portable\InternalUtilities\InterlockedOperations.cs" />
+    <Compile Remove="..\..\..\Compilers\Core\Portable\InternalUtilities\MultiDictionary.cs" />
+    <Compile Remove="..\..\..\Compilers\Core\Portable\InternalUtilities\SetWithInsertionOrder.cs" />
+    <Compile Remove="..\..\..\Compilers\Core\Portable\InternalUtilities\StringExtensions.cs" />
+    <!-- Exclude utilities that use PooledObjects or Collections -->
+    <Compile Remove="..\..\..\Compilers\Core\Portable\InternalUtilities\ConcurrentDictionaryExtensions.cs" />
+    <Compile Remove="..\..\..\Compilers\Core\Portable\InternalUtilities\EnumField.cs" />
+    <Compile Remove="..\..\..\Compilers\Core\Portable\InternalUtilities\JsonWriter.cs" />
+    <Compile Remove="..\..\..\Compilers\Core\Portable\InternalUtilities\OrderedMultiDictionary.cs" />
+    <Compile Remove="..\..\..\Compilers\Core\Portable\InternalUtilities\StringTable.cs" />
+    <Compile Remove="..\..\..\Compilers\Core\Portable\InternalUtilities\TextKeyedCache.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\IOrderedReadOnlySet.cs" Link="Collections\IOrderedReadOnlySet.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\PathKind.cs" Link="FileSystem\PathKind.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\PathUtilities.cs" Link="FileSystem\PathUtilities.cs" />
@@ -67,11 +82,6 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\Symbols\LanguageNames.cs" Link="Compiler\LanguageNames.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\CaseInsensitiveComparison.cs" Link="Compiler\CaseInsensitiveComparison.cs" />
     <Compile Include="..\..\..\Compilers\Shared\NamedPipeUtil.cs" Link="SharedUtilities\NamedPipeUtil.cs" />
-    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Extensions\ImmutableArrayExtensions.cs" Link="SharedUtilities\ImmutableArrayExtensions.cs" />
-    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\ObjectPools\Extensions.cs" Link="SharedUtilities\Extensions.cs" />
-    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\ObjectPools\PooledObject.cs" Link="SharedUtilities\PooledObject.cs" />
-    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\ObjectPools\SharedPools.cs" Link="SharedUtilities\SharedPools.cs" />
-    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\SerializableBytes.cs" Link="SharedUtilities\SerializableBytes.cs" />
 
   </ItemGroup>
   <ItemGroup>
@@ -110,7 +120,5 @@
       </ProjectDepsJsonFile>
     </ItemGroup>
   </Target>
-  <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
-  <Import Project="..\..\..\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems" Label="Shared" />
   <Import Project="$(RepositoryEngineeringDir)targets\PackageDownloadAndReference.targets" />
 </Project>

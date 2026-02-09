@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.PooledObjects;
+using System.Text;
 using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
@@ -35,7 +35,7 @@ internal static class Extensions
     public static PackageReference[] GetPackageReferences(this MSB.Execution.ProjectInstance executedProject)
     {
         var packageReferenceItems = executedProject.GetItems(ItemNames.PackageReference);
-        using var _ = PooledHashSet<PackageReference>.GetInstance(out var references);
+        var references = new HashSet<PackageReference>();
 
         foreach (var item in packageReferenceItems)
         {
@@ -89,8 +89,7 @@ internal static class Extensions
 
     public static string ReadItemsAsString(this MSB.Execution.ProjectInstance executedProject, string itemType)
     {
-        var pooledBuilder = PooledStringBuilder.GetInstance();
-        var builder = pooledBuilder.Builder;
+        var builder = new StringBuilder();
 
         foreach (var item in executedProject.GetItems(itemType))
         {
@@ -102,7 +101,7 @@ internal static class Extensions
             builder.Append(item.EvaluatedInclude);
         }
 
-        return pooledBuilder.ToStringAndFree();
+        return builder.ToString();
     }
 
     public static IEnumerable<MSB.Framework.ITaskItem> GetTaskItems(this MSB.Execution.ProjectInstance executedProject, string itemType)
