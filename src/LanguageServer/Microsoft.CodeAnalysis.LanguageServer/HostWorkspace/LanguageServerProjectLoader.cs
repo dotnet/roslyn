@@ -389,7 +389,7 @@ internal abstract class LanguageServerProjectLoader
             return (loadedProject, alreadyExists: false);
         }
 
-        async Task LogDiagnosticsAsync(ImmutableArray<DiagnosticLogItem> diagnosticLogItems)
+        async Task LogDiagnosticsAsync(DiagnosticLogItem[] diagnosticLogItems)
         {
             foreach (var logItem in diagnosticLogItems)
             {
