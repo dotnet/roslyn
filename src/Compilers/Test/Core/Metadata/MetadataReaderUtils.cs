@@ -281,7 +281,7 @@ namespace Roslyn.Test.Utilities
                 return null;
             }
 
-            int uncompressedSize = BitConverter.ToInt32(bytes, 0);
+            int uncompressedSize = BinaryPrimitives.ReadInt32LittleEndian(bytes.AsSpan().Slice(0));
             var stream = new MemoryStream(bytes, sizeof(int), bytes.Length - sizeof(int));
 
             if (uncompressedSize != 0)
