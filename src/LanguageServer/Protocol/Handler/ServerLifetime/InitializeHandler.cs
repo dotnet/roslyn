@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,6 +24,12 @@ internal sealed class InitializeHandler() : ILspServiceRequestHandler<Initialize
         var clientCapabilities = request.Capabilities;
         clientCapabilitiesManager.SetInitializeParams(request);
 
+        if (request.ProcessId.HasValue)
+        {
+            // We were given a client process ID. Monitor that process and exit if it exits.
+            _ = WaitForClientProcessExitAsync(request.ProcessId.Value);
+        }
+
         var capabilitiesProvider = context.GetRequiredLspService<ICapabilitiesProvider>();
         var serverCapabilities = capabilitiesProvider.GetCapabilities(clientCapabilities);
 
@@ -38,5 +45,29 @@ internal sealed class InitializeHandler() : ILspServiceRequestHandler<Initialize
         {
             Capabilities = serverCapabilities,
         };
+    }
+
+    static async Task WaitForClientProcessExitAsync(int clientProcessId)
+    {
+        try
+        {
+            var clientProcessExitTask = new TaskCompletionSource<bool>();
+
+            using var clientProcess = Process.GetProcessById(clientProcessId);
+            clientProcess.EnableRaisingEvents = true;
+            clientProcess.Exited += (sender, args) => clientProcessExitTask.SetResult(true);
+
+            if (!clientProcess.HasExited)
+            {
+                // Wait for the client process to exit.
+                await clientProcessExitTask.Task.ConfigureAwait(false);
+            }
+        }
+        catch (ArgumentException)
+        {
+            // The process has already exited or was never running.
+        }
+
+        Process.GetCurrentProcess().Kill();
     }
 }
