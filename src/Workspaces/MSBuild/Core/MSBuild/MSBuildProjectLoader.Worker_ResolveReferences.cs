@@ -184,14 +184,8 @@ public partial class MSBuildProjectLoader
                 => new(GetProjectReferences(), GetMetadataReferences());
         }
 
-        private async Task<ResolvedReferences> ResolveReferencesAsync(ProjectId id, ProjectFileInfo projectFileInfo, CommandLineArguments commandLineArgs, CancellationToken cancellationToken)
+        private async Task<ResolvedReferences> ResolveReferencesAsync(ProjectId id, ProjectFileInfo projectFileInfo, IEnumerable<MetadataReference> resolvedMetadataReferences, CancellationToken cancellationToken)
         {
-            // First, gather all of the metadata references from the command-line arguments.
-            var resolvedMetadataReferences = commandLineArgs.ResolveMetadataReferences(
-                new WorkspaceMetadataFileReferenceResolver(
-                    metadataService: _solutionServices.GetRequiredService<IMetadataService>(),
-                    pathResolver: new RelativePathResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory)));
-
             var builder = new ResolvedReferencesBuilder(resolvedMetadataReferences);
 
             var projectDirectory = PathUtilities.GetDirectoryName(projectFileInfo.FilePath);
