@@ -162,6 +162,10 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
             if (completedTask == clientProcessExitTask)
             {
                 logger.LogInformation("Client process {clientProcessId} exited, shutting down server", clientProcessId);
+
+                // With the client process exited, we cannot send logs or telemetry,
+                // so kill the server process immediately to ensure we exit in a timely manner.
+                Process.GetCurrentProcess().Kill();
             }
 
             // Await the task that completed to observe any exceptions.
