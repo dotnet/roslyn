@@ -1118,7 +1118,7 @@ namespace Microsoft.CodeAnalysis
 
                 // System_AppContext__GetData
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_AppContext - WellKnownType.ExtSentinel),      // DeclaringTypeId (extended)
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_AppContext - WellKnownType.ExtSentinel),      // DeclaringTypeId (extended): System_AppContext is at 379, ExtSentinel at 255, offset=124
                 0,                                                                                                          // Arity
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object, // Return Type
