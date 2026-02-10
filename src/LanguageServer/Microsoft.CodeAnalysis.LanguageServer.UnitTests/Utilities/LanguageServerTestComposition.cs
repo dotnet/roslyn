@@ -31,7 +31,8 @@ internal sealed class LanguageServerTestComposition
             ServerPipeName: null,
             UseStdIo: false,
             AutoLoadProjects: false,
-            SourceGeneratorExecutionPreference: SourceGeneratorExecutionPreference.Balanced);
+            SourceGeneratorExecutionPreference: SourceGeneratorExecutionPreference.Balanced,
+            ClientProcessId: null);
         var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
         var assemblyLoader = new CustomExportAssemblyLoader(extensionManager, loggerFactory);
 
