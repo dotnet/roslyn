@@ -28,6 +28,7 @@ internal abstract class LanguageServerProjectLoader
     private readonly IFileChangeWatcher _fileChangeWatcher;
     protected readonly IGlobalOptionService GlobalOptionService;
     protected readonly ILoggerFactory LoggerFactory;
+    protected readonly IAsynchronousOperationListener Listener;
     private readonly ILogger _logger;
     private readonly ProjectLoadTelemetryReporter _projectLoadTelemetryReporter;
     private readonly IBinLogPathProvider _binLogPathProvider;
@@ -106,6 +107,7 @@ internal abstract class LanguageServerProjectLoader
         _fileChangeWatcher = fileChangeWatcher;
         GlobalOptionService = globalOptionService;
         LoggerFactory = loggerFactory;
+        Listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectLoader));
         _projectLoadTelemetryReporter = projectLoadTelemetry;
         _binLogPathProvider = binLogPathProvider;
@@ -117,7 +119,7 @@ internal abstract class LanguageServerProjectLoader
             TimeSpan.FromMilliseconds(100),
             ReloadProjectsAsync,
             ProjectToLoad.Comparer,
-            listenerProvider.GetListener(FeatureAttribute.Workspace),
+            Listener,
             CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
     }
 
@@ -164,7 +166,12 @@ internal abstract class LanguageServerProjectLoader
 
         // TODO: support configuration switching
 
-        await using var buildHostProcessManager = new BuildHostProcessManager(globalMSBuildProperties: AdditionalProperties, binaryLogPathProvider: _binLogPathProvider, loggerFactory: LoggerFactory);
+        await using var buildHostProcessManager = new BuildHostProcessManager(
+            knownCommandLineParserLanguages: _workspaceFactory.HostWorkspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>(),
+            globalMSBuildProperties: AdditionalProperties,
+            binaryLogPathProvider: _binLogPathProvider,
+            loggerFactory: LoggerFactory);
+
         var toastErrorReporter = new ToastErrorReporter();
 
         try

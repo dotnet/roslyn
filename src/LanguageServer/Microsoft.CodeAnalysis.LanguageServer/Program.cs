@@ -41,7 +41,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
             throw new InvalidOperationException("Server cannot be started with both --stdio and --pipe options.");
         }
 
-        // Redirect Console.Out to try prevent the standard output stream from being corrupted. 
+        // Redirect Console.Out to try prevent the standard output stream from being corrupted.
         // This should be done before the logger is created as it can write to the standard output.
         Console.SetOut(new StreamWriter(Console.OpenStandardError()));
     }
@@ -95,10 +95,9 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     using var exportProvider = await LanguageServerExportProviderBuilder.CreateExportProviderAsync(AppContext.BaseDirectory, extensionManager, assemblyLoader, serverConfiguration.DevKitDependencyPath, cacheDirectory, loggerFactory, cancellationToken);
 
-    // LSP server doesn't have the pieces yet to support 'balanced' mode for source-generators.  Hardcode us to
-    // 'automatic' for now.
     var globalOptionService = exportProvider.GetExportedValue<Microsoft.CodeAnalysis.Options.IGlobalOptionService>();
-    globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Automatic);
+    globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, serverConfiguration.SourceGeneratorExecutionPreference);
+    logger.LogTrace("Source generator execution preference set to {preference}", serverConfiguration.SourceGeneratorExecutionPreference);
 
     // The log file directory passed to us by VSCode might not exist yet, though its parent directory is guaranteed to exist.
     if (serverConfiguration.ExtensionLogDirectory is not null)
@@ -137,7 +136,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
             PipeTransmissionMode.Byte,
             PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
 
-        // Send the named pipe connection info to the client 
+        // Send the named pipe connection info to the client
         Console.WriteLine(JsonSerializer.Serialize(new NamedPipeInformation(clientPipeName)));
 
         // Wait for connection from client
@@ -153,7 +152,29 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     try
     {
-        await server.WaitForExitAsync();
+        if (serverConfiguration.ClientProcessId is int clientProcessId)
+        {
+            logger.LogInformation("Monitoring client process {clientProcessId} for exit", clientProcessId);
+            var serverExitTask = server.WaitForExitAsync();
+            var clientProcessExitTask = WaitForClientProcessExitAsync(clientProcessId, logger);
+            var completedTask = await Task.WhenAny(serverExitTask, clientProcessExitTask);
+
+            if (completedTask == clientProcessExitTask)
+            {
+                logger.LogInformation("Client process {clientProcessId} exited, shutting down server", clientProcessId);
+
+                // With the client process exited, we cannot send logs or telemetry,
+                // so kill the server process immediately to ensure we exit in a timely manner.
+                Process.GetCurrentProcess().Kill();
+            }
+
+            // Await the task that completed to observe any exceptions.
+            await completedTask;
+        }
+        else
+        {
+            await server.WaitForExitAsync();
+        }
     }
     finally
     {
@@ -258,6 +279,20 @@ static RootCommand CreateCommand()
         DefaultValueFactory = _ => false,
     };
 
+    var sourceGeneratorExecutionOption = new Option<SourceGeneratorExecutionPreference>("--sourceGeneratorExecutionPreference")
+    {
+        Description = "Controls when source generators are executed.",
+        Required = false,
+        // Balanced mode requires additional client side support (to trigger refreshes), so by default run in automatic to ensure tool scenarios without client support run generators.
+        DefaultValueFactory = _ => SourceGeneratorExecutionPreference.Automatic,
+    };
+
+    var clientProcessIdOption = new Option<int?>("--clientProcessId")
+    {
+        Description = "The process ID of the client process. The server will terminate when the client process exits.",
+        Required = false,
+    };
+
     var rootCommand = new RootCommand()
     {
         debugOption,
@@ -274,7 +309,9 @@ static RootCommand CreateCommand()
         extensionLogDirectoryOption,
         serverPipeNameOption,
         useStdIoOption,
-        autoLoadProjectsOption
+        autoLoadProjectsOption,
+        sourceGeneratorExecutionOption,
+        clientProcessIdOption,
     };
 
     rootCommand.SetAction((parseResult, cancellationToken) =>
@@ -292,6 +329,8 @@ static RootCommand CreateCommand()
         var serverPipeName = parseResult.GetValue(serverPipeNameOption);
         var useStdIo = parseResult.GetValue(useStdIoOption);
         var autoLoadProjects = parseResult.GetValue(autoLoadProjectsOption);
+        var sourceGeneratorExecutionPreference = parseResult.GetValue(sourceGeneratorExecutionOption);
+        var clientProcessId = parseResult.GetValue(clientProcessIdOption);
 
         var serverConfiguration = new ServerConfiguration(
             LaunchDebugger: launchDebugger,
@@ -306,7 +345,9 @@ static RootCommand CreateCommand()
             ServerPipeName: serverPipeName,
             UseStdIo: useStdIo,
             ExtensionLogDirectory: extensionLogDirectory,
-            AutoLoadProjects: autoLoadProjects);
+            AutoLoadProjects: autoLoadProjects,
+            SourceGeneratorExecutionPreference: sourceGeneratorExecutionPreference,
+            ClientProcessId: clientProcessId);
 
         return RunAsync(serverConfiguration, cancellationToken);
     });
@@ -321,7 +362,7 @@ static (string clientPipe, string serverPipe) CreateNewPipeNames()
     const string WINDOWS_DOTNET_PREFIX = @"\\.\";
 
     // The pipe name constructed by some systems is very long (due to temp path).
-    // Shorten the unique id for the pipe. 
+    // Shorten the unique id for the pipe.
     var newGuid = Guid.NewGuid().ToString();
     var pipeName = newGuid.Split('-')[0];
 
@@ -334,4 +375,18 @@ static string GetUnixTypePipeName(string pipeName)
 {
     // Unix-type pipes are actually writing to a file
     return Path.Combine(Path.GetTempPath(), pipeName + ".sock");
+}
+
+static async Task WaitForClientProcessExitAsync(int clientProcessId, ILogger logger)
+{
+    try
+    {
+        using var clientProcess = Process.GetProcessById(clientProcessId);
+        await clientProcess.WaitForExitAsync();
+    }
+    catch (ArgumentException)
+    {
+        // The process has already exited or was never running.
+        logger.LogWarning("Client process {clientProcessId} is not running", clientProcessId);
+    }
 }

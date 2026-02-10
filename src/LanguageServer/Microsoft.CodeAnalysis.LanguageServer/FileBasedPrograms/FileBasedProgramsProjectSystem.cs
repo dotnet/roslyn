@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Features.Workspaces;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Options;
@@ -20,13 +20,12 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 
 /// <summary>Handles loading both miscellaneous files and file-based program projects.</summary>
-internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoader, ILspMiscellaneousFilesWorkspaceProvider, IDisposable, IOnInitialized
+internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoader, ILspMiscellaneousFilesWorkspaceProvider, IDisposable
 {
     private readonly ILspServices _lspServices;
     private readonly ILogger<FileBasedProgramsProjectSystem> _logger;
     private readonly VirtualProjectXmlProvider _projectXmlProvider;
     private readonly CanonicalMiscFilesProjectLoader _canonicalMiscFilesLoader;
-    private IFileChangeContext? _csprojWatcher;
 
     public FileBasedProgramsProjectSystem(
         ILspServices lspServices,
@@ -65,17 +64,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 binLogPathProvider,
                 dotnetCliHelper);
 
-        var initializeManager = lspServices.GetRequiredService<IInitializeManager>();
-        // TODO2: this is wrong. Need to handle IOnInitialize or something.
-        initializeManager.TryGetInitializeParams
-        if (initializeManager.TryGetInitializeParams() is { WorkspaceFolders: [_, ..] nonEmptyWorkspaceFolders })
-        {
-            // TODO2: handle 'workspace/didChangeWorkspaceFolders'
-            _csprojWatcher = fileChangeWatcher.CreateContext(
-                [.. nonEmptyWorkspaceFolders.Select(workspaceFolder => new WatchedDirectory(GetDocumentFilePath(workspaceFolder.DocumentUri), extensionFilters: [".csproj"]))]);
-            _csprojWatcher.FileChanged += OnCsprojFileChanged;
-        }
-
         globalOptionService.AddOptionChangedHandler(this, OnGlobalOptionChanged);
     }
 
@@ -83,82 +71,39 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     {
         _canonicalMiscFilesLoader.Dispose();
         GlobalOptionService.RemoveOptionChangedHandler(this, OnGlobalOptionChanged);
-        _csprojWatcher?.Dispose();
     }
 
     private void OnGlobalOptionChanged(object sender, object target, OptionChangedEventArgs args)
     {
-        foreach (var (key, _) in args.ChangedOptions)
+        foreach (var (key, value) in args.ChangedOptions)
         {
             if (key.Option.Equals(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms))
             {
                 // This event handler can't be async, so we ignore the resulting task here,
                 // and take care that the ignored call doesn't throw an exception
-                _ = HandleEnableFileBasedProgramsChangedAsync();
+                _ = HandleEnableFileBasedProgramsChangedAsync((bool)value!);
                 break;
             }
         }
 
-        async Task HandleEnableFileBasedProgramsChangedAsync()
+        async Task HandleEnableFileBasedProgramsChangedAsync(bool value)
         {
+            using var token = Listener.BeginAsyncOperation(nameof(HandleEnableFileBasedProgramsChangedAsync));
             try
             {
                 // Note: Changing the 'enableFileBasedPrograms' setting causes many subtle differences in how loose files are handled.
                 // For example, loose files which don't look like file-based programs, are put in projects forked from the canonical project loader, only when the setting is enabled, etc.
                 // We anticipate that changing this setting will be infrequent, and, the cost of needing to reload will be acceptable given that.
+                _logger.LogInformation($"Detected enableFileBasedPrograms changed to '{value}'. Unloading loose file projects.");
                 await UnloadAllProjectsAsync();
                 await _canonicalMiscFilesLoader.UnloadAllProjectsAsync();
             }
-            catch (Exception ex)
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
             {
-                _logger.LogError(ex, "Unexpected error when changing enableFileBasedPrograms setting");
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }
-
-    private void OnCsprojFileChanged(object? sender, string changedFile)
-    {
-        Contract.ThrowIfFalse(PathUtilities.IsAbsolute(changedFile));
-        if (PathUtilities.GetExtension(changedFile) != ".csproj")
-            return;
-
-        var directoryName = PathUtilities.GetDirectoryName(changedFile);
-        _ = UnloadProjectsFireAndForgetAsync(directoryName);
-
-        async Task UnloadProjectsFireAndForgetAsync(string directoryName)
-        {
-            try
-            {
-                // TODO: unload FBA projects under this cone.
-                _ = await ExecuteUnderGateAsync(async loadedProjects =>
-                {
-                    foreach (var loadedFilePath in loadedProjects.Keys)
-                    {
-                        // NOTE: .NET supports removing while enumerating
-                        if (loadedFilePath.StartsWith(directoryName, StringComparison.OrdinalIgnoreCase))
-                        {
-                            await TryUnloadProject_NoLockAsync(loadedFilePath);
-                        }
-                    }
-
-                    return ValueTask.FromResult((object?)null);
-                }, CancellationToken.None);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error in OnCsprojFileChanged");
-            }
-        }
-    }
-
-    // /// <summary>
-    // /// Set of directory paths known to contain a csproj file.
-    // /// Guarded by <see cref="_gate"/>.
-    // /// </summary>
-    // private readonly HashSet<(string directoryPath, bool containsCsproj)> _knownCsprojDirectories = [];
-
-    // /// <summary>Guards access to <see cref="_knownCsprojDirectories"/></summary>
-    // private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
     private string GetDocumentFilePath(DocumentUri uri) => uri.ParsedUri is { } parsedUri ? ProtocolConversions.GetDocumentFilePathFromUri(parsedUri) : uri.UriString;
 
@@ -321,10 +266,5 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         await projectState.PrimordialProjectFactory.ApplyChangeToWorkspaceAsync(
             workspace => workspace.OnProjectRemoved(projectState.PrimordialProjectId),
             cancellationToken);
-    }
-
-    public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
     }
 }

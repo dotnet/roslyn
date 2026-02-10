@@ -116,8 +116,6 @@
       "src\\Features\\ExternalAccess\\OmniSharp.CSharp\\Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp.csproj",
       "src\\Features\\ExternalAccess\\OmniSharpTest\\Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.UnitTests.csproj",
       "src\\Features\\ExternalAccess\\OmniSharp\\Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.csproj",
-      "src\\Features\\Lsif\\GeneratorTest\\Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.vbproj",
-      "src\\Features\\Lsif\\Generator\\Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.csproj",
       "src\\Features\\TestUtilities\\Microsoft.CodeAnalysis.Features.Test.Utilities.csproj",
       "src\\Features\\Test\\Microsoft.CodeAnalysis.Features.UnitTests.csproj",
       "src\\Features\\VisualBasicTest\\Microsoft.CodeAnalysis.VisualBasic.Features.UnitTests.vbproj",
