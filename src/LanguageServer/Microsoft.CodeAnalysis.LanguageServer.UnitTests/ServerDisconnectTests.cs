@@ -6,10 +6,17 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
-public sealed class ServerDisconnectTests : AbstractLanguageServerHostTests
+public sealed class ServerDisconnectTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerHostTests(testOutputHelper)
 {
-    public ServerDisconnectTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+    [Fact]
+    public async Task ServerExitsCleanlyOnStreamReadError()
     {
+        var server = await CreateLanguageServerAsync();
+
+        server.SimulateStreamReadError();
+
+        // Server should exit cleanly without throwing.
+        await server.ServerExitTask;
     }
 
     [Fact]
@@ -17,7 +24,7 @@ public sealed class ServerDisconnectTests : AbstractLanguageServerHostTests
     {
         var server = await CreateLanguageServerAsync();
 
-        server.SimulateClientDisconnect();
+        server.SimulateClientDisconnectError();
 
         // Server should exit cleanly without throwing.
         await server.ServerExitTask;

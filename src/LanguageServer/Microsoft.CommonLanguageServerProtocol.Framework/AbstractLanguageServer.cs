@@ -12,6 +12,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Threading;
 using StreamJsonRpc;
 
@@ -339,9 +340,19 @@ internal abstract class AbstractLanguageServer<TRequestContext>
 
         async Task JsonRpc_DisconnectedAsync(object? sender, JsonRpcDisconnectedEventArgs e)
         {
+            if (e.Exception != null)
+            {
+                // Only report an error if we encountered an exception that was caused by the server.
+                // There's nothing we can do if the client decides to disconnect.
+                if (e.Reason != DisconnectedReason.RemotePartyTerminated || e.Reason == DisconnectedReason.LocallyDisposed)
+                {
+                    FatalError.ReportNonFatalError(e.Exception, ErrorSeverity.Critical);
+                }
+            }
+
             // It is possible this gets called during normal shutdown and exit.
             // ShutdownAsync and ExitAsync will no-op if shutdown was already triggered by something else.
-            await ShutdownAsync(message: "Shutdown triggered by JsonRpc disconnect").ConfigureAwait(false);
+            await ShutdownAsync(message: $"Shutdown triggered by JsonRpc disconnect {e.Reason}").ConfigureAwait(false);
             await ExitAsync().ConfigureAwait(false);
         }
     }
