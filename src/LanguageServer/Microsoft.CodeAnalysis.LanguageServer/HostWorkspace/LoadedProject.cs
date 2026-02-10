@@ -165,14 +165,14 @@ internal sealed class LoadedProject : IDisposable
             _targetFrameworkManager.UpdateIdentifierForProject(_projectSystemProject.Id, newProjectInfo.TargetFrameworkIdentifier);
         }
 
-        _optionsProcessor.SetCommandLine(newProjectInfo.CommandLineArgs);
+        _optionsProcessor.SetCommandLine([.. newProjectInfo.CommandLineArgs]);
         var commandLineArguments = _optionsProcessor.GetParsedCommandLineArguments();
 
         UpdateProjectSystemProjectCollection(
             newProjectInfo.Documents,
             _mostRecentFileInfo?.Documents,
             DocumentFileInfoComparer.Instance,
-            document => _projectSystemProject.AddSourceFile(document.FilePath, folders: document.Folders),
+            document => _projectSystemProject.AddSourceFile(document.FilePath, folders: [.. document.Folders]),
             document => _projectSystemProject.RemoveSourceFile(document.FilePath),
             "Project {0} now has {1} source file(s). ({2} added, {3} removed.)");
 
@@ -221,7 +221,7 @@ internal sealed class LoadedProject : IDisposable
             newProjectInfo.AdditionalDocuments,
             _mostRecentFileInfo?.AdditionalDocuments,
             DocumentFileInfoComparer.Instance,
-            document => _projectSystemProject.AddAdditionalFile(document.FilePath, folders: document.Folders),
+            document => _projectSystemProject.AddAdditionalFile(document.FilePath, folders: [.. document.Folders]),
             document => _projectSystemProject.RemoveAdditionalFile(document.FilePath),
             "Project {0} now has {1} additional file(s). ({2} added, {3} removed.)");
 

@@ -20,7 +20,7 @@ internal sealed class BuildHostProjectFileInfoProvider(
     {
         if (!projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, reportingOptions.OnLoaderFailure, out var languageName))
         {
-            return []; // Failure should already be reported.
+            return ImmutableArray<ProjectFileInfo>.Empty; // Failure should already be reported.
         }
 
         var preferredBuildHostKind = BuildHostProcessManager.GetKindForProject(projectPath);
@@ -52,7 +52,7 @@ internal sealed class BuildHostProjectFileInfoProvider(
         diagnosticItems = await projectFile.GetDiagnosticLogItemsAsync(cancellationToken).ConfigureAwait(false);
         diagnosticReporter.Report(diagnosticItems);
 
-        return projectFileInfos;
+        return [.. projectFileInfos];
     }
 
     public async Task<ImmutableArray<string>> GetProjectOutputPathsAsync(string projectPath, CancellationToken cancellationToken)

@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -154,7 +155,7 @@ internal sealed class RpcClient
             Id = requestId,
             TargetObject = targetObject,
             Method = methodName,
-            Parameters = parameters.SelectAsArray(static p => JsonSerializer.SerializeToElement(p, JsonSettings.SingleLineSerializerOptions))
+            Parameters = parameters.Select(static p => JsonSerializer.SerializeToElement(p, JsonSettings.SingleLineSerializerOptions)).ToArray()
         };
 
         var requestJson = JsonSerializer.Serialize(request, JsonSettings.SingleLineSerializerOptions) + Environment.NewLine;

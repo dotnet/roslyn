@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
@@ -18,6 +17,6 @@ internal sealed class VisualBasicProjectCommandLineProvider : ProjectCommandLine
     public override IEnumerable<MSB.Framework.ITaskItem> GetCompilerCommandLineArgs(MSB.Execution.ProjectInstance executedProject)
         => executedProject.GetItems(ItemNames.VbcCommandLineArgs);
 
-    public override ImmutableArray<string> ReadCommandLineArgs(MSB.Execution.ProjectInstance project)
+    public override string[] ReadCommandLineArgs(MSB.Execution.ProjectInstance project)
         => VisualBasicCommandLineArgumentReader.Read(project);
 }

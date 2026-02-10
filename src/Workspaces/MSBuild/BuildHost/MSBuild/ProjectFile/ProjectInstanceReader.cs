@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Roslyn.Utilities;
@@ -83,22 +82,22 @@ internal readonly struct ProjectInstanceReader
 
         var targetFrameworkVersion = _projectInstance.ReadPropertyString(PropertyNames.TargetFrameworkVersion);
 
-        var docs = _projectInstance.GetDocuments().SelectAsArray(
-            predicate: IsNotTemporaryGeneratedFile,
-            selector: MakeDocumentFileInfo);
+        var docs = _projectInstance.GetDocuments()
+            .Where(IsNotTemporaryGeneratedFile)
+            .Select(MakeDocumentFileInfo).ToArray();
 
         var additionalDocs = _projectInstance.GetAdditionalFiles()
-            .SelectAsArray(MakeNonSourceFileDocumentFileInfo);
+            .Select(MakeNonSourceFileDocumentFileInfo).ToArray();
 
         var analyzerConfigDocs = _projectInstance.GetEditorConfigFiles()
-            .SelectAsArray(MakeNonSourceFileDocumentFileInfo);
+            .Select(MakeNonSourceFileDocumentFileInfo).ToArray();
 
         var packageReferences = _projectInstance.GetPackageReferences();
 
-        var projectCapabilities = _projectInstance.GetItems(ItemNames.ProjectCapability).SelectAsArray(item => item.ToString());
+        var projectCapabilities = _projectInstance.GetItems(ItemNames.ProjectCapability).Select(item => item.ToString()).ToArray();
         var contentFileInfo = GetContentFiles(_projectInstance);
 
-        var fileGlobs = Project?.GetAllGlobs().SelectAsArray(GetFileGlobs) ?? [];
+        var fileGlobs = Project?.GetAllGlobs().Select(GetFileGlobs).ToArray() ?? [];
 
         return new ProjectFileInfo()
         {
@@ -117,7 +116,7 @@ internal readonly struct ProjectInstanceReader
             Documents = docs,
             AdditionalDocuments = additionalDocs,
             AnalyzerConfigDocuments = analyzerConfigDocs,
-            ProjectReferences = [.. _projectInstance.GetProjectReferences()],
+            ProjectReferences = _projectInstance.GetProjectReferences().ToArray(),
             PackageReferences = packageReferences,
             ProjectCapabilities = projectCapabilities,
             ContentFilePaths = contentFileInfo,
@@ -133,18 +132,18 @@ internal readonly struct ProjectInstanceReader
         }
     }
 
-    private static ImmutableArray<string> GetContentFiles(MSB.Execution.ProjectInstance project)
+    private static string[] GetContentFiles(MSB.Execution.ProjectInstance project)
     {
         var contentFiles = project
             .GetItems(ItemNames.Content)
-            .SelectAsArray(item => item.GetMetadataValue(MetadataNames.FullPath));
+            .Select(item => item.GetMetadataValue(MetadataNames.FullPath)).ToArray();
         return contentFiles;
     }
 
-    private ImmutableArray<string> GetCommandLineArgs(MSB.Execution.ProjectInstance project)
+    private string[] GetCommandLineArgs(MSB.Execution.ProjectInstance project)
     {
         var commandLineArgs = _commandLineProvider.GetCompilerCommandLineArgs(project)
-            .SelectAsArray(item => item.ItemSpec);
+            .Select(item => item.ItemSpec).ToArray();
 
         if (commandLineArgs.Length == 0)
         {
@@ -181,7 +180,7 @@ internal readonly struct ProjectInstanceReader
         return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated: false, folders);
     }
 
-    private ImmutableArray<string> GetRelativeFolders(MSB.Framework.ITaskItem documentItem)
+    private string[] GetRelativeFolders(MSB.Framework.ITaskItem documentItem)
     {
         var linkPath = documentItem.GetMetadata(MetadataNames.Link);
         if (!RoslynString.IsNullOrEmpty(linkPath))
@@ -192,7 +191,7 @@ internal readonly struct ProjectInstanceReader
         {
             var filePath = documentItem.ItemSpec;
             var relativePath = PathUtilities.GetDirectoryName(PathUtilities.GetRelativePath(_projectDirectory, filePath));
-            var folders = relativePath == null ? [] : relativePath.Split([PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar], StringSplitOptions.RemoveEmptyEntries).ToImmutableArray();
+            var folders = relativePath == null ? [] : relativePath.Split([PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar], StringSplitOptions.RemoveEmptyEntries).ToArray();
             return folders;
         }
     }

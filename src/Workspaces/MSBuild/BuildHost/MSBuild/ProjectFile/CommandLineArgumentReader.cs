@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
@@ -14,12 +13,12 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 internal abstract class CommandLineArgumentReader
 {
     protected readonly MSB.Execution.ProjectInstance Project;
-    private readonly ImmutableArray<string>.Builder _builder;
+    private readonly List<string> _builder;
 
     protected CommandLineArgumentReader(MSB.Execution.ProjectInstance project)
     {
         Project = project;
-        _builder = ImmutableArray.CreateBuilder<string>();
+        _builder = new List<string>();
     }
 
     protected abstract void ReadCore();
@@ -154,14 +153,14 @@ internal abstract class CommandLineArgumentReader
         AddIfTrue("codepage", codePage.ToString(), codePage != 0);
     }
 
-    private static readonly ImmutableDictionary<string, string> s_debugTypeValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    private static readonly Dictionary<string, string> s_debugTypeValues = new(StringComparer.OrdinalIgnoreCase)
     {
         { "none", "none" },
         { "pdbonly", "pdbonly" },
         { "full", "full" },
         { "portable", "portable" },
         { "embedded", "embedded" }
-    }.ToImmutableDictionary();
+    };
 
     protected void ReadDebugInfo()
     {
@@ -248,7 +247,7 @@ internal abstract class CommandLineArgumentReader
                     var filePath = GetDocumentFilePath(reference);
 
                     var aliases = reference.GetAliases();
-                    if (aliases.IsDefaultOrEmpty)
+                    if (aliases.Length == 0)
                     {
                         Add("reference", filePath);
                     }
@@ -290,9 +289,9 @@ internal abstract class CommandLineArgumentReader
         }
     }
 
-    protected ImmutableArray<string> Read()
+    protected string[] Read()
     {
         ReadCore();
-        return _builder.ToImmutable();
+        return _builder.ToArray();
     }
 }
