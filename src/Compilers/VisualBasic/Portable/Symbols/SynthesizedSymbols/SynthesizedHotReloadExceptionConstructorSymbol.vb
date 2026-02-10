@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 factory.ExpressionStatement(storeAction),
                 factory.ExpressionStatement(factory.Call(factory.Me(), exceptionConstructor, factory.Parameter(MessageParameter, isLValue:=False))),
                 factory.Assignment(factory.Field(factory.Me(), containingExceptionType.CodeField, isLValue:=True), factory.Parameter(CodeParameter, isLValue:=False)),
-                factory.If(factory.ReferenceIsNotNothing(factory.Local(actionTemp, isLValue:=False)), factory.ExpressionStatement(factory.Call(factory.Local(actionTemp, isLValue:=False), delegateInvoke, factory.Me()))),
+                factory.If(factory.ReferenceIsNotNothing(factory.Local(actionTemp, isLValue:=False)), factory.ExpressionStatement(factory.Call(factory.Local(actionTemp, isLValue:=False), delegateInvoke, factory.Convert(_exceptionType, factory.Me())))),
                 factory.Return())
 
             Dim block = factory.Block(ImmutableArray.Create(actionTemp), statements)
