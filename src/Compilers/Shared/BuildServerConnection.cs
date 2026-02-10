@@ -490,7 +490,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <returns>Dictionary of environment variables to set, or null if no custom environment is needed</returns>
         internal static Dictionary<string, string>? GetServerEnvironmentVariables(System.Collections.IDictionary currentEnvironment, ICompilerServerLogger? logger = null)
         {
-            if (!IsBuiltinToolRunningOnCoreClr || RuntimeHostInfo.GetToolDotNetRoot(logger is null ? null : logger.Log) is not { } dotNetRoot)
+            string? dotNetRoot = IsBuiltinToolRunningOnCoreClr ? RuntimeHostInfo.GetToolDotNetRoot(logger is null ? null : logger.Log) : null;
+
+            if (dotNetRoot == null && !RuntimeHostInfo.ShouldEnableTieredCompilation)
             {
                 return null;
             }
@@ -504,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                 // Clear DOTNET_ROOT* variables such as DOTNET_ROOT_X64 by setting them to empty,
                 // as we want to set our own DOTNET_ROOT and avoid conflicts
-                if (key.StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, StringComparison.OrdinalIgnoreCase))
+                if (dotNetRoot != null && key.StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, StringComparison.OrdinalIgnoreCase))
                 {
                     environmentVariables[key] = string.Empty;
                 }
@@ -515,9 +517,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
 
             // Set our DOTNET_ROOT
-            environmentVariables[RuntimeHostInfo.DotNetRootEnvironmentName] = dotNetRoot;
+            if (dotNetRoot != null)
+            {
+                logger?.Log("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
+                environmentVariables[RuntimeHostInfo.DotNetRootEnvironmentName] = dotNetRoot;
+            }
 
-            logger?.Log("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
+            if (RuntimeHostInfo.ShouldEnableTieredCompilation)
+            {
+                var value = "1";
+                logger?.Log("Setting {0} to '{1}'", RuntimeHostInfo.DotNetTieredCompilationEnvironmentName, value);
+                environmentVariables[RuntimeHostInfo.DotNetTieredCompilationEnvironmentName] = value;
+            }
 
             return environmentVariables;
         }
