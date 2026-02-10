@@ -460,9 +460,14 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Zum Ändern der Projekteinstellung „{0}“ von „{1}“ in „{2}“ muss die Anwendung neu gestartet werden.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application">
+      <trans-unit id="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_the_application">
         <source>Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</source>
-        <target state="translated">Das Ändern des pseudobenutzerdefinierten Attributs „{0}“ von {1} erfordert einen Neustart der Anwendung.</target>
+        <target state="new">Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_source_file_0_in_a_project_1_that_does_not_support_hot_reload_requires_restarting_the_application_2">
+        <source>Changing source file '{0}' in a project '{1}' that does not support Hot Reload requires restarting the application; {2}</source>
+        <target state="new">Changing source file '{0}' in a project '{1}' that does not support Hot Reload requires restarting the application; {2}</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_source_file_0_in_a_stale_project_1_has_no_effect_until_the_project_is_rebuilt_2">
@@ -470,9 +475,9 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Das Ändern der Quelldatei „{0}“ in einem veralteten Projekt „{1}“ hat keine Wirkung, bis das Projekt neu erstellt wird; {2}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_th_application">
+      <trans-unit id="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_the_application">
         <source>Changing the containing namespace of '{0}' from '{1}' to '{2}' requires restarting the application</source>
-        <target state="translated">Um den enthaltenden Namespace von "{0}" von "{1}" in "{2}" zu ändern, muss die Anwendung neu gestartet werden</target>
+        <target state="new">Changing the containing namespace of '{0}' from '{1}' to '{2}' requires restarting the application</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application">
@@ -3168,6 +3173,11 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
       <trans-unit id="_0_dash_1">
         <source>{0} - {1}</source>
         <target state="translated">{0} - {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_does_not_support_Hot_Reload">
+        <source>{0} does not support Hot Reload.</source>
+        <target state="new">{0} does not support Hot Reload.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_expected">

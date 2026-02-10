@@ -449,6 +449,10 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         Assert.Empty(fsharpLib.AllProjectReferences);
         Assert.Contains(fsharpLib.MetadataReferences, r => r is PortableExecutableReference per && Path.GetFileName(per.FilePath) == "FSharp.Core.dll");
 
+        // enables Hot Reload to read PDB:
+        Assert.EndsWith(Path.Combine("obj", "Debug", "netstandard2.0", "fsharplib.dll"), fsharpLib.CompilationOutputInfo.AssemblyPath);
+
+        // enables Hot Reload to validate document checksums:
         var libraryFs = fsharpLib.Documents.Single(d => Path.GetFileName(d.FilePath) == "Library.fs");
         var text = await libraryFs.GetTextAsync();
 
