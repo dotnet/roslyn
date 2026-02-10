@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis
 #endif
 
         /// <summary>
-        /// Enable JIT tiered compilation on .NET Core (i.e., 'dotnet build' but not 'msbuild' which would slow down VS startup perf).
+        /// Disable JIT tiered compilation on .NET Framework (i.e., keep it enabled on 'dotnet build' but not 'msbuild' which would slow down VS startup perf).
         /// </summary>
-        internal static bool ShouldEnableTieredCompilation => IsCoreClrRuntime;
+        internal static bool ShouldDisableTieredCompilation => !IsCoreClrRuntime;
 
         internal const string DotNetRootEnvironmentName = "DOTNET_ROOT";
         internal const string DotNetHostPathEnvironmentName = "DOTNET_HOST_PATH";

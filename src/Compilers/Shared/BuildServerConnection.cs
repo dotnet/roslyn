@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             string? dotNetRoot = IsBuiltinToolRunningOnCoreClr ? RuntimeHostInfo.GetToolDotNetRoot(logger is null ? null : logger.Log) : null;
 
-            if (dotNetRoot == null && !RuntimeHostInfo.ShouldEnableTieredCompilation)
+            if (dotNetRoot == null && !RuntimeHostInfo.ShouldDisableTieredCompilation)
             {
                 return null;
             }
@@ -523,9 +523,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 environmentVariables[RuntimeHostInfo.DotNetRootEnvironmentName] = dotNetRoot;
             }
 
-            if (RuntimeHostInfo.ShouldEnableTieredCompilation)
+            if (RuntimeHostInfo.ShouldDisableTieredCompilation)
             {
-                var value = "1";
+                var value = "0";
                 logger?.Log("Setting {0} to '{1}'", RuntimeHostInfo.DotNetTieredCompilationEnvironmentName, value);
                 environmentVariables[RuntimeHostInfo.DotNetTieredCompilationEnvironmentName] = value;
             }
