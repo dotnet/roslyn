@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 Log.LogMessage("Setting {0} to '{1}'", RuntimeHostInfo.DotNetTieredCompilationEnvironmentName, value);
                 EnvironmentVariables =
                 [
-                    .. EnvironmentVariables,
+                    .. EnvironmentVariables ?? [],
                     $"{RuntimeHostInfo.DotNetTieredCompilationEnvironmentName}={value}",
                 ];
             }
