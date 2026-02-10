@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Features.Workspaces;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Options;
@@ -20,12 +21,13 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 
 /// <summary>Handles loading both miscellaneous files and file-based program projects.</summary>
-internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoader, ILspMiscellaneousFilesWorkspaceProvider, IDisposable
+internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoader, ILspMiscellaneousFilesWorkspaceProvider, IDisposable, IOnInitialized
 {
     private readonly ILspServices _lspServices;
     private readonly ILogger<FileBasedProgramsProjectSystem> _logger;
     private readonly VirtualProjectXmlProvider _projectXmlProvider;
     private readonly CanonicalMiscFilesProjectLoader _canonicalMiscFilesLoader;
+    private IFileChangeContext? _csprojWatcher;
 
     public FileBasedProgramsProjectSystem(
         ILspServices lspServices,
@@ -64,6 +66,17 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 binLogPathProvider,
                 dotnetCliHelper);
 
+        var initializeManager = lspServices.GetRequiredService<IInitializeManager>();
+        // TODO2: this is wrong. Need to handle IOnInitialize or something.
+        // initializeManager.TryGetInitializeParams
+        if (initializeManager.TryGetInitializeParams() is { WorkspaceFolders: [_, ..] nonEmptyWorkspaceFolders })
+        {
+            // TODO2: handle 'workspace/didChangeWorkspaceFolders'
+            _csprojWatcher = fileChangeWatcher.CreateContext(
+                [.. nonEmptyWorkspaceFolders.Select(workspaceFolder => new WatchedDirectory(GetDocumentFilePath(workspaceFolder.DocumentUri), extensionFilters: [".csproj"]))]);
+            _csprojWatcher.FileChanged += OnCsprojFileChanged;
+        }
+
         globalOptionService.AddOptionChangedHandler(this, OnGlobalOptionChanged);
     }
 
@@ -71,6 +84,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     {
         _canonicalMiscFilesLoader.Dispose();
         GlobalOptionService.RemoveOptionChangedHandler(this, OnGlobalOptionChanged);
+        _csprojWatcher?.Dispose();
     }
 
     private void OnGlobalOptionChanged(object sender, object target, OptionChangedEventArgs args)
@@ -104,6 +118,50 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             }
         }
     }
+
+    private void OnCsprojFileChanged(object? sender, string changedFile)
+    {
+        Contract.ThrowIfFalse(PathUtilities.IsAbsolute(changedFile));
+        if (PathUtilities.GetExtension(changedFile) != ".csproj")
+            return;
+
+        var directoryName = PathUtilities.GetDirectoryName(changedFile);
+        _ = UnloadProjectsFireAndForgetAsync(directoryName);
+
+        async Task UnloadProjectsFireAndForgetAsync(string directoryName)
+        {
+            try
+            {
+                // TODO: unload FBA projects under this cone.
+                _ = await ExecuteUnderGateAsync(async loadedProjects =>
+                {
+                    foreach (var loadedFilePath in loadedProjects.Keys)
+                    {
+                        // NOTE: .NET supports removing while enumerating
+                        if (loadedFilePath.StartsWith(directoryName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            await TryUnloadProject_NoLockAsync(loadedFilePath);
+                        }
+                    }
+
+                    return ValueTask.FromResult((object?)null);
+                }, CancellationToken.None);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error in OnCsprojFileChanged");
+            }
+        }
+    }
+
+    // /// <summary>
+    // /// Set of directory paths known to contain a csproj file.
+    // /// Guarded by <see cref="_gate"/>.
+    // /// </summary>
+    // private readonly HashSet<(string directoryPath, bool containsCsproj)> _knownCsprojDirectories = [];
+
+    // /// <summary>Guards access to <see cref="_knownCsprojDirectories"/></summary>
+    // private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
     private string GetDocumentFilePath(DocumentUri uri) => uri.ParsedUri is { } parsedUri ? ProtocolConversions.GetDocumentFilePathFromUri(parsedUri) : uri.UriString;
 
@@ -266,5 +324,10 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         await projectState.PrimordialProjectFactory.ApplyChangeToWorkspaceAsync(
             workspace => workspace.OnProjectRemoved(projectState.PrimordialProjectId),
             cancellationToken);
+    }
+
+    public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
     }
 }
