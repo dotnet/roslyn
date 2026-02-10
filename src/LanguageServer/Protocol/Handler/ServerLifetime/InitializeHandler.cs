@@ -24,6 +24,7 @@ internal sealed class InitializeHandler() : ILspServiceRequestHandler<Initialize
         var clientCapabilities = request.Capabilities;
         clientCapabilitiesManager.SetInitializeParams(request);
 
+        // If we are running in process with the client, then we don't need to listen for it to exit.
         if (request.ProcessId.HasValue && request.ProcessId.Value != Process.GetCurrentProcess().Id)
         {
             // We were given a client process ID. Monitor that process and exit if it exits.
