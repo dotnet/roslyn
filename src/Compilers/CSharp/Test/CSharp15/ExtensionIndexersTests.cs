@@ -8245,15 +8245,18 @@ static class E
             Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(5, 19));
     }
 
-    [Fact(Skip = "PROTOTYPE assertion in StackOptimizerPass1 due to assigning to sequence"), CompilerTrait(CompilerFeature.RefLifetime)]
+    [Fact]
     public void RefAnalysis_ObjectCreation_04()
     {
         string source = """
-System.Span<byte> span = stackalloc byte[10];
+System.Span<int> span = stackalloc int[10];
 _ = new S() { [span] = 42 };
+System.Console.Write(span[0]);
 
+System.Span<int> span2 = stackalloc int[10];
 S s = new S();
-E.get_Item(s, span) = 42;
+E.get_Item(s, span2) = 43;
+System.Console.Write(span2[0]);
 
 ref struct S { }
 
@@ -8261,23 +8264,23 @@ static class E
 {
     extension(S s)
     {
-        public ref int this[System.Span<byte> s2] { get => throw null; }
+        public ref int this[System.Span<int> s2] { get => ref s2[0]; }
     }
 }
 """;
 
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("4243"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
-    [Fact(Skip = "PROTOTYPE assertion in StackOptimizerPass1 due to assigning to sequence"), CompilerTrait(CompilerFeature.RefLifetime)]
+    [Fact]
     public void RefAnalysis_ObjectCreation_05()
     {
         string source = """
 _ = new S() { [GetIndex()] = GetValue() };
 
 int GetIndex() { System.Console.Write("GetIndex "); return 0; }
-int GetValue() { System.Console.Write("GetValue "); return 0; }
+int GetValue() { System.Console.Write("GetValue"); return 0; }
 
 ref struct S { }
 
@@ -8293,7 +8296,7 @@ static class E
 """;
 
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: "").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex get GetValue"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
     [Fact, CompilerTrait(CompilerFeature.RefLifetime)]
@@ -8354,6 +8357,31 @@ static class E
 
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("4243"), verify: Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void RefAnalysis_ObjectCreation_08()
+    {
+        string source = """
+_ = new S() { [GetIndex()] = 1 };
+
+int GetIndex() { System.Console.Write("GetIndex "); return 0; }
+
+struct S { }
+
+static class E
+{
+    public static int Field;
+
+    extension(S s)
+    {
+        public ref int this[int i] { get { System.Console.Write("get"); return ref Field; } }
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex get"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
     [Fact]
