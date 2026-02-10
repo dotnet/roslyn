@@ -64,11 +64,11 @@ internal sealed class InitializeHandler() : ILspServiceRequestHandler<Initialize
                 await clientProcessExitTask.Task.ConfigureAwait(false);
             }
         }
-        catch (ArgumentException)
+        finally
         {
-            // The process has already exited or was never running.
+            // The process didn't exist, exited, or we ran into
+            // issues checking whether the process had exited.
+            Process.GetCurrentProcess().Kill();
         }
-
-        Process.GetCurrentProcess().Kill();
     }
 }
