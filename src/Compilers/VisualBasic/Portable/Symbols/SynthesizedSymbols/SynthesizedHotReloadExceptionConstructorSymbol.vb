@@ -12,10 +12,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits SynthesizedConstructorBase
 
         Private ReadOnly _parameters As ImmutableArray(Of ParameterSymbol)
+        Private ReadOnly _exceptionType As NamedTypeSymbol
 
-        Public Sub New(container As NamedTypeSymbol, stringType As TypeSymbol, intType As TypeSymbol)
+        Public Sub New(container As NamedTypeSymbol, exceptionType As NamedTypeSymbol, stringType As TypeSymbol, intType As TypeSymbol)
             MyBase.New(VisualBasicSyntaxTree.DummyReference, container, isShared:=False, binder:=Nothing, diagnostics:=Nothing)
 
+            _exceptionType = exceptionType
             _parameters = ImmutableArray.Create(Of ParameterSymbol)(
                 New SynthesizedParameterSymbol(Me, stringType, ordinal:=0, isByRef:=False),
                 New SynthesizedParameterSymbol(Me, intType, ordinal:=1, isByRef:=False))
@@ -76,13 +78,77 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return factory.Block()
             End If
 
+            ' Get AppContext.GetData method
+            Dim appContextGetData = factory.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_AppContext__GetData, isOptional:=True)
+            If appContextGetData Is Nothing Then
+                diagnostics.Add(ERRID.ERR_EncUpdateFailedMissingSymbol,
+                    Location.None,
+                    CodeAnalysisResources.Method,
+                    "System.AppContext.GetData(string)")
+
+                Return factory.Block()
+            End If
+
+            ' Get Action(Of Exception) type
+            Dim actionOfException = factory.WellKnownType(WellKnownType.System_Action_T)
+            If actionOfException Is Nothing Then
+                diagnostics.Add(ERRID.ERR_EncUpdateFailedMissingSymbol,
+                    Location.None,
+                    CodeAnalysisResources.Type,
+                    "System.Action(Of T)")
+
+                Return factory.Block()
+            End If
+
+            Dim actionType = actionOfException.Construct(_exceptionType)
+            Dim delegateInvoke = actionType.DelegateInvokeMethod
+            If delegateInvoke Is Nothing OrElse
+               delegateInvoke.ReturnType.SpecialType <> SpecialType.System_Void OrElse
+               delegateInvoke.Parameters.Length <> 1 OrElse
+               delegateInvoke.Parameters(0).IsByRef OrElse
+               Not delegateInvoke.Parameters(0).Type.Equals(_exceptionType) Then
+
+                diagnostics.Add(ERRID.ERR_EncUpdateFailedMissingSymbol,
+                    Location.None,
+                    CodeAnalysisResources.Method,
+                    "Sub System.Action(Of T).Invoke(arg As T)")
+
+                Return factory.Block()
+            End If
+
+            ' Call AppContext.GetData("DOTNET_HOT_RELOAD_RUNTIME_RUDE_EDIT_HOOK")
+            Dim getData = factory.Call(
+                receiver:=Nothing,
+                appContextGetData,
+                factory.StringLiteral("DOTNET_HOT_RELOAD_RUNTIME_RUDE_EDIT_HOOK"))
+
+            ' Cast to Action(Of Exception)
+            Dim actionCast = factory.DirectCast(getData, actionType)
+
+            ' Store in temp variable
+            Dim actionTemp = factory.SynthesizedLocal(actionType, SynthesizedLocalKind.LoweringTemp)
+            Dim storeAction = factory.AssignmentExpression(factory.Local(actionTemp, isLValue:=True), actionCast)
+
             Dim block = factory.Block(
+                ImmutableArray.Create(actionTemp),
                 ImmutableArray.Create(Of BoundStatement)(
+                    ' Store the action in temp variable
+                    factory.ExpressionStatement(storeAction),
+                    ' base(message)
                     factory.ExpressionStatement(factory.Call(
                         factory.Me(),
                         exceptionConstructor,
                         factory.Parameter(MessageParameter, isLValue:=False))),
+                    ' Me.CodeField = code
                     factory.Assignment(factory.Field(factory.Me(), containingExceptionType.CodeField, isLValue:=True), factory.Parameter(CodeParameter, isLValue:=False)),
+                    ' action?.Invoke(Me)
+                    factory.If(
+                        factory.ObjectIsNotNothing(factory.Local(actionTemp, isLValue:=False)),
+                        factory.ExpressionStatement(
+                            factory.Call(
+                                factory.Local(actionTemp, isLValue:=False),
+                                delegateInvoke,
+                                factory.Me()))),
                     factory.Return()
                 ))
 

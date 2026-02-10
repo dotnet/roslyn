@@ -10,10 +10,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedHotReloadExceptionConstructorSymbol : SynthesizedInstanceConstructor
     {
         private readonly ImmutableArray<ParameterSymbol> _parameters;
+        private readonly NamedTypeSymbol _exceptionType;
 
-        internal SynthesizedHotReloadExceptionConstructorSymbol(NamedTypeSymbol containingType, TypeSymbol stringType, TypeSymbol intType) :
+        internal SynthesizedHotReloadExceptionConstructorSymbol(
+            NamedTypeSymbol containingType,
+            NamedTypeSymbol exceptionType,
+            TypeSymbol stringType,
+            TypeSymbol intType) :
             base(containingType)
         {
+            _exceptionType = exceptionType;
             _parameters =
             [
                 SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(stringType), ordinal: 0, RefKind.None),
@@ -52,11 +58,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var delegateInvoke = (containingType.CreatedActionField.Type as NamedTypeSymbol)?.DelegateInvokeMethod;
+            // Get AppContext.GetData method
+            var appContextGetData = (MethodSymbol?)factory.WellKnownMember(WellKnownMember.System_AppContext__GetData, isOptional: true);
+            if (appContextGetData is null)
+            {
+                diagnostics.Add(ErrorCode.ERR_EncUpdateFailedMissingSymbol,
+                    Location.None,
+                    CodeAnalysisResources.Method,
+                    "System.AppContext.GetData(string)");
+
+                factory.CloseMethod(factory.Block());
+                return;
+            }
+
+            // Get Action<Exception> type
+            var actionOfException = factory.WellKnownType(WellKnownType.System_Action_T);
+            if (actionOfException is null)
+            {
+                diagnostics.Add(ErrorCode.ERR_EncUpdateFailedMissingSymbol,
+                    Location.None,
+                    CodeAnalysisResources.Type,
+                    "System.Action<T>");
+
+                factory.CloseMethod(factory.Block());
+                return;
+            }
+
+            var actionType = actionOfException.Construct(_exceptionType);
+            var delegateInvoke = actionType.DelegateInvokeMethod;
             if (delegateInvoke is null ||
                 delegateInvoke.ReturnType.SpecialType != SpecialType.System_Void ||
                 delegateInvoke.GetParameters() is not [{ RefKind: RefKind.None } parameter] ||
-                !parameter.Type.Equals(exceptionConstructor.ContainingType))
+                !parameter.Type.Equals(_exceptionType))
             {
                 diagnostics.Add(ErrorCode.ERR_EncUpdateFailedMissingSymbol,
                     Location.None,
@@ -67,9 +100,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var actionTemp = factory.StoreToTemp(
-                factory.Field(receiver: null, containingType.CreatedActionField),
-                out var storeAction);
+            // Call AppContext.GetData("DOTNET_HOT_RELOAD_RUNTIME_RUDE_EDIT_HOOK")
+            var getData = factory.Call(
+                receiver: null,
+                appContextGetData,
+                factory.StringLiteral("DOTNET_HOT_RELOAD_RUNTIME_RUDE_EDIT_HOOK"));
+
+            // Cast to Action<Exception>
+            var actionCast = factory.Convert(actionType, getData);
+
+            // Store in temp variable
+            var actionTemp = factory.StoreToTemp(actionCast, out var storeAction);
 
             var block = factory.Block(
                 [actionTemp.LocalSymbol],
@@ -83,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // this.CodeField = code;
                 factory.Assignment(factory.Field(factory.This(), containingType.CodeField), factory.Parameter(CodeParameter)),
 
-                // s_created?.Invoke(this);
+                // action?.Invoke(this);
                 factory.If(
                     factory.IsNotNullReference(storeAction),
                     factory.ExpressionStatement(

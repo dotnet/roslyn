@@ -1116,6 +1116,14 @@ namespace Microsoft.CodeAnalysis
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.GenericMethodParameter, 0, // Return Type
 
+                // System_AppContext__GetData
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_AppContext,                                                                      // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object, // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
+
                 // System_Threading_Interlocked__CompareExchange
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)WellKnownType.System_Threading_Interlocked,                                                           // DeclaringTypeId
@@ -5351,6 +5359,7 @@ namespace Microsoft.CodeAnalysis
                 "SkipVerification",                         // System_Security_Permissions_SecurityPermissionAttribute__SkipVerification
                 "CreateInstance",                           // System_Activator__CreateInstance
                 "CreateInstance",                           // System_Activator__CreateInstance_T
+                "GetData",                                  // System_AppContext__GetData
                 "CompareExchange",                          // System_Threading_Interlocked__CompareExchange
                 "CompareExchange",                          // System_Threading_Interlocked__CompareExchange_T
                 "Enter",                                    // System_Threading_Monitor__Enter

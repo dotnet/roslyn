@@ -166,6 +166,8 @@ namespace Microsoft.CodeAnalysis
         System_Activator__CreateInstance,
         System_Activator__CreateInstance_T,
 
+        System_AppContext__GetData,
+
         System_Threading_Interlocked__CompareExchange,
         System_Threading_Interlocked__CompareExchange_T,
 
