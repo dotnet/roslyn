@@ -19,6 +19,7 @@
     <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
     <ProjectReference Include="..\CSharp\Microsoft.CodeAnalysis.CSharp.Scripting.csproj" />
     <ProjectReference Include="..\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Scripting.vbproj" />
+    <ProjectReference Include="..\..\Compilers\Test\Utilities\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Test.Utilities.vbproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Data" />
