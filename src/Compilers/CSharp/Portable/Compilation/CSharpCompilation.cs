@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var getAsyncEnumerator = (MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator);
-                if (getAsyncEnumerator is null || !iAsyncEnumerable.GetMembers(WellKnownMemberNames.GetAsyncEnumeratorMethodName).Contains(getAsyncEnumerator))
+                if (getAsyncEnumerator is null)
                 {
                     return false;
                 }
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var disposeAsync = (MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync);
-                if (disposeAsync is null || !iAsyncDisposable.GetMembers(WellKnownMemberNames.DisposeAsyncMethodName).Contains(disposeAsync))
+                if (disposeAsync is null)
                 {
                     return false;
                 }
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var moveNextAsync = (MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync);
-                if (moveNextAsync is null || !iAsyncEnumerator.GetMembers(WellKnownMemberNames.MoveNextAsyncMethodName).Contains(moveNextAsync))
+                if (moveNextAsync is null)
                 {
                     return false;
                 }

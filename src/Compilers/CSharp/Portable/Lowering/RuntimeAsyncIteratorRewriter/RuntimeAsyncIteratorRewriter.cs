@@ -294,7 +294,7 @@ internal sealed partial class RuntimeAsyncIteratorRewriter : StateMachineRewrite
         MethodSymbol IAsyncEnumeratorOfElementType_MoveNextAsync = GetMoveNextAsyncMethod();
         OpenMoveNextMethodImplementation(IAsyncEnumeratorOfElementType_MoveNextAsync, runtimeAsync: true);
 
-        var rewritter = new MoveNextAsyncRewriter(
+        var rewriter = new MoveNextAsyncRewriter(
              F,
              method,
              stateField,
@@ -311,7 +311,7 @@ internal sealed partial class RuntimeAsyncIteratorRewriter : StateMachineRewrite
              _disposeModeField,
              _combinedTokensField);
 
-        BoundStatement runtimeAsyncMoveNextAsyncBody = rewritter.GenerateMoveNextAsync(body);
+        BoundStatement runtimeAsyncMoveNextAsyncBody = rewriter.GenerateMoveNextAsync(body);
 
         Debug.Assert(F.CurrentFunction is not null);
         BoundStatement rewrittenBody = RuntimeAsyncRewriter.RewriteWithoutHoisting(runtimeAsyncMoveNextAsyncBody, F.CurrentFunction, F.CompilationState, F.Diagnostics);

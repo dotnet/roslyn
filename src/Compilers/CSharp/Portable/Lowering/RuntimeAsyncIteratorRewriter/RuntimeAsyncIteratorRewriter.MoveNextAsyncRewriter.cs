@@ -185,7 +185,7 @@ internal sealed partial class RuntimeAsyncIteratorRewriter
                 // _current = default;
                 blockBuilder.Add(GenerateClearCurrent());
 
-                // throw null;
+                // throw;
                 blockBuilder.Add(F.Throw(null));
 
                 return new BoundCatchBlock(
@@ -316,7 +316,7 @@ internal sealed partial class RuntimeAsyncIteratorRewriter
             var resultTrue = new BoundReturnStatement(F.Syntax, RefKind.None, F.Literal(true), @checked: false) { WasCompilerGenerated = true };
             blockBuilder.Add(resultTrue);
 
-            // <next_state_label>: ;
+            // <next_state_resume_label>: ;
             blockBuilder.Add(F.Label(nextStateResumeLabel));
             blockBuilder.Add(F.HiddenSequencePoint());
 
