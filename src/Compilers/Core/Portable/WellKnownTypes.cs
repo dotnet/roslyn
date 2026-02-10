@@ -65,7 +65,6 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_InteropServices_LCIDConversionAttribute,
         System_Runtime_InteropServices_UnmanagedFunctionPointerAttribute,
         System_Activator,
-        System_AppContext,
         System_Threading_Tasks_Task,
         System_Threading_Tasks_Task_T,
         System_Threading_Interlocked,
@@ -377,6 +376,8 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_InlineArray15,
         System_Runtime_CompilerServices_InlineArray16,
 
+        System_AppContext,
+
         NextAvailable,
         // Remember to update MissingSpecialMember.AllWellKnownTypes and WellKnownTypeValidationTests.AllWellKnownTypes tests when making changes here
     }
@@ -440,7 +441,6 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.InteropServices.LCIDConversionAttribute",
             "System.Runtime.InteropServices.UnmanagedFunctionPointerAttribute",
             "System.Activator",
-            "System.AppContext",
             "System.Threading.Tasks.Task",
             "System.Threading.Tasks.Task`1",
             "System.Threading.Interlocked",
@@ -739,6 +739,8 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.InlineArray14`1",
             "System.Runtime.CompilerServices.InlineArray15`1",
             "System.Runtime.CompilerServices.InlineArray16`1",
+
+            "System.AppContext",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

@@ -75,12 +75,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var actionOfException = factory.WellKnownType(WellKnownType.System_Action_T);
             if (actionOfException is null)
             {
-                diagnostics.Add(ErrorCode.ERR_EncUpdateFailedMissingSymbol,
-                    Location.None,
-                    CodeAnalysisResources.Type,
-                    "System.Action<T>");
+                // If we can't get the Action type, we'll just skip the delegate invocation
+                factory.CloseMethod(factory.Block(
+                    // base(message)
+                    factory.ExpressionStatement(factory.Call(
+                        factory.This(),
+                        exceptionConstructor,
+                        factory.Parameter(MessageParameter))),
 
-                factory.CloseMethod(factory.Block());
+                    // this.CodeField = code;
+                    factory.Assignment(factory.Field(factory.This(), containingType.CodeField), factory.Parameter(CodeParameter)),
+
+                    factory.Return()));
                 return;
             }
 
@@ -91,12 +97,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 delegateInvoke.GetParameters() is not [{ RefKind: RefKind.None } parameter] ||
                 !parameter.Type.Equals(_exceptionType))
             {
-                diagnostics.Add(ErrorCode.ERR_EncUpdateFailedMissingSymbol,
-                    Location.None,
-                    CodeAnalysisResources.Method,
-                    "void System.Action<T>.Invoke(T arg)");
+                // If delegate invoke is invalid, skip invocation
+                factory.CloseMethod(factory.Block(
+                    // base(message)
+                    factory.ExpressionStatement(factory.Call(
+                        factory.This(),
+                        exceptionConstructor,
+                        factory.Parameter(MessageParameter))),
 
-                factory.CloseMethod(factory.Block());
+                    // this.CodeField = code;
+                    factory.Assignment(factory.Field(factory.This(), containingType.CodeField), factory.Parameter(CodeParameter)),
+
+                    factory.Return()));
                 return;
             }
 
@@ -107,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 factory.StringLiteral("DOTNET_HOT_RELOAD_RUNTIME_RUDE_EDIT_HOOK"));
 
             // Cast to Action<Exception>
-            var actionCast = factory.Convert(actionType, getData);
+            var actionCast = factory.Convert(actionType, getData, Conversion.ExplicitReference);
 
             // Store in temp variable
             var actionTemp = factory.StoreToTemp(actionCast, out var storeAction);
