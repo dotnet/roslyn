@@ -14271,6 +14271,58 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             sourceCodeKind: SourceCodeKind.Regular,
             glyph: Glyph.ExtensionMethodPublic);
 
+    [Theory]
+    [InlineData("""public int Number => 0;""",
+                Glyph.PropertyPublic,
+                """
+                extension(TestClass testclass)
+                {
+                    public int Number()  => 0;
+                }
+                """,
+                Glyph.ExtensionMethodPublic)]
+    [InlineData("""public int Number => 0;""",
+                Glyph.PropertyPublic,
+                """public static int Number(this TestClass testclass)  => 0;""",
+                Glyph.ExtensionMethodPublic)]
+    [InlineData("""public int Number() => 0;""",
+                Glyph.MethodPublic,
+                """
+                extension(TestClass testclass)
+                {
+                    public int Number  => 0;
+                }
+                """,
+                Glyph.PropertyPublic)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/70537")]
+    internal Task TestIdenticalNameWithExtensionMembersOfDifferentKind(string member, Glyph memberGlyph, string extension, Glyph extensionGlyph)
+        => VerifyExpectedItemsAsync(
+            MakeMarkup($$"""
+            public class TestClass
+            {
+                {{member}}
+            }
+
+            public static class Extensions
+            {
+                {{extension}}
+            }
+
+            internal class Program
+            {
+                static void Main(string[] args)
+                {
+                    var t = new TestClass();
+                    var x = t.$$
+                }
+            }
+            """, LanguageVersion.CSharp14),
+            results: [
+            new ItemExpectation(Name: "Number", IsAbsent: false, Glyph: memberGlyph),
+            new ItemExpectation(Name: "Number", IsAbsent: false, Glyph: extensionGlyph),
+            ],
+            sourceCodeKind: SourceCodeKind.Regular);
+
     private static string MakeMarkup(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source,
         LanguageVersion languageVersion = LanguageVersion.Preview)
