@@ -84,8 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                             (".ctor", MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName),
                             (".ctor", MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName));
 
-                        g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Exception", "Action`1");
-                        g.VerifyMemberRefNames(".ctor", ".ctor", "Invoke");
+                        g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Exception", "Action`1", "AppContext");
+                        g.VerifyMemberRefNames(".ctor", ".ctor", "GetData", "Invoke");
 
                         g.VerifyEncLogDefinitions(new[]
                         {
@@ -93,8 +93,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                             Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
                             Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                             Row(1, TableIndex.Field, EditAndContinueOperation.Default),
-                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
@@ -105,7 +103,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                         {
                             Handle(3, TableIndex.TypeDef),
                             Handle(1, TableIndex.Field),
-                            Handle(2, TableIndex.Field),
                             Handle(2, TableIndex.MethodDef),
                             Handle(3, TableIndex.MethodDef),
                             Handle(4, TableIndex.CustomAttribute),
@@ -124,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                             }
                             .ctor
                             {
-                              // Code size       33 (0x21)
+                              // Code size       43 (0x2b)
                               .maxstack  2
                               IL_0000:  ldarg.0
                               IL_0001:  ldarg.1
@@ -133,15 +130,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                               IL_0008:  ldarg.0
                               IL_0009:  ldarg.2
                               IL_000a:  stfld      0x04000001
-                              IL_000f:  ldsfld     0x04000002
-                              IL_0014:  dup
-                              IL_0015:  stloc.0
-                              IL_0016:  brfalse.s  IL_0020
-                              IL_0018:  ldloc.0
-                              IL_0019:  ldarg.0
-                              IL_001a:  callvirt   0x0A000007
-                              IL_001f:  nop
-                              IL_0020:  ret
+                              IL_000f:  ldstr      0x7000014E
+                              IL_0014:  call       0x0A000007
+                              IL_0019:  castclass  0x1B000001
+                              IL_001e:  dup
+                              IL_001f:  stloc.0
+                              IL_0020:  brfalse.s  IL_002a
+                              IL_0022:  ldloc.0
+                              IL_0023:  ldarg.0
+                              IL_0024:  callvirt   0x0A000008
+                              IL_0029:  nop
+                              IL_002a:  ret
                             }
                             """);
                     })
@@ -182,7 +181,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
                         // The default constructor is added and the deleted constructor is updated to throw:
                         g.VerifyMethodDefNames(".ctor", ".ctor", ".ctor");
-                        g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Exception", "Action`1");
+                        g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Exception", "Action`1", "AppContext");
+                        g.VerifyMemberRefNames(".ctor", ".ctor", ".ctor", "GetData", "Invoke");
 
                         g.VerifyEncLogDefinitions(new[]
                         {
@@ -190,8 +190,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                             Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
                             Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                             Row(1, TableIndex.Field, EditAndContinueOperation.Default),
-                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
@@ -204,7 +202,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                         {
                             Handle(3, TableIndex.TypeDef),
                             Handle(1, TableIndex.Field),
-                            Handle(2, TableIndex.Field),
                             Handle(1, TableIndex.MethodDef),
                             Handle(2, TableIndex.MethodDef),
                             Handle(3, TableIndex.MethodDef),
@@ -233,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                             }
                             .ctor
                             {
-                              // Code size       33 (0x21)
+                              // Code size       43 (0x2b)
                               .maxstack  2
                               IL_0000:  ldarg.0
                               IL_0001:  ldarg.1
@@ -242,15 +239,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                               IL_0008:  ldarg.0
                               IL_0009:  ldarg.2
                               IL_000a:  stfld      0x04000001
-                              IL_000f:  ldsfld     0x04000002
-                              IL_0014:  dup
-                              IL_0015:  stloc.0
-                              IL_0016:  brfalse.s  IL_0020
-                              IL_0018:  ldloc.0
-                              IL_0019:  ldarg.0
-                              IL_001a:  callvirt   0x0A000008
-                              IL_001f:  nop
-                              IL_0020:  ret
+                              IL_000f:  ldstr      0x7000014E
+                              IL_0014:  call       0x0A000008
+                              IL_0019:  castclass  0x1B000001
+                              IL_001e:  dup
+                              IL_001f:  stloc.0
+                              IL_0020:  brfalse.s  IL_002a
+                              IL_0022:  ldloc.0
+                              IL_0023:  ldarg.0
+                              IL_0024:  callvirt   0x0A000009
+                              IL_0029:  nop
+                              IL_002a:  ret
                             }
                             """);
                     })
