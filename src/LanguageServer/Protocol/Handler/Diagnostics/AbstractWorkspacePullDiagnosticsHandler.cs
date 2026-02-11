@@ -3,13 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
@@ -24,15 +27,10 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
     protected readonly IDiagnosticSourceManager DiagnosticSourceManager;
 
     /// <summary>
-    /// Gate to guard access to <see cref="_categoryToLspChanged"/>
-    /// </summary>
-    private readonly object _gate = new();
-
-    /// <summary>
     /// Stores the LSP changed state on a per category basis.  This ensures that requests for different categories
     /// are 'walled off' from each other and only reset state for their own category.
     /// </summary>
-    private readonly Dictionary<string, bool> _categoryToLspChanged = [];
+    private readonly ConcurrentDictionary<string, ReleaseAllAutoResetEvent> _categoryToLspChanged = [];
 
     protected AbstractWorkspacePullDiagnosticsHandler(
         LspWorkspaceManager workspaceManager,
@@ -89,14 +87,9 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
 
     private void UpdateLspChanged()
     {
-        lock (_gate)
-        {
-            // Loop through our map of source -> has changed and mark them as all having changed.
-            foreach (var category in _categoryToLspChanged.Keys.ToImmutableArray())
-            {
-                _categoryToLspChanged[category] = true;
-            }
-        }
+        // Loop through our map of source -> has changed and mark them as all having changed.
+        foreach (var categoryResetEvent in _categoryToLspChanged.Values)
+            categoryResetEvent.Set();
     }
 
     protected override async Task WaitForChangesAsync(string? category, RequestContext context, CancellationToken cancellationToken)
@@ -104,35 +97,14 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
         // A null category counts a separate category and should track changes independently of other categories, so we'll add an empty entry in our map for it.
         category ??= string.Empty;
 
-        // Spin waiting until our LSP change flag has been set.  When the flag is set (meaning LSP has changed),
-        // we reset the flag to false and exit out of the loop allowing the request to close.
-        // The client will automatically trigger a new request as soon as we close it, bringing us up to date on diagnostics.
-        while (!HasChanged())
-        {
-            // There have been no changes between now and when the last request finished - we will hold the connection open while we poll for changes.
-            await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken).ConfigureAwait(false);
-        }
+        // Wait until the workspace changes again (or was changed while we were in the middle of processing).
+        // We'll use a variant of an AutoResetEvent so in the case we were to have multiple requests for the same category,
+        // they're all released. That's not expected to happen, but it ensures better behavior in the case of a misbehaving client.
+        var resetEvent = _categoryToLspChanged.GetOrAdd(category, static _ => new ReleaseAllAutoResetEvent(initialState: true));
+        await resetEvent.WaitAsync().WithCancellation(cancellationToken).ConfigureAwait(false);
 
         // We've hit a change, so we close the current request to allow the client to open a new one.
         context.TraceDebug($"Closing workspace/diagnostics request for {category}");
-        return;
-
-        bool HasChanged()
-        {
-            lock (_gate)
-            {
-                // Get the LSP changed value of this category.  If it doesn't exist we add it with a value of 'changed' since this is the first
-                // request for the category and we don't know if it has changed since the request started.
-                var changed = _categoryToLspChanged.GetOrAdd(category, true);
-                if (changed)
-                {
-                    // We've observed a change, so we reset the flag to false for this source and return true.
-                    _categoryToLspChanged[category] = false;
-                }
-
-                return changed;
-            }
-        }
     }
 
     internal abstract TestAccessor GetTestAccessor();
@@ -140,5 +112,70 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
     internal readonly struct TestAccessor(AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsParams, TReport, TReturn> handler)
     {
         public void TriggerConnectionClose() => handler.UpdateLspChanged();
+    }
+
+    /// <summary>
+    /// An <see cref="AutoResetEvent"/> with two differences: it supports async waiting, and in the case Set() releases a waiter, it releases all waiters rather than just one.
+    /// 
+    /// The semantics of this type are thus: there is internally a "set" state. When the event is <see cref="Set()"/>, the next waiter to call <see cref="WaitAsync()"/> will be let through, and the
+    /// event resets to false. A call to <see cref="Set()"/> while there is already waiters will release all the waiters, and since it already let a waiter through, the state is untouched.
+    /// </summary>
+    private sealed class ReleaseAllAutoResetEvent
+    {
+        private readonly object _gate = new object();
+        private readonly List<TaskCompletionSource<object?>> _waiters = new();
+
+        /// <summary>
+        /// True if <see cref="Set()"/> has been called, indicating the next waiter should be let through.
+        /// </summary>
+        private bool _state;
+
+        public ReleaseAllAutoResetEvent(bool initialState)
+        {
+            _state = initialState;
+        }
+
+        public Task WaitAsync()
+        {
+            lock (_gate)
+            {
+                if (_state)
+                {
+                    // Since _state was true, we let the next waiter through. Any waiter after that must wait for the next Set().
+                    Contract.ThrowIfTrue(_waiters.Count > 0);
+                    _state = false;
+                    return Task.CompletedTask;
+                }
+                else
+                {
+                    // Passing RunContinuationsAsynchronously ensures we can call SetResult() on this without any risk of the things running inside the lock.
+                    var waiter = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
+                    _waiters.Add(waiter);
+                    return waiter.Task;
+                }
+            }
+        }
+
+        public void Set()
+        {
+            lock (_gate)
+            {
+                if (_waiters.Count > 0)
+                {
+                    // We had some waiters waiting, so _state should be false. We'll let all the waiters through.
+                    Contract.ThrowIfTrue(_state);
+
+                    foreach (var waiter in _waiters)
+                        waiter.SetResult(null);
+
+                    _waiters.Clear();
+                }
+                else
+                {
+                    // There are no waiters, so we'll let the next waiter through when they call WaitAsync().
+                    _state = true;
+                }
+            }
+        }
     }
 }
