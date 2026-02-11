@@ -990,7 +990,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Block(statements.ToImmutableAndFree());
         }
 
-        public BoundThrowStatement Throw(BoundExpression e)
+        public BoundThrowStatement Throw(BoundExpression? e)
         {
             return new BoundThrowStatement(Syntax, e) { WasCompilerGenerated = true };
         }

@@ -356,12 +356,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(ReferenceEquals(method.ContainingAssembly, Assembly));
 
-            var methodReturn = method.ReturnType.OriginalDefinition;
-            if (((InternalSpecialType)methodReturn.ExtendedSpecialType) is not (
-                    InternalSpecialType.System_Threading_Tasks_Task or
-                    InternalSpecialType.System_Threading_Tasks_Task_T or
-                    InternalSpecialType.System_Threading_Tasks_ValueTask or
-                    InternalSpecialType.System_Threading_Tasks_ValueTask_T))
+            TypeSymbol returnType = method.ReturnType;
+            if (!IsValidRuntimeAsyncIteratorReturnType(returnType) && !IsValidRuntimeAsyncReturnType(returnType))
             {
                 return false;
             }
@@ -372,6 +368,89 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SourceMethodSymbol { IsRuntimeAsyncEnabledInMethod: ThreeState.False } => false,
                 _ => Feature("runtime-async") == "on"
             };
+        }
+
+        /// <summary>
+        /// A method may only be emitted with the `async` runtime flag if its return type is one of the supported types.
+        /// </summary>
+        internal static bool IsValidRuntimeAsyncReturnType(TypeSymbol type)
+        {
+            type = type.OriginalDefinition;
+
+            return ((InternalSpecialType)type.ExtendedSpecialType) is InternalSpecialType.System_Threading_Tasks_Task
+                or InternalSpecialType.System_Threading_Tasks_Task_T
+                or InternalSpecialType.System_Threading_Tasks_ValueTask
+                or InternalSpecialType.System_Threading_Tasks_ValueTask_T;
+        }
+
+        internal bool IsValidRuntimeAsyncIteratorReturnType(TypeSymbol type)
+        {
+            type = type.OriginalDefinition;
+
+            return isValidRuntimeAsyncEnumerable(type)
+                || isValidRuntimeAsyncEnumerator(type);
+
+            bool isValidRuntimeAsyncEnumerable(TypeSymbol type)
+            {
+                NamedTypeSymbol iAsyncEnumerable = GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
+                if (iAsyncEnumerable.IsErrorType() || !object.ReferenceEquals(type, iAsyncEnumerable))
+                {
+                    return false;
+                }
+
+                var getAsyncEnumerator = (MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator);
+                if (getAsyncEnumerator is null)
+                {
+                    return false;
+                }
+
+                NamedTypeSymbol iAsyncEnumerator = GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T);
+                if (iAsyncEnumerator.IsErrorType() || !object.ReferenceEquals(getAsyncEnumerator.ReturnType.OriginalDefinition, iAsyncEnumerator))
+                {
+                    return false;
+                }
+
+                return isValidRuntimeAsyncEnumerator(iAsyncEnumerator);
+            }
+
+            bool isValidRuntimeAsyncEnumerator(TypeSymbol type)
+            {
+                NamedTypeSymbol iAsyncEnumerator = GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T);
+                if (iAsyncEnumerator.IsErrorType() || !object.ReferenceEquals(type, iAsyncEnumerator))
+                {
+                    return false;
+                }
+
+                NamedTypeSymbol iAsyncDisposable = GetWellKnownType(WellKnownType.System_IAsyncDisposable);
+                if (!iAsyncEnumerator.InterfacesNoUseSiteDiagnostics().Contains(iAsyncDisposable))
+                {
+                    return false;
+                }
+
+                var disposeAsync = (MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync);
+                if (disposeAsync is null)
+                {
+                    return false;
+                }
+
+                if (!IsValidRuntimeAsyncReturnType(disposeAsync.ReturnType))
+                {
+                    return false;
+                }
+
+                var moveNextAsync = (MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync);
+                if (moveNextAsync is null)
+                {
+                    return false;
+                }
+
+                if (!IsValidRuntimeAsyncReturnType(moveNextAsync.ReturnType.OriginalDefinition))
+                {
+                    return false;
+                }
+
+                return true;
+            }
         }
 
         /// <summary>
@@ -2854,8 +2933,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void RecordImportInternal(CSharpSyntaxNode syntax)
         {
-            // Note: the suppression will be unnecessary once LazyInitializer is properly annotated
-            LazyInitializer.EnsureInitialized(ref _lazyImportInfos)!.
+            LazyInitializer.EnsureInitialized(ref _lazyImportInfos).
                 TryAdd(new ImportInfo(syntax.SyntaxTree, syntax.Kind(), syntax.Span), default);
         }
 

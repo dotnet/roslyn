@@ -163,17 +163,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddDisposeCombinedTokensIfNeeded(ArrayBuilder<BoundStatement> builder)
         {
+            AddDisposeCombinedTokensIfNeeded(builder, _asyncIteratorInfo.CombinedTokensField, F);
+        }
+
+        internal static void AddDisposeCombinedTokensIfNeeded(ArrayBuilder<BoundStatement> builder, FieldSymbol combinedTokensField, SyntheticBoundNodeFactory f)
+        {
             // if (this.combinedTokens != null) { this.combinedTokens.Dispose(); this.combinedTokens = null; } // for enumerables only
-            if (_asyncIteratorInfo.CombinedTokensField is object)
+            if (combinedTokensField is object)
             {
-                var combinedTokens = F.Field(F.This(), _asyncIteratorInfo.CombinedTokensField);
+                var combinedTokens = f.Field(f.This(), combinedTokensField);
                 TypeSymbol combinedTokensType = combinedTokens.Type;
 
                 builder.Add(
-                    F.If(F.ObjectNotEqual(combinedTokens, F.Null(combinedTokensType)),
-                        thenClause: F.Block(
-                            F.ExpressionStatement(F.Call(combinedTokens, F.WellKnownMethod(WellKnownMember.System_Threading_CancellationTokenSource__Dispose))),
-                            F.Assignment(combinedTokens, F.Null(combinedTokensType)))));
+                    f.If(f.ObjectNotEqual(combinedTokens, f.Null(combinedTokensType)),
+                        thenClause: f.Block(
+                            f.ExpressionStatement(f.Call(combinedTokens, f.WellKnownMethod(WellKnownMember.System_Threading_CancellationTokenSource__Dispose))),
+                            f.Assignment(combinedTokens, f.Null(combinedTokensType)))));
             }
         }
 
@@ -199,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return F.Block(builder.ToImmutableAndFree());
         }
 
-        private BoundStatement GenerateJumpToCurrentDisposalLabel()
+        private BoundStatement GenerateConditionalJumpToCurrentDisposalLabel()
         {
             Debug.Assert(_currentDisposalLabel is object);
             return F.If(
@@ -209,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 thenClause: F.Goto(_currentDisposalLabel));
         }
 
-        private BoundStatement AppendJumpToCurrentDisposalLabel(BoundStatement node)
+        private BoundStatement AppendConditionalJumpToCurrentDisposalLabel(BoundStatement node)
         {
             Debug.Assert(_currentDisposalLabel is object);
             // Append:
@@ -217,10 +222,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return F.Block(
                 node,
-                GenerateJumpToCurrentDisposalLabel());
+                GenerateConditionalJumpToCurrentDisposalLabel());
         }
 
         protected override BoundBinaryOperator ShouldEnterFinallyBlock()
+        {
+            return ShouldEnterFinallyBlock(cachedState, F);
+        }
+
+        internal static BoundBinaryOperator ShouldEnterFinallyBlock(LocalSymbol cachedState, SyntheticBoundNodeFactory f)
         {
             // We should skip the finally block when:
             // - the state is 0 or greater (we're suspending on an `await`)
@@ -228,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We don't care about state = -2 (method already completed)
 
             // So we only want to enter the finally when the state is -1
-            return F.IntEqual(F.Local(cachedState), F.Literal(StateMachineState.NotStartedOrRunningState));
+            return f.IntEqual(f.Local(cachedState), f.Literal(StateMachineState.NotStartedOrRunningState));
         }
 
         #region Visitors
@@ -254,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_exprReturnLabel.Equals(_currentDisposalLabel));
             return F.Block(
                 F.Label(resumeLabel), // initialStateResumeLabel:
-                GenerateJumpToCurrentDisposalLabel(), // if (disposeMode) goto _exprReturnLabel;
+                GenerateConditionalJumpToCurrentDisposalLabel(), // if (disposeMode) goto _exprReturnLabel;
                 GenerateSetBothStates(StateMachineState.NotStartedOrRunningState), // this.state = cachedState = -1;
                 rewrittenBody);
         }
@@ -304,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_currentDisposalLabel is object); // no yield return allowed inside a finally
             blockBuilder.Add(
                 // if (disposeMode) goto currentDisposalLabel;
-                GenerateJumpToCurrentDisposalLabel());
+                GenerateConditionalJumpToCurrentDisposalLabel());
 
             blockBuilder.Add(
                 F.HiddenSequencePoint());
@@ -322,10 +332,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(_currentDisposalLabel is object); // no yield break allowed inside a finally
             return F.Block(
-                // disposeMode = true;
-                SetDisposeMode(true),
-                // goto currentDisposalLabel;
-                F.Goto(_currentDisposalLabel));
+            // disposeMode = true;
+            F.Assignment(F.InstanceField(_asyncIteratorInfo.DisposeModeField), F.Literal(true)),
+            // goto currentDisposalLabel;
+            F.Goto(_currentDisposalLabel));
         }
 
         protected override BoundStatement MakeAwaitPreamble()
@@ -342,11 +352,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
-        }
-
-        private BoundExpressionStatement SetDisposeMode(bool value)
-        {
-            return F.Assignment(F.InstanceField(_asyncIteratorInfo.DisposeModeField), F.Literal(value));
         }
 
         /// <summary>
@@ -394,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Append:
                 //  if (disposeMode) goto currentDisposalLabel;
-                result = AppendJumpToCurrentDisposalLabel(result);
+                result = AppendConditionalJumpToCurrentDisposalLabel(result);
             }
 
             // Note: we add this jump to extracted `finally` blocks as well, using `VisitExtractedFinallyBlock` below
@@ -425,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_currentDisposalLabel is object)
             {
-                result = AppendJumpToCurrentDisposalLabel(result);
+                result = AppendConditionalJumpToCurrentDisposalLabel(result);
             }
 
             return result;

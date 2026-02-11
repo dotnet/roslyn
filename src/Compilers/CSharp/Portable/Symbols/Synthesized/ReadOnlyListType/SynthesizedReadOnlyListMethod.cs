@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Reflection;
+
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal delegate BoundStatement GenerateMethodBodyDelegate(SyntheticBoundNodeFactory factory, MethodSymbol method, MethodSymbol interfaceMethod);
@@ -17,6 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool SynthesizesLoweredBoundBody => true;
+        public override bool IsAsync => false;
+        internal override MethodImplAttributes ImplementationAttributes => default;
 
         internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {

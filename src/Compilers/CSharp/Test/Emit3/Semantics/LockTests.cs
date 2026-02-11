@@ -3655,6 +3655,13 @@ public class LockTests : CSharpTestBase
         comp = CreateCompilationWithTasksExtensions([source, LockTypeDefinition, AsyncStreamsTypes], options: TestOptions.DebugExe);
         verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: expectedOutput);
         verifier.VerifyDiagnostics();
+
+        comp = CreateRuntimeAsyncCompilation([source, LockTypeDefinition], options: TestOptions.DebugExe);
+        verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped);
+        verifier.VerifyDiagnostics(
+            // (21,19): warning CS0436: The type 'Lock' in '' conflicts with the imported type 'Lock' in 'System.Runtime, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using th e type defined in ''.
+            //         lock (new Lock())
+            Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Lock").WithArguments("", "System.Threading.Lock", "System.Runtime, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Threading.Lock").WithLocation(21, 19));
     }
 
     [Fact]
@@ -4052,6 +4059,13 @@ public class LockTests : CSharpTestBase
               IL_017e:  ret
             }
             """);
+
+        comp = CreateRuntimeAsyncCompilation([source, LockTypeDefinition], options: TestOptions.DebugExe);
+        verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped);
+        verifier.VerifyDiagnostics(
+            // (19,19): warning CS0436: The type 'Lock' in '' conflicts with the imported type 'Lock' in 'System.Runtime, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
+            //         lock (new Lock())
+            Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Lock").WithArguments("", "System.Threading.Lock", "System.Runtime, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Threading.Lock").WithLocation(19, 19));
     }
 
     [Theory, CombinatorialData]
