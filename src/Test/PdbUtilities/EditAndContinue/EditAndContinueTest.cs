@@ -207,11 +207,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public void Dispose()
         {
             // If the test has thrown an exception, or the test host has crashed, we don't want to assert here
-            // or we'll hide it, so we need to do this dodgy looking thing. Skip in Mono as Marshal.GetExceptionPointers() isn't supported
-            if (!ExecutionConditionUtil.IsMonoCore){
-                var isInException = Marshal.GetExceptionPointers() != IntPtr.Zero;
-                Assert.True(isInException || _hasVerified, "No Verify call since the last AddGeneration call.");
-            }
+            // or we'll hide it, so we need to do this dodgy looking thing.
+            var isInException = ExecutionConditionUtil.IsMonoCore ? false : Marshal.GetExceptionPointers() != IntPtr.Zero;
+
+            Assert.True(isInException || _hasVerified, "No Verify call since the last AddGeneration call.");
             foreach (var disposable in _disposables)
             {
                 disposable.Dispose();
