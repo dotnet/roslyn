@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis
                             }
 
                             var p = parameters[i];
-                            this.GetReferenceGenerator(p.ContainingSymbol).Visit(p.Type);
+                            this.GetReferenceGenerator(p.ContainingSymbol!).Visit(p.Type);
                             if (p.RefKind != RefKind.None)
                             {
                                 _builder.Append('@');
@@ -1376,7 +1376,7 @@ namespace Microsoft.CodeAnalysis
                                         parameters.Clear();
                                     }
 
-                                    if (ParseParameterList(id, ref index, compilation, propertySymbol.ContainingSymbol, parameters)
+                                    if (ParseParameterList(id, ref index, compilation, propertySymbol.ContainingSymbol!, parameters)
                                         && AllParametersMatch(propertySymbol.Parameters, parameters))
                                     {
                                         results.Add(propertySymbol);
@@ -1468,10 +1468,11 @@ namespace Microsoft.CodeAnalysis
 
             private static ITypeParameterSymbol? GetNthTypeParameter(INamedTypeSymbol typeSymbol, int n)
             {
-                var containingTypeParameterCount = GetTypeParameterCount(typeSymbol.ContainingType);
-                if (n < containingTypeParameterCount)
+                var containingType = typeSymbol.ContainingType;
+                var containingTypeParameterCount = GetTypeParameterCount(containingType);
+                if (n < containingTypeParameterCount && containingType is not null)
                 {
-                    return GetNthTypeParameter(typeSymbol.ContainingType, n);
+                    return GetNthTypeParameter(containingType, n);
                 }
 
                 var index = n - containingTypeParameterCount;
@@ -1484,7 +1485,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            private static int GetTypeParameterCount(INamedTypeSymbol typeSymbol)
+            private static int GetTypeParameterCount(INamedTypeSymbol? typeSymbol)
             {
                 if (typeSymbol == null)
                 {

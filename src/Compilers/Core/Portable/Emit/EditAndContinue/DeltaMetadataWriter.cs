@@ -895,7 +895,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     messageProvider.ERR_EncReferenceToAddedMember,
                     GetSymbolLocation(symbol),
                     symbol.Name,
-                    symbol.ContainingAssembly.Name));
+                    symbol.ContainingAssembly!.Name));
             }
         }
 

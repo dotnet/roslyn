@@ -62,38 +62,35 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         int MetadataToken { get; }
 
-#nullable disable // Skipped for now https://github.com/dotnet/roslyn/issues/39166
-#pragma warning disable RS0041 // uses oblivious reference types
         /// <summary>
         /// Gets the <see cref="ISymbol"/> for the immediately containing symbol.
+        /// Returns <see langword="null"/> for top-level symbols like namespaces or certain error types.
         /// </summary>
-        ISymbol ContainingSymbol { get; }
+        ISymbol? ContainingSymbol { get; }
 
         /// <summary>
-        /// Gets the <see cref="IAssemblySymbol"/> for the containing assembly. Returns null if the
+        /// Gets the <see cref="IAssemblySymbol"/> for the containing assembly. Returns <see langword="null"/> if the
         /// symbol is shared across multiple assemblies.
         /// </summary>
-        IAssemblySymbol ContainingAssembly { get; }
+        IAssemblySymbol? ContainingAssembly { get; }
 
         /// <summary>
-        /// Gets the <see cref="IModuleSymbol"/> for the containing module. Returns null if the
+        /// Gets the <see cref="IModuleSymbol"/> for the containing module. Returns <see langword="null"/> if the
         /// symbol is shared across multiple modules.
         /// </summary>
-        IModuleSymbol ContainingModule { get; }
+        IModuleSymbol? ContainingModule { get; }
 
         /// <summary>
-        /// Gets the <see cref="INamedTypeSymbol"/> for the containing type. Returns null if the
+        /// Gets the <see cref="INamedTypeSymbol"/> for the containing type. Returns <see langword="null"/> if the
         /// symbol is not contained within a type.
         /// </summary>
-        INamedTypeSymbol ContainingType { get; }
+        INamedTypeSymbol? ContainingType { get; }
 
         /// <summary>
-        /// Gets the <see cref="INamespaceSymbol"/> for the nearest enclosing namespace. Returns null if the
+        /// Gets the <see cref="INamespaceSymbol"/> for the nearest enclosing namespace. Returns <see langword="null"/> if the
         /// symbol isn't contained in a namespace.
         /// </summary>
-        INamespaceSymbol ContainingNamespace { get; }
-#nullable enable
-#pragma warning restore RS0041 // uses oblivious reference types
+        INamespaceSymbol? ContainingNamespace { get; }
 
         /// <summary>
         /// Gets a value indicating whether the symbol is the original definition. Returns false

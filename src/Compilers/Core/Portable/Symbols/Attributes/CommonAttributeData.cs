@@ -90,7 +90,8 @@ namespace Microsoft.CodeAnalysis
                 if (attributeArgCount == parameterCount)
                 {
                     StringComparison options = description.MatchIgnoringCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
-                    return attributeType.Name.Equals(description.Name, options) && namespaceMatch(attributeType.ContainingNamespace, description.Namespace, options);
+                    var containingNamespace = attributeType.ContainingNamespace;
+                    return containingNamespace is not null && attributeType.Name.Equals(description.Name, options) && namespaceMatch(containingNamespace, description.Namespace, options);
                 }
             }
 
@@ -130,12 +131,14 @@ namespace Microsoft.CodeAnalysis
                         return false;
                     }
 
-                    container = container.ContainingNamespace;
+                    var nextContainer = container.ContainingNamespace;
 
-                    if (container is null)
+                    if (nextContainer is null)
                     {
                         return false;
                     }
+
+                    container = nextContainer;
                 }
             }
         }

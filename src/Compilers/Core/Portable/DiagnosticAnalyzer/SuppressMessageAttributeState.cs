@@ -193,19 +193,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             bool hasNamespaceSuppression(INamespaceSymbol namespaceSymbol, bool inImmediatelyContainingSymbol)
             {
-                do
+                while (true)
                 {
                     if (IsDiagnosticGloballySuppressed(id, namespaceSymbol, inImmediatelyContainingSymbol, out _))
                     {
                         return true;
                     }
 
-                    namespaceSymbol = namespaceSymbol.ContainingNamespace;
+                    var next = namespaceSymbol.ContainingNamespace;
+                    if (next is null)
+                    {
+                        return false;
+                    }
+
+                    namespaceSymbol = next;
                     inImmediatelyContainingSymbol = false;
                 }
-                while (namespaceSymbol != null);
-
-                return false;
             }
         }
 
