@@ -86,9 +86,9 @@ variables:
 
   - name: HelixUbuntuQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: Ubuntu.2004.Amd64.Open
+      value: Ubuntu.2204.Amd64.Open
     ${{ else }}:
-      value: Ubuntu.2004.Amd64
+      value: Ubuntu.2204.Amd64
 
   - name: HelixMacOsQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
