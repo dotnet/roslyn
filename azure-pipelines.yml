@@ -54,11 +54,11 @@ variables:
     ${{ else }}:
       value: NetCore1ESPool-Internal
 
-  - name: Vs2022PreviewQueueName
+  - name: Vs2022RegularQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: windows.vs2022preview.amd64.open
+      value: windows.vs2022.amd64.open
     ${{ else }}:
-      value: windows.vs2022preview.amd64
+      value: windows.vs2022.amd64
 
   - name: UbuntuQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
@@ -113,7 +113,7 @@ parameters:
     type: object
     default:
       name: $(PoolName)
-      demands: ImageOverride -equals $(Vs2022PreviewQueueName)
+      demands: ImageOverride -equals $(Vs2022RegularQueueName)
 
 stages:
 - stage: Windows_Debug_Build
