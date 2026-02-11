@@ -113,7 +113,7 @@ parameters:
     type: object
     default:
       name: $(PoolName)
-      demands: ImageOverride -equals $(Vs2022PreviewQueueName)
+      demands: ImageOverride -equals $(Vs2022RegularQueueName)
   - name: vs2022RegularPool
     type: object
     default:
