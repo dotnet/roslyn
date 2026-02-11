@@ -104,7 +104,7 @@ extends:
         suppressionFile: $(Build.SourcesDirectory)\eng\config\guardian\.gdnsuppres
     pool:
       name: NetCore1ESPool-Svc-Internal
-      image: windows.vs2022preview.amd64
+      image: windows.vs2022.amd64
       os: windows
     customBuildTags:
     - ES365AIMigrationTooling
