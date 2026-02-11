@@ -84,7 +84,7 @@ internal abstract class LanguageServerProjectLoader
         /// Represents a project which was forked from the canonical miscellaneous files project (which itself is represented as a <see cref="LoadedTargets"/> instance.)
         /// Forked projects have a full set of standard references, etc., but design-time builds are not performed for them.
         /// </summary>
-        public sealed record CanonicalForked(ProjectId forkedProjectId) : ProjectLoadState;
+        public sealed record CanonicalForked(ProjectId ForkedProjectId) : ProjectLoadState;
     }
 
     /// <summary>

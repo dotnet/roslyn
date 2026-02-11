@@ -121,7 +121,12 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
         return false;
     }
 
-    internal static async Task<bool> ShouldReportSemanticErrorsInPossibleFileBasedProgramAsync(IGlobalOptionService globalOptionService, SyntaxTree tree, CancellationToken cancellationToken)
+    /// <summary>
+    /// Determines whether to display semantic errors in loose files which lack '#:' directives.
+    /// Does not include checks which should only be performed on initial project load.
+    /// <seealso cref="ContainedInCsprojCone"/>
+    /// </summary>
+    internal static async Task<bool> GetCanonicalMiscFileHasAllInformation_IncrementalAsync(IGlobalOptionService globalOptionService, SyntaxTree tree, CancellationToken cancellationToken)
     {
         if (!globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms)
             || !globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedProgramsWhenAmbiguous))
@@ -130,12 +135,27 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
         }
 
         var root = await tree.GetRootAsync(cancellationToken);
-        var containsTopLevelStatements = root is CompilationUnitSyntax compilationUnit
-            && compilationUnit.Members.Any(member => member.IsKind(SyntaxKind.GlobalStatement));
-        return containsTopLevelStatements && !ContainedInCsprojCone(tree.FilePath);
+        if (root is not CompilationUnitSyntax compilationUnit)
+            return false;
+
+        return compilationUnit.Members.Any(SyntaxKind.GlobalStatement);
     }
 
-    // TODO2: figure out how to perform this work only when a document is first loaded.
+    /// <summary>
+    /// Determine if this file is contained in the same directory as a .csproj file.
+    /// </summary>
+    /// <remarks>
+    /// The result of this call influences whether semantic errors are displayed in loose files which have top-level statements but no '#:' directives.
+    /// The projects for such files are *forked canonical projects*. Displaying semantic errors is controlled by the 'HasAllInformation' flag on the project.
+    /// The inputs to the HasAllInformation flag value are effectively the following:
+    /// 1. File has top-level statements, and
+    /// 2. File is not contained in a .csproj cone
+    ///
+    /// We want to minimize the amount of work we do incrementally to keep track of this information. Therefore:
+    /// - We handle a possible change in (1) by doing a check on the latest syntax tree.
+    /// - We handle a possible change in (2) by unloading and reloading relevant forked canonical project(s).
+    /// Therefore this is the only place we want to actually do the work to determine (2).
+    /// </remarks>
     internal static bool ContainedInCsprojCone(string csFilePath)
     {
         // TODO2: we probably do not want to search up past workspace folders, because we do not watch such folders for changes.
@@ -149,7 +169,7 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
         var driveRoot = PathUtilities.GetPathRoot(directoryName);
         while (!string.IsNullOrEmpty(directoryName) && directoryName != driveRoot)
         {
-            var containsCsproj = Directory.EnumerateFiles(directoryName, "*.csproj").FirstOrDefault() != null;
+            var containsCsproj = Directory.EnumerateFiles(directoryName, "*.csproj").Any();
             if (containsCsproj)
                 return true;
 

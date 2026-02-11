@@ -126,18 +126,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             using var token = Listener.BeginAsyncOperation(nameof(HandleCsprojFileChangedAsync));
             try
             {
-                if (File.Exists(changedFile))
-                {
-                    // csproj exists (might have just been created).
-                    // File-based apps under that path should be unloaded, as we may want to treat them as misc files instead now.
-                    await UnloadAllProjectsInDirectoryAsync(directoryName);
-                }
-                else
-                {
-                    // csproj does not exist (might have just been deleted).
-                    // Misc files under that path should be unloaded, as we may now want to treat them as file-based apps.
-                    await _canonicalMiscFilesLoader.UnloadAllProjectsInDirectoryAsync(directoryName);
-                }
+                await _canonicalMiscFilesLoader.UnloadAllProjectsInDirectoryAsync(directoryName);
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
             {
@@ -173,7 +162,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 && textDocument is Document document
                 && await document.GetSyntaxTreeAsync(cancellationToken) is { } syntaxTree)
             {
-                var newHasAllInformation = await VirtualProjectXmlProvider.ShouldReportSemanticErrorsInPossibleFileBasedProgramAsync(GlobalOptionService, syntaxTree, cancellationToken);
+                var newHasAllInformation = await VirtualProjectXmlProvider.GetCanonicalMiscFileHasAllInformation_IncrementalAsync(GlobalOptionService, syntaxTree, cancellationToken);
                 if (newHasAllInformation != document.Project.State.HasAllInformation)
                 {
                     // TODO: replace this method and the call site in LspWorkspaceManager,
