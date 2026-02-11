@@ -6996,8 +6996,10 @@ oneMoreTime:
 
                 case InterpolatedStringArgumentPlaceholderKind.CallsiteReceiver:
                     AssertContainingContextIsForThisCreation(operation, assertArgumentContext: true);
-                    Debug.Assert(_currentInterpolatedStringHandlerArgumentContext != null);
-                    if (_currentInterpolatedStringHandlerArgumentContext.HasReceiver && tryGetArgumentOrReceiver(-1) is IOperation receiverCapture)
+                    // Context may be null in error scenarios (for example, indexer with no setter in object initializer)
+                    if (_currentInterpolatedStringHandlerArgumentContext != null &&
+                        _currentInterpolatedStringHandlerArgumentContext.HasReceiver &&
+                        tryGetArgumentOrReceiver(-1) is IOperation receiverCapture)
                     {
                         Debug.Assert(receiverCapture is IFlowCaptureReferenceOperation);
                         return OperationCloner.CloneOperation(receiverCapture);
@@ -7009,8 +7011,9 @@ oneMoreTime:
 
                 case InterpolatedStringArgumentPlaceholderKind.CallsiteArgument:
                     AssertContainingContextIsForThisCreation(operation, assertArgumentContext: true);
-                    Debug.Assert(_currentInterpolatedStringHandlerArgumentContext != null);
-                    if (tryGetArgumentOrReceiver(operation.ArgumentIndex) is IOperation argumentCapture)
+                    // Context may be null in error scenarios (for example, indexer with no setter in object initializer)
+                    if (_currentInterpolatedStringHandlerArgumentContext != null &&
+                        tryGetArgumentOrReceiver(operation.ArgumentIndex) is IOperation argumentCapture)
                     {
                         Debug.Assert(argumentCapture is IFlowCaptureReferenceOperation or IDiscardOperation);
                         return OperationCloner.CloneOperation(argumentCapture);
