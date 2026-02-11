@@ -83,9 +83,15 @@ namespace Microsoft.CodeAnalysis.Text
             return this.Source.Substring(span.Start, span.Length);
         }
 
+        [Obsolete("Use CopyTo with Span<char> destination instead.")]
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
-            this.Source.CopyTo(sourceIndex, destination, destinationIndex, count);
+            CopyTo(sourceIndex, destination.AsSpan(destinationIndex, count), count);
+        }
+
+        public override void CopyTo(int sourceIndex, Span<char> destination, int count)
+        {
+            this.Source.AsSpan(sourceIndex, count).CopyTo(destination);
         }
 
         public override void Write(TextWriter textWriter, TextSpan span, CancellationToken cancellationToken = default(CancellationToken))
