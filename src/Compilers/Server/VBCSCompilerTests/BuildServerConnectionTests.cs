@@ -164,8 +164,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             }
             else
             {
-                // If no DOTNET_ROOT is needed, should return null
-                Assert.Null(envVars);
+                // No DOTNET_ROOT is needed
+                Assert.True(envVars == null || !envVars.ContainsKey(RuntimeHostInfo.DotNetRootEnvironmentName));
             }
         }
 
@@ -190,8 +190,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             var envVars = BuildServerConnection.GetServerEnvironmentVariables(testEnvironment);
 
-            if (envVars != null)
+            if (BuildServerConnection.IsBuiltinToolRunningOnCoreClr && RuntimeHostInfo.GetToolDotNetRoot(Logger.Log) != null)
             {
+                Assert.NotNull(envVars);
+
                 // Should set DOTNET_ROOT* variants to empty string to prevent inheritance
                 foreach (var testEnvVar in testEnvVars)
                 {
