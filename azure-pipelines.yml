@@ -34,7 +34,7 @@ jobs:
     jobName: Build_Windows_Debug
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
-    queueName: windows.vs2019.amd64.open
+    queueName: windows.vs2022.amd64.open
 
 - template: eng/pipelines/build-windows-job.yml
   parameters:
@@ -42,7 +42,7 @@ jobs:
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
     buildArguments: "/p:Features=run-nullable-analysis=never"
-    queueName: windows.vs2019.amd64.open
+    queueName: windows.vs2022.amd64.open
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -52,7 +52,7 @@ jobs:
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
     testArguments: -testDesktop -test32
-    queueName: windows.vs2019.amd64.open
+    queueName: windows.vs2022.amd64.open
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -62,7 +62,7 @@ jobs:
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
     testArguments: -testDesktop -test64
-    queueName: windows.vs2019.amd64.open
+    queueName: windows.vs2022.amd64.open
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -72,7 +72,7 @@ jobs:
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
     testArguments: -testCoreClr
-    queueName: windows.vs2019.amd64.open
+    queueName: windows.vs2022.amd64.open
 
 - template: eng/pipelines/test-windows-job-single-machine.yml
   parameters:
@@ -82,7 +82,7 @@ jobs:
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
     testArguments: -testCoreClr
-    queueName: windows.vs2019.amd64.open
+    queueName: windows.vs2022.amd64.open
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -92,7 +92,7 @@ jobs:
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
     testArguments: -testDesktop -test32
-    queueName: windows.vs2019.amd64.open
+    queueName: windows.vs2022.amd64.open
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -102,7 +102,7 @@ jobs:
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
     testArguments: -testDesktop -test64
-    queueName: windows.vs2019.amd64.open
+    queueName: windows.vs2022.amd64.open
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -112,7 +112,7 @@ jobs:
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
     testArguments: -testCoreClr
-    queueName: windows.vs2019.amd64.open
+    queueName: windows.vs2022.amd64.open
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -122,7 +122,7 @@ jobs:
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
     testArguments: -testCoreClr -testIOperation -testCompilerOnly
-    queueName: windows.vs2019.amd64.open
+    queueName: windows.vs2022.amd64.open
 
 # Unix Build and Test Jobs
 - template: eng/pipelines/build-unix-job.yml
@@ -167,7 +167,7 @@ jobs:
 - job: Correctness_Determinism
   pool:
     name: NetCore-Svc-Public
-    demands: ImageOverride -equals windows.vs2019.amd64.open
+    demands: ImageOverride -equals windows.vs2022.amd64.open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
@@ -183,7 +183,7 @@ jobs:
 - job: Correctness_Build
   pool:
     name: NetCore-Svc-Public
-    demands: ImageOverride -equals windows.vs2019.amd64.open
+    demands: ImageOverride -equals windows.vs2022.amd64.open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
@@ -239,7 +239,7 @@ jobs:
 - job: Correctness_Rebuild
   pool:
     name: NetCore-Svc-Public
-    demands: ImageOverride -equals windows.vs2019.amd64.open
+    demands: ImageOverride -equals windows.vs2022.amd64.open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
