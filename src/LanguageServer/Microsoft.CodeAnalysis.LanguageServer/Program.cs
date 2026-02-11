@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -126,23 +127,39 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     }
     else
     {
-        var (clientPipeName, serverPipeName) = serverConfiguration.ServerPipeName is null
-            ? CreateNewPipeNames()
-            : (serverConfiguration.ServerPipeName, serverConfiguration.ServerPipeName);
+        Stream pipe;
+        if (serverConfiguration.ServerPipeName is not null)
+        {
+            // The VS Code LSP client passes a full pipe path (e.g. \\.\pipe\<guid> on Windows, /tmp/<id>.sock on Unix).
+            // NamedPipeClientStream expects just the pipe name on Windows (it prepends \\.\pipe\ itself),
+            // and the full socket path on Unix.
+            var pipeName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? serverConfiguration.ServerPipeName.Replace(@"\\.\pipe\", "")
+                : serverConfiguration.ServerPipeName;
+            var pipeClient = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
+            await pipeClient.ConnectAsync(cancellationToken);
+            pipe = pipeClient;
+        }
+        else
+        {
+            var (clientPipeName, serverPipeName) = serverConfiguration.ServerPipeName is null
+                ? CreateNewPipeNames()
+                : (serverConfiguration.ServerPipeName, serverConfiguration.ServerPipeName);
+            var pipeServer = new NamedPipeServerStream(serverPipeName,
+                PipeDirection.InOut,
+                maxNumberOfServerInstances: 1,
+                PipeTransmissionMode.Byte,
+                PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
 
-        var pipeServer = new NamedPipeServerStream(serverPipeName,
-            PipeDirection.InOut,
-            maxNumberOfServerInstances: 1,
-            PipeTransmissionMode.Byte,
-            PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
+            // Send the named pipe connection info to the client
+            Console.WriteLine(JsonSerializer.Serialize(new NamedPipeInformation(clientPipeName)));
 
-        // Send the named pipe connection info to the client
-        Console.WriteLine(JsonSerializer.Serialize(new NamedPipeInformation(clientPipeName)));
+            // Wait for connection from client
+            await pipeServer.WaitForConnectionAsync(cancellationToken);
+            pipe = pipeServer;
+        }
 
-        // Wait for connection from client
-        await pipeServer.WaitForConnectionAsync(cancellationToken);
-
-        server = new LanguageServerHost(pipeServer, pipeServer, exportProvider, loggerFactory, typeRefResolver);
+        server = new LanguageServerHost(pipe, pipe, exportProvider, loggerFactory, typeRefResolver);
     }
 
     server.Start();

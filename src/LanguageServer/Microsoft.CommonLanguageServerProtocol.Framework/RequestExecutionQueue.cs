@@ -294,7 +294,7 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
             if (lspServices is not null)
             {
                 await _languageServer.ShutdownAsync(message).ConfigureAwait(false);
-                await _languageServer.ExitAsync().ConfigureAwait(false);
+                await _languageServer.ExitAsync(ex).ConfigureAwait(false);
             }
 
             await DisposeAsync().ConfigureAwait(false);

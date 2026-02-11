@@ -87,12 +87,19 @@ internal sealed class ServiceBrokerFactory
         _bridgeCompletionTask = bridgeProvider.SetupBrokeredServicesBridgeAsync(brokeredServicePipeName, _container!, _cancellationTokenSource.Token);
     }
 
-    public Task ShutdownAndWaitForCompletionAsync()
+    public async Task ShutdownAndWaitForCompletionAsync()
     {
         _cancellationTokenSource.Cancel();
 
-        // Return the task we created when we created the bridge; if we never started it in the first place, we'll just return the
+        // Await the task we created when we created the bridge; if we never started it in the first place, we'll just return the
         // completed task set in the constructor, so the waiter no-ops.
-        return _bridgeCompletionTask;
+        try
+        {
+            await _bridgeCompletionTask;
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected during shutdown, swallow.
+        }
     }
 }

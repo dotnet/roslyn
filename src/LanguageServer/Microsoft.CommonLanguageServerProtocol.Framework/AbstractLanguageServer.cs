@@ -265,7 +265,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
 
             // Allow implementations to do any additional cleanup on shutdown.
             var lifeCycleManager = GetLspServices().GetRequiredService<ILifeCycleManager>();
-            await lifeCycleManager.ShutdownAsync(message).ConfigureAwait(false);
+            await lifeCycleManager.ShutdownAsync().ConfigureAwait(false);
 
             await ShutdownRequestExecutionQueueAsync().ConfigureAwait(false);
         }
@@ -275,7 +275,9 @@ internal abstract class AbstractLanguageServer<TRequestContext>
     /// Tells the LSP server to exit.  Requires that <see cref="ShutdownAsync(string)"/> was called first.
     /// Typically called from an LSP exit notification.
     /// </summary>
-    public Task ExitAsync()
+    /// <param name="shutdownException">Optional exception that caused the server to shutdown.
+    /// When provided, <see cref="WaitForExitAsync"/> will throw this exception so callers can observe the error.</param>
+    public Task ExitAsync(Exception? shutdownException = null)
     {
         Task exitTask;
         lock (_lifeCycleLock)
@@ -319,8 +321,14 @@ internal abstract class AbstractLanguageServer<TRequestContext>
             }
             finally
             {
-                Logger.LogInformation("Exiting server");
-                _serverExitedSource.TrySetResult(null);
+                if (shutdownException is not null)
+                {
+                    _serverExitedSource.TrySetException(shutdownException);
+                }
+                else
+                {
+                    _serverExitedSource.TrySetResult(null);
+                }
             }
         }
     }
@@ -353,7 +361,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
             // It is possible this gets called during normal shutdown and exit.
             // ShutdownAsync and ExitAsync will no-op if shutdown was already triggered by something else.
             await ShutdownAsync(message: $"Shutdown triggered by JsonRpc disconnect {e.Reason}").ConfigureAwait(false);
-            await ExitAsync().ConfigureAwait(false);
+            await ExitAsync(e.Exception).ConfigureAwait(false);
         }
     }
 
