@@ -53,12 +53,11 @@
       <_File Include="@(DesktopCompilerArtifact)">
         <Path Condition="'%(DesktopCompilerArtifact._OptimizeAssembly)' == ''">%(DesktopCompilerArtifact.Identity)</Path>
         <Path Condition="'%(DesktopCompilerArtifact._OptimizeAssembly)' != ''">%(DesktopCompilerArtifact._OptimizeAssembly)</Path>
-        <NGenArchitectureString Condition="'%(DesktopCompilerArtifact.NgenArchitecture)' != ''"> vs.file.ngenArchitecture=%(DesktopCompilerArtifact.NgenArchitecture)</NGenArchitectureString>
         <NGenPriorityString Condition="'%(DesktopCompilerArtifact.NGenPriority)' != ''"> vs.file.ngenPriority=%(DesktopCompilerArtifact.NGenPriority)</NGenPriorityString>
         <NGenApplicationString Condition="'%(DesktopCompilerArtifact.NGenApplication)' != ''"> vs.file.ngenApplication="[installDir]\MSBuild\Current\Bin\Roslyn\%(DesktopCompilerArtifact.NGenApplication)"</NGenApplicationString>
       </_File>
 
-      <_FileEntries Include='file source="%(_File.Path)"%(_File.NGenArchitectureString)%(_File.NGenPriorityString)%(_File.NGenApplicationString)'/>
+      <_FileEntries Include='file source="%(_File.Path)"%(_File.NGenPriorityString)%(_File.NGenApplicationString)'/>
 
       <!-- Satellite assemblies -->
       <_SatelliteAssembly Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netstandard2.0\**\*.resources.dll"/>
