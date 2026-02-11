@@ -8,45 +8,34 @@ using System;
 using System.Text.Json.Serialization;
 
 /// <summary>
-/// Class which represents the parameter that is sent with textDocument/rangeFormatting message.
+/// Class which represents the parameter that is sent with textDocument/rangesFormatting message.
 /// <para>
-/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentRangeFormattingParams">Language Server Protocol specification</see> for additional information.
+/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#documentRangesFormattingParams">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class DocumentRangeFormattingParams : ITextDocumentParams, IWorkDoneProgressParams
+/// <remarks>Since LSP 3.18</remarks>
+internal sealed class DocumentRangesFormattingParams : ITextDocumentParams, IWorkDoneProgressParams
 {
     /// <summary>
     /// Gets or sets the identifier for the text document to be formatted.
     /// </summary>
     [JsonPropertyName("textDocument")]
     [JsonRequired]
-    public TextDocumentIdentifier TextDocument
-    {
-        get;
-        set;
-    }
+    public TextDocumentIdentifier TextDocument { get; set; }
 
     /// <summary>
-    /// Gets or sets the selection range to be formatted.
+    /// Gets or sets the ranges to format.
     /// </summary>
-    [JsonPropertyName("range")]
+    [JsonPropertyName("ranges")]
     [JsonRequired]
-    public Range Range
-    {
-        get;
-        set;
-    }
+    public Range[] Ranges { get; set; }
 
     /// <summary>
     /// Gets or sets the formatting options.
     /// </summary>
     [JsonPropertyName("options")]
     [JsonRequired]
-    public FormattingOptions Options
-    {
-        get;
-        set;
-    }
+    public FormattingOptions Options { get; set; }
 
     /// <inheritdoc/>
     [JsonPropertyName(Methods.WorkDoneTokenName)]
