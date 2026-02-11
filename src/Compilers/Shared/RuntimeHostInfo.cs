@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Disable JIT tiered compilation on .NET Framework (i.e., keep it enabled on 'dotnet build' but not 'msbuild' which would slow down VS startup perf).
+        /// The caller should also check that the environment variable is not already set to avoid overriding user preferences.
         /// </summary>
         internal static bool ShouldDisableTieredCompilation => !IsCoreClrRuntime;
 

@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 environmentVariables[RuntimeHostInfo.DotNetRootEnvironmentName] = dotNetRoot;
             }
 
-            if (RuntimeHostInfo.ShouldDisableTieredCompilation)
+            if (RuntimeHostInfo.ShouldDisableTieredCompilation && !environmentVariables.ContainsKey(RuntimeHostInfo.DotNetTieredCompilationEnvironmentName))
             {
                 var value = "0";
                 logger?.Log("Setting {0} to '{1}'", RuntimeHostInfo.DotNetTieredCompilationEnvironmentName, value);
