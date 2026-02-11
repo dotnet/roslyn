@@ -387,11 +387,6 @@
         <target state="translated">ファイルの拡張子 '{1}' が言語に関連付けられていないため、プロジェクト '{0}' を開くことができません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_open_project_0_because_the_language_1_is_not_supported">
-        <source>Cannot open project '{0}' because the language '{1}' is not supported.</source>
-        <target state="translated">言語 '{1}' がサポートされていないため、プロジェクト '{0}' を開くことができません。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Invalid_project_file_path_colon_0">
         <source>Invalid project file path: '{0}'</source>
         <target state="translated">無効なプロジェクト ファイルのパス: '{0}'</target>

@@ -23,6 +23,7 @@ public partial class MSBuildProjectLoader
 {
     // the services for the projects and solutions are intended to be loaded into.
     private readonly SolutionServices _solutionServices;
+    private readonly ImmutableArray<string> _knownCommandLineParserLanguages;
 
     private readonly DiagnosticReporter _diagnosticReporter;
     private readonly Microsoft.Extensions.Logging.ILoggerFactory _loggerFactory;
@@ -38,10 +39,11 @@ public partial class MSBuildProjectLoader
         ImmutableDictionary<string, string>? properties)
     {
         _solutionServices = solutionServices;
+        _knownCommandLineParserLanguages = solutionServices.GetSupportedLanguages<ICommandLineParserService>();
         _diagnosticReporter = diagnosticReporter;
         _loggerFactory = new Microsoft.Extensions.Logging.LoggerFactory([new DiagnosticReporterLoggerProvider(_diagnosticReporter)]);
         _pathResolver = new PathResolver(_diagnosticReporter);
-        _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(solutionServices, diagnosticReporter);
+        _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(diagnosticReporter);
 
         Properties = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase);
 
@@ -257,7 +259,7 @@ public partial class MSBuildProjectLoader
             ? new BinLogPathProvider(fileName)
             : null;
 
-        var buildHostProcessManager = new BuildHostProcessManager(Properties, binLogPathProvider, _loggerFactory);
+        var buildHostProcessManager = new BuildHostProcessManager(_knownCommandLineParserLanguages, Properties, binLogPathProvider, _loggerFactory);
         await using var _ = buildHostProcessManager.ConfigureAwait(false);
 
         var projectFileProvider = new BuildHostProjectFileInfoProvider(

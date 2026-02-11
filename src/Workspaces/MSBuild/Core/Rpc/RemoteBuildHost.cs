@@ -39,9 +39,9 @@ internal sealed class RemoteBuildHost
     public Task<bool> HasUsableMSBuildAsync(string projectOrSolutionFilePath, CancellationToken cancellationToken)
         => _client.InvokeAsync<bool>(BuildHostTargetObject, nameof(IBuildHost.HasUsableMSBuild), parameters: [projectOrSolutionFilePath], cancellationToken);
 
-    /// <inheritdoc cref="IBuildHost.ConfigureGlobalState(ImmutableDictionary{string, string}, string?)"/>
-    public Task ConfigureGlobalStateAsync(ImmutableDictionary<string, string> globalProperties, string? binlogPath, CancellationToken cancellationToken)
-        => _client.InvokeAsync(BuildHostTargetObject, nameof(IBuildHost.ConfigureGlobalState), parameters: [globalProperties, binlogPath], cancellationToken);
+    /// <inheritdoc cref="IBuildHost.ConfigureGlobalState(ImmutableArray{string}, ImmutableDictionary{string, string}, string?)"/>
+    public Task ConfigureGlobalStateAsync(ImmutableArray<string> knownCommandLineParserLanguages, ImmutableDictionary<string, string> globalProperties, string? binlogPath, CancellationToken cancellationToken)
+        => _client.InvokeAsync(BuildHostTargetObject, nameof(IBuildHost.ConfigureGlobalState), parameters: [knownCommandLineParserLanguages, globalProperties, binlogPath], cancellationToken);
 
     public async Task<RemoteProjectFile> LoadProjectFileAsync(string projectFilePath, string languageName, CancellationToken cancellationToken)
     {

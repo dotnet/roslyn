@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
@@ -29,7 +30,9 @@ internal sealed class LanguageServerTestComposition
             ExtensionLogDirectory: string.Empty,
             ServerPipeName: null,
             UseStdIo: false,
-            AutoLoadProjects: false);
+            AutoLoadProjects: false,
+            SourceGeneratorExecutionPreference: SourceGeneratorExecutionPreference.Balanced,
+            ClientProcessId: null);
         var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
         var assemblyLoader = new CustomExportAssemblyLoader(extensionManager, loggerFactory);
 

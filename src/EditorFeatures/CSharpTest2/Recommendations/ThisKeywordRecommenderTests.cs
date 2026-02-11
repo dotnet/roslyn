@@ -1217,9 +1217,11 @@ public sealed class ThisKeywordRecommenderTests : KeywordRecommenderTests
         => VerifyKeywordAsync(AddInsideMethod(
             @"ref int x = ref $$"));
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/78979")]
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78979")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/82251")]
     public Task TestInsideNameofInAttribute(bool isStatic)
-        => VerifyKeywordAsync($$"""
+        => VerifyAbsenceAsync($$"""
             public class Example
             {
                 private string _field;
