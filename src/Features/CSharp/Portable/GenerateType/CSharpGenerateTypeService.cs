@@ -549,6 +549,17 @@ internal sealed class CSharpGenerateTypeService() :
             }
         }
 
+        // Check if there's a file-scoped namespace declaration in the file.
+        // File-scoped namespaces can't coexist with block namespaces, so we must add
+        // the type to the existing file-scoped namespace instead of creating a nested one.
+        var existingNamespace = FindAnyNamespaceInMemberDeclarations(compilationUnit.Members);
+        if (existingNamespace is FileScopedNamespaceDeclarationSyntax)
+        {
+            var existingNamespaceSymbol = semanticModel.GetSymbolInfo(existingNamespace.Name, cancellationToken);
+            if (existingNamespaceSymbol.Symbol is INamespaceSymbol namespaceSymbol)
+                return (namespaceSymbol, namedTypeSymbol, existingNamespace.GetLastToken().GetLocation());
+        }
+
         var globalNamespace = semanticModel.GetEnclosingNamespace(0, cancellationToken);
         var rootNamespaceOrType = namedTypeSymbol.GenerateRootNamespaceOrType(containers);
         var lastMember = compilationUnit.Members.LastOrDefault();
@@ -569,6 +580,17 @@ internal sealed class CSharpGenerateTypeService() :
                 if (found != null)
                     return found;
             }
+        }
+
+        return null;
+    }
+
+    private static BaseNamespaceDeclarationSyntax FindAnyNamespaceInMemberDeclarations(SyntaxList<MemberDeclarationSyntax> members)
+    {
+        foreach (var member in members)
+        {
+            if (member is BaseNamespaceDeclarationSyntax namespaceDeclaration)
+                return namespaceDeclaration;
         }
 
         return null;
@@ -737,6 +759,20 @@ internal sealed class CSharpGenerateTypeService() :
             if (await IsWithinTheImportingNamespaceAsync(document, simpleName.SpanStart, includeUsingsOrImports, cancellationToken).ConfigureAwait(false))
             {
                 return updatedSolution;
+            }
+
+            // If the document has a file-scoped namespace and the invocation is within it,
+            // don't add a using for a different namespace — the generated type was placed
+            // in the file-scoped namespace, not in the requested container namespace.
+            var fileScopedNs = compilationRoot.Members.OfType<FileScopedNamespaceDeclarationSyntax>().FirstOrDefault();
+            if (fileScopedNs != null)
+            {
+                var fileScopedNsName = fileScopedNs.Name.ToString();
+                if (fileScopedNsName != includeUsingsOrImports &&
+                    await IsWithinTheImportingNamespaceAsync(document, simpleName.SpanStart, fileScopedNsName, cancellationToken).ConfigureAwait(false))
+                {
+                    return updatedSolution;
+                }
             }
 
             var addImportOptions = await document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);

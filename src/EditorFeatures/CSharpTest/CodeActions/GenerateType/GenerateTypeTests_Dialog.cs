@@ -152,6 +152,31 @@ expected: """
             """,
 isNewFile: false);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82038")]
+    public Task GenerateTypeInsideFileScopedNamespace_WithDifferentDefaultNamespace()
+        => TestWithMockedGenerateTypeDialog(
+initial: """
+
+            namespace Foo;
+
+            class C([|D$$|] _);
+
+            """,
+languageName: LanguageNames.CSharp,
+typeName: "D",
+expected: """
+
+            namespace Foo;
+
+            class C(D _);
+
+            class D
+            {
+            }
+            """,
+defaultNamespace: "Roslyntest",
+isNewFile: false);
+
     [Fact]
     public Task GenerateTypeInsideQualifiedNamespace()
         => TestWithMockedGenerateTypeDialog(
