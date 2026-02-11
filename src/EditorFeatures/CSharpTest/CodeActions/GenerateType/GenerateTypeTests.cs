@@ -5995,5 +5995,34 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             parameters: new TestParameters(parseOptions: new CSharpParseOptions(documentationMode: DocumentationMode.Diagnose)));
     }
 
+    [Fact]
+    public Task TestGenerateTypeInCrefWithExplicitTypePrefix()
+    {
+        return TestMissingAsync(
+            """
+            /// <summary><see cref="T:[|MissingType|]"/></summary>
+            class C
+            {
+            }
+            """,
+            parameters: new TestParameters(parseOptions: new CSharpParseOptions(documentationMode: DocumentationMode.Diagnose)));
+    }
+
+    [Fact]
+    public Task TestGenerateTypeInCrefWithExplicitTypePrefixOnMethod()
+    {
+        return TestMissingAsync(
+            """
+            class C
+            {
+                /// <summary><see cref="T:[|MissingType|]"/></summary>
+                public void M()
+                {
+                }
+            }
+            """,
+            parameters: new TestParameters(parseOptions: new CSharpParseOptions(documentationMode: DocumentationMode.Diagnose)));
+    }
+
     #endregion
 }

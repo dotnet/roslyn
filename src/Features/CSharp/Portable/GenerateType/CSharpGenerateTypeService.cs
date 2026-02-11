@@ -174,7 +174,6 @@ internal sealed class CSharpGenerateTypeService() :
         if (simpleName.GetAncestor<CrefSyntax>() != null)
         {
             generateTypeServiceStateOptions.NameOrMemberAccessExpression = simpleName;
-            generateTypeServiceStateOptions.IsInDocCommentContext = true;
             return true;
         }
 

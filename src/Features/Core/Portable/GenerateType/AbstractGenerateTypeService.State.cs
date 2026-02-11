@@ -126,7 +126,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             }
 
             var semanticFacts = semanticDocument.Document.GetRequiredLanguageService<ISemanticFactsService>();
-            if (!generateTypeServiceStateOptions.IsInDocCommentContext &&
+            if (!IsInsideDocumentationComment(NameOrMemberAccessExpression, syntaxFacts) &&
                 !semanticFacts.IsTypeContext(semanticModel, NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
                 !semanticFacts.IsExpressionContext(semanticModel, NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
                 !semanticFacts.IsStatementContext(semanticModel, NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
@@ -187,6 +187,17 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             }
 
             return TypeToGenerateInOpt != null || NamespaceToGenerateInOpt != null;
+        }
+
+        private static bool IsInsideDocumentationComment(SyntaxNode node, ISyntaxFactsService syntaxFacts)
+        {
+            for (var current = node; current != null; current = current.Parent)
+            {
+                if (syntaxFacts.IsDocumentationComment(current))
+                    return true;
+            }
+
+            return false;
         }
 
         private void InferBaseType(
@@ -428,7 +439,6 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
         public bool IsEnumNotAllowed { get; set; }
         public bool IsDelegateOnly { get; internal set; }
         public bool IsClassInterfaceTypes { get; internal set; }
-        public bool IsInDocCommentContext { get; set; }
 
         public GenerateTypeServiceStateOptions()
         {
