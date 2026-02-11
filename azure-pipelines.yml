@@ -62,9 +62,9 @@ variables:
 
   - name: UbuntuQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: Build.Ubuntu.2004.Amd64.Open
+      value: Build.Ubuntu.2204.Amd64.Open
     ${{ else }}:
-      value: Build.Ubuntu.2004.Amd64
+      value: Build.Ubuntu.2204.Amd64
 
   - name: WindowsQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
