@@ -352,7 +352,7 @@ class Test<T>
           <slot kind=""0"" offset=""42"" />
         </encLocalSlotMap>
         <encStateMachineStateMap>
-          <state number=""-3"" offset=""42"" />
+          <state number=""-4"" offset=""42"" />
           <state number=""1"" offset=""117"" />
           <state number=""2"" offset=""155"" />
         </encStateMachineStateMap>
@@ -587,9 +587,9 @@ public class Test
           <slot kind=""0"" offset=""104"" />
         </encLocalSlotMap>
         <encStateMachineStateMap>
-          <state number=""-3"" offset=""11"" />
+          <state number=""-4"" offset=""11"" />
           <state number=""1"" offset=""68"" />
-          <state number=""-4"" offset=""104"" />
+          <state number=""-5"" offset=""104"" />
           <state number=""2"" offset=""160"" />
         </encStateMachineStateMap>
       </customDebugInfo>
@@ -985,13 +985,13 @@ class C
           <slot kind=""2"" offset=""367"" />
         </encLocalSlotMap>
         <encStateMachineStateMap>
-          <state number=""-3"" offset=""53"" />
+          <state number=""-4"" offset=""53"" />
           <state number=""1"" offset=""67"" />
-          <state number=""-4"" offset=""149"" />
+          <state number=""-5"" offset=""149"" />
           <state number=""2"" offset=""163"" />
-          <state number=""-5"" offset=""216"" />
+          <state number=""-6"" offset=""216"" />
           <state number=""3"" offset=""237"" />
-          <state number=""-6"" offset=""266"" />
+          <state number=""-7"" offset=""266"" />
           <state number=""4"" offset=""280"" />
         </encStateMachineStateMap>
       </customDebugInfo>

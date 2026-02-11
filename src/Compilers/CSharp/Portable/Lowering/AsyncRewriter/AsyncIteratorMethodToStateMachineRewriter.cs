@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly LabelSymbol _exprReturnLabelTrue;
 
         /// <summary>
-        /// States for `yield return` are decreasing from <see cref="StateMachineState.InitialAsyncIteratorState"/>.
+        /// States for `yield return` are decreasing from <see cref="StateMachineState.FirstResumableAsyncIteratorState"/>.
         /// </summary>
         private readonly ResumableStateMachineStateAllocator _iteratorStateAllocator;
 
@@ -76,6 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 firstState: StateMachineState.FirstResumableAsyncIteratorState,
                 increasing: false);
         }
+
+        protected override StateMachineState FinishedState
+            => StateMachineState.IteratorFinishedState;
 
         protected override BoundStatement? GenerateMissingStateDispatch()
         {
@@ -222,12 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override BoundBinaryOperator ShouldEnterFinallyBlock()
         {
-            // We should skip the finally block when:
-            // - the state is 0 or greater (we're suspending on an `await`)
-            // - the state is -3, -4 or lower (we're suspending on a `yield return`)
-            // We don't care about state = -2 (method already completed)
-
-            // So we only want to enter the finally when the state is -1
+            // We only want to enter the finally when the state is -1
             return F.IntEqual(F.Local(cachedState), F.Literal(StateMachineState.NotStartedOrRunningState));
         }
 
