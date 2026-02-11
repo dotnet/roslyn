@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(TypeSymbol.Equals(transformedLHS.Type, node.Left.Type, TypeCompareKind.AllIgnoreOptions));
 
-                if (IsNewExtensionMemberAccessWithByValPossiblyStructReceiver(transformedLHS))
+                if (IsExtensionBlockMemberAccessWithByValPossiblyStructReceiver(transformedLHS))
                 {
                     // We need to create a tree that ensures that receiver of 'set' is evaluated after the binary operation
                     BoundLocal binaryResult = _factory.StoreToTemp(opFinal, out BoundAssignmentOperator assignmentToTemp, refKind: RefKind.None);
@@ -240,20 +240,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool IsNewExtensionMemberAccessWithByValPossiblyStructReceiver(BoundExpression transformedLHS)
+        private static bool IsExtensionBlockMemberAccessWithByValPossiblyStructReceiver(BoundExpression transformedLHS)
         {
             switch (transformedLHS)
             {
                 case BoundPropertyAccess { PropertySymbol: { } property }:
-                    return IsNewExtensionMemberWithByValPossiblyStructReceiver(property);
+                    return IsExtensionBlockMemberWithByValPossiblyStructReceiver(property);
                 case BoundIndexerAccess { Indexer: { } indexer }:
-                    return IsNewExtensionMemberWithByValPossiblyStructReceiver(indexer);
+                    return IsExtensionBlockMemberWithByValPossiblyStructReceiver(indexer);
                 default:
                     return false;
             }
         }
 
-        static bool IsNewExtensionMemberWithByValPossiblyStructReceiver(Symbol symbol)
+        static bool IsExtensionBlockMemberWithByValPossiblyStructReceiver(Symbol symbol)
         {
             return symbol.IsExtensionBlockMember() && !symbol.IsStatic && symbol.ContainingType.ExtensionParameter is { RefKind: RefKind.None, Type.IsReferenceType: false };
         }
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (propertyOrEvent.IsExtensionBlockMember())
             {
-                refKind = GetNewExtensionMemberReceiverCaptureRefKind(rewrittenReceiver, propertyOrEvent);
+                refKind = GetExtensionBlockMemberReceiverCaptureRefKind(rewrittenReceiver, propertyOrEvent);
             }
             else
             {

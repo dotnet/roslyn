@@ -33,6 +33,26 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             }
             """);
 
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/78770")]
+    public void TypingCharacter_Extension()
+        => VerifyTypingCharacter("""
+            static class C
+            {
+                //$$
+                extension<T>(int i) { }
+            }
+            """, """
+            static class C
+            {
+                /// <summary>
+                /// $$
+                /// </summary>
+                /// <typeparam name="T"></typeparam>
+                /// <param name="i"></param>
+                extension<T>(int i) { }
+            }
+            """);
+
     [WpfFact]
     public void TypingCharacter_Record()
         => VerifyTypingCharacter("""

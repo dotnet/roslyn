@@ -188,6 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.ExplicitCastInCode,
                 node.ConstantValueOpt,
                 node.ConversionGroupOpt,
+                node.InConversionGroupFlags,
                 VisitType(node.Type));
         }
 

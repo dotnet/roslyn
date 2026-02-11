@@ -17,19 +17,29 @@
         <target state="translated">Dodaj nawiasy klamrowe w przypadku jednowierszowych instrukcji sterowania</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_using_0">
+        <source>Add 'using {0};'</source>
+        <target state="translated">Dodaj „using {0};”</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Add_using_0_and_simplify_all_occurrences">
+        <source>Add 'using {0};' and simplify all occurrences</source>
+        <target state="translated">Dodaj „using {0};” i uprość wszystkie wystąpienia</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Adds_a_NuGet_package_reference">
         <source>Adds a NuGet package reference.</source>
-        <target state="new">Adds a NuGet package reference.</target>
+        <target state="translated">Dodaje odwołanie do pakietu NuGet.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adds_a_project_reference">
         <source>Adds a project reference.</source>
-        <target state="new">Adds a project reference.</target>
+        <target state="translated">Dodaje odwołanie do projektu.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adds_an_SDK_reference">
         <source>Adds an SDK reference.</source>
-        <target state="new">Adds an SDK reference.</target>
+        <target state="translated">Dodaje odwołanie do zestawu SDK.</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_0">
@@ -149,12 +159,12 @@
       </trans-unit>
       <trans-unit id="Build_property_name">
         <source>Name</source>
-        <target state="new">Name</target>
+        <target state="translated">Nazwa</target>
         <note>'Name' is a placeholder for a property name in a directive like '#:property Name=Value'.</note>
       </trans-unit>
       <trans-unit id="Build_property_value">
         <source>Value</source>
-        <target state="new">Value</target>
+        <target state="translated">Wartość</target>
         <note>'Value' is a placeholder for a build property value in a directive like '#:property Name=Value'.</note>
       </trans-unit>
       <trans-unit id="Change_to_as_expression">
@@ -169,7 +179,7 @@
       </trans-unit>
       <trans-unit id="Convert_0_extension_methods_to_extension">
         <source>Convert '{0}' extension methods to extension</source>
-        <target state="new">Convert '{0}' extension methods to extension</target>
+        <target state="translated">Konwertuj metody rozszerzenia „{0}” na rozszerzenie</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_0_to_record">
@@ -179,7 +189,7 @@
       </trans-unit>
       <trans-unit id="Convert_all_extension_methods_in_0_to_extension">
         <source>Convert all extension methods in '{0}' to extension</source>
-        <target state="new">Convert all extension methods in '{0}' to extension</target>
+        <target state="translated">Konwertuj wszystkie metody rozszerzeń w „{0}” na rozszerzenie</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_method">
@@ -219,7 +229,7 @@
       </trans-unit>
       <trans-unit id="Defines_a_build_property">
         <source>Defines a build property.</source>
-        <target state="new">Defines a build property.</target>
+        <target state="translated">Definiuje właściwość kompilacji.</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_nullable_reference_types_in_project">
@@ -244,17 +254,17 @@
       </trans-unit>
       <trans-unit id="Package_name">
         <source>Name</source>
-        <target state="new">Name</target>
+        <target state="translated">Nazwa</target>
         <note>'Name' is a placeholder for a package or sdk name in a directive like '#:package Name@Version'.</note>
       </trans-unit>
       <trans-unit id="Package_version">
         <source>Version</source>
-        <target state="new">Version</target>
+        <target state="translated">Wersja</target>
         <note>'Version' is a placeholder for a package or sdk version in a directive like '#:package Name@Version'.</note>
       </trans-unit>
       <trans-unit id="Project_directive_file_path">
         <source>path</source>
-        <target state="new">path</target>
+        <target state="translated">ścieżka</target>
         <note>'path' is a placeholder for a project file or directory path in a directive like '#:project path'.</note>
       </trans-unit>
       <trans-unit id="Reverse_for_statement">
@@ -506,6 +516,11 @@
         <source>fixed statement</source>
         <target state="translated">instrukcja fixed</target>
         <note>{Locked="fixed"} "fixed" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="unsafe_block">
+        <source>unsafe block</source>
+        <target state="new">unsafe block</target>
+        <note />
       </trans-unit>
       <trans-unit id="using_declaration">
         <source>using declaration</source>

@@ -29,7 +29,14 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
 
         private readonly CancellationTokenSource _shutdownNotificationSource = new();
         private readonly CancellationToken _shutdownToken;
-        private readonly AsyncBatchingWorkQueue<Func<Task>> _eventProcessingQueue;
+
+        /// <summary>
+        /// A piece of work logged into the work coordinator queue. Includes the time the work was added, so when looking at a dump you can
+        /// get a sense how long things have been waiting in the queue and whether it was a slow but continuous trickle or a burst of work.
+        /// </summary>
+        private record struct TimestampedWorkItem(Func<Task> Work, DateTime TimestampAdded);
+
+        private readonly AsyncBatchingWorkQueue<TimestampedWorkItem> _eventProcessingQueue;
 
         // points to processor task
         private readonly UnitTestingIncrementalAnalyzerProcessor _documentAndProjectWorkerProcessor;
@@ -70,13 +77,13 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
             _semanticChangeProcessor = new UnitTestingSemanticChangeProcessor(listener, Registration, _documentAndProjectWorkerProcessor, semanticBackOffTimeSpan, projectBackOffTimeSpan, _shutdownToken);
         }
 
-        private async ValueTask ProcessWorkQueueAsync(ImmutableSegmentedList<Func<Task>> list, CancellationToken cancellationToken)
+        private async ValueTask ProcessWorkQueueAsync(ImmutableSegmentedList<TimestampedWorkItem> list, CancellationToken cancellationToken)
         {
-            foreach (var taskCreator in list)
+            foreach (var workItem in list)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var task = Task.Run(taskCreator, cancellationToken);
+                var task = Task.Run(workItem.Work, cancellationToken);
                 _ = task.ReportNonFatalErrorAsync();
                 await task.NoThrowAwaitableInternal(captureContext: false);
             }
@@ -97,7 +104,7 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
 
         public void Reanalyze(IUnitTestingIncrementalAnalyzer analyzer, UnitTestingReanalyzeScope scope)
         {
-            _eventProcessingQueue.AddWork(() => EnqueueWorkItemAsync(analyzer, scope));
+            AddWork(() => EnqueueWorkItemAsync(analyzer, scope));
 
             if (scope.HasMultipleDocuments)
             {
@@ -107,6 +114,11 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
                 UnitTestingSolutionCrawlerLogger.LogReanalyze(
                     CorrelationId, analyzer, scope.GetDocumentCount(solution), scope.GetLanguagesStringForTelemetry(solution));
             }
+        }
+
+        private void AddWork(Func<Task> work)
+        {
+            _eventProcessingQueue.AddWork(new TimestampedWorkItem(work, DateTime.UtcNow));
         }
 
         public void OnWorkspaceChanged(WorkspaceChangeEventArgs args)
@@ -217,7 +229,7 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
 
         private void EnqueueSolutionChangedEvent(Solution oldSolution, Solution newSolution)
         {
-            _eventProcessingQueue.AddWork(
+            AddWork(
                 async () =>
                 {
                     var solutionChanges = newSolution.GetChanges(oldSolution);
@@ -242,7 +254,7 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
 
         private void EnqueueFullSolutionEvent(Solution solution, UnitTestingInvocationReasons invocationReasons)
         {
-            _eventProcessingQueue.AddWork(
+            AddWork(
                 async () =>
                 {
                     foreach (var projectId in solution.ProjectIds)
@@ -254,7 +266,7 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
 
         private void EnqueueProjectChangedEvent(Solution oldSolution, Solution newSolution, ProjectId projectId)
         {
-            _eventProcessingQueue.AddWork(
+            AddWork(
                 async () =>
                 {
                     var oldProject = oldSolution.GetRequiredProject(projectId);
@@ -266,13 +278,13 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
 
         private void EnqueueFullProjectEvent(Solution solution, ProjectId projectId, UnitTestingInvocationReasons invocationReasons)
         {
-            _eventProcessingQueue.AddWork(
+            AddWork(
                 () => EnqueueFullProjectWorkItemAsync(solution.GetRequiredProject(projectId), invocationReasons));
         }
 
         private void EnqueueFullDocumentEvent(Solution solution, DocumentId documentId, UnitTestingInvocationReasons invocationReasons)
         {
-            _eventProcessingQueue.AddWork(
+            AddWork(
                 () =>
                 {
                     var project = solution.GetRequiredProject(documentId.ProjectId);
@@ -283,7 +295,7 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
         private void EnqueueDocumentChangedEvent(Solution oldSolution, Solution newSolution, DocumentId documentId)
         {
             // document changed event is the special one.
-            _eventProcessingQueue.AddWork(
+            AddWork(
                 async () =>
                 {
                     var oldProject = oldSolution.GetRequiredProject(documentId.ProjectId);
@@ -430,28 +442,61 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
             // TODO: why solution changes return Project not ProjectId but ProjectChanges return DocumentId not Document?
             var projectConfigurationChange = UnitTestingInvocationReasons.Empty;
 
-            if (projectChanges.GetAddedMetadataReferences().Any() ||
-                projectChanges.GetAddedProjectReferences().Any() ||
-                projectChanges.GetAddedAnalyzerReferences().Any() ||
-                projectChanges.GetRemovedMetadataReferences().Any() ||
-                projectChanges.GetRemovedProjectReferences().Any() ||
-                projectChanges.GetRemovedAnalyzerReferences().Any() ||
-                !object.Equals(oldProject.CompilationOptions, newProject.CompilationOptions) ||
-                !object.Equals(oldProject.AssemblyName, newProject.AssemblyName) ||
-                !object.Equals(oldProject.Name, newProject.Name) ||
-                !object.Equals(oldProject.AnalyzerOptions, newProject.AnalyzerOptions) ||
-                !object.Equals(oldProject.HostAnalyzerOptions, newProject.HostAnalyzerOptions) ||
-                !object.Equals(oldProject.DefaultNamespace, newProject.DefaultNamespace) ||
-                !object.Equals(oldProject.OutputFilePath, newProject.OutputFilePath) ||
-                !object.Equals(oldProject.OutputRefFilePath, newProject.OutputRefFilePath) ||
-                !oldProject.CompilationOutputInfo.Equals(newProject.CompilationOutputInfo) ||
-                oldProject.State.RunAnalyzers != newProject.State.RunAnalyzers)
-            {
-                projectConfigurationChange = projectConfigurationChange.With(UnitTestingInvocationReasons.ProjectConfigurationChanged);
-            }
+            // We will create an invocation reason for each kind of change we might detect; this makes it easy to identify in
+            // a memory dump why a particular project reanalysis was happening.
+            if (projectChanges.GetAddedMetadataReferences().Any())
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.MetadataReferences) + "Added");
+
+            if (projectChanges.GetAddedProjectReferences().Any())
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.ProjectReferences) + "Added");
+
+            if (projectChanges.GetAddedAnalyzerReferences().Any())
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.AnalyzerReferences) + "Added");
+
+            if (projectChanges.GetRemovedMetadataReferences().Any())
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.MetadataReferences) + "Removed");
+
+            if (projectChanges.GetRemovedProjectReferences().Any())
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.ProjectReferences) + "Removed");
+
+            if (projectChanges.GetRemovedAnalyzerReferences().Any())
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.AnalyzerReferences) + "Removed");
+
+            if (!object.Equals(oldProject.CompilationOptions, newProject.CompilationOptions))
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.CompilationOptions) + "Changed");
+
+            if (!object.Equals(oldProject.AssemblyName, newProject.AssemblyName))
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.AssemblyName) + "Changed");
+
+            if (!object.Equals(oldProject.Name, newProject.Name))
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.Name) + "Changed");
+
+            if (!object.Equals(oldProject.AnalyzerOptions, newProject.AnalyzerOptions))
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.AnalyzerOptions) + "Changed");
+
+            if (!object.Equals(oldProject.HostAnalyzerOptions, newProject.HostAnalyzerOptions))
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.HostAnalyzerOptions) + "Changed");
+
+            if (!object.Equals(oldProject.DefaultNamespace, newProject.DefaultNamespace))
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.DefaultNamespace) + "Changed");
+
+            if (!object.Equals(oldProject.OutputFilePath, newProject.OutputFilePath))
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.OutputFilePath) + "Changed");
+
+            if (!object.Equals(oldProject.OutputRefFilePath, newProject.OutputRefFilePath))
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.OutputRefFilePath) + "Changed");
+
+            if (!oldProject.CompilationOutputInfo.Equals(newProject.CompilationOutputInfo))
+                projectConfigurationChange = projectConfigurationChange.With(nameof(oldProject.CompilationOutputInfo) + "Changed");
+
+            if (oldProject.State.RunAnalyzers != newProject.State.RunAnalyzers)
+                projectConfigurationChange = projectConfigurationChange.With(nameof(ProjectState.RunAnalyzers) + "Changed");
 
             if (!projectConfigurationChange.IsEmpty)
             {
+                // Also include the generic change reason which is used by other parts of the system, since nothing else looks at the specific
+                // reasons we created above.
+                projectConfigurationChange = projectConfigurationChange.With(UnitTestingPredefinedInvocationReasons.ProjectConfigurationChanged);
                 await EnqueueFullProjectWorkItemAsync(projectChanges.NewProject, projectConfigurationChange).ConfigureAwait(false);
             }
         }

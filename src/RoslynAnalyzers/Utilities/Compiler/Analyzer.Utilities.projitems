@@ -57,7 +57,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SourceTextExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringCompatExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\WellKnownDiagnosticTagsExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Lightup\LightupHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\MSBuildItemOptionNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionKey.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionKind.cs" />

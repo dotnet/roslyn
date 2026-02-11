@@ -29,12 +29,12 @@
       </trans-unit>
       <trans-unit id="FeatureName_CopilotChangeAnalysis">
         <source>Copilot change analysis</source>
-        <target state="new">Copilot change analysis</target>
+        <target state="translated">Copilot 更改分析</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_CopilotProposalAdjuster">
         <source>Copilot proposal adjuster</source>
-        <target state="new">Copilot proposal adjuster</target>
+        <target state="translated">Copilot 提案调整器</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_DependentTypeFinder">
@@ -67,14 +67,14 @@
         <target state="translated">封装字段重构</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_ExtensionMessageHandler">
-        <source>Extension message handler</source>
-        <target state="new">Extension message handler</target>
+      <trans-unit id="FeatureName_ExtensionMemberImportCompletion">
+        <source>Extension member import completion</source>
+        <target state="translated">扩展成员导入完成</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_ExtensionMethodImportCompletion">
-        <source>Extension method import completion</source>
-        <target state="translated">扩展方法导入完成</target>
+      <trans-unit id="FeatureName_ExtensionMessageHandler">
+        <source>Extension message handler</source>
+        <target state="translated">扩展消息处理程序</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_FindUsages">
@@ -99,7 +99,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_Initialization">
         <source>Initialization</source>
-        <target state="new">Initialization</target>
+        <target state="translated">初始化</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_KeepAlive">

@@ -247,6 +247,7 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_InvalidDebugInfo { get; }
         public abstract int ERR_FunctionPointerTypesInAttributeNotSupported { get; }
         public abstract int ERR_DataSectionStringLiteralHashCollision { get; }
+        public abstract int ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime { get; }
 
         // Generators:
         public abstract int WRN_GeneratorFailedDuringInitialization { get; }

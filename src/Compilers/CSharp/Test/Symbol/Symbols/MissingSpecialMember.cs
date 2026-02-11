@@ -572,7 +572,11 @@ namespace System
                     || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter
                     || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task
                     || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_Int32
+<<<<<<< HEAD
                     || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__Await_T
+=======
+                    || special == SpecialMember.System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor
+>>>>>>> dotnet/main
                     )
                 {
                     Assert.Null(symbol); // Not available

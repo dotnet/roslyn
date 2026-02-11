@@ -199,7 +199,11 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task,
         System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_Int32,
 
+<<<<<<< HEAD
         System_Runtime_CompilerServices_AsyncHelpers__Await_T,
+=======
+        System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor,
+>>>>>>> dotnet/main
 
         Count
     }

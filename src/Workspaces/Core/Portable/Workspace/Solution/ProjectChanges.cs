@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis;
@@ -22,76 +23,22 @@ public readonly struct ProjectChanges
     public Project NewProject { get; }
 
     public IEnumerable<ProjectReference> GetAddedProjectReferences()
-    {
-        var oldRefs = new HashSet<ProjectReference>(OldProject.ProjectReferences);
-        foreach (var reference in NewProject.ProjectReferences)
-        {
-            if (!oldRefs.Contains(reference))
-            {
-                yield return reference;
-            }
-        }
-    }
+        => GetChangedProjectReferences(NewProject, OldProject);
 
     public IEnumerable<ProjectReference> GetRemovedProjectReferences()
-    {
-        var newRefs = new HashSet<ProjectReference>(NewProject.ProjectReferences);
-        foreach (var reference in OldProject.ProjectReferences)
-        {
-            if (!newRefs.Contains(reference))
-            {
-                yield return reference;
-            }
-        }
-    }
+        => GetChangedProjectReferences(OldProject, NewProject);
 
     public IEnumerable<MetadataReference> GetAddedMetadataReferences()
-    {
-        var oldMetadata = new HashSet<MetadataReference>(OldProject.MetadataReferences);
-        foreach (var metadata in NewProject.MetadataReferences)
-        {
-            if (!oldMetadata.Contains(metadata))
-            {
-                yield return metadata;
-            }
-        }
-    }
+        => GetChangedItems(NewProject.MetadataReferences, OldProject.MetadataReferences);
 
     public IEnumerable<MetadataReference> GetRemovedMetadataReferences()
-    {
-        var newMetadata = new HashSet<MetadataReference>(NewProject.MetadataReferences);
-        foreach (var metadata in OldProject.MetadataReferences)
-        {
-            if (!newMetadata.Contains(metadata))
-            {
-                yield return metadata;
-            }
-        }
-    }
+        => GetChangedItems(OldProject.MetadataReferences, NewProject.MetadataReferences);
 
     public IEnumerable<AnalyzerReference> GetAddedAnalyzerReferences()
-    {
-        var oldAnalyzerReferences = new HashSet<AnalyzerReference>(OldProject.AnalyzerReferences);
-        foreach (var analyzerReference in NewProject.AnalyzerReferences)
-        {
-            if (!oldAnalyzerReferences.Contains(analyzerReference))
-            {
-                yield return analyzerReference;
-            }
-        }
-    }
+        => GetChangedItems(NewProject.AnalyzerReferences, OldProject.AnalyzerReferences);
 
     public IEnumerable<AnalyzerReference> GetRemovedAnalyzerReferences()
-    {
-        var newAnalyzerReferences = new HashSet<AnalyzerReference>(NewProject.AnalyzerReferences);
-        foreach (var analyzerReference in OldProject.AnalyzerReferences)
-        {
-            if (!newAnalyzerReferences.Contains(analyzerReference))
-            {
-                yield return analyzerReference;
-            }
-        }
-    }
+        => GetChangedItems(OldProject.AnalyzerReferences, NewProject.AnalyzerReferences);
 
     /// <summary>
     /// Get <see cref="DocumentId"/>s of added documents in the order they appear in <see cref="Project.DocumentIds"/> of the <see cref="NewProject"/>.
@@ -160,4 +107,22 @@ public readonly struct ProjectChanges
     /// </summary>
     public IEnumerable<DocumentId> GetRemovedAnalyzerConfigDocuments()
         => NewProject.State.AnalyzerConfigDocumentStates.GetRemovedStateIds(OldProject.State.AnalyzerConfigDocumentStates);
+
+    private static IEnumerable<T> GetChangedItems<T>(IEnumerable<T> newItems, IEnumerable<T> oldItems)
+        => newItems == oldItems ? [] : newItems.Except(oldItems);
+
+    private static IEnumerable<ProjectReference> GetChangedProjectReferences(Project newProject, Project oldProject)
+    {
+        // Fast path: if the set of projects in the solution and the underlying project references
+        // collection are identical, then no project references (within the solution) have changed.
+        if (newProject.Solution.ProjectIds == oldProject.Solution.ProjectIds &&
+            newProject.State.ProjectReferences == oldProject.State.ProjectReferences)
+        {
+            return [];
+        }
+
+        // Compute the diff based on ProjectReferences, which only includes references to projects
+        // contained in the solution.
+        return newProject.ProjectReferences.Except(oldProject.ProjectReferences);
+    }
 }

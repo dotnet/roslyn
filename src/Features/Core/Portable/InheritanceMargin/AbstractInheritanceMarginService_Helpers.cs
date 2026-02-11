@@ -132,7 +132,7 @@ internal abstract partial class AbstractInheritanceMarginService
         var (remappedProject, symbolAndLineNumbers) = await GetMemberSymbolsAsync(document, spanToSearch, cancellationToken).ConfigureAwait(false);
 
         // if we didn't remap the symbol to another project (e.g. remapping from a metadata-as-source symbol back to
-        // the originating project), then we're in teh same project and we should try to get global import
+        // the originating project), then we're in the same project and we should try to get global import
         // information to display.
         var remapped = remappedProject != document.Project;
 

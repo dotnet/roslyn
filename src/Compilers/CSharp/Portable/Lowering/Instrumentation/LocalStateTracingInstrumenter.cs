@@ -298,7 +298,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_factory.TopLevelMethod is not null);
             Debug.Assert(_factory.CurrentFunction is not null);
 
+<<<<<<< HEAD
             var isStateMachine = getIsStateMachine(_factory.CurrentFunction);
+=======
+            var currentFunction = _factory.CurrentFunction;
+            var isStateMachine = (currentFunction.IsAsync && !_factory.Compilation.IsRuntimeAsyncEnabledIn(currentFunction))
+                                 || currentFunction.IsIterator;
+>>>>>>> dotnet/main
 
             var prologueBuilder = ArrayBuilder<BoundStatement>.GetInstance(_factory.CurrentFunction.ParameterCount);
 
@@ -499,7 +505,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ImmutableArray.Create(toString, index);
             }
 
-            return ImmutableArray.Create(_factory.Convert(parameter.Type, value), index);
+            Conversion c = _factory.ClassifyEmitConversion(value, parameter.Type);
+            Debug.Assert(c.IsNumeric || c.IsReference || c.IsIdentity || c.IsPointer || c.IsBoxing || c.IsEnumeration);
+            return ImmutableArray.Create(_factory.Convert(parameter.Type, value, c), index);
         }
 
         private BoundExpression VariableRead(Symbol localOrParameterSymbol)
@@ -564,10 +572,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<BoundExpression> arguments = original.Arguments;
             MethodSymbol method = original.Method;
-            bool adjustForNewExtension = method.IsExtensionBlockMember() && !method.IsStatic;
-            ImmutableArray<RefKind> argumentRefKindsOpt = NullableWalker.GetArgumentRefKinds(original.ArgumentRefKindsOpt, adjustForNewExtension, method, arguments.Length);
+            bool adjustForExtensionBlockMethod = method.IsExtensionBlockMember() && !method.IsStatic;
+            ImmutableArray<RefKind> argumentRefKindsOpt = NullableWalker.AdjustArgumentRefKindsIfNeeded(original.ArgumentRefKindsOpt, adjustForExtensionBlockMethod, method, arguments.Length);
 
-            if (adjustForNewExtension)
+            if (adjustForExtensionBlockMethod)
             {
                 Debug.Assert(original.ReceiverOpt is not null);
                 arguments = [original.ReceiverOpt, .. arguments];

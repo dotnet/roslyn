@@ -49,7 +49,6 @@ internal sealed class ServiceDescriptors
     private const string InterfaceNameSuffix = "Service";
 
     private const string Suffix64 = "64";
-    private const string SuffixServerGC = "S";
     private const string SuffixCoreClr = "Core";
 
     public static readonly ServiceDescriptors Instance = new(ComponentName, GetFeatureDisplayName, RemoteSerializationOptions.Default, new (Type, Type?)[]
@@ -67,7 +66,7 @@ internal sealed class ServiceDescriptors
         (typeof(IRemoteEditAndContinueService), typeof(IRemoteEditAndContinueService.ICallback)),
         (typeof(IRemoteEncapsulateFieldService), null),
         (typeof(IRemoteExtensionMessageHandlerService), null),
-        (typeof(IRemoteExtensionMethodImportCompletionService), null),
+        (typeof(IRemoteExtensionMemberImportCompletionService), null),
         (typeof(IRemoteFindUsagesService), typeof(IRemoteFindUsagesService.ICallback)),
         (typeof(IRemoteFullyQualifyService), null),
         (typeof(IRemoteInheritanceMarginService), null),
@@ -92,7 +91,7 @@ internal sealed class ServiceDescriptors
     });
 
     internal readonly RemoteSerializationOptions Options;
-    private readonly ImmutableDictionary<Type, (ServiceDescriptor descriptorCoreClr64, ServiceDescriptor descriptorCoreClr64ServerGC)> _descriptors;
+    private readonly ImmutableDictionary<Type, ServiceDescriptor> _descriptors;
     private readonly string _componentName;
     private readonly Func<string, string> _featureDisplayNameProvider;
 
@@ -105,7 +104,7 @@ internal sealed class ServiceDescriptors
         Options = serializationOptions;
         _componentName = componentName;
         _featureDisplayNameProvider = featureDisplayNameProvider;
-        _descriptors = interfaces.ToImmutableDictionary(i => i.serviceInterface, i => CreateDescriptors(i.serviceInterface, i.callbackInterface));
+        _descriptors = interfaces.ToImmutableDictionary(i => i.serviceInterface, i => CreateDescriptor(i.serviceInterface, i.callbackInterface));
     }
 
     internal static string GetSimpleName(Type serviceInterface)
@@ -118,15 +117,12 @@ internal sealed class ServiceDescriptors
         return interfaceName.Substring(InterfaceNamePrefix.Length, interfaceName.Length - InterfaceNamePrefix.Length - InterfaceNameSuffix.Length);
     }
 
-    private (ServiceDescriptor descriptorCoreClr64, ServiceDescriptor descriptorCoreClr64ServerGC) CreateDescriptors(Type serviceInterface, Type? callbackInterface)
+    private ServiceDescriptor CreateDescriptor(Type serviceInterface, Type? callbackInterface)
     {
         Contract.ThrowIfFalse(callbackInterface == null || callbackInterface.IsInterface);
 
         var simpleName = GetSimpleName(serviceInterface);
-        var descriptorCoreClr64 = ServiceDescriptor.CreateRemoteServiceDescriptor(_componentName, simpleName, SuffixCoreClr + Suffix64, Options, _featureDisplayNameProvider, callbackInterface);
-        var descriptorCoreClr64ServerGC = ServiceDescriptor.CreateRemoteServiceDescriptor(_componentName, simpleName, SuffixCoreClr + Suffix64 + SuffixServerGC, Options, _featureDisplayNameProvider, callbackInterface);
-
-        return (descriptorCoreClr64, descriptorCoreClr64ServerGC);
+        return ServiceDescriptor.CreateRemoteServiceDescriptor(_componentName, simpleName, SuffixCoreClr + Suffix64, Options, _featureDisplayNameProvider, callbackInterface);
     }
 
     public static bool IsCurrentProcessRunningOnCoreClr()
@@ -134,22 +130,16 @@ internal sealed class ServiceDescriptors
            !RuntimeInformation.FrameworkDescription.StartsWith(".NET Native");
 
     public ServiceDescriptor GetServiceDescriptorForServiceFactory(Type serviceType)
-        => GetServiceDescriptor(serviceType, RemoteProcessConfiguration.ServerGC);
+        => GetServiceDescriptor(serviceType);
 
-    public ServiceDescriptor GetServiceDescriptor(Type serviceType, RemoteProcessConfiguration configuration)
+    public ServiceDescriptor GetServiceDescriptor(Type serviceType)
     {
         if (!_descriptors.TryGetValue(serviceType, out var descriptor))
         {
             throw ExceptionUtilities.UnexpectedValue(serviceType);
         }
 
-        var (descriptorCoreClr64, descriptorCoreClr64ServerGC) = descriptor;
-        return (configuration & RemoteProcessConfiguration.ServerGC) switch
-        {
-            0 => descriptorCoreClr64,
-            RemoteProcessConfiguration.ServerGC => descriptorCoreClr64ServerGC,
-            _ => throw ExceptionUtilities.Unreachable()
-        };
+        return descriptor;
     }
 
     /// <summary>
@@ -168,7 +158,7 @@ internal sealed class ServiceDescriptors
         internal TestAccessor(ServiceDescriptors serviceDescriptors)
             => _serviceDescriptors = serviceDescriptors;
 
-        public ImmutableDictionary<Type, (ServiceDescriptor descriptorCoreClr64, ServiceDescriptor descriptorCoreClr64ServerGC)> Descriptors
+        public ImmutableDictionary<Type, ServiceDescriptor> Descriptors
             => _serviceDescriptors._descriptors;
     }
 }

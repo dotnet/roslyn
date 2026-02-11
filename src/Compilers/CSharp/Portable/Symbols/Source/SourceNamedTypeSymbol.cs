@@ -13,6 +13,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1227,6 +1228,10 @@ next:;
             {
                 arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasCompilerLoweringPreserveAttribute = true;
             }
+            else if (attribute.IsTargetAttribute(AttributeDescription.ExtendedLayoutAttribute))
+            {
+                arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasExtendedLayoutAttribute = true;
+            }
             else
             {
                 var compilation = this.DeclaringCompilation;
@@ -1509,7 +1514,13 @@ next:;
             get
             {
                 var data = GetDecodedWellKnownAttributeData();
-                if (data != null && data.HasStructLayoutAttribute)
+
+                if (data is { HasExtendedLayoutAttribute: true })
+                {
+                    return new TypeLayout(LayoutKind.Extended, 0, alignment: 0);
+                }
+
+                if (data is { HasStructLayoutAttribute: true })
                 {
                     return data.Layout;
                 }
@@ -1521,6 +1532,7 @@ next:;
                     // 
                     // Dev11 compiler sets the value to 1 for structs with no instance fields and no size specified.
                     // It does not change the size value if it was explicitly specified to be 0, nor does it report an error.
+
                     return new TypeLayout(LayoutKind.Sequential, this.HasInstanceFields() ? 0 : 1, alignment: 0);
                 }
 
@@ -1543,6 +1555,15 @@ next:;
             {
                 var data = GetDecodedWellKnownAttributeData();
                 return (data != null && data.HasStructLayoutAttribute) ? data.MarshallingCharSet : DefaultMarshallingCharSet;
+            }
+        }
+
+        internal bool HasExtendedLayoutAttribute
+        {
+            get
+            {
+                var data = GetDecodedWellKnownAttributeData();
+                return data is { HasExtendedLayoutAttribute: true };
             }
         }
 
@@ -1691,7 +1712,7 @@ next:;
 
             CSharpCompilation compilation = this.DeclaringCompilation;
 
-            if (this.ContainsExtensionMethods)
+            if (this.ContainsExtensions)
             {
                 // No need to check if [Extension] attribute was explicitly set since
                 // we'll issue CS1112 error in those cases and won't generate IL.
@@ -1885,9 +1906,15 @@ next:;
                 Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor, diagnostics, indexerSymbol.TryGetFirstLocation() ?? GetFirstLocation());
             }
 
+            if (HasStructLayoutAttribute && HasExtendedLayoutAttribute)
+            {
+                // Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
+                diagnostics.Add(ErrorCode.ERR_StructLayoutAndExtendedLayout, GetFirstLocation());
+            }
+
             if (TypeKind == TypeKind.Struct && !IsRecordStruct && HasInlineArrayAttribute(out _))
             {
-                if (Layout.Kind == LayoutKind.Explicit)
+                if (Layout.Kind is not (LayoutKind.Sequential or LayoutKind.Auto))
                 {
                     diagnostics.Add(ErrorCode.ERR_InvalidInlineArrayLayout, GetFirstLocation());
                 }
@@ -1968,6 +1995,14 @@ next:;
                 if (!ContainingAssembly.RuntimeSupportsInlineArrayTypes)
                 {
                     diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes, GetFirstLocation());
+                }
+            }
+
+            if (TypeKind == TypeKind.Struct && HasExtendedLayoutAttribute)
+            {
+                if (!ContainingAssembly.RuntimeSupportsExtendedLayout)
+                {
+                    diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportExtendedLayoutTypes, GetFirstLocation());
                 }
             }
 

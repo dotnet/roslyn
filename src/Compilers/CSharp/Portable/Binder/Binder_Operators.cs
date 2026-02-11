@@ -75,10 +75,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var placeholder = new BoundValuePlaceholder(right.Syntax, left.HasDynamicType() ? left.Type : right.Type).MakeCompilerGenerated();
                         var finalDynamicConversion = this.Compilation.Conversions.ClassifyConversionFromExpression(placeholder, left.Type, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
                         diagnostics.Add(node, useSiteInfo);
-                        var conversion = (BoundConversion)CreateConversion(node, placeholder, finalDynamicConversion, isCast: true, conversionGroupOpt: null, left.Type, diagnostics);
+                        var conversion = (BoundConversion)CreateConversion(node, placeholder, finalDynamicConversion, isCast: true, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, left.Type, diagnostics);
 
                         conversion = conversion.Update(conversion.Operand, conversion.Conversion, conversion.IsBaseConversion, conversion.Checked,
-                                                       explicitCastInCode: true, conversion.ConstantValueOpt, conversion.ConversionGroupOpt, conversion.Type);
+                                                       explicitCastInCode: true, conversion.ConstantValueOpt, conversion.ConversionGroupOpt, conversion.InConversionGroupFlags, conversion.Type);
 
                         return new BoundCompoundAssignmentOperator(
                             node,
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(left.Kind != BoundKind.EventAccess || hasError);
 
                 var leftPlaceholder = new BoundValuePlaceholder(left.Syntax, leftType).MakeCompilerGenerated();
-                var leftConversion = CreateConversion(node.Left, leftPlaceholder, best.LeftConversion, isCast: false, conversionGroupOpt: null, best.Signature.LeftType, diagnostics);
+                var leftConversion = CreateConversion(node.Left, leftPlaceholder, best.LeftConversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, best.Signature.LeftType, diagnostics);
 
                 return new BoundCompoundAssignmentOperator(node, bestSignature, left, rightConverted,
                     leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, resultKind, originalUserDefinedOperators, leftType, hasError);
@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(leftType.IsReferenceType);
 
                             leftPlaceholder = new BoundValuePlaceholder(left.Syntax, leftType).MakeCompilerGenerated();
-                            leftConversion = CreateConversion(node, leftPlaceholder, conversion, isCast: false, conversionGroupOpt: null, method.ContainingType.ExtensionParameter.Type, diagnostics);
+                            leftConversion = CreateConversion(node, leftPlaceholder, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, method.ContainingType.ExtensionParameter.Type, diagnostics);
                         }
                     }
 
@@ -604,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(ordinaryInstanceOperatorName is not null);
 
                         extensionCandidatesInSingleScope.Clear();
-                        scope.Binder.GetCandidateExtensionMembersInSingleBinder(extensionCandidatesInSingleScope,
+                        scope.Binder.GetAllExtensionCandidatesInSingleBinder(extensionCandidatesInSingleScope,
                             ordinaryInstanceOperatorName, checkedInstanceOperatorName, arity: 0,
                             LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeOperator | LookupOptions.MustBeInstance, this);
 
@@ -619,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     extensionCandidatesInSingleScope.Clear();
-                    scope.Binder.GetCandidateExtensionMembersInSingleBinder(extensionCandidatesInSingleScope,
+                    scope.Binder.GetAllExtensionCandidatesInSingleBinder(extensionCandidatesInSingleScope,
                         staticOperatorName1, staticOperatorName2Opt, arity: 0,
                         LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeOperator | LookupOptions.MustNotBeInstance, this);
 
@@ -903,18 +903,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression result = BindExpression(current, diagnostics);
 
-            if (node.IsKind(SyntaxKind.SubtractExpression)
-                && current.IsKind(SyntaxKind.ParenthesizedExpression))
+            if (current is ParenthesizedExpressionSyntax parenthesizedExpression
+                && IsParenthesizedExpressionInPossibleBadNegCastContext(parenthesizedExpression))
             {
                 if (result.Kind == BoundKind.TypeExpression
-                    && !((ParenthesizedExpressionSyntax)current).Expression.IsKind(SyntaxKind.ParenthesizedExpression))
+                    && !parenthesizedExpression.Expression.IsKind(SyntaxKind.ParenthesizedExpression))
                 {
                     Error(diagnostics, ErrorCode.ERR_PossibleBadNegCast, node);
                 }
                 else if (result.Kind == BoundKind.BadExpression)
                 {
-                    var parenthesizedExpression = (ParenthesizedExpressionSyntax)current;
-
                     if (parenthesizedExpression.Expression.IsKind(SyntaxKind.IdentifierName)
                         && ((IdentifierNameSyntax)parenthesizedExpression.Expression).Identifier.ValueText == "dynamic")
                     {
@@ -1553,6 +1551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 trueFalseOperator.Conversion,
                                 isCast: false,
                                 conversionGroupOpt: null,
+                                InConversionGroupFlags.Unspecified,
                                 trueFalseOperator.Signature.OperandType,
                                 diagnostics);
 
@@ -1619,7 +1618,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (left.Type is not null)
                 {
-                    CreateConversion(left.Syntax, new BoundValuePlaceholder(left.Syntax, left.Type).MakeCompilerGenerated(), implicitConversion, isCast: false, conversionGroupOpt: null, booleanType, diagnostics);
+                    CreateConversion(left.Syntax, new BoundValuePlaceholder(left.Syntax, left.Type).MakeCompilerGenerated(), implicitConversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, booleanType, diagnostics);
                 }
                 else
                 {
@@ -1658,7 +1657,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 userDefinedOperator = result.Signature.Method;
 
                 TypeSymbol parameterType = userDefinedOperator.Parameters[0].Type;
-                CreateConversion(left.Syntax, operandPlaceholder, result.Conversion, isCast: false, conversionGroupOpt: null, parameterType, diagnostics);
+                CreateConversion(left.Syntax, operandPlaceholder, result.Conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, parameterType, diagnostics);
                 return true;
             }
 
@@ -1997,7 +1996,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 UnaryOperatorAnalysisResult? possiblyBest = null;
 
                 string name = OperatorFacts.UnaryOperatorNameFromOperatorKind(kind, isChecked: false);
-                extensionContainingType.GetExtensionMembers(extensionCandidates,
+                extensionContainingType.GetAllExtensionMembers(extensionCandidates,
                     name, alternativeName: null, arity: 0,
                     LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeOperator | LookupOptions.MustNotBeInstance,
                     FieldsBeingBound);
@@ -2122,7 +2121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var scope in new ExtensionScopes(this))
             {
                 extensionCandidatesInSingleScope.Clear();
-                scope.Binder.GetCandidateExtensionMembersInSingleBinder(extensionCandidatesInSingleScope,
+                scope.Binder.GetAllExtensionCandidatesInSingleBinder(extensionCandidatesInSingleScope,
                     name1, name2Opt, arity: 0,
                     LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeOperator | LookupOptions.MustNotBeInstance, this);
 
@@ -2434,7 +2433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var scope in new ExtensionScopes(this))
             {
                 extensionCandidatesInSingleScope.Clear();
-                scope.Binder.GetCandidateExtensionMembersInSingleBinder(extensionCandidatesInSingleScope,
+                scope.Binder.GetAllExtensionCandidatesInSingleBinder(extensionCandidatesInSingleScope,
                     name1, name2Opt, arity: 0,
                     LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeOperator | LookupOptions.MustNotBeInstance, this);
 
@@ -3409,7 +3408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var operandPlaceholder = new BoundValuePlaceholder(operand.Syntax, operandType).MakeCompilerGenerated();
-                var operandConversion = CreateConversion(node, operandPlaceholder, best.Conversion, isCast: false, conversionGroupOpt: null, best.Signature.OperandType, diagnostics);
+                var operandConversion = CreateConversion(node, operandPlaceholder, best.Conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, best.Signature.OperandType, diagnostics);
 
                 return new BoundIncrementOperator(
                     node,
@@ -3595,7 +3594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(operandType.IsReferenceType);
 
                             operandPlaceholder = new BoundValuePlaceholder(operand.Syntax, operandType).MakeCompilerGenerated();
-                            operandConversion = CreateConversion(node, operandPlaceholder, conversion, isCast: false, conversionGroupOpt: null, method.ContainingType.ExtensionParameter.Type, diagnostics);
+                            operandConversion = CreateConversion(node, operandPlaceholder, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, method.ContainingType.ExtensionParameter.Type, diagnostics);
                         }
                     }
 
@@ -3696,7 +3695,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(ordinaryInstanceOperatorName is not null);
 
                         extensionCandidatesInSingleScope.Clear();
-                        scope.Binder.GetCandidateExtensionMembersInSingleBinder(extensionCandidatesInSingleScope,
+                        scope.Binder.GetAllExtensionCandidatesInSingleBinder(extensionCandidatesInSingleScope,
                             ordinaryInstanceOperatorName, checkedInstanceOperatorName, arity: 0,
                             LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeOperator | LookupOptions.MustBeInstance, this);
 
@@ -3711,7 +3710,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     extensionCandidatesInSingleScope.Clear();
-                    scope.Binder.GetCandidateExtensionMembersInSingleBinder(extensionCandidatesInSingleScope,
+                    scope.Binder.GetAllExtensionCandidatesInSingleBinder(extensionCandidatesInSingleScope,
                         staticOperatorName1, staticOperatorName2Opt, arity: 0,
                         LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeOperator | LookupOptions.MustNotBeInstance, this);
 
@@ -4390,7 +4389,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             operatorResolutionForReporting.Free();
             var signature = best.Signature;
 
-            var resultOperand = CreateConversion(operand.Syntax, operand, best.Conversion, isCast: false, conversionGroupOpt: null, signature.OperandType, diagnostics);
+            var resultOperand = CreateConversion(operand.Syntax, operand, best.Conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, signature.OperandType, diagnostics);
             var resultType = signature.ReturnType;
             UnaryOperatorKind resultOperatorKind = signature.Kind;
             var resultConstant = FoldUnaryOperator(node, resultOperatorKind, resultOperand, resultType, diagnostics);
@@ -5388,7 +5387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operandPlaceholder = new BoundValuePlaceholder(operand.Syntax, operand.Type).MakeCompilerGenerated();
                 operandConversion = CreateConversion(node, operandPlaceholder,
                                                      Conversion.NullLiteral,
-                                                     isCast: false, conversionGroupOpt: null, resultType, diagnostics);
+                                                     isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, resultType, diagnostics);
 
                 return new BoundAsOperator(node, operand, typeExpression, operandPlaceholder, operandConversion, resultType);
             }
@@ -5435,7 +5434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operandPlaceholder = new BoundValuePlaceholder(operand.Syntax, operand.Type).MakeCompilerGenerated();
                 operandConversion = CreateConversion(node, operandPlaceholder,
                                                      conversion,
-                                                     isCast: false, conversionGroupOpt: null, resultType, diagnostics);
+                                                     isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, resultType, diagnostics);
             }
             else
             {
@@ -5654,7 +5653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var objectType = GetSpecialType(SpecialType.System_Object, diagnostics, node);
                 var leftConversion = CreateConversion(node, leftPlaceholder,
                                                       Conversions.ClassifyConversionFromExpression(leftOperand, objectType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo),
-                                                      isCast: false, conversionGroupOpt: null, objectType, diagnostics);
+                                                      isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, objectType, diagnostics);
 
                 rightOperand = BindToNaturalType(rightOperand, diagnostics);
                 diagnostics.Add(node, useSiteInfo);
@@ -5742,7 +5741,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (leftConversionClassification.Exists)
                     {
                         var leftPlaceholder = new BoundValuePlaceholder(leftOperand.Syntax, optLeftType0).MakeCompilerGenerated();
-                        var leftConversion = CreateConversion(node, leftPlaceholder, leftConversionClassification, isCast: false, conversionGroupOpt: null, optRightType, diagnostics);
+                        var leftConversion = CreateConversion(node, leftPlaceholder, leftConversionClassification, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, optRightType, diagnostics);
 
                         diagnostics.Add(node, useSiteInfo);
                         return new BoundNullCoalescingOperator(node, leftOperand, rightOperand, leftPlaceholder, leftConversion, resultKind, @checked: CheckOverflowAtRuntime, optRightType);
@@ -5756,7 +5755,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (leftConversionClassification.Exists)
                     {
                         var leftPlaceholder = new BoundValuePlaceholder(leftOperand.Syntax, optLeftType).MakeCompilerGenerated();
-                        var leftConversion = CreateConversion(node, leftPlaceholder, leftConversionClassification, isCast: false, conversionGroupOpt: null, optRightType, diagnostics);
+                        var leftConversion = CreateConversion(node, leftPlaceholder, leftConversionClassification, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, optRightType, diagnostics);
 
                         diagnostics.Add(node, useSiteInfo);
                         return new BoundNullCoalescingOperator(node, leftOperand, rightOperand, leftPlaceholder, leftConversion, resultKind, @checked: CheckOverflowAtRuntime, optRightType);
@@ -5777,12 +5776,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportSuppressionIfNeeded(leftOperand, diagnostics);
             BoundExpression rightOperand = BindValue(node.Right, diagnostics, BindValueKind.RValue);
 
-            // If either operand is bad, bail out preventing more cascading errors
+            // Prevent more cascading errors if there are any on either operand
             if (leftOperand.HasAnyErrors || rightOperand.HasAnyErrors)
             {
-                leftOperand = BindToTypeForErrorRecovery(leftOperand);
-                rightOperand = BindToTypeForErrorRecovery(rightOperand);
-                return new BoundNullCoalescingAssignmentOperator(node, leftOperand, rightOperand, CreateErrorType(), hasErrors: true);
+                diagnostics = BindingDiagnosticBag.Discarded;
             }
 
             // Given a ??= b, the type of a is A, the type of B is b, and if A is a nullable value type, the underlying

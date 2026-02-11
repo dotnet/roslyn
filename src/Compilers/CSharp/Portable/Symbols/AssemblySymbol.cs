@@ -487,6 +487,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Figure out if the target runtime supports extended layout types.
+        /// </summary>
+        internal bool RuntimeSupportsExtendedLayout
+        {
+            // Keep in sync with VB's AssemblySymbol.RuntimeSupportsExtendedLayout
+            get
+            {
+                return GetSpecialTypeMember(SpecialMember.System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor) is object;
+            }
+        }
+
+        /// <summary>
         /// Figure out if the target runtime supports inline array types.
         /// </summary>
         internal bool RuntimeSupportsByRefLikeGenerics
@@ -602,13 +614,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract ICollection<string> NamespaceNames { get; }
 
         /// <summary>
-        /// Returns true if this assembly might contain extension methods. If this property
-        /// returns false, there are no extension methods in this assembly.
+        /// Returns true if this assembly might contain extension members or methods. If this property
+        /// returns false, there are no extension members or methods in this assembly.
         /// </summary>
         /// <remarks>
-        /// This property allows the search for extension methods to be narrowed quickly.
+        /// This property allows the search for extension members or methods to be narrowed quickly.
         /// </remarks>
-        public abstract bool MightContainExtensionMethods { get; }
+        public abstract bool MightContainExtensions { get; }
 
         /// <summary>
         /// Gets the symbol for the pre-defined type from core library associated with this assembly.

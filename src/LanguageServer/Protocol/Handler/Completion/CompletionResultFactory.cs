@@ -141,13 +141,11 @@ internal static class CompletionResultFactory
                 lspItem.SortText = item.SortText;
             }
 
-            if (!capabilityHelper.SupportVSInternalClientCapabilities)
-            {
-                // VSCode doesn't handle casing very well, but we do, and we already sorted the list
-                // Add sort text to ensure that items are sorted by their position in the list.
-                // The max length of the list is 1000 items, so we only need 4 characters to represent the index.
-                lspItem.SortText = $"{index:D4}{lspItem.SortText}";
-            }
+            // Add sort text to ensure that items are sorted by their position in the list.
+            // The max length of the list is 1000 items, so we only need 4 characters to represent the index.
+            // lspItem.SortText needs to end with the item's SortText as the CompletionResolveHandler depends
+            // on that to properly resolve completion items.
+            lspItem.SortText = $"{index:D4}{lspItem.SortText}";
 
             if (!lspItem.Label.Equals(item.FilterText, StringComparison.Ordinal))
                 lspItem.FilterText = item.FilterText;

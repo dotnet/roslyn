@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private bool _hasNoBaseCycles;
 
-        private static readonly ImmutableSegmentedDictionary<string, Symbol> RequiredMembersErrorSentinel = ImmutableSegmentedDictionary<string, Symbol>.Empty.Add("<error sentinel>", null!);
+        private static readonly ImmutableSegmentedDictionary<string, Symbol> RequiredMembersErrorSentinel = ImmutableSegmentedDictionary<string, Symbol>.Empty.Add("<error sentinel>", null);
 
         /// <summary>
         /// <see langword="default"/> if uninitialized. <see cref="RequiredMembersErrorSentinel"/> if there are errors. <see cref="ImmutableSegmentedDictionary{TKey, TValue}.Empty"/> if
@@ -339,25 +339,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns true if this type might contain extension methods. If this property
-        /// returns false, there are no extension methods in this type.
+        /// Returns true if this type might contain extension members or methods. If this property
+        /// returns false, there are no extension members or methods in this type.
         /// </summary>
         /// <remarks>
-        /// This property allows the search for extension methods to be narrowed quickly.
+        /// This property allows the search for extension members or methods to be narrowed quickly.
         /// </remarks>
-        public abstract bool MightContainExtensionMethods { get; }
+        public abstract bool MightContainExtensions { get; }
 
+#nullable enable
         /// <remarks>Does not perform a full viability check</remarks>
-        internal void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
-        {
-            if (this.MightContainExtensionMethods)
-            {
-                DoGetExtensionMethods(methods, nameOpt, arity, options);
-            }
-        }
-
-        /// <remarks>Does not perform a full viability check</remarks>
-        internal void DoGetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
+        private void DoGetExtensionMethods(ArrayBuilder<Symbol> methods, string? nameOpt, int arity, LookupOptions options, PooledHashSet<MethodSymbol>? implementationsToShadow)
         {
             var members = nameOpt == null
                 ? this.GetMembersUnordered()
@@ -377,14 +369,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             continue;
                         }
 
-                        Debug.Assert(method.MethodKind != MethodKind.ReducedExtension);
-                        methods.Add(method);
+                        if (implementationsToShadow is null || !implementationsToShadow.Remove(method.OriginalDefinition))
+                        {
+                            Debug.Assert(method.MethodKind != MethodKind.ReducedExtension);
+                            methods.Add(method);
+                        }
                     }
                 }
             }
         }
 
-#nullable enable
         private static bool IsValidExtensionReceiverParameter(ParameterSymbol thisParam)
         {
             Debug.Assert(thisParam is not null);
@@ -410,44 +404,73 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <remarks>Does not perform a full viability check</remarks>
-        internal void GetExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, ConsList<FieldSymbol> fieldsBeingBound)
+        internal void GetAllExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, ConsList<FieldSymbol> fieldsBeingBound)
         {
-            Debug.Assert((options & ~(LookupOptions.IncludeExtensionMembers | LookupOptions.AllMethodsOnArityZero
+            Debug.Assert((options & ~(LookupOptions.AllMethodsOnArityZero
                 | LookupOptions.MustBeInstance | LookupOptions.MustNotBeInstance | LookupOptions.MustBeInvocableIfMember
                 | LookupOptions.MustBeOperator | LookupOptions.MustNotBeMethodTypeParameter)) == 0);
 
             Debug.Assert(name is not null || alternativeName is null);
 
-            if (!this.IsClassType() || !IsStatic || IsGenericType || !MightContainExtensionMethods) return;
+            if (!MightContainExtensions)
+                return;
 
-            foreach (NamedTypeSymbol nestedType in GetTypeMembersUnordered())
+            PooledHashSet<MethodSymbol>? implementationsToShadow = null;
+
+            if (this.IsClassType() && IsStatic && !IsGenericType)
             {
-                if (nestedType is not { IsExtension: true, ExtensionParameter: { } extensionParameter }
-                    || !IsValidExtensionReceiverParameter(extensionParameter))
+                doGetExtensionMembers(members, name, alternativeName, arity, options, ref implementationsToShadow, fieldsBeingBound);
+            }
+
+            if (!options.HasFlag(LookupOptions.MustBeOperator))
+            {
+                DoGetExtensionMethods(members, name, arity, options, implementationsToShadow);
+                if (alternativeName is not null)
                 {
-                    continue;
-                }
-
-                var candidates = name is null || alternativeName is not null
-                    ? nestedType.GetMembersUnordered()
-                    : nestedType.GetMembers(name);
-
-                foreach (var candidate in candidates)
-                {
-                    if (!SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(candidate))
-                    {
-                        // Not supported yet
-                        continue;
-                    }
-
-                    if (extensionMemberMatches(candidate, name, alternativeName, arity, options, fieldsBeingBound))
-                    {
-                        members.Add(candidate);
-                    }
+                    DoGetExtensionMethods(members, alternativeName, arity, options, implementationsToShadow);
                 }
             }
 
+            implementationsToShadow?.Free();
+
             return;
+
+            void doGetExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, ref PooledHashSet<MethodSymbol>? implementationsToShadow, ConsList<FieldSymbol> fieldsBeingBound)
+            {
+                foreach (NamedTypeSymbol nestedType in GetTypeMembers(name: ""))
+                {
+                    if (nestedType is not { IsExtension: true, ExtensionParameter: { } extensionParameter }
+                        || !IsValidExtensionReceiverParameter(extensionParameter))
+                    {
+                        continue;
+                    }
+
+                    var candidates = name is null || alternativeName is not null
+                        ? nestedType.GetMembersUnordered()
+                        : nestedType.GetMembers(name);
+
+                    foreach (var candidate in candidates)
+                    {
+                        if (!SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(candidate))
+                        {
+                            // Not supported yet
+                            continue;
+                        }
+
+                        if (extensionMemberMatches(candidate, name, alternativeName, arity, options, fieldsBeingBound))
+                        {
+                            members.Add(candidate);
+
+                            if (candidate is MethodSymbol { IsStatic: false } shadows &&
+                                shadows.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is { } toShadow)
+                            {
+                                implementationsToShadow ??= PooledHashSet<MethodSymbol>.GetInstance();
+                                implementationsToShadow.Add(toShadow);
+                            }
+                        }
+                    }
+                }
+            }
 
             static bool extensionMemberMatches(Symbol member, string? name, string? alternativeName, int arity, LookupOptions options, ConsList<FieldSymbol> fieldsBeingBound)
             {

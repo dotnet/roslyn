@@ -27,8 +27,7 @@ public partial class MSBuildProjectLoader
         private readonly DiagnosticReporter _diagnosticReporter;
         private readonly PathResolver _pathResolver;
         private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
-        private readonly BuildHostProcessManager _buildHostProcessManager;
-        private readonly string _baseDirectory;
+        private readonly IProjectFileInfoProvider _projectFileInfoProvider;
 
         /// <summary>
         /// An ordered list of paths to project files that should be loaded. In the case of a solution,
@@ -70,9 +69,8 @@ public partial class MSBuildProjectLoader
             DiagnosticReporter diagnosticReporter,
             PathResolver pathResolver,
             ProjectFileExtensionRegistry projectFileExtensionRegistry,
-            BuildHostProcessManager buildHostProcessManager,
+            IProjectFileInfoProvider projectFileInfoProvider,
             ImmutableArray<string> requestedProjectPaths,
-            string baseDirectory,
             ProjectMap? projectMap,
             IProgress<ProjectLoadProgress>? progress,
             DiagnosticReportingOptions requestedProjectOptions,
@@ -83,8 +81,7 @@ public partial class MSBuildProjectLoader
             _diagnosticReporter = diagnosticReporter;
             _pathResolver = pathResolver;
             _projectFileExtensionRegistry = projectFileExtensionRegistry;
-            _buildHostProcessManager = buildHostProcessManager;
-            _baseDirectory = baseDirectory;
+            _projectFileInfoProvider = projectFileInfoProvider;
             _requestedProjectPaths = requestedProjectPaths;
             _projectMap = projectMap ?? ProjectMap.Create();
             _progress = progress;
@@ -96,29 +93,6 @@ public partial class MSBuildProjectLoader
             _projectIdToProjectReferencesMap = [];
         }
 
-        private async Task<TResult> DoOperationAndReportProgressAsync<TResult>(ProjectLoadOperation operation, string? projectPath, string? targetFramework, Func<Task<TResult>> doFunc)
-        {
-            var watch = _progress != null
-                ? Stopwatch.StartNew()
-                : null;
-
-            TResult result;
-            try
-            {
-                result = await doFunc().ConfigureAwait(false);
-            }
-            finally
-            {
-                if (_progress != null && watch != null)
-                {
-                    watch.Stop();
-                    _progress.Report(new ProjectLoadProgress(projectPath ?? string.Empty, operation, targetFramework, watch.Elapsed));
-                }
-            }
-
-            return result;
-        }
-
         public async Task<ImmutableArray<ProjectInfo>> LoadAsync(CancellationToken cancellationToken)
         {
             var results = ImmutableArray.CreateBuilder<ProjectInfo>();
@@ -128,22 +102,17 @@ public partial class MSBuildProjectLoader
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (!_pathResolver.TryGetAbsoluteProjectPath(projectPath, _baseDirectory, _requestedProjectOptions.OnPathFailure, out var absoluteProjectPath))
-                {
-                    continue; // Failure should already be reported.
-                }
-
-                if (!processedPaths.Add(absoluteProjectPath))
+                if (!processedPaths.Add(projectPath))
                 {
                     _diagnosticReporter.Report(
                         new WorkspaceDiagnostic(
                             WorkspaceDiagnosticKind.Warning,
-                            string.Format(WorkspaceMSBuildResources.Duplicate_project_discovered_and_skipped_0, absoluteProjectPath)));
+                            string.Format(WorkspaceMSBuildResources.Duplicate_project_discovered_and_skipped_0, projectPath)));
 
                     continue;
                 }
 
-                var projectFileInfos = await LoadProjectInfosFromPathAsync(absoluteProjectPath, _requestedProjectOptions, cancellationToken).ConfigureAwait(false);
+                var projectFileInfos = await LoadProjectInfosFromPathAsync(projectPath, _requestedProjectOptions, cancellationToken).ConfigureAwait(false);
 
                 results.AddRange(projectFileInfos);
             }
@@ -161,54 +130,6 @@ public partial class MSBuildProjectLoader
             return results.ToImmutableAndClear();
         }
 
-        private async Task<ImmutableArray<ProjectFileInfo>> LoadProjectFileInfosAsync(string projectPath, DiagnosticReportingOptions reportingOptions, CancellationToken cancellationToken)
-        {
-            if (!_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, reportingOptions.OnLoaderFailure, out var languageName))
-            {
-                return []; // Failure should already be reported.
-            }
-
-            var preferredBuildHostKind = BuildHostProcessManager.GetKindForProject(projectPath);
-            var (buildHost, actualBuildHostKind) = await _buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectPath, cancellationToken).ConfigureAwait(false);
-            var projectFile = await DoOperationAndReportProgressAsync(
-                ProjectLoadOperation.Evaluate,
-                projectPath,
-                targetFramework: null,
-                () => buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken)
-            ).ConfigureAwait(false);
-
-            // If there were any failures during load, we won't be able to build the project. So, bail early with an empty project.
-            var diagnosticItems = await projectFile.GetDiagnosticLogItemsAsync(cancellationToken).ConfigureAwait(false);
-            if (diagnosticItems.Any(d => d.Kind == DiagnosticLogItemKind.Error))
-            {
-                _diagnosticReporter.Report(diagnosticItems);
-
-                return [ProjectFileInfo.CreateEmpty(languageName, projectPath)];
-            }
-
-            var projectFileInfos = await DoOperationAndReportProgressAsync(
-                ProjectLoadOperation.Build,
-                projectPath,
-                targetFramework: null,
-                () => projectFile.GetProjectFileInfosAsync(cancellationToken)
-            ).ConfigureAwait(false);
-
-            var results = ImmutableArray.CreateBuilder<ProjectFileInfo>(projectFileInfos.Length);
-
-            foreach (var projectFileInfo in projectFileInfos)
-            {
-                // Note: any diagnostics would have been logged to the original project file's log.
-
-                results.Add(projectFileInfo);
-            }
-
-            // We'll go check for any further diagnostics and report them
-            diagnosticItems = await projectFile.GetDiagnosticLogItemsAsync(cancellationToken).ConfigureAwait(false);
-            _diagnosticReporter.Report(diagnosticItems);
-
-            return results.MoveToImmutable();
-        }
-
         private async Task<ImmutableArray<ProjectInfo>> LoadProjectInfosFromPathAsync(
             string projectPath, DiagnosticReportingOptions reportingOptions, CancellationToken cancellationToken)
         {
@@ -220,7 +141,7 @@ public partial class MSBuildProjectLoader
 
             var builder = ImmutableArray.CreateBuilder<ProjectInfo>();
 
-            var projectFileInfos = await LoadProjectFileInfosAsync(projectPath, reportingOptions, cancellationToken).ConfigureAwait(false);
+            var projectFileInfos = await _projectFileInfoProvider.LoadProjectFileInfosAsync(projectPath, reportingOptions, cancellationToken).ConfigureAwait(false);
 
             var idsAndFileInfos = new List<(ProjectId id, ProjectFileInfo fileInfo)>();
 
@@ -264,7 +185,7 @@ public partial class MSBuildProjectLoader
             return results;
         }
 
-        private Task<ProjectInfo> CreateProjectInfoAsync(ProjectFileInfo projectFileInfo, ProjectId projectId, bool addDiscriminator, CancellationToken cancellationToken)
+        private async Task<ProjectInfo> CreateProjectInfoAsync(ProjectFileInfo projectFileInfo, ProjectId projectId, bool addDiscriminator, CancellationToken cancellationToken)
         {
             var language = projectFileInfo.Language;
             var projectPath = projectFileInfo.FilePath;
@@ -278,70 +199,37 @@ public partial class MSBuildProjectLoader
                 ? VersionStamp.Default
                 : VersionStamp.Create(FileUtilities.GetFileTimeStamp(projectPath));
 
-            if (projectFileInfo.IsEmpty)
+            var projectDirectory = Path.GetDirectoryName(projectPath);
+            var metadataService = _solutionServices.GetRequiredService<IMetadataService>();
+
+            IEnumerable<MetadataReference> resolvedMetadataReferences;
+            string? assemblyName;
+            SourceHashAlgorithm checksumAlgorithm;
+            ParseOptions? parseOptions;
+            CompilationOptions? compilationOptions;
+            IEnumerable<AnalyzerReference> analyzerReferences;
+            Encoding? encoding;
+
+            var commandLineParser = _solutionServices.GetLanguageServices(projectFileInfo.Language).GetService<ICommandLineParserService>();
+            if (commandLineParser != null)
             {
-                var assemblyName = GetAssemblyNameFromProjectPath(projectPath);
-
-                var parseOptions = GetLanguageService<ISyntaxTreeFactoryService>(language)
-                    ?.GetDefaultParseOptions();
-                var compilationOptions = GetLanguageService<ICompilationFactoryService>(language)
-                    ?.GetDefaultCompilationOptions();
-
-                return Task.FromResult(
-                    ProjectInfo.Create(
-                        new ProjectInfo.ProjectAttributes(
-                            projectId,
-                            version,
-                            name: projectName,
-                            assemblyName: assemblyName,
-                            language: language,
-                            compilationOutputInfo: new CompilationOutputInfo(projectFileInfo.IntermediateOutputFilePath, projectFileInfo.GeneratedFilesOutputDirectory),
-                            checksumAlgorithm: SourceHashAlgorithms.Default,
-                            outputFilePath: projectFileInfo.OutputFilePath,
-                            outputRefFilePath: projectFileInfo.OutputRefFilePath,
-                            filePath: projectPath),
-                        compilationOptions: compilationOptions,
-                        parseOptions: parseOptions));
-            }
-
-            return DoOperationAndReportProgressAsync(ProjectLoadOperation.Resolve, projectPath, projectFileInfo.TargetFramework, async () =>
-            {
-                var projectDirectory = Path.GetDirectoryName(projectPath);
-
-                // parse command line arguments
-                var commandLineParser = GetLanguageService<ICommandLineParserService>(projectFileInfo.Language);
-
-                if (commandLineParser is null)
-                {
-                    var message = string.Format(WorkspaceMSBuildResources.Unable_to_find_a_0_for_1, nameof(ICommandLineParserService), projectFileInfo.Language);
-                    throw new Exception(message);
-                }
-
                 var commandLineArgs = commandLineParser.Parse(
                     arguments: projectFileInfo.CommandLineArgs,
                     baseDirectory: projectDirectory,
                     isInteractive: false,
                     sdkDirectory: RuntimeEnvironment.GetRuntimeDirectory());
 
-                var assemblyName = commandLineArgs.CompilationName;
-                if (RoslynString.IsNullOrWhiteSpace(assemblyName))
-                {
-                    // if there isn't an assembly name, make one from the file path.
-                    // Note: This may not be necessary any longer if the command line args
-                    // always produce a valid compilation name.
-                    assemblyName = GetAssemblyNameFromProjectPath(projectPath);
-                }
+                assemblyName = commandLineArgs.CompilationName;
 
-                // Ensure sure that doc-comments are parsed
-                var parseOptions = commandLineArgs.ParseOptions;
+                // Ensure that doc-comments are parsed
+                parseOptions = commandLineArgs.ParseOptions;
                 if (parseOptions.DocumentationMode == DocumentationMode.None)
                 {
                     parseOptions = parseOptions.WithDocumentationMode(DocumentationMode.Parse);
                 }
 
                 // add all the extra options that are really behavior overrides
-                var metadataService = GetWorkspaceService<IMetadataService>();
-                var compilationOptions = commandLineArgs.CompilationOptions
+                compilationOptions = commandLineArgs.CompilationOptions
                     .WithXmlReferenceResolver(new XmlFileResolver(projectDirectory))
                     .WithSourceReferenceResolver(new SourceFileResolver([], projectDirectory))
                     // TODO: https://github.com/dotnet/roslyn/issues/4967
@@ -349,39 +237,68 @@ public partial class MSBuildProjectLoader
                     .WithStrongNameProvider(new DesktopStrongNameProvider(commandLineArgs.KeyFileSearchPaths, Path.GetTempPath()))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
 
-                var documents = CreateDocumentInfos(projectFileInfo.Documents, projectId, commandLineArgs.Encoding);
-                var additionalDocuments = CreateDocumentInfos(projectFileInfo.AdditionalDocuments, projectId, commandLineArgs.Encoding);
-                var analyzerConfigDocuments = CreateDocumentInfos(projectFileInfo.AnalyzerConfigDocuments, projectId, commandLineArgs.Encoding);
-                CheckForDuplicateDocuments(documents.Concat(additionalDocuments).Concat(analyzerConfigDocuments), projectPath, projectId);
+                encoding = commandLineArgs.Encoding;
 
-                var analyzerReferences = ResolveAnalyzerReferences(commandLineArgs);
+                analyzerReferences = ResolveAnalyzerReferences(commandLineArgs);
 
-                var resolvedReferences = await ResolveReferencesAsync(projectId, projectFileInfo, commandLineArgs, cancellationToken).ConfigureAwait(false);
+                resolvedMetadataReferences = commandLineArgs.ResolveMetadataReferences(
+                    new WorkspaceMetadataFileReferenceResolver(
+                        metadataService,
+                        new RelativePathResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory)));
 
-                return ProjectInfo.Create(
-                    new ProjectInfo.ProjectAttributes(
-                        projectId,
-                        version,
-                        projectName,
-                        assemblyName,
-                        language,
-                        compilationOutputInfo: new CompilationOutputInfo(projectFileInfo.IntermediateOutputFilePath, projectFileInfo.GeneratedFilesOutputDirectory),
-                        checksumAlgorithm: commandLineArgs.ChecksumAlgorithm,
-                        filePath: projectPath,
-                        outputFilePath: projectFileInfo.OutputFilePath,
-                        outputRefFilePath: projectFileInfo.OutputRefFilePath,
-                        isSubmission: false),
-                    compilationOptions: compilationOptions,
-                    parseOptions: parseOptions,
-                    documents: documents,
-                    projectReferences: resolvedReferences.ProjectReferences,
-                    metadataReferences: resolvedReferences.MetadataReferences,
-                    analyzerReferences: analyzerReferences,
-                    additionalDocuments: additionalDocuments,
-                    hostObjectType: null)
-                    .WithDefaultNamespace(projectFileInfo.DefaultNamespace)
-                    .WithAnalyzerConfigDocuments(analyzerConfigDocuments);
-            });
+                checksumAlgorithm = commandLineArgs.ChecksumAlgorithm;
+            }
+            else
+            {
+                assemblyName = null;
+                parseOptions = null;
+                compilationOptions = null;
+                analyzerReferences = [];
+
+                encoding = EncodedStringText.TryGetCodePageEncoding(projectFileInfo.CodePage);
+
+                checksumAlgorithm = !string.IsNullOrEmpty(projectFileInfo.ChecksumAlgorithm) && SourceHashAlgorithms.TryParseAlgorithmName(projectFileInfo.ChecksumAlgorithm, out var algorithm)
+                    ? algorithm : SourceHashAlgorithms.Default;
+
+                resolvedMetadataReferences = projectFileInfo.MetadataReferences
+                    .Select(r => metadataService.GetReference(r.Path, new MetadataReferenceProperties(aliases: r.Aliases)));
+            }
+
+            var documents = CreateDocumentInfos(projectFileInfo.Documents, projectId, encoding);
+            var additionalDocuments = CreateDocumentInfos(projectFileInfo.AdditionalDocuments, projectId, encoding);
+            var analyzerConfigDocuments = CreateDocumentInfos(projectFileInfo.AnalyzerConfigDocuments, projectId, encoding);
+
+            CheckForDuplicateDocuments(documents.Concat(additionalDocuments).Concat(analyzerConfigDocuments), projectPath, projectId);
+
+            var resolvedReferences = await _progress.DoOperationAndReportProgressAsync(
+                ProjectLoadOperation.Resolve,
+                projectPath,
+                projectFileInfo.TargetFramework,
+                () => ResolveReferencesAsync(projectId, projectFileInfo, resolvedMetadataReferences, cancellationToken)).ConfigureAwait(false);
+
+            return ProjectInfo.Create(
+                new ProjectInfo.ProjectAttributes(
+                    projectId,
+                    version,
+                    projectName,
+                    assemblyName ?? GetAssemblyNameFromProjectPath(projectPath),
+                    language,
+                    compilationOutputInfo: new CompilationOutputInfo(projectFileInfo.IntermediateOutputFilePath, projectFileInfo.GeneratedFilesOutputDirectory),
+                    checksumAlgorithm: checksumAlgorithm,
+                    filePath: projectPath,
+                    outputFilePath: projectFileInfo.OutputFilePath,
+                    outputRefFilePath: projectFileInfo.OutputRefFilePath,
+                    isSubmission: false),
+                compilationOptions: compilationOptions,
+                parseOptions: parseOptions,
+                documents: documents,
+                projectReferences: resolvedReferences.ProjectReferences,
+                metadataReferences: resolvedReferences.MetadataReferences,
+                analyzerReferences: analyzerReferences,
+                additionalDocuments: additionalDocuments,
+                hostObjectType: null)
+                .WithDefaultNamespace(projectFileInfo.DefaultNamespace)
+                .WithAnalyzerConfigDocuments(analyzerConfigDocuments);
         }
 
         private static string GetAssemblyNameFromProjectPath(string? projectFilePath)
@@ -488,12 +405,6 @@ public partial class MSBuildProjectLoader
                 paths.Add(doc.FilePath);
             }
         }
-
-        private TLanguageService? GetLanguageService<TLanguageService>(string languageName)
-            where TLanguageService : ILanguageService
-            => _solutionServices
-                .GetLanguageServices(languageName)
-                .GetService<TLanguageService>();
 
         private TWorkspaceService? GetWorkspaceService<TWorkspaceService>()
             where TWorkspaceService : IWorkspaceService

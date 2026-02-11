@@ -254,8 +254,11 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
                     var (metadata, handler, methodInfo) = GetHandlerForRequest(work, language ?? LanguageServerConstants.DefaultLanguageName);
 
                     // We had an issue determining the language.  Generally this is very rare and only occurs
-                    // if there is a mis-behaving client that sends us requests for files where we haven't saved the languageId.
-                    // We should only crash if this was a mutating method, otherwise we should just fail the single request. 
+                    // when a client sends us requests for files where we haven't saved the languageId.
+                    // We should only crash if this was a mutating method.
+                    //
+                    // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_didClose
+                    // > Note that a server’s ability to fulfill requests is independent of whether a text document is open or closed.
                     if (!didGetLanguage)
                     {
                         var message = $"Failed to get language for {work.MethodName}";
@@ -266,7 +269,7 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
                         else
                         {
                             work.FailRequest(message);
-                            return;
+                            continue;
                         }
                     }
 

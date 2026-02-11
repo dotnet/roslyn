@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.Sdk.UnitTests;
 
 public sealed class CscTests
 {
-    private static string RspFilePath => Path.Combine(Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location)!, "csc.rsp");
+    private static string RspFilePath => Path.Combine(Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location), "csc.rsp");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
     public void StdLib()

@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -6453,6 +6454,415 @@ Block[B6] - Exit
     Statements (0)
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82273")]
+        public void ObjectInitializerWithMissingAccessor_01()
+        {
+            var code = """
+public class Program
+{
+    public static void Main()
+    {
+        /*<bind>*/
+        _ = new C() { [$"{1}"] = 1 };
+        /*</bind>*/
+    }
+}
+
+public class C
+{
+    public int this[[System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("")] CustomHandler h]
+    {
+        get => throw null!;
+        // lacks setter
+    }
+}
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, C c)
+    {
+    }
+
+    public void AppendFormatted(int i) {}
+}
+""";
+
+            DiagnosticDescription[] expectedDiagnostics = [
+                // (6,23): error CS0200: Property or indexer 'C.this[CustomHandler]' cannot be assigned to -- it is read only
+                //         _ = new C() { [$"{1}"] = 1 };
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, @"[$""{1}""]").WithArguments("C.this[CustomHandler]").WithLocation(6, 23),
+                // (6,24): error CS8976: Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.
+                //         _ = new C() { [$"{1}"] = 1 };
+                Diagnostic(ErrorCode.ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers, @"$""{1}""").WithLocation(6, 24)
+                ];
+
+            var comp = CreateCompilation(code, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var mainDeclaration = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First();
+
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(mainDeclaration.Body, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'new C() { [$"{1}"] = 1 }')
+              Value:
+                IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C() { [$"{1}"] = 1 }')
+                  Arguments(0)
+                  Initializer:
+                    null
+        Next (Regular) Block[B2]
+            Entering: {R2}
+    .locals {R2}
+    {
+        CaptureIds: [1]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (3)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                  Value:
+                    IObjectCreationOperation (Constructor: CustomHandler..ctor(System.Int32 literalLength, System.Int32 formattedCount, C c)) (OperationKind.ObjectCreation, Type: CustomHandler, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                      Arguments(3):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: literalLength) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: formattedCount) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'C')
+                            IInvalidOperation (OperationKind.Invalid, Type: null, IsImplicit) (Syntax: 'C')
+                              Children(0)
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Initializer:
+                        null
+                IInvocationOperation ( void CustomHandler.AppendFormatted(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '{1}')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: CustomHandler, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '1')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: '[$"{1}"] = 1')
+                  Left:
+                    IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid) (Syntax: '[$"{1}"]')
+                      Children(1):
+                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: CustomHandler, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                  Right:
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+            Next (Regular) Block[B3]
+                Leaving: {R2}
+    }
+    Block[B3] - Block
+        Predecessors: [B2]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '_ = new C() ... 1}"] = 1 };')
+              Expression:
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid) (Syntax: '_ = new C() ... {1}"] = 1 }')
+                  Left:
+                    IDiscardOperation (Symbol: C _) (OperationKind.Discard, Type: C) (Syntax: '_')
+                  Right:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'new C() { [$"{1}"] = 1 }')
+        Next (Regular) Block[B4]
+            Leaving: {R1}
+}
+Block[B4] - Exit
+    Predecessors: [B3]
+    Statements (0)
+""", graph, symbol);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82273")]
+        public void ObjectInitializerWithMissingAccessor_02()
+        {
+            // missing setter in nested object initializer
+            var code = """
+public class Program
+{
+    public static void Main()
+    {
+        /*<bind>*/
+        _ = new D() { Property = { [$"{1}"] = 1 } };
+        /*</bind>*/
+    }
+}
+
+public class D
+{
+    public C Property => throw null!;
+}
+
+public class C
+{
+    public int this[[System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("")] CustomHandler h]
+    {
+        get => throw null!;
+        // lacks setter
+    }
+}
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, C c)
+    {
+    }
+
+    public void AppendFormatted(int i) {}
+}
+""";
+
+            DiagnosticDescription[] expectedDiagnostics = [
+                // (6,36): error CS0200: Property or indexer 'C.this[CustomHandler]' cannot be assigned to -- it is read only
+                //         _ = new D() { Property = { [$"{1}"] = 1 } };
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, @"[$""{1}""]").WithArguments("C.this[CustomHandler]").WithLocation(6, 36),
+                // (6,37): error CS8976: Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.
+                //         _ = new D() { Property = { [$"{1}"] = 1 } };
+                Diagnostic(ErrorCode.ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers, @"$""{1}""").WithLocation(6, 37)
+                ];
+
+            var comp = CreateCompilation(code, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var mainDeclaration = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First();
+
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(mainDeclaration.Body, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'new D() { P ... }"] = 1 } }')
+              Value:
+                IObjectCreationOperation (Constructor: D..ctor()) (OperationKind.ObjectCreation, Type: D, IsInvalid) (Syntax: 'new D() { P ... }"] = 1 } }')
+                  Arguments(0)
+                  Initializer:
+                    null
+        Next (Regular) Block[B2]
+            Entering: {R2}
+    .locals {R2}
+    {
+        CaptureIds: [1]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (3)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                  Value:
+                    IObjectCreationOperation (Constructor: CustomHandler..ctor(System.Int32 literalLength, System.Int32 formattedCount, C c)) (OperationKind.ObjectCreation, Type: CustomHandler, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                      Arguments(3):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: literalLength) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: formattedCount) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Property')
+                            IInvalidOperation (OperationKind.Invalid, Type: null, IsImplicit) (Syntax: 'Property')
+                              Children(0)
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Initializer:
+                        null
+                IInvocationOperation ( void CustomHandler.AppendFormatted(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '{1}')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: CustomHandler, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '1')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: '[$"{1}"] = 1')
+                  Left:
+                    IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid) (Syntax: '[$"{1}"]')
+                      Children(1):
+                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: CustomHandler, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                  Right:
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+            Next (Regular) Block[B3]
+                Leaving: {R2}
+    }
+    Block[B3] - Block
+        Predecessors: [B2]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '_ = new D() ... "] = 1 } };')
+              Expression:
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: D, IsInvalid) (Syntax: '_ = new D() ... }"] = 1 } }')
+                  Left:
+                    IDiscardOperation (Symbol: D _) (OperationKind.Discard, Type: D) (Syntax: '_')
+                  Right:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: D, IsInvalid, IsImplicit) (Syntax: 'new D() { P ... }"] = 1 } }')
+        Next (Regular) Block[B4]
+            Leaving: {R1}
+}
+Block[B4] - Exit
+    Predecessors: [B3]
+    Statements (0)
+""", graph, symbol);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82273")]
+        public void ObjectInitializerWithMissingAccessor_03()
+        {
+            var code = """
+public class Program
+{
+    public static void Main()
+    {
+        /*<bind>*/
+        _ = new C() { [$"{1}"] = { Property = 1 } };
+        /*</bind>*/
+    }
+}
+
+public class D
+{
+    public int Property { set { } }
+}
+
+public class C
+{
+    public D this[[System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("")] CustomHandler h]
+    {
+        // missing getter
+        set => throw null!;
+    }
+}
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, C c)
+    {
+    }
+
+    public void AppendFormatted(int i) {}
+}
+""";
+
+            DiagnosticDescription[] expectedDiagnostics = [
+                // (6,23): error CS0154: The property or indexer 'C.this[CustomHandler]' cannot be used in this context because it lacks the get accessor
+                //         _ = new C() { [$"{1}"] = { Property = 1 } };
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, @"[$""{1}""]").WithArguments("C.this[CustomHandler]").WithLocation(6, 23),
+                // (6,24): error CS8976: Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.
+                //         _ = new C() { [$"{1}"] = { Property = 1 } };
+                Diagnostic(ErrorCode.ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers, @"$""{1}""").WithLocation(6, 24)
+                ];
+
+            var comp = CreateCompilation(code, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var mainDeclaration = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First();
+
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(mainDeclaration.Body, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'new C() { [ ... rty = 1 } }')
+              Value:
+                IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C() { [ ... rty = 1 } }')
+                  Arguments(0)
+                  Initializer:
+                    null
+        Next (Regular) Block[B2]
+            Entering: {R2}
+    .locals {R2}
+    {
+        CaptureIds: [1]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (3)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                  Value:
+                    IObjectCreationOperation (Constructor: CustomHandler..ctor(System.Int32 literalLength, System.Int32 formattedCount, C c)) (OperationKind.ObjectCreation, Type: CustomHandler, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                      Arguments(3):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: literalLength) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: formattedCount) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'C')
+                            IInvalidOperation (OperationKind.Invalid, Type: null, IsImplicit) (Syntax: 'C')
+                              Children(0)
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Initializer:
+                        null
+                IInvocationOperation ( void CustomHandler.AppendFormatted(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '{1}')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: CustomHandler, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '1')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'Property = 1')
+                  Left:
+                    IPropertyReferenceOperation: System.Int32 D.Property { set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'Property')
+                      Instance Receiver:
+                        IInvalidOperation (OperationKind.Invalid, Type: D, IsInvalid) (Syntax: '[$"{1}"]')
+                          Children(1):
+                              IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: CustomHandler, IsInvalid, IsImplicit) (Syntax: '$"{1}"')
+                  Right:
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+            Next (Regular) Block[B3]
+                Leaving: {R2}
+    }
+    Block[B3] - Block
+        Predecessors: [B2]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '_ = new C() ... ty = 1 } };')
+              Expression:
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid) (Syntax: '_ = new C() ... rty = 1 } }')
+                  Left:
+                    IDiscardOperation (Symbol: C _) (OperationKind.Discard, Type: C) (Syntax: '_')
+                  Right:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'new C() { [ ... rty = 1 } }')
+        Next (Regular) Block[B4]
+            Leaving: {R1}
+}
+Block[B4] - Exit
+    Predecessors: [B3]
+    Statements (0)
+""", graph, symbol);
         }
     }
 }

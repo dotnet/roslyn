@@ -14,6 +14,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -17521,7 +17522,7 @@ class C
         [Fact]
         public void Method_Delete_PredefinedHotReloadException_DataSectionLiterals()
         {
-            var parseOptions = TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0");
+            var parseOptions = TestOptions.Regular.WithFeature(Feature.ExperimentalDataSectionStringLiterals, "0");
 
             var exceptionSource = """
                 namespace System.Runtime.CompilerServices
@@ -21047,7 +21048,7 @@ file class C
         [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
         public void PrivateImplDetails_DataSectionStringLiterals_FieldRvaSupported()
         {
-            var parseOptions = TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0");
+            var parseOptions = TestOptions.Regular.WithFeature(Feature.ExperimentalDataSectionStringLiterals, "0");
 
             using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped, parseOptions: parseOptions)
                 .AddBaseline(
@@ -21146,7 +21147,7 @@ file class C
         [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
         public void PrivateImplDetails_DataSectionStringLiterals_FieldRvaNotSupported()
         {
-            var parseOptions = TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0");
+            var parseOptions = TestOptions.Regular.WithFeature(Feature.ExperimentalDataSectionStringLiterals, "0");
 
             using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped, parseOptions: parseOptions)
                 .AddBaseline(
@@ -21913,8 +21914,8 @@ file class C
                 .Verify();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void PrivateImplDetails_CollectionExpressions_ReadOnlyListTypes()
+        [Fact]
+        public void PrivateImplDetails_CollectionExpressions_ReadOnlyListTypes_MethodImplSupported()
         {
             using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80, verification: Verification.Skipped)
                 .AddBaseline(
@@ -22074,6 +22075,82 @@ file class C
 
                         // Many EncLog and EncMap entries added.
                     })
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/2631743")]
+        public void PrivateImplDetails_CollectionExpressions_ReadOnlyListTypes_MethodImplNotSupported()
+        {
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.NetFramework, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: """
+                        using System.Collections.Generic;
+                        class C
+                        {
+                            static IEnumerable<int> F(int x, int y, IEnumerable<int> e) => [x, y];
+                        }
+                        """)
+
+                .AddGeneration(
+                    """
+                    using System.Collections.Generic;
+                    class C
+                    {
+                        static IEnumerable<int> F(int x, int y, IEnumerable<int> e) => [x, y, default];
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    ],
+                    options: new EmitDifferenceOptions()
+                    {
+                        MethodImplEntriesSupported = false
+                    },
+                    expectedErrors:
+                    [
+                        Diagnostic(ErrorCode.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime)
+                    ])
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/2631743")]
+        public void ExplicitInterfaceImplementation_MethodImplNotSupported()
+        {
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.NetFramework, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: """
+                    interface I 
+                    {
+                        void M();
+                    }
+                    """)
+
+                .AddGeneration(
+                    """
+                    interface I 
+                    {
+                        void M();
+                    }
+                    class C : I
+                    {
+                        void I.M() { }
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C")),
+                    ],
+                    options: new EmitDifferenceOptions()
+                    {
+                        MethodImplEntriesSupported = false
+                    },
+                    expectedErrors:
+                    [
+                        Diagnostic(ErrorCode.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime)
+                    ])
                 .Verify();
         }
     }

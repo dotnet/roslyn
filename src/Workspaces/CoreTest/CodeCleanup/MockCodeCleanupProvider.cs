@@ -27,6 +27,6 @@ internal sealed class MockCodeCleanupProvider : ICodeCleanupProvider
     public Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, CodeCleanupOptions options, CancellationToken cancellationToken)
         => (CleanupDocumentAsyncImpl ?? throw new NotImplementedException()).Invoke(this, document, spans, options.FormattingOptions, cancellationToken);
 
-    public Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, SolutionServices services, CancellationToken cancellationToken)
-        => Task.FromResult((CleanupNodeImpl ?? throw new NotImplementedException()).Invoke(root, spans, options, services));
+    public async Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, SolutionServices services, CancellationToken cancellationToken)
+        => (CleanupNodeImpl ?? throw new NotImplementedException()).Invoke(root, spans, options, services);
 }
