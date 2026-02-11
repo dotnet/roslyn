@@ -1096,7 +1096,7 @@ public abstract partial class Workspace : IDisposable
             WorkspaceChangeKind.DocumentRemoved, documentId: documentId,
             onBeforeUpdate: (oldSolution, _) =>
             {
-                // Clear out mutable state not associated with teh solution snapshot (for example, which documents are
+                // Clear out mutable state not associated with the solution snapshot (for example, which documents are
                 // currently open).
                 this.ClearDocumentData(documentId);
             });
@@ -1435,7 +1435,7 @@ public abstract partial class Workspace : IDisposable
             WorkspaceChangeKind.AnalyzerConfigDocumentRemoved, documentId: documentId,
             onBeforeUpdate: (oldSolution, _) =>
             {
-                // Clear out mutable state not associated with teh solution snapshot (for example, which documents are
+                // Clear out mutable state not associated with the solution snapshot (for example, which documents are
                 // currently open).
                 this.ClearDocumentData(documentId);
             });

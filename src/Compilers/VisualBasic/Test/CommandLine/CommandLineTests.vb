@@ -9675,7 +9675,7 @@ End Module
             ' Missing Microsoft.CodeAnalysis.VisualBasic.dll.
             Dim result = ProcessUtilities.Run(vbcPath, arguments:="/nologo /t:library unknown.vb", workingDirectory:=dir.Path)
             Assert.Equal(1, result.ExitCode)
-            Assert.Equal(
+            AssertEx.Equal(
                 $"Could not load file or assembly '{GetType(VisualBasicCompilation).Assembly.FullName}' or one of its dependencies. The system cannot find the file specified.",
                 result.Output.Trim())
 
@@ -9683,8 +9683,8 @@ End Module
             dir.CopyFile(GetType(VisualBasicCompilation).Assembly.Location)
             result = ProcessUtilities.Run(vbcPath, arguments:="/nologo /t:library unknown.vb", workingDirectory:=dir.Path)
             Assert.Equal(1, result.ExitCode)
-            Assert.Equal(
-                $"Could not load file or assembly '{GetType(ImmutableArray).Assembly.FullName}' or one of its dependencies. The system cannot find the file specified.",
+            AssertEx.Equal(
+                $"Could not load file or assembly '{GetType(ImmutableArray).Assembly.FullName.Replace(".1", ".0")}' or one of its dependencies. The system cannot find the file specified.",
                 result.Output.Trim())
         End Sub
 

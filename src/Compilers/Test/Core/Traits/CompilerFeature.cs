@@ -45,5 +45,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         RefLifetime,
         Extensions,
         Unsafe,
+        CollectionExpressions,
     }
 }

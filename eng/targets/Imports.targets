@@ -48,9 +48,6 @@
     <RoslynCheckCodeStyle Condition="'$(RoslynCheckCodeStyle)' == '' AND ('$(ContinuousIntegrationBuild)' != 'true' OR '$(RoslynEnforceCodeStyle)' == 'true')">true</RoslynCheckCodeStyle>
 
     <EnforceCodeStyleInBuild Condition="'$(EnforceCodeStyleInBuild)' == '' AND '$(RoslynCheckCodeStyle)' == 'true'">true</EnforceCodeStyleInBuild>
-
-    <!--https://github.com/dotnet/sdk/issues/37826 -->
-    <MSBuildWarningsAsMessages Condition="'$(OutputType)' == 'Library'">$(MSBuildWarningsAsMessages);NETSDK1206</MSBuildWarningsAsMessages>
   </PropertyGroup>
 
   <!--

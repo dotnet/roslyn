@@ -32572,10 +32572,10 @@ static class E
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (5,24): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (5,24): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             // MyCollection<int> c1 = [];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(5, 24),
-            // (6,24): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (6,24): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             // MyCollection<int> c2 = [1];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 24));
     }
@@ -38278,6 +38278,68 @@ public static class E
             // (4,1): warning CS8620: Argument of type '(object, object)?' cannot be used for parameter 't' of type '(object?, object?)?' in 'E.extension((object?, object?)?)' due to differences in the nullability of reference types.
             // System.Nullable<System.ValueTuple<object, object>>.P = 0;
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "System.Nullable<System.ValueTuple<object, object>>").WithArguments("(object, object)?", "(object?, object?)?", "t", "E.extension((object?, object?)?)").WithLocation(4, 1));
+    }
+
+    [Fact]
+    public void Script_01()
+    {
+        var source = """
+static class E
+{
+    extension(object o)
+    {
+        static void F() { }
+    }
+}
+
+class C
+{
+    void M() { this.F(); }
+}
+
+new object().F();
+""";
+        CreateCompilation(source, parseOptions: TestOptions.Script).VerifyEmitDiagnostics(
+            // (3,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //     extension(object o)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5),
+            // (11,21): error CS1061: 'C' does not contain a definition for 'F' and no accessible extension method 'F' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            //     void M() { this.F(); }
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("C", "F").WithLocation(11, 21),
+            // (14,14): error CS1061: 'object' does not contain a definition for 'F' and no accessible extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // new object().F();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(14, 14));
+    }
+
+    [Fact]
+    public void Script_02()
+    {
+        var source = """
+static class E
+{
+    extension(object o)
+    {
+        static int Property => 42;
+    }
+}
+
+class C
+{
+    void M() { this.F(); }
+}
+
+_ = new object().Property;
+""";
+        CreateCompilation(source, parseOptions: TestOptions.Script).VerifyEmitDiagnostics(
+            // (3,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //     extension(object o)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5),
+            // (11,21): error CS1061: 'C' does not contain a definition for 'F' and no accessible extension method 'F' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            //     void M() { this.F(); }
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("C", "F").WithLocation(11, 21),
+            // (14,18): error CS1061: 'object' does not contain a definition for 'Property' and no accessible extension method 'Property' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // _ = new object().Property;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Property").WithArguments("object", "Property").WithLocation(14, 18));
     }
 }
 

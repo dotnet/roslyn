@@ -3902,16 +3902,26 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedUnsafeSymbols: ["C.Create"],
             expectedSafeSymbols: ["C"],
             expectedDiagnostics:
+            // PROTOTYPE: unexpected duplicate diagnostics
             [
+                // (1,8): error CS9502: 'C.Create(ReadOnlySpan<int>)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // C c1 = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "[1, 2, 3]").WithArguments("C.Create(System.ReadOnlySpan<int>)").WithLocation(1, 8),
                 // (1,8): error CS9502: 'C.Create(ReadOnlySpan<int>)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // C c1 = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "[1, 2, 3]").WithArguments("C.Create(System.ReadOnlySpan<int>)").WithLocation(1, 8),
                 // (2,1): error CS9502: 'C.Create(ReadOnlySpan<int>)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // M(1, 2, 3);
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M(1, 2, 3)").WithArguments("C.Create(System.ReadOnlySpan<int>)").WithLocation(2, 1),
+                // (2,1): error CS9502: 'C.Create(ReadOnlySpan<int>)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // M(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M(1, 2, 3)").WithArguments("C.Create(System.ReadOnlySpan<int>)").WithLocation(2, 1),
                 // (3,15): error CS9502: 'C.Create(ReadOnlySpan<int>)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // static void M(params C c) { }
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "params C c").WithArguments("C.Create(System.ReadOnlySpan<int>)").WithLocation(3, 15),
+                // (12,1): error CS9502: 'C.Create(ReadOnlySpan<int>)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // M3(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M3(1, 2, 3)").WithArguments("C.Create(System.ReadOnlySpan<int>)").WithLocation(12, 1),
                 // (12,1): error CS9502: 'C.Create(ReadOnlySpan<int>)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // M3(1, 2, 3);
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M3(1, 2, 3)").WithArguments("C.Create(System.ReadOnlySpan<int>)").WithLocation(12, 1),

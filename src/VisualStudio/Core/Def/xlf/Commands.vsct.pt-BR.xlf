@@ -587,16 +587,6 @@
         <target state="translated">Ir para Implementação</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidSolutionExplorerSymbolItemContextMenu|ButtonText">
-        <source>Solution Explorer Symbol Tree</source>
-        <target state="translated">Árvore de Símbolos do Gerenciador de Soluções</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidSolutionExplorerSymbolItemContextMenu|MenuText">
-        <source>Solution Explorer Symbol Tree</source>
-        <target state="translated">Árvore de Símbolos do Gerenciador de Soluções</target>
-        <note />
-      </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemFindAllReferences|ButtonText">
         <source>Find All References</source>
         <target state="translated">Localizar Todas as Referências</target>

@@ -117,7 +117,7 @@ internal abstract class AbstractAliasAmbiguousTypeCodeFixProvider : CodeFixProvi
                     result.Add(current.Name);
                 }
 
-                // We walked upwards to get the name segments.  So reverse teh order here so it goes from outer-most to
+                // We walked upwards to get the name segments.  So reverse the order here so it goes from outer-most to
                 // inner-most names.
                 result.ReverseContents();
                 return result.ToImmutableAndClear();
