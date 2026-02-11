@@ -27,6 +27,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     private readonly ILogger<FileBasedProgramsProjectSystem> _logger;
     private readonly VirtualProjectXmlProvider _projectXmlProvider;
     private readonly CanonicalMiscFilesProjectLoader _canonicalMiscFilesLoader;
+    private readonly IFileChangeWatcher _fileChangeWatcher;
     private IFileChangeContext? _csprojWatcher;
 
     public FileBasedProgramsProjectSystem(
@@ -53,6 +54,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 dotnetCliHelper)
     {
         _lspServices = lspServices;
+        _fileChangeWatcher = fileChangeWatcher;
         _logger = loggerFactory.CreateLogger<FileBasedProgramsProjectSystem>();
         _projectXmlProvider = projectXmlProvider;
         _canonicalMiscFilesLoader = new CanonicalMiscFilesProjectLoader(
@@ -65,17 +67,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 serverConfigurationFactory,
                 binLogPathProvider,
                 dotnetCliHelper);
-
-        var initializeManager = lspServices.GetRequiredService<IInitializeManager>();
-        // TODO2: this is wrong. Need to handle IOnInitialize or something.
-        // initializeManager.TryGetInitializeParams
-        if (initializeManager.TryGetInitializeParams() is { WorkspaceFolders: [_, ..] nonEmptyWorkspaceFolders })
-        {
-            // TODO2: handle 'workspace/didChangeWorkspaceFolders'
-            _csprojWatcher = fileChangeWatcher.CreateContext(
-                [.. nonEmptyWorkspaceFolders.Select(workspaceFolder => new WatchedDirectory(GetDocumentFilePath(workspaceFolder.DocumentUri), extensionFilters: [".csproj"]))]);
-            _csprojWatcher.FileChanged += OnCsprojFileChanged;
-        }
 
         globalOptionService.AddOptionChangedHandler(this, OnGlobalOptionChanged);
     }
@@ -328,6 +319,15 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
     public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var initializeManager = _lspServices.GetRequiredService<IInitializeManager>();
+        if (initializeManager.TryGetInitializeParams() is { WorkspaceFolders: [_, ..] nonEmptyWorkspaceFolders })
+        {
+            // TODO2: handle 'workspace/didChangeWorkspaceFolders'
+            _csprojWatcher = _fileChangeWatcher.CreateContext(
+                [.. nonEmptyWorkspaceFolders.Select(workspaceFolder => new WatchedDirectory(GetDocumentFilePath(workspaceFolder.DocumentUri), extensionFilters: [".csproj"]))]);
+            _csprojWatcher.FileChanged += OnCsprojFileChanged;
+        }
+
+        return Task.CompletedTask;
     }
 }
