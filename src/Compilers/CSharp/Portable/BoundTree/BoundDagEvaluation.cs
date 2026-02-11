@@ -331,6 +331,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder;
         }
 
+        public BoundDagTemp MakeFirstOutParameterTemp()
+        {
+            MethodSymbol method = DeconstructMethod;
+            int extensionExtra = method.IsStatic ? 1 : 0;
+            ParameterSymbol parameter = method.Parameters[extensionExtra];
+            Debug.Assert(parameter.RefKind == RefKind.Out);
+            return new BoundDagTemp(Syntax, parameter.Type, this, 0);
+        }
+
         public BoundDagTemp MakeReturnValueTemp()
         {
             Debug.Assert(!DeconstructMethod.ReturnsVoid);

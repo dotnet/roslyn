@@ -411,13 +411,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundDagTemp PrepareForUnionValuePropertyMatching(ref TestInputOutputInfo input, ArrayBuilder<Tests> tests)
         {
-            Tests? unionValueEvaluation = null;
 
             if (input.UnionValue is { } unionValue)
             {
                 BoundDagTemp temp = MakeUnionValue(input.DagTemp, unionValue, out BoundDagEvaluation valueEvaluation);
-                unionValueEvaluation = new Tests.One(valueEvaluation);
-                tests.Add(unionValueEvaluation);
+                tests.Add(new Tests.One(valueEvaluation));
                 input = (TestInputOutputInfo)temp;
             }
 
@@ -807,10 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         tests.Add(test);
 
-                        ArrayBuilder<BoundDagTemp> outparamTemps = deconstructEvaluation.MakeOutParameterTemps();
-                        Debug.Assert(outparamTemps.Count == 1);
-                        var outParameterTemp = outparamTemps[0];
-                        outparamTemps.Free();
+                        var outParameterTemp = deconstructEvaluation.MakeFirstOutParameterTemp();
 
                         // Add type evaluation after return value test to separate result value from deconstruct evaluation
                         // This helps us unify the same value accessed through different Union APIs.
@@ -3724,9 +3719,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             AddResultTempReplacement(ref tempMap, typeEval, e1);
                             return Tests.True.Instance;
                         }
-                        else
+                        else if (typeEval.Input is { Source: not BoundDagTypeEvaluation } typeEvalInput)
                         {
-                            BoundDagTemp typeEvalInput = NotTypeEvaluationInput(typeEval);
                             BoundDagTemp e1Input = NotTypeEvaluationInput(e1);
 
                             if (!typeEvalInput.Equals(e1Input))
@@ -3763,7 +3757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bool falseTestImpliesTrueOther = false;
                         dagBuilder.CheckConsistentTypeTestsDecision(null, typeEval.Syntax, ref trueTestPermitsTrueOther, ref falseTestPermitsTrueOther, ref trueTestImpliesTrueOther, ref falseTestImpliesTrueOther, e1.Type, typeEval.Type);
 
-                        if (trueTestImpliesTrueOther) // Only then there is a guarantee that the type check won't be necessary and the second TryGetVakue call can be and will be completely omitted
+                        if (trueTestImpliesTrueOther) // Only then there is a guarantee that the type check won't be necessary and the second TryGetValue call can be and will be completely omitted
                         {
                             // Change typeEval to use input of e1 instead, this will allow us to avoid calling a different Union API to get this value
                             var newTypeEval = typeEval.Update(e1.Input);
