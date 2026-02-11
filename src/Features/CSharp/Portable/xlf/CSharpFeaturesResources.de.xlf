@@ -517,11 +517,6 @@
         <target state="translated">fixed-Anweisung</target>
         <note>{Locked="fixed"} "fixed" is a C# keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="unsafe_block">
-        <source>unsafe block</source>
-        <target state="new">unsafe block</target>
-        <note />
-      </trans-unit>
       <trans-unit id="using_declaration">
         <source>using declaration</source>
         <target state="translated">using-Deklaration</target>
