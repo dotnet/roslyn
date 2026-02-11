@@ -1,0 +1,57 @@
+name: "Spot Issues Missing Area Labels"
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 13 * * *' # Runs daily at 13:00 UTC
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  check-area-labels:
+    name: "Check Issues Missing Area Labels"
+    runs-on: ubuntu-latest
+
+    if: github.repository == 'dotnet/roslyn' # Skip forks
+
+    steps:
+      - name: Tag Issues Missing Area Labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const NEEDS_AREA_LABEL = 'needs-area-label';
+
+            // Fetch open issues in the repo
+            const issues = await github.paginate(
+              github.rest.issues.listForRepo,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                per_page: 100,
+              }
+            );
+
+            for (const issue of issues) {
+              // Skip pull requests
+              if (issue.pull_request) continue;
+
+              const labels = issue.labels.map(label => label.name);
+              const hasAreaLabel = labels.some(name => name.startsWith('Area-') || name.startsWith('Interactive-'));
+              const hasNeedsAreaLabel = labels.includes(NEEDS_AREA_LABEL);
+
+              // If issue needs an Area label
+              if (!hasAreaLabel && !hasNeedsAreaLabel) {
+                console.log(`Adding '${NEEDS_AREA_LABEL}' to issue #${issue.number}`);
+
+                // Add the needs_area_label
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  labels: [NEEDS_AREA_LABEL],
+                });
+              }
+            }
