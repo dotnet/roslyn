@@ -13753,6 +13753,7 @@ class C
     // sequence point: Write("4 ");
     IL_006a:  ldstr      "4 "
     IL_006f:  call       "void System.Console.Write(string)"
+    // sequence point: }
     IL_0074:  ldarg.0
     IL_0075:  ldc.i4.1
     IL_0076:  stfld      "bool C.<M>d__0.<>w__disposeMode"

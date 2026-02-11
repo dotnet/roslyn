@@ -298,13 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_factory.TopLevelMethod is not null);
             Debug.Assert(_factory.CurrentFunction is not null);
 
-<<<<<<< HEAD
             var isStateMachine = getIsStateMachine(_factory.CurrentFunction);
-=======
-            var currentFunction = _factory.CurrentFunction;
-            var isStateMachine = (currentFunction.IsAsync && !_factory.Compilation.IsRuntimeAsyncEnabledIn(currentFunction))
-                                 || currentFunction.IsIterator;
->>>>>>> dotnet/main
 
             var prologueBuilder = ArrayBuilder<BoundStatement>.GetInstance(_factory.CurrentFunction.ParameterCount);
 

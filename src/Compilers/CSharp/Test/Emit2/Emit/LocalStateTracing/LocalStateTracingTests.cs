@@ -4414,6 +4414,7 @@ Main: Returned
     IL_0044:  ldc.i4.3
     IL_0045:  call       "void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)"
     IL_004a:  nop
+    // sequence point: }
     IL_004b:  leave.s    IL_0056
   }
   finally
@@ -4424,7 +4425,7 @@ Main: Returned
     IL_0054:  nop
     IL_0055:  endfinally
   }
-  // sequence point: <hidden>
+  // sequence point: }
   IL_0056:  ret
 }
 """);
@@ -5147,6 +5148,7 @@ Main: Returned
       IL_00e4:  ldarg.0
       IL_00e5:  ldfld      "int C.<M>d__0.<c>5__3"
       IL_00ea:  pop
+      // sequence point: }
       IL_00eb:  ldarg.0
       IL_00ec:  ldc.i4.1
       IL_00ed:  stfld      "bool C.<M>d__0.<>w__disposeMode"

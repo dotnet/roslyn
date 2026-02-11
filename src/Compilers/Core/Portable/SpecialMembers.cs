@@ -1349,7 +1349,15 @@ namespace Microsoft.CodeAnalysis
                     1,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
-<<<<<<< HEAD
+                // System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)InternalSpecialType.System_Runtime_InteropServices_ExtendedLayoutAttribute,                           // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,                                      // Return Type
+                    (byte)SignatureTypeCode.TypeHandle,
+                    (byte)InternalSpecialType.System_Runtime_InteropServices_ExtendedLayoutKind,
+
                 // System_Runtime_CompilerServices_AsyncHelpers__Await_T
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)InternalSpecialType.System_Runtime_CompilerServices_AsyncHelpers,                                     // DeclaringTypeId
@@ -1358,19 +1366,8 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.GenericMethodParameter, 0, // Return Type
                     (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle, (byte)InternalSpecialType.System_Threading_Tasks_ValueTask_T,
                         1,
-                        (byte)SignatureTypeCode.GenericMethodParameter, 0,
-             };
-=======
-                // System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor
-                (byte)MemberFlags.Constructor,                                                                              // Flags
-                (byte)InternalSpecialType.System_Runtime_InteropServices_ExtendedLayoutAttribute,                           // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    1,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,                                      // Return Type
-                    (byte)SignatureTypeCode.TypeHandle,
-                    (byte)InternalSpecialType.System_Runtime_InteropServices_ExtendedLayoutKind
+                        (byte)SignatureTypeCode.GenericMethodParameter, 0
             };
->>>>>>> dotnet/main
 
             string[] allNames = new string[(int)SpecialMember.Count]
             {
@@ -1535,11 +1532,8 @@ namespace Microsoft.CodeAnalysis
                 "UnsafeAwaitAwaiter",                       // System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter
                 "HandleAsyncEntryPoint",                    // System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task
                 "HandleAsyncEntryPoint",                    // System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_Int32
-<<<<<<< HEAD
-                "Await",                                    // System_Runtime_CompilerServices_AsyncHelpers__Await_T
-=======
                 ".ctor",                                    // System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor
->>>>>>> dotnet/main
+                "Await",                                    // System_Runtime_CompilerServices_AsyncHelpers__Await_T
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);
