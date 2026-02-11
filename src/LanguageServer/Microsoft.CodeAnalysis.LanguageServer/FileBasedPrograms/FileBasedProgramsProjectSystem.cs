@@ -110,6 +110,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         }
     }
 
+    // TODO: we need to make sure that the work of searching a directory for csproj's,
+    // is only done when a file is initially loaded.
     private void OnCsprojFileChanged(object? sender, string changedFile)
     {
         Contract.ThrowIfFalse(PathUtilities.IsAbsolute(changedFile));
@@ -117,42 +119,32 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             return;
 
         var directoryName = PathUtilities.GetDirectoryName(changedFile);
-        _ = UnloadProjectsFireAndForgetAsync(directoryName);
+        _ = HandleCsprojFileChangedAsync(directoryName);
 
-        async Task UnloadProjectsFireAndForgetAsync(string directoryName)
+        async Task HandleCsprojFileChangedAsync(string directoryName)
         {
+            using var token = Listener.BeginAsyncOperation(nameof(HandleCsprojFileChangedAsync));
             try
             {
-                // TODO: unload FBA projects under this cone.
-                _ = await ExecuteUnderGateAsync(async loadedProjects =>
+                if (File.Exists(changedFile))
                 {
-                    foreach (var loadedFilePath in loadedProjects.Keys)
-                    {
-                        // NOTE: .NET supports removing while enumerating
-                        if (loadedFilePath.StartsWith(directoryName, StringComparison.OrdinalIgnoreCase))
-                        {
-                            await TryUnloadProject_NoLockAsync(loadedFilePath);
-                        }
-                    }
-
-                    return ValueTask.FromResult((object?)null);
-                }, CancellationToken.None);
+                    // csproj exists (might have just been created).
+                    // File-based apps under that path should be unloaded, as we may want to treat them as misc files instead now.
+                    await UnloadAllProjectsInDirectoryAsync(directoryName);
+                }
+                else
+                {
+                    // csproj does not exist (might have just been deleted).
+                    // Misc files under that path should be unloaded, as we may now want to treat them as file-based apps.
+                    await _canonicalMiscFilesLoader.UnloadAllProjectsInDirectoryAsync(directoryName);
+                }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
             {
-                _logger.LogError(ex, "Unexpected error in OnCsprojFileChanged");
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }
-
-    // /// <summary>
-    // /// Set of directory paths known to contain a csproj file.
-    // /// Guarded by <see cref="_gate"/>.
-    // /// </summary>
-    // private readonly HashSet<(string directoryPath, bool containsCsproj)> _knownCsprojDirectories = [];
-
-    // /// <summary>Guards access to <see cref="_knownCsprojDirectories"/></summary>
-    // private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
     private string GetDocumentFilePath(DocumentUri uri) => uri.ParsedUri is { } parsedUri ? ProtocolConversions.GetDocumentFilePathFromUri(parsedUri) : uri.UriString;
 
@@ -319,7 +311,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
     public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
-        var initializeManager = _lspServices.GetRequiredService<IInitializeManager>();
+        Contract.ThrowIfFalse(_csprojWatcher == null, "This should be the first notification which can possibly initialize _csprojWatcher");
+        var initializeManager = context.GetRequiredService<IInitializeManager>();
         if (initializeManager.TryGetInitializeParams() is { WorkspaceFolders: [_, ..] nonEmptyWorkspaceFolders })
         {
             // TODO2: handle 'workspace/didChangeWorkspaceFolders'

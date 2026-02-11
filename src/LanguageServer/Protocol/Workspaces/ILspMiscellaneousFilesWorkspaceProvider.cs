@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// No methods will be called concurrently, since we are dispatching LSP requests one at a time in the core dispatching loop.
 /// This does mean methods should be reasonably fast since they will block the LSP server from processing other requests while they are running.
 /// </remarks>
-internal interface ILspMiscellaneousFilesWorkspaceProvider : ILspService
+internal interface ILspMiscellaneousFilesWorkspaceProvider : ILspService, IOnInitialized
 {
     /// <summary>
     /// Returns whether the document is one that came from a previous call to <see cref="AddMiscellaneousDocumentAsync"/>.

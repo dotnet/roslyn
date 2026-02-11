@@ -81,14 +81,14 @@ This is the decision tree for determining how to classify a C# file:
 
 **Heuristic Detection (when `enableFileBasedProgramsWhenAmbiguous: true`):**
 
-5. **Is the file included in a `.csproj` cone?**
+5. **Are top-level statements present?**
+   - **No** → Classify as **Misc File**
+   - **Yes** → Continue to next check
+
+6. **Is the file included in a `.csproj` cone?**
    - "Cone" means that a containing directory, at some level of nesting, has a `.csproj` file in it.
    - **Yes** → Classify as **Misc File** (wait for project to load)
-   - **No** → Continue to next check
-
-6. **Are top-level statements present?**
-   - **Yes** → Classify as **File-Based App**
-   - **No** → Classify as **Misc File**
+   - **No** → Classify as **File-Based App**
 
 ### Opt-out
 

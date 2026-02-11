@@ -135,9 +135,13 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
         return containsTopLevelStatements && !ContainedInCsprojCone(tree.FilePath);
     }
 
+    // TODO: figure out how to perform this work only when a document is first loaded.
     internal static bool ContainedInCsprojCone(string csFilePath)
     {
-        Contract.ThrowIfFalse(PathUtilities.GetExtension(csFilePath) == ".cs");
+        // When the path is not absolute (for virtual documents, etc), we can't perform this search.
+        // Optimistically assume there is no csproj in cone.
+        if (!PathUtilities.IsAbsolute(csFilePath))
+            return false;
 
         var directoryName = PathUtilities.GetDirectoryName(csFilePath);
         var driveRoot = PathUtilities.GetPathRoot(directoryName);

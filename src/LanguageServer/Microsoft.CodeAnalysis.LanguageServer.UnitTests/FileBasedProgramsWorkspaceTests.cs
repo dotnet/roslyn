@@ -29,7 +29,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
 
     public FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
-        _loggerProvider = new TestOutputLoggerProvider(testOutputHelper);
+        _loggerProvider = new TestOutputLoggerProvider(testOutputHelper, LogLevel.None);
         _loggerFactory = new LoggerFactory([_loggerProvider]);
         _tempRoot = new();
         _mefCacheDirectory = _tempRoot.CreateDirectory();
@@ -571,10 +571,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         await testLspServer.OpenDocumentAsync(nonFileUri, """
             Console.WriteLine("Hello World");
             """, languageId: "csharp").ConfigureAwait(false);
-
-        // Get the document info once to kickoff the canonical project loading process
-        _ = await GetRequiredLspWorkspaceAndDocumentAsync(nonFileUri, testLspServer).ConfigureAwait(false);
-        await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+        await WaitForProjectLoad(nonFileUri, testLspServer);
 
         // Verify the document is loaded in the canonical project.
         var (miscWorkspace, canonicalDocument) = await GetRequiredLspWorkspaceAndDocumentAsync(nonFileUri, testLspServer).ConfigureAwait(false);
@@ -633,10 +630,9 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
 
         var fileUri = ProtocolConversions.CreateAbsoluteDocumentUri(file.Path);
         await testLspServer.OpenDocumentAsync(fileUri, fileText).ConfigureAwait(false);
+        await WaitForProjectLoad(fileUri, testLspServer);
 
-        _ = await GetRequiredLspWorkspaceAndDocumentAsync(fileUri, testLspServer).ConfigureAwait(false);
-        await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
-
+        // Expect HasAllInformation == false when csproj is present, and HasAllInformation == true when csproj is absent
         var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(fileUri, testLspServer).ConfigureAwait(false);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
         Assert.False(document.Project.State.HasAllInformation);
@@ -646,7 +642,6 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
 
         (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(fileUri, testLspServer).ConfigureAwait(false);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
-        // A csproj is not in cone, so we show semantic errors
         Assert.True(document.Project.State.HasAllInformation);
 
         csprojFile = tempDir.CreateFile("Project.csproj");
@@ -654,7 +649,6 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
 
         (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(fileUri, testLspServer).ConfigureAwait(false);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
-        // A csproj is in cone, so we don't show semantic errors
         Assert.False(document.Project.State.HasAllInformation);
     }
 
@@ -683,9 +677,9 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         _ = await GetRequiredLspWorkspaceAndDocumentAsync(fileUri, testLspServer).ConfigureAwait(false);
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
 
+        // Expect HasAllInformation == false when csproj is present, and HasAllInformation == true when csproj is absent
         var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(fileUri, testLspServer).ConfigureAwait(false);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
-        // A csproj is in cone, so we don't show semantic errors
         Assert.False(document.Project.State.HasAllInformation);
 
         File.Delete(csprojFile.Path);
@@ -693,7 +687,6 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
 
         (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(fileUri, testLspServer).ConfigureAwait(false);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
-        // A csproj is not in cone, so we show semantic errors
         Assert.True(document.Project.State.HasAllInformation);
 
         csprojFile = tempDir.CreateFile("Project.csproj");
@@ -701,7 +694,6 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
 
         (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(fileUri, testLspServer).ConfigureAwait(false);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
-        // A csproj is in cone, so we don't show semantic errors
         Assert.False(document.Project.State.HasAllInformation);
     }
 
@@ -728,14 +720,11 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
 
         var fileUri = ProtocolConversions.CreateAbsoluteDocumentUri(file.Path);
         await testLspServer.OpenDocumentAsync(fileUri, fileText).ConfigureAwait(false);
+        await WaitForProjectLoad(fileUri, testLspServer);
 
-        _ = await GetRequiredLspWorkspaceAndDocumentAsync(fileUri, testLspServer).ConfigureAwait(false);
-        await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
-
+        // Expect HasAllInformation == false when csproj is present, and HasAllInformation == true when csproj is absent
         var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(fileUri, testLspServer).ConfigureAwait(false);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
-
-        // A csproj is in cone, so we don't show semantic errors
         Assert.False(document.Project.State.HasAllInformation);
 
         File.Delete(csprojFile.Path);
@@ -743,7 +732,6 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
 
         (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(fileUri, testLspServer).ConfigureAwait(false);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
-        // A csproj is not in cone, so we show semantic errors
         Assert.True(document.Project.State.HasAllInformation);
 
         csprojFile = tempDir.CreateFile("Project.csproj");
@@ -751,7 +739,6 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
 
         (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(fileUri, testLspServer).ConfigureAwait(false);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
-        // A csproj is in cone, so we don't show semantic errors
         Assert.False(document.Project.State.HasAllInformation);
     }
 
@@ -779,15 +766,14 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
 
         var fileUri = ProtocolConversions.CreateAbsoluteDocumentUri(file.Path);
         await testLspServer.OpenDocumentAsync(fileUri, fileText).ConfigureAwait(false);
+        await WaitForProjectLoad(fileUri, testLspServer);
 
-        _ = await GetRequiredLspWorkspaceAndDocumentAsync(fileUri, testLspServer).ConfigureAwait(false);
-        await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
-
+        // Test that deleting/re-creating an irrelevant csproj doesn't result in a bad project system/workspace behavior.
+        // i.e. HasAllInformation is unaffected by the irrelevant delete.
         var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(fileUri, testLspServer).ConfigureAwait(false);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
         Assert.True(document.Project.State.HasAllInformation);
 
-        // Test that deleting/re-creating an irrelevant csproj doesn't cause the project system/workspace to behave badly.
         File.Delete(csprojFile.Path);
         await WaitForProjectLoad(fileUri, testLspServer);
 
@@ -795,7 +781,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
         Assert.True(document.Project.State.HasAllInformation);
 
-        csprojFile = tempDir.CreateFile("Project.csproj");
+        csprojFile = src1Dir.CreateFile("Project.csproj");
         await WaitForProjectLoad(fileUri, testLspServer);
 
         (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(fileUri, testLspServer).ConfigureAwait(false);
@@ -825,12 +811,12 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
 
         var fileUri = ProtocolConversions.CreateAbsoluteDocumentUri(file.Path);
         await testLspServer.OpenDocumentAsync(fileUri, fileText).ConfigureAwait(false);
-
-        _ = await GetRequiredLspWorkspaceAndDocumentAsync(fileUri, testLspServer).ConfigureAwait(false);
-        await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+        await WaitForProjectLoad(fileUri, testLspServer);
 
         var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(fileUri, testLspServer).ConfigureAwait(false);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
         Assert.True(document.Project.State.HasAllInformation);
     }
+
+    // TODO2: test changing workspace directories after startup
 }

@@ -97,7 +97,7 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         if (serverKind == WellKnownLspServerKinds.CSharpVisualBasicLspServer)
         {
             AddLazyService<ILspMiscellaneousFilesWorkspaceProvider>(lspServices => lspServices.GetRequiredService<ILspMiscellaneousFilesWorkspaceProviderFactory>().CreateLspMiscellaneousFilesWorkspaceProvider(lspServices, hostServices));
-            AddLazyService<IOnInitialized>(lspServices => (IOnInitialized)lspServices.GetRequiredService<ILspMiscellaneousFilesWorkspaceProvider>());
+            AddLazyService<IOnInitialized>(lspServices => lspServices.GetRequiredService<ILspMiscellaneousFilesWorkspaceProvider>());
         }
 
         return baseServiceMap.ToFrozenDictionary(

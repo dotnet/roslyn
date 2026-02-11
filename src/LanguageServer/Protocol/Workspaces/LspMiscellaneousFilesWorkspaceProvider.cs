@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -115,6 +116,9 @@ internal sealed class LspMiscellaneousFilesWorkspaceProvider(ILspServices lspSer
     {
         this.OnDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity, requireDocumentPresent: false);
     }
+
+    public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
+        => Task.CompletedTask;
 
     private sealed class StaticSourceTextContainer(SourceText text) : SourceTextContainer
     {

@@ -505,6 +505,22 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
+    internal async ValueTask UnloadAllProjectsInDirectoryAsync(string containingDirectory)
+    {
+        using (await _gate.DisposableWaitAsync(CancellationToken.None))
+        {
+            foreach (var projectPath in _loadedProjects.Keys)
+            {
+                // NOTE: .NET supports removing while enumerating
+                if (PathUtilities.IsSameDirectoryOrChildOf(child: projectPath, parent: containingDirectory))
+                {
+                    var removed = await TryUnloadProject_NoLockAsync(projectPath);
+                    Contract.ThrowIfFalse(removed); // We obtained lock before enumerating, how was this already removed?
+                }
+            }
+        }
+    }
+
     internal async ValueTask<bool> TryUnloadProjectAsync(string projectPath)
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
