@@ -572,6 +572,11 @@
         <target state="translated">Dans les autres opérateurs</target>
         <note />
       </trans-unit>
+      <trans-unit id="Include_Roslyn_source_generated_files">
+        <source>Include Roslyn source-generated files</source>
+        <target state="new">Include Roslyn source-generated files</target>
+        <note>Used in the unified settings registration for real-time test discovery</note>
+      </trans-unit>
       <trans-unit id="Include_global_imports">
         <source>Include global imports</source>
         <target state="translated">Inclure les importations globales</target>

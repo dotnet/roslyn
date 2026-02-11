@@ -65,6 +65,8 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="TestFiles\analyzer_input.csv" />
+    <EmbeddedResource Include="$(RepoRoot)\src\VisualStudio\Core\Def\UnifiedSettings\roslynSettings.registration.json" />
+    <EmbeddedResource Include="$(RepoRoot)\src\VisualStudio\Core\Def\PackageRegistration.pkgdef" Link="roslynPackageRegistration.pkgdef" />
     <EmbeddedResource Include="$(RepoRoot)\src\VisualStudio\VisualBasic\Impl\UnifiedSettings\visualBasicSettings.registration.json" />
     <EmbeddedResource Include="$(RepoRoot)\src\VisualStudio\VisualBasic\Impl\PackageRegistration.pkgdef" Link="visualBasicPackageRegistration.pkgdef" />
     <EmbeddedResource Include="$(RepoRoot)\src\VisualStudio\CSharp\Impl\UnifiedSettings\csharpSettings.registration.json" />
