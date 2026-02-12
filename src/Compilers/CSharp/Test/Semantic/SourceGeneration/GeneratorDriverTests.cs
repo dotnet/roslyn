@@ -20,11 +20,15 @@ using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
+
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 {
-    public class GeneratorDriverTests
+    public class GeneratorDriverTests(ITestOutputHelper output)
          : CSharpTestBase
     {
+        private readonly ITestOutputHelper _output = output;
+
         [Fact]
         public void Running_With_No_Changes_Is_NoOp()
         {
@@ -3891,6 +3895,48 @@ class D {  (int, bool) _field; }";
             compilation.VerifyDiagnostics();
         }
 
+        [Fact]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82032")]
+        public void Diagnostic_SpanOutsideRange_Incremental_Update()
+        {
+            var source = "class SomewhatLongClassName {}";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions, sourceFileName: "/original");
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                var inputs = ctx.SyntaxProvider.CreateSyntaxProvider(
+                    static (node, ct) => node.IsKind(SyntaxKind.ClassDeclaration),
+                    static (ctx, ct) => 0);
+                ctx.RegisterSourceOutput(inputs, (ctx, input) =>
+                {
+                    var tree = compilation.SyntaxTrees.Single();
+                    ctx.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(
+                        "TEST0001",
+                        "Test",
+                        "Test diagnostic",
+                        DiagnosticSeverity.Warning,
+                        DiagnosticSeverity.Warning,
+                        isEnabledByDefault: true,
+                        warningLevel: 1,
+                        location: Location.Create(tree, TextSpan.FromBounds(20, 21))));
+                });
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
+            diagnostics.Verify(Diagnostic("TEST0001", "a").WithLocation(1, 21));
+
+            source = "class C {}";
+            compilation = compilation.ReplaceSyntaxTree(compilation.SyntaxTrees.Single(), CSharpSyntaxTree.ParseText(source, parseOptions, path: "/original"));
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out diagnostics);
+
+            VerifyArgumentExceptionDiagnostic(diagnostics.Single(), nameof(PipelineCallbackGenerator), string.Format(CodeAnalysisResources.InvalidDiagnosticLocationReported, "TEST0001", "/original"), "diagnostic");
+            compilation.VerifyDiagnostics();
+        }
+
         [ConditionalFact(typeof(IsEnglishLocal))]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1805836")]
         public void Diagnostic_SpanOutsideRange_Incremental_AdditionalLocations()
@@ -4237,19 +4283,16 @@ class C { }
             }
         }
 
-        private static void VerifyArgumentExceptionDiagnostic(
+        private void VerifyArgumentExceptionDiagnostic(
             Diagnostic diagnostic,
             string generatorName,
             string message,
             string parameterName,
             bool initialization = false)
         {
-            var expectedMessage =
-#if NET
-                $"{message} (Parameter '{parameterName}')";
-#else
-                $"{message}{Environment.NewLine}Parameter name: {parameterName}";
-#endif
+            _output.WriteLine(diagnostic.ToString());
+
+            var expectedMessage = new ArgumentException(message: message, paramName: parameterName).Message;
             VerifyGeneratorExceptionDiagnostic<ArgumentException>(diagnostic, generatorName, expectedMessage, initialization);
         }
 
