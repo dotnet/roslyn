@@ -3182,7 +3182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If the return type is not void then the expression must be implicitly convertible.
 
             Conversion conversion;
-            bool badAsyncReturnAlreadyReported = false, hasConversionError = false;
+            bool badAsyncReturnAlreadyReported = false, hasImplicitConversionError = false;
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             if (IsInAsyncMethod())
             {
@@ -3233,7 +3233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            hasConversionError = true;
+                            hasImplicitConversionError = true;
                             GenerateImplicitConversionError(diagnostics, argument.Syntax, conversion, argument, returnType);
                             if (this.ContainingMemberOrLambda is LambdaSymbol)
                             {
@@ -3244,7 +3244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return CreateConversion(argument.Syntax, argument, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, returnType, diagnostics, hasConversionError);
+            return CreateConversion(argument.Syntax, argument, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, returnType, diagnostics, hasImplicitConversionError);
         }
 
         private BoundTryStatement BindTryStatement(TryStatementSyntax node, BindingDiagnosticBag diagnostics)
