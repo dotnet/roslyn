@@ -180,7 +180,7 @@ my_prop = my_val
         [ConditionalFact(typeof(WindowsOnly))]
         public void WindowsPath_NormalizedDirectoryIsFullyNormalized()
         {
-            var config = Parse("", @"C:\Repo\Src\..\Src\Shared\.editorconfig");
+            var config = Parse("", @"C:\Repo\\Src\..\Src/Shared\.editorconfig");
 
             // Should be collapsed, expanded, and case-normalized
             Assert.Equal("C:/repo/src/shared", config.NormalizedDirectory);
