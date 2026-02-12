@@ -144,6 +144,9 @@ internal static partial class ITextViewExtensions
             outliningManager?.ExpandAll(new SnapshotSpan(pointInView.Value, length: 0), match: _ => true);
         }
 
+        // Moving caret doesn't clear previous selection so we need to clear it manually
+        textView.Selection.Clear();
+
         var newPosition = textView.Caret.MoveTo(new VirtualSnapshotPoint(pointInView.Value, point.VirtualSpaces));
 
         // We use the caret's position in the view's current snapshot here in case something 
