@@ -162,6 +162,12 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 && textDocument is Document document
                 && await document.GetSyntaxTreeAsync(cancellationToken) is { } syntaxTree)
             {
+                // TODO2: This value doesn't include the info we baked in when doing the csproj-in-cone check.
+                // Thus we are constantly unloading these files.
+                // Possible fixes:
+                // - Track a flag in ProjectLoadState.CanonicalForked for, whether csproj was in cone when it was loaded.
+                // - Track whether the old version(s) of the document also had top-level statements (seems harder).
+                // (I convinced myself we didn't need to cache 'IsCsprojInCone', but I think I was wrong. Dang.)
                 var newHasAllInformation = await VirtualProjectXmlProvider.GetCanonicalMiscFileHasAllInformation_IncrementalAsync(GlobalOptionService, syntaxTree, cancellationToken);
                 if (newHasAllInformation != document.Project.State.HasAllInformation)
                 {
