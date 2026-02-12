@@ -39,7 +39,7 @@ internal sealed class InitializeHandler() : ILspServiceRequestHandler<Initialize
         return new RoslynInitializeResult
         {
             Capabilities = serverCapabilities,
-            ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id,
+            ProcessId = RoslynLanguageServer.ServerProcessId,
         };
     }
 }
