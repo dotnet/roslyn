@@ -176,16 +176,12 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
             if (!await CalcHasAllInformation_EasyOutAsync(globalOptionService, tree, cancellationToken))
                 return false;
 
-            // TODO2: figure out better sharing between here and 'AddForkedCanonicalProject'.
-            // Correctness/consistency more important than optimizing locks etc
             if (forkedState.ContainedInCsprojCone is null)
             {
                 var containedInCsprojCone = CalcIsContainedInCsprojCone(tree.FilePath);
                 loadedProjects[tree.FilePath] = forkedState = forkedState with { ContainedInCsprojCone = containedInCsprojCone };
             }
 
-            // TODO2: at least some tests must verify the state of the workspace and project system.
-            // In general we should probably verify a consistent state between these, e.g. every project system entry must have corresponding workspace project(s).
             var hasAllInformation = !forkedState.ContainedInCsprojCone.GetValueOrDefault();
             return hasAllInformation;
         }, cancellationToken);
@@ -205,6 +201,26 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
             return false;
 
         return compilationUnit.Members.Any(SyntaxKind.GlobalStatement);
+    }
+
+    internal async ValueTask ClearCsprojInConeInfoAsync(string containingDirectory)
+    {
+        _ = await ExecuteUnderGateAsync(async loadedProjects =>
+        {
+            foreach (var (path, loadState) in loadedProjects)
+            {
+                if (loadState is not ProjectLoadState.CanonicalForked forkedState
+                    || !PathUtilities.IsSameDirectoryOrChildOf(child: path, parent: containingDirectory))
+                {
+                    continue;
+                }
+
+                // Note: .NET supports overwriting dictionary entries while enumerating
+                loadedProjects[path] = forkedState with { ContainedInCsprojCone = null };
+            }
+
+            return (object?)null;
+        }, CancellationToken.None);
     }
 
     /// <summary>

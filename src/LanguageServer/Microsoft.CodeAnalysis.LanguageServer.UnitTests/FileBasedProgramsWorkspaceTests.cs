@@ -1001,4 +1001,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
     }
 
     // TODO2: test changing workspace directories after startup
+
+    // TODO: Test consistency of the workspace and project system.
+    // i.e. we should always end in a state where each project system entry has a corresponding workspaces project and vice-versa.
 }

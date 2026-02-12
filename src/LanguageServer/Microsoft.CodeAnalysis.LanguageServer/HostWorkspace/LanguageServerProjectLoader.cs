@@ -506,25 +506,6 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
-    // TODO2: move down to canonical loader
-    internal async ValueTask ClearCsprojInConeInfoAsync(string containingDirectory)
-    {
-        using (await _gate.DisposableWaitAsync(CancellationToken.None))
-        {
-            foreach (var (path, loadState) in _loadedProjects)
-            {
-                if (loadState is not ProjectLoadState.CanonicalForked forkedState
-                    || !PathUtilities.IsSameDirectoryOrChildOf(child: path, parent: containingDirectory))
-                {
-                    continue;
-                }
-
-                // Note that .NET supports overwriting dictionary entries while enumerating.
-                _loadedProjects[path] = forkedState with { ContainedInCsprojCone = null };
-            }
-        }
-    }
-
     internal async ValueTask<bool> TryUnloadProjectAsync(string projectPath)
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
