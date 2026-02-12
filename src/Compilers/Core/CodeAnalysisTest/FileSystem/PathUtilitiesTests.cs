@@ -443,9 +443,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
         [InlineData(@"c:b", @"c:b")]
         [InlineData(@"c:\b", @"C:\b")]
         [InlineData(@"c:/b", @"C:/b")]
-        public void NormalizeDriveLetter_Windows(string input, string output)
+        [InlineData(@"C:\Users\JSmith\Source", @"C:\users\jsmith\source")]
+        [InlineData(@"d:/Repo/Src/File.cs", @"D:/repo/src/file.cs")]
+        [InlineData(@"Z:\ALLCAPS\PATH", @"Z:\allcaps\path")]
+        public void NormalizePathCase_Windows(string input, string output)
         {
-            AssertEx.Equal(output, PathUtilities.NormalizeDriveLetter(input));
+            AssertEx.Equal(output, PathUtilities.NormalizePathCase(input));
         }
 
         [ConditionalTheory(typeof(UnixLikeOnly))]
@@ -455,9 +458,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
         [InlineData(@"c:b")]
         [InlineData(@"c:\b")]
         [InlineData(@"c:/b")]
-        public void NormalizeDriveLetter_UnixLike(string input)
+        [InlineData(@"/home/JSmith/Source")]
+        public void NormalizePathCase_UnixLike(string input)
         {
-            AssertEx.Equal(input, PathUtilities.NormalizeDriveLetter(input));
+            AssertEx.Equal(input, PathUtilities.NormalizePathCase(input));
         }
     }
 }

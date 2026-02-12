@@ -735,14 +735,26 @@ namespace Roslyn.Utilities
             return filePath;
         }
 
-        public static string NormalizeDriveLetter(string filePath)
+        /// <summary>
+        /// Normalizes the casing of a file path for consistent ordinal comparison.
+        /// Only affects drive-rooted absolute paths on Windows (e.g. <c>C:\foo\Bar</c> → <c>C:\foo\bar</c>).
+        /// Non-drive-rooted paths (UNC paths, relative paths, glob patterns like <c>[*.cs]</c>) pass through unchanged.
+        /// On Unix, returns the path unchanged since paths are case-sensitive.
+        /// </summary>
+        /// <remarks>
+        /// This deliberately does not account for the per-folder case-sensitivity option
+        /// available on Windows via WSL (https://learn.microsoft.com/en-us/windows/wsl/case-sensitivity#inspect-current-case-sensitivity).
+        /// That feature is rarely used outside of WSL interop scenarios and checking it
+        /// would require a P/Invoke per directory, which is impractical for a compiler.
+        /// </remarks>
+        public static string NormalizePathCase(string filePath)
         {
-            if (!IsUnixLikePlatform && IsDriveRootedAbsolutePath(filePath))
+            if (IsUnixLikePlatform || !IsDriveRootedAbsolutePath(filePath))
             {
-                filePath = char.ToUpper(filePath[0]) + filePath.Substring(1);
+                return filePath;
             }
 
-            return filePath;
+            return char.ToUpper(filePath[0]) + filePath.Substring(1).ToLowerInvariant();
         }
 
         /// <summary>

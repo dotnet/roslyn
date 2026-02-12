@@ -166,9 +166,13 @@ namespace Microsoft.CodeAnalysis
             PathToFile = pathToFile;
             _hasGlobalFileName = Path.GetFileName(pathToFile).Equals(UserGlobalConfigName, StringComparison.OrdinalIgnoreCase);
 
-            // Find the containing directory and normalize the path separators
+            // Find the containing directory and run it through the same normalization
+            // pipeline used for source paths in AnalyzerConfigSet.GetOptionsForSourcePath,
+            // so that ordinal comparison between the two is correct.
             string directory = Path.GetDirectoryName(pathToFile) ?? pathToFile;
-            NormalizedDirectory = PathUtilities.NormalizeWithForwardSlash(directory);
+            var normalizedDirectory = PathUtilities.CollapseWithForwardSlash(directory.AsSpan());
+            normalizedDirectory = PathUtilities.ExpandAbsolutePathWithRelativeParts(normalizedDirectory);
+            NormalizedDirectory = PathUtilities.NormalizePathCase(normalizedDirectory);
         }
 
         /// <summary>
@@ -256,14 +260,15 @@ namespace Microsoft.CodeAnalysis
             // Add the last section
             addNewSection();
 
-            // Normalize the path to file the same way named sections are
-            pathToFile = PathUtilities.NormalizeDriveLetter(pathToFile);
-
             return new AnalyzerConfig(globalSection!, namedSectionBuilder.ToImmutable(), pathToFile);
 
             void addNewSection()
             {
-                var sectionName = PathUtilities.NormalizeDriveLetter(activeSectionName);
+                // No-op for glob patterns like [*.cs] since they aren't drive-rooted absolute paths.
+                // Note: unlike NormalizedDirectory, section names are NOT run through the full
+                // normalization pipeline (CollapseWithForwardSlash / ExpandAbsolutePathWithRelativeParts)
+                // used for source paths. Only case normalization is applied here.
+                var sectionName = PathUtilities.NormalizePathCase(activeSectionName);
 
                 // Close out the previous section
                 var previousSection = new Section(sectionName, activeSectionProperties.ToImmutable());

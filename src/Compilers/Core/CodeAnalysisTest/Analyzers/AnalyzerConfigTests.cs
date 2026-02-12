@@ -156,7 +156,34 @@ build_metadata.compile.toretrieve = def456
             var config = Parse("", path);
 
             Assert.Equal("Z:/bogus", config.NormalizedDirectory);
-            Assert.Equal(path, config.PathToFile);
+            Assert.Equal("Z:\\bogus\\.editorconfig", config.PathToFile);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void WindowsPath_CaseInsensitiveDirectoryMatch()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[*.cs]
+my_prop = my_val
+", @"C:\Repo\src\shared\.editorconfig"));
+
+            var configSet = AnalyzerConfigSet.Create(configs, out var diagnostics);
+            configs.Free();
+
+            // Source path differs in casing ("Shared" vs "shared") — should still match
+            var options = configSet.GetOptionsForSourcePath(@"C:\Repo\src\Shared\Foo.cs");
+
+            Assert.Equal("my_val", options.AnalyzerOptions["my_prop"]);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void WindowsPath_NormalizedDirectoryIsFullyNormalized()
+        {
+            var config = Parse("", @"C:\Repo\Src\..\Src\Shared\.editorconfig");
+
+            // Should be collapsed, expanded, and case-normalized
+            Assert.Equal("C:/repo/src/shared", config.NormalizedDirectory);
         }
 
         [Fact]
