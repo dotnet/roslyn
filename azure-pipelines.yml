@@ -159,7 +159,7 @@ jobs:
     buildJobName: Build_Unix_Debug
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
-    testArguments: --testCoreClr --helixQueueName OSX.13.Amd64.Open
+    testArguments: --testCoreClr --helixQueueName OSX.15.Amd64.Open
     queueName: Build.Ubuntu.2204.Amd64.Open
 
 # Build Correctness Jobs
