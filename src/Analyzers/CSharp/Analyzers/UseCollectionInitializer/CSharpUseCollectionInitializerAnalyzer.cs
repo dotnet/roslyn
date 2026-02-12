@@ -104,7 +104,7 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
             return false;
         }
 
-        // Otherwise, if we're in C#14 or above, we can use the 'with(args)' argument trivially.
+        // Otherwise, if we're in C#15 or above, we can use the 'with(args)' argument trivially.
         if (supportsWithArgument)
         {
             preMatches.Add(new(argumentList, UseSpread: false, UseKeyValue: false));
