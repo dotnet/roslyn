@@ -86,7 +86,7 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
             return true;
 
         // See if we can specialize a single argument, by potentially spreading it, or dropping it entirely if redundant.
-        var supportsWithArgument = _objectCreationExpression.SyntaxTree.Options.LanguageVersion().IsCSharp14OrAbove();
+        var supportsWithArgument = _objectCreationExpression.SyntaxTree.Options.LanguageVersion().IsCSharp15OrAbove();
         if (TrySpecializeSingleArgument(out mayChangeSemantics))
             return true;
 
@@ -104,7 +104,7 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
             return false;
         }
 
-        // Otherwise, if we're in C#14 or above, we can use the 'with(args)' argument trivially.
+        // Otherwise, if we're in C#15 or above, we can use the 'with(args)' argument trivially.
         if (supportsWithArgument)
         {
             preMatches.Add(new(argumentList, UseSpread: false, UseKeyValue: false));
