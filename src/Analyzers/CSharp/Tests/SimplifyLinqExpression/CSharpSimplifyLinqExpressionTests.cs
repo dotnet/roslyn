@@ -712,7 +712,7 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
             {
                 static void M(string[] args)
                 {
-                    var v = (decimal)[|((args.Select(x => int.Parse(x)))!)!.Sum()|];
+                    var v = (decimal)[|(({|CS8715:args.Select(x => int.Parse(x))|})!)!.Sum()|];
                 }
             }
             """,
