@@ -487,4 +487,7 @@
   <data name="AbsolutePathExpected" xml:space="preserve">
     <value>Absolute path expected</value>
   </data>
+  <data name="Error_encountered_while_processing_0" xml:space="preserve">
+    <value>Error encountered while processing: '{0}'</value>
+  </data>
 </root>

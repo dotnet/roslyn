@@ -90,7 +90,16 @@ public abstract class DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> su
                 if (documentDiagnostics.IsDefaultOrEmpty)
                     return;
 
-                var newDocument = await this.FixAllAsync(fixAllContext, document, documentDiagnostics).ConfigureAwait(false);
+                Document? newDocument;
+                try
+                {
+                    newDocument = await this.FixAllAsync(fixAllContext, document, documentDiagnostics).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    throw new RefactorOrFixAllDocumentException(document, ex);
+                }
+
                 await onDocumentFixed(document, newDocument).ConfigureAwait(false);
             }).ConfigureAwait(false);
     }
