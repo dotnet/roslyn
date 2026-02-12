@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<RequestContext>, IOnInitialized
 {
     private static int s_clientProcessId = -1;
+    private static readonly Lazy<int> s_currentProcessId = new(() => { using var process = Process.GetCurrentProcess(); return process.Id; });
+    public static int ServerProcessId => s_currentProcessId.Value;
 
     private readonly AbstractLspServiceProvider _lspServiceProvider;
     private readonly FrozenDictionary<string, ImmutableArray<BaseService>> _baseServices;
@@ -51,6 +53,12 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
 
     public static bool TryRegisterClientProcessId(int clientProcessId)
     {
+        if (s_clientProcessId != -1)
+            return false;
+
+        if (clientProcessId == ServerProcessId)
+            return false;
+
         if (Interlocked.CompareExchange(ref s_clientProcessId, clientProcessId, -1) != -1)
             return false;
 

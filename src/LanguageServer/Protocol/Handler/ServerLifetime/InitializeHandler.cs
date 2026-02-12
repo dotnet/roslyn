@@ -24,14 +24,8 @@ internal sealed class InitializeHandler(ILspLogger logger) : ILspServiceRequestH
         var clientCapabilities = request.Capabilities;
         clientCapabilitiesManager.SetInitializeParams(request);
 
-        // If we are running in process with the client, then we don't need to listen for it to exit.
-        using var currentProcess = Process.GetCurrentProcess();
-        if (request.ProcessId is int clientProcessId
-            && clientProcessId != currentProcess.Id
-            && RoslynLanguageServer.TryRegisterClientProcessId(clientProcessId))
-        {
+        if (request.ProcessId is int clientProcessId && RoslynLanguageServer.TryRegisterClientProcessId(clientProcessId))
             logger.LogInformation("Monitoring client process {clientProcessId} for exit", clientProcessId);
-        }
 
         var capabilitiesProvider = context.GetRequiredLspService<ICapabilitiesProvider>();
         var serverCapabilities = capabilitiesProvider.GetCapabilities(clientCapabilities);
