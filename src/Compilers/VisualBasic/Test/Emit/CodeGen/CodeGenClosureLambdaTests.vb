@@ -952,7 +952,7 @@ End Module
                 Diagnostic(ERRID.ERR_CannotGotoNonScopeBlocksWithClosure, "goto label1").WithArguments("Goto ", "label1", "label1"))
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/82268")>
+        <Fact>
         Public Sub InvalidGotoLiftingBetweenGotoAndLabel4()
             CompileAndVerify(
 <compilation>
@@ -1015,7 +1015,13 @@ label2:
 
     Public Sub Main()
         Dim x as C1 = New C1
-        x.Goo(3)
+        Try
+            x.Goo(3)
+        Catch ex As Exception
+            Console.WriteLine(ex)
+            Console.WriteLine(ex.Message)
+            Console.WriteLine(ex.StackTrace)
+        End Try
     End Sub
 End Module
     </file>
