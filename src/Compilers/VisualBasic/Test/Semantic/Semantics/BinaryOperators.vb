@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOrLinuxOnly), Reason:="https://github.com/dotnet/roslyn/issues/77861")>
         Public Sub Test1_Date()
             ' test binary operator between Date value and another type data
             ' call ToString() on it defeat the purpose of these scenarios
@@ -379,7 +379,7 @@ False
 
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOrLinuxOnly), Reason:="https://github.com/dotnet/roslyn/issues/77861")>
         Public Sub Test5_DateConst()
             ' test binary operator between Date const and another type data
             ' call ToString() on it defeat the purpose of these scenarios
