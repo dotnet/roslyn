@@ -152,29 +152,10 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     try
     {
-        if (serverConfiguration.ClientProcessId is int clientProcessId)
-        {
+        if (serverConfiguration.ClientProcessId is int clientProcessId && RoslynLanguageServer.TryRegisterClientProcessId(clientProcessId))
             logger.LogInformation("Monitoring client process {clientProcessId} for exit", clientProcessId);
-            var serverExitTask = server.WaitForExitAsync();
-            var clientProcessExitTask = WaitForClientProcessExitAsync(clientProcessId, logger);
-            var completedTask = await Task.WhenAny(serverExitTask, clientProcessExitTask);
 
-            if (completedTask == clientProcessExitTask)
-            {
-                logger.LogInformation("Client process {clientProcessId} exited, shutting down server", clientProcessId);
-
-                // With the client process exited, we cannot send logs or telemetry,
-                // so kill the server process immediately to ensure we exit in a timely manner.
-                Process.GetCurrentProcess().Kill();
-            }
-
-            // Await the task that completed to observe any exceptions.
-            await completedTask;
-        }
-        else
-        {
-            await server.WaitForExitAsync();
-        }
+        await server.WaitForExitAsync();
     }
     finally
     {
@@ -375,18 +356,4 @@ static string GetUnixTypePipeName(string pipeName)
 {
     // Unix-type pipes are actually writing to a file
     return Path.Combine(Path.GetTempPath(), pipeName + ".sock");
-}
-
-static async Task WaitForClientProcessExitAsync(int clientProcessId, ILogger logger)
-{
-    try
-    {
-        using var clientProcess = Process.GetProcessById(clientProcessId);
-        await clientProcess.WaitForExitAsync();
-    }
-    catch (ArgumentException)
-    {
-        // The process has already exited or was never running.
-        logger.LogWarning("Client process {clientProcessId} is not running", clientProcessId);
-    }
 }

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Threading;
@@ -21,6 +22,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<RequestContext>, IOnInitialized
 {
+    private static int s_clientProcessId = -1;
+    private static readonly Lazy<int> s_currentProcessId = new(static () => { using var process = Process.GetCurrentProcess(); return process.Id; });
+    public static int ServerProcessId => s_currentProcessId.Value;
+
     private readonly AbstractLspServiceProvider _lspServiceProvider;
     private readonly FrozenDictionary<string, ImmutableArray<BaseService>> _baseServices;
     private readonly WellKnownLspServerKinds _serverKind;
@@ -44,6 +49,45 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
 
         // This spins up the queue and ensure the LSP is ready to start receiving requests
         Initialize();
+    }
+
+    public static bool TryRegisterClientProcessId(int clientProcessId)
+    {
+        if (s_clientProcessId != -1)
+            return false;
+
+        if (clientProcessId == ServerProcessId)
+            return false;
+
+        if (Interlocked.CompareExchange(ref s_clientProcessId, clientProcessId, -1) != -1)
+            return false;
+
+        _ = WaitForClientProcessExitAsync(s_clientProcessId);
+        return true;
+
+        static async Task WaitForClientProcessExitAsync(int clientProcessId)
+        {
+            try
+            {
+                var clientProcessExitTask = new TaskCompletionSource<bool>();
+
+                using var clientProcess = Process.GetProcessById(clientProcessId);
+                clientProcess.EnableRaisingEvents = true;
+                clientProcess.Exited += (sender, args) => clientProcessExitTask.SetResult(true);
+
+                if (!clientProcess.HasExited)
+                {
+                    // Wait for the client process to exit.
+                    await clientProcessExitTask.Task.ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                // The process didn't exist, exited, or we ran into
+                // issues checking whether the process had exited.
+                Process.GetCurrentProcess().Kill();
+            }
+        }
     }
 
     public static SystemTextJsonFormatter CreateJsonMessageFormatter()
