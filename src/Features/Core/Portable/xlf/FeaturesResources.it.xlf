@@ -442,12 +442,12 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application">
         <source>Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</source>
-        <target state="translated">Se si modifica l'attributo pseudo-personalizzato '{0}' di {1}, è necessario riavviare l'applicazione</target>
+        <target state="new">Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_th_application">
         <source>Changing the containing namespace of '{0}' from '{1}' to '{2}' requires restarting the application</source>
-        <target state="translated">Per modificare lo spazio dei nomi contenitore di '{0}' da '{1}' a '{2}' è necessario riavviare l'applicazione</target>
+        <target state="new">Changing the containing namespace of '{0}' from '{1}' to '{2}' requires restarting the application</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application">
