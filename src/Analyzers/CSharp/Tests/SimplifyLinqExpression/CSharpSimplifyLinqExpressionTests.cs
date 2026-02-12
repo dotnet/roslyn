@@ -634,4 +634,100 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
                 }
                 """
         }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82388")]
+    public Task FixParenthesizedExpression()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
+
+            class C
+            {
+                static void M(string[] args)
+                {
+                    var v = (decimal)[|(args.Select(x => int.Parse(x))).Sum()|];
+                }
+            }
+            """,
+            FixedCode = """
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                static void M(string[] args)
+                {
+                    var v = (decimal)args.Sum(x => int.Parse(x));
+                }
+            }
+            """,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82388")]
+    public Task FixNullableSuppressionExpression()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
+
+            class C
+            {
+                static void M(string[] args)
+                {
+                    var v = (decimal)[|args.Select(x => int.Parse(x))!.Sum()|];
+                }
+            }
+            """,
+            FixedCode = """
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                static void M(string[] args)
+                {
+                    var v = (decimal)args.Sum(x => int.Parse(x));
+                }
+            }
+            """,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82388")]
+    public Task FixParenthesizedAndNullableSuppressionExpression()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
+
+            class C
+            {
+                static void M(string[] args)
+                {
+                    var v = (decimal)[|((args.Select(x => int.Parse(x)))!)!.Sum()|];
+                }
+            }
+            """,
+            FixedCode = """
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                static void M(string[] args)
+                {
+                    var v = (decimal)args.Sum(x => int.Parse(x));
+                }
+            }
+            """,
+        }.RunAsync();
 }

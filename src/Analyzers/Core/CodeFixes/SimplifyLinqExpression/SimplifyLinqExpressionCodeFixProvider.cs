@@ -55,6 +55,26 @@ internal sealed class SimplifyLinqExpressionCodeFixProvider() : SyntaxEditorBase
                 // 'x.Where(...)' in the above expression.
                 var innerInvocationExpression = syntaxFacts.GetExpressionOfMemberAccessExpression(memberAccess)!;
 
+                // We originally walked an IOperation tree, not a syntax tree.  So we have to unwrap any superfluous
+                // wrapper nodes in syntax node represented in IOpt.
+                while (true)
+                {
+                    if (syntaxFacts.IsParenthesizedExpression(innerInvocationExpression))
+                    {
+                        innerInvocationExpression = syntaxFacts.GetExpressionOfParenthesizedExpression(innerInvocationExpression);
+                        continue;
+                    }
+
+                    if (syntaxFacts.IsSuppressNullableWarningExpression(innerInvocationExpression))
+                    {
+                        innerInvocationExpression = syntaxFacts.GetOperandOfPostfixUnaryExpression(innerInvocationExpression);
+                        continue;
+                    }
+
+                    break;
+                }
+
+
                 // 'x.Where' in the above expression.
                 var innerMemberAccessExpression = syntaxFacts.GetExpressionOfInvocationExpression(innerInvocationExpression);
 
