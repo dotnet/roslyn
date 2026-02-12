@@ -123,8 +123,7 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
 
     /// <summary>
     /// Determines whether to display semantic errors in loose files which lack '#:' directives.
-    /// Does not include checks which should only be performed on initial project load.
-    /// <seealso cref="ContainedInCsprojCone"/>
+    /// Does not include checks which should only be performed on initial project load such as <seealso cref="ContainedInCsprojCone"/>.
     /// </summary>
     internal static async Task<bool> GetCanonicalMiscFileHasAllInformation_IncrementalAsync(IGlobalOptionService globalOptionService, SyntaxTree tree, CancellationToken cancellationToken)
     {
@@ -145,7 +144,7 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
     /// Determine if this file is contained in the same directory as a .csproj file.
     /// </summary>
     /// <remarks>
-    /// The result of this call influences whether semantic errors are displayed in loose files which have top-level statements but no '#:' directives.
+    /// The result of this method influences whether semantic errors are displayed in loose files which have top-level statements but no '#:' directives.
     /// The projects for such files are *forked canonical projects*. Displaying semantic errors is controlled by the 'HasAllInformation' flag on the project.
     /// The inputs to the HasAllInformation flag value are effectively the following:
     /// 1. File has top-level statements, and

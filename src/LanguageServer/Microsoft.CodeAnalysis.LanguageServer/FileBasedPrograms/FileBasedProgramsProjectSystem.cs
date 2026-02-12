@@ -110,8 +110,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         }
     }
 
-    // TODO: we need to make sure that the work of searching a directory for csproj's,
-    // is only done when a file is initially loaded.
     private void OnCsprojFileChanged(object? sender, string changedFile)
     {
         Contract.ThrowIfFalse(PathUtilities.IsAbsolute(changedFile));

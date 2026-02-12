@@ -78,8 +78,8 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
                 if (canonicalLoadState is ProjectLoadState.LoadedTargets)
                 {
                     var canonicalProject = GetRequiredCanonicalProject();
-                    var syntaxTree = CSharpSyntaxTree.ParseText(text: documentText, options: null, path: documentPath, cancellationToken);
-                    return await AddForkedCanonicalProject_NoLockAsync(loadedProjects, documentPath, syntaxTree, cancellationToken);
+                    var syntaxTree = CSharpSyntaxTree.ParseText(text: documentText, (CSharpParseOptions?)canonicalProject.ParseOptions, path: documentPath, cancellationToken);
+                    return await AddForkedCanonicalProject_NoLockAsync(canonicalProject, loadedProjects, documentPath, syntaxTree, cancellationToken);
                 }
             }
             else
@@ -92,7 +92,7 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
         }, cancellationToken);
     }
 
-    private async ValueTask<TextDocument> AddForkedCanonicalProject_NoLockAsync(Dictionary<string, ProjectLoadState> loadedProjects, string documentPath, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+    private async ValueTask<TextDocument> AddForkedCanonicalProject_NoLockAsync(Project canonicalProject, Dictionary<string, ProjectLoadState> loadedProjects, string documentPath, SyntaxTree syntaxTree, CancellationToken cancellationToken)
     {
         var newProjectId = ProjectId.CreateNewId(debugName: $"Forked Misc Project for '{documentPath}'");
         var documentText = await syntaxTree.GetTextAsync(cancellationToken);
@@ -102,7 +102,7 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
             loader: TextLoader.From(TextAndVersion.Create(documentText, VersionStamp.Create())),
             filePath: documentPath);
 
-        var forkedProjectInfo = await GetForkedProjectInfoAsync(GetRequiredCanonicalProject(), newDocumentInfo, syntaxTree, GlobalOptionService, cancellationToken);
+        var forkedProjectInfo = await GetForkedProjectInfoAsync(canonicalProject, newDocumentInfo, syntaxTree, GlobalOptionService, cancellationToken);
 
         await _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.ApplyChangeToWorkspaceAsync(workspace =>
         {
@@ -235,7 +235,7 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
             Contract.ThrowIfFalse(wasUnloaded);
 
             // Replace with a forked canonical project
-            await AddForkedCanonicalProject_NoLockAsync(loadedProjects, projectPath, syntaxTree, cancellationToken);
+            await AddForkedCanonicalProject_NoLockAsync(GetRequiredCanonicalProject(), loadedProjects, projectPath, syntaxTree, cancellationToken);
         }
 
         // Now remove the primordial canonical project
