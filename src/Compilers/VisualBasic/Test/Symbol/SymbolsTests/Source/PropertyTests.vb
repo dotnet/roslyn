@@ -8404,6 +8404,59 @@ BC32066: Type arguments are not valid because attributes cannot be generic.
             context.Diagnostics.Verify()
         End Sub
 
+        <Fact>
+        Public Sub PropertyIsReadOnly_WithTypeArgumentFromUnrelatedAssembly()
+            ' This test verifies that checking PropertySymbol.IsReadOnly doesn't trigger
+            ' an assertion when the containing type has type arguments from unrelated assemblies.
+            ' Based on issue #81937 pattern where overridden members cause accessibility checks
+            ' on type arguments that may be from unrelated assemblies.
+            Dim source1 = <compilation>
+                              <file name="a.vb">
+                                  <![CDATA[
+Public Class C0(Of T)
+    Public Overridable Property P As Integer
+End Class
+
+Public Class C1(Of T)
+    Inherits C0(Of T)
+    Public Overrides Property P As Integer
+End Class
+]]>
+                              </file>
+                          </compilation>
+
+            Dim comp1 = CreateCompilation(source1)
+            comp1.AssertTheseDiagnostics(<expected></expected>)
+
+            Dim source2 = <compilation>
+                              <file name="a.vb">
+                                  <![CDATA[
+Friend Class C2
+End Class
+
+Friend Class C3
+    Inherits C1(Of C2)
+    Public Overrides Property P As Integer
+End Class
+]]>
+                              </file>
+                          </compilation>
+
+            Dim comp2 = CreateCompilation(source2, references:={comp1.ToMetadataReference()})
+            comp2.AssertTheseDiagnostics(<expected></expected>)
+
+            ' Get the property symbol and check IsReadOnly
+            Dim c3 = comp2.GlobalNamespace.GetTypeMember("C3")
+            Dim [property] = c3.GetMember(Of PropertySymbol)("P")
+
+            ' This should not throw an assertion
+            Dim isReadOnly = [property].IsReadOnly
+            Assert.False(isReadOnly)
+
+            Dim isWriteOnly = [property].IsWriteOnly
+            Assert.False(isWriteOnly)
+        End Sub
+
         Private Shared Sub VerifyAccessibility([property] As PEPropertySymbol, propertyAccessibility As Accessibility, getAccessibility As Accessibility, setAccessibility As Accessibility)
             Assert.Equal([property].DeclaredAccessibility, propertyAccessibility)
             VerifyAccessorAccessibility([property].GetMethod, getAccessibility)
