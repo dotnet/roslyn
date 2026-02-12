@@ -8,6 +8,8 @@ param (
 . $PSScriptRoot\tools.ps1
 
 function InstallDarcCli ($darcVersion, $toolpath) {
+  # pin darc to the last version targeting net6.0
+  $darcVersion = "1.1.0-beta.25522.2"
   $darcCliPackageName = 'microsoft.dotnet.darc'
 
   $dotnetRoot = InitializeDotNetCli -install:$true
@@ -16,12 +18,6 @@ function InstallDarcCli ($darcVersion, $toolpath) {
 
   if ($toolList -like "*$darcCliPackageName*") {
     & "$dotnet" tool uninstall $darcCliPackageName -g
-  }
-
-  # If the user didn't explicitly specify the darc version,
-  # query the Maestro API for the correct version of darc to install.
-  if (-not $darcVersion) {
-    $darcVersion = $(Invoke-WebRequest -Uri $versionEndpoint -UseBasicParsing).Content
   }
 
   $arcadeServicesSource = 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json'
