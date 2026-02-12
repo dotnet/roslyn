@@ -1,18 +1,18 @@
 {
   "sdk": {
-    "version": "9.0.112",
+    "version": "9.0.113",
     "allowPrerelease": false,
     "rollForward": "patch"
   },
   "tools": {
-    "dotnet": "9.0.112",
+    "dotnet": "9.0.113",
     "vs": {
       "version": "17.8.0"
     }
   },
   "msbuild-sdks": {
-    "Microsoft.DotNet.Arcade.Sdk": "9.0.0-beta.25626.6",
-    "Microsoft.DotNet.Helix.Sdk": "9.0.0-beta.25626.6",
+    "Microsoft.DotNet.Arcade.Sdk": "9.0.0-beta.26106.3",
+    "Microsoft.DotNet.Helix.Sdk": "9.0.0-beta.26106.3",
     "Microsoft.Build.Traversal": "3.4.0"
   }
 }
