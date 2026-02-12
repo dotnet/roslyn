@@ -228,8 +228,9 @@ jobs:
 
       - name: Determine validation type and pipeline ID
         id: validation-type
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
         run: |
-          COMMENT_BODY="${{ github.event.comment.body }}"
           if echo "$COMMENT_BODY" | grep -q "/dart"; then
             echo "type=dart" >> $GITHUB_OUTPUT
             echo "pipeline-id=15324" >> $GITHUB_OUTPUT
@@ -240,9 +241,9 @@ jobs:
 
       - name: Determine target branch for pipeline
         id: target-branch
+        env:
+          BASE_BRANCH: ${{ steps.pr-details.outputs.base }}
         run: |
-          BASE_BRANCH="${{ steps.pr-details.outputs.base }}"
-          
           # Determine pipeline version based on target branch
           # Use the target branch for release/* and feature/*, otherwise use main
           if [ "$BASE_BRANCH" = "main" ]; then
@@ -259,18 +260,21 @@ jobs:
 
       - name: Trigger Pipeline
         id: trigger-pipeline
+        env:
+          VALIDATION_TYPE: ${{ steps.validation-type.outputs.type }}
+          PIPELINE_ID: ${{ steps.validation-type.outputs.pipeline-id }}
+          PIPELINE_VERSION: ${{ steps.target-branch.outputs.pipeline-version }}
+          HAS_COMMIT: ${{ steps.parse-commit.outputs.has-commit }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          COMMIT_SHA: ${{ steps.commit-sha.outputs.sha }}
         run: |
           # Get Azure DevOps access token
           AZDO_TOKEN=$(az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv)
           
-          VALIDATION_TYPE="${{ steps.validation-type.outputs.type }}"
-          PIPELINE_ID="${{ steps.validation-type.outputs.pipeline-id }}"
-          PIPELINE_VERSION="${{ steps.target-branch.outputs.pipeline-version }}"
           DEVDIV_ORG="devdiv"
           DEVDIV_PROJECT="DevDiv"
           
           # Determine if commit was explicitly provided (EnforceLatestCommit should be false if commit was provided)
-          HAS_COMMIT="${{ steps.parse-commit.outputs.has-commit }}"
           if [ "$HAS_COMMIT" = "true" ]; then
             ENFORCE_LATEST="false"
           else
@@ -294,8 +298,8 @@ jobs:
               }
             },
             "templateParameters": {
-              "prNumber": "${{ github.event.issue.number }}",
-              "sha": "${{ steps.commit-sha.outputs.sha }}",
+              "prNumber": "$PR_NUMBER",
+              "sha": "$COMMIT_SHA",
               "EnforceLatestCommit": "$ENFORCE_LATEST"
             }
           }
@@ -313,8 +317,8 @@ jobs:
               }
             },
             "templateParameters": {
-              "PRNumber": ${{ github.event.issue.number }},
-              "CommitSHA": "${{ steps.commit-sha.outputs.sha }}",
+              "PRNumber": $PR_NUMBER,
+              "CommitSHA": "$COMMIT_SHA",
               "EnforceLatestCommit": "$ENFORCE_LATEST"
             }
           }
