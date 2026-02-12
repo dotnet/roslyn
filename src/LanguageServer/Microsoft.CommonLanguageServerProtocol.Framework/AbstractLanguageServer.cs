@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -348,20 +349,38 @@ internal abstract class AbstractLanguageServer<TRequestContext>
 
         async Task JsonRpc_DisconnectedAsync(object? sender, JsonRpcDisconnectedEventArgs e)
         {
-            if (e.Exception != null)
+            var exceptionToReport = ShouldReportException(e);
+            if (exceptionToReport != null)
             {
-                // Only report an error if we encountered an exception that was caused by the server.
-                // There's nothing we can do if the client decides to disconnect.
-                if (e.Reason != DisconnectedReason.RemotePartyTerminated || e.Reason == DisconnectedReason.LocallyDisposed)
-                {
-                    FatalError.ReportNonFatalError(e.Exception, ErrorSeverity.Critical);
-                }
+                FatalError.ReportNonFatalError(exceptionToReport, ErrorSeverity.Critical);
             }
 
             // It is possible this gets called during normal shutdown and exit.
             // ShutdownAsync and ExitAsync will no-op if shutdown was already triggered by something else.
             await ShutdownAsync(message: $"Shutdown triggered by JsonRpc disconnect {e.Reason}").ConfigureAwait(false);
-            await ExitAsync(e.Exception).ConfigureAwait(false);
+            await ExitAsync(exceptionToReport).ConfigureAwait(false);
+        }
+
+        Exception? ShouldReportException(JsonRpcDisconnectedEventArgs e)
+        {
+            if (e.Exception == null)
+            {
+                return null;
+            }
+
+            if (e.Reason == DisconnectedReason.RemotePartyTerminated || e.Reason == DisconnectedReason.LocallyDisposed)
+            {
+                // These are expected disconnect reasons that can occur during normal shutdown or if the client disconnects.
+                return null;
+            }
+
+            if (e.Exception is IOException)
+            {
+                // Server communication is done over named pipes, IO exceptions are normal if the client disconnects unexpectedly while the server is in the middle of reading or writing.
+                return null;
+            }
+
+            return e.Exception;
         }
     }
 
