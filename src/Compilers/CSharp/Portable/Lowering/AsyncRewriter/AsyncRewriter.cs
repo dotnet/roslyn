@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!rewriter.VerifyPresenceOfRequiredAPIs())
             {
-                return bodyWithAwaitLifted;
+                return (BoundStatement)bodyWithAwaitLifted.WithHasErrors();
             }
 
             try

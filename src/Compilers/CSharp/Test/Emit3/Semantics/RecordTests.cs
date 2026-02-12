@@ -65,9 +65,9 @@ record Point(int x, int y);
                 // (2,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
                 // record Point { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(2, 1),
-                // (2,8): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,8): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                 // record Point { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Point").WithLocation(2, 8),
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "Point").WithLocation(2, 8),
                 // (2,8): error CS0548: '<invalid-global-code>.Point': property or indexer must have at least one accessor
                 // record Point { }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "Point").WithArguments("<invalid-global-code>.Point").WithLocation(2, 8)
@@ -11017,18 +11017,6 @@ End Class
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             compB.VerifyDiagnostics(
-                // (1,8): error CS0115: 'B.EqualityContract': no suitable method found to override
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.EqualityContract").WithLocation(1, 8),
-                // (1,8): error CS0115: 'B.Equals(A?)': no suitable method found to override
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.Equals(A?)").WithLocation(1, 8),
-                // (1,8): error CS0115: 'B.PrintMembers(StringBuilder)': no suitable method found to override
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)").WithLocation(1, 8),
-                // (1,8): error CS8867: No accessible copy constructor found in base type 'A'.
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "B").WithArguments("A").WithLocation(1, 8),
                 // (1,17): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P").WithArguments("P").WithLocation(1, 17),
@@ -11088,18 +11076,6 @@ End Class
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             compB.VerifyDiagnostics(
-                // (1,8): error CS0115: 'B.EqualityContract': no suitable method found to override
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.EqualityContract").WithLocation(1, 8),
-                // (1,8): error CS0115: 'B.Equals(A?)': no suitable method found to override
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.Equals(A?)").WithLocation(1, 8),
-                // (1,8): error CS0115: 'B.PrintMembers(StringBuilder)': no suitable method found to override
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)").WithLocation(1, 8),
-                // (1,8): error CS8867: No accessible copy constructor found in base type 'A'.
-                // record B(object P, object Q) : A
-                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "B").WithArguments("A").WithLocation(1, 8),
                 // (1,17): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P").WithArguments("P").WithLocation(1, 17),
@@ -11178,15 +11154,6 @@ End Class
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             compB.VerifyDiagnostics(
-                // (1,8): error CS0115: 'C.EqualityContract': no suitable method found to override
-                // record C(object P, object Q, object R) : B
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.EqualityContract").WithLocation(1, 8),
-                // (1,8): error CS0115: 'C.Equals(B?)': no suitable method found to override
-                // record C(object P, object Q, object R) : B
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.Equals(B?)").WithLocation(1, 8),
-                // (1,8): error CS0115: 'C.PrintMembers(StringBuilder)': no suitable method found to override
-                // record C(object P, object Q, object R) : B
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.PrintMembers(System.Text.StringBuilder)").WithLocation(1, 8),
                 // (1,8): error CS7036: There is no argument given that corresponds to the required parameter 'b' of 'B.B(B)'
                 // record C(object P, object Q, object R) : B
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("b", "B.B(B)").WithLocation(1, 8),
@@ -12641,6 +12608,21 @@ record B : A
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.EqualityContract").WithLocation(1, 8));
 
             AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63270")]
+        public void RecordInheritingFromNonRecord_OnlyReportsBaseError()
+        {
+            var source = """
+                class Base { }
+
+                record Derived : Base { }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,18): error CS8864: Records may only inherit from object or another record
+                // record Derived : Base { }
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "Base").WithLocation(3, 18));
         }
 
         [Theory, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
@@ -30578,7 +30560,7 @@ record R1(int x);
                 class Attr : System.Attribute {}
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"), targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature(Feature.RunNullableAnalysis, "never"), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -30602,7 +30584,7 @@ record R1(int x);
                 class Attr : System.Attribute {}
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"), targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature(Feature.RunNullableAnalysis, "never"), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];

@@ -4414,6 +4414,7 @@ Main: Returned
     IL_0044:  ldc.i4.3
     IL_0045:  call       "void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)"
     IL_004a:  nop
+    // sequence point: }
     IL_004b:  leave.s    IL_0056
   }
   finally
@@ -4424,10 +4425,120 @@ Main: Returned
     IL_0054:  nop
     IL_0055:  endfinally
   }
-  // sequence point: <hidden>
+  // sequence point: }
   IL_0056:  ret
 }
 """);
+        }
+
+        [Fact]
+        public void RuntimeAsync_Task()
+        {
+            var source = WithHelpers(@"
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task M(int p)
+    {
+        int a = p;
+        F(out var b);
+        await Task.CompletedTask;
+        int c = b;
+    }
+
+    static int F(out int a) => a = 1;
+    static async Task Main() => await M(2);
+}
+");
+
+            var compilation = CreateRuntimeAsyncCompilation(source, options: TestOptions.UnsafeDebugExe);
+            var ilVerifyMessage = """
+                [M]: Return value missing on the stack. { Offset = 0x55 }
+                [Main]: Return value missing on the stack. { Offset = 0x22 }
+                """;
+            var verifier = CompileAndVerify(
+                compilation,
+                emitOptions: s_emitOptions,
+                verify: s_verification with { ILVerifyMessage = ilVerifyMessage + Environment.NewLine + s_verification.ILVerifyMessage },
+                expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(@"
+Main: Entered
+M: Entered
+M: P'p'[0] = 2
+M: L1 = 2
+F: Entered
+F: P'a'[0] = 1
+F: Returned
+M: L2 = 1
+M: L3 = 1
+M: Returned
+Main: Returned
+"));
+
+            verifier.VerifyMethodBody("C.M", @"
+{
+  // Code size       86 (0x56)
+  .maxstack  3
+  .locals init (Microsoft.CodeAnalysis.Runtime.LocalStoreTracker V_0,
+                int V_1, //a
+                int V_2, //b
+                int V_3) //c
+  // sequence point: <hidden>
+  IL_0000:  ldtoken    ""System.Threading.Tasks.Task C.M(int)""
+  IL_0005:  call       ""Microsoft.CodeAnalysis.Runtime.LocalStoreTracker Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogMethodEntry(int)""
+  IL_000a:  stloc.0
+  .try
+  {
+    // sequence point: {
+    IL_000b:  ldloca.s   V_0
+    IL_000d:  ldarg.0
+    IL_000e:  ldc.i4.0
+    IL_000f:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(uint, int)""
+    IL_0014:  nop
+    // sequence point: int a = p;
+    IL_0015:  ldloca.s   V_0
+    IL_0017:  ldarg.0
+    IL_0018:  dup
+    IL_0019:  stloc.1
+    IL_001a:  ldc.i4.1
+    IL_001b:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
+    IL_0020:  nop
+    // sequence point: F(out var b);
+    IL_0021:  ldloca.s   V_2
+    IL_0023:  call       ""int C.F(out int)""
+    IL_0028:  pop
+    IL_0029:  ldloca.s   V_0
+    IL_002b:  ldloc.2
+    IL_002c:  ldc.i4.2
+    IL_002d:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
+    IL_0032:  nop
+    // sequence point: await Task.CompletedTask;
+    IL_0033:  call       ""System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get""
+    IL_0038:  call       ""void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)""
+    IL_003d:  nop
+    // sequence point: int c = b;
+    IL_003e:  ldloca.s   V_0
+    IL_0040:  ldloc.2
+    IL_0041:  dup
+    IL_0042:  stloc.3
+    IL_0043:  ldc.i4.3
+    IL_0044:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
+    IL_0049:  nop
+    // sequence point: }
+    IL_004a:  leave.s    IL_0055
+  }
+  finally
+  {
+    // sequence point: <hidden>
+    IL_004c:  ldloca.s   V_0
+    IL_004e:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogReturn()""
+    IL_0053:  nop
+    IL_0054:  endfinally
+  }
+  // sequence point: }
+  IL_0055:  ret
+}
+");
         }
 
         [Fact]
@@ -5037,6 +5148,7 @@ Main: Returned
       IL_00e4:  ldarg.0
       IL_00e5:  ldfld      "int C.<M>d__0.<c>5__3"
       IL_00ea:  pop
+      // sequence point: }
       IL_00eb:  ldarg.0
       IL_00ec:  ldc.i4.1
       IL_00ed:  stfld      "bool C.<M>d__0.<>w__disposeMode"

@@ -42,7 +42,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Add_0_check">
         <source>Add '{0}' check</source>
-        <target state="new">Add '{0}' check</target>
+        <target state="translated">Добавить проверку "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_DebuggerDisplay_attribute">
@@ -52,12 +52,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Add_negative_value_check">
         <source>Add negative value check</source>
-        <target state="new">Add negative value check</target>
+        <target state="translated">Добавить проверку на отрицательное значение</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_negative_value_or_zero_check">
         <source>Add negative value or zero check</source>
-        <target state="new">Add negative value or zero check</target>
+        <target state="translated">Добавить проверку на отрицательное или нулевое значение</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
@@ -452,27 +452,32 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Changing_project_or_package_reference_caused_the_identity_of_referenced_assembly_to_change_from_0_to_1_which_requires_restarting_the_application">
         <source>Changing project or package reference caused the identity of referenced assembly to change from '{0}' to '{1}', which requires restarting the application.</source>
-        <target state="new">Changing project or package reference caused the identity of referenced assembly to change from '{0}' to '{1}', which requires restarting the application.</target>
+        <target state="translated">Изменение ссылки на проект или пакет привело к тому, что идентификатор сборки изменился с "{0}" на "{1}", поэтому необходимо перезапустить приложение.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_project_setting_0_from_1_to_2_requires_restarting_the_application">
         <source>Changing project setting '{0}' from '{1}' to '{2}' requires restarting the application.</source>
-        <target state="new">Changing project setting '{0}' from '{1}' to '{2}' requires restarting the application.</target>
+        <target state="translated">Чтобы изменить параметр проекта "{0}" с "{1}" на "{2}", необходимо перезапустить приложение.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application">
+      <trans-unit id="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_the_application">
         <source>Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</source>
-        <target state="translated">Для изменения псевдонастраиваемого атрибута "{0}" для {1} требуется перезапустить приложение.</target>
+        <target state="new">Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit">
-        <source>Changing source file '{0}' in a stale project has no effect until the project is rebuit.</source>
-        <target state="new">Changing source file '{0}' in a stale project has no effect until the project is rebuit.</target>
+      <trans-unit id="Changing_source_file_0_in_a_project_1_that_does_not_support_hot_reload_requires_restarting_the_application_2">
+        <source>Changing source file '{0}' in a project '{1}' that does not support Hot Reload requires restarting the application; {2}</source>
+        <target state="new">Changing source file '{0}' in a project '{1}' that does not support Hot Reload requires restarting the application; {2}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_th_application">
+      <trans-unit id="Changing_source_file_0_in_a_stale_project_1_has_no_effect_until_the_project_is_rebuilt_2">
+        <source>Changing source file '{0}' in a stale project '{1}' has no effect until the project is rebuit; {2}</source>
+        <target state="translated">Изменение исходного файла "{0}" в устаревшем проекте "{1}" вступит в силу только после повторной сборки проекта. {2}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_the_application">
         <source>Changing the containing namespace of '{0}' from '{1}' to '{2}' requires restarting the application</source>
-        <target state="translated">Чтобы изменить содержащее пространство имен "{0}" с "{1}" на "{2}", необходимо перезапустить приложение</target>
+        <target state="new">Changing the containing namespace of '{0}' from '{1}' to '{2}' requires restarting the application</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application">
@@ -532,12 +537,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group_number_0">
         <source>Conditional alternation is missing a closing parenthesis after the group number {0}</source>
-        <target state="new">Conditional alternation is missing a closing parenthesis after the group number {0}</target>
+        <target state="translated">В условном чередовании отсутствует закрывающая круглая скобка после группы номер {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0</note>
       </trans-unit>
       <trans-unit id="Conditional_alternation_refers_to_an_undefined_group_number_0">
         <source>Conditional alternation refers to an undefined group number {0}</source>
-        <target state="new">Conditional alternation refers to an undefined group number {0}</target>
+        <target state="translated">Условное чередование ссылается на неопределенный номер группы {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(1)\1))</note>
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
@@ -587,7 +592,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Convert_to_field_property">
         <source>Convert to 'field' property</source>
-        <target state="new">Convert to 'field' property</target>
+        <target state="translated">Преобразовать в свойство "field"</target>
         <note>{Locked="field"} "field" is C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -782,12 +787,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Extension_0_is_already_registered">
         <source>Extension '{0}' is already registered.</source>
-        <target state="new">Extension '{0}' is already registered.</target>
+        <target state="translated">Расширение "{0}" уже зарегистрировано.</target>
         <note />
       </trans-unit>
       <trans-unit id="Extension_0_was_not_registered">
         <source>Extension '{0}' was not registered.</source>
-        <target state="new">Extension '{0}' was not registered.</target>
+        <target state="translated">Расширение "{0}" не зарегистрировано.</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">
@@ -887,7 +892,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Generate_Equals">
         <source>Generate Equals(...)</source>
-        <target state="new">Generate Equals(...)</target>
+        <target state="translated">Создать Equals(...)</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_comparison_operators">
@@ -1002,7 +1007,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Insufficient_or_invalid_hexadecimal_digits">
         <source>Insufficient or invalid hexadecimal digits</source>
-        <target state="new">Insufficient or invalid hexadecimal digits</target>
+        <target state="translated">Недостаточные или недопустимые шестнадцатеричные цифры</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \x</note>
       </trans-unit>
       <trans-unit id="Introduce_constant">
@@ -1257,7 +1262,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Multiple_handlers_found_for_message_0">
         <source>Multiple handlers found for message {0}.</source>
-        <target state="new">Multiple handlers found for message {0}.</target>
+        <target state="translated">Найдено несколько обработчиков для сообщения {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="NET_Code_Actions">
@@ -1282,7 +1287,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
         <source>Nested quantifier '{0}'</source>
-        <target state="needs-review-translation">Вложенный квантификатор {0}</target>
+        <target state="translated">Вложенный квантификатор "{0}"</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</note>
       </trans-unit>
       <trans-unit id="No_common_root_node_for_extraction">
@@ -1292,17 +1297,17 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="No_extension_registered_as_0">
         <source>No extension registered as '{0}'.</source>
-        <target state="new">No extension registered as '{0}'.</target>
+        <target state="translated">Нет расширений, зарегистрированных как "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="No_extensions_registered_at_0">
         <source>No extensions registered at '{0}'.</source>
-        <target state="new">No extensions registered at '{0}'.</target>
+        <target state="translated">Нет расширений, зарегистрированных в "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="No_handler_found_for_message_0">
         <source>No handler found for message {0}.</source>
-        <target state="new">No handler found for message {0}.</target>
+        <target state="translated">Не найден обработчик для сообщения {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="No_source_document_info_found_in_PDB">
@@ -1357,7 +1362,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Project_references_mutliple_assemblies_of_the_same_simple_name_0_1_Changing_a_reference_to_such_an_assembly_requires_restarting_the_application">
         <source>Project references mutliple assemblies of the same simple name '{0}': {1}. Changing a reference to such an assembly requires restarting the application.</source>
-        <target state="new">Project references mutliple assemblies of the same simple name '{0}': {1}. Changing a reference to such an assembly requires restarting the application.</target>
+        <target state="translated">Проект ссылается на несколько сборок с одинаковым простым именем "{0}": {1}. Чтобы изменить ссылку на такую сборку, необходимо перезапустить приложение.</target>
         <note />
       </trans-unit>
       <trans-unit id="Properties_not_allowed_in_an_array">
@@ -1397,22 +1402,22 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Quantifier_0_following_nothing">
         <source>Quantifier '{0}' following nothing</source>
-        <target state="new">Quantifier '{0}' following nothing</target>
+        <target state="translated">Отсутствуют элементы перед квантификатором "{0}"</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: *</note>
       </trans-unit>
       <trans-unit id="Quantifier_and_capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue">
         <source>Quantifier and capture group numbers must be less than or equal to Int32.MaxValue</source>
-        <target state="new">Quantifier and capture group numbers must be less than or equal to Int32.MaxValue</target>
+        <target state="translated">Номера квантификатора и группы записи должны быть меньше или равны Int32.MaxValue</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a{2147483648}</note>
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group_name_0">
         <source>Reference to undefined group name '{0}'</source>
-        <target state="needs-review-translation">Ссылка на неопределенное имя группы {0}</target>
+        <target state="translated">Ссылка на неопределенное имя группы "{0}"</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \k&lt;a&gt;. Here, {0} will be the name of the undefined group ('a')</note>
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group_number_0">
         <source>Reference to undefined group number {0}</source>
-        <target state="new">Reference to undefined group number {0}</target>
+        <target state="translated">Ссылка на неопределенный номер группы {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;-1&gt;). Here, {0} will be the number of the undefined group ('1')</note>
       </trans-unit>
       <trans-unit id="Regex_all_control_characters_long">
@@ -2632,12 +2637,12 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="SemanticSearch">
         <source>Semantic Search</source>
-        <target state="new">Semantic Search</target>
+        <target state="translated">Семантический поиск</target>
         <note />
       </trans-unit>
       <trans-unit id="Semantic_search_only_supported_on_net_core">
         <source>Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</source>
-        <target state="new">Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</target>
+        <target state="translated">Семантический поиск поддерживается только в том случае, если анализ кода выполняется в отдельном процессе последней версии .NET (см. "Сервис" &gt; "Параметры" &gt; "Текстовый редактор" &gt; "C#" &gt; "Дополнительно").</target>
         <note />
       </trans-unit>
       <trans-unit id="Silent">
@@ -2732,7 +2737,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="The_assembly_0_references_compiler_version_1_newer_than_2">
         <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="needs-review-translation">Сборка анализатора "{0}" ссылается на версию "{1}" компилятора, являющуюся более новой, чем версия "{2}".</target>
+        <target state="translated">Невозможно использовать сборку анализатора "{0}", поскольку она ссылается на версию компилятора "{1}". Это более новая версия по сравнению с текущей используемой версией "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -2797,7 +2802,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Unable_to_get_the_directory_name_for_0">
         <source>Unable to get the directory name for {0}.</source>
-        <target state="new">Unable to get the directory name for {0}.</target>
+        <target state="translated">Не удалось получить имя каталога для {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_property">
@@ -3147,12 +3152,12 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="_0_cannot_be_negative">
         <source>'{0}' cannot be negative</source>
-        <target state="new">'{0}' cannot be negative</target>
+        <target state="translated">"{0}" не может быть отрицательным</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_negative_or_zero">
         <source>'{0}' cannot be negative or zero</source>
-        <target state="new">'{0}' cannot be negative or zero</target>
+        <target state="translated">"{0}" не может быть отрицательным или равным нулю</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
@@ -3168,6 +3173,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="_0_dash_1">
         <source>{0} - {1}</source>
         <target state="translated">{0} - {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_does_not_support_Hot_Reload">
+        <source>{0} does not support Hot Reload.</source>
+        <target state="new">{0} does not support Hot Reload.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_expected">
@@ -3227,7 +3237,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="_0_is_not_nullable_aware">
         <source>'{0}' is not nullable aware.</source>
-        <target state="new">'{0}' is not nullable aware.</target>
+        <target state="translated">"{0}" не поддерживает элементы, допускающие значение NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_items_in_cache">
@@ -3595,7 +3605,7 @@ If the "d" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="default">
         <source>default&gt;</source>
-        <target state="new">default&gt;</target>
+        <target state="translated">по умолчанию&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="discard">
@@ -3615,7 +3625,7 @@ If the "d" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="extension_block">
         <source>extension block</source>
-        <target state="new">extension block</target>
+        <target state="translated">блок расширения</target>
         <note />
       </trans-unit>
       <trans-unit id="external">
@@ -4145,7 +4155,7 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="Change_signature">
         <source>Change signature...</source>
-        <target state="needs-review-translation">Изменить подпись...</target>
+        <target state="translated">Изменить подпись...</target>
         <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Generate_new_type">
@@ -4192,7 +4202,7 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="_0_1">
         <source>{0} - {1}</source>
-        <target state="needs-review-translation">    {0} - {1}</target>
+        <target state="translated">{0} — {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source">
@@ -4429,6 +4439,21 @@ When this standard format specifier is used, the formatting or parsing operation
         <source>{0} '{1}' of {2} '{3}'</source>
         <target state="translated">{0} ' {1} ' из {2} ' {3} '</target>
         <note>e.g. "parameter 'T param' of method 'M'"</note>
+      </trans-unit>
+      <trans-unit id="the_content_of_the_document_is_stale">
+        <source>the content of the document is stale.</source>
+        <target state="translated">Содержимое документа устарело.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="the_project_contains_stale_document_0">
+        <source>the project contains stale document '{0}'.</source>
+        <target state="translated">Проект содержит устаревший документ "{0}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="the_project_has_not_been_built">
+        <source>the project has not been built.</source>
+        <target state="translated">Проект не был собран.</target>
+        <note />
       </trans-unit>
       <trans-unit id="time_separator">
         <source>time separator</source>

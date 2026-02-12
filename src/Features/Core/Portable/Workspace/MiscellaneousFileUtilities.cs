@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Features.Workspaces;
 
 internal static class MiscellaneousFileUtilities
 {
+    /// <param name="enableFileBasedPrograms">Whether the host has globally enabled the C# file-based programs feature.</param>
     internal static ProjectInfo CreateMiscellaneousProjectInfoForDocument(
         Workspace workspace,
         string filePath,
@@ -22,7 +23,8 @@ internal static class MiscellaneousFileUtilities
         LanguageInformation languageInformation,
         SourceHashAlgorithm checksumAlgorithm,
         SolutionServices services,
-        ImmutableArray<MetadataReference> metadataReferences)
+        ImmutableArray<MetadataReference> metadataReferences,
+        bool enableFileBasedPrograms)
     {
         var fileExtension = PathUtilities.GetExtension(filePath);
         var fileName = PathUtilities.GetFileName(filePath);
@@ -45,19 +47,21 @@ internal static class MiscellaneousFileUtilities
         // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/575761
         var parseOptions = languageServices.GetService<ISyntaxTreeFactoryService>()?.GetDefaultParseOptionsWithLatestLanguageVersion();
 
-        if (parseOptions != null &&
-            compilationOptions != null &&
-            languageInformation.ScriptExtension is not null &&
-            fileExtension == languageInformation.ScriptExtension)
+        if (parseOptions != null)
         {
-            parseOptions = parseOptions.WithKind(SourceCodeKind.Script);
-            compilationOptions = GetCompilationOptionsWithScriptReferenceResolvers(services, compilationOptions, filePath);
-        }
-
-        if (parseOptions != null && languageInformation.ScriptExtension is not null && fileExtension != languageInformation.ScriptExtension)
-        {
-            // Any non-script misc file should not complain about usage of '#:' ignored directives.
-            parseOptions = parseOptions.WithFeatures([.. parseOptions.Features, new("FileBasedProgram", "true")]);
+            if (compilationOptions != null &&
+                languageInformation.ScriptExtension is not null &&
+                fileExtension == languageInformation.ScriptExtension)
+            {
+                parseOptions = parseOptions.WithKind(SourceCodeKind.Script);
+                compilationOptions = GetCompilationOptionsWithScriptReferenceResolvers(services, compilationOptions, filePath);
+            }
+            else if (enableFileBasedPrograms)
+            {
+                // The host has enabled the file-based programs feature, so
+                // any non-script misc file should not complain about usage of '#:' ignored directives.
+                parseOptions = parseOptions.WithFeatures([.. parseOptions.Features, new("FileBasedProgram", "true")]);
+            }
         }
 
         var projectId = ProjectId.CreateNewId(debugName: $"{workspace.GetType().Name} Files Project for {filePath}");

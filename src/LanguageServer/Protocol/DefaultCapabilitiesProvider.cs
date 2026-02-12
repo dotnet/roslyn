@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.SignatureHelp;
@@ -18,35 +19,27 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-[Export(typeof(ExperimentalCapabilitiesProvider)), Shared]
-internal sealed class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
+/// <summary>
+/// Implementation of <see cref="ICapabilitiesProvider"/> that provides all the capabilities that Roslyn supports via LSP. 
+/// </summary>
+[Export(typeof(DefaultCapabilitiesProvider)), Shared]
+[ExportCSharpVisualBasicStatelessLspService(typeof(ICapabilitiesProvider), WellKnownLspServerKinds.Any)]
+internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
 {
     private readonly ImmutableArray<Lazy<CompletionProvider, CompletionProviderMetadata>> _completionProviders;
     private readonly ImmutableArray<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _signatureHelpProviders;
+    private readonly IEnumerable<Lazy<ILspWillRenameListener, ILspWillRenameListenerMetadata>> _renameListeners;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ExperimentalCapabilitiesProvider(
+    public DefaultCapabilitiesProvider(
         [ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders,
-        [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders)
+        [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders,
+        [ImportMany] IEnumerable<Lazy<ILspWillRenameListener, ILspWillRenameListenerMetadata>> renameListeners)
     {
         _completionProviders = [.. completionProviders.Where(lz => lz.Metadata.Language is LanguageNames.CSharp or LanguageNames.VisualBasic)];
         _signatureHelpProviders = [.. signatureHelpProviders.Where(lz => lz.Metadata.Language is LanguageNames.CSharp or LanguageNames.VisualBasic)];
-    }
-
-    public void Initialize()
-    {
-        // Force completion providers to resolve in initialize, because it means MEF parts will be loaded.
-        // We need to do this before GetCapabilities is called as that is on the UI thread, and loading MEF parts
-        // could cause assembly loads, which we want to do off the UI thread.
-        foreach (var completionProvider in _completionProviders)
-        {
-            _ = completionProvider.Value;
-        }
-        foreach (var signatureHelpProvider in _signatureHelpProviders)
-        {
-            _ = signatureHelpProvider.Value;
-        }
+        _renameListeners = renameListeners;
     }
 
     public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
@@ -95,7 +88,11 @@ internal sealed class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
         capabilities.TextDocumentSync = new TextDocumentSyncOptions
         {
             Change = TextDocumentSyncKind.Incremental,
-            OpenClose = true
+            OpenClose = true,
+            Save = new SaveOptions
+            {
+                IncludeText = false,
+            }
         };
 
         capabilities.HoverProvider = true;
@@ -142,6 +139,33 @@ internal sealed class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
             {
                 InterFileDependencies = true
             };
+        }
+
+        if (clientCapabilities.Workspace?.FileOperations?.WillRename ?? false)
+        {
+            // Register for file rename notifications based on the registered rename listeners.
+            using var _ = PooledObjects.ArrayBuilder<FileOperationFilter>.GetInstance(out var filters);
+            foreach (var listener in _renameListeners)
+            {
+                filters.Add(new FileOperationFilter
+                {
+                    Pattern = new FileOperationPattern { Glob = listener.Metadata.Glob }
+                });
+            }
+
+            if (filters.Count > 0)
+            {
+                capabilities.Workspace = new WorkspaceServerCapabilities
+                {
+                    FileOperations = new WorkspaceFileOperationsServerCapabilities()
+                    {
+                        WillRename = new FileOperationRegistrationOptions()
+                        {
+                            Filters = filters.ToArray()
+                        }
+                    }
+                };
+            }
         }
 
         return capabilities;

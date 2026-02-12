@@ -502,6 +502,7 @@ End Namespace
                    special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_Int32 OrElse
+                   special = SpecialMember.System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__Await_T Then
                     Assert.Null(symbol) ' Not available
                 Else

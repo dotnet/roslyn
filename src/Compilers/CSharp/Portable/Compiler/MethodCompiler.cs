@@ -776,6 +776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             out stateMachine);
 
                         SetGlobalErrorIfTrue(diagnosticsThisMethod.HasAnyErrors());
+                        PipelinePhaseValidator.AssertAfterStateMachineRewriting(loweredBody);
 
                         if (_emitMethodBodies && !diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors)
                         {
@@ -842,56 +843,73 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnosticsThisMethod,
             out StateMachineTypeSymbol? stateMachine)
         {
-            if (method is SynthesizedStateMachineMoveNextMethod { IsAsync: true })
+            PipelinePhaseValidator.AssertAfterClosureConversion(body);
+            var loweredBody = lowerToStateMachineIfNeeded(method, body, compilationState, methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, diagnosticsThisMethod, out stateMachine);
+            PipelinePhaseValidator.AssertAfterStateMachineRewriting(loweredBody);
+
+            return loweredBody;
+
+            static BoundStatement lowerToStateMachineIfNeeded(
+                MethodSymbol method,
+                BoundStatement body,
+                TypeCompilationState compilationState,
+                int methodOrdinal,
+                ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
+                VariableSlotAllocator variableSlotAllocatorOpt,
+                BindingDiagnosticBag diagnosticsThisMethod,
+                out StateMachineTypeSymbol? stateMachine)
             {
-                // "MoveNextAsync" is a runtime-async method, but it has already been lowered
-                Debug.Assert(method.Name is WellKnownMemberNames.MoveNextAsyncMethodName);
-                Debug.Assert((method.ImplementationAttributes & System.Reflection.MethodImplAttributes.Async) != 0);
-
-                stateMachine = null;
-                return body;
-            }
-
-            // Local functions can be iterators as well as be async (lambdas can only be async), so we need to lower both iterators and async
-            IteratorStateMachine? iteratorStateMachine;
-            BoundStatement loweredBody = IteratorRewriter.Rewrite(body, method, methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out iteratorStateMachine);
-            stateMachine = iteratorStateMachine;
-
-            if (loweredBody.HasErrors
-                || reportMissingYieldInAsyncIterator(loweredBody, method, diagnosticsThisMethod))
-            {
-                return loweredBody;
-            }
-
-            if (method.IsAsync)
-            {
-                if (compilationState.Compilation.IsRuntimeAsyncEnabledIn(method))
+                if (method is SynthesizedStateMachineMoveNextMethod { IsAsync: true })
                 {
-                    if (method.DeclaringCompilation.IsValidRuntimeAsyncIteratorReturnType(method.ReturnType))
-                    {
-                        RuntimeAsyncIteratorStateMachine? runtimeAsyncIteratorStateMachine;
-                        loweredBody = RuntimeAsyncIteratorRewriter.Rewrite(loweredBody, method,
-                            methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod,
-                            out runtimeAsyncIteratorStateMachine);
+                    // "MoveNextAsync" is a runtime-async method, but it has already been lowered
+                    Debug.Assert(method.Name is WellKnownMemberNames.MoveNextAsyncMethodName);
+                    Debug.Assert((method.ImplementationAttributes & System.Reflection.MethodImplAttributes.Async) != 0);
 
-                        Debug.Assert(runtimeAsyncIteratorStateMachine is not null);
-                        stateMachine = runtimeAsyncIteratorStateMachine;
+                    stateMachine = null;
+                    return body;
+                }
+
+                // Local functions can be iterators as well as be async (lambdas can only be async), so we need to lower both iterators and async
+                IteratorStateMachine? iteratorStateMachine;
+                BoundStatement loweredBody = IteratorRewriter.Rewrite(body, method, methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out iteratorStateMachine);
+                stateMachine = iteratorStateMachine;
+
+                if (loweredBody.HasErrors
+                    || reportMissingYieldInAsyncIterator(loweredBody, method, diagnosticsThisMethod))
+                {
+                    return (BoundStatement)loweredBody.WithHasErrors();
+                }
+
+                if (method.IsAsync)
+                {
+                    if (compilationState.Compilation.IsRuntimeAsyncEnabledIn(method))
+                    {
+                        if (method.DeclaringCompilation.IsValidRuntimeAsyncIteratorReturnType(method.ReturnType))
+                        {
+                            RuntimeAsyncIteratorStateMachine? runtimeAsyncIteratorStateMachine;
+                            loweredBody = RuntimeAsyncIteratorRewriter.Rewrite(loweredBody, method,
+                                methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod,
+                                out runtimeAsyncIteratorStateMachine);
+
+                            Debug.Assert(runtimeAsyncIteratorStateMachine is not null);
+                            stateMachine = runtimeAsyncIteratorStateMachine;
+                        }
+                        else
+                        {
+                            loweredBody = RuntimeAsyncRewriter.Rewrite(loweredBody, method, compilationState, diagnosticsThisMethod);
+                        }
                     }
                     else
                     {
-                        loweredBody = RuntimeAsyncRewriter.Rewrite(loweredBody, method, compilationState, diagnosticsThisMethod);
+                        AsyncStateMachine? asyncStateMachine;
+                        loweredBody = AsyncRewriter.Rewrite(loweredBody, method, methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out asyncStateMachine);
+                        Debug.Assert((object?)iteratorStateMachine == null || (object?)asyncStateMachine == null);
+                        stateMachine = stateMachine ?? asyncStateMachine;
                     }
                 }
-                else
-                {
-                    AsyncStateMachine? asyncStateMachine;
-                    loweredBody = AsyncRewriter.Rewrite(loweredBody, method, methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out asyncStateMachine);
-                    Debug.Assert((object?)iteratorStateMachine == null || (object?)asyncStateMachine == null);
-                    stateMachine = stateMachine ?? asyncStateMachine;
-                }
-            }
 
-            return loweredBody;
+                return loweredBody;
+            }
 
             static bool reportMissingYieldInAsyncIterator(BoundStatement body, MethodSymbol method, BindingDiagnosticBag diagnostics)
             {
@@ -1565,6 +1583,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 codeCoverageSpans = ImmutableArray<SourceSpan>.Empty;
                 return body;
             }
+
+            PipelinePhaseValidator.AssertAfterInitialBinding(body);
 
             try
             {

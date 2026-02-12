@@ -56,17 +56,17 @@ try {
 # Rebuilds with missing references
 # Rebuilds with other issues
   " --exclude net472\Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.dll" +
-  " --exclude net9.0\Microsoft.CodeAnalysis.Collections.Package.dll" +
+  " --exclude net10.0\Microsoft.CodeAnalysis.Collections.Package.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.Contracts.Package.dll" +
   " --exclude net8.0\Microsoft.CodeAnalysis.Contracts.Package.dll" +
-  " --exclude net9.0\Microsoft.CodeAnalysis.Contracts.Package.dll" +
+  " --exclude net10.0\Microsoft.CodeAnalysis.Contracts.Package.dll" +
   " --exclude netcoreapp3.1\Microsoft.CodeAnalysis.Collections.Package.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.Collections.Package.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.Debugging.Package.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.PooledObjects.Package.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.Threading.Package.dll" +
   " --exclude net8.0\Microsoft.CodeAnalysis.Threading.Package.dll" +
-  " --exclude net9.0\Microsoft.CodeAnalysis.Threading.Package.dll" +
+  " --exclude net10.0\Microsoft.CodeAnalysis.Threading.Package.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.Extensions.Package.dll" +
   " --exclude netcoreapp3.1\Microsoft.CodeAnalysis.Workspaces.UnitTests.dll" +
 

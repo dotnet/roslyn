@@ -111,6 +111,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\CSharpSimplification.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\CSharpSimplifierOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\Simplifiers\CastSimplifier.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\CSharpLightweightOverloadResolution.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\FormattingRangeHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\NameSyntaxComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TokenComparer.cs" />

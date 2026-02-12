@@ -1474,6 +1474,13 @@ namespace Microsoft.Cci
                 case LayoutKind.Explicit:
                     result |= TypeAttributes.ExplicitLayout;
                     break;
+
+                default:
+                    if (typeDef.Layout == LayoutKind.Extended)
+                    {
+                        result |= TypeAttributes.ExtendedLayout;
+                    }
+                    break;
             }
 
             if (typeDef.IsInterface)
@@ -2592,9 +2599,21 @@ namespace Microsoft.Cci
 
         private void PopulateMethodImplTableRows()
         {
+            if (methodImplList.Count == 0)
+            {
+                return;
+            }
+
+            if (!Module.MethodImplSupported)
+            {
+                // .NET Framework incorrectly handles MethodImpl table in the second generation, which causes AV.
+                // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/2631743
+                Context.Diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime, NoLocation.Singleton));
+            }
+
             metadata.SetCapacity(TableIndex.MethodImpl, methodImplList.Count);
 
-            foreach (MethodImplementation methodImplementation in this.methodImplList)
+            foreach (MethodImplementation methodImplementation in methodImplList)
             {
                 metadata.AddMethodImplementation(
                     type: GetTypeDefinitionHandle(methodImplementation.ContainingType),

@@ -22,7 +22,6 @@ internal sealed class CSharpRemoveUnnecessaryDiscardDesignationDiagnosticAnalyze
         : base(IDEDiagnosticIds.RemoveUnnecessaryDiscardDesignationDiagnosticId,
                EnforceOnBuildValues.RemoveUnnecessaryDiscardDesignation,
                option: null,
-               fadingOption: null,
                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Remove_unnessary_discard), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                new LocalizableResourceString(nameof(CSharpAnalyzersResources.Discard_can_be_removed), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
     {

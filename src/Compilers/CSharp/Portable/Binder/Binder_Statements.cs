@@ -1384,7 +1384,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (elementConversionClassification.IsValid)
             {
                 elementPlaceholder = new BoundValuePlaceholder(initializerSyntax, pointerType).MakeCompilerGenerated();
-                elementConversion = CreateConversion(initializerSyntax, elementPlaceholder, elementConversionClassification, isCast: false, conversionGroupOpt: null, declType,
+                elementConversion = CreateConversion(initializerSyntax, elementPlaceholder, elementConversionClassification, isCast: false,
+                    conversionGroupOpt: null, InConversionGroupFlags.Unspecified, declType,
                     elementConversionClassification.IsImplicit ? diagnostics : BindingDiagnosticBag.Discarded);
             }
             else
@@ -2028,7 +2029,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics = BindingDiagnosticBag.Discarded;
             }
 
-            return CreateConversion(expression.Syntax, expression, conversion, isCast: false, conversionGroupOpt: null, targetType, diagnostics);
+            return CreateConversion(expression.Syntax, expression, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, targetType, diagnostics);
         }
 
 #nullable enable
@@ -2689,7 +2690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The expression could not be bound. Insert a fake conversion
                 // around it to bool and keep on going.
                 // NOTE: no user-defined conversion candidates.
-                return BoundConversion.Synthesized(node, BindToTypeForErrorRecovery(expr), Conversion.NoConversion, false, explicitCastInCode: false, conversionGroupOpt: null, ConstantValue.NotAvailable, boolean, hasErrors: true);
+                return BoundConversion.Synthesized(node, BindToTypeForErrorRecovery(expr), Conversion.NoConversion, false, explicitCastInCode: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, ConstantValue.NotAvailable, boolean, hasErrors: true);
             }
 
             // Oddly enough, "if(dyn)" is bound not as a dynamic conversion to bool, but as a dynamic
@@ -2741,6 +2742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversion: conversion,
                     isCast: false,
                     conversionGroupOpt: null,
+                    InConversionGroupFlags.Unspecified,
                     wasCompilerGenerated: true,
                     destination: boolean,
                     diagnostics: diagnostics);
@@ -2756,7 +2758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // No. Give a "not convertible to bool" error.
                 GenerateImplicitConversionError(diagnostics, node, conversion, expr, boolean);
-                return BoundConversion.Synthesized(node, expr, Conversion.NoConversion, false, explicitCastInCode: false, conversionGroupOpt: null, ConstantValue.NotAvailable, boolean, hasErrors: true);
+                return BoundConversion.Synthesized(node, expr, Conversion.NoConversion, false, explicitCastInCode: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, ConstantValue.NotAvailable, boolean, hasErrors: true);
             }
 
             UnaryOperatorSignature signature = best.Signature;
@@ -2767,6 +2769,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 best.Conversion,
                 isCast: false,
                 conversionGroupOpt: null,
+                InConversionGroupFlags.Unspecified,
                 destination: best.Signature.OperandType,
                 diagnostics: diagnostics);
 
@@ -3240,7 +3243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return CreateConversion(argument.Syntax, argument, conversion, isCast: false, conversionGroupOpt: null, returnType, diagnostics);
+            return CreateConversion(argument.Syntax, argument, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, returnType, diagnostics);
         }
 
         private BoundTryStatement BindTryStatement(TryStatementSyntax node, BindingDiagnosticBag diagnostics)
@@ -4030,7 +4033,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (baseConstructor is null)
             {
-                diagnostics.Add(ErrorCode.ERR_NoCopyConstructorInBaseType, diagnosticsLocation, baseType);
+                // Check if the base type is a valid record base first.
+                // If it's not a record, then ERR_BadRecordBase will have already been reported,
+                // so we should not report a copy constructor error.
+                if (baseType.IsRecord)
+                    diagnostics.Add(ErrorCode.ERR_NoCopyConstructorInBaseType, diagnosticsLocation, baseType);
                 return null;
             }
 

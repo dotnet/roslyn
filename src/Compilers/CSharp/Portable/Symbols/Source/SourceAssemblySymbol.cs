@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         private ConcurrentSet<int> _lazyOmittedAttributeIndices;
 
-        private ThreeState _lazyContainsExtensionMethods;
+        private ThreeState _lazyContainsExtensions;
 
         /// <summary>
         /// Map for storing effectively private or effectively internal fields declared in this assembly but never initialized nor assigned.
@@ -1897,16 +1897,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool MightContainExtensionMethods
+        /// <summary>
+        /// This method returns true until <see cref="ContainsExtensions()"/> is
+        /// called, after which the correct value will be returned. In other words,
+        /// the return value may change from true to false on subsequent calls.
+        /// </summary>
+        public override bool MightContainExtensions
         {
             get
             {
-                // Note this method returns true until all ContainsExtensionMethods is
-                // called, after which the correct value will be returned. In other words,
-                // the return value may change from true to false on subsequent calls.
-                if (_lazyContainsExtensionMethods.HasValue())
+                if (_lazyContainsExtensions.HasValue())
                 {
-                    return _lazyContainsExtensionMethods.Value();
+                    return _lazyContainsExtensions.Value();
                 }
                 return true;
             }
@@ -1942,9 +1944,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             CSharpCompilationOptions options = _compilation.Options;
             bool isBuildingNetModule = options.OutputKind.IsNetModule();
-            bool containsExtensionMethods = this.ContainsExtensionMethods();
+            bool containsExtensions = this.ContainsExtensions();
 
-            if (containsExtensionMethods)
+            if (containsExtensions)
             {
                 // No need to check if [Extension] attribute was explicitly set since
                 // we'll issue CS1112 error in those cases and won't generate IL.
@@ -2041,25 +2043,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Returns true if and only if at least one type within the assembly contains
-        /// extension methods. Note, this method is expensive since it potentially
+        /// extension members or methods. Note, this method is expensive since it potentially
         /// inspects all types within the assembly. The expectation is that this method is
         /// only called at emit time, when all types have been or will be traversed anyway.
         /// </summary>
-        private bool ContainsExtensionMethods()
+        private bool ContainsExtensions()
         {
-            if (!_lazyContainsExtensionMethods.HasValue())
+            if (!_lazyContainsExtensions.HasValue())
             {
-                _lazyContainsExtensionMethods = ContainsExtensionMethods(_modules).ToThreeState();
+                _lazyContainsExtensions = ContainsExtensions(_modules).ToThreeState();
             }
 
-            return _lazyContainsExtensionMethods.Value();
+            return _lazyContainsExtensions.Value();
         }
 
-        private static bool ContainsExtensionMethods(ImmutableArray<ModuleSymbol> modules)
+        private static bool ContainsExtensions(ImmutableArray<ModuleSymbol> modules)
         {
             foreach (var module in modules)
             {
-                if (ContainsExtensionMethods(module.GlobalNamespace))
+                if (ContainsExtensions(module.GlobalNamespace))
                 {
                     return true;
                 }
@@ -2067,20 +2069,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private static bool ContainsExtensionMethods(NamespaceSymbol ns)
+        private static bool ContainsExtensions(NamespaceSymbol ns)
         {
             foreach (var member in ns.GetMembersUnordered())
             {
                 switch (member.Kind)
                 {
                     case SymbolKind.Namespace:
-                        if (ContainsExtensionMethods((NamespaceSymbol)member))
+                        if (ContainsExtensions((NamespaceSymbol)member))
                         {
                             return true;
                         }
                         break;
                     case SymbolKind.NamedType:
-                        if (((NamedTypeSymbol)member).MightContainExtensionMethods)
+                        if (((NamedTypeSymbol)member).MightContainExtensions)
                         {
                             return true;
                         }
@@ -2103,7 +2105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var otherAssembly in haveGrantedAssemblies.Keys)
                 {
-                    IVTConclusion conclusion = MakeFinalIVTDetermination(otherAssembly);
+                    IVTConclusion conclusion = MakeFinalIVTDetermination(otherAssembly, assertUnexpectedGiver: true);
 
                     Debug.Assert(conclusion != IVTConclusion.NoRelationshipClaimed);
 
@@ -2171,7 +2173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            IVTConclusion conclusion = MakeFinalIVTDetermination(potentialGiverOfAccess);
+            IVTConclusion conclusion = MakeFinalIVTDetermination(potentialGiverOfAccess, assertUnexpectedGiver: true);
 
             return conclusion == IVTConclusion.Match || conclusion == IVTConclusion.OneSignedOneNot;
         }
@@ -2724,7 +2726,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         handledUnreadFields.Add(field);
                     }
 
-                    if (containingType.HasStructLayoutAttribute || containingType.HasInlineArrayAttribute(out _))
+                    if (containingType.HasStructLayoutAttribute || containingType.HasExtendedLayoutAttribute || containingType.HasInlineArrayAttribute(out _))
                     {
                         continue;
                     }
@@ -2765,7 +2767,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     var containingType = field.ContainingType as SourceNamedTypeSymbol;
-                    if ((object)containingType != null && !containingType.HasStructLayoutAttribute && !containingType.HasInlineArrayAttribute(out _))
+                    if ((object)containingType != null && !containingType.HasStructLayoutAttribute && !containingType.HasExtendedLayoutAttribute && !containingType.HasInlineArrayAttribute(out _))
                     {
                         diagnostics.Add(ErrorCode.WRN_UnreferencedFieldAssg, field.GetFirstLocationOrNone(), field);
                     }

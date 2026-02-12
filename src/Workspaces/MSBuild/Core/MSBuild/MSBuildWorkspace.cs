@@ -30,19 +30,16 @@ public sealed class MSBuildWorkspace : Workspace
     private readonly NonReentrantLock _serializationLock = new();
 
     private readonly MSBuildProjectLoader _loader;
-    private readonly Microsoft.Extensions.Logging.ILoggerFactory _loggerFactory;
-    private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
-    private readonly DiagnosticReporter _reporter;
+
+    private readonly ImmutableArray<string> _knownCommandLineParserLanguages;
 
     private MSBuildWorkspace(
         HostServices hostServices,
         ImmutableDictionary<string, string> properties)
         : base(hostServices, WorkspaceKind.MSBuild)
     {
-        _reporter = new DiagnosticReporter(this);
-        _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(Services.SolutionServices, _reporter);
-        _loggerFactory = new Microsoft.Extensions.Logging.LoggerFactory([new DiagnosticReporterLoggerProvider(_reporter)]);
-        _loader = new MSBuildProjectLoader(Services.SolutionServices, _reporter, _loggerFactory, _projectFileExtensionRegistry, properties);
+        _loader = new MSBuildProjectLoader(this, properties);
+        _knownCommandLineParserLanguages = Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>();
     }
 
     /// <summary>
@@ -93,7 +90,11 @@ public sealed class MSBuildWorkspace : Workspace
         return new MSBuildWorkspace(hostServices, properties.ToImmutableDictionary());
     }
 
-    internal void AddLoggerProvider(Microsoft.Extensions.Logging.ILoggerProvider loggerProvider) => _loggerFactory.AddProvider(loggerProvider);
+    private DiagnosticReporter Reporter
+        => _loader.Reporter;
+
+    internal void AddLoggerProvider(Microsoft.Extensions.Logging.ILoggerProvider loggerProvider)
+        => _loader.LoggerFactory.AddProvider(loggerProvider);
 
     /// <summary>
     /// The MSBuild properties used when interpreting project files.
@@ -104,11 +105,11 @@ public sealed class MSBuildWorkspace : Workspace
     /// <summary>
     /// Diagnostics logged while opening solutions, projects and documents.
     /// </summary>
-    public ImmutableList<WorkspaceDiagnostic> Diagnostics => _reporter.Diagnostics;
+    public ImmutableList<WorkspaceDiagnostic> Diagnostics => Reporter.Diagnostics;
 
     protected internal override void OnWorkspaceFailed(WorkspaceDiagnostic diagnostic)
     {
-        _reporter.AddDiagnostic(diagnostic);
+        Reporter.AddDiagnostic(diagnostic);
         base.OnWorkspaceFailed(diagnostic);
     }
 
@@ -129,8 +130,7 @@ public sealed class MSBuildWorkspace : Workspace
     /// An project is unrecognized if it either has 
     ///   a) an invalid file path, 
     ///   b) a non-existent project file,
-    ///   c) has an unrecognized file extension or 
-    ///   d) a file extension associated with an unsupported language.
+    ///   c) has an unrecognized file extension
     /// 
     /// If unrecognized projects cannot be skipped a corresponding exception is thrown.
     /// </summary>
@@ -315,7 +315,7 @@ public sealed class MSBuildWorkspace : Workspace
             try
             {
                 Debug.Assert(_applyChangesBuildHostProcessManager == null);
-                _applyChangesBuildHostProcessManager = new BuildHostProcessManager(Properties, loggerFactory: _loggerFactory);
+                _applyChangesBuildHostProcessManager = new BuildHostProcessManager(_knownCommandLineParserLanguages, Properties, loggerFactory: _loader.LoggerFactory);
 
                 return base.TryApplyChanges(newSolution, progressTracker);
             }
@@ -342,13 +342,13 @@ public sealed class MSBuildWorkspace : Workspace
                 var projectPath = project.FilePath;
                 if (projectPath is null)
                 {
-                    _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure,
+                    Reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure,
                                                            string.Format(WorkspaceMSBuildResources.Project_path_for_0_was_null, project.Name),
                                                            projectChanges.ProjectId));
                     return;
                 }
 
-                if (_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Log, out var languageName))
+                if (_loader.ProjectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Log, out var languageName))
                 {
                     try
                     {
@@ -357,7 +357,7 @@ public sealed class MSBuildWorkspace : Workspace
                     }
                     catch (IOException exception)
                     {
-                        _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, projectChanges.ProjectId));
+                        Reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, projectChanges.ProjectId));
                     }
                 }
             }
@@ -374,7 +374,7 @@ public sealed class MSBuildWorkspace : Workspace
                 }
                 catch (IOException exception)
                 {
-                    _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, projectChanges.ProjectId));
+                    Reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, projectChanges.ProjectId));
                 }
             }
         }
@@ -393,7 +393,7 @@ public sealed class MSBuildWorkspace : Workspace
             if (document.FilePath is null)
             {
                 var message = string.Format(WorkspaceMSBuildResources.Path_for_document_0_was_null, document.Name);
-                _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, message, document.Id));
+                Reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, message, document.Id));
                 return;
             }
 
@@ -411,7 +411,7 @@ public sealed class MSBuildWorkspace : Workspace
             if (document.FilePath is null)
             {
                 var message = string.Format(WorkspaceMSBuildResources.Path_for_additional_document_0_was_null, document.Name);
-                _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, message, document.Id));
+                Reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, message, document.Id));
                 return;
             }
 
@@ -504,7 +504,7 @@ public sealed class MSBuildWorkspace : Workspace
         }
         catch (IOException exception)
         {
-            _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, id));
+            Reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, id));
         }
     }
 
@@ -532,15 +532,15 @@ public sealed class MSBuildWorkspace : Workspace
         }
         catch (IOException exception)
         {
-            _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
+            Reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
         }
         catch (NotSupportedException exception)
         {
-            _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
+            Reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
         }
         catch (UnauthorizedAccessException exception)
         {
-            _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
+            Reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
         }
     }
 
@@ -576,7 +576,7 @@ public sealed class MSBuildWorkspace : Workspace
         if (identity is null)
         {
             var message = string.Format(WorkspaceMSBuildResources.Unable_to_add_metadata_reference_0, metadataReference.Display);
-            _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, message, projectId));
+            Reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, message, projectId));
             return;
         }
 
@@ -612,7 +612,7 @@ public sealed class MSBuildWorkspace : Workspace
         if (identity is null)
         {
             var message = string.Format(WorkspaceMSBuildResources.Unable_to_remove_metadata_reference_0, metadataReference.Display);
-            _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, message, projectId));
+            Reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, message, projectId));
             return;
         }
 

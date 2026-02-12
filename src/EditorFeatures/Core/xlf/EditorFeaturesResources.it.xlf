@@ -32,14 +32,14 @@
         <target state="translated">Elaborazione di Copilot in corso...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Describe_with_Copilot">
-        <source>Describe with Copilot</source>
-        <target state="translated">Descrivi con Copilot</target>
+      <trans-unit id="Describe">
+        <source>Describe</source>
+        <target state="translated">Descrivi</target>
         <note />
       </trans-unit>
-      <trans-unit id="Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
-        <source>'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</source>
-        <target state="translated">"Descrivi con Copilot" non è disponibile perché il documento di riferimento è escluso dall'organizzazione.</target>
+      <trans-unit id="Describe_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
+        <source>'Describe' is unavailable since the referenced document is excluded by your organization.</source>
+        <target state="translated">"Descrivi" non è disponibile perché il documento di riferimento è escluso dall'organizzazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
@@ -439,7 +439,7 @@
       </trans-unit>
       <trans-unit id="User_Types_Arrays">
         <source>User Types - Arrays</source>
-        <target state="new">User Types - Arrays</target>
+        <target state="translated">Tipi utente - Matrici</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Classes">
@@ -459,7 +459,7 @@
       </trans-unit>
       <trans-unit id="User_Types_Function_Pointers">
         <source>User Types - Function Pointers</source>
-        <target state="new">User Types - Function Pointers</target>
+        <target state="translated">Tipi utente - Puntatori funzione</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Interfaces">
@@ -469,7 +469,7 @@
       </trans-unit>
       <trans-unit id="User_Types_Pointers">
         <source>User Types - Pointers</source>
-        <target state="new">User Types - Pointers</target>
+        <target state="translated">Tipi utente - Puntatori</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Record_Structs">
@@ -1074,7 +1074,7 @@
       </trans-unit>
       <trans-unit id="Change_Signature">
         <source>Change Signature</source>
-        <target state="needs-review-translation">Cambia firma</target>
+        <target state="translated">Cambia firma</target>
         <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Preview_Changes_0">
@@ -1109,7 +1109,7 @@
       </trans-unit>
       <trans-unit id="Change_Signature_colon">
         <source>Change Signature:</source>
-        <target state="needs-review-translation">Cambia firma:</target>
+        <target state="translated">Cambia firma:</target>
         <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Rename_0_to_1_colon">

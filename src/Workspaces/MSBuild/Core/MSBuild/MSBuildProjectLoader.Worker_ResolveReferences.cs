@@ -184,18 +184,12 @@ public partial class MSBuildProjectLoader
                 => new(GetProjectReferences(), GetMetadataReferences());
         }
 
-        private async Task<ResolvedReferences> ResolveReferencesAsync(ProjectId id, ProjectFileInfo projectFileInfo, CommandLineArguments commandLineArgs, CancellationToken cancellationToken)
+        private async Task<ResolvedReferences> ResolveReferencesAsync(ProjectId id, ProjectFileInfo projectFileInfo, IEnumerable<MetadataReference> resolvedMetadataReferences, CancellationToken cancellationToken)
         {
-            // First, gather all of the metadata references from the command-line arguments.
-            var resolvedMetadataReferences = commandLineArgs.ResolveMetadataReferences(
-                new WorkspaceMetadataFileReferenceResolver(
-                    metadataService: _solutionServices.GetRequiredService<IMetadataService>(),
-                    pathResolver: new RelativePathResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory)));
-
             var builder = new ResolvedReferencesBuilder(resolvedMetadataReferences);
 
-            var projectDirectory = Path.GetDirectoryName(projectFileInfo.FilePath);
-            RoslynDebug.AssertNotNull(projectDirectory);
+            var projectDirectory = PathUtilities.GetDirectoryName(projectFileInfo.FilePath);
+            Contract.ThrowIfNull(projectDirectory);
 
             // Next, iterate through all project references in the file and create project references.
             foreach (var projectFileReference in projectFileInfo.ProjectReferences)
@@ -210,17 +204,15 @@ public partial class MSBuildProjectLoader
                         continue;
                     }
 
-                    if (projectFileReference.ReferenceOutputAssembly)
+                    if (!projectFileReference.ReferenceOutputAssembly)
                     {
-                        // If we don't know how to load a project (that is, it's not a language we support), we can still
-                        // attempt to verify that its output exists on disk and is included in our set of metadata references.
-                        // If it is, we'll just leave it in place.
-                        if (!IsProjectLoadable(projectReferencePath) &&
-                            await VerifyUnloadableProjectOutputExistsAsync(projectReferencePath, builder, cancellationToken).ConfigureAwait(false))
-                        {
-                            continue;
-                        }
+                        // Load the project but do not add a reference:
+                        _ = await LoadProjectInfosFromPathAsync(projectReferencePath, _discoveredProjectOptions, cancellationToken).ConfigureAwait(false);
+                        continue;
+                    }
 
+                    if (IsProjectLoadable(projectReferencePath, DiagnosticReportingMode.Ignore))
+                    {
                         // If metadata is preferred, see if the project reference's output exists on disk and is included
                         // in our metadata references. If it is, don't create a project reference; we'll just use the metadata.
                         if (_preferMetadataForReferencesOfDiscoveredProjects &&
@@ -237,9 +229,16 @@ public partial class MSBuildProjectLoader
                     }
                     else
                     {
-                        // Load the project but do not add a reference:
-                        _ = await LoadProjectInfosFromPathAsync(projectReferencePath, _discoveredProjectOptions, cancellationToken).ConfigureAwait(false);
-                        continue;
+                        // If we don't know how to load a project (that is, it's not a language we support), we can still
+                        // attempt to verify that its output exists on disk and is included in our set of metadata references.
+                        // If it is, we'll just leave it in place.
+                        if (await VerifyUnloadableProjectOutputExistsAsync(projectReferencePath, builder, cancellationToken).ConfigureAwait(false))
+                        {
+                            continue;
+                        }
+
+                        // report error if requested:
+                        _ = IsProjectLoadable(projectReferencePath, _discoveredProjectOptions.OnLoaderFailure);
                     }
                 }
 
@@ -335,22 +334,19 @@ public partial class MSBuildProjectLoader
             return true;
         }
 
-        private bool IsProjectLoadable(string projectPath)
-            => _projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out _);
+        private bool IsProjectLoadable(string projectPath, DiagnosticReportingMode mode)
+            => _projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, mode, out _);
 
         private async Task<bool> VerifyUnloadableProjectOutputExistsAsync(string projectPath, ResolvedReferencesBuilder builder, CancellationToken cancellationToken)
         {
-            var buildHost = await _buildHostProcessManager.GetBuildHostWithFallbackAsync(projectPath, cancellationToken).ConfigureAwait(false);
-            var outputFilePath = await buildHost.TryGetProjectOutputPathAsync(projectPath, cancellationToken).ConfigureAwait(false);
-            return outputFilePath != null
-                && builder.Contains(outputFilePath)
-                && File.Exists(outputFilePath);
+            var outputFilePaths = await _projectFileInfoProvider.GetProjectOutputPathsAsync(projectPath, cancellationToken).ConfigureAwait(false);
+            return outputFilePaths.Any(path => builder.Contains(path) && File.Exists(path));
         }
 
         private async Task<bool> VerifyProjectOutputExistsAsync(string projectPath, ResolvedReferencesBuilder builder, CancellationToken cancellationToken)
         {
             // Note: Load the project, but don't report failures.
-            var projectFileInfos = await LoadProjectFileInfosAsync(projectPath, DiagnosticReportingOptions.IgnoreAll, cancellationToken).ConfigureAwait(false);
+            var projectFileInfos = await _projectFileInfoProvider.LoadProjectFileInfosAsync(projectPath, DiagnosticReportingOptions.IgnoreAll, cancellationToken).ConfigureAwait(false);
 
             foreach (var projectFileInfo in projectFileInfos)
             {

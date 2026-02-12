@@ -6,21 +6,16 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
-using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ProjectSystem;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.MSBuild.BuildHostProcessManager;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -33,9 +28,11 @@ internal abstract class LanguageServerProjectLoader
     private readonly IFileChangeWatcher _fileChangeWatcher;
     protected readonly IGlobalOptionService GlobalOptionService;
     protected readonly ILoggerFactory LoggerFactory;
+    protected readonly IAsynchronousOperationListener Listener;
     private readonly ILogger _logger;
     private readonly ProjectLoadTelemetryReporter _projectLoadTelemetryReporter;
     private readonly IBinLogPathProvider _binLogPathProvider;
+    private readonly DotnetCliHelper _dotnetCliHelper;
     protected readonly ImmutableDictionary<string, string> AdditionalProperties;
 
     /// <summary>
@@ -82,7 +79,18 @@ internal abstract class LanguageServerProjectLoader
         /// </summary>
         /// <param name="LoadedProjectTargets">List of target frameworks which have been loaded for this project so far.</param>
         public sealed record LoadedTargets(ImmutableArray<LoadedProject> LoadedProjectTargets) : ProjectLoadState;
+
+        /// <summary>
+        /// Represents a project which was forked from the canonical miscellaneous files project (which itself is represented as a <see cref="LoadedTargets"/> instance.)
+        /// Forked projects have a full set of standard references, etc., but design-time builds are not performed for them.
+        /// </summary>
+        public sealed record CanonicalForked(ProjectId forkedProjectId) : ProjectLoadState;
     }
+
+    /// <summary>
+    /// Indicates whether loads should report UI progress to the client for this loader.
+    /// </summary>
+    protected virtual bool EnableProgressReporting => true;
 
     protected LanguageServerProjectLoader(
         LanguageServerWorkspaceFactory workspaceFactory,
@@ -92,15 +100,18 @@ internal abstract class LanguageServerProjectLoader
         IAsynchronousOperationListenerProvider listenerProvider,
         ProjectLoadTelemetryReporter projectLoadTelemetry,
         ServerConfigurationFactory serverConfigurationFactory,
-        IBinLogPathProvider binLogPathProvider)
+        IBinLogPathProvider binLogPathProvider,
+        DotnetCliHelper dotnetCliHelper)
     {
         _workspaceFactory = workspaceFactory;
         _fileChangeWatcher = fileChangeWatcher;
         GlobalOptionService = globalOptionService;
         LoggerFactory = loggerFactory;
+        Listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectLoader));
         _projectLoadTelemetryReporter = projectLoadTelemetry;
         _binLogPathProvider = binLogPathProvider;
+        _dotnetCliHelper = dotnetCliHelper;
 
         AdditionalProperties = BuildAdditionalProperties(serverConfigurationFactory.ServerConfiguration);
 
@@ -108,7 +119,7 @@ internal abstract class LanguageServerProjectLoader
             TimeSpan.FromMilliseconds(100),
             ReloadProjectsAsync,
             ProjectToLoad.Comparer,
-            listenerProvider.GetListener(FeatureAttribute.Workspace),
+            Listener,
             CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
     }
 
@@ -155,7 +166,12 @@ internal abstract class LanguageServerProjectLoader
 
         // TODO: support configuration switching
 
-        await using var buildHostProcessManager = new BuildHostProcessManager(globalMSBuildProperties: AdditionalProperties, binaryLogPathProvider: _binLogPathProvider, loggerFactory: LoggerFactory);
+        await using var buildHostProcessManager = new BuildHostProcessManager(
+            knownCommandLineParserLanguages: _workspaceFactory.HostWorkspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>(),
+            globalMSBuildProperties: AdditionalProperties,
+            binaryLogPathProvider: _binLogPathProvider,
+            loggerFactory: LoggerFactory);
+
         var toastErrorReporter = new ToastErrorReporter();
 
         try
@@ -176,12 +192,8 @@ internal abstract class LanguageServerProjectLoader
 
             if (GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore) && projectsThatNeedRestore.Any())
             {
-                // Tell the client to restore any projects with unresolved dependencies.
-                // This should eventually move entirely server side once we have a mechanism for reporting generic project load progress.
-                // Tracking: https://github.com/dotnet/vscode-csharp/issues/6675
-                //
-                // The request blocks to ensure we aren't trying to run a design time build at the same time as a restore.
-                await ProjectDependencyHelper.SendProjectNeedsRestoreRequestAsync(projectsThatNeedRestore, cancellationToken);
+                // This request blocks to ensure we aren't trying to run a design time build at the same time as a restore.
+                await ProjectDependencyHelper.RestoreProjectsAsync(projectsThatNeedRestore, EnableProgressReporting, _dotnetCliHelper, _logger, cancellationToken);
             }
         }
         finally
@@ -205,22 +217,14 @@ internal abstract class LanguageServerProjectLoader
     protected abstract Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken);
 
-    /// <summary>Called after a project is unloaded to allow the subtype to clean up any resources associated with the project.</summary>
-    /// <remarks>
-    /// Note that this refers to unloading of the project on the project-system level.
-    /// So, for example, changing the target frameworks of a project, or transitioning between
-    /// "file-based program" and "true miscellaneous file", will not result in this being called.
-    /// </remarks>
-    protected abstract ValueTask OnProjectUnloadedAsync(string projectFilePath);
-
     /// <summary>
-    /// Called when transitioning from a primordial project to loaded targets.
+    /// Called after a design time build when transitioning from <see cref="ProjectLoadState.Primordial"/> to  <see cref="ProjectLoadState.LoadedTargets"/>.
     /// Subclasses can override this to transfer documents or perform other operations before the primordial project is removed.
     /// </summary>
-    protected abstract ValueTask TransitionPrimordialProjectToLoadedAsync(
+    protected abstract ValueTask TransitionPrimordialProjectToLoaded_NoLockAsync(
+        Dictionary<string, ProjectLoadState> loadedProjects,
         string projectPath,
-        ProjectSystemProjectFactory primordialProjectFactory,
-        ProjectId primordialProjectId,
+        ProjectLoadState.Primordial projectState,
         CancellationToken cancellationToken);
 
     /// <returns>True if the project needs a NuGet restore, false otherwise.</returns>
@@ -287,6 +291,7 @@ internal abstract class LanguageServerProjectLoader
                     return false;
                 }
 
+                Contract.ThrowIfTrue(currentLoadState is ProjectLoadState.CanonicalForked, "A design time build should not be performed on a forked project");
                 var previousProjectTargets = currentLoadState is ProjectLoadState.LoadedTargets loaded ? loaded.LoadedProjectTargets : [];
                 var newProjectTargetsBuilder = ArrayBuilder<LoadedProject>.GetInstance(loadedProjectInfos.Length);
                 foreach (var loadedProjectInfo in loadedProjectInfos)
@@ -325,10 +330,10 @@ internal abstract class LanguageServerProjectLoader
                     await _projectLoadTelemetryReporter.ReportProjectLoadTelemetryAsync(telemetryInfos, projectToLoad, cancellationToken);
                 }
 
-                if (currentLoadState is ProjectLoadState.Primordial(var primordialProjectFactory, var projectId))
+                if (currentLoadState is ProjectLoadState.Primordial primordial)
                 {
                     // Transition from primordial to loaded state
-                    await TransitionPrimordialProjectToLoadedAsync(projectPath, primordialProjectFactory, projectId, cancellationToken);
+                    await TransitionPrimordialProjectToLoaded_NoLockAsync(_loadedProjects, projectPath, primordial, cancellationToken);
                 }
 
                 // At this point we expect that all the loaded projects are now in the project factory returned, and any previous ones have been removed.
@@ -486,36 +491,60 @@ internal abstract class LanguageServerProjectLoader
 
     protected Task WaitForProjectsToFinishLoadingAsync() => _projectsToReload.WaitUntilCurrentBatchCompletesAsync();
 
-    protected async ValueTask<bool> TryUnloadProjectAsync(string projectPath)
+    /// <summary>Unloads all projects associated with this project loader.</summary>
+    internal async ValueTask UnloadAllProjectsAsync()
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
-            if (!_loadedProjects.Remove(projectPath, out var loadState))
+            foreach (var key in _loadedProjects.Keys)
             {
-                // It is common to be called with a path to a project which is already not loaded.
-                // In this case, we should do nothing.
-                return false;
-            }
-
-            if (loadState is ProjectLoadState.Primordial(var projectFactory, var projectId))
-            {
-                await projectFactory.ApplyChangeToWorkspaceAsync(workspace => workspace.OnProjectRemoved(projectId));
-            }
-            else if (loadState is ProjectLoadState.LoadedTargets(var existingProjects))
-            {
-                foreach (var existingProject in existingProjects)
-                {
-                    // Disposing a LoadedProject unloads it and removes it from the workspace.
-                    existingProject.Dispose();
-                }
-            }
-            else
-            {
-                throw ExceptionUtilities.UnexpectedValue(loadState);
+                // Note that .NET supports removing dictionary entries while enumerating
+                var removed = await TryUnloadProject_NoLockAsync(key);
+                Contract.ThrowIfFalse(removed); // We obtained lock before enumerating, how was this already removed?
             }
         }
+    }
 
-        await OnProjectUnloadedAsync(projectPath);
+    internal async ValueTask<bool> TryUnloadProjectAsync(string projectPath)
+    {
+        using (await _gate.DisposableWaitAsync(CancellationToken.None))
+        {
+            return await TryUnloadProject_NoLockAsync(projectPath);
+        }
+    }
+
+    protected async ValueTask<bool> TryUnloadProject_NoLockAsync(string projectPath)
+    {
+        if (!_loadedProjects.Remove(projectPath, out var loadState))
+        {
+            // It is common to be called with a path to a project which is already not loaded.
+            // In this case, we should do nothing.
+            return false;
+        }
+
+        if (loadState is ProjectLoadState.Primordial(var projectFactory, var projectId))
+        {
+            await projectFactory.ApplyChangeToWorkspaceAsync(workspace => workspace.OnProjectRemoved(projectId));
+        }
+        else if (loadState is ProjectLoadState.LoadedTargets(var existingProjects))
+        {
+            foreach (var existingProject in existingProjects)
+            {
+                // Disposing a LoadedProject unloads it and removes it from the workspace.
+                existingProject.Dispose();
+            }
+        }
+        else if (loadState is ProjectLoadState.CanonicalForked(var forkedProjectId))
+        {
+            // Canonical forked projects are only ever put in the misc files workspace
+            var miscFactory = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory;
+            await miscFactory.ApplyChangeToWorkspaceAsync(workspace => workspace.OnProjectRemoved(forkedProjectId));
+        }
+        else
+        {
+            throw ExceptionUtilities.UnexpectedValue(loadState);
+        }
+
         return true;
     }
 }

@@ -5,7 +5,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.BannedApiAnalyzers",
-        "version": "5.3.0",
+        "version": "5.5.0",
         "language": "en-US"
       },
       "rules": {
@@ -14,7 +14,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers",
-        "version": "5.3.0",
+        "version": "5.5.0",
         "language": "en-US"
       },
       "rules": {
@@ -77,7 +77,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers",
-        "version": "5.3.0",
+        "version": "5.5.0",
         "language": "en-US"
       },
       "rules": {

@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
-using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -17,7 +15,7 @@ using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Roslyn.LanguageServer.Protocol;
-using static Microsoft.CodeAnalysis.MSBuild.BuildHostProcessManager;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 
@@ -29,11 +27,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     private readonly VirtualProjectXmlProvider _projectXmlProvider;
     private readonly CanonicalMiscFilesProjectLoader _canonicalMiscFilesLoader;
 
-    public void Dispose()
-    {
-        _canonicalMiscFilesLoader.Dispose();
-    }
-
     public FileBasedProgramsProjectSystem(
         ILspServices lspServices,
         VirtualProjectXmlProvider projectXmlProvider,
@@ -44,7 +37,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         IAsynchronousOperationListenerProvider listenerProvider,
         ProjectLoadTelemetryReporter projectLoadTelemetry,
         ServerConfigurationFactory serverConfigurationFactory,
-        IBinLogPathProvider binLogPathProvider)
+        IBinLogPathProvider binLogPathProvider,
+        DotnetCliHelper dotnetCliHelper)
             : base(
                 workspaceFactory,
                 fileChangeWatcher,
@@ -53,7 +47,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 listenerProvider,
                 projectLoadTelemetry,
                 serverConfigurationFactory,
-                binLogPathProvider)
+                binLogPathProvider,
+                dotnetCliHelper)
     {
         _lspServices = lspServices;
         _logger = loggerFactory.CreateLogger<FileBasedProgramsProjectSystem>();
@@ -66,12 +61,53 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 listenerProvider,
                 projectLoadTelemetry,
                 serverConfigurationFactory,
-                binLogPathProvider);
+                binLogPathProvider,
+                dotnetCliHelper);
+
+        globalOptionService.AddOptionChangedHandler(this, OnGlobalOptionChanged);
+    }
+
+    public void Dispose()
+    {
+        _canonicalMiscFilesLoader.Dispose();
+        GlobalOptionService.RemoveOptionChangedHandler(this, OnGlobalOptionChanged);
+    }
+
+    private void OnGlobalOptionChanged(object sender, object target, OptionChangedEventArgs args)
+    {
+        foreach (var (key, value) in args.ChangedOptions)
+        {
+            if (key.Option.Equals(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms))
+            {
+                // This event handler can't be async, so we ignore the resulting task here,
+                // and take care that the ignored call doesn't throw an exception
+                _ = HandleEnableFileBasedProgramsChangedAsync((bool)value!);
+                break;
+            }
+        }
+
+        async Task HandleEnableFileBasedProgramsChangedAsync(bool value)
+        {
+            using var token = Listener.BeginAsyncOperation(nameof(HandleEnableFileBasedProgramsChangedAsync));
+            try
+            {
+                // Note: Changing the 'enableFileBasedPrograms' setting causes many subtle differences in how loose files are handled.
+                // For example, loose files which don't look like file-based programs, are put in projects forked from the canonical project loader, only when the setting is enabled, etc.
+                // We anticipate that changing this setting will be infrequent, and, the cost of needing to reload will be acceptable given that.
+                _logger.LogInformation($"Detected enableFileBasedPrograms changed to '{value}'. Unloading loose file projects.");
+                await UnloadAllProjectsAsync();
+                await _canonicalMiscFilesLoader.UnloadAllProjectsAsync();
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+        }
     }
 
     private string GetDocumentFilePath(DocumentUri uri) => uri.ParsedUri is { } parsedUri ? ProtocolConversions.GetDocumentFilePathFromUri(parsedUri) : uri.UriString;
 
-    public async ValueTask<bool> IsMiscellaneousFilesDocumentAsync(TextDocument document, CancellationToken cancellationToken)
+    public async ValueTask<bool> IsMiscellaneousFilesDocumentAsync(TextDocument textDocument, CancellationToken cancellationToken)
     {
         // There are a few cases here:
         //   1.  The document is a primordial document (either not loaded yet or doesn't support design time build) - it will be in the misc files workspace.
@@ -79,17 +115,36 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         //   3.  The document is loaded as a file based program - then it will be in the main workspace where the project path matches the source file path.
 
         // NB: The FileBasedProgramsProjectSystem uses the document file path (the on-disk path) as the projectPath in 'IsProjectLoadedAsync'.
-        var isLoadedAsFileBasedProgram = document.FilePath is { } filePath && await IsProjectLoadedAsync(filePath, cancellationToken);
+        var isLoadedAsFileBasedProgram = textDocument.FilePath is { } filePath && await IsProjectLoadedAsync(filePath, cancellationToken);
 
         // If this document has a file-based program syntactic marker, but we aren't loading it in a file-based programs project,
         // we need the caller to remove and re-add this document, so that it gets put in a file-based programs project instead.
         // See the check in 'LspWorkspaceManager.GetLspDocumentInfoAsync', which removes a document based on 'IsMiscellaneousFilesDocumentAsync' result,
         // then calls 'GetLspDocumentInfoAsync' again for the same request.
-        if (!isLoadedAsFileBasedProgram && VirtualProjectXmlProvider.IsFileBasedProgram(await document.GetTextAsync(cancellationToken)))
+        if (!isLoadedAsFileBasedProgram && VirtualProjectXmlProvider.IsFileBasedProgram(await textDocument.GetTextAsync(cancellationToken)))
             return false;
 
-        if (document.Project.Solution.Workspace == _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace)
+        if (textDocument.Project.Solution.Workspace == _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace)
+        {
+            // Do a check to determine if the misc project needs to be re-created with a new HasAllInformation flag value.
+            if (!isLoadedAsFileBasedProgram
+                && await _canonicalMiscFilesLoader.IsCanonicalProjectLoadedAsync(cancellationToken)
+                && textDocument is Document document
+                && await document.GetSyntaxTreeAsync(cancellationToken) is { } syntaxTree)
+            {
+                var newHasAllInformation = await VirtualProjectXmlProvider.ShouldReportSemanticErrorsInPossibleFileBasedProgramAsync(GlobalOptionService, syntaxTree, cancellationToken);
+                if (newHasAllInformation != document.Project.State.HasAllInformation)
+                {
+                    // TODO: replace this method and the call site in LspWorkspaceManager,
+                    // with a mechanism for "updating workspace state if needed" based on changes to a document.
+                    // Perhaps this could be based on actually listening for changes to particular documents, rather than whenever an LSP request related to a document comes in.
+                    // We should be able to do more incremental updates in more cases, rather than needing to throw things away and start over.
+                    return false;
+                }
+            }
+
             return true;
+        }
 
         if (isLoadedAsFileBasedProgram)
             return true;
@@ -108,6 +163,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         }
 
         var supportsDesignTimeBuild = languageInformation.LanguageName == LanguageNames.CSharp
+            && (languageInformation.ScriptExtension is null || languageInformation.ScriptExtension != PathUtilities.GetExtension(documentFilePath))
             && GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms);
 
         // Check if this is a C# file that should use the canonical misc files loader
@@ -133,8 +189,9 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         {
             var workspace = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace;
             var sourceTextLoader = new SourceTextLoader(documentText, documentFilePath);
+            var enableFileBasedPrograms = GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms);
             var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
-                workspace, documentFilePath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, workspace.Services.SolutionServices, []);
+                workspace, documentFilePath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, workspace.Services.SolutionServices, [], enableFileBasedPrograms);
 
             _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.ApplyChangeToWorkspace(workspace => workspace.OnProjectAdded(projectInfo));
 
@@ -155,7 +212,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     {
         var documentPath = GetDocumentFilePath(uri);
         // First try to remove from the canonical misc files loader if it was created
-        var removedFromCanonical = await _canonicalMiscFilesLoader.TryRemoveMiscellaneousDocumentAsync(documentPath, CancellationToken.None);
+        var removedFromCanonical = await _canonicalMiscFilesLoader.TryUnloadProjectAsync(documentPath);
         if (removedFromCanonical)
             return true;
 
@@ -200,19 +257,14 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         };
     }
 
-    protected override ValueTask OnProjectUnloadedAsync(string projectFilePath)
-    {
-        return ValueTask.CompletedTask;
-    }
-
-    protected override async ValueTask TransitionPrimordialProjectToLoadedAsync(
+    protected override async ValueTask TransitionPrimordialProjectToLoaded_NoLockAsync(
+        Dictionary<string, ProjectLoadState> loadedProjects,
         string projectPath,
-        ProjectSystemProjectFactory primordialProjectFactory,
-        ProjectId primordialProjectId,
+        ProjectLoadState.Primordial projectState,
         CancellationToken cancellationToken)
     {
-        await primordialProjectFactory.ApplyChangeToWorkspaceAsync(
-            workspace => workspace.OnProjectRemoved(primordialProjectId),
+        await projectState.PrimordialProjectFactory.ApplyChangeToWorkspaceAsync(
+            workspace => workspace.OnProjectRemoved(projectState.PrimordialProjectId),
             cancellationToken);
     }
 }
