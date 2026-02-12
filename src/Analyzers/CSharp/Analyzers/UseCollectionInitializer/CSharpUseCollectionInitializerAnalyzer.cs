@@ -86,7 +86,7 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
             return true;
 
         // See if we can specialize a single argument, by potentially spreading it, or dropping it entirely if redundant.
-        var supportsWithArgument = _objectCreationExpression.SyntaxTree.Options.LanguageVersion().IsCSharp14OrAbove();
+        var supportsWithArgument = _objectCreationExpression.SyntaxTree.Options.LanguageVersion().IsCSharp15OrAbove();
         if (TrySpecializeSingleArgument(out mayChangeSemantics))
             return true;
 
