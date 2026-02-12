@@ -1035,8 +1035,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override DeconstructionInfo GetDeconstructionInfo(AssignmentExpressionSyntax node)
         {
-            var upperNode = GetLowerBoundNode(node);
-            if (upperNode is not BoundDeconstructionAssignmentOperator boundDeconstruction)
+            var lowerNode = GetLowerBoundNode(node);
+            if (lowerNode is not BoundDeconstructionAssignmentOperator boundDeconstruction)
             {
                 return default;
             }
