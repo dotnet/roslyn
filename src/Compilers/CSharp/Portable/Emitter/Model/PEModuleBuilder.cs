@@ -1878,23 +1878,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_MemorySafetyRulesAttribute__ctor, arguments);
         }
 
-        internal SynthesizedAttributeData TrySynthesizeRequiresUnsafeAttribute(Symbol symbol)
-        {
-            if ((object)Compilation.SourceModule != symbol.ContainingModule)
-            {
-                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
-                return null;
-            }
-
-            return TrySynthesizeRequiresUnsafeAttribute();
-        }
-
-        protected virtual SynthesizedAttributeData TrySynthesizeRequiresUnsafeAttribute()
-        {
-            // For modules, this attribute should be present. Only assemblies generate and embed this type.
-            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiresUnsafeAttribute__ctor);
-        }
-
         internal bool ShouldEmitNullablePublicOnlyAttribute()
         {
             // No need to look at this.GetNeedsGeneratedAttributes() since those bits are
@@ -1978,11 +1961,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal void EnsureRequiresLocationAttributeExists()
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.RequiresLocationAttribute);
-        }
-
-        internal void EnsureRequiresUnsafeAttributeExists()
-        {
-            EnsureEmbeddableAttributeExists(EmbeddableAttributes.RequiresUnsafeAttribute);
         }
 
         internal void EnsureParamCollectionAttributeExists(BindingDiagnosticBag diagnostics, Location location)

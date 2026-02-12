@@ -1538,7 +1538,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             RequiresLocationAttribute = 1 << 14,
             ExtensionMarkerAttribute = 1 << 15,
             MemorySafetyRulesAttribute = 1 << 16,
-            RequiresUnsafeAttribute = 1 << 17,
         }
 
         internal bool ReportExplicitUseOfReservedAttributes(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, ReservedAttributes reserved)
@@ -1617,10 +1616,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if ((reserved & ReservedAttributes.MemorySafetyRulesAttribute) != 0 &&
                 reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.MemorySafetyRulesAttribute))
-            {
-            }
-            else if ((reserved & ReservedAttributes.RequiresUnsafeAttribute) != 0 &&
-                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.RequiresUnsafeAttribute))
             {
             }
             else if ((reserved & ReservedAttributes.ExtensionMarkerAttribute) != 0 &&

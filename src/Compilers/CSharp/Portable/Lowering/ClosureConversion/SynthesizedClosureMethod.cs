@@ -121,11 +121,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 moduleBuilder.EnsureIsReadOnlyAttributeExists();
             }
 
-            if (CallerUnsafeMode.NeedsRequiresUnsafeAttribute())
-            {
-                moduleBuilder.EnsureRequiresUnsafeAttributeExists();
-            }
-
             ParameterHelpers.EnsureRefKindAttributesExist(moduleBuilder, Parameters);
 
             ParameterHelpers.EnsureParamCollectionAttributeExists(moduleBuilder, Parameters);

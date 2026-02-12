@@ -982,10 +982,11 @@ done:
                 compilation.EnsureIsReadOnlyAttributeExists(diagnostics, _location, modifyCompilation: true);
             }
 
-            if (CallerUnsafeMode.NeedsRequiresUnsafeAttribute())
+            if (NeedsSynthesizedRequiresUnsafeAttribute)
             {
+                Debug.Assert(CallerUnsafeMode == CallerUnsafeMode.Explicit);
                 MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, compilation, _location);
-                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, _location, modifyCompilation: true);
+                Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Runtime_CompilerServices_RequiresUnsafeAttribute__ctor, diagnostics, _location);
             }
 
             if (compilation.ShouldEmitNullableAttributes(this) &&

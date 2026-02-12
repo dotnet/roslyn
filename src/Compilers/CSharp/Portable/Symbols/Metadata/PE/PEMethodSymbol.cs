@@ -1086,7 +1086,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.RequiresUnsafeAttribute))
                     {
                         hasRequiresUnsafeAttribute = true;
-                        continue;
                     }
 
                     builder.Add(new PEAttributeData(containingModule, handle));
@@ -1809,7 +1808,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private bool ComputeRequiresUnsafe(bool hasRequiresUnsafeAttribute)
         {
             return ContainingModule.UseUpdatedMemorySafetyRules
-                ? hasRequiresUnsafeAttribute
+                ? hasRequiresUnsafeAttribute || AssociatedSymbol?.CallerUnsafeMode == CallerUnsafeMode.Explicit
                 // This might be expensive, so we cache it in _packedFlags.
                 : this.HasParameterContainingPointerType() || ReturnType.ContainsPointerOrFunctionPointer();
         }
