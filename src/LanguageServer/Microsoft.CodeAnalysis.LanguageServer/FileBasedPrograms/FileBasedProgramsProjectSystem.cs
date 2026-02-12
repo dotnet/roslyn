@@ -126,7 +126,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             using var token = Listener.BeginAsyncOperation(nameof(HandleCsprojFileChangedAsync));
             try
             {
-                await _canonicalMiscFilesLoader.UnloadAllProjectsInDirectoryAsync(directoryName);
+                await _canonicalMiscFilesLoader.ClearCsprojInConeInfoAsync(directoryName);
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
             {
@@ -162,14 +162,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 && textDocument is Document document
                 && await document.GetSyntaxTreeAsync(cancellationToken) is { } syntaxTree)
             {
-                // TODO2: This value doesn't include the info we baked in when doing the csproj-in-cone check.
-                // Thus we are constantly unloading these files.
-                // Possible fixes:
-                // - Track a flag in ProjectLoadState.CanonicalForked for, whether csproj was in cone when it was loaded.
-                // - Track whether the old version(s) of the document also had top-level statements (seems harder).
-                // (I convinced myself we didn't need to cache 'IsCsprojInCone', but I think I was wrong. Dang.)
-                var newHasAllInformation = await VirtualProjectXmlProvider.GetCanonicalMiscFileHasAllInformation_IncrementalAsync(GlobalOptionService, syntaxTree, cancellationToken);
-                if (newHasAllInformation != document.Project.State.HasAllInformation)
+                if (await _canonicalMiscFilesLoader.GetHasAllInformation_IncrementalAsync(GlobalOptionService, syntaxTree, cancellationToken) is bool newHasAllInformation
+                    && newHasAllInformation != document.Project.State.HasAllInformation)
                 {
                     // TODO: replace this method and the call site in LspWorkspaceManager,
                     // with a mechanism for "updating workspace state if needed" based on changes to a document.

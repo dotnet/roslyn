@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
@@ -105,17 +106,151 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
             loader: TextLoader.From(TextAndVersion.Create(documentText, VersionStamp.Create())),
             filePath: documentPath);
 
-        var forkedProjectInfo = await GetForkedProjectInfoAsync(canonicalProject, newDocumentInfo, syntaxTree, GlobalOptionService, cancellationToken);
+        var forkedProjectId = ProjectId.CreateNewId(debugName: $"Forked Misc Project for '{documentPath}'");
+
+        bool? containedInCsprojCone = null;
+        var hasAllInformation = false;
+        if (await CalcHasAllInformation_EasyOutAsync(GlobalOptionService, syntaxTree, cancellationToken))
+        {
+            var inCone = CalcIsContainedInCsprojCone(documentPath);
+            hasAllInformation = !inCone;
+            containedInCsprojCone = inCone;
+        }
+
+        var forkedProjectAttributes = new ProjectInfo.ProjectAttributes(
+            newDocumentInfo.Id.ProjectId,
+            version: VersionStamp.Create(),
+            name: canonicalProject.Name,
+            assemblyName: canonicalProject.AssemblyName,
+            language: canonicalProject.Language,
+            compilationOutputInfo: default,
+            checksumAlgorithm: SourceHashAlgorithm.Sha1,
+            filePath: documentPath,
+            outputFilePath: canonicalProject.OutputFilePath,
+            outputRefFilePath: canonicalProject.OutputRefFilePath,
+            hasAllInformation: hasAllInformation);
+
+        var forkedProjectInfo = ProjectInfo.Create(
+            attributes: forkedProjectAttributes,
+            compilationOptions: canonicalProject.CompilationOptions,
+            parseOptions: canonicalProject.ParseOptions,
+            documents: [newDocumentInfo, .. await Task.WhenAll(canonicalProject.Documents.Select(document => GetDocumentInfoAsync(document)))],
+            projectReferences: canonicalProject.ProjectReferences,
+            metadataReferences: canonicalProject.MetadataReferences,
+            analyzerReferences: canonicalProject.AnalyzerReferences,
+            analyzerConfigDocuments: await canonicalProject.AnalyzerConfigDocuments.SelectAsArrayAsync(async document => await GetDocumentInfoAsync(document)),
+            additionalDocuments: await canonicalProject.AdditionalDocuments.SelectAsArrayAsync(async document => await GetDocumentInfoAsync(document)));
 
         await _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.ApplyChangeToWorkspaceAsync(workspace =>
         {
             workspace.OnProjectAdded(forkedProjectInfo);
         }, cancellationToken);
-        loadedProjects[documentPath] = new ProjectLoadState.CanonicalForked(forkedProjectInfo.Id);
+        loadedProjects[documentPath] = new ProjectLoadState.CanonicalForked(forkedProjectInfo.Id, containedInCsprojCone);
 
         var miscWorkspace = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace;
         var addedDocument = miscWorkspace.CurrentSolution.GetRequiredDocument(newDocumentInfo.Id);
         return addedDocument;
+
+        async Task<DocumentInfo> GetDocumentInfoAsync(TextDocument document)
+        {
+            var documentPath = document.FilePath;
+            return DocumentInfo.Create(
+                DocumentId.CreateNewId(forkedProjectId),
+                name: Path.GetFileName(documentPath) ?? "",
+                loader: TextLoader.From(TextAndVersion.Create(await document.GetTextAsync(cancellationToken).ConfigureAwait(false), VersionStamp.Create())),
+                filePath: documentPath);
+        }
+    }
+
+    internal async Task<bool?> GetHasAllInformation_IncrementalAsync(IGlobalOptionService globalOptionService, SyntaxTree tree, CancellationToken cancellationToken)
+    {
+        return await ExecuteUnderGateAsync(async loadedProjects =>
+        {
+            // Note: caller is making a decision on whether to unload a project.
+            // If the forked project isn't even fully loaded yet, then, give a null back to indicate they should not unload, so the project has an opportunity to finish loading.
+            if (!loadedProjects.TryGetValue(tree.FilePath, out var loadState) || loadState is not ProjectLoadState.CanonicalForked forkedState)
+            {
+                return (bool?)null;
+            }
+
+            if (!await CalcHasAllInformation_EasyOutAsync(globalOptionService, tree, cancellationToken))
+                return false;
+
+            // TODO2: figure out better sharing between here and 'AddForkedCanonicalProject'.
+            // Correctness/consistency more important than optimizing locks etc
+            if (forkedState.ContainedInCsprojCone is null)
+            {
+                var containedInCsprojCone = CalcIsContainedInCsprojCone(tree.FilePath);
+                loadedProjects[tree.FilePath] = forkedState = forkedState with { ContainedInCsprojCone = containedInCsprojCone };
+            }
+
+            // TODO2: at least some tests must verify the state of the workspace and project system.
+            // In general we should probably verify a consistent state between these, e.g. every project system entry must have corresponding workspace project(s).
+            var hasAllInformation = !forkedState.ContainedInCsprojCone.GetValueOrDefault();
+            return hasAllInformation;
+        }, cancellationToken);
+    }
+
+    /// <summary>Check if HasAllInformation should be enabled in a file. Includes only checks which are cheap, i.e. we are OK with performing on keystroke+delay.</summary>
+    private static async Task<bool> CalcHasAllInformation_EasyOutAsync(IGlobalOptionService globalOptionService, SyntaxTree tree, CancellationToken cancellationToken)
+    {
+        if (!globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms)
+            || !globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedProgramsWhenAmbiguous))
+        {
+            return false;
+        }
+
+        var root = await tree.GetRootAsync(cancellationToken);
+        if (root is not CompilationUnitSyntax compilationUnit)
+            return false;
+
+        return compilationUnit.Members.Any(SyntaxKind.GlobalStatement);
+    }
+
+    /// <summary>
+    /// Determine if this file is contained in the same directory as a .csproj file.
+    /// </summary>
+    /// <remarks>
+    /// The result of this method influences whether semantic errors are displayed in loose files which have top-level statements but no '#:' directives.
+    /// The projects for such files are *forked canonical projects*. Displaying semantic errors is controlled by the 'HasAllInformation' flag on the project.
+    /// The inputs to the HasAllInformation flag value are effectively the following:
+    /// 1. File has top-level statements, and
+    /// 2. File is not contained in a .csproj cone
+    ///
+    /// We want to minimize the amount of work we do incrementally to keep track of this information. Therefore:
+    /// - We handle a possible change in (1) by doing a check on the latest syntax tree.
+    /// - We handle a possible change in (2) by unloading and reloading relevant forked canonical project(s).
+    /// Therefore this is the only place we want to actually do the work to determine (2).
+    /// </remarks>
+    internal bool CalcIsContainedInCsprojCone(string csFilePath)
+    {
+        // We only do csproj-in-cone checks if the file is contained in a currently opened workspace folder
+        if (WorkspaceFoldersOpt.IsDefaultOrEmpty)
+            return false;
+
+        // Precondition: opened workspace folder paths, have already been deduplicated to remove folders in the same hierarchy.
+        // e.g. 'workspaceFolderPaths' will not contain both `C:\src\roslyn`, and `C:\src\roslyn\docs`.
+        var containingWorkspacePath = WorkspaceFoldersOpt.FirstOrDefault(
+            (workspacePath, csFilePath) => PathUtilities.IsSameDirectoryOrChildOf(child: csFilePath, parent: workspacePath), arg: csFilePath);
+        if (containingWorkspacePath is null)
+            return false;
+
+        // When the path is not absolute (for virtual documents, etc), we can't perform this search.
+        // Optimistically assume there is no csproj in cone.
+        if (!PathUtilities.IsAbsolute(csFilePath))
+            return false;
+
+        var directoryName = PathUtilities.GetDirectoryName(csFilePath);
+        while (PathUtilities.IsSameDirectoryOrChildOf(child: directoryName, parent: containingWorkspacePath))
+        {
+            var containsCsproj = Directory.EnumerateFiles(directoryName, "*.csproj").Any();
+            if (containsCsproj)
+                return true;
+
+            directoryName = PathUtilities.GetDirectoryName(directoryName);
+        }
+
+        return false;
     }
 
     internal async ValueTask<bool> IsCanonicalProjectLoadedAsync(CancellationToken cancellationToken)
@@ -245,52 +380,6 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
         await canonicalProjectState.PrimordialProjectFactory.ApplyChangeToWorkspaceAsync(workspace =>
             workspace.OnProjectRemoved(canonicalProjectState.PrimordialProjectId),
             cancellationToken);
-    }
-
-    /// <summary>
-    /// Creates a new project based on the canonical project with a new document added.
-    /// This should only be called when the canonical project is in the fully loaded state.
-    /// </summary>
-    private async Task<ProjectInfo> GetForkedProjectInfoAsync(Project canonicalProject, DocumentInfo newDocumentInfo, SyntaxTree syntaxTree, IGlobalOptionService globalOptionService, CancellationToken cancellationToken)
-    {
-        var newDocumentPath = newDocumentInfo.FilePath;
-        Contract.ThrowIfNull(newDocumentPath);
-
-        var forkedProjectId = ProjectId.CreateNewId(debugName: $"Forked Misc Project for '{newDocumentPath}'");
-        var incrementalHasAllInformation = await VirtualProjectXmlProvider.GetCanonicalMiscFileHasAllInformation_IncrementalAsync(globalOptionService, syntaxTree, cancellationToken);
-        var containedInCsprojCone = VirtualProjectXmlProvider.ContainedInCsprojCone(newDocumentPath, WorkspaceFoldersOpt);
-
-        var forkedProjectAttributes = new ProjectInfo.ProjectAttributes(
-            newDocumentInfo.Id.ProjectId,
-            version: VersionStamp.Create(),
-            name: canonicalProject.Name,
-            assemblyName: canonicalProject.AssemblyName,
-            language: canonicalProject.Language,
-            compilationOutputInfo: default,
-            checksumAlgorithm: SourceHashAlgorithm.Sha1,
-            filePath: newDocumentPath,
-            outputFilePath: canonicalProject.OutputFilePath,
-            outputRefFilePath: canonicalProject.OutputRefFilePath,
-            hasAllInformation: incrementalHasAllInformation && !containedInCsprojCone);
-
-        var forkedProjectInfo = ProjectInfo.Create(
-            attributes: forkedProjectAttributes,
-            compilationOptions: canonicalProject.CompilationOptions,
-            parseOptions: canonicalProject.ParseOptions,
-            documents: [newDocumentInfo, .. await Task.WhenAll(canonicalProject.Documents.Select(document => GetDocumentInfoAsync(document, document.FilePath)))],
-            projectReferences: canonicalProject.ProjectReferences,
-            metadataReferences: canonicalProject.MetadataReferences,
-            analyzerReferences: canonicalProject.AnalyzerReferences,
-            analyzerConfigDocuments: await canonicalProject.AnalyzerConfigDocuments.SelectAsArrayAsync(async document => await GetDocumentInfoAsync(document, document.FilePath)),
-            additionalDocuments: await canonicalProject.AdditionalDocuments.SelectAsArrayAsync(async document => await GetDocumentInfoAsync(document, document.FilePath)));
-        return forkedProjectInfo;
-
-        async Task<DocumentInfo> GetDocumentInfoAsync(TextDocument document, string? documentPath) =>
-            DocumentInfo.Create(
-                DocumentId.CreateNewId(forkedProjectId),
-                name: Path.GetFileName(documentPath) ?? "",
-                loader: TextLoader.From(TextAndVersion.Create(await document.GetTextAsync(cancellationToken).ConfigureAwait(false), VersionStamp.Create())),
-                filePath: documentPath);
     }
 
     private Project GetRequiredCanonicalProject()

@@ -84,7 +84,8 @@ internal abstract class LanguageServerProjectLoader
         /// Represents a project which was forked from the canonical miscellaneous files project (which itself is represented as a <see cref="LoadedTargets"/> instance.)
         /// Forked projects have a full set of standard references, etc., but design-time builds are not performed for them.
         /// </summary>
-        public sealed record CanonicalForked(ProjectId ForkedProjectId) : ProjectLoadState;
+        /// <param name="ContainedInCsprojCone">Whether the misc file has a .csproj in the same or a containing directory, or null if not yet determined.</param>
+        public sealed record CanonicalForked(ProjectId ForkedProjectId, bool? ContainedInCsprojCone) : ProjectLoadState;
     }
 
     /// <summary>
@@ -505,18 +506,21 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
-    internal async ValueTask UnloadAllProjectsInDirectoryAsync(string containingDirectory)
+    // TODO2: move down to canonical loader
+    internal async ValueTask ClearCsprojInConeInfoAsync(string containingDirectory)
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
-            foreach (var projectPath in _loadedProjects.Keys)
+            foreach (var (path, loadState) in _loadedProjects)
             {
-                // NOTE: .NET supports removing while enumerating
-                if (PathUtilities.IsSameDirectoryOrChildOf(child: projectPath, parent: containingDirectory))
+                if (loadState is not ProjectLoadState.CanonicalForked forkedState
+                    || !PathUtilities.IsSameDirectoryOrChildOf(child: path, parent: containingDirectory))
                 {
-                    var removed = await TryUnloadProject_NoLockAsync(projectPath);
-                    Contract.ThrowIfFalse(removed); // We obtained lock before enumerating, how was this already removed?
+                    continue;
                 }
+
+                // Note that .NET supports overwriting dictionary entries while enumerating.
+                _loadedProjects[path] = forkedState with { ContainedInCsprojCone = null };
             }
         }
     }
@@ -550,7 +554,7 @@ internal abstract class LanguageServerProjectLoader
                 existingProject.Dispose();
             }
         }
-        else if (loadState is ProjectLoadState.CanonicalForked(var forkedProjectId))
+        else if (loadState is ProjectLoadState.CanonicalForked(var forkedProjectId, _))
         {
             // Canonical forked projects are only ever put in the misc files workspace
             var miscFactory = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory;
