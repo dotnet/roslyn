@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Check if command invoker has write access
         id: check-invoker-access
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
@@ -37,7 +37,7 @@ jobs:
       - name: Check if command invoker is Microsoft org member
         id: check-invoker-org
         if: steps.check-invoker-access.outputs.has-access == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             try {
@@ -56,7 +56,7 @@ jobs:
 
       - name: Block unauthorized users
         if: steps.check-invoker-access.outputs.has-access != 'true' || steps.check-invoker-org.outputs.is-member != 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             await github.rest.issues.createComment({
@@ -69,7 +69,7 @@ jobs:
 
       - name: Get PR author details
         id: pr-author
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const { data: pr } = await github.rest.pulls.get({
@@ -100,7 +100,7 @@ jobs:
 
       - name: Check if PR author is Microsoft org member
         id: pr-author-org
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const prAuthor = '${{ steps.pr-author.outputs.username }}';
@@ -120,7 +120,7 @@ jobs:
 
       - name: Parse commit hash from comment
         id: parse-commit
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const commentBody = context.payload.comment.body;
@@ -143,7 +143,7 @@ jobs:
         if: |
           (steps.pr-author.outputs.has-access != 'true' || steps.pr-author-org.outputs.is-member != 'true') &&
           steps.parse-commit.outputs.has-commit != 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             await github.rest.issues.createComment({
@@ -156,7 +156,7 @@ jobs:
 
       - name: Get PR branch details
         id: pr-details
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const { data: pr } = await github.rest.pulls.get({
@@ -173,7 +173,7 @@ jobs:
 
       - name: Determine commit SHA to use
         id: commit-sha
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const parseCommitOutput = '${{ steps.parse-commit.outputs.has-commit }}';
@@ -195,7 +195,7 @@ jobs:
 
       - name: Validate commit exists in PR
         if: steps.parse-commit.outputs.has-commit == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const commitSha = '${{ steps.commit-sha.outputs.sha }}';
@@ -220,7 +220,7 @@ jobs:
             }
 
       - name: Azure Login with OpenID Connect
-        uses: azure/login@v2
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -228,8 +228,9 @@ jobs:
 
       - name: Determine validation type and pipeline ID
         id: validation-type
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
         run: |
-          COMMENT_BODY="${{ github.event.comment.body }}"
           if echo "$COMMENT_BODY" | grep -q "/dart"; then
             echo "type=dart" >> $GITHUB_OUTPUT
             echo "pipeline-id=15324" >> $GITHUB_OUTPUT
@@ -240,9 +241,9 @@ jobs:
 
       - name: Determine target branch for pipeline
         id: target-branch
+        env:
+          BASE_BRANCH: ${{ steps.pr-details.outputs.base }}
         run: |
-          BASE_BRANCH="${{ steps.pr-details.outputs.base }}"
-          
           # Determine pipeline version based on target branch
           # Use the target branch for release/* and feature/*, otherwise use main
           if [ "$BASE_BRANCH" = "main" ]; then
@@ -259,18 +260,21 @@ jobs:
 
       - name: Trigger Pipeline
         id: trigger-pipeline
+        env:
+          VALIDATION_TYPE: ${{ steps.validation-type.outputs.type }}
+          PIPELINE_ID: ${{ steps.validation-type.outputs.pipeline-id }}
+          PIPELINE_VERSION: ${{ steps.target-branch.outputs.pipeline-version }}
+          HAS_COMMIT: ${{ steps.parse-commit.outputs.has-commit }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          COMMIT_SHA: ${{ steps.commit-sha.outputs.sha }}
         run: |
           # Get Azure DevOps access token
           AZDO_TOKEN=$(az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv)
           
-          VALIDATION_TYPE="${{ steps.validation-type.outputs.type }}"
-          PIPELINE_ID="${{ steps.validation-type.outputs.pipeline-id }}"
-          PIPELINE_VERSION="${{ steps.target-branch.outputs.pipeline-version }}"
           DEVDIV_ORG="devdiv"
           DEVDIV_PROJECT="DevDiv"
           
           # Determine if commit was explicitly provided (EnforceLatestCommit should be false if commit was provided)
-          HAS_COMMIT="${{ steps.parse-commit.outputs.has-commit }}"
           if [ "$HAS_COMMIT" = "true" ]; then
             ENFORCE_LATEST="false"
           else
@@ -294,8 +298,8 @@ jobs:
               }
             },
             "templateParameters": {
-              "prNumber": "${{ github.event.issue.number }}",
-              "sha": "${{ steps.commit-sha.outputs.sha }}",
+              "prNumber": "$PR_NUMBER",
+              "sha": "$COMMIT_SHA",
               "EnforceLatestCommit": "$ENFORCE_LATEST"
             }
           }
@@ -313,8 +317,8 @@ jobs:
               }
             },
             "templateParameters": {
-              "PRNumber": ${{ github.event.issue.number }},
-              "CommitSHA": "${{ steps.commit-sha.outputs.sha }}",
+              "PRNumber": $PR_NUMBER,
+              "CommitSHA": "$COMMIT_SHA",
               "EnforceLatestCommit": "$ENFORCE_LATEST"
             }
           }
@@ -349,7 +353,7 @@ jobs:
 
       - name: Comment pipeline link
         if: success()
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const validationType = '${{ steps.validation-type.outputs.type }}';
@@ -370,7 +374,7 @@ jobs:
           steps.pr-author.outcome != 'failure' &&
           steps.pr-author-org.outcome != 'failure' &&
           steps.parse-commit.outcome != 'failure'
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             await github.rest.issues.createComment({
