@@ -155,9 +155,18 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
     /// - We handle a possible change in (2) by unloading and reloading relevant forked canonical project(s).
     /// Therefore this is the only place we want to actually do the work to determine (2).
     /// </remarks>
-    internal static bool ContainedInCsprojCone(string csFilePath)
+    internal static bool ContainedInCsprojCone(string csFilePath, ImmutableArray<string> workspaceFolderPathsOpt)
     {
-        // TODO2: we probably do not want to search up past workspace folders, because we do not watch such folders for changes.
+        // We only do csproj-in-cone checks if the file is contained in a currently opened workspace folder
+        if (workspaceFolderPathsOpt.IsDefaultOrEmpty)
+            return false;
+
+        // Precondition: opened workspace folder paths, have already been deduplicated to remove folders in the same hierarchy.
+        // e.g. 'workspaceFolderPaths' will not contain both `C:\src\roslyn`, and `C:\src\roslyn\docs`.
+        var containingWorkspacePath = workspaceFolderPathsOpt.FirstOrDefault(
+            (workspacePath, csFilePath) => PathUtilities.IsSameDirectoryOrChildOf(child: csFilePath, parent: workspacePath), arg: csFilePath);
+        if (containingWorkspacePath is null)
+            return false;
 
         // When the path is not absolute (for virtual documents, etc), we can't perform this search.
         // Optimistically assume there is no csproj in cone.
@@ -165,8 +174,7 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
             return false;
 
         var directoryName = PathUtilities.GetDirectoryName(csFilePath);
-        var driveRoot = PathUtilities.GetPathRoot(directoryName);
-        while (!string.IsNullOrEmpty(directoryName) && directoryName != driveRoot)
+        while (PathUtilities.IsSameDirectoryOrChildOf(child: directoryName, parent: containingWorkspacePath))
         {
             var containsCsproj = Directory.EnumerateFiles(directoryName, "*.csproj").Any();
             if (containsCsproj)

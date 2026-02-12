@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -302,12 +304,36 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         var initializeManager = context.GetRequiredService<IInitializeManager>();
         if (initializeManager.TryGetInitializeParams() is { WorkspaceFolders: [_, ..] nonEmptyWorkspaceFolders })
         {
+            var nonOverlappingWorkspacePaths = getNonOverlappingFolderPaths(nonEmptyWorkspaceFolders);
+
             // TODO2: handle 'workspace/didChangeWorkspaceFolders'
             _csprojWatcher = _fileChangeWatcher.CreateContext(
-                [.. nonEmptyWorkspaceFolders.Select(workspaceFolder => new WatchedDirectory(GetDocumentFilePath(workspaceFolder.DocumentUri), extensionFilters: [".csproj"]))]);
+                nonOverlappingWorkspacePaths.SelectAsArray(path => new WatchedDirectory(path, extensionFilters: [".csproj"])));
             _csprojWatcher.FileChanged += OnCsprojFileChanged;
+            _canonicalMiscFilesLoader.WorkspaceFoldersOpt = nonOverlappingWorkspacePaths;
         }
 
         return Task.CompletedTask;
+
+        ImmutableArray<string> getNonOverlappingFolderPaths(WorkspaceFolder[] workspaceFolders)
+        {
+            var builder = ArrayBuilder<string>.GetInstance(workspaceFolders.Length);
+            foreach (var workspaceFolder in workspaceFolders)
+            {
+                // Only care about real, on-disk folders
+                if (workspaceFolder.DocumentUri.ParsedUri is not { } parsedUri)
+                    continue;
+
+                var currentPath = ProtocolConversions.GetDocumentFilePathFromUri(parsedUri);
+                // When multiple folders are in the same hierarchy, take the higher one and drop the lower one.
+                var existingIndex = builder.FindIndex((oldPath, currentPath) => PathUtilities.IsSameDirectoryOrChildOf(child: oldPath, parent: currentPath), currentPath);
+                if (existingIndex != -1)
+                    builder[existingIndex] = currentPath;
+                else
+                    builder.Add(currentPath);
+            }
+
+            return builder.ToImmutableAndFree();
+        }
     }
 }

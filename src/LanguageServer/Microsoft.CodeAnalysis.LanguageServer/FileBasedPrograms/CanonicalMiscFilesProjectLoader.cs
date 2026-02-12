@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -30,6 +31,8 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
     /// as every file is a misc file on first open until we detect a project for it.
     /// </summary>
     protected override bool EnableProgressReporting => false;
+
+    internal ImmutableArray<string> WorkspaceFoldersOpt { private get; set; }
 
     public CanonicalMiscFilesProjectLoader(
         LanguageServerWorkspaceFactory workspaceFactory,
@@ -248,14 +251,14 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
     /// Creates a new project based on the canonical project with a new document added.
     /// This should only be called when the canonical project is in the fully loaded state.
     /// </summary>
-    private static async Task<ProjectInfo> GetForkedProjectInfoAsync(Project canonicalProject, DocumentInfo newDocumentInfo, SyntaxTree syntaxTree, IGlobalOptionService globalOptionService, CancellationToken cancellationToken)
+    private async Task<ProjectInfo> GetForkedProjectInfoAsync(Project canonicalProject, DocumentInfo newDocumentInfo, SyntaxTree syntaxTree, IGlobalOptionService globalOptionService, CancellationToken cancellationToken)
     {
         var newDocumentPath = newDocumentInfo.FilePath;
         Contract.ThrowIfNull(newDocumentPath);
 
         var forkedProjectId = ProjectId.CreateNewId(debugName: $"Forked Misc Project for '{newDocumentPath}'");
         var incrementalHasAllInformation = await VirtualProjectXmlProvider.GetCanonicalMiscFileHasAllInformation_IncrementalAsync(globalOptionService, syntaxTree, cancellationToken);
-        var containedInCsprojCone = VirtualProjectXmlProvider.ContainedInCsprojCone(newDocumentPath);
+        var containedInCsprojCone = VirtualProjectXmlProvider.ContainedInCsprojCone(newDocumentPath, WorkspaceFoldersOpt);
 
         var forkedProjectAttributes = new ProjectInfo.ProjectAttributes(
             newDocumentInfo.Id.ProjectId,
