@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<RequestContext>, IOnInitialized
 {
     private static int s_clientProcessId = -1;
-    private static readonly Lazy<int> s_currentProcessId = new(() => { using var process = Process.GetCurrentProcess(); return process.Id; });
+    private static readonly Lazy<int> s_currentProcessId = new(static () => { using var process = Process.GetCurrentProcess(); return process.Id; });
     public static int ServerProcessId => s_currentProcessId.Value;
 
     private readonly AbstractLspServiceProvider _lspServiceProvider;
@@ -129,7 +129,7 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         AddLazyService<AbstractTelemetryService>(lspServices => new TelemetryService(lspServices));
         AddLazyService<AbstractHandlerProvider>(_ => HandlerProvider);
         AddService<IInitializeManager>(new InitializeManager());
-        AddService<IMethodHandler>(new InitializeHandler(logger));
+        AddService<IMethodHandler>(new InitializeHandler());
         AddService<IMethodHandler>(new InitializedHandler());
         AddService<IOnInitialized>(this);
         AddService<ILanguageInfoProvider>(new LanguageInfoProvider());
