@@ -268,10 +268,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors = true;
                 }
 
-                caseExpression = CreateConversion(caseExpression, conversion, SwitchGoverningType, diagnostics);
+                if (!conversion.IsUnion)
+                {
+                    caseExpression = CreateConversion(caseExpression, conversion, SwitchGoverningType, diagnostics);
+                }
             }
 
-            // PROTOTYPE: Test that consumer actually does the right thing when a union matching is involved. Cover error scenarios as well.
             var inputType = SwitchGoverningType;
             NamedTypeSymbol unionType = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, diagnostics);
             return ConvertPatternExpression(unionType, inputType, node, caseExpression, out constantValueOpt, hasErrors, diagnostics, out _);
@@ -433,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (conversion.IsValid)
                     {
                         // Condition (2) satisfied
-                        Debug.Assert(conversion.Kind == ConversionKind.ImplicitUserDefined); // PROTOTYPE: Follow up
+                        Debug.Assert(conversion.Kind == ConversionKind.ImplicitUserDefined);
                         Debug.Assert(conversion.Method.IsUserDefinedConversion());
                         Debug.Assert(conversion.UserDefinedToConversion.IsIdentity);
                         Debug.Assert(resultantGoverningType.IsValidV6SwitchGoverningType(isTargetTypeOfUserDefinedOp: true));

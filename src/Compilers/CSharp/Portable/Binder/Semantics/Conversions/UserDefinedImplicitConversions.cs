@@ -991,8 +991,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(sourceExpression != null || (object)source != null);
             Debug.Assert((object)target != null);
 
-            // PROTOTYPE: It might make sense to block conversions from a base class or any interface. See comments in tests.
-
             if (target.StrippedType() is not NamedTypeSymbol namedTarget || !namedTarget.IsUnionTypeWithUseSiteDiagnostics(ref useSiteInfo))
             {
                 return Conversion.NoConversion;

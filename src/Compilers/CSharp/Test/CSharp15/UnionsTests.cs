@@ -2361,6 +2361,160 @@ class Program
         }
 
         [Fact]
+        public void UnionMatching_36_SwitchStatement()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(new S1(""10"")));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(11)));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+    }
+
+    static int Test1(S1 u)
+    {
+        switch (u)
+        {
+            case 10: return 1;
+            case ""11"": return 2;
+        }
+
+        return -1;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "1-1-1-12-1").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionMatching_37_SwitchStatement()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(new S1(""10"")));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(11)));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+    }
+
+    static int Test1(S1 u)
+    {
+        switch (u)
+        {
+            case 10: goto case 44;
+            case ""11"": goto case ""55"";
+            case 44: return 44;
+            case ""55"": return 55;
+        }
+
+        return -1;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "44-1-1-155-1").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionMatching_38_SwitchStatement()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class Program
+{
+    static int Test1(S1 u)
+    {
+        switch (u)
+        {
+            case 10: return 1;
+            case ""11"": return 2;
+            case true: return 3;
+        }
+
+        return -1;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (18,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'bool'.
+                //             case true: return 3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "true").WithArguments("S1", "bool").WithLocation(18, 18)
+                );
+        }
+
+        [Fact]
+        public void UnionMatching_39_SwitchStatement()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class Program
+{
+    static int Test1(S1 u)
+    {
+        switch (u)
+        {
+            case 10: goto case true;
+            case ""11"": return 2;
+        }
+
+        return -1;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (16,13): error CS0163: Control cannot fall through from one case label ('case 10:') to another
+                //             case 10: goto case true;
+                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case 10:").WithArguments("case 10:").WithLocation(16, 13),
+                // (16,22): error CS0029: Cannot implicitly convert type 'bool' to 'S1'
+                //             case 10: goto case true;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "goto case true;").WithArguments("bool", "S1").WithLocation(16, 22)
+                );
+        }
+
+        [Fact]
         public void PatternWrongType_TypePattern_01_BindConstantPatternWithFallbackToTypePattern_UnionType_Out_UnionType_In()
         {
             var src1 = @"
@@ -3148,7 +3302,8 @@ class Program
                 //             case 1:
                 Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 1:").WithArguments("case 1:").WithLocation(102, 13),
 
-                // PROTOTYPE: This doesn't look like a union matching error. Something is likely missing in implementation.
+                // The following error is expected per language specification (https://github.com/dotnet/csharpstandard/blob/draft-v8/standard/statements.md#13104-the-goto-statement):
+                // "if the constant_expression is not implicitly convertible (§10.2) to the governing type of the nearest enclosing switch statement, a compile-time error occurs."
 
                 // (103,17): error CS0029: Cannot implicitly convert type 'string' to 'S1'
                 //                 goto case empty;
@@ -5222,8 +5377,6 @@ class Program
 ";
             var comp = CreateCompilation([src, IUnionSource]);
 
-            // PROTOTYPE: Confirm that there are no lifted forms.
-
             comp.VerifyDiagnostics(
                 // (20,16): error CS0029: Cannot implicitly convert type 'int?' to 'S1'
                 //         return x;
@@ -5781,11 +5934,6 @@ class Program
             var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "System.ValueType S1").VerifyDiagnostics();
 
-            // PROTOTYPE: Confirm that we are fine with this conversion behavior. See previous test as well.
-            //            Cast performs unboxing conversion, but implicit conversion performs union conversion.
-            //            Might be too confusing.
-            //            Note, language disallows user-defined conversions like that, see errors below.
-
             verifier.VerifyIL("Program.Test2", @"
 {
   // Code size        7 (0x7)
@@ -5889,11 +6037,6 @@ class Program
             var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "I1 S1").VerifyDiagnostics();
 
-            // PROTOTYPE: Confirm that we are fine with this conversion behavior. See previous test as well.
-            //            Cast performs unboxing conversion, but implicit conversion performs union conversion.
-            //            Might be too confusing.
-            //            Note, language disallows user-defined conversions like that, see errors below.
-
             verifier.VerifyIL("Program.Test2", @"
 {
   // Code size        7 (0x7)
@@ -5967,10 +6110,6 @@ class Program
 ";
             var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "I1 S1 I1 S1").VerifyDiagnostics();
-
-            // PROTOTYPE: Confirm that we are fine with this conversion behavior.
-            //            Might be too confusing.
-            //            Note, language disallows user-defined conversions like that, see errors below.
 
             verifier.VerifyIL("Program.Test1", @"
 {
@@ -6053,11 +6192,6 @@ class Program
 ";
             var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "I1 S1").VerifyDiagnostics();
-
-            // PROTOTYPE: Confirm that we are fine with this conversion behavior.
-            //            Cast performs castclass conversion, but implicit conversion performs union conversion.
-            //            Might be too confusing.
-            //            Note, language disallows user-defined conversions like that, see errors below.
 
             verifier.VerifyIL("Program.Test1", @"
 {
