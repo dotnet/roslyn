@@ -349,7 +349,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
 
         async Task JsonRpc_DisconnectedAsync(object? sender, JsonRpcDisconnectedEventArgs e)
         {
-            var exceptionToReport = ShouldReportException(e);
+            var exceptionToReport = TryGetReportableException(e);
             if (exceptionToReport != null)
             {
                 FatalError.ReportNonFatalError(exceptionToReport, ErrorSeverity.Critical);
@@ -361,7 +361,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
             await ExitAsync(exceptionToReport).ConfigureAwait(false);
         }
 
-        Exception? ShouldReportException(JsonRpcDisconnectedEventArgs e)
+        Exception? TryGetReportableException(JsonRpcDisconnectedEventArgs e)
         {
             if (e.Exception == null)
             {
