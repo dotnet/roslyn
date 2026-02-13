@@ -138,6 +138,7 @@
     -->
     <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Condition="'$(DotNetBuildSourceOnly)' != 'true'" />
     <PackageReference Include="Microsoft.DiaSymReader" />
+    <PackageReference Include="Octokit" />
     <PackageReference Include="System.Text.Json" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
   </ItemGroup>
