@@ -594,6 +594,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             SetStackDepth(origStack);
             _counter += 1;
 
+            _pointerIndirectionMayFlowToRefResult = false;
+
             return result;
         }
 
@@ -964,11 +966,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 PushEvalStack(null, ExprContext.None);
             }
 
-            var previousPointerIndirectionMayFlowToRefResult = _pointerIndirectionMayFlowToRefResult;
-            _pointerIndirectionMayFlowToRefResult = false;
             right = VisitExpression(node.Right, rhsContext);
-            var pointerIndirectionMayFlowToRefRHS = _pointerIndirectionMayFlowToRefResult;
-            _pointerIndirectionMayFlowToRefResult = previousPointerIndirectionMayFlowToRefResult;
 
             if (mayPushReceiver)
             {
@@ -1015,7 +1013,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // but when a pointer is converted to a user-defined ref local, it becomes a use of a "safe" feature where we should guarantee the ref is tracked by GC.
                 else if (localSymbol.RefKind != RefKind.None &&
                     localSymbol.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
-                    pointerIndirectionMayFlowToRefRHS)
+                    _pointerIndirectionMayFlowToRefResult)
                 {
                     ShouldNotSchedule(localSymbol);
                 }

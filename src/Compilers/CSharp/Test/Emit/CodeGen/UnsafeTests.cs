@@ -981,18 +981,21 @@ unsafe struct S
                 """);
             CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", """
                 {
-                  // Code size       17 (0x11)
+                  // Code size       19 (0x13)
                   .maxstack  2
-                  .locals init (byte& V_0) //b1
+                  .locals init (byte& V_0, //b1
+                                byte& V_1) //b2
                   IL_0000:  ldarg.0
                   IL_0001:  call       "ref byte C.F()"
                   IL_0006:  stloc.0
                   IL_0007:  ldarg.1
                   IL_0008:  dup
                   IL_0009:  stloc.0
-                  IL_000a:  call       "string byte.ToString()"
-                  IL_000f:  pop
-                  IL_0010:  ret
+                  IL_000a:  stloc.1
+                  IL_000b:  ldloc.1
+                  IL_000c:  call       "string byte.ToString()"
+                  IL_0011:  pop
+                  IL_0012:  ret
                 }
                 """);
         }
