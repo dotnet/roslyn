@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </list>
         /// It is not valid to call this method inside an expression tree; that should be handled by a standard recursive rewrite.
         /// </summary>
+        /// <param name="visitedArguments">The visited arguments to be concatenated. This method will take ownership of this builder and free it before returning.</param>
         private BoundExpression CreateStringConcat(SyntaxNode originalSyntax, ArrayBuilder<BoundExpression> visitedArguments)
         {
             Debug.Assert(!_inExpressionLambda);
@@ -77,11 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // 1. If all the added expressions were folded into a single constant, we can just return that.
             // 2. If all the added expressions are strings, then we want to use one of the `string.Concat(string)`-based overloads: if 4 or less,
-            //    we'll use one of the hardcoded overloads. Otherwise, we'll use `string.Concat(string[])`.
-            // 3. If all the added expressions are strings or chars, we can use the `string.Concat(ReadOnlySpan<char>)`-based overloads. If there are
-            //    more than 4 arguments, or if `string.Concat(ReadOnlySpan<char>)`-based overloads are not present, we will instead fall back to
-            //    `string.Concat(string[])`.
-            // 4. If there are objects among the added expression, we'll use the `string.Concat(string)`-based overloads, and call ToString on the
+            //    we'll use one of the hardcoded overloads.
+            // 3. If all the added expressions are strings or chars, we can use the `string.Concat(ReadOnlySpan<char>)`-based overloads, if present.
+            // 4. If all the arguments are strings or chars, and there are more than 4, and the `string.Concat(ReadOnlySpan<string>)` overload is present,
+            //    and the runtime supports inline array types, we'll use that.
+            // 5. If there are objects among the added expression, we'll use the `string.Concat(string)`-based overloads, and call ToString on the
             //    arguments to avoid boxing structs by converting them into objects. If there are more than 4, we'll use `string.Concat(string[])`.
 
             switch (visitedArguments)
@@ -141,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return _factory.Coalesce(arg, _factory.StringLiteral(string.Empty));
 
                 case (StringConcatenationRewriteKind.AllStringsOrChars, <= 4):
-                    // We can use one of the `string.Concat(ReadOnlySpan<char>)`-based overloads.
+                    // We can try to use one of the `string.Concat(ReadOnlySpan<char>)`-based overloads.
                     var concatMember = visitedArguments.Count switch
                     {
                         2 => SpecialMember.System_String__Concat_2ReadOnlySpans,
@@ -165,35 +166,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case (StringConcatenationRewriteKind.AllStringsOrChars, _):
                 case (StringConcatenationRewriteKind.InvolvesObjects, _):
 fallbackStrings:
-
-#pragma warning disable IDE0055// Fix formatting
-                    // All other cases can be handled here
-#pragma warning restore IDE0055// Fix formatting
-                    concatMember = visitedArguments.Count switch
-                    {
-                        2 => SpecialMember.System_String__ConcatStringString,
-                        3 => SpecialMember.System_String__ConcatStringStringString,
-                        4 => SpecialMember.System_String__ConcatStringStringStringString,
-                        >= 5 => SpecialMember.System_String__ConcatStringArray,
-                        _ => throw ExceptionUtilities.UnexpectedValue(visitedArguments.Count),
-                    };
-
                     for (int i = 0; i < visitedArguments.Count; i++)
                     {
                         visitedArguments[i] = ConvertConcatExprToString(visitedArguments[i]);
                     }
 
-                    var finalArguments = visitedArguments.ToImmutableAndFree();
+                    ImmutableArray<BoundExpression> finalArguments = visitedArguments.ToImmutableAndFree();
 
+                    MethodSymbol concatMethod;
                     if (finalArguments.Length > 4)
                     {
-                        var array = _factory.ArrayOrEmpty(_factory.SpecialType(SpecialType.System_String), finalArguments);
-                        finalArguments = [array];
+                        if (_compilation.Assembly.RuntimeSupportsInlineArrayTypes
+                            && TryGetSpecialTypeMethod(originalSyntax, SpecialMember.System_String__ConcatReadOnlySpanString, out concatMethod, isOptional: true))
+                        {
+                            finalArguments = [CreateAndPopulateSpanFromInlineArray(
+                                originalSyntax,
+                                TypeWithAnnotations.Create(_factory.SpecialType(SpecialType.System_String)),
+                                ImmutableArray<BoundNode>.CastUp(finalArguments),
+                                asReadOnlySpan: true,
+                                elementsNeedVisiting: false)];
+                        }
+                        else
+                        {
+                            var array = _factory.ArrayOrEmpty(_factory.SpecialType(SpecialType.System_String), finalArguments);
+                            finalArguments = [array];
+                            concatMethod = UnsafeGetSpecialTypeMethod(originalSyntax, SpecialMember.System_String__ConcatStringArray);
+                        }
+                    }
+                    else
+                    {
+                        concatMethod = UnsafeGetSpecialTypeMethod(originalSyntax, finalArguments.Length switch
+                        {
+                            2 => SpecialMember.System_String__ConcatStringString,
+                            3 => SpecialMember.System_String__ConcatStringStringString,
+                            4 => SpecialMember.System_String__ConcatStringStringStringString,
+                            var length => throw ExceptionUtilities.UnexpectedValue(length),
+                        });
                     }
 
-                    var method = UnsafeGetSpecialTypeMethod(originalSyntax, concatMember);
-                    Debug.Assert(method is not null);
-                    return BoundCall.Synthesized(originalSyntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, finalArguments);
+                    Debug.Assert(concatMethod is not null);
+                    return BoundCall.Synthesized(originalSyntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, concatMethod, finalArguments);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(concatKind);

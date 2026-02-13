@@ -349,7 +349,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         node.Syntax,
                         elementType,
                         elements,
-                        asReadOnlySpan: isReadOnlySpan);
+                        asReadOnlySpan: isReadOnlySpan,
+                        elementsNeedVisiting: true);
                 }
 
                 return null;
@@ -637,7 +638,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             TypeWithAnnotations elementType,
             ImmutableArray<BoundNode> elements,
-            bool asReadOnlySpan)
+            bool asReadOnlySpan,
+            bool elementsNeedVisiting)
         {
             Debug.Assert(elements.Length > 0);
             Debug.Assert(elements.All(e => e is BoundExpression));
@@ -657,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     .WellKnownType(asReadOnlySpan ? WellKnownType.System_ReadOnlySpan_T : WellKnownType.System_Span_T)
                     .Construct([elementType]);
                 var constructor = spanRefConstructor.AsMember(spanType);
-                var element = VisitExpression((BoundExpression)elements[0]);
+                var element = elementsNeedVisiting ? VisitExpression((BoundExpression)elements[0]) : (BoundExpression)elements[0];
                 var temp = _factory.StoreToTemp(element, out var assignment);
                 _additionalLocals.Add(temp.LocalSymbol);
                 var call = _factory.New(constructor, arguments: [temp], argumentRefKinds: [asReadOnlySpan ? RefKindExtensions.StrictIn : RefKind.Ref]);
@@ -685,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // ...
             for (int i = 0; i < arrayLength; i++)
             {
-                var element = VisitExpression((BoundExpression)elements[i]);
+                var element = elementsNeedVisiting ? VisitExpression((BoundExpression)elements[i]) : (BoundExpression)elements[i];
                 var call = _factory.Call(null, elementRef, inlineArrayLocal, _factory.Literal(i), useStrictArgumentRefKinds: true);
                 var assignment = new BoundAssignmentOperator(syntax, call, element, type: call.Type) { WasCompilerGenerated = true };
                 sideEffects.Add(assignment);
