@@ -107,13 +107,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (ContainingModule.UseUpdatedMemorySafetyRules)
                 {
-                    return HasRequiresUnsafeAttribute || IsExtern || AssociatedSymbol?.CallerUnsafeMode == CallerUnsafeMode.Explicit
+                    return HasRequiresUnsafeAttribute || IsExtern || associatedSymbolIsCallerUnsafe()
                         ? CallerUnsafeMode.Explicit
                         : CallerUnsafeMode.None;
                 }
 
                 return this.HasParameterContainingPointerType() || ReturnType.ContainsPointerOrFunctionPointer()
                     ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
+
+                bool associatedSymbolIsCallerUnsafe()
+                {
+                    if (AssociatedSymbol is { } associatedSymbol)
+                    {
+                        Debug.Assert(associatedSymbol.CallerUnsafeMode is CallerUnsafeMode.None or CallerUnsafeMode.Explicit);
+                        return associatedSymbol.CallerUnsafeMode == CallerUnsafeMode.Explicit;
+                    }
+
+                    return false;
+                }
             }
         }
 

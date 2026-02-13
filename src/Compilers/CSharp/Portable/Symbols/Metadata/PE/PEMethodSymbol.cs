@@ -1808,9 +1808,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private bool ComputeRequiresUnsafe(bool hasRequiresUnsafeAttribute)
         {
             return ContainingModule.UseUpdatedMemorySafetyRules
-                ? hasRequiresUnsafeAttribute || AssociatedSymbol?.CallerUnsafeMode == CallerUnsafeMode.Explicit
+                ? hasRequiresUnsafeAttribute || associatedSymbolIsCallerUnsafe()
                 // This might be expensive, so we cache it in _packedFlags.
                 : this.HasParameterContainingPointerType() || ReturnType.ContainsPointerOrFunctionPointer();
+
+            bool associatedSymbolIsCallerUnsafe()
+            {
+                if (AssociatedSymbol is { } associatedSymbol)
+                {
+                    Debug.Assert(associatedSymbol.CallerUnsafeMode is CallerUnsafeMode.None or CallerUnsafeMode.Explicit);
+                    return associatedSymbol.CallerUnsafeMode == CallerUnsafeMode.Explicit;
+                }
+
+                return false;
+            }
         }
 
         internal sealed override CallerUnsafeMode CallerUnsafeMode
