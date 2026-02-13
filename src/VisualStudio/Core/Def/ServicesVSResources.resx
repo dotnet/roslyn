@@ -1889,6 +1889,12 @@ Additional information: {1}</value>
     <value>Experimental feature</value>
     <comment>This is used by the settings UI to mark experimental features.</comment>
   </data>
+  <data name="Logging_Roslyn_Workspace_structure" xml:space="preserve">
+    <value>Logging Roslyn Workspace structure...</value>
+  </data>
+  <data name="Visual_Studio" xml:space="preserve">
+    <value>Visual Studio</value>
+  </data>
   <data name="Prefer_simple_property_accessors" xml:space="preserve">
     <value>Prefer simple property accessors</value>
   </data>
