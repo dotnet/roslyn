@@ -214,6 +214,10 @@ public static class Program
                   <Target Name="AddGlobalAnalyzerConfigForPackage_MicrosoftCodeAnalysis{language}CodeStyle" BeforeTargets="GenerateMSBuildEditorConfigFileCore;CoreCompile" Condition="'$(SkipGlobalAnalyzerConfigForPackage)' != 'true'">
                     <!-- PropertyGroup to compute global analyzer config file to be used -->
                     <PropertyGroup>
+                      <_IncludeStyleConfiguration>false</_IncludeStyleConfiguration>
+                      <!-- Check whether 'Style' Level or Mode were configured separate from AnalysisLevel and AnalysisMode. -->
+                      <_IncludeStyleConfiguration Condition="'$(AnalysisLevelStyle)' != '' or '$(AnalysisModeStyle)' != ''>true</_IncludeStyleConfiguration>
+
                       <!-- Default 'AnalysisLevelStyle' to the core 'AnalysisLevel' -->
                       <AnalysisLevelStyle Condition="'$(AnalysisLevelStyle)' == ''">$(AnalysisLevel)</AnalysisLevelStyle>
 
@@ -245,6 +249,10 @@ public static class Program
                       <EffectiveAnalysisLevelStyle Condition="'$(EffectiveAnalysisLevelStyle)' == '' And
                                                           '$(AnalysisLevelStyle)' != ''">$(AnalysisLevelStyle)</EffectiveAnalysisLevelStyle>
 
+                      <!-- Check whether the analysis level is high enough that we should include the analyzer configuration.
+                           From .NET 11, the global config is systematically added if the file exists. Please check https://github.com/dotnet/roslyn/pull/71173 for more info. -->
+                      <_IncludeStyleConfiguration Condition="'$(EffectiveAnalysisLevelStyle)' != '' and $([MSBuild]::VersionGreaterThanOrEquals('$(EffectiveAnalysisLevelStyle)', '11.0'))">true<_IncludeStyleConfiguration>
+
                       <!-- Set the default analysis mode, if not set by the user -->
                       <_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle>$(AnalysisModeStyle)</_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle>
                       <_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle Condition="'$(_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle)' == ''">$(AnalysisLevelSuffixStyle)</_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle>
@@ -259,9 +267,8 @@ public static class Program
                       <_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle Condition="'$(_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle)' != ''">$(_GlobalAnalyzerConfigDir_MicrosoftCodeAnalysis{language}CodeStyle)\$(_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle)</_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle>
                     </PropertyGroup>
 
-                    <!-- From .NET 11, the global config is systematically added if the file exists. Please check https://github.com/dotnet/roslyn/pull/71173 for more info. -->
-                    <ItemGroup Condition="Exists('$(_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle)') and
-                                           ('$(AnalysisLevelStyle)' != '$(AnalysisLevel)' or '$(AnalysisModeStyle)' != '$(AnalysisMode)' or ('$(EffectiveAnalysisLevelStyle)' != '' and $([MSBuild]::VersionGreaterThanOrEquals('$(EffectiveAnalysisLevelStyle)', '11.0'))))">
+                    <!-- Add the analyzer configuration. -->
+                    <ItemGroup Condition="Exists('$(_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle)') and '$(_IncludeStyleConfiguration)' == 'true')">
                       <EditorConfigFiles Include="$(_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle)" />
                     </ItemGroup>
 
