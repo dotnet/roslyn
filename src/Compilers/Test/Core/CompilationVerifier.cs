@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -691,27 +692,45 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public void VerifyILMultiple(params string[] qualifiedMethodNamesAndExpectedIL)
         {
             var names = ArrayBuilder<string>.GetInstance();
-            var expected = ArrayBuilder<string>.GetInstance();
-            var actual = ArrayBuilder<string>.GetInstance();
+            var expected = ArrayBuilder<ReadOnlyMemory<char>>.GetInstance();
+            var actual = ArrayBuilder<ReadOnlyMemory<char>>.GetInstance();
+            var charPooledAllocs = ArrayBuilder<char[]>.GetInstance();
+            var anyDifferent = false;
             for (int i = 0; i < qualifiedMethodNamesAndExpectedIL.Length;)
             {
                 var qualifiedName = qualifiedMethodNamesAndExpectedIL[i++];
                 names.Add(qualifiedName);
-                actual.Add(AssertEx.NormalizeWhitespace(VisualizeIL(qualifiedName)));
-                expected.Add(AssertEx.NormalizeWhitespace(qualifiedMethodNamesAndExpectedIL[i++]));
+                var actualValue = AssertEx.NormalizeWhitespace(VisualizeIL(qualifiedName).AsSpan(), out var pooled1);
+                var expectedValue = AssertEx.NormalizeWhitespace(qualifiedMethodNamesAndExpectedIL[i++].AsSpan(), out var pooled2);
+                actual.Add(actualValue);
+                expected.Add(expectedValue);
+                charPooledAllocs.Add(pooled1);
+                charPooledAllocs.Add(pooled2);
+                if (!anyDifferent)
+                {
+                    anyDifferent = !actualValue.Span.SequenceEqual(expectedValue.Span);
+                }
             }
-            if (!expected.SequenceEqual(actual))
+            if (anyDifferent)
             {
                 var builder = new StringBuilder();
                 for (int i = 0; i < expected.Count; i++)
                 {
-                    builder.AppendLine(AssertEx.GetAssertMessage(expected[i], actual[i], prefix: names[i], escapeQuotes: true));
+                    builder.AppendLine(AssertEx.GetAssertMessage(expected[i].Span.ToString(), actual[i].Span.ToString(), prefix: names[i], escapeQuotes: true));
                 }
                 Assert.True(false, builder.ToString());
             }
             actual.Free();
             expected.Free();
             names.Free();
+            foreach (var x in charPooledAllocs)
+            {
+                if (x != null)
+                {
+                    ArrayPool<char>.Shared.Return(x);
+                }
+            }
+            charPooledAllocs.Free();
         }
 
         public CompilationVerifier VerifyMissing(
