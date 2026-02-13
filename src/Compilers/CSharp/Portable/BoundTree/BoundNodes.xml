@@ -2305,6 +2305,19 @@
     <Field Name="GetItemOrSliceHelper" Type="WellKnownMember"/>
   </Node>
 
+  <!--
+  Represents a transient span backed by an inline array. Local rewriting emits this node to defer
+  materialization of the inline array until the inline array sharing optimization pass. The node
+  captures the elements that should populate the inline array along with metadata required for
+  lifetime analysis.
+  -->
+  <Node Name="BoundTransientSpanFromInlineArray" Base="BoundExpression" DoesNotSurvive="Spilling">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow" />
+    <Field Name="Elements" Type="ImmutableArray&lt;BoundExpression&gt;" Null="disallow" />
+    <Field Name="ElementType" Type="TypeSymbol" Null="disallow" />
+    <Field Name="IsReadOnly" Type="bool" />
+  </Node>
+
   <Node Name="BoundDynamicIndexerAccess" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>

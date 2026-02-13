@@ -219,6 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IndexerAccess,
         ImplicitIndexerAccess,
         InlineArrayAccess,
+        TransientSpanFromInlineArray,
         DynamicIndexerAccess,
         Lambda,
         UnboundLambda,
@@ -7650,6 +7651,41 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal sealed partial class BoundTransientSpanFromInlineArray : BoundExpression
+    {
+        public BoundTransientSpanFromInlineArray(SyntaxNode syntax, ImmutableArray<BoundExpression> elements, TypeSymbol elementType, bool isReadOnly, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.TransientSpanFromInlineArray, syntax, type, hasErrors || elements.HasErrors())
+        {
+
+            RoslynDebug.Assert(!elements.IsDefault, "Field 'elements' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(elementType is object, "Field 'elementType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.Elements = elements;
+            this.ElementType = elementType;
+            this.IsReadOnly = isReadOnly;
+        }
+
+        public new TypeSymbol Type => base.Type!;
+        public ImmutableArray<BoundExpression> Elements { get; }
+        public TypeSymbol ElementType { get; }
+        public bool IsReadOnly { get; }
+
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitTransientSpanFromInlineArray(this);
+
+        public BoundTransientSpanFromInlineArray Update(ImmutableArray<BoundExpression> elements, TypeSymbol elementType, bool isReadOnly, TypeSymbol type)
+        {
+            if (elements != this.Elements || !TypeSymbol.Equals(elementType, this.ElementType, TypeCompareKind.ConsiderEverything) || isReadOnly != this.IsReadOnly || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundTransientSpanFromInlineArray(this.Syntax, elements, elementType, isReadOnly, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
     internal sealed partial class BoundDynamicIndexerAccess : BoundExpression
     {
         public BoundDynamicIndexerAccess(SyntaxNode syntax, BoundExpression receiver, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, ImmutableArray<PropertySymbol> applicableIndexers, TypeSymbol type, bool hasErrors = false)
@@ -9370,6 +9406,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitImplicitIndexerAccess((BoundImplicitIndexerAccess)node, arg);
                 case BoundKind.InlineArrayAccess:
                     return VisitInlineArrayAccess((BoundInlineArrayAccess)node, arg);
+                case BoundKind.TransientSpanFromInlineArray:
+                    return VisitTransientSpanFromInlineArray((BoundTransientSpanFromInlineArray)node, arg);
                 case BoundKind.DynamicIndexerAccess:
                     return VisitDynamicIndexerAccess((BoundDynamicIndexerAccess)node, arg);
                 case BoundKind.Lambda:
@@ -9647,6 +9685,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitIndexerAccess(BoundIndexerAccess node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitInlineArrayAccess(BoundInlineArrayAccess node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitTransientSpanFromInlineArray(BoundTransientSpanFromInlineArray node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitLambda(BoundLambda node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitUnboundLambda(UnboundLambda node, A arg) => this.DefaultVisit(node, arg);
@@ -9885,6 +9924,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitIndexerAccess(BoundIndexerAccess node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitInlineArrayAccess(BoundInlineArrayAccess node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitTransientSpanFromInlineArray(BoundTransientSpanFromInlineArray node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitLambda(BoundLambda node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitUnboundLambda(UnboundLambda node) => this.DefaultVisit(node);
@@ -10784,6 +10824,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.Visit(node.Expression);
             this.Visit(node.Argument);
+            return null;
+        }
+        public override BoundNode? VisitTransientSpanFromInlineArray(BoundTransientSpanFromInlineArray node)
+        {
+            this.VisitList(node.Elements);
             return null;
         }
         public override BoundNode? VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
@@ -12274,6 +12319,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression argument = (BoundExpression)this.Visit(node.Argument);
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(expression, argument, node.IsValue, node.GetItemOrSliceHelper, type);
+        }
+        public override BoundNode? VisitTransientSpanFromInlineArray(BoundTransientSpanFromInlineArray node)
+        {
+            ImmutableArray<BoundExpression> elements = this.VisitList(node.Elements);
+            TypeSymbol? elementType = this.VisitType(node.ElementType);
+            TypeSymbol? type = this.VisitType(node.Type);
+            return node.Update(elements, elementType, node.IsReadOnly, type);
         }
         public override BoundNode? VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
         {
@@ -14841,6 +14893,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return updatedNode;
         }
 
+        public override BoundNode? VisitTransientSpanFromInlineArray(BoundTransientSpanFromInlineArray node)
+        {
+            TypeSymbol elementType = GetUpdatedSymbol(node, node.ElementType);
+            ImmutableArray<BoundExpression> elements = this.VisitList(node.Elements);
+            BoundTransientSpanFromInlineArray updatedNode;
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                updatedNode = node.Update(elements, elementType, node.IsReadOnly, infoAndType.Type!);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(elements, elementType, node.IsReadOnly, node.Type);
+            }
+            return updatedNode;
+        }
+
         public override BoundNode? VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
         {
             ImmutableArray<PropertySymbol> applicableIndexers = GetUpdatedArray(node, node.ApplicableIndexers);
@@ -17118,6 +17188,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
+        public override TreeDumperNode VisitTransientSpanFromInlineArray(BoundTransientSpanFromInlineArray node, object? arg) => new TreeDumperNode("transientSpanFromInlineArray", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("elements", null, from x in node.Elements select Visit(x, null)),
+            new TreeDumperNode("elementType", node.ElementType, null),
+            new TreeDumperNode("isReadOnly", node.IsReadOnly, null),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
         public override TreeDumperNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node, object? arg) => new TreeDumperNode("dynamicIndexerAccess", null, new TreeDumperNode[]
         {
             new TreeDumperNode("receiver", null, new TreeDumperNode[] { Visit(node.Receiver, null) }),
@@ -17490,6 +17570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundKind.UnconvertedObjectCreationExpression => PipelinePhase.InitialBinding,
                 BoundKind.UnconvertedCollectionExpression => PipelinePhase.InitialBinding,
                 BoundKind.TupleLiteral => PipelinePhase.InitialBinding,
+                BoundKind.TransientSpanFromInlineArray => PipelinePhase.Spilling,
                 BoundKind.TypeOrInstanceInitializers => PipelinePhase.LocalRewriting,
                 BoundKind.UnconvertedInterpolatedString => PipelinePhase.InitialBinding,
                 BoundKind.InterpolatedStringHandlerPlaceholder => PipelinePhase.LocalRewriting,
