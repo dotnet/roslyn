@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -163,7 +163,9 @@ namespace Microsoft.CodeAnalysis
         {
             GlobalSection = globalSection;
             NamedSections = namedSections;
-            PathToFile = pathToFile;
+            // Only the drive letter is normalized — the rest of the path casing is
+            // preserved intentionally. See PathUtilities.NormalizeDriveLetter remarks.
+            PathToFile = PathUtilities.NormalizeDriveLetter(pathToFile);
             _hasGlobalFileName = Path.GetFileName(pathToFile).Equals(UserGlobalConfigName, StringComparison.OrdinalIgnoreCase);
 
             // Find the containing directory and run it through the same normalization
@@ -172,7 +174,7 @@ namespace Microsoft.CodeAnalysis
             string directory = Path.GetDirectoryName(pathToFile) ?? pathToFile;
             var normalizedDirectory = PathUtilities.CollapseWithForwardSlash(directory.AsSpan());
             normalizedDirectory = PathUtilities.ExpandAbsolutePathWithRelativeParts(normalizedDirectory);
-            NormalizedDirectory = PathUtilities.NormalizePathCase(normalizedDirectory);
+            NormalizedDirectory = PathUtilities.NormalizeDriveLetter(normalizedDirectory);
         }
 
         /// <summary>
@@ -267,8 +269,8 @@ namespace Microsoft.CodeAnalysis
                 // No-op for glob patterns like [*.cs] since they aren't drive-rooted absolute paths.
                 // Note: unlike NormalizedDirectory, section names are NOT run through the full
                 // normalization pipeline (CollapseWithForwardSlash / ExpandAbsolutePathWithRelativeParts)
-                // used for source paths. Only case normalization is applied here.
-                var sectionName = PathUtilities.NormalizePathCase(activeSectionName);
+                // used for source paths. Only drive letter normalization is applied here.
+                var sectionName = PathUtilities.NormalizeDriveLetter(activeSectionName);
 
                 // Close out the previous section
                 var previousSection = new Section(sectionName, activeSectionProperties.ToImmutable());

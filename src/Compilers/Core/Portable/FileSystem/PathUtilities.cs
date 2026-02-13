@@ -736,25 +736,25 @@ namespace Roslyn.Utilities
         }
 
         /// <summary>
-        /// Normalizes the casing of a file path for consistent ordinal comparison.
-        /// Only affects drive-rooted absolute paths on Windows (e.g. <c>C:\foo\Bar</c> → <c>C:\foo\bar</c>).
+        /// Uppercases the drive letter of a drive-rooted absolute path on Windows.
         /// Non-drive-rooted paths (UNC paths, relative paths, glob patterns like <c>[*.cs]</c>) pass through unchanged.
-        /// On Unix, returns the path unchanged since paths are case-sensitive.
+        /// On Unix, returns the path unchanged.
         /// </summary>
         /// <remarks>
-        /// This deliberately does not account for the per-folder case-sensitivity option
-        /// available on Windows via WSL (https://learn.microsoft.com/en-us/windows/wsl/case-sensitivity#inspect-current-case-sensitivity).
-        /// That feature is rarely used outside of WSL interop scenarios and checking it
-        /// would require a P/Invoke per directory, which is impractical for a compiler.
+        /// This intentionally does NOT normalize the rest of the path's casing.
+        /// Path comparison in the compiler is deliberately case-sensitive, even on Windows,
+        /// because a path can be both case-sensitive and case-insensitive in different segments
+        /// (e.g. WSL-mounted directories). Case-sensitive comparison gives a consistent answer
+        /// irrespective of the environment.
         /// </remarks>
-        public static string NormalizePathCase(string filePath)
+        public static string NormalizeDriveLetter(string filePath)
         {
-            if (IsUnixLikePlatform || !IsDriveRootedAbsolutePath(filePath))
+            if (!IsUnixLikePlatform && IsDriveRootedAbsolutePath(filePath))
             {
-                return filePath;
+                filePath = char.ToUpper(filePath[0]) + filePath.Substring(1);
             }
 
-            return char.ToUpper(filePath[0]) + filePath.Substring(1).ToLowerInvariant();
+            return filePath;
         }
 
         /// <summary>
