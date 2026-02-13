@@ -10778,5 +10778,38 @@ static class Test1
                 }
                 """);
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/80166")]
+        public void RuntimeAsyncLocalFunctionAwaitedFromNonRuntimeAsyncLambda()
+        {
+            var source = """
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        Task.Run(async () =>
+                        {
+                            await Func();
+
+                            [System.Runtime.CompilerServices.RuntimeAsyncMethodGeneration(true)]
+                            static async Task Func()
+                            {
+                                await Task.Delay(1);
+                                await Task.Yield();
+                            }
+                        }).Wait();
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition]);
+            comp.VerifyEmitDiagnostics(
+                // (4,57): warning CS9113: Parameter 'runtimeAsync' is unread.
+                // public class RuntimeAsyncMethodGenerationAttribute(bool runtimeAsync) : Attribute();
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "runtimeAsync").WithArguments("runtimeAsync").WithLocation(4, 57));
+        }
     }
 }

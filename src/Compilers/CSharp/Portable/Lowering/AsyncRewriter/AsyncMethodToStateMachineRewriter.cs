@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             resultPlace = (BoundExpression)Visit(resultPlace);
             MethodSymbol getResult = VisitMethodSymbol(node.AwaitableInfo.GetResult);
-            MethodSymbol isCompletedMethod = ((object)node.AwaitableInfo.IsCompleted != null) ? VisitMethodSymbol(node.AwaitableInfo.IsCompleted.GetMethod) : null;
+            MethodSymbol isCompletedMethod = ((object)node.AwaitableInfo.IsCompleted != null && node.AwaitableInfo.IsCompleted.GetMethod is not null) ? VisitMethodSymbol(node.AwaitableInfo.IsCompleted.GetMethod) : null;
             TypeSymbol type = VisitType(node.Type);
 
             if (awaitablePlaceholder != null)
