@@ -529,6 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // For purpose of nullability analysis, awaits create pending branches, so async usings and foreachs do too
         public sealed override bool AwaitUsingAndForeachAddsPendingBranch => true;
 
+        [DebuggerStepThrough]
         protected override void EnsureSufficientExecutionStack(int recursionDepth)
         {
             if (recursionDepth > StackGuard.MaxUncheckedRecursionDepth &&
@@ -13236,7 +13237,42 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitAwaitableInfo(BoundAwaitableInfo node)
         {
             Visit(node.AwaitableInstancePlaceholder);
+
+            if (node is { RuntimeAsyncAwaitCall: not null, GetAwaiter: null })
+            {
+                // This is the simple case of just `AsyncHelpers.Await(expr). We can just visit the runtime helpers and be done.
+                Debug.Assert(node.RuntimeAsyncAwaitCallPlaceholder is not null);
+                Debug.Assert(_resultForPlaceholdersOpt is not null);
+                Debug.Assert(node.AwaitableInstancePlaceholder is not null);
+                Debug.Assert(_resultForPlaceholdersOpt.ContainsKey(node.AwaitableInstancePlaceholder));
+                var (replacement, result) = _resultForPlaceholdersOpt[node.AwaitableInstancePlaceholder];
+                AddPlaceholderReplacement(node.RuntimeAsyncAwaitCallPlaceholder, replacement, result);
+                Visit(node.RuntimeAsyncAwaitCallPlaceholder);
+                Visit(node.RuntimeAsyncAwaitCall);
+                RemovePlaceholderReplacement(node.RuntimeAsyncAwaitCallPlaceholder);
+
+                Debug.Assert(node.GetAwaiter is null);
+                return null;
+            }
+
             Visit(node.GetAwaiter);
+
+            if (node.RuntimeAsyncAwaitCall is not null)
+            {
+                // This is the complicated case of AsyncHelpers.AwaitAwaiter/UnsafeAwaitAwaiter(instancePlaceholder.GetAwaiter). That is a generic
+                // call and we need to re-infer the type arguments based on the inferred type of the awaiter in order to get the correct nullability for the call.
+                Debug.Assert(node.RuntimeAsyncAwaitCallPlaceholder is not null);
+
+                // VisitAwaitExpression needs the GetAwaiter result to be able to recalculate GetResult with nullability. We'll restore this after visiting the runtime call info.
+                var getAwaiterVisitResult = _visitResult;
+
+                AddPlaceholderReplacement(node.RuntimeAsyncAwaitCallPlaceholder, node.GetAwaiter, getAwaiterVisitResult);
+                Visit(node.RuntimeAsyncAwaitCallPlaceholder);
+                Visit(node.RuntimeAsyncAwaitCall);
+                RemovePlaceholderReplacement(node.RuntimeAsyncAwaitCallPlaceholder);
+
+                _visitResult = getAwaiterVisitResult;
+            }
             return null;
         }
 
