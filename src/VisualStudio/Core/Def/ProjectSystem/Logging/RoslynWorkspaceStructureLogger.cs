@@ -9,10 +9,10 @@ using System.IO.Compression;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -83,12 +83,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
                     projectElement.SetAttributeValue("path", SanitizePath(project.FilePath ?? "(none)"));
                     projectElement.SetAttributeValue("outputPath", SanitizePath(project.OutputFilePath ?? "(none)"));
 
-                    var hasSuccessfullyLoaded = TryGetHasSuccessfullyLoaded(project, cancellationToken);
-
-                    if (hasSuccessfullyLoaded.HasValue)
-                    {
-                        projectElement.SetAttributeValue("hasSuccessfullyLoaded", hasSuccessfullyLoaded.Value);
-                    }
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
+                    var hasSuccessfullyLoaded = project.HasSuccessfullyLoadedAsync(cancellationToken).Result;
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
+                    projectElement.SetAttributeValue("hasSuccessfullyLoaded", hasSuccessfullyLoaded);
 
                     // Dump MSBuild <Reference> nodes
                     if (project.FilePath != null)
@@ -152,15 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
                     projectElement.Add(new XElement("workspaceDocuments", CreateElementsForDocumentCollection(project.Documents, "document", cancellationToken)));
                     projectElement.Add(new XElement("workspaceAdditionalDocuments", CreateElementsForDocumentCollection(project.AdditionalDocuments, "additionalDocuments", cancellationToken)));
 
-                    // Read AnalyzerConfigDocuments via reflection, as our target version may not be on a Roslyn
-                    // new enough to support it.
-                    var analyzerConfigDocumentsProperty = project.GetType().GetProperty("AnalyzerConfigDocuments");
-
-                    if (analyzerConfigDocumentsProperty != null)
-                    {
-                        var analyzerConfigDocuments = (IEnumerable<TextDocument>)analyzerConfigDocumentsProperty.GetValue(project);
-                        projectElement.Add(new XElement("workspaceAnalyzerConfigDocuments", CreateElementsForDocumentCollection(analyzerConfigDocuments, "analyzerConfigDocument", cancellationToken)));
-                    }
+                    projectElement.Add(new XElement("workspaceAnalyzerConfigDocuments", CreateElementsForDocumentCollection(project.AnalyzerConfigDocuments, "analyzerConfigDocument", cancellationToken)));
 
                     // Dump references from the compilation; this should match the workspace but can help rule out
                     // cross-language reference bugs or other issues like that
@@ -221,93 +211,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
                 int cancelled;
                 threadedWaitDialog.EndWaitDialog(out cancelled);
             }
-        }
-
-        private static System.Reflection.MethodInfo TryGetMethodInfo(this object o, string methodName)
-        {
-            return o.GetType().GetMethod(methodName, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        }
-
-        private static T? TryCallNonPublicMethod<T>(this object o, string methodName, params object[] parameters) where T : class
-        {
-            var method = o.TryGetMethodInfo(methodName);
-
-            if (method == null)
-            {
-                return null;
-            }
-
-            return method.Invoke(o, parameters) as T;
-        }
-
-        private static T? TryCallNonPublicGenericMethod<T>(this object o, string methodName, Type typeParameter, params object[] parameters) where T : class
-        {
-            var method = o.TryGetMethodInfo(methodName);
-
-            if (method == null)
-            {
-                return null;
-            }
-
-            method = method.MakeGenericMethod(typeParameter);
-            if (method == null)
-            {
-                return null;
-            }
-
-            return method.Invoke(o, parameters) as T;
-        }
-
-        private static T? TryGetNonPublicPropertyFromService<T>(this object o, string serviceTypeName, string propertyName) where T : class
-        {
-            var services = o.TryGetNonPublicProperty<object>("Services");
-            if (services == null)
-            {
-                return null;
-            }
-
-            // With apologies to future developers about the enormity of this assumption
-            var serviceType = o.GetType().Assembly.GetType(serviceTypeName);
-            if (serviceType == null)
-            {
-                return null;
-            }
-
-            var service = services.TryCallNonPublicGenericMethod<object>("GetService", serviceType);
-            if (service == null)
-            {
-                return null;
-            }
-
-            return service.TryGetNonPublicProperty<T>(propertyName);
-        }
-
-        private static T? TryGetNonPublicProperty<T>(this object o, string propertyName) where T : class
-        {
-            // Yes this method says NonPublic, but it could be a public property on a non-public type
-            var method = o.GetType().GetProperty(propertyName, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-            if (method == null)
-            {
-                return null;
-            }
-
-            return method.GetValue(o) as T;
-        }
-
-        private static bool? TryGetHasSuccessfullyLoaded(Project project, CancellationToken cancellationToken)
-        {
-            // This method has not been made a public API, but is useful for analyzing some issues
-            var task = project.TryCallNonPublicMethod<Task<bool>>("HasSuccessfullyLoadedAsync", cancellationToken);
-
-            if (task == null)
-            {
-                return null;
-            }
-
-            task.Wait(cancellationToken);
-
-            return task.Result;
         }
 
         private static VSLangProj.VSProject? TryFindLangProjProject(EnvDTE.DTE dte, Project project)
@@ -418,26 +321,17 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
             {
                 var documentElement = new XElement(elementName, new XAttribute("path", SanitizePath(document.FilePath ?? "(none)")));
 
-                var clientName = document.TryGetNonPublicPropertyFromService<string>("Microsoft.CodeAnalysis.Host.DocumentPropertiesService", "DiagnosticsLspClientName");
+                var clientName = document.DocumentServiceProvider.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName;
                 if (clientName != null)
                 {
                     documentElement.SetAttributeValue("clientName", clientName);
                 }
 
-                var documentState = document.TryGetNonPublicProperty<object>("State");
-                if (documentState != null)
+                var loadDiagnostic = document.State.GetFailedToLoadExceptionMessageAsync(cancellationToken).Result;
+
+                if (loadDiagnostic != null)
                 {
-                    var loadDiagnosticTask = documentState.TryCallNonPublicMethod<Task<Diagnostic>>("GetLoadDiagnosticAsync", cancellationToken);
-
-                    if (loadDiagnosticTask != null)
-                    {
-                        loadDiagnosticTask.Wait(cancellationToken);
-
-                        if (loadDiagnosticTask.Result != null)
-                        {
-                            documentElement.Add(new XElement("loadDiagnostic", loadDiagnosticTask.Result.GetMessage()));
-                        }
-                    }
+                    documentElement.Add(new XElement("loadDiagnostic", loadDiagnostic));
                 }
 
                 yield return documentElement;
