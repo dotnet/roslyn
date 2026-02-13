@@ -383,7 +383,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             typeContainingConstructor: null, delegateTypeBeingInvoked: null,
                             isMethodGroupConversion: true, returnRefKind: invokeMethodOpt?.RefKind, delegateOrFunctionPointerType: targetType);
 
-                        hasErrors = overloadDiagnostics.HasAnyErrors();
+                        // Even if no diagnostics were reported, check if any candidate method has error types
+                        // in its return type or parameters. This can happen when ERR_BadRetType or similar errors
+                        // are suppressed for methods with omitted type arguments.
+                        hasErrors = overloadDiagnostics.HasAnyErrors()
+                            || result.Results.Any(static candidate => candidate.Member.ReturnType.ContainsErrorType()
+                            || candidate.Member.Parameters.Any(static p => p.Type.ContainsErrorType()));
+
                         diagnostics.AddRangeAndFree(overloadDiagnostics);
                     }
                 }

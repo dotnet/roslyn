@@ -731,7 +731,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!mismatch.IsNull)
             {
                 var method = (MethodSymbol)(Symbol)mismatch.Member;
-                diagnostics.Add(ErrorCode.ERR_BadRetType, location, method, method.ReturnType);
+                // Only report ERR_BadRetType if the return type is well-defined.
+                // If the return type is an error type (from omitted type arguments like Method<>),
+                // there's already a more specific error reported elsewhere (e.g., ERR_OmittedTypeArgument).
+                if (!method.ReturnType.ContainsErrorType())
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadRetType, location, method, method.ReturnType);
+                }
                 return true;
             }
 
