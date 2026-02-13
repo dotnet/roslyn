@@ -150,6 +150,9 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     logger.LogInformation("Language server initialized");
     RoslynLog.Logger.Log(RoslynLog.FunctionId.VSCode_LanguageServer_Started, logLevel: RoslynLog.LogLevel.Information);
 
+    // Start periodic memory usage logging for diagnostics
+    using var memoryUsageLogger = new MemoryUsageLoggerService(loggerFactory);
+
     try
     {
         if (serverConfiguration.ClientProcessId is int clientProcessId && RoslynLanguageServer.TryRegisterClientProcessId(clientProcessId))
