@@ -60,19 +60,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <param name="disallowedUnder">
         /// Memory safety rules which the current location is disallowed under.
-        /// PROTOTYPE: Consider removing the default parameter value.
         /// </param>
         /// <returns>True if a diagnostic was reported</returns>
         internal bool ReportUnsafeIfNotAllowed(
             SyntaxNodeOrToken node,
             BindingDiagnosticBag diagnostics,
+            MemorySafetyRules disallowedUnder,
             TypeSymbol? sizeOfTypeOpt = null,
-            MemorySafetyRules disallowedUnder = MemorySafetyRules.Legacy,
             ErrorCode? customErrorCode = null,
             object[]? customArgs = null)
         {
             Debug.Assert((node.Kind() == SyntaxKind.SizeOfExpression) == ((object?)sizeOfTypeOpt != null), "Should have a type for (only) sizeof expressions.");
-            var diagnosticInfo = GetUnsafeDiagnosticInfo(sizeOfTypeOpt, disallowedUnder, customErrorCode, customArgs);
+            var diagnosticInfo = GetUnsafeDiagnosticInfo(disallowedUnder, sizeOfTypeOpt, customErrorCode, customArgs);
             if (diagnosticInfo == null)
             {
                 return false;
@@ -82,10 +81,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        /// <inheritdoc cref="ReportUnsafeIfNotAllowed(SyntaxNodeOrToken, BindingDiagnosticBag, TypeSymbol?, MemorySafetyRules, ErrorCode?, object[])"/>
-        internal bool ReportUnsafeIfNotAllowed(Location location, BindingDiagnosticBag diagnostics, MemorySafetyRules disallowedUnder = MemorySafetyRules.Legacy)
+        /// <inheritdoc cref="ReportUnsafeIfNotAllowed(SyntaxNodeOrToken, BindingDiagnosticBag, MemorySafetyRules, TypeSymbol?, ErrorCode?, object[])"/>
+        internal bool ReportUnsafeIfNotAllowed(Location location, BindingDiagnosticBag diagnostics, MemorySafetyRules disallowedUnder)
         {
-            var diagnosticInfo = GetUnsafeDiagnosticInfo(sizeOfTypeOpt: null, disallowedUnder);
+            var diagnosticInfo = GetUnsafeDiagnosticInfo(disallowedUnder, sizeOfTypeOpt: null);
             if (diagnosticInfo == null)
             {
                 return false;
@@ -96,8 +95,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private CSDiagnosticInfo? GetUnsafeDiagnosticInfo(
+            MemorySafetyRules disallowedUnder,
             TypeSymbol? sizeOfTypeOpt,
-            MemorySafetyRules disallowedUnder = MemorySafetyRules.Legacy,
             ErrorCode? customErrorCode = null,
             object[]? customArgs = null)
         {

@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var functionPointerTypeSyntax = (FunctionPointerTypeSyntax)syntax;
                     MessageID.IDS_FeatureFunctionPointers.CheckFeatureAvailability(diagnostics, functionPointerTypeSyntax.DelegateKeyword);
 
-                    if (GetUnsafeDiagnosticInfo(sizeOfTypeOpt: null) is CSDiagnosticInfo info)
+                    if (GetUnsafeDiagnosticInfo(disallowedUnder: MemorySafetyRules.Legacy, sizeOfTypeOpt: null) is CSDiagnosticInfo info)
                     {
                         var @delegate = functionPointerTypeSyntax.DelegateKeyword;
                         var asterisk = functionPointerTypeSyntax.AsteriskToken;
@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var node = (PointerTypeSyntax)syntax;
                 var elementType = BindType(node.ElementType, diagnostics, basesBeingResolved);
-                ReportUnsafeIfNotAllowed(node, diagnostics);
+                ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Legacy);
 
                 if (!Flags.HasFlag(BinderFlags.SuppressConstraintChecks))
                 {
@@ -929,7 +929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (type.ContainsPointerOrFunctionPointer())
                         {
-                            ReportUnsafeIfNotAllowed(node, diagnostics);
+                            ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Legacy);
                         }
                     }
                 }

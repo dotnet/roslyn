@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol exprType = expr.Type;
                 if ((object)exprType != null && exprType.ContainsPointerOrFunctionPointer())
                 {
-                    ReportUnsafeIfNotAllowed(node, diagnostics);
+                    ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Legacy);
                     //CONSIDER: Return a bad expression so that HasErrors is true?
                 }
             }
@@ -1469,7 +1469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundTypeExpression boundType = new BoundTypeExpression(typeSyntax, alias, typeWithAnnotations, typeHasErrors);
             ConstantValue constantValue = GetConstantSizeOf(type);
-            bool hasErrors = constantValue is null && ReportUnsafeIfNotAllowed(node, diagnostics, type);
+            bool hasErrors = constantValue is null && ReportUnsafeIfNotAllowed(node, diagnostics, sizeOfTypeOpt: type, disallowedUnder: MemorySafetyRules.Legacy);
             return new BoundSizeOfOperator(node, boundType, constantValue,
                 this.GetSpecialType(SpecialType.System_Int32, diagnostics, node), hasErrors);
         }
@@ -3725,7 +3725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!methodResult.Member.IsIndexer() && !argument.HasAnyErrors && parameterTypeWithAnnotations.Type.ContainsPointerOrFunctionPointer())
                 {
                     // CONSIDER: dev10 uses the call syntax, but this seems clearer.
-                    ReportUnsafeIfNotAllowed(argument.Syntax, diagnostics);
+                    ReportUnsafeIfNotAllowed(argument.Syntax, diagnostics, disallowedUnder: MemorySafetyRules.Legacy);
                     //CONSIDER: Return a bad expression so that HasErrors is true?
                 }
             }
@@ -5103,7 +5103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Don't worry about double reporting (i.e. for both the argument and the parameter)
                     // because only one unsafe diagnostic is allowed per scope - the others are suppressed.
-                    hasErrors = ReportUnsafeIfNotAllowed(errorLocation, diagnostics);
+                    hasErrors = ReportUnsafeIfNotAllowed(errorLocation, diagnostics, disallowedUnder: MemorySafetyRules.Legacy);
                 }
 
                 ReportDiagnosticsIfObsolete(diagnostics, resultMember, nonNullSyntax, hasBaseReceiver: isBaseConstructorInitializer);
@@ -6978,7 +6978,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Don't worry about double reporting (i.e. for both the argument and the parameter)
                 // because only one unsafe diagnostic is allowed per scope - the others are suppressed.
-                hasError = ReportUnsafeIfNotAllowed(node, diagnostics) || hasError;
+                hasError = ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Legacy) || hasError;
             }
 
             ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);

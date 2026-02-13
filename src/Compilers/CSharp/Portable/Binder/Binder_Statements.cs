@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var fixedBinder = this.GetBinder(node);
             Debug.Assert(fixedBinder != null);
 
-            fixedBinder.ReportUnsafeIfNotAllowed(node, diagnostics);
+            fixedBinder.ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Legacy);
 
             return fixedBinder.BindFixedStatementParts(node, diagnostics);
         }

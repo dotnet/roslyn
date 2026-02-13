@@ -2898,7 +2898,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (conversion.Kind)
             {
                 case ConversionKind.StackAllocToPointerType:
-                    ReportUnsafeIfNotAllowed(syntax.Location, diagnostics);
+                    ReportUnsafeIfNotAllowed(syntax.Location, diagnostics, disallowedUnder: MemorySafetyRules.Legacy);
                     stackAllocType = new PointerTypeSymbol(TypeWithAnnotations.Create(elementType));
                     break;
                 case ConversionKind.StackAllocToSpanType:
@@ -3540,7 +3540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if ((selectedMethod.HasParameterContainingPointerType() || selectedMethod.ReturnType.ContainsPointerOrFunctionPointer())
-                && ReportUnsafeIfNotAllowed(syntax, diagnostics))
+                && ReportUnsafeIfNotAllowed(syntax, diagnostics, disallowedUnder: MemorySafetyRules.Legacy))
             {
                 return true;
             }
