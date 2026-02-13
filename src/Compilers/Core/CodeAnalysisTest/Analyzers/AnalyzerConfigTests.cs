@@ -182,10 +182,10 @@ build_metadata.compile.toretrieve = def456
         public void WindowsPath_CaseMismatchDoesNotMatch()
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
-            configs.Add(Parse(@"
-[*.cs]
-my_prop = my_val
-", @"C:\Repo\src\shared\.editorconfig"));
+            configs.Add(Parse("""
+                [*.cs]
+                my_prop = my_val
+                """, @"C:\Repo\src\shared\.editorconfig"));
 
             var configSet = AnalyzerConfigSet.Create(configs, out var diagnostics);
             configs.Free();
@@ -201,10 +201,10 @@ my_prop = my_val
         public void WindowsPath_ExactCasingMatches()
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
-            configs.Add(Parse(@"
-[*.cs]
-my_prop = my_val
-", @"C:\Repo\src\shared\.editorconfig"));
+            configs.Add(Parse("""
+                [*.cs]
+                my_prop = my_val
+                """, @"C:\Repo\src\shared\.editorconfig"));
 
             var configSet = AnalyzerConfigSet.Create(configs, out var diagnostics);
             configs.Free();
