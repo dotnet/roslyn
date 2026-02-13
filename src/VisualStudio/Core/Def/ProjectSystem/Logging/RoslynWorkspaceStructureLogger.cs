@@ -10,7 +10,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
+using Microsoft.VisualStudio.Shell.FileDialog;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -34,19 +34,33 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            var saveDialog = new SaveFileDialog()
-            {
-                Filter = "Zip Files (*.zip)|*.zip"
-            };
+            var uiShell = (IVsUIShell)serviceProvider.GetService(typeof(SVsUIShell));
+            var uiShell2 = (IVsUIShell2)uiShell;
 
-            if (saveDialog.ShowDialog() != DialogResult.OK)
+            Assumes.Present(uiShell2);
+
+            ErrorHandler.ThrowOnFailure(uiShell.GetDialogOwnerHwnd(out var hwnd));
+
+            var filters = new DialogFilters(
+                new[] { new DialogFilter("Zip Files", "*.zip") },
+                defaultFilterIndex: 0);
+
+            var path = VsShellUtilities.SelectSaveAsFile(
+                uiShell2,
+                hwnd,
+                title: string.Empty,
+                initialDirectory: string.Empty,
+                initialFileName: string.Empty,
+                filters);
+
+            if (string.IsNullOrEmpty(path))
             {
                 return;
             }
 
             var threadingContext = serviceProvider.GetMefService<IThreadingContext>();
 
-            threadingContext.JoinableTaskFactory.RunAsync(() => LogAsync(serviceProvider, threadingContext, saveDialog.FileName));
+            threadingContext.JoinableTaskFactory.RunAsync(() => LogAsync(serviceProvider, threadingContext, path));
         }
 
         public static async Task LogAsync(IServiceProvider serviceProvider, IThreadingContext threadingContext, string path)
