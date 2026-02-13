@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -414,25 +413,74 @@ start:
                 WellKnownMember.System_Collections_Generic_EqualityComparer_T__get_Default);
             var equalityComparer_Equals = F.WellKnownMethod(
                 WellKnownMember.System_Collections_Generic_EqualityComparer_T__Equals);
+            var iEquatable_Equals = F.WellKnownMethod(
+                WellKnownMember.System_IEquatable_T__Equals, isOptional: true);
 
             NamedTypeSymbol equalityComparerType = equalityComparer_Equals.ContainingType;
+            NamedTypeSymbol? iEquatableType = iEquatable_Equals?.ContainingType;
 
             BoundExpression? retExpression = initialExpression;
 
             // Compare fields
             foreach (var field in fields)
             {
-                // Prepare constructed comparer
-                var constructedEqualityComparer = equalityComparerType.Construct(field.Type);
+                BoundExpression nextEquals;
 
-                // System.Collections.Generic.EqualityComparer<T_index>.
-                //   Default.Equals(this.backingFld_index, local.backingFld_index)'
-                BoundExpression nextEquals = F.Call(
-                    F.StaticCall(constructedEqualityComparer,
-                                 equalityComparer_get_Default.AsMember(constructedEqualityComparer)),
-                    equalityComparer_Equals.AsMember(constructedEqualityComparer),
-                    F.Field(F.This(), field),
-                    F.Field(otherReceiver, field));
+                var thisField = F.Field(F.This(), field);
+                var otherField = F.Field(otherReceiver, field);
+
+                var fieldType = field.Type;
+
+                var specificBinaryOperatorKind = fieldType.EnumUnderlyingTypeOrSelf().SpecialType switch
+                {
+                    SpecialType.System_Boolean => BinaryOperatorKind.BoolEqual,
+                    SpecialType.System_Char => BinaryOperatorKind.CharEqual,
+                    SpecialType.System_Byte => BinaryOperatorKind.IntEqual,
+                    SpecialType.System_SByte => BinaryOperatorKind.IntEqual,
+                    SpecialType.System_Int16 => BinaryOperatorKind.IntEqual,
+                    SpecialType.System_UInt16 => BinaryOperatorKind.IntEqual,
+                    SpecialType.System_Int32 => BinaryOperatorKind.IntEqual,
+                    SpecialType.System_UInt32 => BinaryOperatorKind.UIntEqual,
+                    SpecialType.System_Int64 => BinaryOperatorKind.LongEqual,
+                    SpecialType.System_UInt64 => BinaryOperatorKind.ULongEqual,
+                    _ => BinaryOperatorKind.Error,
+                };
+
+                // If we have a field of a primitive type we can directly compare, go with it.
+                // This has the same semantics as `EqualityComparer<T>.Default.Equals` approach
+                // but takes less IL and is easier for the runtime to optimize.
+                // Note, that this optimization does not include `float` and `double` types
+                // since comparing them directly and using `Equals` method differ in handling of `NaN` values
+                if (specificBinaryOperatorKind != BinaryOperatorKind.Error)
+                {
+                    nextEquals = F.Binary(specificBinaryOperatorKind, F.SpecialType(SpecialType.System_Boolean), thisField, otherField);
+                }
+                // If we have a value type which implements `IEquatable<Self>`,
+                // call its respective `Equals` method directly if possible since it also has
+                // the same semantics as a call to `EqualityComparer<T>.Default.Equals`
+                // but requires less IL. We don't do this for reference types due to their
+                // natural nullability (adding defensive null check defeats the original purpose
+                // since it takes more IL than `EqualityComparer<T>.Default.Equals` approach)
+                else if (fieldType.IsValueType &&
+                         iEquatableType?.Construct(fieldType) is { } iEquatableOfFieldType &&
+                         fieldType.FindImplementationForInterfaceMember(iEquatable_Equals!.AsMember(iEquatableOfFieldType)) is MethodSymbol { IsExplicitInterfaceImplementation: false } overridenIEquatableEquals)
+                {
+                    nextEquals = F.Call(thisField, overridenIEquatableEquals, otherField);
+                }
+                else
+                {
+                    // Prepare constructed comparer
+                    var constructedEqualityComparer = equalityComparerType.Construct(field.Type);
+
+                    // System.Collections.Generic.EqualityComparer<T_index>.
+                    //   Default.Equals(this.backingFld_index, local.backingFld_index)'
+                    nextEquals = F.Call(
+                        F.StaticCall(constructedEqualityComparer,
+                                     equalityComparer_get_Default.AsMember(constructedEqualityComparer)),
+                        equalityComparer_Equals.AsMember(constructedEqualityComparer),
+                        thisField,
+                        otherField);
+                }
 
                 // Generate 'retExpression' = 'retExpression && nextEquals'
                 retExpression = retExpression is null
