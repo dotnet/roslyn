@@ -7388,22 +7388,18 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Extern_Method_Explicit()
     {
-        var libSource = """
-            public class C
-            {
-                [System.Runtime.CompilerServices.RequiresUnsafe]
-                public extern void M();
-            }
-            """;
-
-        var callerSource = """
-            var c = new C();
-            c.M();
-            """;
-
         CompileAndVerifyUnsafe(
-            libSource,
-            callerSource,
+            lib: """
+                public class C
+                {
+                    [System.Runtime.CompilerServices.RequiresUnsafe]
+                    public extern void M();
+                }
+                """,
+            caller: """
+                var c = new C();
+                c.M();
+                """,
             additionalSources: [RequiresUnsafeAttributeDefinition],
             verify: Verification.Skipped,
             expectedUnsafeSymbols: ["C.M"],
@@ -7964,25 +7960,21 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Extern_Property_Explicit()
     {
-        var libSource = """
-            #pragma warning disable CS0626 // extern without attributes
-            public class C
-            {
-                [System.Runtime.CompilerServices.RequiresUnsafe]
-                public extern int P1 { set; }
-                public extern int P2 { [System.Runtime.CompilerServices.RequiresUnsafe] set; }
-            }
-            """;
-
-        var callerSource = """
-            var c = new C();
-            c.P1 = 0;
-            c.P2 = 0;
-            """;
-
         CompileAndVerifyUnsafe(
-            libSource,
-            callerSource,
+            lib: """
+                #pragma warning disable CS0626 // extern without attributes
+                public class C
+                {
+                    [System.Runtime.CompilerServices.RequiresUnsafe]
+                    public extern int P1 { set; }
+                    public extern int P2 { [System.Runtime.CompilerServices.RequiresUnsafe] set; }
+                }
+                """,
+            caller: """
+                var c = new C();
+                c.P1 = 0;
+                c.P2 = 0;
+                """,
             additionalSources: [RequiresUnsafeAttributeDefinition],
             verify: Verification.Skipped,
             expectedUnsafeSymbols: ["C.P1", "C.set_P1", "C.P2", "C.set_P2"],
@@ -8000,14 +7992,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             ]);
     }
 
-    [Theory, CombinatorialData]
-    public void Extern_Indexer([CombinatorialValues("      ", "unsafe")] string modifiers)
+    [Fact]
+    public void Extern_Indexer()
     {
-        var libSource = $$"""
+        var libSource = """
             #pragma warning disable CS0626 // extern without attributes
             public class C
             {
-                public {{modifiers}} extern int this[int i] { get; set; }
+                public extern int this[int i] { get; set; }
             }
             """;
 
@@ -8044,30 +8036,30 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(
             [
                 .. commonDiagnostics,
-                // (4,30): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RequiresUnsafeAttribute..ctor'
-                //     public unsafe extern int this[int i] { get; set; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "this").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute", ".ctor").WithLocation(4, 30),
-                // (4,44): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RequiresUnsafeAttribute..ctor'
-                //     public unsafe extern int this[int i] { get; set; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "get").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute", ".ctor").WithLocation(4, 44),
-                // (4,49): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RequiresUnsafeAttribute..ctor'
-                //     public unsafe extern int this[int i] { get; set; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "set").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute", ".ctor").WithLocation(4, 49),
+                // (4,23): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RequiresUnsafeAttribute..ctor'
+                //     public extern int this[int i] { get; set; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "this").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute", ".ctor").WithLocation(4, 23),
+                // (4,37): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RequiresUnsafeAttribute..ctor'
+                //     public extern int this[int i] { get; set; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "get").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute", ".ctor").WithLocation(4, 37),
+                // (4,42): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RequiresUnsafeAttribute..ctor'
+                //     public extern int this[int i] { get; set; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "set").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute", ".ctor").WithLocation(4, 42),
             ]);
 
         CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
             parseOptions: TestOptions.Regular14,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (4,30): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     public unsafe extern int this[int i] { get; set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("updated memory safety rules").WithLocation(4, 30),
-            // (4,44): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     public unsafe extern int this[int i] { get; set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("updated memory safety rules").WithLocation(4, 44),
-            // (4,49): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     public unsafe extern int this[int i] { get; set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("updated memory safety rules").WithLocation(4, 49));
+            // (4,23): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     public extern int this[int i] { get; set; }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("updated memory safety rules").WithLocation(4, 23),
+            // (4,37): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     public extern int this[int i] { get; set; }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("updated memory safety rules").WithLocation(4, 37),
+            // (4,42): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     public extern int this[int i] { get; set; }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("updated memory safety rules").WithLocation(4, 42));
 
         CreateCompilation(libSource,
             parseOptions: TestOptions.Regular14,
@@ -8156,15 +8148,52 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         }
     }
 
-    [Theory, CombinatorialData]
-    public void Extern_Event([CombinatorialValues("      ", "unsafe")] string modifiers)
+    [Fact]
+    public void Extern_Indexer_Explicit()
     {
-        var libSource = $$"""
+        CompileAndVerifyUnsafe(
+            lib: """
+                #pragma warning disable CS0626 // extern without attributes
+                public class C1
+                {
+                    [System.Runtime.CompilerServices.RequiresUnsafe]
+                    public extern int this[int i] { set; }
+                }
+                public class C2
+                {
+                    public extern int this[int i] { [System.Runtime.CompilerServices.RequiresUnsafe] set; }
+                }
+                """,
+            caller: """
+                new C1()[0] = 0;
+                new C2()[0] = 0;
+                """,
+            additionalSources: [RequiresUnsafeAttributeDefinition],
+            verify: Verification.Skipped,
+            expectedUnsafeSymbols: ["C1.this[]", "C1.set_Item", "C2.this[]", "C2.set_Item"],
+            expectedSafeSymbols: ["C1", "C2"],
+            expectedNoAttributeInSource: ["C2.this[]"],
+            expectedNoAttributeUnderLegacyRules: ["C2.this[]"],
+            expectedDiagnostics:
+            [
+                // (1,1): error CS9502: 'C1.this[int].set' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // new C1()[0] = 0;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "new C1()[0]").WithArguments("C1.this[int].set").WithLocation(1, 1),
+                // (2,1): error CS9502: 'C2.this[int].set' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // new C2()[0] = 0;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "new C2()[0]").WithArguments("C2.this[int].set").WithLocation(2, 1),
+            ]);
+    }
+
+    [Fact]
+    public void Extern_Event()
+    {
+        var libSource = """
             #pragma warning disable CS0067 // unused event
             public class C
             {
                 [method: System.Runtime.InteropServices.DllImport("test")]
-                public static {{modifiers}} extern event System.Action E;
+                public static extern event System.Action E;
             }
             """;
 
@@ -8196,30 +8225,30 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics([
                 .. commonDiagnostics,
-                // (5,53): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RequiresUnsafeAttribute..ctor'
-                //     public static unsafe extern event System.Action E;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute", ".ctor").WithLocation(5, 53),
-                // (5,53): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RequiresUnsafeAttribute..ctor'
-                //     public static unsafe extern event System.Action E;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute", ".ctor").WithLocation(5, 53),
-                // (5,53): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RequiresUnsafeAttribute..ctor'
-                //     public static unsafe extern event System.Action E;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute", ".ctor").WithLocation(5, 53),
+                // (5,46): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RequiresUnsafeAttribute..ctor'
+                //     public static extern event System.Action E;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute", ".ctor").WithLocation(5, 46),
+                // (5,46): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RequiresUnsafeAttribute..ctor'
+                //     public static extern event System.Action E;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute", ".ctor").WithLocation(5, 46),
+                // (5,46): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RequiresUnsafeAttribute..ctor'
+                //     public static extern event System.Action E;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute", ".ctor").WithLocation(5, 46),
             ]);
 
         CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
             parseOptions: TestOptions.Regular14,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (5,53): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     public static        extern event System.Action E;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "E").WithArguments("updated memory safety rules").WithLocation(5, 53),
-            // (5,53): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     public static        extern event System.Action E;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "E").WithArguments("updated memory safety rules").WithLocation(5, 53),
-            // (5,53): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     public static        extern event System.Action E;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "E").WithArguments("updated memory safety rules").WithLocation(5, 53));
+            // (5,46): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     public static extern event System.Action E;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "E").WithArguments("updated memory safety rules").WithLocation(5, 46),
+            // (5,46): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     public static extern event System.Action E;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "E").WithArguments("updated memory safety rules").WithLocation(5, 46),
+            // (5,46): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     public static extern event System.Action E;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "E").WithArguments("updated memory safety rules").WithLocation(5, 46));
 
         CreateCompilation(libSource,
             parseOptions: TestOptions.Regular14,
@@ -8297,14 +8326,45 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         }
     }
 
-    [Theory, CombinatorialData]
-    public void Extern_Constructor([CombinatorialValues("      ", "unsafe")] string modifiers)
+    [Fact]
+    public void Extern_Event_Explicit()
     {
-        var libSource = $$"""
+        CompileAndVerifyUnsafe(
+            lib: """
+                #pragma warning disable CS0626 // extern without attributes
+                public class C
+                {
+                    [System.Runtime.CompilerServices.RequiresUnsafe]
+                    public static extern event System.Action E;
+                }
+                """,
+            caller: """
+                C.E += null;
+                C.E -= null;
+                """,
+            additionalSources: [RequiresUnsafeAttributeDefinition],
+            verify: Verification.Skipped,
+            expectedUnsafeSymbols: ["C.E", "C.add_E", "C.remove_E"],
+            expectedSafeSymbols: ["C"],
+            expectedDiagnostics:
+            [
+                // (1,5): error CS9502: 'C.E.add' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'
+                // C.E += null;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "+=").WithArguments("C.E.add").WithLocation(1, 5),
+                // (2,5): error CS9502: 'C.E.remove' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'
+                // C.E -= null;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "-=").WithArguments("C.E.remove").WithLocation(2, 5),
+            ]);
+    }
+
+    [Fact]
+    public void Extern_Constructor()
+    {
+        var libSource = """
             #pragma warning disable CS0824 // extern constructor
             public class C
             {
-                public {{modifiers}} extern C();
+                public extern C();
             }
             """;
 
@@ -8336,18 +8396,18 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics([
                 .. commonDiagnostics,
-                // (4,26): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RequiresUnsafeAttribute..ctor'
-                //     public unsafe extern C();
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute", ".ctor").WithLocation(4, 26),
+                // (4,19): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RequiresUnsafeAttribute..ctor'
+                //     public extern C();
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute", ".ctor").WithLocation(4, 19),
             ]);
 
         CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
             parseOptions: TestOptions.Regular14,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (4,26): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     public unsafe extern C();
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("updated memory safety rules").WithLocation(4, 26));
+            // (4,19): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     public extern C();
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("updated memory safety rules").WithLocation(4, 19));
 
         CreateCompilation(libSource,
             parseOptions: TestOptions.Regular14,
@@ -8427,14 +8487,40 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         }
     }
 
-    [Theory, CombinatorialData]
-    public void Extern_Operator([CombinatorialValues("      ", "unsafe")] string modifiers)
+    [Fact]
+    public void Extern_Constructor_Explicit()
     {
-        var libSource = $$"""
+        CompileAndVerifyUnsafe(
+            lib: """
+                public class C
+                {
+                    [System.Runtime.CompilerServices.RequiresUnsafe]
+                    public extern C();
+                }
+                """,
+            caller: """
+                _ = new C();
+                """,
+            additionalSources: [RequiresUnsafeAttributeDefinition],
+            verify: Verification.Skipped,
+            expectedUnsafeSymbols: ["C..ctor"],
+            expectedSafeSymbols: ["C"],
+            expectedDiagnostics:
+            [
+                // (1,5): error CS9502: 'C.C()' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'
+                // _ = new C();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "new C()").WithArguments("C.C()").WithLocation(1, 5),
+            ]);
+    }
+
+    [Fact]
+    public void Extern_Operator()
+    {
+        var libSource = """
             #pragma warning disable CS0626 // extern without attributes
             public class C
             {
-                public {{modifiers}} extern void operator +=(C c);
+                public extern void operator +=(C c);
             }
             """;
 
@@ -8467,18 +8553,18 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics([
                 .. commonDiagnostics,
-                // (4,40): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RequiresUnsafeAttribute..ctor'
-                //     public unsafe extern void operator +=(C c);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "+=").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute", ".ctor").WithLocation(4, 40),
+                // (4,33): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RequiresUnsafeAttribute..ctor'
+                //     public extern void operator +=(C c);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "+=").WithArguments("System.Runtime.CompilerServices.RequiresUnsafeAttribute", ".ctor").WithLocation(4, 33),
             ]);
 
         CreateCompilation([libSource, CompilerFeatureRequiredAttribute, RequiresUnsafeAttributeDefinition],
             parseOptions: TestOptions.Regular14,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (4,40): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     public        extern void operator +=(C c);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "+=").WithArguments("updated memory safety rules").WithLocation(4, 40));
+            // (4,33): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     public extern void operator +=(C c);
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "+=").WithArguments("updated memory safety rules").WithLocation(4, 33));
 
         CreateCompilation([libSource, CompilerFeatureRequiredAttribute],
             parseOptions: TestOptions.Regular14,
@@ -8557,6 +8643,33 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedSafeSymbols: ["C"],
                 expectedUnsafeMode: CallerUnsafeMode.Implicit);
         }
+    }
+
+    [Fact]
+    public void Extern_Operator_Explicit()
+    {
+        CompileAndVerifyUnsafe(
+            lib: """
+                public class C
+                {
+                    [System.Runtime.CompilerServices.RequiresUnsafe]
+                    public extern void operator +=(C c);
+                }
+                """,
+            caller: """
+                var c = new C();
+                c += null;
+                """,
+            additionalSources: [CompilerFeatureRequiredAttribute, RequiresUnsafeAttributeDefinition],
+            verify: Verification.Skipped,
+            expectedUnsafeSymbols: ["C.op_AdditionAssignment"],
+            expectedSafeSymbols: ["C"],
+            expectedDiagnostics:
+            [
+                // (2,1): error CS9502: 'C.operator +=(C)' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'
+                // c += null;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c += null").WithArguments("C.operator +=(C)").WithLocation(2, 1),
+            ]);
     }
 
     [Fact]
