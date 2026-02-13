@@ -7,7 +7,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -28,6 +30,7 @@ internal abstract class AbstractProjectExtensionProvider<TProvider, TExtension, 
 
     private AnalyzerReference Reference { get; init; } = null!;
     private ImmutableDictionary<string, ImmutableArray<TExtension>> _extensionsPerLanguage = ImmutableDictionary<string, ImmutableArray<TExtension>>.Empty;
+    private IExtensionManager ExtensionManager { get; init; } = null!;
 
     protected abstract ImmutableArray<string> GetLanguages(TExportAttribute exportAttribute);
     protected abstract bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<TExtension> extensions);
@@ -49,26 +52,27 @@ internal abstract class AbstractProjectExtensionProvider<TProvider, TExtension, 
         if (project is null)
             return [];
 
-        return GetExtensions(project.Language, project.AnalyzerReferences);
+        var extensionManager = project.Solution.Services.GetRequiredService<IExtensionManager>();
+        return GetExtensions(project.Language, project.AnalyzerReferences, extensionManager);
     }
 
-    public static ImmutableArray<TExtension> GetExtensions(string language, IReadOnlyList<AnalyzerReference> analyzerReferences)
+    public static ImmutableArray<TExtension> GetExtensions(string language, IReadOnlyList<AnalyzerReference> analyzerReferences, IExtensionManager extensionManager)
     {
         if (TryGetCachedExtensions(analyzerReferences, out var providers))
             return providers;
 
-        return GetExtensionsSlow(language, analyzerReferences);
+        return GetExtensionsSlow(language, analyzerReferences, extensionManager);
 
-        static ImmutableArray<TExtension> GetExtensionsSlow(string language, IReadOnlyList<AnalyzerReference> analyzerReferences)
-            => s_referencesToExtensionsMap.GetValue(analyzerReferences, _ => new(ComputeExtensions(language, analyzerReferences))).Value;
+        static ImmutableArray<TExtension> GetExtensionsSlow(string language, IReadOnlyList<AnalyzerReference> analyzerReferences, IExtensionManager extensionManager)
+            => s_referencesToExtensionsMap.GetValue(analyzerReferences, _ => new(ComputeExtensions(language, analyzerReferences, extensionManager))).Value;
 
-        static ImmutableArray<TExtension> ComputeExtensions(string language, IReadOnlyList<AnalyzerReference> analyzerReferences)
+        static ImmutableArray<TExtension> ComputeExtensions(string language, IReadOnlyList<AnalyzerReference> analyzerReferences, IExtensionManager extensionManager)
         {
             using var _ = ArrayBuilder<TExtension>.GetInstance(out var builder);
             foreach (var reference in analyzerReferences)
             {
                 var provider = s_referenceToProviderMap.GetValue(
-                    reference, static reference => new TProvider() { Reference = reference });
+                    reference, reference => new TProvider() { Reference = reference, ExtensionManager = extensionManager });
                 foreach (var extension in provider.GetExtensions(language))
                     builder.Add(extension);
             }
@@ -153,38 +157,44 @@ internal abstract class AbstractProjectExtensionProvider<TProvider, TExtension, 
 
         using var _ = ArrayBuilder<TExtension>.GetInstance(out var builder);
 
-        try
+        this.ExtensionManager.PerformAction(analyzerFileReference.FullPath, LoadExtensionAssembly);
+
+        return builder.ToImmutableAndClear();
+
+        void LoadExtensionAssembly()
         {
             var analyzerAssembly = analyzerFileReference.GetAssembly();
             var typeInfos = analyzerAssembly.DefinedTypes;
 
             foreach (var typeInfo in typeInfos)
             {
+                if (typeof(CodeFixProvider).IsAssignableFrom(typeInfo))
+                {
+                    throw new Exception("External");
+                }
+
                 if (typeof(TExtension).IsAssignableFrom(typeInfo))
                 {
-                    try
-                    {
-                        var attribute = typeInfo.GetCustomAttribute<TExportAttribute>();
-                        if (attribute is not null)
-                        {
-                            var languages = GetLanguages(attribute);
-                            if (languages.Contains(language))
-                                builder.AddIfNotNull((TExtension?)Activator.CreateInstance(typeInfo.AsType()));
-                        }
-                    }
-                    catch
-                    {
-                    }
+                    this.ExtensionManager.PerformAction(typeInfo.Name, () => LoadExtensionType(typeInfo));
                 }
             }
         }
-        catch
-        {
-            // REVIEW: is the below message right?
-            // NOTE: We could report "unable to load analyzer" exception here but it should have been already reported by DiagnosticService.
-        }
 
-        return builder.ToImmutableAndClear();
+        void LoadExtensionType(System.Reflection.TypeInfo typeInfo)
+        {
+            if (typeof(CodeFixProvider).IsAssignableFrom(typeInfo))
+            {
+                throw new Exception("Internal");
+            }
+
+            var attribute = typeInfo.GetCustomAttribute<TExportAttribute>();
+            if (attribute is not null)
+            {
+                var languages = GetLanguages(attribute);
+                if (languages.Contains(language))
+                    builder.AddIfNotNull((TExtension?)Activator.CreateInstance(typeInfo.AsType()));
+            }
+        }
 
         static AnalyzerFileReference? GetAnalyzerFileReference(AnalyzerReference reference)
         {

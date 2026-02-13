@@ -10,6 +10,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
@@ -53,7 +54,8 @@ internal sealed class EditorLayerExtensionManager(
                 or CodeRefactoringProvider
                 or RefactorAllProvider
                 or FixAllProvider
-                or CompletionProvider)
+                or CompletionProvider
+                or AnalyzerFileReference)
             {
                 if (!IsIgnored(provider))
                 {
