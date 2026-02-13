@@ -29,12 +29,12 @@
       </trans-unit>
       <trans-unit id="FeatureName_CopilotChangeAnalysis">
         <source>Copilot change analysis</source>
-        <target state="new">Copilot change analysis</target>
+        <target state="translated">Copilot 변경 분석</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_CopilotProposalAdjuster">
         <source>Copilot proposal adjuster</source>
-        <target state="new">Copilot proposal adjuster</target>
+        <target state="translated">Copilot 제안 조정기</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_DependentTypeFinder">
@@ -69,12 +69,12 @@
       </trans-unit>
       <trans-unit id="FeatureName_ExtensionMessageHandler">
         <source>Extension message handler</source>
-        <target state="new">Extension message handler</target>
+        <target state="translated">확장 메시지 처리기</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_ExtensionMethodImportCompletion">
         <source>Extension method import completion</source>
-        <target state="translated">확장 메서드 가져오기 완료</target>
+        <target state="new">Extension method import completion</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_FindUsages">
@@ -99,7 +99,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_Initialization">
         <source>Initialization</source>
-        <target state="new">Initialization</target>
+        <target state="translated">초기화</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_KeepAlive">

@@ -144,7 +144,7 @@
       </trans-unit>
       <trans-unit id="Convert_0_extension_methods_to_extension">
         <source>Convert '{0}' extension methods to extension</source>
-        <target state="new">Convert '{0}' extension methods to extension</target>
+        <target state="translated">將 '{0}' 延伸模組方法轉換為延伸模組</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_0_to_record">
@@ -154,7 +154,7 @@
       </trans-unit>
       <trans-unit id="Convert_all_extension_methods_in_0_to_extension">
         <source>Convert all extension methods in '{0}' to extension</source>
-        <target state="new">Convert all extension methods in '{0}' to extension</target>
+        <target state="translated">將 '{0}' 中的所有延伸模組方法轉換為延伸模組</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_method">

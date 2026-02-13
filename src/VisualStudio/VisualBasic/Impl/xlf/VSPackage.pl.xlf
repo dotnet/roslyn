@@ -33,21 +33,21 @@ Collapse #regions on file open;
 Collapse Imports on file open;
 Collapse metadata implementations on file open;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="translated">Podkreślanie ponownie przypisanych zmiennych;Wyświatlnie wskazówek śródwierszowych; Automatyczne wstawianie konstrukcji końcowych; Zmiana ustawień wyświetlania listy;Zmiana trybu konspektu; Automatyczne wstawianie elementów członkowskich Interfejs i Należy Zastąpić; Pokazywanie lub ukrywanie separatorów wierszy procedury; Włączanie lub wyłączanie sugestii poprawek błędów; Włączanie lub wyłączanie wyróżnianie odwołań i słów kluczowych;
-Wyrażenie regularne;
-Wyrażenia regularne;
-Powiązane składniki pod kursorem;
-Zgłaszanie nieprawidłowych wyrażeń regularnych;
-wyrażenie regularne;
-wyrażenie regularne; 
-JSON, 
-Kolorowanie ciągów JSON; 
-Zgłaszanie nieprawidłowych ciągów JSON;
-Wykrywanie i oferowanie funkcji edytowania dla ciągów JSON;
-Zwijanie #regions przy otwieraniu pliku;
-Zwijanie importów przy otwieraniu pliku;
-Zwijanie implementacji metadanych przy otwieraniu pliku;
-Używanie rozszerzonych kolorów; Schemat kolorów edytora;Margines dziedziczenia;Dyrektywy importu;</target>
+        <target state="new">Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
+Regex;
+regular expressions;
+related components under cursor;
+Report invalid regular expressions;
+regex;
+regular expression;
+JSON;
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
+Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">

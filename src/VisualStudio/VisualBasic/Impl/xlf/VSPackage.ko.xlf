@@ -33,21 +33,21 @@ Collapse #regions on file open;
 Collapse Imports on file open;
 Collapse metadata implementations on file open;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="translated">재할당된 변수에 밑줄 표시, 인라인 힌트 표시, 최종 구문 자동 삽입, 예쁜 목록 설정 변경, 개요 모드 변경, Interface 및 MustOverride 구성원 자동 삽입, 절차 줄 구분 기호 표시 또는 숨기기, 오류 수정 제안 켜기 또는 끄기, 참조 강조 표시 끄기 및 키워드 켜기 또는 끄기, 
-정규식,
-정규식,
-커서 아래에 있는 관련 구성 요소,
-잘못된 정규식 보고,
-정규식,
-정규식,
-JSON,
-JSON 문자열 색상 지정,
-잘못된 JSON 문자열 보고,
-감지 및 제공 JSON 문자열용 편집기 기능,
-파일 열기 시 #regions 축소,
-파일 열기 시 가져오기 축소,
-파일 열기 시 메타데이터 구현 축소,
-향상된 색상 사용, 편집기 색상 구성표, 상속 여백, 지시문 가져오기,</target>
+        <target state="new">Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
+Regex;
+regular expressions;
+related components under cursor;
+Report invalid regular expressions;
+regex;
+regular expression;
+JSON;
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
+Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
