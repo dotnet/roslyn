@@ -9,13 +9,18 @@ using System.IO.Compression;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+
+#pragma warning disable CA2007 // We are OK awaiting tasks since we're following Visual Studio threading rules in this file
 
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
 {
@@ -38,12 +43,14 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
                 return;
             }
 
-            Log(serviceProvider, saveDialog.FileName);
+            var threadingContext = serviceProvider.GetMefService<IThreadingContext>();
+
+            threadingContext.JoinableTaskFactory.RunAsync(() => LogAsync(serviceProvider, threadingContext, saveDialog.FileName));
         }
 
-        public static void Log(IServiceProvider serviceProvider, string path)
+        public static async Task LogAsync(IServiceProvider serviceProvider, IThreadingContext threadingContext, string path)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
             Assumes.Present(componentModel);
@@ -83,9 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
                     projectElement.SetAttributeValue("path", SanitizePath(project.FilePath ?? "(none)"));
                     projectElement.SetAttributeValue("outputPath", SanitizePath(project.OutputFilePath ?? "(none)"));
 
-#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
-                    var hasSuccessfullyLoaded = project.HasSuccessfullyLoadedAsync(cancellationToken).Result;
-#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
+                    var hasSuccessfullyLoaded = await project.HasSuccessfullyLoadedAsync(cancellationToken);
                     projectElement.SetAttributeValue("hasSuccessfullyLoaded", hasSuccessfullyLoaded);
 
                     // Dump MSBuild <Reference> nodes
@@ -103,10 +108,12 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
                     }
 
                     // Dump DTE references
-                    var langProjProject = TryFindLangProjProject(dte, project);
+                    var langProjProject = await TryFindLangProjProjectAsync(threadingContext, dte, project);
 
                     if (langProjProject != null)
                     {
+                        // Use of DTE is going to require the UI thread
+                        await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
                         var dteReferences = new XElement("dteReferences");
                         projectElement.Add(dteReferences);
 
@@ -147,16 +154,14 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
                         workspaceReferencesElement.Add(referenceElement);
                     }
 
-                    projectElement.Add(new XElement("workspaceDocuments", CreateElementsForDocumentCollection(project.Documents, "document", cancellationToken)));
-                    projectElement.Add(new XElement("workspaceAdditionalDocuments", CreateElementsForDocumentCollection(project.AdditionalDocuments, "additionalDocuments", cancellationToken)));
+                    projectElement.Add(new XElement("workspaceDocuments", await CreateElementsForDocumentCollectionAsync(project.Documents, "document", cancellationToken)));
+                    projectElement.Add(new XElement("workspaceAdditionalDocuments", await CreateElementsForDocumentCollectionAsync(project.AdditionalDocuments, "additionalDocuments", cancellationToken)));
 
-                    projectElement.Add(new XElement("workspaceAnalyzerConfigDocuments", CreateElementsForDocumentCollection(project.AnalyzerConfigDocuments, "analyzerConfigDocument", cancellationToken)));
+                    projectElement.Add(new XElement("workspaceAnalyzerConfigDocuments", await CreateElementsForDocumentCollectionAsync(project.AnalyzerConfigDocuments, "analyzerConfigDocument", cancellationToken)));
 
                     // Dump references from the compilation; this should match the workspace but can help rule out
                     // cross-language reference bugs or other issues like that
-#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits -- this is fine since it's a Roslyn API
-                    var compilation = project.GetCompilationAsync(cancellationToken).Result;
-#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
+                    var compilation = await project.GetCompilationAsync(cancellationToken);
 
                     if (compilation != null)
                     {
@@ -213,26 +218,26 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
             }
         }
 
-        private static VSLangProj.VSProject? TryFindLangProjProject(EnvDTE.DTE dte, Project project)
+        private static async Task<VSLangProj.VSProject?> TryFindLangProjProjectAsync(IThreadingContext threadingContext, EnvDTE.DTE dte, Project project)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var dteProject = dte.Solution.Projects.Cast<EnvDTE.Project>().FirstOrDefault(
-                p =>
+            foreach (EnvDTE.Project p in dte.Solution.Projects)
+            {
+                try
                 {
-                    ThreadHelper.ThrowIfNotOnUIThread();
-                    try
+                    if (string.Equals(p.FullName, project.FilePath, StringComparison.OrdinalIgnoreCase))
                     {
-                        return string.Equals(p.FullName, project.FilePath, StringComparison.OrdinalIgnoreCase);
+                        return p.Object as VSLangProj.VSProject;
                     }
-                    catch (NotImplementedException)
-                    {
-                        // Some EnvDTE.Projects will throw on p.FullName, so just bail in that case.
-                        return false;
-                    }
-                });
+                }
+                catch (NotImplementedException)
+                {
+                    // Some EnvDTE.Projects will throw on p.FullName, so just bail in that case.
+                }
+            }
 
-            return dteProject?.Object as VSLangProj.VSProject;
+            return null;
         }
 
         private static string SanitizePath(string s)
@@ -315,8 +320,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
                 typesElement);
         }
 
-        public static IEnumerable<XElement> CreateElementsForDocumentCollection(IEnumerable<TextDocument> documents, string elementName, CancellationToken cancellationToken)
+        public static async Task<IEnumerable<XElement>> CreateElementsForDocumentCollectionAsync(IEnumerable<TextDocument> documents, string elementName, CancellationToken cancellationToken)
         {
+            var elements = new List<XElement>();
+
             foreach (var document in documents)
             {
                 var documentElement = new XElement(elementName, new XAttribute("path", SanitizePath(document.FilePath ?? "(none)")));
@@ -327,15 +334,17 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
                     documentElement.SetAttributeValue("clientName", clientName);
                 }
 
-                var loadDiagnostic = document.State.GetFailedToLoadExceptionMessageAsync(cancellationToken).Result;
+                var loadDiagnostic = await document.State.GetFailedToLoadExceptionMessageAsync(cancellationToken);
 
                 if (loadDiagnostic != null)
                 {
                     documentElement.Add(new XElement("loadDiagnostic", loadDiagnostic));
                 }
 
-                yield return documentElement;
+                elements.Add(documentElement);
             }
+
+            return elements;
         }
 
         private sealed class ThreadedWaitCallback : IVsThreadedWaitDialogCallback
