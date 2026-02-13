@@ -6,6 +6,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -1375,6 +1376,82 @@ Block[B9] - Exit
     Statements (0)
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [Theory, WorkItem(51715, "https://github.com/dotnet/roslyn/issues/51715")]
+        [InlineData("static")]
+        [InlineData("")]
+        public void Invocation_LocalFunction_01(string modifier)
+        {
+            var code = @"
+using System;
+
+/*<bind>*/localFunction()/*</bind>*/;
+
+" + modifier + @" void localFunction() {}
+";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedTree = @"
+IInvocationOperation (void localFunction()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'localFunction()')
+  Instance Receiver:
+    null
+  Arguments(0)
+";
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, expectedTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(51715, "https://github.com/dotnet/roslyn/issues/51715")]
+        public void Invocation_LocalFunction_02()
+        {
+            var code = @"
+using System;
+
+int localVariable = 1;
+/*<bind>*/localFunction()/*</bind>*/;
+
+int localFunction() => localVariable;
+";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedTree = @"
+IInvocationOperation (System.Int32 localFunction()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'localFunction()')
+  Instance Receiver:
+    null
+  Arguments(0)
+";
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, expectedTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(51715, "https://github.com/dotnet/roslyn/issues/51715")]
+        public void Invocation_LocalFunction_03()
+        {
+            var code = @"
+using System;
+
+int localVariable = 1;
+/*<bind>*/localFunction()/*</bind>*/;
+
+static int localFunction() => localVariable;
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[]
+            {
+                // (7,31): error CS8421: A static local function cannot contain a reference to 'localVariable'.
+                // static int localFunction() => localVariable;
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "localVariable").WithArguments("localVariable").WithLocation(7, 31)
+            };
+
+            var expectedTree = @"
+IInvocationOperation (System.Int32 localFunction()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'localFunction()')
+  Instance Receiver:
+    null
+  Arguments(0)
+";
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, expectedTree, expectedDiagnostics);
         }
     }
 }
