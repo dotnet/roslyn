@@ -89,6 +89,8 @@ public sealed class MyAnalyzer : DiagnosticAnalyzer
 
 ## Essential Build & Test Commands
 
+Always set `DOTNET_CLI_WORKLOAD_UPDATE_NOTIFY_DISABLE=1` before running any `dotnet` command to prevent workload update checks that require network access and can cause build failures in restricted environments.
+
 ```bash
 # Full build
 .build.sh

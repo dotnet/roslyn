@@ -12,6 +12,7 @@
 ## Development Workflow
 
 **Building**:
+- Always set `DOTNET_CLI_WORKLOAD_UPDATE_NOTIFY_DISABLE=1` before running any `dotnet` command to prevent workload update checks that require network access and can cause build failures in restricted environments
 - `build.sh` - Full solution build
 - `dotnet build Compilers.slnf` - Compiler-only build  
 - `dotnet msbuild <path to csproj> /t:UpdateXlf` - Update .xlf files when their corresponding .resx file is modified
