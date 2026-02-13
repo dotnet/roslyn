@@ -462,12 +462,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_the_application">
         <source>Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</source>
-        <target state="new">Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</target>
+        <target state="translated">變更 {1} 的虛擬自訂屬性 '{0}' 需要重新啟動應用程式</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_source_file_0_in_a_project_1_that_does_not_support_hot_reload_requires_restarting_the_application_2">
         <source>Changing source file '{0}' in a project '{1}' that does not support Hot Reload requires restarting the application; {2}</source>
-        <target state="new">Changing source file '{0}' in a project '{1}' that does not support Hot Reload requires restarting the application; {2}</target>
+        <target state="translated">變更不支援熱重新載入的專案 '{1}' 中的來源檔案 '{0}' 需要重新啟動應用程式; {2}</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_source_file_0_in_a_stale_project_1_has_no_effect_until_the_project_is_rebuilt_2">
@@ -477,7 +477,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_the_application">
         <source>Changing the containing namespace of '{0}' from '{1}' to '{2}' requires restarting the application</source>
-        <target state="new">Changing the containing namespace of '{0}' from '{1}' to '{2}' requires restarting the application</target>
+        <target state="translated">將包含的命名空間 '{0}' 從 '{1}' 變更為 '{2}' 需要重新啟動應用程式</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application">
@@ -3177,7 +3177,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="_0_does_not_support_Hot_Reload">
         <source>{0} does not support Hot Reload.</source>
-        <target state="new">{0} does not support Hot Reload.</target>
+        <target state="translated">{0} 不支援熱重新載入。</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_expected">
