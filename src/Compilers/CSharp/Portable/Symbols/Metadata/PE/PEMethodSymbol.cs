@@ -1807,21 +1807,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private bool ComputeRequiresUnsafe(bool hasRequiresUnsafeAttribute)
         {
-            return ContainingModule.UseUpdatedMemorySafetyRules
-                ? hasRequiresUnsafeAttribute || associatedSymbolIsCallerUnsafe()
-                // This might be expensive, so we cache it in _packedFlags.
-                : this.HasParameterContainingPointerType() || ReturnType.ContainsPointerOrFunctionPointer();
-
-            bool associatedSymbolIsCallerUnsafe()
+            if (ContainingModule.UseUpdatedMemorySafetyRules)
             {
-                if (AssociatedSymbol is { } associatedSymbol)
-                {
-                    Debug.Assert(associatedSymbol.CallerUnsafeMode is CallerUnsafeMode.None or CallerUnsafeMode.Explicit);
-                    return associatedSymbol.CallerUnsafeMode == CallerUnsafeMode.Explicit;
-                }
+                Debug.Assert(AssociatedSymbol?.CallerUnsafeMode != CallerUnsafeMode.Implicit);
 
-                return false;
+                return hasRequiresUnsafeAttribute || AssociatedSymbol?.CallerUnsafeMode == CallerUnsafeMode.Explicit;
             }
+
+            // This might be expensive, so we cache it in _packedFlags.
+            return this.HasParameterContainingPointerType() || ReturnType.ContainsPointerOrFunctionPointer();
         }
 
         internal sealed override CallerUnsafeMode CallerUnsafeMode
