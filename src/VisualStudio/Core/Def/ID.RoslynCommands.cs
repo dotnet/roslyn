@@ -51,5 +51,7 @@ internal static partial class ID
         public const int SolutionExplorerSymbolItemGoToBase = 0x402;
         public const int SolutionExplorerSymbolItemGoToImplementation = 0x403;
         public const int SolutionExplorerSymbolItemFindAllReferences = 0x404;
+
+        public const int LogRoslynWorkspaceStructure = 0x500;
     }
 }

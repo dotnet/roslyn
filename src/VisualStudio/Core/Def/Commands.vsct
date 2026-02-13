@@ -576,6 +576,18 @@
           <ToolTipText>Sort By Type</ToolTipText>
         </Strings>
       </Button>
+
+      <Button guid="guidRoslynGrpId" id="cmdidLogWorkspaceStructure" priority="0x0200" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_TOOLS_EXT_TOOLS" />
+        <Icon guid="ImageCatalogGuid" id="Log" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Log Roslyn Workspace Structure</ButtonText>
+          <CommandName>LogRoslynWorkspaceStructure</CommandName>
+          <CanonicalName>LogRoslynWorkspaceStructure</CanonicalName>
+          <LocCanonicalName>LogRoslynWorkspaceStructure</LocCanonicalName>
+        </Strings>
+      </Button>
     </Buttons>
 
     <Menus>
@@ -820,6 +832,8 @@
       <IDSymbol name="cmdidSolutionExplorerSymbolItemGoToBase"            value="0x0401" />
       <IDSymbol name="cmdidSolutionExplorerSymbolItemGoToImplementation"  value="0x0402" />
       <IDSymbol name="cmdidSolutionExplorerSymbolItemFindAllReferences"   value="0x0403" />
+
+      <IDSymbol name="cmdidLogWorkspaceStructure" value="0x0500" />
     </GuidSymbol>
 
     <GuidSymbol name="guidCSharpInteractiveCommandSet" value="{1492db0a-85a2-4e43-bf0d-ce55b89a8cc6}">
