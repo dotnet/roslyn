@@ -130,6 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var getAwaiter = (BoundExpression?)this.Visit(node.GetAwaiter);
             var isCompleted = VisitPropertySymbol(node.IsCompleted);
+            Debug.Assert(isCompleted is null || isCompleted.GetMethod is not null, "IsCompleted property must have a getter");
             var getResult = VisitMethodSymbol(node.GetResult);
 
             _placeholderMap.Remove(awaitablePlaceholder);

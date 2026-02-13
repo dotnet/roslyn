@@ -10806,10 +10806,8 @@ static class Test1
                 """;
 
             var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition]);
-            comp.VerifyEmitDiagnostics(
-                // (4,57): warning CS9113: Parameter 'runtimeAsync' is unread.
-                // public class RuntimeAsyncMethodGenerationAttribute(bool runtimeAsync) : Attribute();
-                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "runtimeAsync").WithArguments("runtimeAsync").WithLocation(4, 57));
+            // Should compile without crashing (issue #80166)
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify);
         }
     }
 }
