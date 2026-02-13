@@ -126,12 +126,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             GetReturnTypeAttributes();
 
             var compilation = DeclaringCompilation;
+            var location = Syntax.Identifier.GetLocation();
 
-            if (CallerUnsafeMode.NeedsRequiresUnsafeAttribute())
+            if (NeedsSynthesizedRequiresUnsafeAttribute)
             {
-                var location = Syntax.Identifier.GetLocation();
+                Debug.Assert(CallerUnsafeMode == CallerUnsafeMode.Explicit);
                 MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(addTo, compilation, location);
-                compilation.EnsureRequiresUnsafeAttributeExists(addTo, location, modifyCompilation: false);
+                Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Runtime_CompilerServices_RequiresUnsafeAttribute__ctor, addTo, location);
             }
 
             ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, addTo, modifyCompilation: false);
@@ -150,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ContainingSymbol is SynthesizedSimpleProgramEntryPointSymbol &&
                 compilation.HasEntryPointSignature(this, diagnostics).IsCandidate)
             {
-                addTo.Add(ErrorCode.WRN_MainIgnored, Syntax.Identifier.GetLocation(), this);
+                addTo.Add(ErrorCode.WRN_MainIgnored, location, this);
             }
 
             addTo.AddRangeAndFree(diagnostics);

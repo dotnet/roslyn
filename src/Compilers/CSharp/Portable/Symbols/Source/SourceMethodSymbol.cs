@@ -99,19 +99,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool IsUnsafe { get; }
 
+        internal bool HasRequiresUnsafeAttribute => GetDecodedWellKnownAttributeData()?.HasRequiresUnsafeAttribute == true;
+
         internal sealed override CallerUnsafeMode CallerUnsafeMode
         {
             get
             {
                 if (ContainingModule.UseUpdatedMemorySafetyRules)
                 {
-                    return IsUnsafe || IsExtern
+                    Debug.Assert(AssociatedSymbol?.CallerUnsafeMode != CallerUnsafeMode.Implicit);
+
+                    return HasRequiresUnsafeAttribute || IsExtern || AssociatedSymbol?.CallerUnsafeMode == CallerUnsafeMode.Explicit
                         ? CallerUnsafeMode.Explicit
                         : CallerUnsafeMode.None;
                 }
 
                 return this.HasParameterContainingPointerType() || ReturnType.ContainsPointerOrFunctionPointer()
                     ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
+            }
+        }
+
+        protected bool NeedsSynthesizedRequiresUnsafeAttribute
+        {
+            get
+            {
+                return ContainingModule.UseUpdatedMemorySafetyRules &&
+                    !HasRequiresUnsafeAttribute &&
+                    (IsExtern || AssociatedSymbol?.IsExtern == true);
             }
         }
 
@@ -135,12 +149,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(target));
             }
 
-            if (target.CallerUnsafeMode.NeedsRequiresUnsafeAttribute())
-            {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute(target));
-            }
-
             var compilation = target.DeclaringCompilation;
+
+            if (target is SourceMethodSymbol { NeedsSynthesizedRequiresUnsafeAttribute: true })
+            {
+                Debug.Assert(target.CallerUnsafeMode == CallerUnsafeMode.Explicit);
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiresUnsafeAttribute__ctor));
+            }
 
             if (compilation.ShouldEmitNullableAttributes(target) &&
                 target.ShouldEmitNullableContextValue(out byte nullableContextValue))

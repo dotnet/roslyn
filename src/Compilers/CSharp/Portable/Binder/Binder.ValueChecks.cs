@@ -1866,6 +1866,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                // Unsafe member access for compound assignment is checked against the accessors elsewhere.
+                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, eventSymbol, eventSyntax);
+
                 if (!boundEvent.IsUsableAsField)
                 {
                     // Dev10 reports this in addition to ERR_BadAccess, but we won't even reach this point if the event isn't accessible (caught by lookup).
