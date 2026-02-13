@@ -6777,9 +6777,10 @@ class X : List<int>
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81520")]
         public void CollectionExpression_Constructor_With9_A()
         {
-            var source = $$"""
+            var source = """
                 using System;
                 using System.Collections.Generic;
                 class C
@@ -6801,11 +6802,46 @@ class X : List<int>
                 }
                 """;
 
-            // https://github.com/dotnet/roslyn/issues/81520: expect a diagnostic for the possibility of 'stackSpan' being assigned to 'heapSpan'
-            CompileAndVerify(
+            CreateCompilation(
                 [source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition],
-                targetFramework: TargetFramework.Net90,
-                verify: Verification.Fails).VerifyDiagnostics();
+                targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+                // (10,25): error CS8350: This combination of arguments to 'R.R(ref Span<int>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                //         R r = [with(ref heapSpan), stackSpan];
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "heapSpan").WithArguments("R.R(ref System.Span<int>)", "a").WithLocation(10, 25));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81520")]
+        public void CollectionExpression_Constructor_With9_A_ObjectInitializerEquivalent()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    void M()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        R r = new R(ref heapSpan) { stackSpan };
+                    }
+                }
+                ref struct R : IEnumerable<Span<int>>
+                {
+                    public R(ref Span<int> a) { }
+                    public void Add(Span<int> i) { }
+                    public IEnumerator<Span<int>> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilation(
+                [source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition],
+                targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+                // (10,25): error CS8350: This combination of arguments to 'R.R(ref Span<int>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                //         R r = new R(ref heapSpan) { stackSpan };
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "heapSpan").WithArguments("R.R(ref System.Span<int>)", "a").WithLocation(10, 25));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
