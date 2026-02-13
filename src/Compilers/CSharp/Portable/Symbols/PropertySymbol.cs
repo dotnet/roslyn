@@ -166,8 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var property = (PropertySymbol)this.GetLeastOverriddenMember(this.ContainingType);
-                return (object)property.SetMethod == null;
+                return this.GetOwnOrInheritedSetMethod() is null;
             }
         }
 
@@ -178,8 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var property = (PropertySymbol)this.GetLeastOverriddenMember(this.ContainingType);
-                return (object)property.GetMethod == null;
+                return this.GetOwnOrInheritedGetMethod() is null;
             }
         }
 
