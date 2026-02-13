@@ -991,7 +991,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                             overridingMemberLocation);
 
                             CheckCallerUnsafeMismatch(
-                                overriddenEvent,
+                                implementedMember: null,
                                 overridingEvent,
                                 ErrorCode.ERR_CallerUnsafeOverridingSafe,
                                 overridingMemberLocation,
@@ -1214,7 +1214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     invokedAsExtensionMethod: false);
 
                 CheckCallerUnsafeMismatch(
-                    overriddenMethod,
+                    implementedMember: null,
                     overridingMethod,
                     ErrorCode.ERR_CallerUnsafeOverridingSafe,
                     overridingMemberLocation,
@@ -1563,19 +1563,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal static void CheckCallerUnsafeMismatch<TArg>(
-            Symbol? overriddenMember,
+            Symbol? implementedMember,
             Symbol? overridingMember,
             ErrorCode errorCode,
             TArg arg,
             Func<TArg, Location> overridingMemberLocation,
             BindingDiagnosticBag diagnostics)
         {
-            if (overriddenMember is null || overridingMember is null)
+            if (overridingMember is null)
             {
                 return;
             }
 
-            var leastOverriddenMember = overriddenMember.GetLeastOverriddenMember(overriddenMember.ContainingType);
+            var leastOverriddenMember = implementedMember ?? overridingMember.GetLeastOverriddenMember(overridingMember.ContainingType);
             if (overridingMember.CallerUnsafeMode == CallerUnsafeMode.Explicit && leastOverriddenMember.CallerUnsafeMode == CallerUnsafeMode.None)
             {
                 diagnostics.Add(errorCode, overridingMemberLocation(arg), overridingMember, leastOverriddenMember);
