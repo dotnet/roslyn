@@ -186,7 +186,7 @@ stages:
     container: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream9
     pool:
       ${{ if eq(variables['System.TeamProject'], 'public') }}:
-        name: $[replace(replace(eq(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), 'true'), True, 'NetCore-Svc-Public' ), False, 'NetCore-Public')]
+        name: $[replace(replace(eq(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), 'true'), True, 'NetCore-Svc-Public' ), False, 'NetCore-Public-Test')]
         demands: ImageOverride -equals Build.Ubuntu.2204.Amd64.Open
 
       ${{ if eq(variables['System.TeamProject'], 'internal') }}:
@@ -217,7 +217,7 @@ stages:
         testArguments: -testDesktop -testArch x86
         helixQueueName: $(HelixWindowsVsQueueName)
         helixApiAccessToken: $(HelixApiAccessToken)
-        poolParameters: ${{ parameters.windowsPool }}
+        poolParameters: NetCore-Public-Test
 
   - template: eng/pipelines/test-windows-job.yml
     parameters:
@@ -228,7 +228,7 @@ stages:
       testArguments: -testDesktop -testArch x64
       helixQueueName: $(HelixWindowsVsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
-      poolParameters: ${{ parameters.windowsPool }}
+      poolParameters: NetCore-Public-Test
 
 - stage: Windows_Release_Desktop
   dependsOn: Windows_Release_Build
@@ -245,7 +245,7 @@ stages:
       testArguments: -testDesktop -testArch x86
       helixQueueName: $(HelixWindowsVsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
-      poolParameters: ${{ parameters.windowsPool }}
+      poolParameters: NetCore-Public-Test
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job.yml
@@ -257,7 +257,7 @@ stages:
         testArguments: -testDesktop -testArch x64
         helixQueueName: $(HelixWindowsVsQueueName)
         helixApiAccessToken: $(HelixApiAccessToken)
-        poolParameters: ${{ parameters.windowsPool }}
+        poolParameters: NetCore-Public-Test
 
   - template: eng/pipelines/test-windows-job.yml
     parameters:
@@ -285,7 +285,7 @@ stages:
       testArguments: -testCoreClr
       helixQueueName: $(HelixWindowsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
-      poolParameters: ${{ parameters.windowsPool }}
+      poolParameters: NetCore-Public-Test
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job.yml
@@ -318,7 +318,7 @@ stages:
       testArguments: -testCoreClr -testIOperation -testCompilerOnly
       helixQueueName: $(HelixWindowsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
-      poolParameters: ${{ parameters.windowsPool }}
+      poolParameters: NetCore-Public-Test
 
   - template: eng/pipelines/test-windows-job.yml
     parameters:
@@ -342,7 +342,7 @@ stages:
       testArguments: -testCoreClr -testUsedAssemblies -testCompilerOnly
       helixQueueName: $(HelixWindowsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
-      poolParameters: ${{ parameters.windowsPool }}
+      poolParameters: NetCore-Public-Test
 
 - stage: Windows_Release_CoreClr
   dependsOn: Windows_Release_Build
@@ -359,7 +359,7 @@ stages:
       testArguments: -testCoreClr
       helixQueueName: $(HelixWindowsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
-      poolParameters: ${{ parameters.windowsPool }}
+      poolParameters: NetCore-Public-Test
 
 - stage: Unix_Debug_CoreClr
   dependsOn: Unix_Build
