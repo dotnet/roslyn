@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CallHierarchy;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.CallHierarchy;
@@ -30,9 +31,10 @@ internal sealed class MethodCallFinder : AbstractCallFinder
 
     public override string SearchCategory => CallHierarchyPredefinedSearchCategoryNames.Callers;
 
-    protected override async Task<IEnumerable<SymbolCallerInfo>> GetCallersAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+    protected override Task<IEnumerable<SymbolCallerInfo>> GetCallersAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
     {
-        var callers = await SymbolFinder.FindCallersAsync(symbol, project.Solution, documents, cancellationToken).ConfigureAwait(false);
-        return callers.Where(c => c.IsDirect);
+        // Use shared helper to find direct callers
+        return CallHierarchyHelpers.FindDirectCallersAsync(symbol, project.Solution, documents, cancellationToken)
+            .ContinueWith(t => t.Result.Where(c => c.IsDirect), cancellationToken);
     }
 }

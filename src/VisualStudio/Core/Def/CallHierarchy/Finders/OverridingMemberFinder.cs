@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CallHierarchy;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.CallHierarchy;
@@ -31,7 +32,8 @@ internal sealed class OverridingMemberFinder : AbstractCallFinder
 
     protected override async Task SearchWorkerAsync(ISymbol symbol, Project project, ICallHierarchySearchCallback callback, IImmutableSet<Document> documents, CancellationToken cancellationToken)
     {
-        var overrides = await SymbolFinder.FindOverridesAsync(symbol, project.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+        // Use shared helper to find overriding members
+        var overrides = await CallHierarchyHelpers.FindOverridingMembersAsync(symbol, project.Solution, cancellationToken).ConfigureAwait(false);
 
         foreach (var @override in overrides)
         {
