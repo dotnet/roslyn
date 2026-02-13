@@ -43,6 +43,7 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ConcurrentLruCache.cs">
       <Link>Shared\ConcurrentLruCache.cs</Link>
     </Compile>
+    <Content Include="UnifiedSettings\roslynSettings.registration.json" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
     <Compile Update="VSPackage.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

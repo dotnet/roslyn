@@ -22,7 +22,7 @@ internal interface ILegacySolutionEventsAggregationService : IWorkspaceService
 {
     bool ShouldReportChanges(SolutionServices services);
 
-    ValueTask OnWorkspaceChangedAsync(WorkspaceChangeEventArgs args, CancellationToken cancellationToken);
+    ValueTask OnWorkspaceChangedAsync(WorkspaceChangeEventArgs args, bool processSourceGeneratedDocuments, CancellationToken cancellationToken);
 }
 
 [ExportWorkspaceService(typeof(ILegacySolutionEventsAggregationService)), Shared]
@@ -44,9 +44,9 @@ internal sealed class DefaultLegacySolutionEventsAggregationService(
         return false;
     }
 
-    public async ValueTask OnWorkspaceChangedAsync(WorkspaceChangeEventArgs args, CancellationToken cancellationToken)
+    public async ValueTask OnWorkspaceChangedAsync(WorkspaceChangeEventArgs args, bool processSourceGeneratedDocuments, CancellationToken cancellationToken)
     {
         foreach (var service in _eventsServices)
-            await service.Value.OnWorkspaceChangedAsync(args, cancellationToken).ConfigureAwait(false);
+            await service.Value.OnWorkspaceChangedAsync(args, processSourceGeneratedDocuments, cancellationToken).ConfigureAwait(false);
     }
 }
