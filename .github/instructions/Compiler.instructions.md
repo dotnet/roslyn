@@ -44,6 +44,9 @@ public class MyTests : CSharpTestBase
 ## Build & Test Workflows
 
 ### Essential Build Commands
+
+Always set `DOTNET_CLI_WORKLOAD_UPDATE_NOTIFY_DISABLE=1` before running any `dotnet` command to prevent workload update checks that require network access and can cause build failures in restricted environments.
+
 ```powershell
 # Full build (use VS Code tasks when available)
 ./build.sh
