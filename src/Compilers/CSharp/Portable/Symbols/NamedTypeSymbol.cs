@@ -766,7 +766,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var baseAllRequiredMembers = BaseTypeNoUseSiteDiagnostics?.AllRequiredMembers ?? ImmutableSegmentedDictionary<string, Symbol>.Empty;
                 var hasDeclaredRequiredMembers = HasDeclaredRequiredMembers;
 
-                foreach (var member in GetMembersUnordered())
+                // Iterate over members of the original definition to avoid realizing GetMembersUnordered() for
+                // substituted symbols. Substituted symbols are only realized for uncommon cases where they are
+                // necessary for checks against members from the base type.
+                foreach (var member in OriginalDefinition.GetMembersUnordered())
                 {
                     if (member is PropertySymbol { ParameterCount: > 0 } prop)
                     {
@@ -781,11 +784,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                     }
 
+                    if (member.IsRequired())
+                    {
+                        // On the success path (which we want to optimize for), this member will need to be added to
+                        // requiredMembersBuilder. Add it before all checks are complete to ensure we only need to call
+                        // SymbolAsMember once.
+                        requiredMembersBuilder ??= baseAllRequiredMembers.ToBuilder();
+                        requiredMembersBuilder[member.Name] = member.SymbolAsMember(this);
+                    }
+
                     if (baseAllRequiredMembers.TryGetValue(member.Name, out var existingMember))
                     {
                         // This is only permitted if the member is an override of a required member from a base type, and is required itself.
                         if (!member.IsRequired()
-                            || member.GetOverriddenMember() is not { } overriddenMember
+                            || requiredMembersBuilder![member.Name].GetOverriddenMember() is not { } overriddenMember
                             || !overriddenMember.Equals(existingMember, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.AllNullableIgnoreOptions))
                         {
                             return false;
@@ -802,10 +814,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // Bad metadata. Type claimed it didn't declare any required members, but we found one.
                         return false;
                     }
-
-                    requiredMembersBuilder ??= baseAllRequiredMembers.ToBuilder();
-
-                    requiredMembersBuilder[member.Name] = member;
                 }
 
                 return true;
