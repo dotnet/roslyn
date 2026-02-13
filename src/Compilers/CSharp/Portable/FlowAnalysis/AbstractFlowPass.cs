@@ -945,7 +945,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     WasCompilerGenerated: true,
                     DeclaredType: null,
-                    InputType: NamedTypeSymbol { TypeKind: TypeKind.Struct, IsUnionTypeNoUseSiteDiagnostics: true } inputType,
+                    InputType: NamedTypeSymbol { TypeKind: TypeKind.Struct, IsUnionType: true } inputType,
                     DeconstructMethod: null,
                     Deconstruction: { IsDefault: true },
                     Properties:
@@ -961,8 +961,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     VariableAccess: null,
                     IsUnionMatching: false,
                 } rewritten &&
-                (possibleUnionValueSymbol is null ||
-                 (possibleUnionValueSymbol.ContainingType.IsWellKnownTypeIUnion() && Binder.IsUnionTypeValueProperty(inputType, possibleUnionValueSymbol))))
+                (possibleUnionValueSymbol is null || Binder.IsUnionTypeValueProperty(inputType, possibleUnionValueSymbol)))
             {
                 Debug.Assert(!inputType.IsNullableType());
                 Debug.Assert(!negated);

@@ -1048,6 +1048,21 @@ next:;
                 return (null, null);
             }
 
+            if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.UnionAttribute))
+            {
+                (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out hasAnyDiagnostics);
+                if (!attributeData.HasErrors && attributeData.CommonConstructorArguments.IsEmpty)
+                {
+                    arguments.GetOrCreateData<TypeEarlyWellKnownAttributeData>().HasUnionAttribute = true;
+                    if (!hasAnyDiagnostics)
+                    {
+                        return (attributeData, boundAttribute);
+                    }
+                }
+
+                return (null, null);
+            }
+
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
         }
 #nullable disable
@@ -1450,6 +1465,14 @@ next:;
         }
 
 #nullable enable
+        internal override bool HasUnionAttribute
+        {
+            get
+            {
+                return GetEarlyDecodedWellKnownAttributeData()?.HasUnionAttribute == true;
+            }
+        }
+
         internal sealed override bool IsInterpolatedStringHandlerType
             => GetEarlyDecodedWellKnownAttributeData()?.HasInterpolatedStringHandlerAttribute == true;
 #nullable disable

@@ -981,7 +981,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return UserDefinedConversionResult.NoApplicableOperators(u);
         }
 
-        private Conversion AnalyzeImplicitUnionConversions(
+        protected virtual Conversion AnalyzeImplicitUnionConversions(
             BoundExpression sourceExpression,
             TypeSymbol source,
             TypeSymbol target,
@@ -991,7 +991,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(sourceExpression != null || (object)source != null);
             Debug.Assert((object)target != null);
 
-            if (target.StrippedType() is not NamedTypeSymbol namedTarget || !namedTarget.IsUnionTypeWithUseSiteDiagnostics(ref useSiteInfo))
+            if (target.StrippedType() is not NamedTypeSymbol namedTarget || !namedTarget.IsUnionType)
             {
                 return Conversion.NoConversion;
             }

@@ -1798,26 +1798,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns>True if this is an interface type.</returns>
         internal abstract bool IsInterface { get; }
 
-        internal bool IsUnionTypeNoUseSiteDiagnostics
+        internal bool IsUnionType
         {
             get
             {
                 return TypeKind is TypeKind.Class or TypeKind.Struct &&
-                       AllInterfacesNoUseSiteDiagnostics.Any(static (i) => i.IsWellKnownTypeIUnion());
+                       HasUnionAttribute;
             }
         }
 
-        internal bool IsUnionTypeWithUseSiteDiagnostics(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            return TypeKind is TypeKind.Class or TypeKind.Struct &&
-                   AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo).Any(static (i) => i.IsWellKnownTypeIUnion());
-        }
+        internal abstract bool HasUnionAttribute { get; }
 
         internal ImmutableArray<TypeSymbol> UnionCaseTypes
         {
             get
             {
-                if (!IsUnionTypeNoUseSiteDiagnostics)
+                if (!IsUnionType)
                 {
                     return [];
                 }

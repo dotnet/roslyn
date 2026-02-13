@@ -2048,8 +2048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case PropertySymbol { Name: WellKnownMemberNames.ValuePropertyName } property when
                         variable.ContainingSlot is > 0 and var containingSlot &&
-                        property.ContainingType.IsWellKnownTypeIUnion() &&
-                        _variables[containingSlot].Symbol.GetTypeOrReturnType().Type is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true, UnionCaseTypes: not [] } unionType &&
+                        _variables[containingSlot].Symbol.GetTypeOrReturnType().Type is NamedTypeSymbol { IsUnionType: true, UnionCaseTypes: not [] } unionType &&
                         Binder.IsUnionTypeValueProperty(unionType, property):
                     {
                         // For union types where none of the case types are nullable, the default state for Value is "not null" rather than "maybe null".
@@ -4416,7 +4415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (constructor is not null &&
                         constructor.ContainingType.Equals(type, TypeCompareKind.AllIgnoreOptions) &&
-                        type is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true } unionType &&
+                        type is NamedTypeSymbol { IsUnionType: true } unionType &&
                         NamedTypeSymbol.IsSuitableUnionConstructor(constructor))
                     {
                         valueProperty = Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(unionType);
@@ -9492,7 +9491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case ConversionKind.Union:
                         {
-                            Debug.Assert(targetField.TypeWithAnnotations.Type.StrippedType() is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true });
+                            Debug.Assert(targetField.TypeWithAnnotations.Type.StrippedType() is NamedTypeSymbol { IsUnionType: true });
                             int targetFieldSlot = GetOrCreateSlot(targetField, slot);
 
                             TypeWithState valueFieldType = ApplyUnconditionalAnnotations(valueField.TypeWithAnnotations.ToTypeWithState(), GetRValueAnnotations(valueField));
@@ -10584,7 +10583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (trackMembers && (conversionOpt is { } || targetInstanceSlotOpt > 0) &&
-                targetTypeWithNullability.Type.StrippedType() is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true } unionType &&
+                targetTypeWithNullability.Type.StrippedType() is NamedTypeSymbol { IsUnionType: true } unionType &&
                 Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(unionType) is { } valueProperty)
             {
                 // When a union constructor is called through a union conversion, the new union's Value gets the null state of the incoming value.
@@ -12142,7 +12141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 nullableOfTMember = GetNullableOfTMember(member);
 
                 if (member is PropertySymbol { Name: WellKnownMemberNames.HasValuePropertyName } property &&
-                    receiverType.Type is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true } unionType &&
+                    receiverType.Type is NamedTypeSymbol { IsUnionType: true } unionType &&
                     Binder.IsUnionTypeHasValueProperty(unionType, property))
                 {
                     unionValue = Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(unionType);

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private partial void Validate()
         {
-            Debug.Assert(UnionType is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true });
+            Debug.Assert(UnionType is NamedTypeSymbol { IsUnionType: true });
             Debug.Assert(InputType.Equals(LeftOfPendingConjunction?.InputType ?? UnionType, TypeCompareKind.AllIgnoreOptions));
             Debug.Assert(UnionType == (object)(LeftOfPendingConjunction?.NarrowedType ?? InputType));
             Debug.Assert(NarrowedType == (object)ValuePattern.NarrowedType);

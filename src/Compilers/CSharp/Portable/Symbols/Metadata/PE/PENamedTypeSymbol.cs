@@ -150,6 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal ThreeState lazyHasCompilerLoweringPreserveAttribute = ThreeState.Unknown;
             internal ThreeState lazyHasInterpolatedStringHandlerAttribute = ThreeState.Unknown;
             internal ThreeState lazyHasRequiredMembers = ThreeState.Unknown;
+            internal ThreeState lazyHasUnionAttribute = ThreeState.Unknown;
 
             internal ImmutableArray<byte> lazyFilePathChecksum = default;
             internal string lazyDisplayFileName;
@@ -168,8 +169,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     lazyDefaultMemberName == null &&
                     (object)lazyComImportCoClassType == (object)ErrorTypeSymbol.UnknownResultType &&
                     !lazyHasEmbeddedAttribute.HasValue() &&
+                    !lazyHasCompilerLoweringPreserveAttribute.HasValue() &&
                     !lazyHasInterpolatedStringHandlerAttribute.HasValue() &&
                     !lazyHasRequiredMembers.HasValue() &&
+                    !lazyHasUnionAttribute.HasValue() &&
                     (object)lazyCollectionBuilderAttributeData == CollectionBuilderAttributeData.Uninitialized &&
                     lazyFilePathChecksum.IsDefault &&
                     lazyDisplayFileName == null &&
@@ -689,6 +692,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 return uncommon.lazyHasCompilerLoweringPreserveAttribute.Value();
+            }
+        }
+
+        internal override bool HasUnionAttribute
+        {
+            get
+            {
+                var uncommon = GetUncommonProperties();
+                if (uncommon == s_noUncommonProperties)
+                {
+                    return false;
+                }
+
+                if (!uncommon.lazyHasUnionAttribute.HasValue())
+                {
+                    uncommon.lazyHasUnionAttribute = ContainingPEModule.Module.FindTargetAttribute(_handle, AttributeDescription.UnionAttribute).HasValue.ToThreeState();
+                }
+
+                return uncommon.lazyHasUnionAttribute.Value();
             }
         }
 

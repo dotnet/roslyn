@@ -121,6 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
         internal override bool HasCodeAnalysisEmbeddedAttribute => true;
         internal override bool HasCompilerLoweringPreserveAttribute => false;
+        internal override bool HasUnionAttribute => false;
         internal override bool IsInterpolatedStringHandlerType => false;
         internal sealed override ParameterSymbol? ExtensionParameter => null;
         internal override bool HasSpecialName => false;
