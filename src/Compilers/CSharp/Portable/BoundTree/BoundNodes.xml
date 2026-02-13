@@ -1673,6 +1673,9 @@
     <Field Name="Target" Type="BoundDagTemp"/>
   </Node>
 
+  <Node Name="BoundDagPassThroughEvaluation" Base="BoundDagEvaluation" UpdateMethodModifiers="new">
+  </Node>
+
   <Node Name="BoundSwitchSection" Base="BoundStatementList">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="SwitchLabels" Type="ImmutableArray&lt;BoundSwitchLabel&gt;"/>

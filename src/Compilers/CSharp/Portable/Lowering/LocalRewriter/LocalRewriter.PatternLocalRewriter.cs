@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 argBuilder.Add(expression);
                             }
 
-                            Debug.Assert(method.Name == WellKnownMemberNames.DeconstructMethodName);
+                            Debug.Assert(method.Name is WellKnownMemberNames.DeconstructMethodName or WellKnownMemberNames.TryGetValueMethodName);
                             if (method.IsStatic)
                             {
                                 Debug.Assert(method.IsExtensionMethod);
@@ -189,9 +189,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             outParamTemps.Free();
 
+                            BoundExpression returnValue = null;
+                            if (!method.ReturnsVoid)
+                            {
+                                Debug.Assert(method.Name is WellKnownMemberNames.TryGetValueMethodName);
+                                Debug.Assert(method.ReturnType.SpecialType == SpecialType.System_Boolean);
+                                returnValue = _tempAllocator.GetTemp(d.MakeReturnValueTemp());
+                            }
+
                             // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, Consider preserving the BoundConversion from initial binding instead of using markAsChecked here
                             receiver = _localRewriter.ConvertReceiverForExtensionMemberIfNeeded(method, receiver, markAsChecked: true);
-                            return _factory.Call(receiver, method, refKindBuilder.ToImmutableAndFree(), argBuilder.ToImmutableAndFree());
+                            BoundExpression result = _factory.Call(receiver, method, refKindBuilder.ToImmutableAndFree(), argBuilder.ToImmutableAndFree());
+
+                            if (returnValue is not null)
+                            {
+                                result = _factory.AssignmentExpression(returnValue, result);
+                            }
+
+                            return result;
                         }
 
                     case BoundDagTypeEvaluation t:
@@ -308,6 +323,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             BoundExpression left = _tempAllocator.GetTemp(e.Target);
                             BoundExpression right = _tempAllocator.GetTemp(e.Input);
                             return _factory.AssignmentExpression(left, right);
+                        }
+                    case BoundDagPassThroughEvaluation:
+                        {
+                            return input;
                         }
                     default:
                         throw ExceptionUtilities.UnexpectedValue(evaluation);

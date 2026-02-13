@@ -10,4 +10,5 @@ virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.V
 
 const Microsoft.CodeAnalysis.WellKnownMemberNames.IUnionInterfaceName = "IUnion" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.HasValuePropertyName = "HasValue" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.TryGetValueMethodName = "TryGetValue" -> string!
 Microsoft.CodeAnalysis.Operations.CommonConversion.IsUnion.get -> bool

@@ -11725,6 +11725,6906 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(400, 13)
                 );
         }
+
+        [Fact]
+        public void NonBoxingUnionMatching_15_TryGetValue_Struct()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public bool TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
+
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+        System.Console.Write(Test1(new S1(""a"")));
+        System.Console.Write(Test2(new S1(2)));
+        System.Console.Write(Test2(new S1()));
+        System.Console.Write(Test2(new S1(""b"")));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+
+    static bool Test2(S1 u)
+    {
+        return u is not int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseTrueTrue").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool S1.TryGetValue(out int)""
+  IL_0009:  ret
+}
+");
+
+            verifier.VerifyIL("S1.Test2", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool S1.TryGetValue(out int)""
+  IL_0009:  ldc.i4.0
+  IL_000a:  ceq
+  IL_000c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_16_TryGetValue_Class()
+        {
+            var src = @"
+class S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public bool TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
+
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1(null)));
+        System.Console.Write(Test1(new S1(""a"")));
+        System.Console.Write(Test1(null));
+        System.Console.Write(Test2(new S1(2)));
+        System.Console.Write(Test2(new S1(null)));
+        System.Console.Write(Test2(new S1(""b"")));
+        System.Console.Write(Test2(null));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+
+    static bool Test2(S1 u)
+    {
+        return u is not int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalseTrueTrueFalse").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_000c
+  IL_0003:  ldarg.0
+  IL_0004:  ldloca.s   V_0
+  IL_0006:  callvirt   ""bool S1.TryGetValue(out int)""
+  IL_000b:  ret
+  IL_000c:  ldc.i4.0
+  IL_000d:  ret
+}
+");
+
+            verifier.VerifyIL("S1.Test2", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_000f
+  IL_0003:  ldarg.0
+  IL_0004:  ldloca.s   V_0
+  IL_0006:  callvirt   ""bool S1.TryGetValue(out int)""
+  IL_000b:  ldc.i4.0
+  IL_000c:  ceq
+  IL_000e:  ret
+  IL_000f:  ldc.i4.0
+  IL_0010:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_17_TryGetValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(object x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public bool TryGetValue(out object x) { x = _value; return x != null; }
+
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+        System.Console.Write(Test1(new S1(""a"")));
+        System.Console.Write(Test2(new S1(2)));
+        System.Console.Write(Test2(new S1()));
+        System.Console.Write(Test2(new S1(""b"")));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is object;
+    }   
+
+    static bool Test2(S1 u)
+    {
+        return u is not object;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueFalseTrueFalse").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (object V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool S1.TryGetValue(out object)""
+  IL_0009:  ret
+}
+");
+
+            verifier.VerifyIL("S1.Test2", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (object V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool S1.TryGetValue(out object)""
+  IL_0009:  ldc.i4.0
+  IL_000a:  ceq
+  IL_000c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_18_TryGetValue_Plus_HasValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(object x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public bool TryGetValue(out object x) { x = _value; return x != null; }
+    public bool HasValue => _value != null;
+
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+        System.Console.Write(Test1(new S1(""a"")));
+        System.Console.Write(Test2(new S1(2)));
+        System.Console.Write(Test2(new S1()));
+        System.Console.Write(Test2(new S1(""b"")));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is object;
+    }   
+
+    static bool Test2(S1 u)
+    {
+        return u is not object;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueFalseTrueFalse").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool S1.HasValue.get""
+  IL_0007:  ret
+}
+");
+
+            verifier.VerifyIL("S1.Test2", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool S1.HasValue.get""
+  IL_0007:  ldc.i4.0
+  IL_0008:  ceq
+  IL_000a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_19_HasValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(object x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public bool HasValue => _value != null;
+
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+        System.Console.Write(Test1(new S1(""a"")));
+        System.Console.Write(Test2(new S1(2)));
+        System.Console.Write(Test2(new S1()));
+        System.Console.Write(Test2(new S1(""b"")));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is object;
+    }   
+
+    static bool Test2(S1 u)
+    {
+        return u is not object;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueFalseTrueFalse").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool S1.HasValue.get""
+  IL_0007:  ret
+}
+");
+
+            verifier.VerifyIL("S1.Test2", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool S1.HasValue.get""
+  IL_0007:  ldc.i4.0
+  IL_0008:  ceq
+  IL_000a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_20_HasValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(object x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public bool HasValue => _value != null;
+
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+        System.Console.Write(Test1(new S1(""a"")));
+    }
+
+    static int Test1(S1 u)
+    {
+        return u switch { null => 0, int => 1, _ => 2};
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "102").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool S1.HasValue.get""
+  IL_0007:  brfalse.s  IL_001f
+  IL_0009:  ldarga.s   V_0
+  IL_000b:  constrained. ""S1""
+  IL_0011:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_0016:  isinst     ""int""
+  IL_001b:  brtrue.s   IL_0023
+  IL_001d:  br.s       IL_0027
+  IL_001f:  ldc.i4.0
+  IL_0020:  stloc.0
+  IL_0021:  br.s       IL_0029
+  IL_0023:  ldc.i4.1
+  IL_0024:  stloc.0
+  IL_0025:  br.s       IL_0029
+  IL_0027:  ldc.i4.2
+  IL_0028:  stloc.0
+  IL_0029:  ldloc.0
+  IL_002a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_21_TryGetValue_Struct()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public bool TryGetValue(out string x) { x = _value as string; return x != null; }
+
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+        System.Console.Write(Test1(new S1(""a"")));
+        System.Console.Write(Test2(new S1(2)));
+        System.Console.Write(Test2(new S1()));
+        System.Console.Write(Test2(new S1(""b"")));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is ""a"";
+    }   
+
+    static bool Test2(S1 u)
+    {
+        return u is not ""b"";
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseTrueTrueTrueFalse").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  .locals init (string V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool S1.TryGetValue(out string)""
+  IL_0009:  brfalse.s  IL_0017
+  IL_000b:  ldloc.0
+  IL_000c:  ldstr      ""a""
+  IL_0011:  call       ""bool string.op_Equality(string, string)""
+  IL_0016:  ret
+  IL_0017:  ldc.i4.0
+  IL_0018:  ret
+}
+");
+
+            verifier.VerifyIL("S1.Test2", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  .locals init (string V_0,
+                bool V_1)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool S1.TryGetValue(out string)""
+  IL_0009:  brfalse.s  IL_0018
+  IL_000b:  ldloc.0
+  IL_000c:  ldstr      ""b""
+  IL_0011:  call       ""bool string.op_Equality(string, string)""
+  IL_0016:  brtrue.s   IL_001c
+  IL_0018:  ldc.i4.1
+  IL_0019:  stloc.1
+  IL_001a:  br.s       IL_001e
+  IL_001c:  ldc.i4.0
+  IL_001d:  stloc.1
+  IL_001e:  ldloc.1
+  IL_001f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_22_TryGetValue_Class()
+        {
+            var src = @"
+class S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public bool TryGetValue(out string x) { x = _value as string; return x != null; }
+
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1(null)));
+        System.Console.Write(Test1(new S1(""a"")));
+        System.Console.Write(Test1(null));
+        System.Console.Write(Test2(new S1(2)));
+        System.Console.Write(Test2(new S1(null)));
+        System.Console.Write(Test2(new S1(""b"")));
+        System.Console.Write(Test2(null));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is ""a"";
+    }   
+
+    static bool Test2(S1 u)
+    {
+        return u is not ""b"";
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseTrueFalseTrueTrueFalseFalse").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  .locals init (string V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0019
+  IL_0003:  ldarg.0
+  IL_0004:  ldloca.s   V_0
+  IL_0006:  callvirt   ""bool S1.TryGetValue(out string)""
+  IL_000b:  brfalse.s  IL_0019
+  IL_000d:  ldloc.0
+  IL_000e:  ldstr      ""a""
+  IL_0013:  call       ""bool string.op_Equality(string, string)""
+  IL_0018:  ret
+  IL_0019:  ldc.i4.0
+  IL_001a:  ret
+}
+");
+
+            verifier.VerifyIL("S1.Test2", @"
+{
+  // Code size       34 (0x22)
+  .maxstack  2
+  .locals init (string V_0,
+                bool V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_001e
+  IL_0003:  ldarg.0
+  IL_0004:  ldloca.s   V_0
+  IL_0006:  callvirt   ""bool S1.TryGetValue(out string)""
+  IL_000b:  brfalse.s  IL_001a
+  IL_000d:  ldloc.0
+  IL_000e:  ldstr      ""b""
+  IL_0013:  call       ""bool string.op_Equality(string, string)""
+  IL_0018:  brtrue.s   IL_001e
+  IL_001a:  ldc.i4.1
+  IL_001b:  stloc.1
+  IL_001c:  br.s       IL_0020
+  IL_001e:  ldc.i4.0
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_23_TryGetValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public bool TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
+
+    static void Main()
+    {
+        System.Console.Write(Test1((new S1(1), 1)));
+        System.Console.Write(Test1((new S1(), 1)));
+        System.Console.Write(Test1((new S1(""a""), 1)));
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (int, 1) or (int, 2);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalse").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       39 (0x27)
+  .maxstack  2
+  .locals init (S1 V_0,
+            int V_1,
+            int V_2,
+            bool V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  call       ""bool S1.TryGetValue(out int)""
+  IL_0010:  brfalse.s  IL_0023
+  IL_0012:  ldarg.0
+  IL_0013:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0018:  stloc.2
+  IL_0019:  ldloc.2
+  IL_001a:  ldc.i4.1
+  IL_001b:  sub
+  IL_001c:  ldc.i4.1
+  IL_001d:  bgt.un.s   IL_0023
+  IL_001f:  ldc.i4.1
+  IL_0020:  stloc.3
+  IL_0021:  br.s       IL_0025
+  IL_0023:  ldc.i4.0
+  IL_0024:  stloc.3
+  IL_0025:  ldloc.3
+  IL_0026:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_24_TryGetValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool TryGetValue(out int x)
+    {
+        System.Console.Write(""TryGetValue "");
+        if (_value is int v)
+        {
+            x = v;
+            return true;
+        }
+
+        x = 0;
+        return false;
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test1((new S1(1), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 1)));
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (null, 2) or (int, 1);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "get_Value TryGetValue True; get_Value True; get_Value False; get_Value TryGetValue False").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       61 (0x3d)
+  .maxstack  2
+  .locals init (S1 V_0,
+            int V_1,
+            bool V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  constrained. ""S1""
+  IL_000f:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_0014:  brtrue.s   IL_0021
+  IL_0016:  ldarg.0
+  IL_0017:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_001c:  ldc.i4.2
+  IL_001d:  beq.s      IL_0035
+  IL_001f:  br.s       IL_0039
+  IL_0021:  ldloca.s   V_0
+  IL_0023:  ldloca.s   V_1
+  IL_0025:  call       ""bool S1.TryGetValue(out int)""
+  IL_002a:  brfalse.s  IL_0039
+  IL_002c:  ldarg.0
+  IL_002d:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0032:  ldc.i4.1
+  IL_0033:  bne.un.s   IL_0039
+  IL_0035:  ldc.i4.1
+  IL_0036:  stloc.2
+  IL_0037:  br.s       IL_003b
+  IL_0039:  ldc.i4.0
+  IL_003a:  stloc.2
+  IL_003b:  ldloc.2
+  IL_003c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_25_TryGetValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool TryGetValue(out int x)
+    {
+        System.Console.Write(""TryGetValue "");
+        if (_value is int v)
+        {
+            x = v;
+            return true;
+        }
+
+        x = 0;
+        return false;
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test1((new S1(1), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 1)));
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (int, 1) or (null, 2);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TryGetValue True; TryGetValue get_Value True; TryGetValue get_Value False; TryGetValue get_Value False").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       61 (0x3d)
+  .maxstack  2
+  .locals init (S1 V_0,
+            int V_1,
+            bool V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  call       ""bool S1.TryGetValue(out int)""
+  IL_0010:  brfalse.s  IL_001d
+  IL_0012:  ldarg.0
+  IL_0013:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0018:  ldc.i4.1
+  IL_0019:  beq.s      IL_0035
+  IL_001b:  br.s       IL_0039
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  constrained. ""S1""
+  IL_0025:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_002a:  brtrue.s   IL_0039
+  IL_002c:  ldarg.0
+  IL_002d:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0032:  ldc.i4.2
+  IL_0033:  bne.un.s   IL_0039
+  IL_0035:  ldc.i4.1
+  IL_0036:  stloc.2
+  IL_0037:  br.s       IL_003b
+  IL_0039:  ldc.i4.0
+  IL_003a:  stloc.2
+  IL_003b:  ldloc.2
+  IL_003c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_26_TryGetValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool TryGetValue(out int x)
+    {
+        System.Console.Write(""TryGetValue "");
+        if (_value is int v)
+        {
+            x = v;
+            return true;
+        }
+
+        x = 0;
+        return false;
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test1((new S1(1), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(1), -1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 2)));
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (not null, 2) or (int, 1);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "get_Value TryGetValue True; get_Value TryGetValue False; get_Value False; get_Value False; get_Value TryGetValue False; get_Value True").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       56 (0x38)
+  .maxstack  2
+  .locals init (S1 V_0,
+                int V_1,
+                int V_2,
+                bool V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  constrained. ""S1""
+  IL_000f:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_0014:  brfalse.s  IL_0034
+  IL_0016:  ldarg.0
+  IL_0017:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_001c:  stloc.1
+  IL_001d:  ldloc.1
+  IL_001e:  ldc.i4.2
+  IL_001f:  beq.s      IL_0030
+  IL_0021:  ldloca.s   V_0
+  IL_0023:  ldloca.s   V_2
+  IL_0025:  call       ""bool S1.TryGetValue(out int)""
+  IL_002a:  brfalse.s  IL_0034
+  IL_002c:  ldloc.1
+  IL_002d:  ldc.i4.1
+  IL_002e:  bne.un.s   IL_0034
+  IL_0030:  ldc.i4.1
+  IL_0031:  stloc.3
+  IL_0032:  br.s       IL_0036
+  IL_0034:  ldc.i4.0
+  IL_0035:  stloc.3
+  IL_0036:  ldloc.3
+  IL_0037:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_27_TryGetValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool TryGetValue(out int x)
+    {
+        System.Console.Write(""TryGetValue "");
+        if (_value is int v)
+        {
+            x = v;
+            return true;
+        }
+
+        x = 0;
+        return false;
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test1((new S1(1), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(1), -1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 2)));
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (int, 1) or (not null, 2);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TryGetValue True; TryGetValue False; TryGetValue get_Value False; TryGetValue get_Value False; TryGetValue get_Value False; TryGetValue get_Value True").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       65 (0x41)
+  .maxstack  2
+  .locals init (S1 V_0,
+                int V_1,
+                int V_2,
+                bool V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  call       ""bool S1.TryGetValue(out int)""
+  IL_0010:  brfalse.s  IL_001f
+  IL_0012:  ldarg.0
+  IL_0013:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0018:  stloc.2
+  IL_0019:  ldloc.2
+  IL_001a:  ldc.i4.1
+  IL_001b:  beq.s      IL_0039
+  IL_001d:  br.s       IL_0035
+  IL_001f:  ldloca.s   V_0
+  IL_0021:  constrained. ""S1""
+  IL_0027:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_002c:  brfalse.s  IL_003d
+  IL_002e:  ldarg.0
+  IL_002f:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0034:  stloc.2
+  IL_0035:  ldloc.2
+  IL_0036:  ldc.i4.2
+  IL_0037:  bne.un.s   IL_003d
+  IL_0039:  ldc.i4.1
+  IL_003a:  stloc.3
+  IL_003b:  br.s       IL_003f
+  IL_003d:  ldc.i4.0
+  IL_003e:  stloc.3
+  IL_003f:  ldloc.3
+  IL_0040:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_28_TryGetValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool TryGetValue(out int x)
+    {
+        System.Console.Write(""TryGetValue "");
+        if (_value is int v)
+        {
+            x = v;
+            return true;
+        }
+
+        x = 0;
+        return false;
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test1((new S1(1), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 2)));
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (null, 2) or (not int, 1);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "get_Value TryGetValue False; get_Value True; get_Value False; get_Value True; get_Value TryGetValue True; get_Value TryGetValue False").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       65 (0x41)
+  .maxstack  2
+  .locals init (S1 V_0,
+                int V_1,
+                int V_2,
+                bool V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  constrained. ""S1""
+  IL_000f:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_0014:  brtrue.s   IL_0023
+  IL_0016:  ldarg.0
+  IL_0017:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_001c:  stloc.1
+  IL_001d:  ldloc.1
+  IL_001e:  ldc.i4.2
+  IL_001f:  beq.s      IL_0039
+  IL_0021:  br.s       IL_0035
+  IL_0023:  ldloca.s   V_0
+  IL_0025:  ldloca.s   V_2
+  IL_0027:  call       ""bool S1.TryGetValue(out int)""
+  IL_002c:  brtrue.s   IL_003d
+  IL_002e:  ldarg.0
+  IL_002f:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0034:  stloc.1
+  IL_0035:  ldloc.1
+  IL_0036:  ldc.i4.1
+  IL_0037:  bne.un.s   IL_003d
+  IL_0039:  ldc.i4.1
+  IL_003a:  stloc.3
+  IL_003b:  br.s       IL_003f
+  IL_003d:  ldc.i4.0
+  IL_003e:  stloc.3
+  IL_003f:  ldloc.3
+  IL_0040:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_29_TryGetValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool TryGetValue(out int x)
+    {
+        System.Console.Write(""TryGetValue "");
+        if (_value is int v)
+        {
+            x = v;
+            return true;
+        }
+
+        x = 0;
+        return false;
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test1((new S1(1), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 2)));
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (not int, 1) or (null, 2);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TryGetValue False; TryGetValue get_Value True; TryGetValue get_Value False; TryGetValue True; TryGetValue True; TryGetValue get_Value False").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       56 (0x38)
+  .maxstack  2
+  .locals init (S1 V_0,
+            int V_1,
+            int V_2,
+            bool V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  call       ""bool S1.TryGetValue(out int)""
+  IL_0010:  brtrue.s   IL_0034
+  IL_0012:  ldarg.0
+  IL_0013:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0018:  stloc.2
+  IL_0019:  ldloc.2
+  IL_001a:  ldc.i4.1
+  IL_001b:  beq.s      IL_0030
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  constrained. ""S1""
+  IL_0025:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_002a:  brtrue.s   IL_0034
+  IL_002c:  ldloc.2
+  IL_002d:  ldc.i4.2
+  IL_002e:  bne.un.s   IL_0034
+  IL_0030:  ldc.i4.1
+  IL_0031:  stloc.3
+  IL_0032:  br.s       IL_0036
+  IL_0034:  ldc.i4.0
+  IL_0035:  stloc.3
+  IL_0036:  ldloc.3
+  IL_0037:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_30_TryGetValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    public bool TryGetValue(out int x)
+    {
+        System.Console.Write(""TryGetValue "");
+        if (_value is int v)
+        {
+            x = v;
+            return true;
+        }
+
+        x = 0;
+        return false;
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test1((new S1(1), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 1)));
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (null, 2) or (int, 1);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "HasValue TryGetValue True; HasValue True; HasValue False; HasValue TryGetValue False").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       55 (0x37)
+  .maxstack  2
+  .locals init (S1 V_0,
+            int V_1,
+            bool V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""bool S1.HasValue.get""
+  IL_000e:  brtrue.s   IL_001b
+  IL_0010:  ldarg.0
+  IL_0011:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0016:  ldc.i4.2
+  IL_0017:  beq.s      IL_002f
+  IL_0019:  br.s       IL_0033
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  ldloca.s   V_1
+  IL_001f:  call       ""bool S1.TryGetValue(out int)""
+  IL_0024:  brfalse.s  IL_0033
+  IL_0026:  ldarg.0
+  IL_0027:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_002c:  ldc.i4.1
+  IL_002d:  bne.un.s   IL_0033
+  IL_002f:  ldc.i4.1
+  IL_0030:  stloc.2
+  IL_0031:  br.s       IL_0035
+  IL_0033:  ldc.i4.0
+  IL_0034:  stloc.2
+  IL_0035:  ldloc.2
+  IL_0036:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_31_TryGetValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    public bool TryGetValue(out int x)
+    {
+        System.Console.Write(""TryGetValue "");
+        if (_value is int v)
+        {
+            x = v;
+            return true;
+        }
+
+        x = 0;
+        return false;
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test1((new S1(1), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 1)));
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (int, 1) or (null, 2);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TryGetValue True; TryGetValue HasValue True; TryGetValue HasValue False; TryGetValue HasValue False").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       55 (0x37)
+  .maxstack  2
+  .locals init (S1 V_0,
+            int V_1,
+            bool V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  call       ""bool S1.TryGetValue(out int)""
+  IL_0010:  brfalse.s  IL_001d
+  IL_0012:  ldarg.0
+  IL_0013:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0018:  ldc.i4.1
+  IL_0019:  beq.s      IL_002f
+  IL_001b:  br.s       IL_0033
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  call       ""bool S1.HasValue.get""
+  IL_0024:  brtrue.s   IL_0033
+  IL_0026:  ldarg.0
+  IL_0027:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_002c:  ldc.i4.2
+  IL_002d:  bne.un.s   IL_0033
+  IL_002f:  ldc.i4.1
+  IL_0030:  stloc.2
+  IL_0031:  br.s       IL_0035
+  IL_0033:  ldc.i4.0
+  IL_0034:  stloc.2
+  IL_0035:  ldloc.2
+  IL_0036:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_32_TryGetValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    public bool TryGetValue(out int x)
+    {
+        System.Console.Write(""TryGetValue "");
+        if (_value is int v)
+        {
+            x = v;
+            return true;
+        }
+
+        x = 0;
+        return false;
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test1((new S1(1), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(1), -1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 2)));
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (not null, 2) or (int, 1);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "HasValue TryGetValue True; HasValue TryGetValue False; HasValue False; HasValue False; HasValue TryGetValue False; HasValue True").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       50 (0x32)
+  .maxstack  2
+  .locals init (S1 V_0,
+            int V_1,
+            int V_2,
+            bool V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""bool S1.HasValue.get""
+  IL_000e:  brfalse.s  IL_002e
+  IL_0010:  ldarg.0
+  IL_0011:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0016:  stloc.1
+  IL_0017:  ldloc.1
+  IL_0018:  ldc.i4.2
+  IL_0019:  beq.s      IL_002a
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  ldloca.s   V_2
+  IL_001f:  call       ""bool S1.TryGetValue(out int)""
+  IL_0024:  brfalse.s  IL_002e
+  IL_0026:  ldloc.1
+  IL_0027:  ldc.i4.1
+  IL_0028:  bne.un.s   IL_002e
+  IL_002a:  ldc.i4.1
+  IL_002b:  stloc.3
+  IL_002c:  br.s       IL_0030
+  IL_002e:  ldc.i4.0
+  IL_002f:  stloc.3
+  IL_0030:  ldloc.3
+  IL_0031:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_33_TryGetValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    public bool TryGetValue(out int x)
+    {
+        System.Console.Write(""TryGetValue "");
+        if (_value is int v)
+        {
+            x = v;
+            return true;
+        }
+
+        x = 0;
+        return false;
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test1((new S1(1), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(1), -1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 2)));
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (int, 1) or (not null, 2);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TryGetValue True; TryGetValue False; TryGetValue HasValue False; TryGetValue HasValue False; TryGetValue HasValue False; TryGetValue HasValue True").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  2
+  .locals init (S1 V_0,
+            int V_1,
+            int V_2,
+            bool V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  call       ""bool S1.TryGetValue(out int)""
+  IL_0010:  brfalse.s  IL_001f
+  IL_0012:  ldarg.0
+  IL_0013:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0018:  stloc.2
+  IL_0019:  ldloc.2
+  IL_001a:  ldc.i4.1
+  IL_001b:  beq.s      IL_0033
+  IL_001d:  br.s       IL_002f
+  IL_001f:  ldloca.s   V_0
+  IL_0021:  call       ""bool S1.HasValue.get""
+  IL_0026:  brfalse.s  IL_0037
+  IL_0028:  ldarg.0
+  IL_0029:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_002e:  stloc.2
+  IL_002f:  ldloc.2
+  IL_0030:  ldc.i4.2
+  IL_0031:  bne.un.s   IL_0037
+  IL_0033:  ldc.i4.1
+  IL_0034:  stloc.3
+  IL_0035:  br.s       IL_0039
+  IL_0037:  ldc.i4.0
+  IL_0038:  stloc.3
+  IL_0039:  ldloc.3
+  IL_003a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_34_TryGetValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    public bool TryGetValue(out int x)
+    {
+        System.Console.Write(""TryGetValue "");
+        if (_value is int v)
+        {
+            x = v;
+            return true;
+        }
+
+        x = 0;
+        return false;
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test1((new S1(1), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 2)));
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (null, 2) or (not int, 1);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "HasValue TryGetValue False; HasValue True; HasValue False; HasValue True; HasValue TryGetValue True; HasValue TryGetValue False").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  2
+  .locals init (S1 V_0,
+            int V_1,
+            int V_2,
+            bool V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""bool S1.HasValue.get""
+  IL_000e:  brtrue.s   IL_001d
+  IL_0010:  ldarg.0
+  IL_0011:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0016:  stloc.1
+  IL_0017:  ldloc.1
+  IL_0018:  ldc.i4.2
+  IL_0019:  beq.s      IL_0033
+  IL_001b:  br.s       IL_002f
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  ldloca.s   V_2
+  IL_0021:  call       ""bool S1.TryGetValue(out int)""
+  IL_0026:  brtrue.s   IL_0037
+  IL_0028:  ldarg.0
+  IL_0029:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_002e:  stloc.1
+  IL_002f:  ldloc.1
+  IL_0030:  ldc.i4.1
+  IL_0031:  bne.un.s   IL_0037
+  IL_0033:  ldc.i4.1
+  IL_0034:  stloc.3
+  IL_0035:  br.s       IL_0039
+  IL_0037:  ldc.i4.0
+  IL_0038:  stloc.3
+  IL_0039:  ldloc.3
+  IL_003a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_35_TryGetValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    public bool TryGetValue(out int x)
+    {
+        System.Console.Write(""TryGetValue "");
+        if (_value is int v)
+        {
+            x = v;
+            return true;
+        }
+
+        x = 0;
+        return false;
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test1((new S1(1), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 2)));
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (not int, 1) or (null, 2);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TryGetValue False; TryGetValue HasValue True; TryGetValue HasValue False; TryGetValue True; TryGetValue True; TryGetValue HasValue False").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       50 (0x32)
+  .maxstack  2
+  .locals init (S1 V_0,
+            int V_1,
+            int V_2,
+            bool V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  call       ""bool S1.TryGetValue(out int)""
+  IL_0010:  brtrue.s   IL_002e
+  IL_0012:  ldarg.0
+  IL_0013:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0018:  stloc.2
+  IL_0019:  ldloc.2
+  IL_001a:  ldc.i4.1
+  IL_001b:  beq.s      IL_002a
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  call       ""bool S1.HasValue.get""
+  IL_0024:  brtrue.s   IL_002e
+  IL_0026:  ldloc.2
+  IL_0027:  ldc.i4.2
+  IL_0028:  bne.un.s   IL_002e
+  IL_002a:  ldc.i4.1
+  IL_002b:  stloc.3
+  IL_002c:  br.s       IL_0030
+  IL_002e:  ldc.i4.0
+  IL_002f:  stloc.3
+  IL_0030:  ldloc.3
+  IL_0031:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_36_HasValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test1((new S1(1), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 1)));
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (null, 2) or (int, 1);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "HasValue get_Value True; HasValue True; HasValue False; HasValue get_Value False").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       64 (0x40)
+  .maxstack  2
+  .locals init (S1 V_0,
+            bool V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""bool S1.HasValue.get""
+  IL_000e:  brtrue.s   IL_001b
+  IL_0010:  ldarg.0
+  IL_0011:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0016:  ldc.i4.2
+  IL_0017:  beq.s      IL_0038
+  IL_0019:  br.s       IL_003c
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  constrained. ""S1""
+  IL_0023:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_0028:  isinst     ""int""
+  IL_002d:  brfalse.s  IL_003c
+  IL_002f:  ldarg.0
+  IL_0030:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0035:  ldc.i4.1
+  IL_0036:  bne.un.s   IL_003c
+  IL_0038:  ldc.i4.1
+  IL_0039:  stloc.1
+  IL_003a:  br.s       IL_003e
+  IL_003c:  ldc.i4.0
+  IL_003d:  stloc.1
+  IL_003e:  ldloc.1
+  IL_003f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_37_HasValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test1((new S1(1), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 1)));
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (int, 1) or (null, 2);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "get_Value True; get_Value HasValue True; get_Value HasValue False; get_Value HasValue False").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       64 (0x40)
+  .maxstack  2
+  .locals init (S1 V_0,
+                bool V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  constrained. ""S1""
+  IL_000f:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_0014:  isinst     ""int""
+  IL_0019:  brfalse.s  IL_0026
+  IL_001b:  ldarg.0
+  IL_001c:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0021:  ldc.i4.1
+  IL_0022:  beq.s      IL_0038
+  IL_0024:  br.s       IL_003c
+  IL_0026:  ldloca.s   V_0
+  IL_0028:  call       ""bool S1.HasValue.get""
+  IL_002d:  brtrue.s   IL_003c
+  IL_002f:  ldarg.0
+  IL_0030:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0035:  ldc.i4.2
+  IL_0036:  bne.un.s   IL_003c
+  IL_0038:  ldc.i4.1
+  IL_0039:  stloc.1
+  IL_003a:  br.s       IL_003e
+  IL_003c:  ldc.i4.0
+  IL_003d:  stloc.1
+  IL_003e:  ldloc.1
+  IL_003f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_38_HasValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test1((new S1(1), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(1), -1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 2)));
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (not null, 2) or (int, 1);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "HasValue get_Value True; HasValue get_Value False; HasValue False; HasValue False; HasValue get_Value False; HasValue True").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  2
+  .locals init (S1 V_0,
+            int V_1,
+            bool V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""bool S1.HasValue.get""
+  IL_000e:  brfalse.s  IL_0037
+  IL_0010:  ldarg.0
+  IL_0011:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0016:  stloc.1
+  IL_0017:  ldloc.1
+  IL_0018:  ldc.i4.2
+  IL_0019:  beq.s      IL_0033
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  constrained. ""S1""
+  IL_0023:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_0028:  isinst     ""int""
+  IL_002d:  brfalse.s  IL_0037
+  IL_002f:  ldloc.1
+  IL_0030:  ldc.i4.1
+  IL_0031:  bne.un.s   IL_0037
+  IL_0033:  ldc.i4.1
+  IL_0034:  stloc.2
+  IL_0035:  br.s       IL_0039
+  IL_0037:  ldc.i4.0
+  IL_0038:  stloc.2
+  IL_0039:  ldloc.2
+  IL_003a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_39_HasValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test1((new S1(1), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(1), -1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 2)));
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (int, 1) or (not null, 2);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "get_Value True; get_Value False; get_Value HasValue False; get_Value HasValue False; get_Value HasValue False; get_Value HasValue True").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       68 (0x44)
+  .maxstack  2
+  .locals init (S1 V_0,
+                int V_1,
+                bool V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  constrained. ""S1""
+  IL_000f:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_0014:  isinst     ""int""
+  IL_0019:  brfalse.s  IL_0028
+  IL_001b:  ldarg.0
+  IL_001c:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0021:  stloc.1
+  IL_0022:  ldloc.1
+  IL_0023:  ldc.i4.1
+  IL_0024:  beq.s      IL_003c
+  IL_0026:  br.s       IL_0038
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       ""bool S1.HasValue.get""
+  IL_002f:  brfalse.s  IL_0040
+  IL_0031:  ldarg.0
+  IL_0032:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0037:  stloc.1
+  IL_0038:  ldloc.1
+  IL_0039:  ldc.i4.2
+  IL_003a:  bne.un.s   IL_0040
+  IL_003c:  ldc.i4.1
+  IL_003d:  stloc.2
+  IL_003e:  br.s       IL_0042
+  IL_0040:  ldc.i4.0
+  IL_0041:  stloc.2
+  IL_0042:  ldloc.2
+  IL_0043:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_40_HasValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test1((new S1(1), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 2)));
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (null, 2) or (not int, 1);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "HasValue get_Value False; HasValue True; HasValue False; HasValue True; HasValue get_Value True; HasValue get_Value False").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       68 (0x44)
+  .maxstack  2
+  .locals init (S1 V_0,
+            int V_1,
+            bool V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""bool S1.HasValue.get""
+  IL_000e:  brtrue.s   IL_001d
+  IL_0010:  ldarg.0
+  IL_0011:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0016:  stloc.1
+  IL_0017:  ldloc.1
+  IL_0018:  ldc.i4.2
+  IL_0019:  beq.s      IL_003c
+  IL_001b:  br.s       IL_0038
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  constrained. ""S1""
+  IL_0025:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_002a:  isinst     ""int""
+  IL_002f:  brtrue.s   IL_0040
+  IL_0031:  ldarg.0
+  IL_0032:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0037:  stloc.1
+  IL_0038:  ldloc.1
+  IL_0039:  ldc.i4.1
+  IL_003a:  bne.un.s   IL_0040
+  IL_003c:  ldc.i4.1
+  IL_003d:  stloc.2
+  IL_003e:  br.s       IL_0042
+  IL_0040:  ldc.i4.0
+  IL_0041:  stloc.2
+  IL_0042:  ldloc.2
+  IL_0043:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_41_HasValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test1((new S1(1), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 2)));
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (not int, 1) or (null, 2);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "get_Value False; get_Value HasValue True; get_Value HasValue False; get_Value True; get_Value True; get_Value HasValue False").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  2
+  .locals init (S1 V_0,
+                int V_1,
+                bool V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  constrained. ""S1""
+  IL_000f:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_0014:  isinst     ""int""
+  IL_0019:  brtrue.s   IL_0037
+  IL_001b:  ldarg.0
+  IL_001c:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0021:  stloc.1
+  IL_0022:  ldloc.1
+  IL_0023:  ldc.i4.1
+  IL_0024:  beq.s      IL_0033
+  IL_0026:  ldloca.s   V_0
+  IL_0028:  call       ""bool S1.HasValue.get""
+  IL_002d:  brtrue.s   IL_0037
+  IL_002f:  ldloc.1
+  IL_0030:  ldc.i4.2
+  IL_0031:  bne.un.s   IL_0037
+  IL_0033:  ldc.i4.1
+  IL_0034:  stloc.2
+  IL_0035:  br.s       IL_0039
+  IL_0037:  ldc.i4.0
+  IL_0038:  stloc.2
+  IL_0039:  ldloc.2
+  IL_003a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_42_TryGetValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    public bool TryGetValue(out int x)
+    {
+        System.Console.Write(""TryGetValue(int) "");
+        if (_value is int v)
+        {
+            x = v;
+            return true;
+        }
+
+        x = 0;
+        return false;
+    }
+
+    public bool TryGetValue(out string x)
+    {
+        System.Console.Write(""TryGetValue(string) "");
+        x = _value as string;
+        return x != null;
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test1((new S1(1), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(1), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(1), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 3)));
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (string, 2) or (int, 1);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TryGetValue(string) TryGetValue(int) True; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) False; TryGetValue(string) True; TryGetValue(string) False").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       57 (0x39)
+  .maxstack  2
+  .locals init (S1 V_0,
+            string V_1,
+            int V_2,
+            bool V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  call       ""bool S1.TryGetValue(out string)""
+  IL_0010:  brfalse.s  IL_001d
+  IL_0012:  ldarg.0
+  IL_0013:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0018:  ldc.i4.2
+  IL_0019:  beq.s      IL_0031
+  IL_001b:  br.s       IL_0035
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  ldloca.s   V_2
+  IL_0021:  call       ""bool S1.TryGetValue(out int)""
+  IL_0026:  brfalse.s  IL_0035
+  IL_0028:  ldarg.0
+  IL_0029:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_002e:  ldc.i4.1
+  IL_002f:  bne.un.s   IL_0035
+  IL_0031:  ldc.i4.1
+  IL_0032:  stloc.3
+  IL_0033:  br.s       IL_0037
+  IL_0035:  ldc.i4.0
+  IL_0036:  stloc.3
+  IL_0037:  ldloc.3
+  IL_0038:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_43_TryGetValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    public bool TryGetValue(out string x)
+    {
+        System.Console.Write(""TryGetValue(string) "");
+        x = _value as string;
+        return x != null;
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test1((new S1(1), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(1), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(1), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 3)));
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (string, 2) or (int, 1);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TryGetValue(string) get_Value True; TryGetValue(string) get_Value False; TryGetValue(string) get_Value False; TryGetValue(string) get_Value False; TryGetValue(string) get_Value False; TryGetValue(string) get_Value False; TryGetValue(string) False; TryGetValue(string) True; TryGetValue(string) False").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       66 (0x42)
+  .maxstack  2
+  .locals init (S1 V_0,
+            string V_1,
+            bool V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  call       ""bool S1.TryGetValue(out string)""
+  IL_0010:  brfalse.s  IL_001d
+  IL_0012:  ldarg.0
+  IL_0013:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0018:  ldc.i4.2
+  IL_0019:  beq.s      IL_003a
+  IL_001b:  br.s       IL_003e
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  constrained. ""S1""
+  IL_0025:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_002a:  isinst     ""int""
+  IL_002f:  brfalse.s  IL_003e
+  IL_0031:  ldarg.0
+  IL_0032:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0037:  ldc.i4.1
+  IL_0038:  bne.un.s   IL_003e
+  IL_003a:  ldc.i4.1
+  IL_003b:  stloc.2
+  IL_003c:  br.s       IL_0040
+  IL_003e:  ldc.i4.0
+  IL_003f:  stloc.2
+  IL_0040:  ldloc.2
+  IL_0041:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_44_TryGetValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    public bool TryGetValue(out int x)
+    {
+        System.Console.Write(""TryGetValue(int) "");
+        if (_value is int v)
+        {
+            x = v;
+            return true;
+        }
+
+        x = 0;
+        return false;
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test1((new S1(1), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(1), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(1), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 3)));
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (string, 2) or (int, 1);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "get_Value TryGetValue(int) True; get_Value TryGetValue(int) False; get_Value TryGetValue(int) False; get_Value TryGetValue(int) False; get_Value TryGetValue(int) False; get_Value TryGetValue(int) False; get_Value False; get_Value True; get_Value False").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       66 (0x42)
+  .maxstack  2
+  .locals init (S1 V_0,
+                int V_1,
+                bool V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  constrained. ""S1""
+  IL_000f:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_0014:  isinst     ""string""
+  IL_0019:  brfalse.s  IL_0026
+  IL_001b:  ldarg.0
+  IL_001c:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0021:  ldc.i4.2
+  IL_0022:  beq.s      IL_003a
+  IL_0024:  br.s       IL_003e
+  IL_0026:  ldloca.s   V_0
+  IL_0028:  ldloca.s   V_1
+  IL_002a:  call       ""bool S1.TryGetValue(out int)""
+  IL_002f:  brfalse.s  IL_003e
+  IL_0031:  ldarg.0
+  IL_0032:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0037:  ldc.i4.1
+  IL_0038:  bne.un.s   IL_003e
+  IL_003a:  ldc.i4.1
+  IL_003b:  stloc.2
+  IL_003c:  br.s       IL_0040
+  IL_003e:  ldc.i4.0
+  IL_003f:  stloc.2
+  IL_0040:  ldloc.2
+  IL_0041:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_45_TryGetValue()
+        {
+            var src = @"
+interface I1;
+
+class C11;
+class C12;
+class C13 : C12, I1;
+class C14 : I1;
+class C15 : I1;
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(I1 x) { _value = x; }
+    public S1(C11 x) { _value = x; }
+    public S1(C12 x) { _value = x; }
+    public S1(C14 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    public bool TryGetValue(out I1 x)
+    {
+        System.Console.Write(""TryGetValue(I1) "");
+        x = _value as I1;
+        return x != null;
+    }
+
+    public bool TryGetValue(out C12 x)
+    {
+        System.Console.Write(""TryGetValue(C12) "");
+        x = _value as C12;
+        return x != null;
+    }
+
+    static void Main()
+    {
+        S1[] s = [new S1(), new S1(new C11()), new S1(new C12()), new S1((C12)new C13()), new S1(new C14()), new S1(new C15())]; 
+        int[] i = [1, 2, 3];
+        foreach (var s1 in s)
+        {
+            foreach (var j in i)
+            {
+                var t = Test1((s1, j));
+                System.Console.WriteLine();
+                System.Console.WriteLine(t);
+            }
+        }
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (C12 and I1, 2) or (I1, 1);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t1 = t0.Item1; [1]
+[1]: TryGetValue(C12): (Item1, ReturnItem) t2 = t1; [2]
+[2]: t2.ReturnItem == True ? [3] : [7]
+[3]: t3 = (C12)t2.Item1; [4]
+[4]: t3 is I1 ? [5] : [12]
+[5]: t4 = t0.Item2; [6]
+[6]: t4 == 2 ? [11] : [10]
+[7]: TryGetValue(I1): (Item1, ReturnItem) t5 = t1; [8]
+[8]: t5.ReturnItem == True ? [9] : [12]
+[9]: t4 = t0.Item2; [10]
+[10]: t4 == 1 ? [11] : [12]
+[11]: leaf <isPatternSuccess> `(C12 and I1, 2) or (I1, 1)`
+[12]: leaf <isPatternFailure> `u is (C12 and I1, 2) or (I1, 1)`
+",
+forLowering: true);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+TryGetValue(C12) TryGetValue(I1) 
+False
+TryGetValue(C12) TryGetValue(I1) 
+False
+TryGetValue(C12) TryGetValue(I1) 
+False
+TryGetValue(C12) TryGetValue(I1) 
+False
+TryGetValue(C12) TryGetValue(I1) 
+False
+TryGetValue(C12) TryGetValue(I1) 
+False
+TryGetValue(C12) 
+False
+TryGetValue(C12) 
+False
+TryGetValue(C12) 
+False
+TryGetValue(C12) 
+True
+TryGetValue(C12) 
+True
+TryGetValue(C12) 
+False
+TryGetValue(C12) TryGetValue(I1) 
+True
+TryGetValue(C12) TryGetValue(I1) 
+False
+TryGetValue(C12) TryGetValue(I1) 
+False
+TryGetValue(C12) TryGetValue(I1) 
+True
+TryGetValue(C12) TryGetValue(I1) 
+False
+TryGetValue(C12) TryGetValue(I1) 
+False
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       72 (0x48)
+  .maxstack  2
+  .locals init (S1 V_0,
+                C12 V_1,
+                int V_2,
+                I1 V_3,
+                bool V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  call       ""bool S1.TryGetValue(out C12)""
+  IL_0010:  brfalse.s  IL_0027
+  IL_0012:  ldloc.1
+  IL_0013:  isinst     ""I1""
+  IL_0018:  brfalse.s  IL_0042
+  IL_001a:  ldarg.0
+  IL_001b:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0020:  stloc.2
+  IL_0021:  ldloc.2
+  IL_0022:  ldc.i4.2
+  IL_0023:  beq.s      IL_003d
+  IL_0025:  br.s       IL_0039
+  IL_0027:  ldloca.s   V_0
+  IL_0029:  ldloca.s   V_3
+  IL_002b:  call       ""bool S1.TryGetValue(out I1)""
+  IL_0030:  brfalse.s  IL_0042
+  IL_0032:  ldarg.0
+  IL_0033:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0038:  stloc.2
+  IL_0039:  ldloc.2
+  IL_003a:  ldc.i4.1
+  IL_003b:  bne.un.s   IL_0042
+  IL_003d:  ldc.i4.1
+  IL_003e:  stloc.s    V_4
+  IL_0040:  br.s       IL_0045
+  IL_0042:  ldc.i4.0
+  IL_0043:  stloc.s    V_4
+  IL_0045:  ldloc.s    V_4
+  IL_0047:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_46_TryGetValue()
+        {
+            var src = @"
+interface I1;
+
+class C11;
+class C12;
+class C13 : C12, I1;
+class C14 : I1;
+class C15 : I1;
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(I1 x) { _value = x; }
+    public S1(C11 x) { _value = x; }
+    public S1(C12 x) { _value = x; }
+    public S1(C14 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    public bool TryGetValue(out I1 x)
+    {
+        System.Console.Write(""TryGetValue(I1) "");
+        x = _value as I1;
+        return x != null;
+    }
+
+    public bool TryGetValue(out C12 x)
+    {
+        System.Console.Write(""TryGetValue(C12) "");
+        x = _value as C12;
+        return x != null;
+    }
+
+    static void Main()
+    {
+        S1[] s = [new S1(), new S1(new C11()), new S1(new C12()), new S1((C12)new C13()), new S1(new C14()), new S1(new C15())]; 
+        int[] i = [1, 2, 3];
+        foreach (var s1 in s)
+        {
+            foreach (var j in i)
+            {
+                var t = Test1((s1, j));
+                System.Console.WriteLine();
+                System.Console.WriteLine(t);
+            }
+        }
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (I1, 1) or (C12 and I1, 2);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t1 = t0.Item1; [1]
+[1]: TryGetValue(I1): (Item1, ReturnItem) t2 = t1; [2]
+[2]: t2.ReturnItem == True ? [3] : [9]
+[3]: t3 = t0.Item2; [4]
+[4]: t3 == 1 ? [8] : [5]
+[5]: TryGetValue(C12): (Item1, ReturnItem) t4 = t1; [6]
+[6]: t4.ReturnItem == True ? [7] : [9]
+[7]: t3 == 2 ? [8] : [9]
+[8]: leaf <isPatternSuccess> `(I1, 1) or (C12 and I1, 2)`
+[9]: leaf <isPatternFailure> `u is (I1, 1) or (C12 and I1, 2)`
+",
+forLowering: true);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+TryGetValue(I1) 
+False
+TryGetValue(I1) 
+False
+TryGetValue(I1) 
+False
+TryGetValue(I1) 
+False
+TryGetValue(I1) 
+False
+TryGetValue(I1) 
+False
+TryGetValue(I1) 
+False
+TryGetValue(I1) 
+False
+TryGetValue(I1) 
+False
+TryGetValue(I1) 
+True
+TryGetValue(I1) TryGetValue(C12) 
+True
+TryGetValue(I1) TryGetValue(C12) 
+False
+TryGetValue(I1) 
+True
+TryGetValue(I1) TryGetValue(C12) 
+False
+TryGetValue(I1) TryGetValue(C12) 
+False
+TryGetValue(I1) 
+True
+TryGetValue(I1) TryGetValue(C12) 
+False
+TryGetValue(I1) TryGetValue(C12) 
+False
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       55 (0x37)
+  .maxstack  2
+  .locals init (S1 V_0,
+            I1 V_1,
+            int V_2,
+            C12 V_3,
+            bool V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  call       ""bool S1.TryGetValue(out I1)""
+  IL_0010:  brfalse.s  IL_0031
+  IL_0012:  ldarg.0
+  IL_0013:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0018:  stloc.2
+  IL_0019:  ldloc.2
+  IL_001a:  ldc.i4.1
+  IL_001b:  beq.s      IL_002c
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  ldloca.s   V_3
+  IL_0021:  call       ""bool S1.TryGetValue(out C12)""
+  IL_0026:  brfalse.s  IL_0031
+  IL_0028:  ldloc.2
+  IL_0029:  ldc.i4.2
+  IL_002a:  bne.un.s   IL_0031
+  IL_002c:  ldc.i4.1
+  IL_002d:  stloc.s    V_4
+  IL_002f:  br.s       IL_0034
+  IL_0031:  ldc.i4.0
+  IL_0032:  stloc.s    V_4
+  IL_0034:  ldloc.s    V_4
+  IL_0036:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_47_TryGetValue()
+        {
+            var src = @"
+interface I1;
+
+class C11;
+class C12;
+class C13 : C12, I1;
+class C14 : I1;
+class C15 : I1;
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(I1 x) { _value = x; }
+    public S1(C11 x) { _value = x; }
+    public S1(C12 x) { _value = x; }
+    public S1(C14 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    public bool TryGetValue(out I1 x)
+    {
+        System.Console.Write(""TryGetValue(I1) "");
+        x = _value as I1;
+        return x != null;
+    }
+
+    static void Main()
+    {
+        S1[] s = [new S1(), new S1(new C11()), new S1(new C12()), new S1((C12)new C13()), new S1(new C14()), new S1(new C15())]; 
+        int[] i = [1, 2, 3];
+        foreach (var s1 in s)
+        {
+            foreach (var j in i)
+            {
+                var t = Test1((s1, j));
+                System.Console.WriteLine();
+                System.Console.WriteLine(t);
+            }
+        }
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (C12 and I1, 2) or (I1, 1);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t1 = t0.Item1; [1]
+[1]: t2 = t1.Value; [2]
+[2]: t2 is C12 ? [3] : [7]
+[3]: t3 = (C12)t2; [4]
+[4]: t3 is I1 ? [5] : [12]
+[5]: t4 = t0.Item2; [6]
+[6]: t4 == 2 ? [11] : [10]
+[7]: TryGetValue(I1): (Item1, ReturnItem) t5 = t1; [8]
+[8]: t5.ReturnItem == True ? [9] : [12]
+[9]: t4 = t0.Item2; [10]
+[10]: t4 == 1 ? [11] : [12]
+[11]: leaf <isPatternSuccess> `(C12 and I1, 2) or (I1, 1)`
+[12]: leaf <isPatternFailure> `u is (C12 and I1, 2) or (I1, 1)`
+",
+forLowering: true);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+get_Value TryGetValue(I1) 
+False
+get_Value TryGetValue(I1) 
+False
+get_Value TryGetValue(I1) 
+False
+get_Value TryGetValue(I1) 
+False
+get_Value TryGetValue(I1) 
+False
+get_Value TryGetValue(I1) 
+False
+get_Value 
+False
+get_Value 
+False
+get_Value 
+False
+get_Value 
+True
+get_Value 
+True
+get_Value 
+False
+get_Value TryGetValue(I1) 
+True
+get_Value TryGetValue(I1) 
+False
+get_Value TryGetValue(I1) 
+False
+get_Value TryGetValue(I1) 
+True
+get_Value TryGetValue(I1) 
+False
+get_Value TryGetValue(I1) 
+False
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       83 (0x53)
+  .maxstack  2
+  .locals init (S1 V_0,
+            C12 V_1,
+            int V_2,
+            I1 V_3,
+            bool V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  constrained. ""S1""
+  IL_000f:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_0014:  isinst     ""C12""
+  IL_0019:  stloc.1
+  IL_001a:  ldloc.1
+  IL_001b:  brfalse.s  IL_0032
+  IL_001d:  ldloc.1
+  IL_001e:  isinst     ""I1""
+  IL_0023:  brfalse.s  IL_004d
+  IL_0025:  ldarg.0
+  IL_0026:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_002b:  stloc.2
+  IL_002c:  ldloc.2
+  IL_002d:  ldc.i4.2
+  IL_002e:  beq.s      IL_0048
+  IL_0030:  br.s       IL_0044
+  IL_0032:  ldloca.s   V_0
+  IL_0034:  ldloca.s   V_3
+  IL_0036:  call       ""bool S1.TryGetValue(out I1)""
+  IL_003b:  brfalse.s  IL_004d
+  IL_003d:  ldarg.0
+  IL_003e:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0043:  stloc.2
+  IL_0044:  ldloc.2
+  IL_0045:  ldc.i4.1
+  IL_0046:  bne.un.s   IL_004d
+  IL_0048:  ldc.i4.1
+  IL_0049:  stloc.s    V_4
+  IL_004b:  br.s       IL_0050
+  IL_004d:  ldc.i4.0
+  IL_004e:  stloc.s    V_4
+  IL_0050:  ldloc.s    V_4
+  IL_0052:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_48_TryGetValue()
+        {
+            var src = @"
+interface I1;
+
+class C11;
+class C12;
+class C13 : C12, I1;
+class C14 : I1;
+class C15 : I1;
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(I1 x) { _value = x; }
+    public S1(C11 x) { _value = x; }
+    public S1(C12 x) { _value = x; }
+    public S1(C14 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    public bool TryGetValue(out I1 x)
+    {
+        System.Console.Write(""TryGetValue(I1) "");
+        x = _value as I1;
+        return x != null;
+    }
+
+    static void Main()
+    {
+        S1[] s = [new S1(), new S1(new C11()), new S1(new C12()), new S1((C12)new C13()), new S1(new C14()), new S1(new C15())]; 
+        int[] i = [1, 2, 3];
+        foreach (var s1 in s)
+        {
+            foreach (var j in i)
+            {
+                var t = Test1((s1, j));
+                System.Console.WriteLine();
+                System.Console.WriteLine(t);
+            }
+        }
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (I1, 1) or (C12 and I1, 2);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+TryGetValue(I1) 
+False
+TryGetValue(I1) 
+False
+TryGetValue(I1) 
+False
+TryGetValue(I1) 
+False
+TryGetValue(I1) 
+False
+TryGetValue(I1) 
+False
+TryGetValue(I1) 
+False
+TryGetValue(I1) 
+False
+TryGetValue(I1) 
+False
+TryGetValue(I1) 
+True
+TryGetValue(I1) get_Value 
+True
+TryGetValue(I1) get_Value 
+False
+TryGetValue(I1) 
+True
+TryGetValue(I1) get_Value 
+False
+TryGetValue(I1) get_Value 
+False
+TryGetValue(I1) 
+True
+TryGetValue(I1) get_Value 
+False
+TryGetValue(I1) get_Value 
+False
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       61 (0x3d)
+  .maxstack  2
+  .locals init (S1 V_0,
+                I1 V_1,
+                int V_2,
+                bool V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  call       ""bool S1.TryGetValue(out I1)""
+  IL_0010:  brfalse.s  IL_0039
+  IL_0012:  ldarg.0
+  IL_0013:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0018:  stloc.2
+  IL_0019:  ldloc.2
+  IL_001a:  ldc.i4.1
+  IL_001b:  beq.s      IL_0035
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  constrained. ""S1""
+  IL_0025:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_002a:  isinst     ""C12""
+  IL_002f:  brfalse.s  IL_0039
+  IL_0031:  ldloc.2
+  IL_0032:  ldc.i4.2
+  IL_0033:  bne.un.s   IL_0039
+  IL_0035:  ldc.i4.1
+  IL_0036:  stloc.3
+  IL_0037:  br.s       IL_003b
+  IL_0039:  ldc.i4.0
+  IL_003a:  stloc.3
+  IL_003b:  ldloc.3
+  IL_003c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_49_TryGetValue()
+        {
+            var src = @"
+interface I1;
+
+class C11;
+class C12;
+class C13 : C12, I1;
+class C14 : I1;
+class C15 : I1;
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(I1 x) { _value = x; }
+    public S1(C11 x) { _value = x; }
+    public S1(C12 x) { _value = x; }
+    public S1(C14 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    public bool TryGetValue(out C12 x)
+    {
+        System.Console.Write(""TryGetValue(C12) "");
+        x = _value as C12;
+        return x != null;
+    }
+
+    static void Main()
+    {
+        S1[] s = [new S1(), new S1(new C11()), new S1(new C12()), new S1((C12)new C13()), new S1(new C14()), new S1(new C15())]; 
+        int[] i = [1, 2, 3];
+        foreach (var s1 in s)
+        {
+            foreach (var j in i)
+            {
+                var t = Test1((s1, j));
+                System.Console.WriteLine();
+                System.Console.WriteLine(t);
+            }
+        }
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (C12 and I1, 2) or (I1, 1);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t1 = t0.Item1; [1]
+[1]: TryGetValue(C12): (Item1, ReturnItem) t2 = t1; [2]
+[2]: t2.ReturnItem == True ? [3] : [7]
+[3]: t3 = (C12)t2.Item1; [4]
+[4]: t3 is I1 ? [5] : [12]
+[5]: t4 = t0.Item2; [6]
+[6]: t4 == 2 ? [11] : [10]
+[7]: t5 = t1.Value; [8]
+[8]: t5 is I1 ? [9] : [12]
+[9]: t4 = t0.Item2; [10]
+[10]: t4 == 1 ? [11] : [12]
+[11]: leaf <isPatternSuccess> `(C12 and I1, 2) or (I1, 1)`
+[12]: leaf <isPatternFailure> `u is (C12 and I1, 2) or (I1, 1)`
+",
+forLowering: true);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+TryGetValue(C12) get_Value 
+False
+TryGetValue(C12) get_Value 
+False
+TryGetValue(C12) get_Value 
+False
+TryGetValue(C12) get_Value 
+False
+TryGetValue(C12) get_Value 
+False
+TryGetValue(C12) get_Value 
+False
+TryGetValue(C12) 
+False
+TryGetValue(C12) 
+False
+TryGetValue(C12) 
+False
+TryGetValue(C12) 
+True
+TryGetValue(C12) 
+True
+TryGetValue(C12) 
+False
+TryGetValue(C12) get_Value 
+True
+TryGetValue(C12) get_Value 
+False
+TryGetValue(C12) get_Value 
+False
+TryGetValue(C12) get_Value 
+True
+TryGetValue(C12) get_Value 
+False
+TryGetValue(C12) get_Value 
+False
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       78 (0x4e)
+  .maxstack  2
+  .locals init (S1 V_0,
+                C12 V_1,
+                int V_2,
+                bool V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  call       ""bool S1.TryGetValue(out C12)""
+  IL_0010:  brfalse.s  IL_0027
+  IL_0012:  ldloc.1
+  IL_0013:  isinst     ""I1""
+  IL_0018:  brfalse.s  IL_004a
+  IL_001a:  ldarg.0
+  IL_001b:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0020:  stloc.2
+  IL_0021:  ldloc.2
+  IL_0022:  ldc.i4.2
+  IL_0023:  beq.s      IL_0046
+  IL_0025:  br.s       IL_0042
+  IL_0027:  ldloca.s   V_0
+  IL_0029:  constrained. ""S1""
+  IL_002f:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_0034:  isinst     ""I1""
+  IL_0039:  brfalse.s  IL_004a
+  IL_003b:  ldarg.0
+  IL_003c:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0041:  stloc.2
+  IL_0042:  ldloc.2
+  IL_0043:  ldc.i4.1
+  IL_0044:  bne.un.s   IL_004a
+  IL_0046:  ldc.i4.1
+  IL_0047:  stloc.3
+  IL_0048:  br.s       IL_004c
+  IL_004a:  ldc.i4.0
+  IL_004b:  stloc.3
+  IL_004c:  ldloc.3
+  IL_004d:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_50_TryGetValue()
+        {
+            var src = @"
+interface I1;
+
+class C11;
+class C12;
+class C13 : C12, I1;
+class C14 : I1;
+class C15 : I1;
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(I1 x) { _value = x; }
+    public S1(C11 x) { _value = x; }
+    public S1(C12 x) { _value = x; }
+    public S1(C14 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    public bool TryGetValue(out C12 x)
+    {
+        System.Console.Write(""TryGetValue(C12) "");
+        x = _value as C12;
+        return x != null;
+    }
+
+    static void Main()
+    {
+        S1[] s = [new S1(), new S1(new C11()), new S1(new C12()), new S1((C12)new C13()), new S1(new C14()), new S1(new C15())]; 
+        int[] i = [1, 2, 3];
+        foreach (var s1 in s)
+        {
+            foreach (var j in i)
+            {
+                var t = Test1((s1, j));
+                System.Console.WriteLine();
+                System.Console.WriteLine(t);
+            }
+        }
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (I1, 1) or (C12 and I1, 2);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t1 = t0.Item1; [1]
+[1]: t2 = t1.Value; [2]
+[2]: t2 is I1 ? [3] : [9]
+[3]: t3 = t0.Item2; [4]
+[4]: t3 == 1 ? [8] : [5]
+[5]: TryGetValue(C12): (Item1, ReturnItem) t4 = t1; [6]
+[6]: t4.ReturnItem == True ? [7] : [9]
+[7]: t3 == 2 ? [8] : [9]
+[8]: leaf <isPatternSuccess> `(I1, 1) or (C12 and I1, 2)`
+[9]: leaf <isPatternFailure> `u is (I1, 1) or (C12 and I1, 2)`
+",
+forLowering: true);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+get_Value 
+False
+get_Value 
+False
+get_Value 
+False
+get_Value 
+False
+get_Value 
+False
+get_Value 
+False
+get_Value 
+False
+get_Value 
+False
+get_Value 
+False
+get_Value 
+True
+get_Value TryGetValue(C12) 
+True
+get_Value TryGetValue(C12) 
+False
+get_Value 
+True
+get_Value TryGetValue(C12) 
+False
+get_Value TryGetValue(C12) 
+False
+get_Value 
+True
+get_Value TryGetValue(C12) 
+False
+get_Value TryGetValue(C12) 
+False
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       61 (0x3d)
+  .maxstack  2
+  .locals init (S1 V_0,
+            int V_1,
+            C12 V_2,
+            bool V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  constrained. ""S1""
+  IL_000f:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_0014:  isinst     ""I1""
+  IL_0019:  brfalse.s  IL_0039
+  IL_001b:  ldarg.0
+  IL_001c:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0021:  stloc.1
+  IL_0022:  ldloc.1
+  IL_0023:  ldc.i4.1
+  IL_0024:  beq.s      IL_0035
+  IL_0026:  ldloca.s   V_0
+  IL_0028:  ldloca.s   V_2
+  IL_002a:  call       ""bool S1.TryGetValue(out C12)""
+  IL_002f:  brfalse.s  IL_0039
+  IL_0031:  ldloc.1
+  IL_0032:  ldc.i4.2
+  IL_0033:  bne.un.s   IL_0039
+  IL_0035:  ldc.i4.1
+  IL_0036:  stloc.3
+  IL_0037:  br.s       IL_003b
+  IL_0039:  ldc.i4.0
+  IL_003a:  stloc.3
+  IL_003b:  ldloc.3
+  IL_003c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_51_TryGetValue()
+        {
+            var src = @"
+interface I1
+{
+    int F {get;}
+}
+
+class C11;
+class C12;
+class C13(int f) : C12, I1
+{
+    public int F => f;
+}
+class C14(int f) : I1
+{
+    public int F => f;
+}
+class C15(int f) : I1
+{
+    public int F => f;
+}
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(I1 x) { _value = x; }
+    public S1(C11 x) { _value = x; }
+    public S1(C12 x) { _value = x; }
+    public S1(C14 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    public bool TryGetValue(out I1 x)
+    {
+        System.Console.Write(""TryGetValue(I1) "");
+        x = _value as I1;
+        return x != null;
+    }
+
+    public bool TryGetValue(out C12 x)
+    {
+        System.Console.Write(""TryGetValue(C12) "");
+        x = _value as C12;
+        return x != null;
+    }
+
+    static void Main()
+    {
+        S1[] s = [new S1(), new S1(new C11()), new S1(new C12()), new S1((C12)new C13(1)), new S1(new C14(1)), new S1(new C15(1)), new S1((C12)new C13(2)), new S1(new C14(2)), new S1(new C15(2))]; 
+        int[] i = [1, 2, 3];
+        foreach (var s1 in s)
+        {
+            foreach (var j in i)
+            {
+                var t = Test1((s1, j));
+                System.Console.WriteLine();
+                System.Console.WriteLine(t);
+            }
+        }
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (C12 and I1 and { F: 1 }, 2) or (I1 and { F: 1 }, 1);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t1 = t0.Item1; [1]
+[1]: TryGetValue(C12): (Item1, ReturnItem) t2 = t1; [2]
+[2]: t2.ReturnItem == True ? [3] : [10]
+[3]: t3 = (C12)t2.Item1; [4]
+[4]: t3 is I1 ? [5] : [18]
+[5]: t4 = (I1)t3; [6]
+[6]: t5 = t4.F; [7]
+[7]: t5 == 1 ? [8] : [18]
+[8]: t6 = t0.Item2; [9]
+[9]: t6 == 2 ? [17] : [16]
+[10]: TryGetValue(I1): (Item1, ReturnItem) t7 = t1; [11]
+[11]: t7.ReturnItem == True ? [12] : [18]
+[12]: t4 = (I1)t7.Item1; [13]
+[13]: t5 = t4.F; [14]
+[14]: t5 == 1 ? [15] : [18]
+[15]: t6 = t0.Item2; [16]
+[16]: t6 == 1 ? [17] : [18]
+[17]: leaf <isPatternSuccess> `(C12 and I1 and { F: 1 }, 2) or (I1 and { F: 1 }, 1)`
+[18]: leaf <isPatternFailure> `u is (C12 and I1 and { F: 1 }, 2) or (I1 and { F: 1 }, 1)`
+",
+forLowering: true);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+TryGetValue(C12) TryGetValue(I1) 
+False
+TryGetValue(C12) TryGetValue(I1) 
+False
+TryGetValue(C12) TryGetValue(I1) 
+False
+TryGetValue(C12) TryGetValue(I1) 
+False
+TryGetValue(C12) TryGetValue(I1) 
+False
+TryGetValue(C12) TryGetValue(I1) 
+False
+TryGetValue(C12) 
+False
+TryGetValue(C12) 
+False
+TryGetValue(C12) 
+False
+TryGetValue(C12) 
+True
+TryGetValue(C12) 
+True
+TryGetValue(C12) 
+False
+TryGetValue(C12) TryGetValue(I1) 
+True
+TryGetValue(C12) TryGetValue(I1) 
+False
+TryGetValue(C12) TryGetValue(I1) 
+False
+TryGetValue(C12) TryGetValue(I1) 
+True
+TryGetValue(C12) TryGetValue(I1) 
+False
+TryGetValue(C12) TryGetValue(I1) 
+False
+TryGetValue(C12) 
+False
+TryGetValue(C12) 
+False
+TryGetValue(C12) 
+False
+TryGetValue(C12) TryGetValue(I1) 
+False
+TryGetValue(C12) TryGetValue(I1) 
+False
+TryGetValue(C12) TryGetValue(I1) 
+False
+TryGetValue(C12) TryGetValue(I1) 
+False
+TryGetValue(C12) TryGetValue(I1) 
+False
+TryGetValue(C12) TryGetValue(I1) 
+False
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       95 (0x5f)
+  .maxstack  2
+  .locals init (S1 V_0,
+            C12 V_1,
+            I1 V_2,
+            int V_3,
+            I1 V_4,
+            bool V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  call       ""bool S1.TryGetValue(out C12)""
+  IL_0010:  brfalse.s  IL_0032
+  IL_0012:  ldloc.1
+  IL_0013:  isinst     ""I1""
+  IL_0018:  stloc.2
+  IL_0019:  ldloc.2
+  IL_001a:  brfalse.s  IL_0059
+  IL_001c:  ldloc.2
+  IL_001d:  callvirt   ""int I1.F.get""
+  IL_0022:  ldc.i4.1
+  IL_0023:  bne.un.s   IL_0059
+  IL_0025:  ldarg.0
+  IL_0026:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_002b:  stloc.3
+  IL_002c:  ldloc.3
+  IL_002d:  ldc.i4.2
+  IL_002e:  beq.s      IL_0054
+  IL_0030:  br.s       IL_0050
+  IL_0032:  ldloca.s   V_0
+  IL_0034:  ldloca.s   V_4
+  IL_0036:  call       ""bool S1.TryGetValue(out I1)""
+  IL_003b:  brfalse.s  IL_0059
+  IL_003d:  ldloc.s    V_4
+  IL_003f:  stloc.2
+  IL_0040:  ldloc.2
+  IL_0041:  callvirt   ""int I1.F.get""
+  IL_0046:  ldc.i4.1
+  IL_0047:  bne.un.s   IL_0059
+  IL_0049:  ldarg.0
+  IL_004a:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_004f:  stloc.3
+  IL_0050:  ldloc.3
+  IL_0051:  ldc.i4.1
+  IL_0052:  bne.un.s   IL_0059
+  IL_0054:  ldc.i4.1
+  IL_0055:  stloc.s    V_5
+  IL_0057:  br.s       IL_005c
+  IL_0059:  ldc.i4.0
+  IL_005a:  stloc.s    V_5
+  IL_005c:  ldloc.s    V_5
+  IL_005e:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_52_TryGetValue()
+        {
+            var src = @"
+using System;
+
+class C11;
+
+class C12 : IComparable
+{
+    public int CompareTo(object obj) => throw null;
+}
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(C11 x) { _value = x; }
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public S1(IComparable x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    public bool TryGetValue(out int x)
+    {
+        System.Console.Write(""TryGetValue(int) "");
+        if (_value is int)
+        {
+            x = (int)_value;
+            return true;    
+        }
+
+        x = 0;
+        return false;
+    }
+
+    public bool TryGetValue(out IComparable x)
+    {
+        System.Console.Write(""TryGetValue(IComparable) "");
+        x = _value as IComparable;
+        return x != null;
+    }
+
+    static void Main()
+    {
+        S1[] s = [new S1(), new S1(new C11()), new S1(new C12()), new S1(1), new S1(""1""), new S1(2), new S1(""2""), new S1(3), new S1(""3"")]; 
+        int[] i = [1, 2, 3];
+        foreach (var s1 in s)
+        {
+            foreach (var j in i)
+            {
+                var t = Test1((s1, j));
+                System.Console.WriteLine();
+                System.Console.WriteLine(t);
+            }
+        }
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (System.IComparable and int and 1, 2) or (int and (1 or 3), 1);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t1 = t0.Item1; [1]
+[1]: TryGetValue(System.IComparable): (Item1, ReturnItem) t2 = t1; [2]
+[2]: t2.ReturnItem == True ? [3] : [13]
+[3]: t3 = (System.IComparable)t2.Item1; [4]
+[4]: t3 is int ? [5] : [13]
+[5]: t4 = (int)t3; [6]
+[6]: t4 == 1 ? [7] : [9]
+[7]: t5 = t0.Item2; [8]
+[8]: t5 == 2 ? [12] : [11]
+[9]: t4 == 3 ? [10] : [13]
+[10]: t5 = t0.Item2; [11]
+[11]: t5 == 1 ? [12] : [13]
+[12]: leaf <isPatternSuccess> `(System.IComparable and int and 1, 2) or (int and (1 or 3), 1)`
+[13]: leaf <isPatternFailure> `u is (System.IComparable and int and 1, 2) or (int and (1 or 3), 1)`
+",
+forLowering: true);
+
+            CompilationVerifier verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+TryGetValue(IComparable) 
+False
+TryGetValue(IComparable) 
+False
+TryGetValue(IComparable) 
+False
+TryGetValue(IComparable) 
+False
+TryGetValue(IComparable) 
+False
+TryGetValue(IComparable) 
+False
+TryGetValue(IComparable) 
+False
+TryGetValue(IComparable) 
+False
+TryGetValue(IComparable) 
+False
+TryGetValue(IComparable) 
+True
+TryGetValue(IComparable) 
+True
+TryGetValue(IComparable) 
+False
+TryGetValue(IComparable) 
+False
+TryGetValue(IComparable) 
+False
+TryGetValue(IComparable) 
+False
+TryGetValue(IComparable) 
+False
+TryGetValue(IComparable) 
+False
+TryGetValue(IComparable) 
+False
+TryGetValue(IComparable) 
+False
+TryGetValue(IComparable) 
+False
+TryGetValue(IComparable) 
+False
+TryGetValue(IComparable) 
+True
+TryGetValue(IComparable) 
+False
+TryGetValue(IComparable) 
+False
+TryGetValue(IComparable) 
+False
+TryGetValue(IComparable) 
+False
+TryGetValue(IComparable) 
+False
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       84 (0x54)
+  .maxstack  2
+  .locals init (S1 V_0,
+                System.IComparable V_1,
+                System.IComparable V_2,
+                int V_3,
+                int V_4,
+                bool V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  call       ""bool S1.TryGetValue(out System.IComparable)""
+  IL_0010:  brfalse.s  IL_004e
+  IL_0012:  ldloc.1
+  IL_0013:  stloc.2
+  IL_0014:  ldloc.2
+  IL_0015:  isinst     ""int""
+  IL_001a:  brfalse.s  IL_004e
+  IL_001c:  ldloc.2
+  IL_001d:  unbox.any  ""int""
+  IL_0022:  stloc.3
+  IL_0023:  ldloc.3
+  IL_0024:  ldc.i4.1
+  IL_0025:  beq.s      IL_002d
+  IL_0027:  ldloc.3
+  IL_0028:  ldc.i4.3
+  IL_0029:  beq.s      IL_003c
+  IL_002b:  br.s       IL_004e
+  IL_002d:  ldarg.0
+  IL_002e:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0033:  stloc.s    V_4
+  IL_0035:  ldloc.s    V_4
+  IL_0037:  ldc.i4.2
+  IL_0038:  beq.s      IL_0049
+  IL_003a:  br.s       IL_0044
+  IL_003c:  ldarg.0
+  IL_003d:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0042:  stloc.s    V_4
+  IL_0044:  ldloc.s    V_4
+  IL_0046:  ldc.i4.1
+  IL_0047:  bne.un.s   IL_004e
+  IL_0049:  ldc.i4.1
+  IL_004a:  stloc.s    V_5
+  IL_004c:  br.s       IL_0051
+  IL_004e:  ldc.i4.0
+  IL_004f:  stloc.s    V_5
+  IL_0051:  ldloc.s    V_5
+  IL_0053:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_53_TryGetValue()
+        {
+            var src = @"
+using System;
+
+class C11;
+
+class C12;
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(C11 x) { _value = x; }
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public S1(IComparable x) { _value = x; }
+    public S1(C12 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    public bool TryGetValue(out int x)
+    {
+        System.Console.Write(""TryGetValue(int) "");
+        if (_value is int)
+        {
+            x = (int)_value;
+            return true;    
+        }
+
+        x = 0;
+        return false;
+    }
+
+    public bool TryGetValue(out IComparable x)
+    {
+        System.Console.Write(""TryGetValue(IComparable) "");
+        x = _value as IComparable;
+        return x != null;
+    }
+
+    static void Main()
+    {
+        S1[] s = [new S1(), new S1(new C11()), new S1(new C12()), new S1(1), new S1(""1""), new S1(2), new S1(""2""), new S1(3), new S1(""3"")]; 
+        int[] i = [1, 2, 3];
+        foreach (var s1 in s)
+        {
+            foreach (var j in i)
+            {
+                var t = Test1((s1, j));
+                System.Console.WriteLine();
+                System.Console.WriteLine(t);
+            }
+        }
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (int and 1, 2) or (System.IComparable and { AsInt: 3 }, 1);
+    }   
+}
+
+static class IComparableExtensions
+{
+    extension(IComparable c)
+    {
+        public int? AsInt
+        {
+            get
+            {
+                c.GetHashCode(); // We do not expect null inputs
+                var result = c as int?;
+
+                if (result.HasValue && result.Value == 0)
+                {
+                    throw new Exception(""Unexpected 0 value"");
+                }
+
+                return result;
+            }
+        }
+    }
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t1 = t0.Item1; [1]
+[1]: TryGetValue(int): (Item1, ReturnItem) t2 = t1; [2]
+[2]: t2.ReturnItem == True ? [3] : [15]
+[3]: t3 = (int)t2.Item1; [4]
+[4]: t3 == 1 ? [5] : [13]
+[5]: t4 = t0.Item2; [6]
+[6]: t4 == 2 ? [24] : [7]
+[7]: t5 = (System.IComparable)t2.Item1; [8]
+[8]: PassThrough t5; [9]
+[9]: t7 = t5.AsInt; [10]
+[10]: t7 != null ? [11] : [25]
+[11]: t8 = (int)t7; [12]
+[12]: t8 == 3 ? [23] : [25]
+[13]: t5 = (System.IComparable)t2.Item1; [14]
+[14]: PassThrough t5; [18]
+[15]: TryGetValue(System.IComparable): (Item1, ReturnItem) t9 = t1; [16]
+[16]: t9.ReturnItem == True ? [17] : [25]
+[17]: t5 = (System.IComparable)t9.Item1; [18]
+[18]: t7 = t5.AsInt; [19]
+[19]: t7 != null ? [20] : [25]
+[20]: t8 = (int)t7; [21]
+[21]: t8 == 3 ? [22] : [25]
+[22]: t4 = t0.Item2; [23]
+[23]: t4 == 1 ? [24] : [25]
+[24]: leaf <isPatternSuccess> `(int and 1, 2) or (System.IComparable and { AsInt: 3 }, 1)`
+[25]: leaf <isPatternFailure> `u is (int and 1, 2) or (System.IComparable and { AsInt: 3 }, 1)`
+",
+forLowering: true);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+TryGetValue(int) TryGetValue(IComparable) 
+False
+TryGetValue(int) TryGetValue(IComparable) 
+False
+TryGetValue(int) TryGetValue(IComparable) 
+False
+TryGetValue(int) TryGetValue(IComparable) 
+False
+TryGetValue(int) TryGetValue(IComparable) 
+False
+TryGetValue(int) TryGetValue(IComparable) 
+False
+TryGetValue(int) TryGetValue(IComparable) 
+False
+TryGetValue(int) TryGetValue(IComparable) 
+False
+TryGetValue(int) TryGetValue(IComparable) 
+False
+TryGetValue(int) 
+False
+TryGetValue(int) 
+True
+TryGetValue(int) 
+False
+TryGetValue(int) TryGetValue(IComparable) 
+False
+TryGetValue(int) TryGetValue(IComparable) 
+False
+TryGetValue(int) TryGetValue(IComparable) 
+False
+TryGetValue(int) 
+False
+TryGetValue(int) 
+False
+TryGetValue(int) 
+False
+TryGetValue(int) TryGetValue(IComparable) 
+False
+TryGetValue(int) TryGetValue(IComparable) 
+False
+TryGetValue(int) TryGetValue(IComparable) 
+False
+TryGetValue(int) 
+True
+TryGetValue(int) 
+False
+TryGetValue(int) 
+False
+TryGetValue(int) TryGetValue(IComparable) 
+False
+TryGetValue(int) TryGetValue(IComparable) 
+False
+TryGetValue(int) TryGetValue(IComparable) 
+False
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size      141 (0x8d)
+  .maxstack  2
+  .locals init (S1 V_0,
+                int V_1,
+                int V_2,
+                System.IComparable V_3,
+                int? V_4,
+                System.IComparable V_5,
+                bool V_6)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  call       ""bool S1.TryGetValue(out int)""
+  IL_0010:  brfalse.s  IL_004e
+  IL_0012:  ldloc.1
+  IL_0013:  ldc.i4.1
+  IL_0014:  bne.un.s   IL_0045
+  IL_0016:  ldarg.0
+  IL_0017:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_001c:  stloc.2
+  IL_001d:  ldloc.2
+  IL_001e:  ldc.i4.2
+  IL_001f:  beq.s      IL_0082
+  IL_0021:  ldloc.1
+  IL_0022:  box        ""int""
+  IL_0027:  stloc.3
+  IL_0028:  ldloc.3
+  IL_0029:  call       ""int? IComparableExtensions.get_AsInt(System.IComparable)""
+  IL_002e:  stloc.s    V_4
+  IL_0030:  ldloca.s   V_4
+  IL_0032:  call       ""bool int?.HasValue.get""
+  IL_0037:  brfalse.s  IL_0087
+  IL_0039:  ldloca.s   V_4
+  IL_003b:  call       ""int int?.GetValueOrDefault()""
+  IL_0040:  ldc.i4.3
+  IL_0041:  beq.s      IL_007e
+  IL_0043:  br.s       IL_0087
+  IL_0045:  ldloc.1
+  IL_0046:  box        ""int""
+  IL_004b:  stloc.3
+  IL_004c:  br.s       IL_005c
+  IL_004e:  ldloca.s   V_0
+  IL_0050:  ldloca.s   V_5
+  IL_0052:  call       ""bool S1.TryGetValue(out System.IComparable)""
+  IL_0057:  brfalse.s  IL_0087
+  IL_0059:  ldloc.s    V_5
+  IL_005b:  stloc.3
+  IL_005c:  ldloc.3
+  IL_005d:  call       ""int? IComparableExtensions.get_AsInt(System.IComparable)""
+  IL_0062:  stloc.s    V_4
+  IL_0064:  ldloca.s   V_4
+  IL_0066:  call       ""bool int?.HasValue.get""
+  IL_006b:  brfalse.s  IL_0087
+  IL_006d:  ldloca.s   V_4
+  IL_006f:  call       ""int int?.GetValueOrDefault()""
+  IL_0074:  ldc.i4.3
+  IL_0075:  bne.un.s   IL_0087
+  IL_0077:  ldarg.0
+  IL_0078:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_007d:  stloc.2
+  IL_007e:  ldloc.2
+  IL_007f:  ldc.i4.1
+  IL_0080:  bne.un.s   IL_0087
+  IL_0082:  ldc.i4.1
+  IL_0083:  stloc.s    V_6
+  IL_0085:  br.s       IL_008a
+  IL_0087:  ldc.i4.0
+  IL_0088:  stloc.s    V_6
+  IL_008a:  ldloc.s    V_6
+  IL_008c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_54_TryGetValue()
+        {
+            var src = @"
+using System;
+
+class C11;
+
+class C12 : IConvertible
+{
+    public TypeCode GetTypeCode() => throw null;
+    public bool ToBoolean(IFormatProvider provider) => throw null;
+    public byte ToByte(IFormatProvider provider) => throw null;
+    public char ToChar(IFormatProvider provider) => throw null;
+    public DateTime ToDateTime(IFormatProvider provider) => throw null;
+    public decimal ToDecimal(IFormatProvider provider) => throw null;
+    public double ToDouble(IFormatProvider provider) => throw null;
+    public short ToInt16(IFormatProvider provider) => throw null;
+    public int ToInt32(IFormatProvider provider) => throw null;
+    public long ToInt64(IFormatProvider provider) => throw null;
+    public sbyte ToSByte(IFormatProvider provider) => throw null;
+    public float ToSingle(IFormatProvider provider) => throw null;
+    public string ToString(IFormatProvider provider) => throw null;
+    public object ToType(Type conversionType, IFormatProvider provider) => throw null;
+    public ushort ToUInt16(IFormatProvider provider) => throw null;
+    public uint ToUInt32(IFormatProvider provider) => throw null;
+    public ulong ToUInt64(IFormatProvider provider) => throw null;
+}
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(C11 x) { _value = x; }
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public S1(IComparable x) { _value = x; }
+    public S1(IConvertible x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    public bool TryGetValue(out int x)
+    {
+        System.Console.Write(""TryGetValue(int) "");
+        if (_value is int)
+        {
+            x = (int)_value;
+            return true;    
+        }
+
+        x = 0;
+        return false;
+    }
+
+    public bool TryGetValue(out IComparable x)
+    {
+        System.Console.Write(""TryGetValue(IComparable) "");
+        x = _value as IComparable;
+        return x != null;
+    }
+
+    public bool TryGetValue(out IConvertible x)
+    {
+        System.Console.Write(""TryGetValue(IConvertible) "");
+        x = _value as IConvertible;
+        return x != null;
+    }
+
+    static void Main()
+    {
+        S1[] s = [new S1(), new S1(new C11()), new S1(new C12()), new S1(1), new S1(""1""), new S1(2), new S1(""2""), new S1(3), new S1(""3"")]; 
+        int[] i = [1, 2, 3];
+        foreach (var s1 in s)
+        {
+            foreach (var j in i)
+            {
+                var t = Test1((s1, j));
+                System.Console.WriteLine();
+                System.Console.WriteLine(t);
+            }
+        }
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (IConvertible and int and 1, 2) or (System.IComparable and { AsInt: 3 }, 1);
+    }   
+}
+
+static class IComparableExtensions
+{
+    extension(IComparable c)
+    {
+        public int? AsInt
+        {
+            get
+            {
+                c.GetHashCode(); // We do not expect null inputs
+                var result = c as int?;
+
+                if (result.HasValue && result.Value == 0)
+                {
+                    throw new Exception(""Unexpected 0 value"");
+                }
+
+                return result;
+            }
+        }
+    }
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t1 = t0.Item1; [1]
+[1]: TryGetValue(System.IConvertible): (Item1, ReturnItem) t2 = t1; [2]
+[2]: t2.ReturnItem == True ? [3] : [17]
+[3]: t3 = (System.IConvertible)t2.Item1; [4]
+[4]: t3 is int ? [5] : [17]
+[5]: t4 = (int)t3; [6]
+[6]: t4 == 1 ? [7] : [15]
+[7]: t5 = t0.Item2; [8]
+[8]: t5 == 2 ? [26] : [9]
+[9]: t6 = (System.IComparable)t3; [10]
+[10]: PassThrough t6; [11]
+[11]: t8 = t6.AsInt; [12]
+[12]: t8 != null ? [13] : [27]
+[13]: t9 = (int)t8; [14]
+[14]: t9 == 3 ? [25] : [27]
+[15]: t6 = (System.IComparable)t3; [16]
+[16]: PassThrough t6; [20]
+[17]: TryGetValue(System.IComparable): (Item1, ReturnItem) t10 = t1; [18]
+[18]: t10.ReturnItem == True ? [19] : [27]
+[19]: t6 = (System.IComparable)t10.Item1; [20]
+[20]: t8 = t6.AsInt; [21]
+[21]: t8 != null ? [22] : [27]
+[22]: t9 = (int)t8; [23]
+[23]: t9 == 3 ? [24] : [27]
+[24]: t5 = t0.Item2; [25]
+[25]: t5 == 1 ? [26] : [27]
+[26]: leaf <isPatternSuccess> `(IConvertible and int and 1, 2) or (System.IComparable and { AsInt: 3 }, 1)`
+[27]: leaf <isPatternFailure> `u is (IConvertible and int and 1, 2) or (System.IComparable and { AsInt: 3 }, 1)`
+",
+forLowering: true);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+TryGetValue(IConvertible) TryGetValue(IComparable) 
+False
+TryGetValue(IConvertible) TryGetValue(IComparable) 
+False
+TryGetValue(IConvertible) TryGetValue(IComparable) 
+False
+TryGetValue(IConvertible) TryGetValue(IComparable) 
+False
+TryGetValue(IConvertible) TryGetValue(IComparable) 
+False
+TryGetValue(IConvertible) TryGetValue(IComparable) 
+False
+TryGetValue(IConvertible) TryGetValue(IComparable) 
+False
+TryGetValue(IConvertible) TryGetValue(IComparable) 
+False
+TryGetValue(IConvertible) TryGetValue(IComparable) 
+False
+TryGetValue(IConvertible) 
+False
+TryGetValue(IConvertible) 
+True
+TryGetValue(IConvertible) 
+False
+TryGetValue(IConvertible) TryGetValue(IComparable) 
+False
+TryGetValue(IConvertible) TryGetValue(IComparable) 
+False
+TryGetValue(IConvertible) TryGetValue(IComparable) 
+False
+TryGetValue(IConvertible) 
+False
+TryGetValue(IConvertible) 
+False
+TryGetValue(IConvertible) 
+False
+TryGetValue(IConvertible) TryGetValue(IComparable) 
+False
+TryGetValue(IConvertible) TryGetValue(IComparable) 
+False
+TryGetValue(IConvertible) TryGetValue(IComparable) 
+False
+TryGetValue(IConvertible) 
+True
+TryGetValue(IConvertible) 
+False
+TryGetValue(IConvertible) 
+False
+TryGetValue(IConvertible) TryGetValue(IComparable) 
+False
+TryGetValue(IConvertible) TryGetValue(IComparable) 
+False
+TryGetValue(IConvertible) TryGetValue(IComparable) 
+False
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size      161 (0xa1)
+  .maxstack  2
+  .locals init (S1 V_0,
+            System.IConvertible V_1,
+            System.IConvertible V_2,
+            int V_3,
+            System.IComparable V_4,
+            int? V_5,
+            System.IComparable V_6,
+            bool V_7)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  call       ""bool S1.TryGetValue(out System.IConvertible)""
+  IL_0010:  brfalse.s  IL_0060
+  IL_0012:  ldloc.1
+  IL_0013:  stloc.2
+  IL_0014:  ldloc.2
+  IL_0015:  isinst     ""int""
+  IL_001a:  brfalse.s  IL_0060
+  IL_001c:  ldloc.2
+  IL_001d:  unbox.any  ""int""
+  IL_0022:  ldc.i4.1
+  IL_0023:  bne.un.s   IL_0056
+  IL_0025:  ldarg.0
+  IL_0026:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_002b:  stloc.3
+  IL_002c:  ldloc.3
+  IL_002d:  ldc.i4.2
+  IL_002e:  beq.s      IL_0096
+  IL_0030:  ldloc.2
+  IL_0031:  castclass  ""System.IComparable""
+  IL_0036:  stloc.s    V_4
+  IL_0038:  ldloc.s    V_4
+  IL_003a:  call       ""int? IComparableExtensions.get_AsInt(System.IComparable)""
+  IL_003f:  stloc.s    V_5
+  IL_0041:  ldloca.s   V_5
+  IL_0043:  call       ""bool int?.HasValue.get""
+  IL_0048:  brfalse.s  IL_009b
+  IL_004a:  ldloca.s   V_5
+  IL_004c:  call       ""int int?.GetValueOrDefault()""
+  IL_0051:  ldc.i4.3
+  IL_0052:  beq.s      IL_0092
+  IL_0054:  br.s       IL_009b
+  IL_0056:  ldloc.2
+  IL_0057:  castclass  ""System.IComparable""
+  IL_005c:  stloc.s    V_4
+  IL_005e:  br.s       IL_006f
+  IL_0060:  ldloca.s   V_0
+  IL_0062:  ldloca.s   V_6
+  IL_0064:  call       ""bool S1.TryGetValue(out System.IComparable)""
+  IL_0069:  brfalse.s  IL_009b
+  IL_006b:  ldloc.s    V_6
+  IL_006d:  stloc.s    V_4
+  IL_006f:  ldloc.s    V_4
+  IL_0071:  call       ""int? IComparableExtensions.get_AsInt(System.IComparable)""
+  IL_0076:  stloc.s    V_5
+  IL_0078:  ldloca.s   V_5
+  IL_007a:  call       ""bool int?.HasValue.get""
+  IL_007f:  brfalse.s  IL_009b
+  IL_0081:  ldloca.s   V_5
+  IL_0083:  call       ""int int?.GetValueOrDefault()""
+  IL_0088:  ldc.i4.3
+  IL_0089:  bne.un.s   IL_009b
+  IL_008b:  ldarg.0
+  IL_008c:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0091:  stloc.3
+  IL_0092:  ldloc.3
+  IL_0093:  ldc.i4.1
+  IL_0094:  bne.un.s   IL_009b
+  IL_0096:  ldc.i4.1
+  IL_0097:  stloc.s    V_7
+  IL_0099:  br.s       IL_009e
+  IL_009b:  ldc.i4.0
+  IL_009c:  stloc.s    V_7
+  IL_009e:  ldloc.s    V_7
+  IL_00a0:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_55_TryGetValue()
+        {
+            var src = @"
+using System;
+
+class C11;
+
+class C12 : IConvertible
+{
+    public TypeCode GetTypeCode() => throw null;
+    public bool ToBoolean(IFormatProvider provider) => throw null;
+    public byte ToByte(IFormatProvider provider) => throw null;
+    public char ToChar(IFormatProvider provider) => throw null;
+    public DateTime ToDateTime(IFormatProvider provider) => throw null;
+    public decimal ToDecimal(IFormatProvider provider) => throw null;
+    public double ToDouble(IFormatProvider provider) => throw null;
+    public short ToInt16(IFormatProvider provider) => throw null;
+    public int ToInt32(IFormatProvider provider) => throw null;
+    public long ToInt64(IFormatProvider provider) => throw null;
+    public sbyte ToSByte(IFormatProvider provider) => throw null;
+    public float ToSingle(IFormatProvider provider) => throw null;
+    public string ToString(IFormatProvider provider) => throw null;
+    public object ToType(Type conversionType, IFormatProvider provider) => throw null;
+    public ushort ToUInt16(IFormatProvider provider) => throw null;
+    public uint ToUInt32(IFormatProvider provider) => throw null;
+    public ulong ToUInt64(IFormatProvider provider) => throw null;
+}
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(C11 x) { _value = x; }
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public S1(IComparable x) { _value = x; }
+    public S1(IConvertible x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    public bool TryGetValue(out int x)
+    {
+        System.Console.Write(""TryGetValue(int) "");
+        if (_value is int)
+        {
+            x = (int)_value;
+            return true;    
+        }
+
+        x = 0;
+        return false;
+    }
+
+    public bool TryGetValue(out IComparable x)
+    {
+        System.Console.Write(""TryGetValue(IComparable) "");
+        x = _value as IComparable;
+        return x != null;
+    }
+
+    public bool TryGetValue(out IConvertible x)
+    {
+        System.Console.Write(""TryGetValue(IConvertible) "");
+        x = _value as IConvertible;
+        return x != null;
+    }
+
+    public bool TryGetValue(out string x)
+    {
+        System.Console.Write(""TryGetValue(string) "");
+        x = _value as string;
+        return x != null;
+    }
+
+    static void Main()
+    {
+        S1[] s = [new S1(), new S1(new C11()), new S1(new C12()), new S1(1), new S1(""1""), new S1(2), new S1(""2""), new S1(3), new S1(""3"")]; 
+        int[] i = [1, 2, 3];
+        foreach (var s1 in s)
+        {
+            foreach (var j in i)
+            {
+                var t = Test1((s1, j));
+                System.Console.WriteLine();
+                System.Console.WriteLine(t);
+            }
+        }
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (int and 1, 2) or (string and ""3"", 3) or (System.IComparable and { AsInt: 3 }, 1);
+    }   
+}
+
+static class IComparableExtensions
+{
+    extension(IComparable c)
+    {
+        public int? AsInt
+        {
+            get
+            {
+                c.GetHashCode(); // We do not expect null inputs
+                var result = c as int?;
+
+                if (result.HasValue && result.Value == 0)
+                {
+                    throw new Exception(""Unexpected 0 value"");
+                }
+
+                return result;
+            }
+        }
+    }
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t1 = t0.Item1; [1]
+[1]: TryGetValue(int): (Item1, ReturnItem) t2 = t1; [2]
+[2]: t2.ReturnItem == True ? [3] : [11]
+[3]: t3 = (int)t2.Item1; [4]
+[4]: t3 == 1 ? [5] : [9]
+[5]: t4 = t0.Item2; [6]
+[6]: t4 == 2 ? [34] : [7]
+[7]: t5 = (System.IComparable)t2.Item1; [8]
+[8]: PassThrough t5; [19]
+[9]: t5 = (System.IComparable)t2.Item1; [10]
+[10]: PassThrough t5; [28]
+[11]: TryGetValue(string): (Item1, ReturnItem) t7 = t1; [12]
+[12]: t7.ReturnItem == True ? [13] : [25]
+[13]: t8 = (string)t7.Item1; [14]
+[14]: t8 == ""3"" ? [15] : [23]
+[15]: t4 = t0.Item2; [16]
+[16]: t4 == 3 ? [34] : [17]
+[17]: t5 = (System.IComparable)t7.Item1; [18]
+[18]: PassThrough t5; [19]
+[19]: t10 = t5.AsInt; [20]
+[20]: t10 != null ? [21] : [35]
+[21]: t11 = (int)t10; [22]
+[22]: t11 == 3 ? [33] : [35]
+[23]: t5 = (System.IComparable)t7.Item1; [24]
+[24]: PassThrough t5; [28]
+[25]: TryGetValue(System.IComparable): (Item1, ReturnItem) t12 = t1; [26]
+[26]: t12.ReturnItem == True ? [27] : [35]
+[27]: t5 = (System.IComparable)t12.Item1; [28]
+[28]: t10 = t5.AsInt; [29]
+[29]: t10 != null ? [30] : [35]
+[30]: t11 = (int)t10; [31]
+[31]: t11 == 3 ? [32] : [35]
+[32]: t4 = t0.Item2; [33]
+[33]: t4 == 1 ? [34] : [35]
+[34]: leaf <isPatternSuccess> `(int and 1, 2) or (string and ""3"", 3) or (System.IComparable and { AsInt: 3 }, 1)`
+[35]: leaf <isPatternFailure> `u is (int and 1, 2) or (string and ""3"", 3) or (System.IComparable and { AsInt: 3 }, 1)`
+",
+forLowering: true);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+TryGetValue(int) TryGetValue(string) TryGetValue(IComparable) 
+False
+TryGetValue(int) TryGetValue(string) TryGetValue(IComparable) 
+False
+TryGetValue(int) TryGetValue(string) TryGetValue(IComparable) 
+False
+TryGetValue(int) TryGetValue(string) TryGetValue(IComparable) 
+False
+TryGetValue(int) TryGetValue(string) TryGetValue(IComparable) 
+False
+TryGetValue(int) TryGetValue(string) TryGetValue(IComparable) 
+False
+TryGetValue(int) TryGetValue(string) TryGetValue(IComparable) 
+False
+TryGetValue(int) TryGetValue(string) TryGetValue(IComparable) 
+False
+TryGetValue(int) TryGetValue(string) TryGetValue(IComparable) 
+False
+TryGetValue(int) 
+False
+TryGetValue(int) 
+True
+TryGetValue(int) 
+False
+TryGetValue(int) TryGetValue(string) 
+False
+TryGetValue(int) TryGetValue(string) 
+False
+TryGetValue(int) TryGetValue(string) 
+False
+TryGetValue(int) 
+False
+TryGetValue(int) 
+False
+TryGetValue(int) 
+False
+TryGetValue(int) TryGetValue(string) 
+False
+TryGetValue(int) TryGetValue(string) 
+False
+TryGetValue(int) TryGetValue(string) 
+False
+TryGetValue(int) 
+True
+TryGetValue(int) 
+False
+TryGetValue(int) 
+False
+TryGetValue(int) TryGetValue(string) 
+False
+TryGetValue(int) TryGetValue(string) 
+False
+TryGetValue(int) TryGetValue(string) 
+True
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size      190 (0xbe)
+  .maxstack  2
+  .locals init (S1 V_0,
+            int V_1,
+            int V_2,
+            System.IComparable V_3,
+            string V_4,
+            int? V_5,
+            System.IComparable V_6,
+            bool V_7)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  call       ""bool S1.TryGetValue(out int)""
+  IL_0010:  brfalse.s  IL_0036
+  IL_0012:  ldloc.1
+  IL_0013:  ldc.i4.1
+  IL_0014:  bne.un.s   IL_002d
+  IL_0016:  ldarg.0
+  IL_0017:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_001c:  stloc.2
+  IL_001d:  ldloc.2
+  IL_001e:  ldc.i4.2
+  IL_001f:  beq        IL_00b3
+  IL_0024:  ldloc.1
+  IL_0025:  box        ""int""
+  IL_002a:  stloc.3
+  IL_002b:  br.s       IL_005d
+  IL_002d:  ldloc.1
+  IL_002e:  box        ""int""
+  IL_0033:  stloc.3
+  IL_0034:  br.s       IL_008d
+  IL_0036:  ldloca.s   V_0
+  IL_0038:  ldloca.s   V_4
+  IL_003a:  call       ""bool S1.TryGetValue(out string)""
+  IL_003f:  brfalse.s  IL_007f
+  IL_0041:  ldloc.s    V_4
+  IL_0043:  ldstr      ""3""
+  IL_0048:  call       ""bool string.op_Equality(string, string)""
+  IL_004d:  brfalse.s  IL_007a
+  IL_004f:  ldarg.0
+  IL_0050:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0055:  stloc.2
+  IL_0056:  ldloc.2
+  IL_0057:  ldc.i4.3
+  IL_0058:  beq.s      IL_00b3
+  IL_005a:  ldloc.s    V_4
+  IL_005c:  stloc.3
+  IL_005d:  ldloc.3
+  IL_005e:  call       ""int? IComparableExtensions.get_AsInt(System.IComparable)""
+  IL_0063:  stloc.s    V_5
+  IL_0065:  ldloca.s   V_5
+  IL_0067:  call       ""bool int?.HasValue.get""
+  IL_006c:  brfalse.s  IL_00b8
+  IL_006e:  ldloca.s   V_5
+  IL_0070:  call       ""int int?.GetValueOrDefault()""
+  IL_0075:  ldc.i4.3
+  IL_0076:  beq.s      IL_00af
+  IL_0078:  br.s       IL_00b8
+  IL_007a:  ldloc.s    V_4
+  IL_007c:  stloc.3
+  IL_007d:  br.s       IL_008d
+  IL_007f:  ldloca.s   V_0
+  IL_0081:  ldloca.s   V_6
+  IL_0083:  call       ""bool S1.TryGetValue(out System.IComparable)""
+  IL_0088:  brfalse.s  IL_00b8
+  IL_008a:  ldloc.s    V_6
+  IL_008c:  stloc.3
+  IL_008d:  ldloc.3
+  IL_008e:  call       ""int? IComparableExtensions.get_AsInt(System.IComparable)""
+  IL_0093:  stloc.s    V_5
+  IL_0095:  ldloca.s   V_5
+  IL_0097:  call       ""bool int?.HasValue.get""
+  IL_009c:  brfalse.s  IL_00b8
+  IL_009e:  ldloca.s   V_5
+  IL_00a0:  call       ""int int?.GetValueOrDefault()""
+  IL_00a5:  ldc.i4.3
+  IL_00a6:  bne.un.s   IL_00b8
+  IL_00a8:  ldarg.0
+  IL_00a9:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_00ae:  stloc.2
+  IL_00af:  ldloc.2
+  IL_00b0:  ldc.i4.1
+  IL_00b1:  bne.un.s   IL_00b8
+  IL_00b3:  ldc.i4.1
+  IL_00b4:  stloc.s    V_7
+  IL_00b6:  br.s       IL_00bb
+  IL_00b8:  ldc.i4.0
+  IL_00b9:  stloc.s    V_7
+  IL_00bb:  ldloc.s    V_7
+  IL_00bd:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_56_TryGetValue()
+        {
+            var src = @"
+using System;
+
+class C11;
+
+class C12 : IConvertible
+{
+    public TypeCode GetTypeCode() => throw null;
+    public bool ToBoolean(IFormatProvider provider) => throw null;
+    public byte ToByte(IFormatProvider provider) => throw null;
+    public char ToChar(IFormatProvider provider) => throw null;
+    public DateTime ToDateTime(IFormatProvider provider) => throw null;
+    public decimal ToDecimal(IFormatProvider provider) => throw null;
+    public double ToDouble(IFormatProvider provider) => throw null;
+    public short ToInt16(IFormatProvider provider) => throw null;
+    public int ToInt32(IFormatProvider provider) => throw null;
+    public long ToInt64(IFormatProvider provider) => throw null;
+    public sbyte ToSByte(IFormatProvider provider) => throw null;
+    public float ToSingle(IFormatProvider provider) => throw null;
+    public string ToString(IFormatProvider provider) => throw null;
+    public object ToType(Type conversionType, IFormatProvider provider) => throw null;
+    public ushort ToUInt16(IFormatProvider provider) => throw null;
+    public uint ToUInt32(IFormatProvider provider) => throw null;
+    public ulong ToUInt64(IFormatProvider provider) => throw null;
+}
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(C11 x) { _value = x; }
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public S1(IComparable x) { _value = x; }
+    public S1(IConvertible x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    public bool TryGetValue(out int x)
+    {
+        System.Console.Write(""TryGetValue(int) "");
+        if (_value is int)
+        {
+            x = (int)_value;
+            return true;    
+        }
+
+        x = 0;
+        return false;
+    }
+
+    public bool TryGetValue(out IComparable x)
+    {
+        System.Console.Write(""TryGetValue(IComparable) "");
+        x = _value as IComparable;
+        return x != null;
+    }
+
+    public bool TryGetValue(out IConvertible x)
+    {
+        System.Console.Write(""TryGetValue(IConvertible) "");
+        x = _value as IConvertible;
+        return x != null;
+    }
+
+    public bool TryGetValue(out string x)
+    {
+        System.Console.Write(""TryGetValue(string) "");
+        x = _value as string;
+        return x != null;
+    }
+
+    static void Main()
+    {
+        S1[] s = [new S1(), new S1(new C11()), new S1(new C12()), new S1(1), new S1(""1""), new S1(2), new S1(""2""), new S1(3), new S1(""3"")]; 
+        int[] i = [1, 2, 3];
+        foreach (var s1 in s)
+        {
+            foreach (var j in i)
+            {
+                var t = Test1((s1, j));
+                System.Console.WriteLine();
+                System.Console.WriteLine(t);
+            }
+        }
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (IConvertible and int and 1, 2) or (string and ""3"", 3) or (System.IComparable and { AsInt: 3 }, 1);
+    }   
+}
+
+static class IComparableExtensions
+{
+    extension(IComparable c)
+    {
+        public int? AsInt
+        {
+            get
+            {
+                c.GetHashCode(); // We do not expect null inputs
+                var result = c as int?;
+
+                if (result.HasValue && result.Value == 0)
+                {
+                    throw new Exception(""Unexpected 0 value"");
+                }
+
+                return result;
+            }
+        }
+    }
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t1 = t0.Item1; [1]
+[1]: TryGetValue(System.IConvertible): (Item1, ReturnItem) t2 = t1; [2]
+[2]: t2.ReturnItem == True ? [3] : [27]
+[3]: t3 = (System.IConvertible)t2.Item1; [4]
+[4]: t3 is int ? [5] : [13]
+[5]: t4 = (int)t3; [6]
+[6]: t4 == 1 ? [7] : [11]
+[7]: t5 = t0.Item2; [8]
+[8]: t5 == 2 ? [36] : [9]
+[9]: t6 = (System.IComparable)t3; [10]
+[10]: PassThrough t6; [21]
+[11]: t6 = (System.IComparable)t3; [12]
+[12]: PassThrough t6; [30]
+[13]: TryGetValue(string): (Item1, ReturnItem) t8 = t1; [14]
+[14]: t8.ReturnItem == True ? [15] : [27]
+[15]: t9 = (string)t8.Item1; [16]
+[16]: t9 == ""3"" ? [17] : [25]
+[17]: t5 = t0.Item2; [18]
+[18]: t5 == 3 ? [36] : [19]
+[19]: t6 = (System.IComparable)t8.Item1; [20]
+[20]: PassThrough t6; [21]
+[21]: t11 = t6.AsInt; [22]
+[22]: t11 != null ? [23] : [37]
+[23]: t12 = (int)t11; [24]
+[24]: t12 == 3 ? [35] : [37]
+[25]: t6 = (System.IComparable)t8.Item1; [26]
+[26]: PassThrough t6; [30]
+[27]: TryGetValue(System.IComparable): (Item1, ReturnItem) t13 = t1; [28]
+[28]: t13.ReturnItem == True ? [29] : [37]
+[29]: t6 = (System.IComparable)t13.Item1; [30]
+[30]: t11 = t6.AsInt; [31]
+[31]: t11 != null ? [32] : [37]
+[32]: t12 = (int)t11; [33]
+[33]: t12 == 3 ? [34] : [37]
+[34]: t5 = t0.Item2; [35]
+[35]: t5 == 1 ? [36] : [37]
+[36]: leaf <isPatternSuccess> `(IConvertible and int and 1, 2) or (string and ""3"", 3) or (System.IComparable and { AsInt: 3 }, 1)`
+[37]: leaf <isPatternFailure> `u is (IConvertible and int and 1, 2) or (string and ""3"", 3) or (System.IComparable and { AsInt: 3 }, 1)`
+",
+forLowering: true);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+TryGetValue(IConvertible) TryGetValue(IComparable) 
+False
+TryGetValue(IConvertible) TryGetValue(IComparable) 
+False
+TryGetValue(IConvertible) TryGetValue(IComparable) 
+False
+TryGetValue(IConvertible) TryGetValue(IComparable) 
+False
+TryGetValue(IConvertible) TryGetValue(IComparable) 
+False
+TryGetValue(IConvertible) TryGetValue(IComparable) 
+False
+TryGetValue(IConvertible) TryGetValue(string) TryGetValue(IComparable) 
+False
+TryGetValue(IConvertible) TryGetValue(string) TryGetValue(IComparable) 
+False
+TryGetValue(IConvertible) TryGetValue(string) TryGetValue(IComparable) 
+False
+TryGetValue(IConvertible) 
+False
+TryGetValue(IConvertible) 
+True
+TryGetValue(IConvertible) 
+False
+TryGetValue(IConvertible) TryGetValue(string) 
+False
+TryGetValue(IConvertible) TryGetValue(string) 
+False
+TryGetValue(IConvertible) TryGetValue(string) 
+False
+TryGetValue(IConvertible) 
+False
+TryGetValue(IConvertible) 
+False
+TryGetValue(IConvertible) 
+False
+TryGetValue(IConvertible) TryGetValue(string) 
+False
+TryGetValue(IConvertible) TryGetValue(string) 
+False
+TryGetValue(IConvertible) TryGetValue(string) 
+False
+TryGetValue(IConvertible) 
+True
+TryGetValue(IConvertible) 
+False
+TryGetValue(IConvertible) 
+False
+TryGetValue(IConvertible) TryGetValue(string) 
+False
+TryGetValue(IConvertible) TryGetValue(string) 
+False
+TryGetValue(IConvertible) TryGetValue(string) 
+True
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size      215 (0xd7)
+  .maxstack  2
+  .locals init (S1 V_0,
+            System.IConvertible V_1,
+            System.IConvertible V_2,
+            int V_3,
+            System.IComparable V_4,
+            string V_5,
+            int? V_6,
+            System.IComparable V_7,
+            bool V_8)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  call       ""bool S1.TryGetValue(out System.IConvertible)""
+  IL_0010:  brfalse    IL_0096
+  IL_0015:  ldloc.1
+  IL_0016:  stloc.2
+  IL_0017:  ldloc.2
+  IL_0018:  isinst     ""int""
+  IL_001d:  brfalse.s  IL_004a
+  IL_001f:  ldloc.2
+  IL_0020:  unbox.any  ""int""
+  IL_0025:  ldc.i4.1
+  IL_0026:  bne.un.s   IL_0040
+  IL_0028:  ldarg.0
+  IL_0029:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_002e:  stloc.3
+  IL_002f:  ldloc.3
+  IL_0030:  ldc.i4.2
+  IL_0031:  beq        IL_00cc
+  IL_0036:  ldloc.2
+  IL_0037:  castclass  ""System.IComparable""
+  IL_003c:  stloc.s    V_4
+  IL_003e:  br.s       IL_0072
+  IL_0040:  ldloc.2
+  IL_0041:  castclass  ""System.IComparable""
+  IL_0046:  stloc.s    V_4
+  IL_0048:  br.s       IL_00a5
+  IL_004a:  ldloca.s   V_0
+  IL_004c:  ldloca.s   V_5
+  IL_004e:  call       ""bool S1.TryGetValue(out string)""
+  IL_0053:  brfalse.s  IL_0096
+  IL_0055:  ldloc.s    V_5
+  IL_0057:  ldstr      ""3""
+  IL_005c:  call       ""bool string.op_Equality(string, string)""
+  IL_0061:  brfalse.s  IL_0090
+  IL_0063:  ldarg.0
+  IL_0064:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0069:  stloc.3
+  IL_006a:  ldloc.3
+  IL_006b:  ldc.i4.3
+  IL_006c:  beq.s      IL_00cc
+  IL_006e:  ldloc.s    V_5
+  IL_0070:  stloc.s    V_4
+  IL_0072:  ldloc.s    V_4
+  IL_0074:  call       ""int? IComparableExtensions.get_AsInt(System.IComparable)""
+  IL_0079:  stloc.s    V_6
+  IL_007b:  ldloca.s   V_6
+  IL_007d:  call       ""bool int?.HasValue.get""
+  IL_0082:  brfalse.s  IL_00d1
+  IL_0084:  ldloca.s   V_6
+  IL_0086:  call       ""int int?.GetValueOrDefault()""
+  IL_008b:  ldc.i4.3
+  IL_008c:  beq.s      IL_00c8
+  IL_008e:  br.s       IL_00d1
+  IL_0090:  ldloc.s    V_5
+  IL_0092:  stloc.s    V_4
+  IL_0094:  br.s       IL_00a5
+  IL_0096:  ldloca.s   V_0
+  IL_0098:  ldloca.s   V_7
+  IL_009a:  call       ""bool S1.TryGetValue(out System.IComparable)""
+  IL_009f:  brfalse.s  IL_00d1
+  IL_00a1:  ldloc.s    V_7
+  IL_00a3:  stloc.s    V_4
+  IL_00a5:  ldloc.s    V_4
+  IL_00a7:  call       ""int? IComparableExtensions.get_AsInt(System.IComparable)""
+  IL_00ac:  stloc.s    V_6
+  IL_00ae:  ldloca.s   V_6
+  IL_00b0:  call       ""bool int?.HasValue.get""
+  IL_00b5:  brfalse.s  IL_00d1
+  IL_00b7:  ldloca.s   V_6
+  IL_00b9:  call       ""int int?.GetValueOrDefault()""
+  IL_00be:  ldc.i4.3
+  IL_00bf:  bne.un.s   IL_00d1
+  IL_00c1:  ldarg.0
+  IL_00c2:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_00c7:  stloc.3
+  IL_00c8:  ldloc.3
+  IL_00c9:  ldc.i4.1
+  IL_00ca:  bne.un.s   IL_00d1
+  IL_00cc:  ldc.i4.1
+  IL_00cd:  stloc.s    V_8
+  IL_00cf:  br.s       IL_00d4
+  IL_00d1:  ldc.i4.0
+  IL_00d2:  stloc.s    V_8
+  IL_00d4:  ldloc.s    V_8
+  IL_00d6:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_57_TryGetValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool TryGetValue(out int x)
+    {
+        System.Console.Write(""TryGetValue "");
+        if (_value is int v)
+        {
+            x = v;
+            return true;
+        }
+
+        x = 0;
+        return false;
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test1((new S1(1), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(1), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 1)));
+    }
+
+    static bool Test1((S1, int) u)
+    {
+        return u is (1, 1) or (1, 2);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TryGetValue True; TryGetValue False; TryGetValue True; TryGetValue False").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  2
+  .locals init (S1 V_0,
+            int V_1,
+            int V_2,
+            bool V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  call       ""bool S1.TryGetValue(out int)""
+  IL_0010:  brfalse.s  IL_0027
+  IL_0012:  ldloc.1
+  IL_0013:  ldc.i4.1
+  IL_0014:  bne.un.s   IL_0027
+  IL_0016:  ldarg.0
+  IL_0017:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_001c:  stloc.2
+  IL_001d:  ldloc.2
+  IL_001e:  ldc.i4.1
+  IL_001f:  sub
+  IL_0020:  ldc.i4.1
+  IL_0021:  bgt.un.s   IL_0027
+  IL_0023:  ldc.i4.1
+  IL_0024:  stloc.3
+  IL_0025:  br.s       IL_0029
+  IL_0027:  ldc.i4.0
+  IL_0028:  stloc.3
+  IL_0029:  ldloc.3
+  IL_002a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_58_TryGetValue()
+        {
+            var src = @"
+class C1(int f1, int f2)
+{
+    public int F11 = f1;
+    public int F12 = f2;
+}
+
+class C2(int f11, int f12, int f2) : C1(f11, f12)
+{
+    public int F2 = f2;
+}
+
+class C3(int f1, int f2) : C1(f1, f2)
+{
+}
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(C1 x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    public S1(C3 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    static void Main()
+    {
+        S1[] s = [new S1(),
+                  new S1(new C3(1, 1)), new S1(new C3(1, 3)), new S1(new C3(2, 3)), new S1(new C3(2, 4)),
+                  new S1(new C2(1, 1, 1)), new S1(new C2(1, 3, 1)), new S1(new C2(2, 3, 1)), new S1(new C2(2, 4, 1)),
+                  new S1(new C2(1, 1, 2)), new S1(new C2(1, 3, 2)), new S1(new C2(2, 3, 2)), new S1(new C2(2, 4, 2))]; 
+        foreach (var s1 in s)
+        {
+            var t = Test1(s1);
+            System.Console.WriteLine();
+            System.Console.WriteLine(t);
+        }
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is not ((C1 { F11: 1 } or C2 { F2: 2 }) and C1 { F12: 3 });
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t1 = t0.Value; [1]
+[1]: t1 is C1 ? [2] : [12]
+[2]: t2 = (C1)t1; [3]
+[3]: t3 = t2.F11; [4]
+[4]: t3 == 1 ? [9] : [5]
+[5]: t1 is C2 ? [6] : [12]
+[6]: t4 = (C2)t1; [7]
+[7]: t5 = t4.F2; [8]
+[8]: t5 == 2 ? [9] : [12]
+[9]: t6 = t2.F12; [10]
+[10]: t6 == 3 ? [11] : [12]
+[11]: leaf <isPatternFailure> `u is not ((C1 { F11: 1 } or C2 { F2: 2 }) and C1 { F12: 3 })`
+[12]: leaf <isPatternSuccess> `not ((C1 { F11: 1 } or C2 { F2: 2 }) and C1 { F12: 3 })`
+",
+forLowering: true);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+get_Value 
+True
+get_Value 
+True
+get_Value 
+False
+get_Value 
+True
+get_Value 
+True
+get_Value 
+True
+get_Value 
+False
+get_Value 
+True
+get_Value 
+True
+get_Value 
+True
+get_Value 
+False
+get_Value 
+False
+get_Value 
+True
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       69 (0x45)
+  .maxstack  2
+  .locals init (object V_0,
+                C1 V_1,
+                C2 V_2,
+                bool V_3)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""S1""
+  IL_0008:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  isinst     ""C1""
+  IL_0014:  stloc.1
+  IL_0015:  ldloc.1
+  IL_0016:  brfalse.s  IL_003d
+  IL_0018:  ldloc.1
+  IL_0019:  ldfld      ""int C1.F11""
+  IL_001e:  ldc.i4.1
+  IL_001f:  beq.s      IL_0034
+  IL_0021:  ldloc.0
+  IL_0022:  isinst     ""C2""
+  IL_0027:  stloc.2
+  IL_0028:  ldloc.2
+  IL_0029:  brfalse.s  IL_003d
+  IL_002b:  ldloc.2
+  IL_002c:  ldfld      ""int C2.F2""
+  IL_0031:  ldc.i4.2
+  IL_0032:  bne.un.s   IL_003d
+  IL_0034:  ldloc.1
+  IL_0035:  ldfld      ""int C1.F12""
+  IL_003a:  ldc.i4.3
+  IL_003b:  beq.s      IL_0041
+  IL_003d:  ldc.i4.1
+  IL_003e:  stloc.3
+  IL_003f:  br.s       IL_0043
+  IL_0041:  ldc.i4.0
+  IL_0042:  stloc.3
+  IL_0043:  ldloc.3
+  IL_0044:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_59_TryGetValue()
+        {
+            var src = @"
+class C1(int f1, int f2)
+{
+    public int F11 = f1;
+    public int F12 = f2;
+}
+
+class C2(int f11, int f12, int f2) : C1(f11, f12)
+{
+    public int F2 = f2;
+}
+
+class C3(int f1, int f2) : C1(f1, f2)
+{
+}
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(C1 x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    public S1(C3 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool TryGetValue(out C1 x)
+    {
+        System.Console.Write(""TryGetValue(C1) "");
+        x = _value as C1;
+        return x != null;
+    }
+
+    public bool TryGetValue(out C2 x)
+    {
+        System.Console.Write(""TryGetValue(C2) "");
+        x = _value as C2;
+        return x != null;
+    }
+
+    public bool TryGetValue(out C3 x)
+    {
+        System.Console.Write(""TryGetValue(C3) "");
+        x = _value as C3;
+        return x != null;
+    }
+
+    static void Main()
+    {
+        S1[] s = [new S1(),
+                  new S1(new C3(1, 1)), new S1(new C3(1, 3)), new S1(new C3(2, 3)), new S1(new C3(2, 4)),
+                  new S1(new C2(1, 1, 1)), new S1(new C2(1, 3, 1)), new S1(new C2(2, 3, 1)), new S1(new C2(2, 4, 1)),
+                  new S1(new C2(1, 1, 2)), new S1(new C2(1, 3, 2)), new S1(new C2(2, 3, 2)), new S1(new C2(2, 4, 2))]; 
+        foreach (var s1 in s)
+        {
+            var t = Test1(s1);
+            System.Console.WriteLine();
+            System.Console.WriteLine(t);
+        }
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is not ((C1 { F11: 1 } or C2 { F2: 2 }) and C1 { F12: 3 });
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: TryGetValue(C1): (Item1, ReturnItem) t1 = t0; [1]
+[1]: t1.ReturnItem == True ? [2] : [13]
+[2]: t2 = (C1)t1.Item1; [3]
+[3]: t3 = t2.F11; [4]
+[4]: t3 == 1 ? [10] : [5]
+[5]: TryGetValue(C2): (Item1, ReturnItem) t4 = t0; [6]
+[6]: t4.ReturnItem == True ? [7] : [13]
+[7]: t5 = (C2)t4.Item1; [8]
+[8]: t6 = t5.F2; [9]
+[9]: t6 == 2 ? [10] : [13]
+[10]: t7 = t2.F12; [11]
+[11]: t7 == 3 ? [12] : [13]
+[12]: leaf <isPatternFailure> `u is not ((C1 { F11: 1 } or C2 { F2: 2 }) and C1 { F12: 3 })`
+[13]: leaf <isPatternSuccess> `not ((C1 { F11: 1 } or C2 { F2: 2 }) and C1 { F12: 3 })`
+",
+forLowering: true);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+TryGetValue(C1) 
+True
+TryGetValue(C1) 
+True
+TryGetValue(C1) 
+False
+TryGetValue(C1) TryGetValue(C2) 
+True
+TryGetValue(C1) TryGetValue(C2) 
+True
+TryGetValue(C1) 
+True
+TryGetValue(C1) 
+False
+TryGetValue(C1) TryGetValue(C2) 
+True
+TryGetValue(C1) TryGetValue(C2) 
+True
+TryGetValue(C1) 
+True
+TryGetValue(C1) 
+False
+TryGetValue(C1) TryGetValue(C2) 
+False
+TryGetValue(C1) TryGetValue(C2) 
+True
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  2
+  .locals init (C1 V_0,
+            C1 V_1,
+            C2 V_2,
+            bool V_3)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool S1.TryGetValue(out C1)""
+  IL_0009:  brfalse.s  IL_0033
+  IL_000b:  ldloc.0
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.1
+  IL_000e:  ldfld      ""int C1.F11""
+  IL_0013:  ldc.i4.1
+  IL_0014:  beq.s      IL_002a
+  IL_0016:  ldarga.s   V_0
+  IL_0018:  ldloca.s   V_2
+  IL_001a:  call       ""bool S1.TryGetValue(out C2)""
+  IL_001f:  brfalse.s  IL_0033
+  IL_0021:  ldloc.2
+  IL_0022:  ldfld      ""int C2.F2""
+  IL_0027:  ldc.i4.2
+  IL_0028:  bne.un.s   IL_0033
+  IL_002a:  ldloc.1
+  IL_002b:  ldfld      ""int C1.F12""
+  IL_0030:  ldc.i4.3
+  IL_0031:  beq.s      IL_0037
+  IL_0033:  ldc.i4.1
+  IL_0034:  stloc.3
+  IL_0035:  br.s       IL_0039
+  IL_0037:  ldc.i4.0
+  IL_0038:  stloc.3
+  IL_0039:  ldloc.3
+  IL_003a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_60_TryGetValue()
+        {
+            var src = @"
+class C1(int f1, int f2)
+{
+    public int F11 = f1;
+    public int F12 = f2;
+}
+
+class C2(int f11, int f12, int f2) : C1(f11, f12)
+{
+    public int F2 = f2;
+}
+
+class C3(int f1, int f2) : C1(f1, f2)
+{
+}
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(C1 x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    public S1(C3 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool TryGetValue(out C1 x)
+    {
+        System.Console.Write(""TryGetValue(C1) "");
+        x = _value as C1;
+        return x != null;
+    }
+
+    public bool TryGetValue(out C2 x)
+    {
+        System.Console.Write(""TryGetValue(C2) "");
+        x = _value as C2;
+        return x != null;
+    }
+
+    public bool TryGetValue(out C3 x)
+    {
+        System.Console.Write(""TryGetValue(C3) "");
+        x = _value as C3;
+        return x != null;
+    }
+
+    static void Main()
+    {
+        S1[] s = [new S1(),
+                  new S1(new C3(1, 1)), new S1(new C3(1, 3)), new S1(new C3(2, 3)), new S1(new C3(2, 4)),
+                  new S1(new C2(1, 1, 1)), new S1(new C2(1, 3, 1)), new S1(new C2(2, 3, 1)), new S1(new C2(2, 4, 1)),
+                  new S1(new C2(1, 1, 2)), new S1(new C2(1, 3, 2)), new S1(new C2(2, 3, 2)), new S1(new C2(2, 4, 2))]; 
+        foreach (var s1 in s)
+        {
+            var t = Test1(s1);
+            System.Console.WriteLine();
+            System.Console.WriteLine(t);
+        }
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is not ((C2 { F2: 2 } or C1 { F11: 1 }) and C1 { F12: 3 });
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: TryGetValue(C2): (Item1, ReturnItem) t1 = t0; [1]
+[1]: t1.ReturnItem == True ? [2] : [11]
+[2]: t2 = (C2)t1.Item1; [3]
+[3]: t3 = t2.F2; [4]
+[4]: t3 == 2 ? [5] : [6]
+[5]: t4 = (C1)t1.Item1; [10]
+[6]: t4 = (C1)t1.Item1; [7]
+[7]: PassThrough t4; [8]
+[8]: t6 = t4.F11; [9]
+[9]: t6 == 1 ? [10] : [19]
+[10]: PassThrough t4; [16]
+[11]: TryGetValue(C1): (Item1, ReturnItem) t7 = t0; [12]
+[12]: t7.ReturnItem == True ? [13] : [19]
+[13]: t4 = (C1)t7.Item1; [14]
+[14]: t6 = t4.F11; [15]
+[15]: t6 == 1 ? [16] : [19]
+[16]: t8 = t4.F12; [17]
+[17]: t8 == 3 ? [18] : [19]
+[18]: leaf <isPatternFailure> `u is not ((C2 { F2: 2 } or C1 { F11: 1 }) and C1 { F12: 3 })`
+[19]: leaf <isPatternSuccess> `not ((C2 { F2: 2 } or C1 { F11: 1 }) and C1 { F12: 3 })`
+",
+forLowering: true);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+TryGetValue(C2) TryGetValue(C1) 
+True
+TryGetValue(C2) TryGetValue(C1) 
+True
+TryGetValue(C2) TryGetValue(C1) 
+False
+TryGetValue(C2) TryGetValue(C1) 
+True
+TryGetValue(C2) TryGetValue(C1) 
+True
+TryGetValue(C2) 
+True
+TryGetValue(C2) 
+False
+TryGetValue(C2) 
+True
+TryGetValue(C2) 
+True
+TryGetValue(C2) 
+True
+TryGetValue(C2) 
+False
+TryGetValue(C2) 
+False
+TryGetValue(C2) 
+True
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       76 (0x4c)
+  .maxstack  2
+  .locals init (C2 V_0,
+                C1 V_1,
+                C1 V_2,
+                bool V_3)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool S1.TryGetValue(out C2)""
+  IL_0009:  brfalse.s  IL_0025
+  IL_000b:  ldloc.0
+  IL_000c:  ldfld      ""int C2.F2""
+  IL_0011:  ldc.i4.2
+  IL_0012:  bne.un.s   IL_0018
+  IL_0014:  ldloc.0
+  IL_0015:  stloc.1
+  IL_0016:  br.s       IL_003b
+  IL_0018:  ldloc.0
+  IL_0019:  stloc.1
+  IL_001a:  ldloc.1
+  IL_001b:  ldfld      ""int C1.F11""
+  IL_0020:  ldc.i4.1
+  IL_0021:  bne.un.s   IL_0044
+  IL_0023:  br.s       IL_003b
+  IL_0025:  ldarga.s   V_0
+  IL_0027:  ldloca.s   V_2
+  IL_0029:  call       ""bool S1.TryGetValue(out C1)""
+  IL_002e:  brfalse.s  IL_0044
+  IL_0030:  ldloc.2
+  IL_0031:  stloc.1
+  IL_0032:  ldloc.1
+  IL_0033:  ldfld      ""int C1.F11""
+  IL_0038:  ldc.i4.1
+  IL_0039:  bne.un.s   IL_0044
+  IL_003b:  ldloc.1
+  IL_003c:  ldfld      ""int C1.F12""
+  IL_0041:  ldc.i4.3
+  IL_0042:  beq.s      IL_0048
+  IL_0044:  ldc.i4.1
+  IL_0045:  stloc.3
+  IL_0046:  br.s       IL_004a
+  IL_0048:  ldc.i4.0
+  IL_0049:  stloc.3
+  IL_004a:  ldloc.3
+  IL_004b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_61_TryGetValue()
+        {
+            var src = @"
+class C1(int f1, int f2)
+{
+    public int F11 = f1;
+    public int F12 = f2;
+}
+
+class C2(int f11, int f12, int f2) : C1(f11, f12)
+{
+    public int F2 = f2;
+}
+
+class C3(int f1, int f2) : C1(f1, f2)
+{
+}
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(C1 x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    public S1(C3 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool TryGetValue(out C2 x)
+    {
+        System.Console.Write(""TryGetValue(C2) "");
+        x = _value as C2;
+        return x != null;
+    }
+
+    public bool TryGetValue(out C3 x)
+    {
+        System.Console.Write(""TryGetValue(C3) "");
+        x = _value as C3;
+        return x != null;
+    }
+
+    static void Main()
+    {
+        S1[] s = [new S1(),
+                  new S1(new C3(1, 1)), new S1(new C3(1, 3)), new S1(new C3(2, 3)), new S1(new C3(2, 4)),
+                  new S1(new C2(1, 1, 1)), new S1(new C2(1, 3, 1)), new S1(new C2(2, 3, 1)), new S1(new C2(2, 4, 1)),
+                  new S1(new C2(1, 1, 2)), new S1(new C2(1, 3, 2)), new S1(new C2(2, 3, 2)), new S1(new C2(2, 4, 2))]; 
+        foreach (var s1 in s)
+        {
+            var t = Test1(s1);
+            System.Console.WriteLine();
+            System.Console.WriteLine(t);
+        }
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is not ((C1 { F11: 1 } or C2 { F2: 2 }) and C1 { F12: 3 });
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t1 = t0.Value; [1]
+[1]: t1 is C1 ? [2] : [13]
+[2]: t2 = (C1)t1; [3]
+[3]: t3 = t2.F11; [4]
+[4]: t3 == 1 ? [10] : [5]
+[5]: TryGetValue(C2): (Item1, ReturnItem) t4 = t0; [6]
+[6]: t4.ReturnItem == True ? [7] : [13]
+[7]: t5 = (C2)t4.Item1; [8]
+[8]: t6 = t5.F2; [9]
+[9]: t6 == 2 ? [10] : [13]
+[10]: t7 = t2.F12; [11]
+[11]: t7 == 3 ? [12] : [13]
+[12]: leaf <isPatternFailure> `u is not ((C1 { F11: 1 } or C2 { F2: 2 }) and C1 { F12: 3 })`
+[13]: leaf <isPatternSuccess> `not ((C1 { F11: 1 } or C2 { F2: 2 }) and C1 { F12: 3 })`
+",
+forLowering: true);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+get_Value 
+True
+get_Value 
+True
+get_Value 
+False
+get_Value TryGetValue(C2) 
+True
+get_Value TryGetValue(C2) 
+True
+get_Value 
+True
+get_Value 
+False
+get_Value TryGetValue(C2) 
+True
+get_Value TryGetValue(C2) 
+True
+get_Value 
+True
+get_Value 
+False
+get_Value TryGetValue(C2) 
+False
+get_Value TryGetValue(C2) 
+True
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       68 (0x44)
+  .maxstack  2
+  .locals init (C1 V_0,
+                C2 V_1,
+                bool V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""S1""
+  IL_0008:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_000d:  isinst     ""C1""
+  IL_0012:  stloc.0
+  IL_0013:  ldloc.0
+  IL_0014:  brfalse.s  IL_003c
+  IL_0016:  ldloc.0
+  IL_0017:  ldfld      ""int C1.F11""
+  IL_001c:  ldc.i4.1
+  IL_001d:  beq.s      IL_0033
+  IL_001f:  ldarga.s   V_0
+  IL_0021:  ldloca.s   V_1
+  IL_0023:  call       ""bool S1.TryGetValue(out C2)""
+  IL_0028:  brfalse.s  IL_003c
+  IL_002a:  ldloc.1
+  IL_002b:  ldfld      ""int C2.F2""
+  IL_0030:  ldc.i4.2
+  IL_0031:  bne.un.s   IL_003c
+  IL_0033:  ldloc.0
+  IL_0034:  ldfld      ""int C1.F12""
+  IL_0039:  ldc.i4.3
+  IL_003a:  beq.s      IL_0040
+  IL_003c:  ldc.i4.1
+  IL_003d:  stloc.2
+  IL_003e:  br.s       IL_0042
+  IL_0040:  ldc.i4.0
+  IL_0041:  stloc.2
+  IL_0042:  ldloc.2
+  IL_0043:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_62_TryGetValue()
+        {
+            var src = @"
+class C1(int f1, int f2)
+{
+    public int F11 = f1;
+    public int F12 = f2;
+}
+
+class C2(int f11, int f12, int f2) : C1(f11, f12)
+{
+    public int F2 = f2;
+}
+
+class C3(int f1, int f2) : C1(f1, f2)
+{
+}
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(C1 x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    public S1(C3 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool TryGetValue(out C2 x)
+    {
+        System.Console.Write(""TryGetValue(C2) "");
+        x = _value as C2;
+        return x != null;
+    }
+
+    public bool TryGetValue(out C3 x)
+    {
+        System.Console.Write(""TryGetValue(C3) "");
+        x = _value as C3;
+        return x != null;
+    }
+
+    static void Main()
+    {
+        S1[] s = [new S1(),
+                  new S1(new C3(1, 1)), new S1(new C3(1, 3)), new S1(new C3(2, 3)), new S1(new C3(2, 4)),
+                  new S1(new C2(1, 1, 1)), new S1(new C2(1, 3, 1)), new S1(new C2(2, 3, 1)), new S1(new C2(2, 4, 1)),
+                  new S1(new C2(1, 1, 2)), new S1(new C2(1, 3, 2)), new S1(new C2(2, 3, 2)), new S1(new C2(2, 4, 2))]; 
+        foreach (var s1 in s)
+        {
+            var t = Test1(s1);
+            System.Console.WriteLine();
+            System.Console.WriteLine(t);
+        }
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is not ((C2 { F2: 2 } or C1 { F11: 1 }) and C1 { F12: 3 });
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: TryGetValue(C2): (Item1, ReturnItem) t1 = t0; [1]
+[1]: t1.ReturnItem == True ? [2] : [11]
+[2]: t2 = (C2)t1.Item1; [3]
+[3]: t3 = t2.F2; [4]
+[4]: t3 == 2 ? [5] : [6]
+[5]: t4 = (C1)t1.Item1; [10]
+[6]: t4 = (C1)t1.Item1; [7]
+[7]: PassThrough t4; [8]
+[8]: t6 = t4.F11; [9]
+[9]: t6 == 1 ? [10] : [19]
+[10]: PassThrough t4; [16]
+[11]: t7 = t0.Value; [12]
+[12]: t7 is C1 ? [13] : [19]
+[13]: t4 = (C1)t7; [14]
+[14]: t6 = t4.F11; [15]
+[15]: t6 == 1 ? [16] : [19]
+[16]: t8 = t4.F12; [17]
+[17]: t8 == 3 ? [18] : [19]
+[18]: leaf <isPatternFailure> `u is not ((C2 { F2: 2 } or C1 { F11: 1 }) and C1 { F12: 3 })`
+[19]: leaf <isPatternSuccess> `not ((C2 { F2: 2 } or C1 { F11: 1 }) and C1 { F12: 3 })`
+",
+forLowering: true);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+TryGetValue(C2) get_Value 
+True
+TryGetValue(C2) get_Value 
+True
+TryGetValue(C2) get_Value 
+False
+TryGetValue(C2) get_Value 
+True
+TryGetValue(C2) get_Value 
+True
+TryGetValue(C2) 
+True
+TryGetValue(C2) 
+False
+TryGetValue(C2) 
+True
+TryGetValue(C2) 
+True
+TryGetValue(C2) 
+True
+TryGetValue(C2) 
+False
+TryGetValue(C2) 
+False
+TryGetValue(C2) 
+True
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       85 (0x55)
+  .maxstack  2
+  .locals init (C2 V_0,
+                C1 V_1,
+                bool V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool S1.TryGetValue(out C2)""
+  IL_0009:  brfalse.s  IL_0025
+  IL_000b:  ldloc.0
+  IL_000c:  ldfld      ""int C2.F2""
+  IL_0011:  ldc.i4.2
+  IL_0012:  bne.un.s   IL_0018
+  IL_0014:  ldloc.0
+  IL_0015:  stloc.1
+  IL_0016:  br.s       IL_0044
+  IL_0018:  ldloc.0
+  IL_0019:  stloc.1
+  IL_001a:  ldloc.1
+  IL_001b:  ldfld      ""int C1.F11""
+  IL_0020:  ldc.i4.1
+  IL_0021:  bne.un.s   IL_004d
+  IL_0023:  br.s       IL_0044
+  IL_0025:  ldarga.s   V_0
+  IL_0027:  constrained. ""S1""
+  IL_002d:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_0032:  isinst     ""C1""
+  IL_0037:  stloc.1
+  IL_0038:  ldloc.1
+  IL_0039:  brfalse.s  IL_004d
+  IL_003b:  ldloc.1
+  IL_003c:  ldfld      ""int C1.F11""
+  IL_0041:  ldc.i4.1
+  IL_0042:  bne.un.s   IL_004d
+  IL_0044:  ldloc.1
+  IL_0045:  ldfld      ""int C1.F12""
+  IL_004a:  ldc.i4.3
+  IL_004b:  beq.s      IL_0051
+  IL_004d:  ldc.i4.1
+  IL_004e:  stloc.2
+  IL_004f:  br.s       IL_0053
+  IL_0051:  ldc.i4.0
+  IL_0052:  stloc.2
+  IL_0053:  ldloc.2
+  IL_0054:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_63_TryGetValue()
+        {
+            var src = @"
+class C1(int f1, int f2)
+{
+    public int F11 = f1;
+    public int F12 = f2;
+}
+
+class C2(int f11, int f12, int f2) : C1(f11, f12)
+{
+    public int F2 = f2;
+}
+
+class C3(int f1, int f2) : C1(f1, f2)
+{
+}
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(C1 x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    public S1(C3 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool TryGetValue(out C1 x)
+    {
+        System.Console.Write(""TryGetValue(C1) "");
+        x = _value as C1;
+        return x != null;
+    }
+
+    public bool TryGetValue(out C3 x)
+    {
+        System.Console.Write(""TryGetValue(C3) "");
+        x = _value as C3;
+        return x != null;
+    }
+
+    static void Main()
+    {
+        S1[] s = [new S1(),
+                  new S1(new C3(1, 1)), new S1(new C3(1, 3)), new S1(new C3(2, 3)), new S1(new C3(2, 4)),
+                  new S1(new C2(1, 1, 1)), new S1(new C2(1, 3, 1)), new S1(new C2(2, 3, 1)), new S1(new C2(2, 4, 1)),
+                  new S1(new C2(1, 1, 2)), new S1(new C2(1, 3, 2)), new S1(new C2(2, 3, 2)), new S1(new C2(2, 4, 2))]; 
+        foreach (var s1 in s)
+        {
+            var t = Test1(s1);
+            System.Console.WriteLine();
+            System.Console.WriteLine(t);
+        }
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is not ((C1 { F11: 1 } or C2 { F2: 2 }) and C1 { F12: 3 });
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: TryGetValue(C1): (Item1, ReturnItem) t1 = t0; [1]
+[1]: t1.ReturnItem == True ? [2] : [13]
+[2]: t2 = (C1)t1.Item1; [3]
+[3]: t3 = t2.F11; [4]
+[4]: t3 == 1 ? [10] : [5]
+[5]: t4 = t0.Value; [6]
+[6]: t4 is C2 ? [7] : [13]
+[7]: t5 = (C2)t4; [8]
+[8]: t6 = t5.F2; [9]
+[9]: t6 == 2 ? [10] : [13]
+[10]: t7 = t2.F12; [11]
+[11]: t7 == 3 ? [12] : [13]
+[12]: leaf <isPatternFailure> `u is not ((C1 { F11: 1 } or C2 { F2: 2 }) and C1 { F12: 3 })`
+[13]: leaf <isPatternSuccess> `not ((C1 { F11: 1 } or C2 { F2: 2 }) and C1 { F12: 3 })`
+",
+forLowering: true);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+TryGetValue(C1) 
+True
+TryGetValue(C1) 
+True
+TryGetValue(C1) 
+False
+TryGetValue(C1) get_Value 
+True
+TryGetValue(C1) get_Value 
+True
+TryGetValue(C1) 
+True
+TryGetValue(C1) 
+False
+TryGetValue(C1) get_Value 
+True
+TryGetValue(C1) get_Value 
+True
+TryGetValue(C1) 
+True
+TryGetValue(C1) 
+False
+TryGetValue(C1) get_Value 
+False
+TryGetValue(C1) get_Value 
+True
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       70 (0x46)
+  .maxstack  2
+  .locals init (C1 V_0,
+            C1 V_1,
+            C2 V_2,
+            bool V_3)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool S1.TryGetValue(out C1)""
+  IL_0009:  brfalse.s  IL_003e
+  IL_000b:  ldloc.0
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.1
+  IL_000e:  ldfld      ""int C1.F11""
+  IL_0013:  ldc.i4.1
+  IL_0014:  beq.s      IL_0035
+  IL_0016:  ldarga.s   V_0
+  IL_0018:  constrained. ""S1""
+  IL_001e:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_0023:  isinst     ""C2""
+  IL_0028:  stloc.2
+  IL_0029:  ldloc.2
+  IL_002a:  brfalse.s  IL_003e
+  IL_002c:  ldloc.2
+  IL_002d:  ldfld      ""int C2.F2""
+  IL_0032:  ldc.i4.2
+  IL_0033:  bne.un.s   IL_003e
+  IL_0035:  ldloc.1
+  IL_0036:  ldfld      ""int C1.F12""
+  IL_003b:  ldc.i4.3
+  IL_003c:  beq.s      IL_0042
+  IL_003e:  ldc.i4.1
+  IL_003f:  stloc.3
+  IL_0040:  br.s       IL_0044
+  IL_0042:  ldc.i4.0
+  IL_0043:  stloc.3
+  IL_0044:  ldloc.3
+  IL_0045:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_64_TryGetValue()
+        {
+            var src = @"
+class C1(int f1, int f2)
+{
+    public int F11 = f1;
+    public int F12 = f2;
+}
+
+class C2(int f11, int f12, int f2) : C1(f11, f12)
+{
+    public int F2 = f2;
+}
+
+class C3(int f1, int f2) : C1(f1, f2)
+{
+}
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(C1 x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    public S1(C3 x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool TryGetValue(out C1 x)
+    {
+        System.Console.Write(""TryGetValue(C1) "");
+        x = _value as C1;
+        return x != null;
+    }
+
+    public bool TryGetValue(out C3 x)
+    {
+        System.Console.Write(""TryGetValue(C3) "");
+        x = _value as C3;
+        return x != null;
+    }
+
+    static void Main()
+    {
+        S1[] s = [new S1(),
+                  new S1(new C3(1, 1)), new S1(new C3(1, 3)), new S1(new C3(2, 3)), new S1(new C3(2, 4)),
+                  new S1(new C2(1, 1, 1)), new S1(new C2(1, 3, 1)), new S1(new C2(2, 3, 1)), new S1(new C2(2, 4, 1)),
+                  new S1(new C2(1, 1, 2)), new S1(new C2(1, 3, 2)), new S1(new C2(2, 3, 2)), new S1(new C2(2, 4, 2))]; 
+        foreach (var s1 in s)
+        {
+            var t = Test1(s1);
+            System.Console.WriteLine();
+            System.Console.WriteLine(t);
+        }
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is not ((C2 { F2: 2 } or C1 { F11: 1 }) and C1 { F12: 3 });
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t1 = t0.Value; [1]
+[1]: t1 is C2 ? [2] : [8]
+[2]: t2 = (C2)t1; [3]
+[3]: t3 = t2.F2; [4]
+[4]: t3 == 2 ? [5] : [6]
+[5]: t4 = (C1)t1; [13]
+[6]: t4 = (C1)t1; [7]
+[7]: PassThrough t4; [11]
+[8]: TryGetValue(C1): (Item1, ReturnItem) t6 = t0; [9]
+[9]: t6.ReturnItem == True ? [10] : [16]
+[10]: t4 = (C1)t6.Item1; [11]
+[11]: t7 = t4.F11; [12]
+[12]: t7 == 1 ? [13] : [16]
+[13]: t8 = t4.F12; [14]
+[14]: t8 == 3 ? [15] : [16]
+[15]: leaf <isPatternFailure> `u is not ((C2 { F2: 2 } or C1 { F11: 1 }) and C1 { F12: 3 })`
+[16]: leaf <isPatternSuccess> `not ((C2 { F2: 2 } or C1 { F11: 1 }) and C1 { F12: 3 })`
+",
+forLowering: true);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+get_Value TryGetValue(C1) 
+True
+get_Value TryGetValue(C1) 
+True
+get_Value TryGetValue(C1) 
+False
+get_Value TryGetValue(C1) 
+True
+get_Value TryGetValue(C1) 
+True
+get_Value 
+True
+get_Value 
+False
+get_Value 
+True
+get_Value 
+True
+get_Value 
+True
+get_Value 
+False
+get_Value 
+False
+get_Value 
+True
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       93 (0x5d)
+  .maxstack  2
+  .locals init (object V_0,
+                C2 V_1,
+                C1 V_2,
+                C1 V_3,
+                bool V_4)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""S1""
+  IL_0008:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  isinst     ""C2""
+  IL_0014:  stloc.1
+  IL_0015:  ldloc.1
+  IL_0016:  brfalse.s  IL_0033
+  IL_0018:  ldloc.1
+  IL_0019:  ldfld      ""int C2.F2""
+  IL_001e:  ldc.i4.2
+  IL_001f:  bne.un.s   IL_002a
+  IL_0021:  ldloc.0
+  IL_0022:  castclass  ""C1""
+  IL_0027:  stloc.2
+  IL_0028:  br.s       IL_0049
+  IL_002a:  ldloc.0
+  IL_002b:  castclass  ""C1""
+  IL_0030:  stloc.2
+  IL_0031:  br.s       IL_0040
+  IL_0033:  ldarga.s   V_0
+  IL_0035:  ldloca.s   V_3
+  IL_0037:  call       ""bool S1.TryGetValue(out C1)""
+  IL_003c:  brfalse.s  IL_0052
+  IL_003e:  ldloc.3
+  IL_003f:  stloc.2
+  IL_0040:  ldloc.2
+  IL_0041:  ldfld      ""int C1.F11""
+  IL_0046:  ldc.i4.1
+  IL_0047:  bne.un.s   IL_0052
+  IL_0049:  ldloc.2
+  IL_004a:  ldfld      ""int C1.F12""
+  IL_004f:  ldc.i4.3
+  IL_0050:  beq.s      IL_0057
+  IL_0052:  ldc.i4.1
+  IL_0053:  stloc.s    V_4
+  IL_0055:  br.s       IL_005a
+  IL_0057:  ldc.i4.0
+  IL_0058:  stloc.s    V_4
+  IL_005a:  ldloc.s    V_4
+  IL_005c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_65_TryGetValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(System.Runtime.CompilerServices.ITuple x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool TryGetValue(out System.Runtime.CompilerServices.ITuple x)
+    {
+        System.Console.Write(""TryGetValue(ITuple) "");
+        x = _value as System.Runtime.CompilerServices.ITuple;
+        return x != null;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(' ');
+        System.Console.Write(Test1(default));
+        System.Console.Write(' ');
+        System.Console.Write(Test1(new S1(new C())));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is (_, 10);
+    }   
+}
+
+public class C : System.Runtime.CompilerServices.ITuple
+{
+    int System.Runtime.CompilerServices.ITuple.Length => 2;
+    object System.Runtime.CompilerServices.ITuple.this[int i] => i * 10;
+}
+
+";
+            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TryGetValue(ITuple) False TryGetValue(ITuple) False TryGetValue(ITuple) True" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_66_TryGetValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(S2<int> x) { _value = x; }
+    public S1(S2<string> x) { _value = x; }
+    public S1(S2<object> x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool TryGetValue(out S2<int> x)
+    {
+        System.Console.Write(""TryGetValue(S2<int>) "");
+        if (_value is S2<int> s2)
+        {
+            x = s2;
+            return true;
+        }
+
+        x = default;
+        return false;
+    }
+
+    public bool TryGetValue(out S2<string> x)
+    {
+        System.Console.Write(""TryGetValue(S2<string>) "");
+        if (_value is S2<string> s2)
+        {
+            x = s2;
+            return true;
+        }
+
+        x = default;
+        return false;
+    }
+
+    public bool TryGetValue(out S2<object> x)
+    {
+        System.Console.Write(""TryGetValue(S2<object>) "");
+        if (_value is S2<object> s2)
+        {
+            x = s2;
+            return true;
+        }
+
+        x = default;
+        return false;
+    }
+}
+
+struct S2<T>
+{
+    public T Value;
+
+    public void Deconstruct(out T value, out int x)
+    {
+        value = Value;
+        x = 0;
+    }
+}
+
+class A;
+class B;
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(new S2<int>() { Value = 10 })));
+        System.Console.Write(' ');
+        System.Console.Write(Test1(default));
+        System.Console.Write(' ');
+        System.Console.Write(Test1(new S1(new S2<string>() { Value = ""11"" })));
+        System.Console.Write(' ');
+        System.Console.Write(Test1(new S1(new S2<int>() { Value = 0 })));
+        System.Console.Write(' ');
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(new S2<int>() { Value = 10 })));
+        System.Console.Write(' ');
+        System.Console.Write(Test2(default));
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(new S2<string>() { Value = ""11"" })));
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(new S2<int>() { Value = 0 })));
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(new S2<int>() { Value = 11 })));
+        System.Console.Write(' ');
+        System.Console.Write(' ');
+        System.Console.Write(Test3(new S1(new S2<int>() { Value = 11 })));
+        System.Console.Write(' ');
+        System.Console.Write(Test3(default));
+        System.Console.Write(' ');
+        System.Console.Write(Test3(new S1(new S2<string>() { Value = ""11"" })));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is S2<int> (10, _);
+    }   
+
+    static bool Test2(S1 u)
+    {
+        return u is S2<int> (10 or 11, _);
+    }   
+
+    static bool Test3(S1 u)
+    {
+        return u is S2<string> (""11"", _) and (['1', '1'], _);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TryGetValue(S2<int>) True TryGetValue(S2<int>) False TryGetValue(S2<int>) False TryGetValue(S2<int>) False  TryGetValue(S2<int>) True TryGetValue(S2<int>) False TryGetValue(S2<int>) False TryGetValue(S2<int>) False TryGetValue(S2<int>) True  TryGetValue(S2<string>) False TryGetValue(S2<string>) False TryGetValue(S2<string>) True" : null,
+                verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_67_TryGetValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool TryGetValue(out int x)
+    {
+        System.Console.Write(""TryGetValue(int) "");
+        if (_value is int s2)
+        {
+            x = s2;
+            return true;
+        }
+
+        x = default;
+        return false;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(' ');
+        System.Console.Write(Test1(default));
+        System.Console.Write(' ');
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(' ');
+        System.Console.Write(Test1(new S1(0)));
+        System.Console.Write(' ');
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(10)));
+        System.Console.Write(' ');
+        System.Console.Write(Test2(default));
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(""11"")));
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(0)));
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(11)));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int x;
+    }   
+
+    static bool Test2(S1 u)
+    {
+        return u is int x ? (x == 10 || x == 11) : false;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
+            CompileAndVerify(
+                comp,
+                expectedOutput: "TryGetValue(int) True TryGetValue(int) False TryGetValue(int) False TryGetValue(int) True  TryGetValue(int) True TryGetValue(int) False TryGetValue(int) False TryGetValue(int) False TryGetValue(int) True"
+                ).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_68_TryGetValue()
+        {
+            var src = @"
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool TryGetValue(out int x)
+    {
+        System.Console.Write(""TryGetValue(int) "");
+        if (_value is int s2)
+        {
+            x = s2;
+            return true;
+        }
+
+        x = default;
+        return false;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(' ');
+        System.Console.Write(Test1(default));
+        System.Console.Write(' ');
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(' ');
+        System.Console.Write(Test1(new S1(0)));
+        System.Console.Write(' ');
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(10)));
+        System.Console.Write(' ');
+        System.Console.Write(Test2(default));
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(""11"")));
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(0)));
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(11)));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is >=10;
+    }   
+
+    static bool Test2(S1 u)
+    {
+        return u is <10 or 11;
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(
+                comp,
+                expectedOutput: "TryGetValue(int) True TryGetValue(int) False TryGetValue(int) False TryGetValue(int) False  TryGetValue(int) False TryGetValue(int) False TryGetValue(int) False TryGetValue(int) True TryGetValue(int) True"
+                ).VerifyDiagnostics();
+        }
     }
 }
 

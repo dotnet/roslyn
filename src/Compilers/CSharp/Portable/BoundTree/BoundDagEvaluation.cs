@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(other.GetHashCode() == this.GetHashCode());
                 Debug.Assert(DecisionDagBuilder.IsEqualEvaluation(other, this));
-                Debug.Assert(other is BoundDagIndexerEvaluation or BoundDagTypeEvaluation ||
-                             this is BoundDagIndexerEvaluation or BoundDagTypeEvaluation ||
-                             DecisionDagBuilder.OriginalInput(other.Input).Equals(DecisionDagBuilder.OriginalInput(this.Input)));
+                Debug.Assert(other is BoundDagIndexerEvaluation or BoundDagTypeEvaluation or BoundDagPassThroughEvaluation ||
+                             this is BoundDagIndexerEvaluation or BoundDagTypeEvaluation or BoundDagPassThroughEvaluation ||
+                             other.Input.Equals(this.Input));
                 return true;
             }
 
@@ -57,11 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundDagIndexEvaluation e => e.Property,
                     BoundDagSliceEvaluation e => getSymbolFromIndexerAccess(e.IndexerAccess),
                     BoundDagIndexerEvaluation e => getSymbolFromIndexerAccess(e.IndexerAccess),
-                    BoundDagAssignmentEvaluation => null,
+                    BoundDagAssignmentEvaluation or BoundDagPassThroughEvaluation => null,
                     _ => throw ExceptionUtilities.UnexpectedValue(this.Kind)
                 };
 
-                Debug.Assert(result is not null || this is BoundDagAssignmentEvaluation);
+                Debug.Assert(result is not null || this is BoundDagAssignmentEvaluation or BoundDagPassThroughEvaluation);
                 return result;
 
                 static Symbol? getSymbolFromIndexerAccess(BoundExpression indexerAccess)
@@ -143,7 +143,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override int GetHashCode()
         {
-            return DecisionDagBuilder.SkipAllTypeEvaluations(this)?.GetHashCode() ?? 0;
+            BoundDagEvaluation? nonTypeEvaluation = DecisionDagBuilder.SkipAllTypeEvaluations(this);
+
+            if (DecisionDagBuilder.IsUnionTryGetValueEvaluation(nonTypeEvaluation, out _, out BoundDagTemp? unionInstance) ||
+                DecisionDagBuilder.IsUnionValueEvaluation(nonTypeEvaluation, out unionInstance))
+            {
+                return unionInstance.GetHashCode();
+            }
+
+            return nonTypeEvaluation?.GetHashCode() ?? 0;
         }
     }
 
@@ -323,6 +331,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder;
         }
 
+        public BoundDagTemp MakeFirstOutParameterTemp()
+        {
+            MethodSymbol method = DeconstructMethod;
+            int extensionExtra = method.IsStatic ? 1 : 0;
+            ParameterSymbol parameter = method.Parameters[extensionExtra];
+            Debug.Assert(parameter.RefKind == RefKind.Out);
+            return new BoundDagTemp(Syntax, parameter.Type, this, 0);
+        }
+
+        public BoundDagTemp MakeReturnValueTemp()
+        {
+            Debug.Assert(!DeconstructMethod.ReturnsVoid);
+            return new BoundDagTemp(Syntax, DeconstructMethod.ReturnType, this, index: -1);
+        }
+
         public override BoundDagTemp MakeResultTemp()
         {
             throw ExceptionUtilities.Unreachable();
@@ -337,6 +360,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override OneOrMany<BoundDagTemp> AllOutputs()
         {
             var builder = MakeOutParameterTemps();
+            if (!DeconstructMethod.ReturnsVoid)
+            {
+                builder.Add(MakeReturnValueTemp());
+            }
 
             if (builder is [var one])
             {
@@ -346,5 +373,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new OneOrMany<BoundDagTemp>(builder.ToImmutableAndFree());
         }
+    }
+
+    partial class BoundDagPassThroughEvaluation
+    {
+        public override int GetHashCode()
+        {
+            Debug.Assert(Input.Source is BoundDagTypeEvaluation);
+            return DecisionDagBuilder.NotTypeEvaluationInput(Input.Source).GetHashCode();
+        }
+
+        public override BoundDagTemp MakeResultTemp()
+        {
+            return Input;
+        }
+
+        public override BoundDagEvaluation UpdateEvaluationImpl(BoundDagTemp input) => Update(input);
     }
 }
