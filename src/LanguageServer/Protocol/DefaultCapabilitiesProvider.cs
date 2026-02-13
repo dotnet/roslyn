@@ -45,7 +45,7 @@ internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
     public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
     {
         var supportsVsExtensions = clientCapabilities.HasVisualStudioLspCapability();
-        var capabilities = supportsVsExtensions ? GetVSServerCapabilities() : new VSInternalServerCapabilities();
+        var capabilities = supportsVsExtensions ? GetVSServerCapabilities() : new VSInternalServerCapabilities() { CallHierarchyProvider = true };
 
         var commitCharacters = CompletionResultFactory.DefaultCommitCharactersArray;
         var triggerCharacters = _completionProviders.SelectMany(
@@ -176,6 +176,7 @@ internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
         {
             ProjectContextProvider = true,
             BreakableRangeProvider = true,
+            CallHierarchyProvider = true,
 
             // Diagnostic requests are only supported from PullDiagnosticsInProcLanguageClient.
             SupportsDiagnosticRequests = false,
