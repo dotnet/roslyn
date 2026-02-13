@@ -471,8 +471,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // fail.
 
-            // PROTOTYPE: Note, an explicit user-defined conversion may come before a union conversion in this case.
-            //            Confirm that this is acceptable.
             var conversion = GetExplicitUserDefinedConversion(source, destination, isChecked: isChecked, ref useSiteInfo);
             if (conversion.Exists)
             {
@@ -791,7 +789,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            // PROTOTYPE: Confirm that union conversions are considered after user-defined conversions.
             Conversion unionConversion = AnalyzeImplicitUnionConversions(sourceExpression, source, destination, ref useSiteInfo);
 
             if (unionConversion.Exists)

@@ -1843,8 +1843,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool IsSuitableUnionConstructor(MethodSymbol ctor)
         {
             Debug.Assert(ctor.MethodKind is MethodKind.Constructor);
-            // PROTOTYPE: Confirm RefKind restriction. Conversion operators allow only RefKind.None or RefKind.In.
-            //            It feels like it makes sense to use the same restriction here.
             return ctor is { DeclaredAccessibility: Accessibility.Public, ParameterCount: 1, Parameters: [{ RefKind: RefKind.In or RefKind.None }] };
         }
 
