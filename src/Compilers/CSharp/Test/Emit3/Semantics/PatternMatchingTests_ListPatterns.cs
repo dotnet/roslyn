@@ -9633,4 +9633,114 @@ class C : System.Collections.ICollection
                     Patterns (0)
             """);
     }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/82398")]
+    public void IndexerEvaluation_DifferentResultTypes()
+    {
+        var source = """
+            using System;
+            
+            class CollectionA
+            {
+                public int Length => 3;
+                public int this[int i] => 101;
+                public CollectionB Slice(int start, int length) => new CollectionB();
+            }
+            
+            class CollectionB
+            {
+                public int Length => 1;
+                public string this[int i] => "102";
+            }
+            
+            class Program
+            {
+                static bool Test(CollectionA a1)
+                {
+                    return a1 is [100, ..] or [.. ["102", ..]];
+                }
+                
+                static void Main()
+                {
+                    var a1 = new CollectionA();
+                    Console.WriteLine(Test(a1));
+                }
+            }
+            """;
+
+        var compilation = CreateCompilationWithIndexAndRange(source, options: TestOptions.DebugExe);
+
+        VerifyDecisionDagDump<IsPatternExpressionSyntax>(compilation,
+@"[0]: t0 != null ? [1] : [10]
+[1]: t1 = t0.Length; [2]
+[2]: t1 >= 1 ? [3] : [10]
+[3]: t2 = t0[0]; [4]
+[4]: t2 == 100 ? [9] : [5]
+[5]: t3 = DagSliceEvaluation(t0); [6]
+[6]: t4 = t3.Length; [7]
+[7]: t5 = t3[0]; [8]
+[8]: t5 == ""102"" ? [9] : [10]
+[9]: leaf <isPatternSuccess> `[100, ..] or [.. [""102"", ..]]`
+[10]: leaf <isPatternFailure> `[100, ..] or [.. [""102"", ..]]`
+");
+
+        var verifier = CompileAndVerify(compilation, expectedOutput: "True").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test", @"
+{
+  // Code size       84 (0x54)
+  .maxstack  3
+  .locals init (int V_0,
+            int V_1,
+            CollectionB V_2,
+            string V_3,
+            bool V_4,
+            bool V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  brfalse.s  IL_0048
+  IL_0004:  ldarg.0
+  IL_0005:  callvirt   ""int CollectionA.Length.get""
+  IL_000a:  stloc.0
+  IL_000b:  ldloc.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  blt.s      IL_0048
+  IL_000f:  ldarg.0
+  IL_0010:  ldc.i4.0
+  IL_0011:  callvirt   ""int CollectionA.this[int].get""
+  IL_0016:  stloc.1
+  IL_0017:  ldloc.1
+  IL_0018:  ldc.i4.s   100
+  IL_001a:  beq.s      IL_0043
+  IL_001c:  ldarg.0
+  IL_001d:  ldc.i4.0
+  IL_001e:  ldloc.0
+  IL_001f:  callvirt   ""CollectionB CollectionA.Slice(int, int)""
+  IL_0024:  stloc.2
+  IL_0025:  ldloc.2
+  IL_0026:  callvirt   ""int CollectionB.Length.get""
+  IL_002b:  pop
+  IL_002c:  ldloc.2
+  IL_002d:  ldc.i4.0
+  IL_002e:  callvirt   ""string CollectionB.this[int].get""
+  IL_0033:  stloc.3
+  IL_0034:  ldloc.3
+  IL_0035:  ldstr      ""102""
+  IL_003a:  call       ""bool string.op_Equality(string, string)""
+  IL_003f:  brtrue.s   IL_0043
+  IL_0041:  br.s       IL_0048
+  IL_0043:  ldc.i4.1
+  IL_0044:  stloc.s    V_4
+  IL_0046:  br.s       IL_004b
+  IL_0048:  ldc.i4.0
+  IL_0049:  stloc.s    V_4
+  IL_004b:  ldloc.s    V_4
+  IL_004d:  stloc.s    V_5
+  IL_004f:  br.s       IL_0051
+  IL_0051:  ldloc.s    V_5
+  IL_0053:  ret
+}
+");
+    }
 }
