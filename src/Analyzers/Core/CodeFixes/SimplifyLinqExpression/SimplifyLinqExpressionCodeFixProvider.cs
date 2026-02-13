@@ -74,7 +74,6 @@ internal sealed class SimplifyLinqExpressionCodeFixProvider() : SyntaxEditorBase
                     break;
                 }
 
-
                 // 'x.Where' in the above expression.
                 var innerMemberAccessExpression = syntaxFacts.GetExpressionOfInvocationExpression(innerInvocationExpression);
 
