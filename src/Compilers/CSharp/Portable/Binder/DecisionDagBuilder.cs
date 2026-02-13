@@ -1717,18 +1717,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // it is possible that they are in fact related under certain conditions.
                     // For instance, the inputs [0] and [^1] point to the same element when length is 1.
                     case (BoundDagIndexerEvaluation s1, BoundDagIndexerEvaluation s2):
-                        // Take the top-level input and normalize indices to account for indexer accesses inside a slice.
-                        // For instance [0] in nested list pattern [ 0, ..[$$], 2 ] refers to [1] in the containing list.
-                        (BoundDagTemp s1Input, BoundDagTemp s1LengthTemp, int s1Index) = GetCanonicalInput(s1);
-                        (BoundDagTemp s2Input, BoundDagTemp s2LengthTemp, int s2Index) = GetCanonicalInput(s2);
-
-                        if (s1Index == s2Index)
                         {
-                            return s1Input.Equals(s2Input);
-                        }
+                            // Check that the indexer result types are the same.
+                            // In theory, slicing can result in a collection with an element type
+                            // that is different from the element type of the original collection.
+                            if (!s1.IndexerType.Equals(s2.IndexerType, TypeCompareKind.AllIgnoreOptions))
+                            {
+                                // different
+                                return false;
+                            }
 
-                        // different
-                        return false;
+                            // Take the top-level input and normalize indices to account for indexer accesses inside a slice.
+                            // For instance [0] in nested list pattern [ 0, ..[$$], 2 ] refers to [1] in the containing list.
+                            (BoundDagTemp s1Input, BoundDagTemp s1LengthTemp, int s1Index) = GetCanonicalInput(s1);
+                            (BoundDagTemp s2Input, BoundDagTemp s2LengthTemp, int s2Index) = GetCanonicalInput(s2);
+
+                            if (s1Index == s2Index)
+                            {
+                                return s1Input.Equals(s2Input);
+                            }
+
+                            // different
+                            return false;
+                        }
 
                     case (BoundDagTypeEvaluation s1, BoundDagTypeEvaluation s2):
                         {
