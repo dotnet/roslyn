@@ -281,7 +281,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 (module is not SourceModuleSymbol || !expectedNoAttributeInSourceSymbols.Contains(symbol)) &&
                 !expectedNoAttributeSymbols.Contains(symbol));
             Assert.True(shouldHaveAttribute == hasAttribute,
-                $"Expected {symbol.GetType().Name} '{symbol.ToTestDisplayString()}' {(shouldHaveAttribute ? "or" : "and")} its associated symbol to{(shouldHaveAttribute ? "" : " not")} have the attribute.");
+                $"{(shouldHaveAttribute ? "Expected" : "Did not expect")} {symbol.GetType().Name} '{symbol.ToTestDisplayString()}' or its associated symbol to have the attribute.");
 
             Assert.True(seenSymbols.Add(symbol), $"Symbol '{symbol.ToTestDisplayString()}' specified multiple times.");
 
