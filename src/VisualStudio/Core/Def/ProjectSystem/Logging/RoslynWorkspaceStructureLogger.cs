@@ -19,6 +19,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 
 #pragma warning disable CA2007 // We are OK awaiting tasks since we're following Visual Studio threading rules in this file
 
@@ -59,13 +60,22 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
             var workspace = componentModel.GetService<VisualStudioWorkspace>();
             var solution = workspace.CurrentSolution;
 
-            var threadedWaitDialog = (IVsThreadedWaitDialog3)serviceProvider.GetService(typeof(SVsThreadedWaitDialog));
-            Assumes.Present(threadedWaitDialog);
-            var threadedWaitCallback = new ThreadedWaitCallback();
+            var dialogFactory = (IVsThreadedWaitDialogFactory)serviceProvider.GetService(typeof(SVsThreadedWaitDialogFactory));
+            Assumes.Present(dialogFactory);
+            using var session = dialogFactory.StartWaitDialog(
+                ServicesVSResources.Visual_Studio,
+                new ThreadedWaitDialogProgressData(
+                    ServicesVSResources.Logging_Roslyn_Workspace_structure,
+                    progressText: null,
+                    statusBarText: null,
+                    isCancelable: true,
+                    currentStep: 0,
+                    totalSteps: solution.ProjectIds.Count),
+                delayToShowDialog: TimeSpan.Zero);
+            var cancellationToken = session.UserCancellationToken;
 
-            var projectsProcessed = 0;
-            threadedWaitDialog.StartWaitDialogWithCallback(ServicesVSResources.Visual_Studio, ServicesVSResources.Logging_Roslyn_Workspace_structure, null, null, null, true, 0, true, solution.ProjectIds.Count, 0, threadedWaitCallback);
-            var cancellationToken = threadedWaitCallback.CancellationToken;
+            // Now switch to the background thread while we're working
+            await TaskScheduler.Default;
 
             try
             {
@@ -74,7 +84,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
                 workspaceElement.SetAttributeValue("kind", workspace.Kind);
                 document.Add(workspaceElement);
 
-                foreach (var project in solution.GetProjectDependencyGraph().GetTopologicallySortedProjects(threadedWaitCallback.CancellationToken).Select(solution.GetProject))
+                var projectsProcessed = 0;
+
+                foreach (var project in solution.GetProjectDependencyGraph().GetTopologicallySortedProjects(cancellationToken).Select(solution.GetProject))
                 {
                     if (project is null)
                         continue;
@@ -191,9 +203,13 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
                     }
 
                     projectsProcessed++;
-
-                    bool cancelled;
-                    threadedWaitDialog.UpdateProgress(null, null, null, projectsProcessed, solution.ProjectIds.Count, false, out cancelled);
+                    session.Progress.Report(new ThreadedWaitDialogProgressData(
+                        ServicesVSResources.Logging_Roslyn_Workspace_structure,
+                        progressText: null,
+                        statusBarText: null,
+                        isCancelable: true,
+                        currentStep: projectsProcessed,
+                        totalSteps: solution.ProjectIds.Count));
                 }
 
                 File.Delete(path);
@@ -210,11 +226,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
             catch (OperationCanceledException)
             {
                 // They cancelled
-            }
-            finally
-            {
-                int cancelled;
-                threadedWaitDialog.EndWaitDialog(out cancelled);
             }
         }
 
@@ -345,21 +356,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
             }
 
             return elements;
-        }
-
-        private sealed class ThreadedWaitCallback : IVsThreadedWaitDialogCallback
-        {
-            private readonly CancellationTokenSource _cancellationTokenSource = new();
-
-            public CancellationToken CancellationToken
-            {
-                get { return _cancellationTokenSource.Token; }
-            }
-
-            public void OnCanceled()
-            {
-                _cancellationTokenSource.Cancel();
-            }
         }
     }
 }
