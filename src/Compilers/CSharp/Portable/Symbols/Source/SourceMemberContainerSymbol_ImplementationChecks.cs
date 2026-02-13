@@ -1575,11 +1575,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            overriddenMember = overriddenMember.OriginalDefinition;
-            var leastOverriddenMember = overriddenMember.GetLeastOverriddenMember(overriddenMember.ContainingType);
-            if (overridingMember.CallerUnsafeMode == CallerUnsafeMode.Explicit && leastOverriddenMember.CallerUnsafeMode == CallerUnsafeMode.None)
+            if (overridingMember.CallerUnsafeMode == CallerUnsafeMode.Explicit && overriddenMember.CallerUnsafeMode == CallerUnsafeMode.None)
             {
-                diagnostics.Add(errorCode, overridingMemberLocation(arg), overridingMember, leastOverriddenMember);
+                diagnostics.Add(errorCode, overridingMemberLocation(arg), overridingMember, overriddenMember);
             }
         }
 #nullable disable
