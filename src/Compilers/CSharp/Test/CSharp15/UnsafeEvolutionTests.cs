@@ -3286,12 +3286,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (20,33): error CS9504: Unsafe member 'D2.M2()' cannot override safe member 'C.M2()'
                 //     public unsafe override void M2() { }
                 Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M2").WithArguments("D2.M2()", "C.M2()").WithLocation(20, 33),
-                // (21,33): error CS9504: Unsafe member 'D2.M3()' cannot override safe member 'C.M3()'
-                //     public unsafe override void M3() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M3").WithArguments("D2.M3()", "C.M3()").WithLocation(21, 33),
-                // (22,33): error CS9504: Unsafe member 'D2.M4()' cannot override safe member 'C.M4()'
+                // (22,33): error CS9504: Unsafe member 'D2.M4()' cannot override safe member 'B.M4()'
                 //     public unsafe override void M4() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M4").WithArguments("D2.M4()", "C.M4()").WithLocation(22, 33),
+                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M4").WithArguments("D2.M4()", "B.M4()").WithLocation(22, 33),
                 // (24,33): error CS9504: Unsafe member 'D2.M6()' cannot override safe member 'B.M6()'
                 //     public unsafe override void M6() { }
                 Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M6").WithArguments("D2.M6()", "B.M6()").WithLocation(24, 33),
@@ -3316,18 +3313,18 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (2,65): error CS9502: 'D2.M6()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 // var d2 = new D2(); d2.M1(); d2.M2(); d2.M3(); d2.M4(); d2.M5(); d2.M6();
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "d2.M6()").WithArguments("D2.M6()").WithLocation(2, 65),
-                // (19,33): error CS9504: Unsafe member 'D2.M1()' cannot override safe member 'C.M1()'
+                // (19,33): error CS9504: Unsafe member 'D2.M1()' cannot override safe member 'B.M1()'
                 //     public unsafe override void M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("D2.M1()", "C.M1()").WithLocation(19, 33),
+                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("D2.M1()", "B.M1()").WithLocation(19, 33),
                 // (20,33): error CS9504: Unsafe member 'D2.M2()' cannot override safe member 'C.M2()'
                 //     public unsafe override void M2() { }
                 Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M2").WithArguments("D2.M2()", "C.M2()").WithLocation(20, 33),
-                // (21,33): error CS9504: Unsafe member 'D2.M3()' cannot override safe member 'C.M3()'
+                // (21,33): error CS9504: Unsafe member 'D2.M3()' cannot override safe member 'B.M3()'
                 //     public unsafe override void M3() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M3").WithArguments("D2.M3()", "C.M3()").WithLocation(21, 33),
-                // (22,33): error CS9504: Unsafe member 'D2.M4()' cannot override safe member 'C.M4()'
+                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M3").WithArguments("D2.M3()", "B.M3()").WithLocation(21, 33),
+                // (22,33): error CS9504: Unsafe member 'D2.M4()' cannot override safe member 'B.M4()'
                 //     public unsafe override void M4() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M4").WithArguments("D2.M4()", "C.M4()").WithLocation(22, 33),
+                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M4").WithArguments("D2.M4()", "B.M4()").WithLocation(22, 33),
                 // (23,33): error CS9504: Unsafe member 'D2.M5()' cannot override safe member 'C.M5()'
                 //     public unsafe override void M5() { }
                 Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M5").WithArguments("D2.M5()", "C.M5()").WithLocation(23, 33),
@@ -3420,7 +3417,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c2.M()").WithArguments("C2.M()").WithLocation(4, 1),
             // (6,1): error CS9502: 'B.M()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
             // b.M();
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "b.M()").WithArguments("B.M()").WithLocation(6, 1));
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "b.M()").WithArguments("B.M()").WithLocation(6, 1),
+            // (16,33): error CS9504: Unsafe member 'C2.M()' cannot override safe member 'A.M()'
+            //     public unsafe override void M() { }
+            Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M").WithArguments("C2.M()", "A.M()").WithLocation(16, 33));
     }
 
     [Fact]
@@ -6741,9 +6741,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (14,53): error CS9503: 'B.M3()' must be used in an unsafe context because it has pointers in its signature
             //     public void BaseCalls() { base.M1(); base.M2(); base.M3(); base.M4(); base.M5(); base.M6(); }
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "base.M3()").WithArguments("B.M3()").WithLocation(14, 53),
-            // (22,33): error CS9504: Unsafe member 'D2.M4()' cannot override safe member 'C.M4()'
+            // (22,33): error CS9504: Unsafe member 'D2.M4()' cannot override safe member 'B.M4()'
             //     public unsafe override void M4() { }
-            Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M4").WithArguments("D2.M4()", "C.M4()").WithLocation(22, 33),
+            Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M4").WithArguments("D2.M4()", "B.M4()").WithLocation(22, 33),
             // (23,33): error CS9504: Unsafe member 'D2.M5()' cannot override safe member 'C.M5()'
             //     public unsafe override void M5() { }
             Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M5").WithArguments("D2.M5()", "C.M5()").WithLocation(23, 33),
@@ -7667,9 +7667,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (24,75): error CS9502: 'C.M5()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 //     public void BaseCalls() { base.M1(); base.M2(); base.M3(); base.M4(); base.M5(); base.M6(); }
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "base.M5()").WithArguments("C.M5()").WithLocation(24, 75),
+                // (32,33): error CS9504: Unsafe member 'D2.M4()' cannot override safe member 'B.M4()'
+                //     public unsafe override void M4() { }
+                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M4").WithArguments("D2.M4()", "B.M4()").WithLocation(32, 33),
                 // (34,33): error CS9504: Unsafe member 'D2.M6()' cannot override safe member 'B.M6()'
                 //     public unsafe override void M6() { }
                 Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M6").WithArguments("D2.M6()", "B.M6()").WithLocation(34, 33),
+                // (42,33): error CS9504: Unsafe member 'D3.M4()' cannot override safe member 'B.M4()'
+                //     public extern override void M4();
+                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M4").WithArguments("D3.M4()", "B.M4()").WithLocation(42, 33),
                 // (44,33): error CS9504: Unsafe member 'D3.M6()' cannot override safe member 'B.M6()'
                 //     public extern override void M6();
                 Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M6").WithArguments("D3.M6()", "B.M6()").WithLocation(44, 33),
@@ -7754,15 +7760,27 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (24,75): error CS9502: 'C.M5()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
                 //     public void BaseCalls() { base.M1(); base.M2(); base.M3(); base.M4(); base.M5(); base.M6(); }
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "base.M5()").WithArguments("C.M5()").WithLocation(24, 75),
+                // (29,33): error CS9504: Unsafe member 'D2.M1()' cannot override safe member 'B.M1()'
+                //     public unsafe override void M1() { }
+                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("D2.M1()", "B.M1()").WithLocation(29, 33),
                 // (31,33): error CS9504: Unsafe member 'D2.M3()' cannot override safe member 'B.M3()'
                 //     public unsafe override void M3() { }
                 Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M3").WithArguments("D2.M3()", "B.M3()").WithLocation(31, 33),
+                // (32,33): error CS9504: Unsafe member 'D2.M4()' cannot override safe member 'B.M4()'
+                //     public unsafe override void M4() { }
+                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M4").WithArguments("D2.M4()", "B.M4()").WithLocation(32, 33),
                 // (34,33): error CS9504: Unsafe member 'D2.M6()' cannot override safe member 'B.M6()'
                 //     public unsafe override void M6() { }
                 Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M6").WithArguments("D2.M6()", "B.M6()").WithLocation(34, 33),
+                // (39,33): error CS9504: Unsafe member 'D3.M1()' cannot override safe member 'B.M1()'
+                //     public extern override void M1();
+                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("D3.M1()", "B.M1()").WithLocation(39, 33),
                 // (41,33): error CS9504: Unsafe member 'D3.M3()' cannot override safe member 'B.M3()'
                 //     public extern override void M3();
                 Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M3").WithArguments("D3.M3()", "B.M3()").WithLocation(41, 33),
+                // (42,33): error CS9504: Unsafe member 'D3.M4()' cannot override safe member 'B.M4()'
+                //     public extern override void M4();
+                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M4").WithArguments("D3.M4()", "B.M4()").WithLocation(42, 33),
                 // (44,33): error CS9504: Unsafe member 'D3.M6()' cannot override safe member 'B.M6()'
                 //     public extern override void M6();
                 Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M6").WithArguments("D3.M6()", "B.M6()").WithLocation(44, 33),
