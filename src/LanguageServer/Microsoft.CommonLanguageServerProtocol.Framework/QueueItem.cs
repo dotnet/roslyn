@@ -22,7 +22,7 @@ internal sealed class NoValue
     public static NoValue Instance = new();
 }
 
-internal sealed class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
+internal sealed class QueueItem<TRequestContext>
 {
     private readonly ILspLogger _logger;
     private readonly AbstractRequestScope? _requestTelemetryScope;
@@ -67,7 +67,7 @@ internal sealed class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
         _requestTelemetryScope = telemetryService?.CreateRequestScope(methodName);
     }
 
-    public static (IQueueItem<TRequestContext>, Task<object?>) Create(
+    public static (QueueItem<TRequestContext>, Task<object?>) Create(
         string methodName,
         object? serializedRequest,
         ILspServices lspServices,
