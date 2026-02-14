@@ -735,6 +735,18 @@ namespace Roslyn.Utilities
             return filePath;
         }
 
+        /// <summary>
+        /// Uppercases the drive letter of a drive-rooted absolute path on Windows.
+        /// Non-drive-rooted paths (UNC paths, relative paths, glob patterns like <c>[*.cs]</c>) pass through unchanged.
+        /// On Unix, returns the path unchanged.
+        /// </summary>
+        /// <remarks>
+        /// This intentionally does NOT normalize the rest of the path's casing.
+        /// Path comparison in the compiler is deliberately case-sensitive, even on Windows,
+        /// because a path can be both case-sensitive and case-insensitive in different segments
+        /// (e.g. WSL-mounted directories). Case-sensitive comparison gives a consistent answer
+        /// irrespective of the environment.
+        /// </remarks>
         public static string NormalizeDriveLetter(string filePath)
         {
             if (!IsUnixLikePlatform && IsDriveRootedAbsolutePath(filePath))

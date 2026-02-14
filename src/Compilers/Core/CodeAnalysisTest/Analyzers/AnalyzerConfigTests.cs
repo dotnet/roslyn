@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -150,13 +150,76 @@ build_metadata.compile.toretrieve = def456
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
-        public void WindowsPath()
+        public void WindowsPath_UppercaseDriveLetter_NormalizedDirectory()
         {
-            const string path = "Z:\\bogus\\.editorconfig";
-            var config = Parse("", path);
-
+            var config = Parse("", @"Z:\\bogus\\.editorconfig");
             Assert.Equal("Z:/bogus", config.NormalizedDirectory);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void WindowsPath_UppercaseDriveLetter_PathToFileIsPreserved()
+        {
+            const string path = @"Z:\\bogus\\.editorconfig";
+            var config = Parse("", path);
             Assert.Equal(path, config.PathToFile);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void WindowsPath_LowercaseDriveLetter_NormalizedDirectory()
+        {
+            var config = Parse("", @"z:\\bogus\\.editorconfig");
+            Assert.Equal("Z:/bogus", config.NormalizedDirectory);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void WindowsPath_LowercaseDriveLetter_PathToFilePreservedOnlyDriveNormalized()
+        {
+            var config = Parse("", @"z:\\bogus\\.editorconfig");
+            Assert.Equal(@"Z:\\bogus\\.editorconfig", config.PathToFile);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void WindowsPath_CaseMismatchDoesNotMatch()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse("""
+                [*.cs]
+                my_prop = my_val
+                """, @"C:\Repo\src\shared\.editorconfig"));
+
+            var configSet = AnalyzerConfigSet.Create(configs, out var diagnostics);
+            configs.Free();
+
+            // Path comparison is deliberately case-sensitive: a path can be both
+            // case-sensitive and case-insensitive in different segments (e.g. WSL-mounted
+            // directories), so the compiler uses ordinal comparison for consistency.
+            var options = configSet.GetOptionsForSourcePath(@"C:\Repo\src\Shared\Foo.cs");
+            Assert.Empty(options.AnalyzerOptions);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void WindowsPath_ExactCasingMatches()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse("""
+                [*.cs]
+                my_prop = my_val
+                """, @"C:\Repo\src\shared\.editorconfig"));
+
+            var configSet = AnalyzerConfigSet.Create(configs, out var diagnostics);
+            configs.Free();
+
+            var options = configSet.GetOptionsForSourcePath(@"C:\Repo\src\shared\Foo.cs");
+            Assert.Equal("my_val", options.AnalyzerOptions["my_prop"]);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void WindowsPath_NormalizedDirectoryIsFullyNormalized()
+        {
+            var config = Parse("", @"C:\Repo\\Src\..\Src/Shared\.editorconfig");
+
+            // Should be collapsed and expanded, but casing is preserved (case-sensitive by design)
+            Assert.Equal("C:/Repo/Src/Shared", config.NormalizedDirectory);
         }
 
         [Fact]

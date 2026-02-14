@@ -443,6 +443,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
         [InlineData(@"c:b", @"c:b")]
         [InlineData(@"c:\b", @"C:\b")]
         [InlineData(@"c:/b", @"C:/b")]
+        [InlineData(@"C:\Users\\JSmith\Source", @"C:\Users\\JSmith\Source")]
+        [InlineData(@"d:/Repo//Src/File.cs", @"D:/Repo//Src/File.cs")]
         public void NormalizeDriveLetter_Windows(string input, string output)
         {
             AssertEx.Equal(output, PathUtilities.NormalizeDriveLetter(input));
@@ -455,6 +457,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
         [InlineData(@"c:b")]
         [InlineData(@"c:\b")]
         [InlineData(@"c:/b")]
+        [InlineData(@"/home/JSmith/Source")]
         public void NormalizeDriveLetter_UnixLike(string input)
         {
             AssertEx.Equal(input, PathUtilities.NormalizeDriveLetter(input));

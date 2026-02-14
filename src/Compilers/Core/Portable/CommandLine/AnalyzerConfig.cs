@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -163,12 +163,18 @@ namespace Microsoft.CodeAnalysis
         {
             GlobalSection = globalSection;
             NamedSections = namedSections;
-            PathToFile = pathToFile;
+            // Only the drive letter is normalized — the rest of the path casing is
+            // preserved intentionally. See PathUtilities.NormalizeDriveLetter remarks.
+            PathToFile = PathUtilities.NormalizeDriveLetter(pathToFile);
             _hasGlobalFileName = Path.GetFileName(pathToFile).Equals(UserGlobalConfigName, StringComparison.OrdinalIgnoreCase);
 
-            // Find the containing directory and normalize the path separators
+            // Find the containing directory and run it through the same normalization
+            // pipeline used for source paths in AnalyzerConfigSet.GetOptionsForSourcePath,
+            // so that ordinal comparison between the two is correct.
             string directory = Path.GetDirectoryName(pathToFile) ?? pathToFile;
-            NormalizedDirectory = PathUtilities.NormalizeWithForwardSlash(directory);
+            var normalizedDirectory = PathUtilities.CollapseWithForwardSlash(directory.AsSpan());
+            normalizedDirectory = PathUtilities.ExpandAbsolutePathWithRelativeParts(normalizedDirectory);
+            NormalizedDirectory = PathUtilities.NormalizeDriveLetter(normalizedDirectory);
         }
 
         /// <summary>
@@ -256,13 +262,14 @@ namespace Microsoft.CodeAnalysis
             // Add the last section
             addNewSection();
 
-            // Normalize the path to file the same way named sections are
-            pathToFile = PathUtilities.NormalizeDriveLetter(pathToFile);
-
             return new AnalyzerConfig(globalSection!, namedSectionBuilder.ToImmutable(), pathToFile);
 
             void addNewSection()
             {
+                // No-op for glob patterns like [*.cs] since they aren't drive-rooted absolute paths.
+                // Note: unlike NormalizedDirectory, section names are NOT run through the full
+                // normalization pipeline (CollapseWithForwardSlash / ExpandAbsolutePathWithRelativeParts)
+                // used for source paths. Only drive letter normalization is applied here.
                 var sectionName = PathUtilities.NormalizeDriveLetter(activeSectionName);
 
                 // Close out the previous section
