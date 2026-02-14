@@ -65,6 +65,11 @@ namespace Microsoft.CodeAnalysis
 
         public GeneratorDriver RunGeneratorsAndUpdateCompilation(Compilation compilation, out Compilation outputCompilation, out ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken = default)
         {
+            return RunGeneratorsAndUpdateCompilation(compilation, analyzerConfigSet: null, out outputCompilation, out diagnostics, cancellationToken);
+        }
+
+        internal GeneratorDriver RunGeneratorsAndUpdateCompilation(Compilation compilation, AnalyzerConfigSet? analyzerConfigSet, out Compilation outputCompilation, out ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken = default)
+        {
             var diagnosticsBag = DiagnosticBag.GetInstance();
             var state = RunGeneratorsCore(compilation, diagnosticsBag, generatorFilter: null, cancellationToken);
 
@@ -78,6 +83,34 @@ namespace Microsoft.CodeAnalysis
             }
             outputCompilation = compilation.AddSyntaxTrees(trees);
             trees.Free();
+
+            // re-read analyzer config for the generated files
+            if (analyzerConfigSet is not null && this._state.BaseDirectory is { } baseDirectory)
+            {
+                var globalConfigOptions = analyzerConfigSet.GlobalConfigOptions;
+                var originalSyntaxTreeCount = compilation.SyntaxTrees.Count();
+                var analyzerConfigOptions = outputCompilation.SyntaxTrees.SelectAsArray(static (tree, i, arg) =>
+                {
+                    if (i >= arg.originalSyntaxTreeCount)
+                    {
+                        // standard EditorConfig sections were never applied to generated files here (i.e., the diagnostic options didn't have an effect on generated files)
+                        // so we currently preseve that for backcompat and only apply the special sections to generated files
+                        var specialPath = GetAnalyzerConfigSpecialPathForGeneratedFile(arg.baseDirectory, tree.FilePath);
+                        return arg.analyzerConfigSet.GetOptionsForSourcePath(specialPath, additionalSourcePath: null, requiredEditorConfigSectionPrefix: "$generated$/");
+                    }
+
+                    return arg.analyzerConfigSet.GetOptionsForSourcePath(tree.FilePath);
+                }, (baseDirectory, analyzerConfigSet, originalSyntaxTreeCount));
+
+                foreach (var analyzerConfigOption in analyzerConfigOptions)
+                {
+                    diagnostics.AddRange(analyzerConfigOption.Diagnostics);
+                }
+
+                outputCompilation = outputCompilation.WithOptions(
+                    outputCompilation.Options.WithSyntaxTreeOptionsProvider(
+                        new CompilerSyntaxTreeOptionsProvider(outputCompilation.SyntaxTrees.ToArray(), analyzerConfigOptions, globalConfigOptions)));
+            }
 
             return FromState(state);
         }
@@ -441,6 +474,14 @@ namespace Microsoft.CodeAnalysis
         {
             var type = generator.GetGeneratorType();
             return Path.Combine(baseDirectory ?? "", type.Assembly.GetName().Name ?? string.Empty, type.FullName!);
+        }
+
+        internal static string GetAnalyzerConfigSpecialPathForGeneratedFile(string baseDirectory, string filePath)
+        {
+            // Transform filePath `{baseDirectory}/{generatorAssemblyName}/{generatorFullTypeName}/{fileHint}`
+            // into `{baseDirectory}/$generated$/{generatorAssemblyName}/{generatorFullTypeName}/{fileHint}`.
+            var relativePath = PathUtilities.GetRelativePath(baseDirectory, filePath);
+            return Path.Combine(baseDirectory, "$generated$", relativePath);
         }
 
         private static ImmutableArray<IIncrementalGenerator> GetIncrementalGenerators(ImmutableArray<ISourceGenerator> generators, string sourceExtension)

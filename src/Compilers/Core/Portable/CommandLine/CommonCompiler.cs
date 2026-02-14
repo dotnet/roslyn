@@ -804,6 +804,7 @@ namespace Microsoft.CodeAnalysis
             ParseOptions parseOptions,
             ImmutableArray<ISourceGenerator> generators,
             AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider,
+            AnalyzerConfigSet? analyzerConfigSet,
             ImmutableArray<AdditionalText> additionalTexts,
             DiagnosticBag generatorDiagnostics)
         {
@@ -824,7 +825,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             driver ??= CreateGeneratorDriver(generatedFilesBaseDirectory, parseOptions, generators, analyzerConfigOptionsProvider, additionalTexts, Arguments.ChecksumAlgorithm);
-            driver = driver.RunGeneratorsAndUpdateCompilation(input, out var compilationOut, out var diagnostics);
+            driver = driver.RunGeneratorsAndUpdateCompilation(input, analyzerConfigSet, out var compilationOut, out var diagnostics);
             generatorDiagnostics.AddRange(diagnostics);
 
             // We only cache the generator driver if it produced any generated files. While it's possible that it was expensive
@@ -1136,7 +1137,7 @@ namespace Microsoft.CodeAnalysis
                     var explicitGeneratedOutDir = Arguments.GeneratedFilesOutputDirectory;
                     var hasExplicitGeneratedOutDir = !string.IsNullOrWhiteSpace(explicitGeneratedOutDir);
                     var baseDirectory = hasExplicitGeneratedOutDir ? explicitGeneratedOutDir! : Arguments.OutputDirectory;
-                    (compilation, generatorTimingInfo) = RunGenerators(compilation, baseDirectory, Arguments.ParseOptions, generators, analyzerConfigProvider, additionalTextFiles, diagnostics);
+                    (compilation, generatorTimingInfo) = RunGenerators(compilation, baseDirectory, Arguments.ParseOptions, generators, analyzerConfigProvider, analyzerConfigSet, additionalTextFiles, diagnostics);
 
                     bool hasAnalyzerConfigs = !Arguments.AnalyzerConfigPaths.IsEmpty;
                     var generatedSyntaxTrees = compilation.SyntaxTrees.Skip(Arguments.SourceFiles.Length).ToList();
@@ -1155,7 +1156,10 @@ namespace Microsoft.CodeAnalysis
                             embeddedTextBuilder.Add(EmbeddedText.FromSource(tree.FilePath, sourceText));
                             if (analyzerOptionsBuilder is object)
                             {
-                                analyzerOptionsBuilder.Add(analyzerConfigSet!.GetOptionsForSourcePath(tree.FilePath));
+                                // standard EditorConfig sections were always applied to generated files here (i.e., the custom analyzer options had an effect on generated files)
+                                // so we preseve that for backcompat and apply both the special and normal sections to generated files
+                                var specialPath = GeneratorDriver.GetAnalyzerConfigSpecialPathForGeneratedFile(baseDirectory, tree.FilePath);
+                                analyzerOptionsBuilder.Add(analyzerConfigSet!.GetOptionsForSourcePath(tree.FilePath, specialPath, requiredEditorConfigSectionPrefix: null));
                             }
 
                             // write out the file if an output path was explicitly provided

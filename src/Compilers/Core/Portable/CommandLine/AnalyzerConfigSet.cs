@@ -168,13 +168,21 @@ namespace Microsoft.CodeAnalysis
         public AnalyzerConfigOptionsResult GlobalConfigOptions
             => _lazyConfigOptions.Initialize(static @this => @this.ParseGlobalConfigOptions(), this);
 
+        /// <inheritdoc cref="GetOptionsForSourcePath(string, string?, string?)"/>
+        public AnalyzerConfigOptionsResult GetOptionsForSourcePath(string sourcePath)
+        {
+            return GetOptionsForSourcePath(sourcePath, additionalSourcePath: null, requiredEditorConfigSectionPrefix: null);
+        }
+
         /// <summary>
         /// Returns a <see cref="AnalyzerConfigOptionsResult"/> for a source file. This computes which <see cref="AnalyzerConfig"/> rules applies to this file, and correctly applies
         /// precedence rules if there are multiple rules for the same file.
         /// </summary>
         /// <param name="sourcePath">The path to a file such as a source file or additional file. Must be non-null.</param>
+        /// <param name="additionalSourcePath">An alternative path to the file that is matched in addition to <paramref name="sourcePath"/> (all sections matching any of them are combined).</param>
+        /// <param name="requiredEditorConfigSectionPrefix">Filter for EditorConfig sections.</param>
         /// <remarks>This method is safe to call from multiple threads.</remarks>
-        public AnalyzerConfigOptionsResult GetOptionsForSourcePath(string sourcePath)
+        internal AnalyzerConfigOptionsResult GetOptionsForSourcePath(string sourcePath, string? additionalSourcePath, string? requiredEditorConfigSectionPrefix)
         {
             if (sourcePath == null)
             {
@@ -183,15 +191,15 @@ namespace Microsoft.CodeAnalysis
 
             var sectionKey = _sectionKeyPool.Allocate();
 
-            var normalizedPath = PathUtilities.CollapseWithForwardSlash(sourcePath.AsSpan());
-            normalizedPath = PathUtilities.ExpandAbsolutePathWithRelativeParts(normalizedPath);
-            normalizedPath = PathUtilities.NormalizeDriveLetter(normalizedPath);
+            var normalizedPath = normalizePath(sourcePath);
+            var normalizedAdditionalPath = additionalSourcePath != null ? normalizePath(additionalSourcePath) : null;
 
             // If we have a global config, add any sections that match the full path. We can have at most one section since
             // we would have merged them earlier.
             foreach (var section in _globalConfig.NamedSections)
             {
-                if (normalizedPath.Equals(section.Name, Section.NameComparer))
+                if (normalizedPath.Equals(section.Name, Section.NameComparer) ||
+                    normalizedAdditionalPath?.Equals(section.Name, Section.NameComparer) == true)
                 {
                     sectionKey.Add(section);
                     break;
@@ -223,14 +231,21 @@ namespace Microsoft.CodeAnalysis
                         dirLength--;
                     }
                     string relativePath = normalizedPath.Substring(dirLength);
+                    string? additionalRelativePath = normalizedAdditionalPath != null ? normalizedAdditionalPath.Substring(dirLength) : null;
 
                     ImmutableArray<SectionNameMatcher?> matchers = _analyzerMatchers[analyzerConfigIndex];
                     for (int sectionIndex = 0; sectionIndex < matchers.Length; sectionIndex++)
                     {
-                        if (matchers[sectionIndex]?.IsMatch(relativePath) == true)
+                        if (matchers[sectionIndex] is { } matcher &&
+                            (matcher.IsMatch(relativePath) ||
+                            (additionalRelativePath != null && matcher.IsMatch(additionalRelativePath))))
                         {
                             var section = config.NamedSections[sectionIndex];
-                            sectionKey.Add(section);
+                            if (string.IsNullOrEmpty(requiredEditorConfigSectionPrefix) ||
+                                section.Name.StartsWith(requiredEditorConfigSectionPrefix, StringComparison.Ordinal))
+                            {
+                                sectionKey.Add(section);
+                            }
                         }
                     }
                 }
@@ -325,6 +340,14 @@ namespace Microsoft.CodeAnalysis
             {
                 sectionKey.Clear();
                 pool.Free(sectionKey);
+            }
+
+            static string normalizePath(string path)
+            {
+                var normalizedPath = PathUtilities.CollapseWithForwardSlash(path.AsSpan());
+                normalizedPath = PathUtilities.ExpandAbsolutePathWithRelativeParts(normalizedPath);
+                normalizedPath = PathUtilities.NormalizeDriveLetter(normalizedPath);
+                return normalizedPath;
             }
         }
 

@@ -38,6 +38,7 @@ using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using TestResources.Analyzers;
 using Xunit;
+using Xunit.Abstractions;
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
 
@@ -78,6 +79,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 #else
             s_CSharpScriptExecutable = s_CSharpCompilerExecutable.Replace("csc.exe", Path.Combine("csi", "csi.exe"));
 #endif
+        }
+
+        private readonly ITestOutputHelper _output;
+
+        public CommandLineTests(ITestOutputHelper output)
+        {
+            _output = output;
         }
 
         private class TestCommandLineParser : CSharpCommandLineParser
@@ -10581,6 +10589,7 @@ class C
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = csc.Run(outWriter);
             var output = outWriter.ToString();
+            _output.WriteLine(output);
 
             expectedExitCode ??= expectedErrorCount > 0 ? 1 : 0;
             Assert.True(
@@ -15265,6 +15274,168 @@ dotnet_diagnostic.Warning01.severity = error;
             VerifyOutput(dir, src, additionalFlags: new[] { "/nowarn:Warning01", "/analyzerconfig:" + globalConfig.Path }, includeCurrentAssemblyAsAnalyzerReference: false, analyzers: new[] { new WarningDiagnosticAnalyzer() });
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41171")]
+        public void AnalyzerConfig_SuppressDiagnosticInGeneratedFiles()
+        {
+            var rootDir = Temp.CreateDirectory();
+
+            var srcDir = rootDir.CreateDirectory("src");
+            var cs = srcDir.CreateFile("test.cs").WriteAllText("class C;");
+            var globalConfig = srcDir.CreateFile(".globalconfig").WriteAllText("""
+                is_global = true
+                dotnet_diagnostic.Warning01.severity = none
+                """);
+            var editorConfig = srcDir.CreateFile(".editorconfig").WriteAllText("""
+                [*.cs]
+                dotnet_diagnostic.Warning01.severity = warning
+                """);
+
+            var packagesDir = rootDir.CreateDirectory("packages");
+            var packageCs = packagesDir.CreateFile("package.cs").WriteAllText("""
+                // Simulating a file from a source NuGet package.
+                class D;
+                """);
+
+            var generator = new PipelineCallbackGenerator((ctx) =>
+            {
+                ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, po) =>
+                {
+                    spc.AddSource("output.cs", "class G;");
+                });
+            });
+
+            // The globalconfig + editorconfig combo above suppresses the diagnostic in generated files (but also in files from NuGet source packages).
+            VerifyOutput(
+                srcDir,
+                cs,
+                additionalFlags: [packageCs.Path, $"/analyzerconfig:{globalConfig.Path}", $"/analyzerconfig:{editorConfig.Path}"],
+                analyzers: [new WarningDiagnosticAnalyzer()],
+                generators: [generator.AsSourceGenerator()],
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                expectedWarningCount: 1);
+
+            // Without the globalconfig, the diagnostic is in all the files.
+            VerifyOutput(
+                srcDir,
+                cs,
+                additionalFlags: [packageCs.Path, $"/analyzerconfig:{editorConfig.Path}"],
+                analyzers: [new WarningDiagnosticAnalyzer()],
+                generators: [generator.AsSourceGenerator()],
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                expectedWarningCount: 3);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/41171")]
+        [InlineData("", new[] { "C", "D", "G1", "G2" })]
+        [InlineData("*.cs", new[] { "C", "D", "G1", "G2" })]
+        [InlineData("$generated$/Microsoft.CodeAnalysis.Test.Utilities/Roslyn.Test.Utilities.TestGenerators.PipelineCallbackGenerator/*.cs",
+            new[] { "C", "D", "G2" })]
+        [InlineData("$generated$/Microsoft.CodeAnalysis.Test.Utilities/Roslyn.Test.Utilities.TestGenerators.PipelineCallbackGenerator2/*.cs",
+            new[] { "C", "D", "G1" })]
+        [InlineData("$generated$/Microsoft.CodeAnalysis.Test.Utilities/*.cs", new[] { "C", "D", "G1", "G2" })]
+        [InlineData("$generated$/Microsoft.CodeAnalysis.Test.Utilities/**/*.cs", new[] { "C", "D" })]
+        public void AnalyzerConfig_SuppressDiagnosticInGeneratedFiles_NamedSection(
+            string sectionName, string[] expectedSymbolsWithWarnings)
+        {
+            var rootDir = Temp.CreateDirectory();
+
+            var srcDir = rootDir.CreateDirectory("src");
+            var cs = srcDir.CreateFile("test.cs").WriteAllText("class C;");
+            var editorConfig = srcDir.CreateFile(".editorconfig").WriteAllText($"""
+                [{sectionName}]
+                dotnet_diagnostic.Warning01.severity = none
+                [*.cs]
+                dotnet_diagnostic.Warning01.severity = warning
+                """);
+
+            var packagesDir = rootDir.CreateDirectory("packages");
+            var packageCs = packagesDir.CreateFile("package.cs").WriteAllText("""
+                // Simulating a file from a source NuGet package.
+                class D;
+                """);
+
+            var generator1 = new PipelineCallbackGenerator((ctx) =>
+            {
+                ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, po) =>
+                {
+                    spc.AddSource("output1.cs", "class G1;");
+                });
+            });
+
+            var generator2 = new PipelineCallbackGenerator2((ctx) =>
+            {
+                ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, po) =>
+                {
+                    spc.AddSource("output2.cs", "class G2;");
+                });
+            });
+
+            var output = VerifyOutput(
+                srcDir,
+                cs,
+                additionalFlags: [packageCs.Path, $"/analyzerconfig:{editorConfig.Path}"],
+                analyzers: [new OptionReadingDiagnosticAnalyzer(enabled: true)],
+                generators: [generator1.AsSourceGenerator(), generator2.AsSourceGenerator()],
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                expectedWarningCount: expectedSymbolsWithWarnings.Length);
+
+            foreach (var symbol in expectedSymbolsWithWarnings)
+            {
+                Assert.Contains($"warning {OptionReadingDiagnosticAnalyzer.DiagnosticId}: {OptionReadingDiagnosticAnalyzer.GetMessage(symbol, "")}", output);
+            }
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/41171")]
+        [InlineData(".editorconfig", "", new string[0], new[] { "C", "G" })]
+        [InlineData(".editorconfig", "*.cs", new[] { "C", "G" }, new string[0])]
+        [InlineData(".editorconfig", "test.cs", new[] { "C" }, new[] { "G" })]
+        [InlineData(".editorconfig", $"**/*.{nameof(PipelineCallbackGenerator)}/**.cs", new[] { "G" }, new[] { "C" })]
+        [InlineData(".editorconfig", $"$generated$/*/*.{nameof(PipelineCallbackGenerator)}/**.cs", new[] { "G" }, new[] { "C" })]
+        [InlineData(".globalconfig", "", new[] { "C", "G" }, new string[0])]
+        public void AnalyzerConfig_CustomAnalyzerOption(
+            string fileName,
+            string sectionName,
+            string[] expectedSymbolsWithOption,
+            string[] expectedSymbolsWithoutOption)
+        {
+            var rootDir = Temp.CreateDirectory();
+
+            var srcDir = rootDir.CreateDirectory("src");
+            var cs = srcDir.CreateFile("test.cs").WriteAllText("class C;");
+            var optionValue = "test_value";
+            var editorConfig = srcDir.CreateFile(fileName).WriteAllText($"""
+                [{sectionName}]
+                {OptionReadingDiagnosticAnalyzer.OptionName} = {optionValue}
+                """);
+
+            var generator = new PipelineCallbackGenerator((ctx) =>
+            {
+                ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, po) =>
+                {
+                    spc.AddSource("output1.cs", "class G;");
+                });
+            });
+
+            var output = VerifyOutput(
+                srcDir,
+                cs,
+                additionalFlags: [$"/analyzerconfig:{editorConfig.Path}"],
+                analyzers: [new OptionReadingDiagnosticAnalyzer(enabled: true)],
+                generators: [generator.AsSourceGenerator()],
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                expectedWarningCount: expectedSymbolsWithOption.Length + expectedSymbolsWithoutOption.Length);
+
+            foreach (var symbol in expectedSymbolsWithOption)
+            {
+                Assert.Contains($"warning {OptionReadingDiagnosticAnalyzer.DiagnosticId}: {OptionReadingDiagnosticAnalyzer.GetMessage(symbol, optionValue)}", output);
+            }
+
+            foreach (var symbol in expectedSymbolsWithoutOption)
+            {
+                Assert.Contains($"warning {OptionReadingDiagnosticAnalyzer.DiagnosticId}: {OptionReadingDiagnosticAnalyzer.GetMessage(symbol, "")}", output);
+            }
+        }
+
         [Theory, CombinatorialData]
         public void TestAdditionalFileAnalyzer(bool registerFromInitialize)
         {
@@ -16039,6 +16210,47 @@ dotnet_diagnostic.CS9204.severity = warning
                 (symbolContext) =>
                 {
                     symbolContext.ReportDiagnostic(Diagnostic.Create(Warning01, symbolContext.Symbol.Locations.First()));
+                },
+                SymbolKind.NamedType);
+        }
+    }
+
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    internal sealed class OptionReadingDiagnosticAnalyzer : CompilationStartedAnalyzer
+    {
+        internal const string DiagnosticId = "Warning01";
+        private const string MessageFormat = "{0}: Throwing a diagnostic for types declared. {1}";
+        internal const string OptionName = "my_custom_option";
+
+        internal static readonly DiagnosticDescriptor Warning01 = new DiagnosticDescriptor(DiagnosticId, "", MessageFormat, "", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+        internal static string GetMessage(string symbolName, string optionValue)
+            => string.Format(MessageFormat, symbolName, optionValue);
+
+        private readonly bool _enabled;
+
+        [Obsolete("Constructs the analyzer as disabled by default so tests that load all analyzers are not affected.")]
+        public OptionReadingDiagnosticAnalyzer() { }
+        public OptionReadingDiagnosticAnalyzer(bool enabled)
+        {
+            _enabled = enabled;
+        }
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => _enabled ? [Warning01] : [];
+
+        public override void CreateAnalyzerWithinCompilation(CompilationStartAnalysisContext context)
+        {
+            if (!_enabled)
+            {
+                return;
+            }
+
+            context.RegisterSymbolAction(
+                (symbolContext) =>
+                {
+                    var location = symbolContext.Symbol.Locations.First();
+                    symbolContext.Options.AnalyzerConfigOptionsProvider.GetOptions(location.SourceTree).TryGetValue(OptionName, out var value);
+                    symbolContext.ReportDiagnostic(Diagnostic.Create(Warning01, location, symbolContext.Symbol.Name, value));
                 },
                 SymbolKind.NamedType);
         }

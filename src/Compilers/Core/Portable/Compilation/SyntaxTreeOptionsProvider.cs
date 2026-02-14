@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using Roslyn.Utilities;
 
@@ -57,13 +58,15 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<AnalyzerConfigOptionsResult> results,
             AnalyzerConfigOptionsResult globalResults)
         {
+            Debug.Assert(results.IsDefault || trees.Length == results.Length);
+
             var builder = ImmutableDictionary.CreateBuilder<SyntaxTree, Options>();
             for (int i = 0; i < trees.Length; i++)
             {
-                if (trees[i] != null)
+                if (trees[i] is { } tree)
                 {
                     builder.Add(
-                        trees[i]!,
+                        tree,
                         new Options(results.IsDefault ? null : (AnalyzerConfigOptionsResult?)results[i]));
                 }
             }

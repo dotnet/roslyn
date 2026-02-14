@@ -443,6 +443,21 @@ namespace Roslyn.Utilities
             return builder.ToImmutableAndFree();
         }
 
+        public static ImmutableArray<TResult> SelectAsArray<TSource, TResult, TArg>(this IEnumerable<TSource>? source, Func<TSource, int, TArg, TResult> selector, TArg arg)
+        {
+            if (!TryGetBuilder<TSource, TResult>(source, useCountForBuilder: true, out var builder))
+                return [];
+
+            var index = 0;
+            foreach (var element in source)
+            {
+                builder.Add(selector(element, index, arg));
+                index++;
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
         public static ImmutableArray<TResult> SelectAsArray<TSource, TResult, TArg>(this IEnumerable<TSource>? source, Func<TSource, TArg, TResult> selector, TArg arg)
         {
             if (source == null)
