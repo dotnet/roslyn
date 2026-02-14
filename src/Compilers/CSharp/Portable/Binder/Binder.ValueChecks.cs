@@ -4815,15 +4815,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetValEscape(expr.CollectionCreation);
 
                 case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                    // Restrict the collection to local scope if not empty.  Note: this is inaccurate.  What we should
-                    // be doing here is examining the arguments passed to the collection constructor (from the
-                    // `with(...)` element), intersected well as any arguments passed to `Add` methods to determine the
-                    // final safety context.  However, the latter is highly challenging as we do not know that
-                    // information until the lowering phase.  We'll need to pull out that logic to do things properly
-                    // here.
-                    //
-                    // Tracked with: https://github.com/dotnet/roslyn/issues/81520
-                    return _localScopeDepth;
+                    var scope = expr.CollectionCreation is { } collectionCreation
+                        ? GetValEscape(collectionCreation)
+                        : _localScopeDepth;
+                    foreach (var element in expr.Elements)
+                    {
+                        var elementExpr = element is BoundCollectionExpressionSpreadElement spread
+                            ? spread.Expression
+                            : (BoundExpression)element;
+                        scope = scope.Intersect(GetValEscape(elementExpr));
+                    }
+                    return scope;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(collectionTypeKind); // ref struct collection type with unexpected type kind
