@@ -384,7 +384,7 @@ internal static class MembersPuller
             cancellationToken).ConfigureAwait(false);
 
         // Format whitespace trivia within the import statements we pull up
-        destinationDocument = await Formatter.FormatAsync(destinationDocument, s_removableImportAnnotation, options.CleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
+        destinationDocument = await Formatter.FormatAsync(destinationDocument, s_removableImportAnnotation, cancellationToken).ConfigureAwait(false);
 
         var destinationRoot = AddLeadingTriviaBeforeFirstMember(
             await destinationDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false),

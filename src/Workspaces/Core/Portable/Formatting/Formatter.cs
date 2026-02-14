@@ -49,6 +49,9 @@ public static class Formatter
         => FormatAsync(document, spans: null, options: options, cancellationToken: cancellationToken);
 #pragma warning restore
 
+    internal static async Task<Document> FormatAsync(Document document, CancellationToken cancellationToken)
+        => await FormatAsync(document, await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+
     internal static Task<Document> FormatAsync(Document document, SyntaxFormattingOptions options, CancellationToken cancellationToken)
         => FormatAsync(document, spans: null, options, rules: default, cancellationToken);
 
@@ -112,6 +115,9 @@ public static class Formatter
 
     private static ISyntaxFormatting GetSyntaxFormatting(SolutionServices services, string language)
         => services.GetExtendedLanguageServices(language).GetRequiredService<ISyntaxFormattingService>();
+
+    internal static async Task<Document> FormatAsync(Document document, SyntaxAnnotation annotation, CancellationToken cancellationToken)
+        => await FormatAsync(document, annotation, await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 
     internal static Task<Document> FormatAsync(Document document, SyntaxAnnotation annotation, SyntaxFormattingOptions options, CancellationToken cancellationToken)
         => GetSyntaxFormatting(document).FormatAsync(document, annotation, options, cancellationToken);

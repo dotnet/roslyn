@@ -151,9 +151,9 @@ internal sealed partial class InlineCompletionsHandler : ILspServiceDocumentRequ
 
         // Use the formatting options specified by the client to format the snippet.
         var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(options, document, cancellationToken).ConfigureAwait(false);
-        var simplifierOptions = await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-        var formattedLspSnippet = await GetFormattedLspSnippetAsync(parsedSnippet, wordOnLeft.Value, document, sourceText, formattingOptions, simplifierOptions, cancellationToken).ConfigureAwait(false);
+        var formattedLspSnippet = await GetFormattedLspSnippetAsync(
+            parsedSnippet, wordOnLeft.Value, document, sourceText, formattingOptions, cancellationToken).ConfigureAwait(false);
 
         return new VSInternalInlineCompletionItem
         {
@@ -175,12 +175,11 @@ internal sealed partial class InlineCompletionsHandler : ILspServiceDocumentRequ
         Document originalDocument,
         SourceText originalSourceText,
         SyntaxFormattingOptions formattingOptions,
-        SimplifierOptions simplifierOptions,
         CancellationToken cancellationToken)
     {
         // Calculate the snippet text with defaults + snippet function results.
         var (snippetFullText, fields, caretSpan) = await GetReplacedSnippetTextAsync(
-            originalDocument, originalSourceText, snippetShortcut, parsedSnippet, simplifierOptions, cancellationToken).ConfigureAwait(false);
+            originalDocument, originalSourceText, snippetShortcut, parsedSnippet, cancellationToken).ConfigureAwait(false);
 
         // Create a document with the default snippet text that we can use to format the snippet.
         var textChange = new TextChange(snippetShortcut, snippetFullText);
@@ -254,7 +253,6 @@ internal sealed partial class InlineCompletionsHandler : ILspServiceDocumentRequ
         SourceText originalSourceText,
         TextSpan snippetSpan,
         ParsedXmlSnippet parsedSnippet,
-        SimplifierOptions simplifierOptions,
         CancellationToken cancellationToken)
     {
         var documentWithDefaultSnippet = originalDocument.WithText(
@@ -283,7 +281,7 @@ internal sealed partial class InlineCompletionsHandler : ILspServiceDocumentRequ
                 // To avoid a bunch of document changes and re-parsing, we always calculate the snippet function result
                 // against the document with the default snippet text applied to it instead of with each incremental function result.
                 // So we need to remember the index into the original document.
-                part = await functionPart.WithSnippetFunctionResultAsync(documentWithDefaultSnippet, new TextSpan(locationInDefaultSnippet, part.DefaultText.Length), simplifierOptions, cancellationToken).ConfigureAwait(false);
+                part = await functionPart.WithSnippetFunctionResultAsync(documentWithDefaultSnippet, new TextSpan(locationInDefaultSnippet, part.DefaultText.Length), cancellationToken).ConfigureAwait(false);
             }
 
             // Only store spans for editable fields or the cursor location, we don't need to get back to anything else.

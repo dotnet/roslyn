@@ -106,8 +106,8 @@ internal static class ExtractTypeHelpers
 
         newTypeDocument = newTypeDocument.WithSyntaxRoot(annotatedRoot);
 
-        var simplified = await Simplifier.ReduceAsync(newTypeDocument, newCleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
-        var formattedDocument = await Formatter.FormatAsync(simplified, newCleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
+        var simplified = await Simplifier.ReduceAsync(newTypeDocument, cancellationToken).ConfigureAwait(false);
+        var formattedDocument = await Formatter.FormatAsync(simplified, cancellationToken).ConfigureAwait(false);
 
         return (formattedDocument, typeAnnotation);
     }
