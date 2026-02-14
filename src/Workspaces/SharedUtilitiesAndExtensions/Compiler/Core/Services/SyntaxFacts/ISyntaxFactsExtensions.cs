@@ -871,6 +871,9 @@ internal static class ISyntaxFactsExtensions
     public static bool IsSimpleMemberAccessExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
         => node != null && node.RawKind == syntaxFacts.SyntaxKinds.SimpleMemberAccessExpression;
 
+    public static bool IsSuppressNullableWarningExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+        => node != null && node.RawKind == syntaxFacts.SyntaxKinds.SuppressNullableWarningExpression;
+
     public static bool IsThisExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
         => node != null && node.RawKind == syntaxFacts.SyntaxKinds.ThisExpression;
 
