@@ -65,7 +65,7 @@ internal sealed class TestExampleLanguageServer : ExampleLanguageServer
             _exitingSource.SetResult(0);
         }
 
-        public async Task ShutdownAsync(string message = "Shutting down")
+        public async Task ShutdownAsync()
         {
             _shuttingDownSource.SetResult(0);
         }
