@@ -27,9 +27,6 @@ namespace IOperationGenerator
         private readonly Tree _tree;
         private readonly Dictionary<string, AbstractNode?> _typeMap;
 
-        private static string QuoteString(string value)
-            => "@\"" + value.Replace("\"", "\"\"") + "\"";
-
         private IOperationClassWriter(Tree tree, string location)
         {
             _tree = tree;
@@ -388,7 +385,7 @@ namespace IOperationGenerator
 
                 if (!string.IsNullOrEmpty(experimentalUrl))
                 {
-                    WriteLine($"[Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = {QuoteString(experimentalUrl)})]");
+                    WriteExperimentalAttribute(experimentalUrl);
                 }
 
                 if (obsoleteMessage is object)

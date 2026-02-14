@@ -51,7 +51,7 @@ This document provides guidance for thinking about language interactions and tes
     - DocumentationCommentId APIs
 - All newly added APIs are experimental
     - Tracking issue for marking APIs as non-experimental
-    - APIs are marked with `[Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"link to tracking issue")]`
+    - APIs are marked with `[Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "link to tracking issue")]`
     - APIs have gone through API review
 
 ## Type and members
