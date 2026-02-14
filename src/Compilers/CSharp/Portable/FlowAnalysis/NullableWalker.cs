@@ -4032,6 +4032,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var argIndex = initializer.AddMethod.IsExtensionMethod ? 1 : 0;
                         Debug.Assert(initializer.ArgsToParamsOpt.IsDefault);
+                        
+                        // For extension methods, mark the receiver argument with unknown nullability
+                        // since we don't analyze it (we only analyze the element argument).
+                        if (initializer.AddMethod.IsExtensionMethod)
+                        {
+                            SetUnknownResultNullability(initializer.Arguments[0]);
+                        }
+                        
                         var addArgument = initializer.Arguments[argIndex];
                         VisitRvalue(addArgument);
                         var addArgumentResult = _visitResult;
