@@ -369,7 +369,7 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
             Debug.Assert(!concurrentlyExecutingTasks.Any(t => !t.Key.IsCompleted), "The tasks should have all been drained before continuing");
             // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
             // Since we're explicitly awaiting exceptions to mutating requests will bubble up here.
-            await WrapStartRequestTaskAsync(work.StartRequestAsync<TRequest, TResponse>(deserializedRequest, context, handler, metadata.Language, cancellationToken), rethrowExceptions: true).ConfigureAwait(false);
+            await WrapStartRequestTaskAsync(work.StartRequestAsync<TRequest, TResponse>(deserializedRequest, context, handler, cancellationToken), rethrowExceptions: true).ConfigureAwait(false);
         }
         else
         {
@@ -378,7 +378,7 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
             // though these errors don't put us into a bad state as far as the rest of the queue goes.
             // Furthermore we use Task.Run here to protect ourselves against synchronous execution of work
             // blocking the request queue for longer periods of time (it enforces parallelizability).
-            var currentWorkTask = WrapStartRequestTaskAsync(Task.Run(() => work.StartRequestAsync<TRequest, TResponse>(deserializedRequest, context, handler, metadata.Language, cancellationToken), cancellationToken), rethrowExceptions: false);
+            var currentWorkTask = WrapStartRequestTaskAsync(Task.Run(() => work.StartRequestAsync<TRequest, TResponse>(deserializedRequest, context, handler, cancellationToken), cancellationToken), rethrowExceptions: false);
 
             if (CancelInProgressWorkUponMutatingRequest)
             {
