@@ -16,6 +16,7 @@ internal class NuGetPublish
     internal static readonly string[] RoslynPackageIds =
     [
         "Microsoft.CodeAnalysis",
+        "Microsoft.CodeAnalysis.Analyzers",
         "Microsoft.CodeAnalysis.Common",
         "Microsoft.CodeAnalysis.Compilers",
         "Microsoft.CodeAnalysis.CSharp",
@@ -40,7 +41,6 @@ internal class NuGetPublish
         //"Microsoft.VisualStudio.LanguageServices",
 
         // These are the RoslynAnalyzer packages. We should not publish them at this time.
-        // "Microsoft.CodeAnalysis.Analyzers",
         //"Microsoft.CodeAnalysis.AnalyzerUtilities",
         //"Microsoft.CodeAnalysis.BannedApiAnalyzers",
         //"Microsoft.CodeAnalysis.Metrics",
