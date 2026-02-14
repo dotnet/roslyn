@@ -208,14 +208,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal void AddOperators(string name, ArrayBuilder<MethodSymbol> operators)
         {
-            ImmutableArray<Symbol> candidates = GetSimpleNonTypeMembers(name);
+            var candidates = GetSimpleNonTypeMembers(name);
             if (candidates.IsEmpty)
                 return;
 
             AddOperators(operators, candidates);
         }
 
-        internal static void AddOperators(ArrayBuilder<MethodSymbol> operators, ImmutableArray<Symbol> candidates)
+        internal static void AddOperators(ArrayBuilder<MethodSymbol> operators, OneOrMany<Symbol> candidates)
         {
             foreach (var candidate in candidates)
             {
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                ImmutableArray<Symbol> candidates = GetSimpleNonTypeMembers(WellKnownMemberNames.Indexer);
+                var candidates = GetSimpleNonTypeMembers(WellKnownMemberNames.Indexer);
 
                 if (candidates.IsEmpty)
                 {
@@ -351,30 +351,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>Does not perform a full viability check</remarks>
         private void DoGetExtensionMethods(ArrayBuilder<Symbol> methods, string? nameOpt, int arity, LookupOptions options, PooledHashSet<MethodSymbol>? implementationsToShadow)
         {
-            var members = nameOpt == null
-                ? this.GetMembersUnordered()
-                : this.GetSimpleNonTypeMembers(nameOpt);
-
-            foreach (var member in members)
+            void addIfExtensionMethod(Symbol member)
             {
-                if (member.Kind == SymbolKind.Method)
+                if (member is not MethodSymbol method)
                 {
-                    var method = (MethodSymbol)member;
-                    if (method.IsExtensionMethod &&
-                        ((options & LookupOptions.AllMethodsOnArityZero) != 0 || arity == method.Arity))
-                    {
-                        var thisParam = method.Parameters.First();
-                        if (!IsValidExtensionReceiverParameter(thisParam))
-                        {
-                            continue;
-                        }
+                    return;
+                }
 
-                        if (implementationsToShadow is null || !implementationsToShadow.Remove(method.OriginalDefinition))
-                        {
-                            Debug.Assert(method.MethodKind != MethodKind.ReducedExtension);
-                            methods.Add(method);
-                        }
+                if (method.IsExtensionMethod &&
+                    ((options & LookupOptions.AllMethodsOnArityZero) != 0 || arity == method.Arity))
+                {
+                    var thisParam = method.Parameters.First();
+                    if (!IsValidExtensionReceiverParameter(thisParam))
+                    {
+                        return;
                     }
+
+                    if (implementationsToShadow is null || !implementationsToShadow.Remove(method.OriginalDefinition))
+                    {
+                        Debug.Assert(method.MethodKind != MethodKind.ReducedExtension);
+                        methods.Add(method);
+                    }
+                }
+            }
+
+            if (nameOpt is null)
+            {
+                foreach (var member in GetMembersUnordered())
+                {
+                    addIfExtensionMethod(member);
+                }
+            }
+            else
+            {
+                foreach (var member in GetSimpleNonTypeMembers(nameOpt))
+                {
+                    addIfExtensionMethod(member);
                 }
             }
         }
@@ -834,9 +846,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasPossibleWellKnownCloneMethod();
 
-        internal virtual ImmutableArray<Symbol> GetSimpleNonTypeMembers(string name)
+        internal virtual OneOrMany<Symbol> GetSimpleNonTypeMembers(string name)
         {
-            return GetMembers(name);
+            return OneOrMany.Create(GetMembers(name));
         }
 
         /// <summary>

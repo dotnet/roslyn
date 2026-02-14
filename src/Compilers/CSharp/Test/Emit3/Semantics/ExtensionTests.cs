@@ -5460,7 +5460,7 @@ public static class Extensions
             Assert.True(implementation.ContainingType.MightContainExtensions);
 
             Assert.Contains("M", extensions.MemberNames);
-            Assert.NotEmpty(extensions.GetSimpleNonTypeMembers("M"));
+            Assert.False(extensions.GetSimpleNonTypeMembers("M").IsEmpty);
 
             if (m is PEModuleSymbol peModuleSymbol)
             {
@@ -5474,7 +5474,7 @@ public static class Extensions
 
         comp1 = CreateCompilation(src1);
         extensions = comp1.GetTypeByMetadataName("Extensions");
-        Assert.NotEmpty(extensions.GetSimpleNonTypeMembers("M"));
+        Assert.False(extensions.GetSimpleNonTypeMembers("M").IsEmpty);
 
         var expectedTypeIL = """
 .class public auto ansi abstract sealed beforefieldinit Extensions

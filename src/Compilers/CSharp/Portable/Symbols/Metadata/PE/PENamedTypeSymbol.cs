@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// A map of members immediately contained within this type 
         /// grouped by their name (case-sensitively).
         /// </summary>
-        private Dictionary<string, ImmutableArray<Symbol>> _lazyMembersByName;
+        private Dictionary<string, OneOrMany<Symbol>> _lazyMembersByName;
 
         /// <summary>
         /// A map of types immediately contained within this type 
@@ -1717,7 +1717,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                 }
 
-                Dictionary<string, ImmutableArray<Symbol>> membersDict = GroupByName(members);
+                Dictionary<string, OneOrMany<Symbol>> membersDict = GroupByName(members);
 
                 var exchangeResult = Interlocked.CompareExchange(ref _lazyMembersByName, membersDict, null);
                 if (exchangeResult == null)
@@ -1750,37 +1750,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override ImmutableArray<Symbol> GetSimpleNonTypeMembers(string name)
+        private OneOrMany<Symbol> GetNonTypeMembersOrEmpty(string name)
         {
             EnsureAllMembersAreLoaded();
 
-            ImmutableArray<Symbol> m;
-            if (!_lazyMembersByName.TryGetValue(name, out m))
-            {
-                m = ImmutableArray<Symbol>.Empty;
-            }
+            return _lazyMembersByName.TryGetValue(name, out var members)
+                ? members
+                : OneOrMany<Symbol>.Empty;
+        }
 
-            return m;
+        internal override OneOrMany<Symbol> GetSimpleNonTypeMembers(string name)
+        {
+            return GetNonTypeMembersOrEmpty(name);
         }
 
         public override ImmutableArray<Symbol> GetMembers(string name)
         {
-            EnsureAllMembersAreLoaded();
+            var members = GetNonTypeMembersOrEmpty(name);
+            var nameMemory = name.AsMemory();
 
-            ImmutableArray<Symbol> m;
-            if (!_lazyMembersByName.TryGetValue(name, out m))
+            if (members.IsEmpty)
             {
-                m = ImmutableArray<Symbol>.Empty;
+                return _lazyNestedTypes.TryGetValue(nameMemory, out var typesByName)
+                    ? StaticCast<Symbol>.From(typesByName)
+                    : ImmutableArray<Symbol>.Empty;
             }
 
             // nested types are not common, but we need to check just in case
-            ImmutableArray<PENamedTypeSymbol> t;
-            if (_lazyNestedTypes.TryGetValue(name.AsMemory(), out t))
+            if (_lazyNestedTypes.TryGetValue(nameMemory, out var nestedTypes))
             {
-                m = m.Concat(StaticCast<Symbol>.From(t));
+                var builder = ArrayBuilder<Symbol>.GetInstance(members.Count + nestedTypes.Length);
+                members.AddRangeTo(builder);
+                builder.AddRange(nestedTypes);
+                return builder.ToImmutableAndFree();
             }
 
-            return m;
+            return members.ToImmutable();
         }
 
         internal sealed override bool HasPossibleWellKnownCloneMethod()
@@ -1792,13 +1797,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 FieldSymbol result = null;
 
-                var candidates = this.GetMembers(FixedFieldImplementationType.FixedElementFieldName);
-                if (!candidates.IsDefault && candidates.Length == 1)
+                var name = FixedFieldImplementationType.FixedElementFieldName;
+                var members = GetNonTypeMembersOrEmpty(name);
+                var totalCount = members.Count;
+
+                if (totalCount == 1)
                 {
-                    result = candidates[0] as FieldSymbol;
+                    result = members[0] as FieldSymbol;
                 }
 
-                return result;
+                if (_lazyNestedTypes.TryGetValue(name.AsMemory(), out var nestedTypes))
+                {
+                    totalCount += nestedTypes.Length;
+                }
+
+                return totalCount == 1 ? result : null;
             }
         }
 
@@ -2503,9 +2516,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return method;
         }
 
-        private static Dictionary<string, ImmutableArray<Symbol>> GroupByName(ArrayBuilder<Symbol> symbols)
+        private static Dictionary<string, OneOrMany<Symbol>> GroupByName(ArrayBuilder<Symbol> symbols)
         {
-            return symbols.ToDictionary(s => s.Name, StringOrdinalComparer.Instance);
+            var result = new Dictionary<string, OneOrMany<Symbol>>(symbols.Count, StringOrdinalComparer.Instance);
+            foreach (var symbol in symbols)
+            {
+                var name = symbol.Name;
+                if (result.TryGetValue(name, out var existing))
+                {
+                    result[name] = existing.Add(symbol);
+                }
+                else
+                {
+                    result.Add(name, OneOrMany.Create(symbol));
+                }
+            }
+
+            return result;
         }
 
         private static Dictionary<ReadOnlyMemory<char>, ImmutableArray<PENamedTypeSymbol>> GroupByName(ArrayBuilder<PENamedTypeSymbol> symbols)
