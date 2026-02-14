@@ -46,7 +46,6 @@ env:
 
   LABEL_PREFIX: "Area-"
   THRESHOLD: 0.40
-  DEFAULT_LABEL: "needs-area-label"
 
 jobs:
   poll-pull-requests:
