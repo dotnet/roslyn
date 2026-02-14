@@ -450,6 +450,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasCompilerLoweringPreserveAttribute => false;
 
+        internal override bool HasUnionAttribute => false;
+
         internal override bool IsInterpolatedStringHandlerType => false;
 
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved)

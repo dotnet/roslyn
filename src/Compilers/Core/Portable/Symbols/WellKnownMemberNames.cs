@@ -519,11 +519,6 @@ namespace Microsoft.CodeAnalysis
         internal const string ExtensionMarkerTypePrefix = "<M>$";
 
         /// <summary>
-        /// The name of the IUnion interface used by Union feature.
-        /// </summary>
-        public const string IUnionInterfaceName = "IUnion";
-
-        /// <summary>
         /// The name for the 'HasValue' property.
         /// </summary>
         public const string HasValuePropertyName = "HasValue";

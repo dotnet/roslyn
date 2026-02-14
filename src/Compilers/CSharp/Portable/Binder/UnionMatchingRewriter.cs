@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BoundPatternWithUnionMatching CreatePatternWithUnionMatching(NamedTypeSymbol inputUnionType, BoundPattern innerPattern)
         {
-            Debug.Assert(inputUnionType.IsUnionTypeNoUseSiteDiagnostics);
+            Debug.Assert(inputUnionType.IsUnionType);
             Debug.Assert(innerPattern.InputType.IsObjectType());
 
             PropertySymbol? valueProperty = Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(inputUnionType);

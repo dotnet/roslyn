@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public UnionTypeTypeUnionValueSetFactory(NamedTypeSymbol unionType)
             {
-                Debug.Assert(unionType is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true });
+                Debug.Assert(unionType is NamedTypeSymbol { IsUnionType: true });
                 _unionType = unionType;
             }
 
