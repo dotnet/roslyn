@@ -126,7 +126,6 @@ jobs:
           pulls: ${{ steps.determine-pulls.outputs.pulls }}
           label_prefix: ${{ env.LABEL_PREFIX }}
           threshold: ${{ env.THRESHOLD }}
-          default_label: ${{ env.DEFAULT_LABEL }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
         continue-on-error: ${{ !env.ALLOW_FAILURE }}
