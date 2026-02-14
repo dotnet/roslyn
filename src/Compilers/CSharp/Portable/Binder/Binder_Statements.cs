@@ -3233,8 +3233,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            hasImplicitConversionError = true;
+                            var diagnosticCount = diagnostics.DiagnosticBag.Count;
                             GenerateImplicitConversionError(diagnostics, argument.Syntax, conversion, argument, returnType);
+                            hasImplicitConversionError = diagnosticCount < diagnostics.DiagnosticBag.Count;
+
                             if (this.ContainingMemberOrLambda is LambdaSymbol)
                             {
                                 ReportCantConvertLambdaReturn(argument.Syntax, diagnostics);
