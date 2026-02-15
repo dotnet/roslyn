@@ -18,7 +18,7 @@ The minimal required version of .NET Framework is 4.7.2.
 1. Use latest [Visual Studio 2022 Preview](https://visualstudio.microsoft.com/vs/preview/vs2022/)
     - Ensure Visual Studio extension development is included in the selected workloads
     - Ensure C# and Visual Basic, MSBuild, and .NET Core are included in the selected individual components
-    - Ensure "Use previews of the .NET Core SDK" is checked in Tools -> Options -> Environment -> Preview Features
+    - Ensure "Use previews of the .NET SDK" is checked in Tools -> Options -> Environment -> Preview Features
     - Restart Visual Studio
 1. Install the [.NET 10.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) which matches the `sdk.version` property in [global.json](../../global.json#L3)
 1. [PowerShell 5.0 or newer](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell). If you are on Windows 10, you are fine; you'll only need to upgrade if you're on earlier versions of Windows. The download link is under the ["Upgrading existing Windows PowerShell"](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-windows-powershell?view=powershell-6#upgrading-existing-windows-powershell) heading.
