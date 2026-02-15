@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Features.Workspaces;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -20,12 +23,14 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 
 /// <summary>Handles loading both miscellaneous files and file-based program projects.</summary>
-internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoader, ILspMiscellaneousFilesWorkspaceProvider, IDisposable
+internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoader, ILspMiscellaneousFilesWorkspaceProvider, IDisposable, IOnInitialized
 {
     private readonly ILspServices _lspServices;
     private readonly ILogger<FileBasedProgramsProjectSystem> _logger;
     private readonly VirtualProjectXmlProvider _projectXmlProvider;
     private readonly CanonicalMiscFilesProjectLoader _canonicalMiscFilesLoader;
+    private readonly IFileChangeWatcher _fileChangeWatcher;
+    private IFileChangeContext? _csprojWatcher;
 
     public FileBasedProgramsProjectSystem(
         ILspServices lspServices,
@@ -51,6 +56,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 dotnetCliHelper)
     {
         _lspServices = lspServices;
+        _fileChangeWatcher = fileChangeWatcher;
         _logger = loggerFactory.CreateLogger<FileBasedProgramsProjectSystem>();
         _projectXmlProvider = projectXmlProvider;
         _canonicalMiscFilesLoader = new CanonicalMiscFilesProjectLoader(
@@ -71,6 +77,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     {
         _canonicalMiscFilesLoader.Dispose();
         GlobalOptionService.RemoveOptionChangedHandler(this, OnGlobalOptionChanged);
+        _csprojWatcher?.Dispose();
     }
 
     private void OnGlobalOptionChanged(object sender, object target, OptionChangedEventArgs args)
@@ -97,6 +104,29 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 _logger.LogInformation($"Detected enableFileBasedPrograms changed to '{value}'. Unloading loose file projects.");
                 await UnloadAllProjectsAsync();
                 await _canonicalMiscFilesLoader.UnloadAllProjectsAsync();
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+        }
+    }
+
+    private void OnCsprojFileChanged(object? sender, string changedFile)
+    {
+        Contract.ThrowIfFalse(PathUtilities.IsAbsolute(changedFile));
+        if (PathUtilities.GetExtension(changedFile) != ".csproj")
+            return;
+
+        var directoryName = PathUtilities.GetDirectoryName(changedFile);
+        _ = HandleCsprojFileChangedAsync(directoryName);
+
+        async Task HandleCsprojFileChangedAsync(string directoryName)
+        {
+            using var token = Listener.BeginAsyncOperation(nameof(HandleCsprojFileChangedAsync));
+            try
+            {
+                await _canonicalMiscFilesLoader.ClearCsprojInConeInfoAsync(directoryName);
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
             {
@@ -132,8 +162,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 && textDocument is Document document
                 && await document.GetSyntaxTreeAsync(cancellationToken) is { } syntaxTree)
             {
-                var newHasAllInformation = await VirtualProjectXmlProvider.ShouldReportSemanticErrorsInPossibleFileBasedProgramAsync(GlobalOptionService, syntaxTree, cancellationToken);
-                if (newHasAllInformation != document.Project.State.HasAllInformation)
+                if (await _canonicalMiscFilesLoader.GetHasAllInformation_IncrementalAsync(GlobalOptionService, syntaxTree, cancellationToken) is bool newHasAllInformation
+                    && newHasAllInformation != document.Project.State.HasAllInformation)
                 {
                     // TODO: replace this method and the call site in LspWorkspaceManager,
                     // with a mechanism for "updating workspace state if needed" based on changes to a document.
@@ -266,5 +296,44 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         await projectState.PrimordialProjectFactory.ApplyChangeToWorkspaceAsync(
             workspace => workspace.OnProjectRemoved(projectState.PrimordialProjectId),
             cancellationToken);
+    }
+
+    public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
+    {
+        Contract.ThrowIfFalse(_csprojWatcher == null, "This should be the first notification which can possibly initialize _csprojWatcher");
+        var initializeManager = context.GetRequiredService<IInitializeManager>();
+        if (initializeManager.TryGetInitializeParams() is { WorkspaceFolders: [_, ..] nonEmptyWorkspaceFolders })
+        {
+            var nonOverlappingWorkspacePaths = getNonOverlappingFolderPaths(nonEmptyWorkspaceFolders);
+
+            // TODO2: handle 'workspace/didChangeWorkspaceFolders'
+            _csprojWatcher = _fileChangeWatcher.CreateContext(
+                nonOverlappingWorkspacePaths.SelectAsArray(path => new WatchedDirectory(path, extensionFilters: [".csproj"])));
+            _csprojWatcher.FileChanged += OnCsprojFileChanged;
+            _canonicalMiscFilesLoader.WorkspaceFoldersOpt = nonOverlappingWorkspacePaths;
+        }
+
+        return Task.CompletedTask;
+
+        ImmutableArray<string> getNonOverlappingFolderPaths(WorkspaceFolder[] workspaceFolders)
+        {
+            var builder = ArrayBuilder<string>.GetInstance(workspaceFolders.Length);
+            foreach (var workspaceFolder in workspaceFolders)
+            {
+                // Only care about real, on-disk folders
+                if (workspaceFolder.DocumentUri.ParsedUri is not { } parsedUri)
+                    continue;
+
+                var currentPath = ProtocolConversions.GetDocumentFilePathFromUri(parsedUri);
+                // When multiple folders are in the same hierarchy, take the higher one and drop the lower one.
+                var existingIndex = builder.FindIndex((oldPath, currentPath) => PathUtilities.IsSameDirectoryOrChildOf(child: oldPath, parent: currentPath), currentPath);
+                if (existingIndex != -1)
+                    builder[existingIndex] = currentPath;
+                else
+                    builder.Add(currentPath);
+            }
+
+            return builder.ToImmutableAndFree();
+        }
     }
 }

@@ -8,7 +8,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
-public sealed class TestOutputLoggerProvider(ITestOutputHelper testOutputHelper) : ILoggerProvider
+public sealed class TestOutputLoggerProvider(ITestOutputHelper testOutputHelper, LogLevel minLogLevel = LogLevel.Trace) : ILoggerProvider
 {
     /// <summary>
     /// The <see cref="ITestOutputHelper" /> given to us from xUnit. This is nulled out once we dispose this logger provider;
@@ -17,6 +17,7 @@ public sealed class TestOutputLoggerProvider(ITestOutputHelper testOutputHelper)
     /// an entire test run failing for that.
     /// </summary>
     private ITestOutputHelper? _testOutputHelper = testOutputHelper;
+    private readonly LogLevel _minLogLevel = minLogLevel;
 
     public ILogger CreateLogger(string categoryName)
     {
@@ -32,7 +33,7 @@ public sealed class TestOutputLoggerProvider(ITestOutputHelper testOutputHelper)
 
         public bool IsEnabled(LogLevel logLevel)
         {
-            return true;
+            return logLevel >= loggerProvider._minLogLevel;
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)

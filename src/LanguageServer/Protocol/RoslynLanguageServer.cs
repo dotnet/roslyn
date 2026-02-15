@@ -139,7 +139,10 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         // those cases, we do not need to add an additional workspace to manage new files we hear about.  So only
         // add the LspMiscellaneousFilesWorkspace for hosts that have not already brought their own.
         if (serverKind == WellKnownLspServerKinds.CSharpVisualBasicLspServer)
+        {
             AddLazyService<ILspMiscellaneousFilesWorkspaceProvider>(lspServices => lspServices.GetRequiredService<ILspMiscellaneousFilesWorkspaceProviderFactory>().CreateLspMiscellaneousFilesWorkspaceProvider(lspServices, hostServices));
+            AddLazyService<IOnInitialized>(lspServices => lspServices.GetRequiredService<ILspMiscellaneousFilesWorkspaceProvider>());
+        }
 
         return baseServiceMap.ToFrozenDictionary(
             keySelector: kvp => kvp.Key,
