@@ -41,7 +41,6 @@ public sealed class QueueItemTests
                 request: null,
                 context: 1,
                 ThrowLocalRpcExceptionMethodHandler.Instance,
-                string.Empty,
                 CancellationToken.None);
         });
         Assert.Equal(LspErrorCodes.ContentModified, exception.ErrorCode);
