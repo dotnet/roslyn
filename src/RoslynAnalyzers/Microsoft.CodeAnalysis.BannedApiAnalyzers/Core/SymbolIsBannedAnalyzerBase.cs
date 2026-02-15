@@ -11,8 +11,10 @@ using System.Threading;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 {
@@ -38,9 +40,18 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             context.EnableConcurrentExecution();
 
             // Analyzer needs to get callbacks for generated code, and might report diagnostics in generated code.
+            // However, this can be disabled via editorconfig option.
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
 
             context.RegisterCompilationStartAction(OnCompilationStart);
+        }
+
+        private static bool ShouldExcludeGeneratedCode(AnalyzerOptions options)
+        {
+            return options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(
+                    Analyzer.Utilities.EditorConfigOptionNames.BannedApiExcludeGeneratedCode,
+                    out var value) &&
+                EditorConfigValueSerializer.GetDefault<bool>(isEditorConfigOption: true).ParseValue(value).GetValueOrDefault();
         }
 
         private void OnCompilationStart(CompilationStartAnalysisContext compilationContext)
@@ -48,6 +59,8 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             var bannedApis = ReadBannedApis(compilationContext);
             if (bannedApis == null || bannedApis.Count == 0)
                 return;
+
+            var excludeGeneratedCode = ShouldExcludeGeneratedCode(compilationContext.Options);
 
             if (ShouldAnalyzeAttributes())
             {
@@ -59,7 +72,13 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                     });
 
                 compilationContext.RegisterSymbolAction(
-                    context => VerifyAttributes(context.ReportDiagnostic, context.Symbol.GetAttributes(), context.CancellationToken),
+                    context =>
+                    {
+                        if (excludeGeneratedCode && context.IsGeneratedCode)
+                            return;
+
+                        VerifyAttributes(context.ReportDiagnostic, context.Symbol.GetAttributes(), context.CancellationToken);
+                    },
                     SymbolKind.NamedType,
                     SymbolKind.Method,
                     SymbolKind.Field,
@@ -70,6 +89,9 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             compilationContext.RegisterOperationAction(
                 context =>
                 {
+                    if (excludeGeneratedCode && context.IsGeneratedCode)
+                        return;
+
                     context.CancellationToken.ThrowIfCancellationRequested();
                     switch (context.Operation)
                     {
@@ -153,11 +175,23 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 OperationKind.TypeOf);
 
             compilationContext.RegisterSyntaxNodeAction(
-                context => VerifyDocumentationSyntax(context.ReportDiagnostic, GetReferenceSyntaxNodeFromXmlCref(context.Node), context),
+                context =>
+                {
+                    if (excludeGeneratedCode && context.IsGeneratedCode)
+                        return;
+
+                    VerifyDocumentationSyntax(context.ReportDiagnostic, GetReferenceSyntaxNodeFromXmlCref(context.Node), context);
+                },
                 XmlCrefSyntaxKind);
 
             compilationContext.RegisterSyntaxNodeAction(
-                context => VerifyBaseTypesSyntax(context.ReportDiagnostic, GetTypeSyntaxNodesFromBaseType(context.Node), context),
+                context =>
+                {
+                    if (excludeGeneratedCode && context.IsGeneratedCode)
+                        return;
+
+                    VerifyBaseTypesSyntax(context.ReportDiagnostic, GetTypeSyntaxNodesFromBaseType(context.Node), context);
+                },
                 BaseTypeSyntaxKinds);
 
             return;
