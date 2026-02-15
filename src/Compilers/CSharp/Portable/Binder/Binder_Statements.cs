@@ -3233,14 +3233,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            var diagnosticCount = diagnostics.DiagnosticBag
-                                ?.AsEnumerable()
+                            var diagnosticCount = diagnostics.DiagnosticBag?.AsEnumerable()
                                 .Count(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error) ?? 0;
 
                             GenerateImplicitConversionError(diagnostics, argument.Syntax, conversion, argument, returnType);
 
-                            var changedDiagnosticCount = diagnostics.DiagnosticBag
-                                ?.AsEnumerable()
+                            var changedDiagnosticCount = diagnostics.DiagnosticBag?.AsEnumerable()
                                 .Count(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error) ?? 0;
                             hasImplicitConversionError = diagnosticCount < changedDiagnosticCount;
 
