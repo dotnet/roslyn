@@ -15,17 +15,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A value set factory for boolean values.
         /// </summary>
-        private sealed class BoolValueSetFactory : IValueSetFactory<bool>
+        private sealed class BoolValueSetFactory : IConstantValueSetFactory<bool>
         {
             public static readonly BoolValueSetFactory Instance = new BoolValueSetFactory();
 
             private BoolValueSetFactory() { }
 
-            IValueSet IValueSetFactory.AllValues => BoolValueSet.AllValues;
+            IConstantValueSet IConstantValueSetFactory.AllValues => BoolValueSet.AllValues;
 
-            IValueSet IValueSetFactory.NoValues => BoolValueSet.None;
+            IConstantValueSet IConstantValueSetFactory.NoValues => BoolValueSet.None;
 
-            public IValueSet<bool> Related(BinaryOperatorKind relation, bool value)
+            public IConstantValueSet<bool> Related(BinaryOperatorKind relation, bool value)
             {
                 switch (relation, value)
                 {
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            IValueSet IValueSetFactory.Random(int expectedSize, Random random) => random.Next(4) switch
+            IConstantValueSet IConstantValueSetFactory.Random(int expectedSize, Random random) => random.Next(4) switch
             {
                 0 => BoolValueSet.None,
                 1 => BoolValueSet.OnlyFalse,
@@ -48,14 +48,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ => throw ExceptionUtilities.UnexpectedValue("random"),
             };
 
-            ConstantValue IValueSetFactory.RandomValue(Random random) => ConstantValue.Create(random.NextDouble() < 0.5);
+            ConstantValue IConstantValueSetFactory.RandomValue(Random random) => ConstantValue.Create(random.NextDouble() < 0.5);
 
-            IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value)
+            IConstantValueSet IConstantValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value)
             {
                 return value.IsBad ? BoolValueSet.AllValues : Related(relation, value.BooleanValue);
             }
 
-            bool IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue left, ConstantValue right)
+            bool IConstantValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue left, ConstantValue right)
             {
                 Debug.Assert(relation == BinaryOperatorKind.Equal);
                 return left.IsBad || right.IsBad || left.BooleanValue == right.BooleanValue;

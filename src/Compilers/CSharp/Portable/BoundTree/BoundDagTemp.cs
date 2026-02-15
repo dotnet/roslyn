@@ -64,7 +64,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 null => "t0",
                 var id => $"t{id}"
             };
-            return $"{name}{(Source is BoundDagDeconstructEvaluation ? $".Item{(Index + 1).ToString()}" : "")}";
+
+            if (Source is BoundDagDeconstructEvaluation)
+            {
+                if (Index == -1)
+                {
+                    return name + ".ReturnItem";
+                }
+                else
+                {
+                    return name + ".Item" + (Index + 1).ToString();
+                }
+            }
+
+            return name;
         }
 #endif
     }

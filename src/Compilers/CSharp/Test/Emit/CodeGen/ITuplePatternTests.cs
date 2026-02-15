@@ -228,69 +228,69 @@ class C : Base, ITuple
 ";
             var verifier = CompileAndVerify(CreatePatternCompilation(source, TestOptions.DebugDll));
             verifier.VerifyIL("C.M", @"
-  {
-      // Code size      110 (0x6e)
-      .maxstack  2
-      .locals init (C V_0,
-                    int V_1,
-                    object V_2,
-                    int V_3,
-                    object V_4,
-                    int V_5,
-                    C V_6,
-                    string V_7)
-      IL_0000:  nop
-      IL_0001:  ldarg.0
-      IL_0002:  stloc.s    V_6
-      IL_0004:  ldloc.s    V_6
-      IL_0006:  stloc.0
-      IL_0007:  ldloc.0
-      IL_0008:  isinst     ""System.Runtime.CompilerServices.ITuple""
-      IL_000d:  brfalse.s  IL_0061
-      IL_000f:  ldloc.0
-      IL_0010:  callvirt   ""int System.Runtime.CompilerServices.ITuple.Length.get""
-      IL_0015:  stloc.1
-      IL_0016:  ldloc.1
-      IL_0017:  ldc.i4.2
-      IL_0018:  bne.un.s   IL_0061
-      IL_001a:  ldloc.0
-      IL_001b:  ldc.i4.0
-      IL_001c:  callvirt   ""object System.Runtime.CompilerServices.ITuple.this[int].get""
-      IL_0021:  stloc.2
-      IL_0022:  ldloc.2
-      IL_0023:  isinst     ""int""
-      IL_0028:  brfalse.s  IL_0061
-      IL_002a:  ldloc.2
-      IL_002b:  unbox.any  ""int""
-      IL_0030:  stloc.3
-      IL_0031:  ldloc.3
-      IL_0032:  ldc.i4.1
-      IL_0033:  bne.un.s   IL_0061
-      IL_0035:  ldloc.0
-      IL_0036:  ldc.i4.1
-      IL_0037:  callvirt   ""object System.Runtime.CompilerServices.ITuple.this[int].get""
-      IL_003c:  stloc.s    V_4
-      IL_003e:  ldloc.s    V_4
-      IL_0040:  isinst     ""int""
-      IL_0045:  brfalse.s  IL_0061
-      IL_0047:  ldloc.s    V_4
-      IL_0049:  unbox.any  ""int""
-      IL_004e:  stloc.s    V_5
-      IL_0050:  ldloc.s    V_5
-      IL_0052:  ldc.i4.1
-      IL_0053:  beq.s      IL_0057
-      IL_0055:  br.s       IL_0061
-      IL_0057:  ldarg.0
-      IL_0058:  call       ""string C.Value.get""
-      IL_005d:  stloc.s    V_7
-      IL_005f:  br.s       IL_006b
-      IL_0061:  ldarg.0
-      IL_0062:  call       ""string C.Value.get""
-      IL_0067:  stloc.s    V_7
-      IL_0069:  br.s       IL_006b
-      IL_006b:  ldloc.s    V_7
-      IL_006d:  ret
-    }");
+{
+  // Code size      105 (0x69)
+  .maxstack  2
+  .locals init (C V_0,
+            int V_1,
+            object V_2,
+            int V_3,
+            object V_4,
+            int V_5,
+            C V_6,
+            string V_7)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_6
+  IL_0004:  ldloc.s    V_6
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_005c
+  IL_000a:  ldloc.0
+  IL_000b:  callvirt   ""int System.Runtime.CompilerServices.ITuple.Length.get""
+  IL_0010:  stloc.1
+  IL_0011:  ldloc.1
+  IL_0012:  ldc.i4.2
+  IL_0013:  bne.un.s   IL_005c
+  IL_0015:  ldloc.0
+  IL_0016:  ldc.i4.0
+  IL_0017:  callvirt   ""object System.Runtime.CompilerServices.ITuple.this[int].get""
+  IL_001c:  stloc.2
+  IL_001d:  ldloc.2
+  IL_001e:  isinst     ""int""
+  IL_0023:  brfalse.s  IL_005c
+  IL_0025:  ldloc.2
+  IL_0026:  unbox.any  ""int""
+  IL_002b:  stloc.3
+  IL_002c:  ldloc.3
+  IL_002d:  ldc.i4.1
+  IL_002e:  bne.un.s   IL_005c
+  IL_0030:  ldloc.0
+  IL_0031:  ldc.i4.1
+  IL_0032:  callvirt   ""object System.Runtime.CompilerServices.ITuple.this[int].get""
+  IL_0037:  stloc.s    V_4
+  IL_0039:  ldloc.s    V_4
+  IL_003b:  isinst     ""int""
+  IL_0040:  brfalse.s  IL_005c
+  IL_0042:  ldloc.s    V_4
+  IL_0044:  unbox.any  ""int""
+  IL_0049:  stloc.s    V_5
+  IL_004b:  ldloc.s    V_5
+  IL_004d:  ldc.i4.1
+  IL_004e:  beq.s      IL_0052
+  IL_0050:  br.s       IL_005c
+  IL_0052:  ldarg.0
+  IL_0053:  call       ""string C.Value.get""
+  IL_0058:  stloc.s    V_7
+  IL_005a:  br.s       IL_0066
+  IL_005c:  ldarg.0
+  IL_005d:  call       ""string C.Value.get""
+  IL_0062:  stloc.s    V_7
+  IL_0064:  br.s       IL_0066
+  IL_0066:  ldloc.s    V_7
+  IL_0068:  ret
+}
+");
         }
 
     }

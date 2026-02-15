@@ -1798,6 +1798,54 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns>True if this is an interface type.</returns>
         internal abstract bool IsInterface { get; }
 
+        internal bool IsUnionTypeNoUseSiteDiagnostics
+        {
+            get
+            {
+                return TypeKind is TypeKind.Class or TypeKind.Struct &&
+                       AllInterfacesNoUseSiteDiagnostics.Any(static (i) => i.IsWellKnownTypeIUnion());
+            }
+        }
+
+        internal bool IsUnionTypeWithUseSiteDiagnostics(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            return TypeKind is TypeKind.Class or TypeKind.Struct &&
+                   AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo).Any(static (i) => i.IsWellKnownTypeIUnion());
+        }
+
+        internal ImmutableArray<TypeSymbol> UnionCaseTypes
+        {
+            get
+            {
+                if (!IsUnionTypeNoUseSiteDiagnostics)
+                {
+                    return [];
+                }
+
+                var builder = ArrayBuilder<TypeSymbol>.GetInstance();
+
+                foreach (var ctor in this.InstanceConstructors)
+                {
+                    if (IsSuitableUnionConstructor(ctor))
+                    {
+                        var candidate = ctor.Parameters[0].Type;
+                        if (!builder.Any(static (t1, t2) => t1.Equals(t2, TypeCompareKind.AllIgnoreOptions), candidate))
+                        {
+                            builder.Add(candidate);
+                        }
+                    }
+                }
+
+                return builder.ToImmutableAndFree();
+            }
+        }
+
+        internal static bool IsSuitableUnionConstructor(MethodSymbol ctor)
+        {
+            Debug.Assert(ctor.MethodKind is MethodKind.Constructor);
+            return ctor is { DeclaredAccessibility: Accessibility.Public, ParameterCount: 1, Parameters: [{ RefKind: RefKind.In or RefKind.None }] };
+        }
+
         /// <summary>
         /// Verify if the given type can be used to back a tuple type 
         /// and return cardinality of that tuple type in <paramref name="tupleCardinality"/>. 

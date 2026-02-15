@@ -71,24 +71,61 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
             if (source is BoundValuePlaceholder placeholder1)
             {
-                Debug.Assert(filterConversion(conversion));
+                Debug.Assert(filterConversion(conversion, result));
                 Debug.Assert(BoundNode.GetConversion(result, placeholder1) == conversion);
             }
-            else if (source.Type is not null && filterConversion(conversion))
+            else if (source.Type is not null && filterConversion(conversion, result))
             {
                 var placeholder2 = new BoundValuePlaceholder(source.Syntax, source.Type);
                 var result2 = createConversion(syntax, placeholder2, conversion, isCast, conversionGroupOpt: new ConversionGroup(conversion), InConversionGroupFlags.Unspecified, wasCompilerGenerated, destination, BindingDiagnosticBag.Discarded, hasErrors);
                 Debug.Assert(BoundNode.GetConversion(result2, placeholder2) == conversion);
             }
 
-            static bool filterConversion(Conversion conversion)
+            static bool filterConversion(Conversion conversion, BoundExpression result)
             {
-                return !conversion.IsInterpolatedString &&
-                       !conversion.IsInterpolatedStringHandler &&
-                       !conversion.IsSwitchExpression &&
-                       !conversion.IsCollectionExpression &&
-                       !(conversion.IsTupleLiteralConversion || (conversion.IsNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion)) &&
-                       (!conversion.IsUserDefined || filterConversion(conversion.UserDefinedFromConversion));
+                if (conversion.IsInterpolatedString)
+                {
+                    return false;
+                }
+
+                if (conversion.IsInterpolatedStringHandler)
+                {
+                    return false;
+                }
+
+                if (conversion.IsSwitchExpression)
+                {
+                    return false;
+                }
+
+                if (conversion.IsCollectionExpression)
+                {
+                    return false;
+                }
+
+                if ((conversion.IsTupleLiteralConversion || (conversion.IsNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion)))
+                {
+                    return false;
+                }
+
+                if (conversion.IsUserDefined && !filterConversion(conversion.UserDefinedFromConversion, result))
+                {
+                    return false;
+                }
+
+                if (conversion.IsUnion && !filterConversion(conversion.BestUnionConversionAnalysis.SourceConversion, result))
+                {
+                    return false;
+                }
+
+                if ((result as BoundConversion)?.ConversionGroupOpt?.Conversion.IsUnion == true &&
+                    !conversion.IsUnion &&
+                    conversion != ((BoundConversion)result).ConversionGroupOpt!.Conversion.BestUnionConversionAnalysis!.SourceConversion)
+                {
+                    return false;
+                }
+
+                return true;
             }
 #endif
 
@@ -274,6 +311,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CreateUserDefinedConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt ?? new ConversionGroup(conversion), destination, diagnostics, hasErrors);
                 }
 
+                if (conversion.IsUnion)
+                {
+                    // Union conversions are likely to be represented as multiple
+                    // BoundConversion instances so a ConversionGroup is necessary.
+                    return CreateUnionConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt ?? new ConversionGroup(conversion), destination, diagnostics);
+                }
+
                 ConstantValue? constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
                 if (conversion.Kind == ConversionKind.DefaultLiteral)
                 {
@@ -452,6 +496,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             CheckFeatureAvailability(syntax, MessageID.IDS_FeatureCheckedUserDefinedOperators, diagnostics);
                         }
                     }
+                }
+                else if (conversion.IsUnion)
+                {
+                    // PROTOTYPE: Check language version
                 }
                 else if (conversion.IsInlineArray)
                 {
@@ -2426,7 +2474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ? CreateConversion(oldValue.Syntax, oldValue, underlyingConversions[i], isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, destination, diagnostics)
                     : GenerateConversionForAssignment(destination, oldValue, diagnostics);
                 var newCase = (oldValue == newValue) ? oldCase :
-                    new BoundSwitchExpressionArm(oldCase.Syntax, oldCase.Locals, oldCase.Pattern, oldCase.WhenClause, newValue, oldCase.Label, oldCase.HasErrors);
+                    new BoundSwitchExpressionArm(oldCase.Syntax, oldCase.Locals, oldCase.Pattern, oldCase.HasUnionMatching, oldCase.WhenClause, newValue, oldCase.Label, oldCase.HasErrors);
                 builder.Add(newCase);
             }
             conversion.MarkUnderlyingConversionsChecked();
@@ -2615,6 +2663,83 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isCast: false,
                 conversionGroupOpt: conversionGroup,
                 InConversionGroupFlags.UserDefinedFinal,
+                wasCompilerGenerated: true, // NOTE: doesn't necessarily set flag on resulting bound expression.
+                destination: destination,
+                diagnostics: diagnostics);
+
+            conversion.AssertUnderlyingConversionsCheckedRecursive();
+
+            finalConversion.ResetCompilerGenerated(source.WasCompilerGenerated);
+
+            return finalConversion;
+        }
+
+        private BoundExpression CreateUnionConversion(
+            SyntaxNode syntax,
+            BoundExpression source,
+            Conversion conversion,
+            bool isCast,
+            ConversionGroup conversionGroup,
+            TypeSymbol destination,
+            BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(conversionGroup != null);
+            Debug.Assert(conversionGroup.Conversion == conversion);
+            Debug.Assert(conversion.IsUnion);
+            Debug.Assert(conversion.IsValid);
+            Debug.Assert(conversion.BestUnionConversionAnalysis is object); // All valid union conversions have this populated
+
+            UserDefinedConversionAnalysis analysis = conversion.BestUnionConversionAnalysis;
+
+            Debug.Assert(analysis.Kind == UserDefinedConversionAnalysisKind.ApplicableInNormalForm);
+            Debug.Assert(analysis.Operator is { MethodKind: MethodKind.Constructor, ParameterCount: 1 });
+            Debug.Assert(TypeSymbol.Equals(analysis.FromType, analysis.Operator.GetParameterType(0), TypeCompareKind.AllIgnoreOptions));
+            Debug.Assert(TypeSymbol.Equals(destination.StrippedType(), analysis.Operator.ContainingType, TypeCompareKind.AllIgnoreOptions));
+            Debug.Assert(TypeSymbol.Equals(destination.StrippedType(), analysis.ToType, TypeCompareKind.AllIgnoreOptions));
+            Debug.Assert(analysis.TargetConversion is { IsIdentity: true } or { IsNullable: true, IsImplicit: true });
+
+            conversion.MarkUnderlyingConversionsChecked();
+
+            // Original expression --> conversion's "from" type
+            BoundExpression convertedOperand = CreateConversion(
+                syntax: syntax,
+                source: source,
+                conversion: analysis.SourceConversion,
+                isCast: false,
+                conversionGroupOpt: conversionGroup,
+                InConversionGroupFlags.UnionSourceConversion,
+                wasCompilerGenerated: true,
+                destination: analysis.FromType,
+                diagnostics: diagnostics);
+
+            if (analysis.Operator.ContainingType.IsAbstract)
+            {
+                // Report error for new of abstract type.
+                diagnostics.Add(ErrorCode.ERR_NoNewAbstract, syntax.Location, analysis.Operator.ContainingType);
+            }
+
+            // PROTOTYPE: Any other validations to perform? Perhaps we should simply bind object creation, drop the node, but keep diagnostics.
+
+            var unionConversion = new BoundConversion(
+                    syntax,
+                    convertedOperand,
+                    conversion,
+                    @checked: CheckOverflowAtRuntime,
+                    explicitCastInCode: isCast,
+                    conversionGroup,
+                    InConversionGroupFlags.UnionConstructor,
+                    constantValueOpt: ConstantValue.NotAvailable,
+                    type: analysis.ToType)
+            { WasCompilerGenerated = true };
+
+            // Conversion's "to" type --> final type
+            BoundExpression finalConversion = CreateConversion(
+                syntax: syntax,
+                source: unionConversion,
+                conversion: analysis.TargetConversion,
+                isCast: false,
+                conversionGroupOpt: conversionGroup,
+                InConversionGroupFlags.UnionFinal,
                 wasCompilerGenerated: true, // NOTE: doesn't necessarily set flag on resulting bound expression.
                 destination: destination,
                 diagnostics: diagnostics);

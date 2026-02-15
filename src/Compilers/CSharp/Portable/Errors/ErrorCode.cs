@@ -2463,6 +2463,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CollectionRefLikeElementType = 9358,
         ERR_BadCollectionArgumentsArgCount = 9359,
 
+        // PROTOTYPE: Pack numbers
+        ERR_ExpressionTreeContainsUnionConversion = 9400,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  2) Add message to CSharpResources.resx

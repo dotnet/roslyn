@@ -501,7 +501,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(receiver.Type is { });
             if (!receiver.Type.IsReferenceType && method.ContainingType.IsInterface)
             {
-                Debug.Assert(receiverConversion.IsImplicit && !receiverConversion.IsUserDefined);
+                Debug.Assert(receiverConversion.IsImplicit);
+                Debug.Assert(!receiverConversion.IsUserDefined);
+                Debug.Assert(!receiverConversion.IsUnion);
 
                 // NOTE: The spec says that disposing of a struct enumerator won't cause any
                 // unnecessary boxing to occur.  However, Dev10 extends this improvement to the

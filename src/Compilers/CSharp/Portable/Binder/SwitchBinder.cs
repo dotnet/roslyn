@@ -223,8 +223,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.CasePatternSwitchLabel:
                         // bind the pattern, to cause its pattern variables to be inferred if necessary
                         var matchLabel = (CasePatternSwitchLabelSyntax)labelSyntax;
+                        NamedTypeSymbol unionType = null;
                         _ = sectionBinder.BindPattern(
-                            matchLabel.Pattern, SwitchGoverningType, permitDesignations: true, labelSyntax.HasErrors, tempDiagnosticBag);
+                            matchLabel.Pattern, ref unionType, SwitchGoverningType, permitDesignations: true, labelSyntax.HasErrors, tempDiagnosticBag, hasUnionMatching: out _);
                         break;
 
                     default:
@@ -267,10 +268,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors = true;
                 }
 
-                caseExpression = CreateConversion(caseExpression, conversion, SwitchGoverningType, diagnostics);
+                if (!conversion.IsUnion)
+                {
+                    caseExpression = CreateConversion(caseExpression, conversion, SwitchGoverningType, diagnostics);
+                }
             }
 
-            return ConvertPatternExpression(SwitchGoverningType, node, caseExpression, out constantValueOpt, hasErrors, diagnostics, out _);
+            var inputType = SwitchGoverningType;
+            NamedTypeSymbol unionType = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, diagnostics);
+            return ConvertPatternExpression(unionType, inputType, node, caseExpression, out constantValueOpt, hasErrors, diagnostics, out _);
         }
 
         private static readonly object s_nullKey = new object();

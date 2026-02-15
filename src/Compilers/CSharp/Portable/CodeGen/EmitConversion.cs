@@ -121,6 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
                 case ConversionKind.ImplicitUserDefined:
                 case ConversionKind.ExplicitUserDefined:
+                case ConversionKind.Union:
                 case ConversionKind.AnonymousFunction:
                 case ConversionKind.MethodGroup:
                 case ConversionKind.ImplicitTupleLiteral:

@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Map from a target-typed expression (such as a target-typed conditional, switch or new) to the delegate
         /// that completes analysis once the target type is known.
-        /// The delegate is invoked by <see cref="VisitConversion(BoundConversion, BoundExpression, Conversion, TypeWithAnnotations, TypeWithState, bool, bool, bool, AssignmentKind, ParameterSymbol, bool, bool, bool, bool, Optional&lt;LocalState&gt;,bool, Location, ArrayBuilder&lt;VisitResult&gt;)"/>.
+        /// The delegate is invoked by <see cref="VisitConversion(BoundConversion, BoundExpression, Conversion, TypeWithAnnotations, TypeWithState, bool, bool, bool, AssignmentKind, ParameterSymbol, bool, bool, bool, bool, Optional&lt;LocalState&gt;,bool, int, Location, ArrayBuilder&lt;VisitResult&gt;)"/>.
         /// </summary>
         private PooledDictionary<BoundExpression, Func<TypeWithAnnotations, TypeWithState>> TargetTypedAnalysisCompletion
             => _targetTypedAnalysisCompletionOpt ??= PooledDictionary<BoundExpression, Func<TypeWithAnnotations, TypeWithState>>.GetInstance();
@@ -2028,31 +2028,50 @@ namespace Microsoft.CodeAnalysis.CSharp
             var variable = _variables[slot];
             var symbol = variable.Symbol;
 
-            switch (symbol.Kind)
+            switch (symbol)
             {
-                case SymbolKind.Local:
+                case LocalSymbol local:
                     {
-                        var local = (LocalSymbol)symbol;
                         if (!_variables.TryGetType(local, out TypeWithAnnotations localType))
                         {
                             localType = local.TypeWithAnnotations;
                         }
                         return localType.ToTypeWithState().State;
                     }
-                case SymbolKind.Parameter:
+                case ParameterSymbol parameter:
                     {
-                        var parameter = (ParameterSymbol)symbol;
                         if (!_variables.TryGetType(parameter, out TypeWithAnnotations parameterType))
                         {
                             parameterType = parameter.TypeWithAnnotations;
                         }
                         return GetParameterState(parameterType, parameter.FlowAnalysisAnnotations).State;
                     }
-                case SymbolKind.Field:
-                case SymbolKind.Property:
-                case SymbolKind.Event:
+                case PropertySymbol { Name: WellKnownMemberNames.ValuePropertyName } property when
+                        variable.ContainingSlot is > 0 and var containingSlot &&
+                        property.ContainingType.IsWellKnownTypeIUnion() &&
+                        _variables[containingSlot].Symbol.GetTypeOrReturnType().Type is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true, UnionCaseTypes: not [] } unionType &&
+                        Binder.IsUnionTypeValueProperty(unionType, property):
+                    {
+                        // For union types where none of the case types are nullable, the default state for Value is "not null" rather than "maybe null".
+                        var result = NullableFlowState.NotNull;
+
+                        foreach (var ctor in unionType.InstanceConstructors)
+                        {
+                            if (NamedTypeSymbol.IsSuitableUnionConstructor(ctor))
+                            {
+                                var parameter = ctor.Parameters[0];
+                                result = result.Join(GetParameterState(parameter.TypeWithAnnotations, parameter.FlowAnalysisAnnotations).State);
+                            }
+                        }
+
+                        return result;
+                    }
+
+                case FieldSymbol:
+                case PropertySymbol:
+                case EventSymbol:
                     return GetDefaultState(symbol);
-                case SymbolKind.ErrorType:
+                case { Kind: SymbolKind.ErrorType }:
                     return NullableFlowState.NotNull;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
@@ -2737,7 +2756,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var conversionsWithoutNullability = _conversions.WithNullability(false);
             return
                 conversionsWithoutNullability.HasIdentityOrImplicitReferenceConversion(possibleDerived, possibleBase, ref discardedUseSiteInfo) ||
-                conversionsWithoutNullability.HasBoxingConversion(possibleDerived, possibleBase, ref discardedUseSiteInfo);
+                conversionsWithoutNullability.HasBoxingConversion(possibleDerived, possibleBase, ref discardedUseSiteInfo) ||
+                (possibleBase.IsInterfaceType() && conversionsWithoutNullability.HasImplicitConversionToOrImplementsVarianceCompatibleInterface(possibleDerived, (NamedTypeSymbol)possibleBase, ref discardedUseSiteInfo, needSupportForRefStructInterfaces: out _));
         }
 
         // 'skipSlot' is the original target slot that should be skipped in case of cycles.
@@ -4332,7 +4352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int slot = -1;
                 var resultState = NullableFlowState.NotNull;
                 if (type is object &&
-                    (hasObjectInitializer || type.IsStructType()))
+                    (hasObjectInitializer || type.IsStructType() || isSuitableUnionConstruction(type, constructor, out _)))
                 {
                     slot = GetOrCreatePlaceholderSlot(node);
                     if (slot > 0)
@@ -4381,10 +4401,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         SetState(ref this.State, slot, resultState);
+
+                        if (isSuitableUnionConstruction(type, constructor, out PropertySymbol? valueProperty))
+                        {
+                            // When a union constructor is called, the new union's Value gets the null state of the incoming value.
+                            SetUnionValueStateFromConstructorArgument(arguments[0], argumentResults[0].RValueType, slot, valueProperty);
+                        }
                     }
                 }
 
                 return (slot, resultState, null);
+
+                static bool isSuitableUnionConstruction(TypeSymbol type, [NotNullWhen(true)] MethodSymbol? constructor, [NotNullWhen(true)] out PropertySymbol? valueProperty)
+                {
+                    if (constructor is not null &&
+                        constructor.ContainingType.Equals(type, TypeCompareKind.AllIgnoreOptions) &&
+                        type is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true } unionType &&
+                        NamedTypeSymbol.IsSuitableUnionConstructor(constructor))
+                    {
+                        valueProperty = Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(unionType);
+                        return valueProperty is { };
+                    }
+
+                    valueProperty = null;
+                    return false;
+                }
             }
 
             Func<TypeSymbol, MethodSymbol?, int> inferInitialObjectStateAsContinuation(
@@ -4400,6 +4441,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(resultState == NullableFlowState.NotNull);
                     return slot;
                 };
+            }
+        }
+
+        private void SetUnionValueStateFromConstructorArgument(BoundExpression argument, TypeWithState argumentTypeWithState, int containingSlot, PropertySymbol valueProperty)
+        {
+            Debug.Assert(containingSlot > 0);
+            NullableFlowState operandState;
+
+            int operandSlot = MakeSlot(argument);
+            if (operandSlot > 0)
+            {
+                operandState = GetState(ref this.State, operandSlot);
+            }
+            else
+            {
+                operandState = argumentTypeWithState.State;
+            }
+
+            int iUnionValuePropertySlot = GetOrCreateSlot(valueProperty, containingSlot);
+            Debug.Assert(iUnionValuePropertySlot > 0);
+            if (iUnionValuePropertySlot > 0)
+            {
+                SetState(ref this.State, iUnionValuePropertySlot, operandState);
             }
         }
 
@@ -6129,18 +6193,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: false, isChecked: node.Checked) is { Exists: true } conversion)
                 {
                     Debug.Assert(!conversion.IsUserDefined);
+                    Debug.Assert(!conversion.IsUnion);
                     return (rightType, NullableFlowState.NotNull);
                 }
 
                 conversion = GenerateConversionForConditionalOperator(node.RightOperand, rightType, leftType, reportMismatch: true, isChecked: node.Checked);
                 Debug.Assert(!conversion.IsUserDefined);
+                Debug.Assert(!conversion.IsUnion);
                 return (leftType, NullableFlowState.NotNull);
             }
 
             (TypeSymbol ResultType, NullableFlowState LeftState) getResultStateWithRightType(TypeSymbol leftType, TypeSymbol rightType)
             {
                 var conversion = GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: true, isChecked: node.Checked);
-                if (conversion.IsUserDefined)
+                if (conversion.IsUserDefined) // PROTOTYPE: Confirm no special handling necessary or add it.
                 {
                     var conversionResult = VisitConversion(
                         conversionOpt: null,
@@ -8070,7 +8136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case RefKind.In:
                     {
                         // Note: for lambda arguments, they will be converted in the context/state we saved for that argument
-                        if (conversion is { IsValid: true, Kind: ConversionKind.ImplicitUserDefined })
+                        if (conversion is { IsValid: true, Kind: ConversionKind.ImplicitUserDefined }) // PROTOTYPE: Do we need to add special handling for Union conversions?
                         {
                             var argumentResultType = resultType.Type;
                             conversion = GenerateConversion(_conversions, argumentNoConversion, argumentResultType, parameterType.Type, fromExplicitCast: false, extensionMethodThisArgument: false, isChecked: conversionOpt?.Checked ?? false);
@@ -9328,6 +9394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion,
             TypeSymbol targetType,
             TypeSymbol operandType,
+            bool fromExplicitCast,
             int slot,
             int valueSlot,
             AssignmentKind assignmentKind,
@@ -9378,7 +9445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 int valueFieldSlot = GetOrCreateSlot(valueField, valueSlot);
                                 if (valueFieldSlot > 0)
                                 {
-                                    TrackNullableStateOfTupleConversion(conversionOpt, convertedNode, conversion, targetField.Type, valueField.Type, targetFieldSlot, valueFieldSlot, assignmentKind, parameterOpt, reportWarnings);
+                                    TrackNullableStateOfTupleConversion(conversionOpt, convertedNode, conversion, targetField.Type, valueField.Type, fromExplicitCast: fromExplicitCast, targetFieldSlot, valueFieldSlot, assignmentKind, parameterOpt, reportWarnings);
                                 }
                             }
                         }
@@ -9419,6 +9486,64 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (targetFieldSlot > 0)
                             {
                                 SetState(ref this.State, targetFieldSlot, convertedType.State);
+                            }
+                        }
+                        break;
+
+                    case ConversionKind.Union:
+                        {
+                            Debug.Assert(targetField.TypeWithAnnotations.Type.StrippedType() is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true });
+                            int targetFieldSlot = GetOrCreateSlot(targetField, slot);
+
+                            TypeWithState valueFieldType = ApplyUnconditionalAnnotations(valueField.TypeWithAnnotations.ToTypeWithState(), GetRValueAnnotations(valueField));
+                            int valueFieldSlot = -1;
+                            if (PossiblyNullableType(valueFieldType.Type))
+                            {
+                                valueFieldSlot = GetOrCreateSlot(valueField, valueSlot);
+                                if (valueFieldSlot > 0)
+                                {
+                                    valueFieldType = TypeWithState.Create(valueFieldType.Type, GetState(ref this.State, valueFieldSlot));
+                                }
+                            }
+
+                            var conversionOperand = new BoundValueForNullableAnalysis(convertedNode.Syntax, originalExpression: null, valueFieldType.Type);
+                            int conversionOperandSlot = -1;
+
+                            if (targetFieldSlot > 0 || valueFieldSlot > 0)
+                            {
+                                conversionOperandSlot = GetOrCreatePlaceholderSlot(conversionOperand);
+                                Debug.Assert(conversionOperandSlot > 0);
+                            }
+
+                            if (conversionOperandSlot > 0)
+                            {
+                                SetState(ref this.State, conversionOperandSlot, valueFieldType.State);
+                            }
+
+                            TypeWithState convertedType = VisitUnionConversion(
+                                conversionOpt: null,
+                                conversionOperand,
+                                conversion,
+                                targetField.TypeWithAnnotations,
+                                valueFieldType,
+                                fromExplicitCast: fromExplicitCast,
+                                useLegacyWarnings: false,
+                                assignmentKind,
+                                parameterOpt,
+                                reportTopLevelWarnings: reportWarnings,
+                                reportRemainingWarnings: reportWarnings,
+                                trackMembers: true,
+                                targetInstanceSlotOpt: targetFieldSlot,
+                                diagnosticLocation: (conversionOpt ?? convertedNode).Syntax.GetLocation());
+
+                            if (targetFieldSlot > 0)
+                            {
+                                SetState(ref this.State, targetFieldSlot, convertedType.State);
+                            }
+
+                            if (conversionOperandSlot > 0 && valueFieldSlot > 0)
+                            {
+                                SetState(ref this.State, valueFieldSlot, GetState(ref this.State, conversionOperandSlot));
                             }
                         }
                         break;
@@ -9593,11 +9718,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool extensionMethodThisArgument = false,
             Optional<LocalState> stateForLambda = default,
             bool trackMembers = false,
+            int targetInstanceSlotOpt = -1,
             Location? diagnosticLocation = null,
             ArrayBuilder<VisitResult>? previousArgumentConversionResults = null)
         {
             Debug.Assert(!trackMembers || !IsConditionalState);
             Debug.Assert(conversionOperand != null);
+            Debug.Assert(conversionOpt is null || targetInstanceSlotOpt < 0);
 
             if (IsTargetTypedExpression(conversionOperand))
             {
@@ -9672,6 +9799,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
                 case ConversionKind.AnonymousFunction:
+                    Debug.Assert(targetInstanceSlotOpt < 0);
                     if (conversionOperand is BoundLambda lambda)
                     {
                         var delegateType = targetType.GetDelegateType();
@@ -9710,7 +9838,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case ConversionKind.ExplicitUserDefined:
                 case ConversionKind.ImplicitUserDefined:
+                    Debug.Assert(targetInstanceSlotOpt < 0);
                     return VisitUserDefinedConversion(conversionOpt, conversionOperand, conversion, targetTypeWithNullability, operandType, useLegacyWarnings, assignmentKind, parameterOpt, reportTopLevelWarnings, reportRemainingWarnings, getDiagnosticLocation());
+
+                case ConversionKind.Union:
+                    {
+                        Debug.Assert(targetInstanceSlotOpt < 0);
+                        return VisitUnionConversion(
+                            conversionOpt,
+                            conversionOperand,
+                            conversion,
+                            targetTypeWithNullability,
+                            operandType,
+                            fromExplicitCast: fromExplicitCast,
+                            useLegacyWarnings,
+                            assignmentKind,
+                            parameterOpt,
+                            reportTopLevelWarnings,
+                            reportRemainingWarnings,
+                            trackMembers: trackMembers,
+                            targetInstanceSlotOpt: targetInstanceSlotOpt,
+                            getDiagnosticLocation());
+                    }
 
                 case ConversionKind.ExplicitDynamic:
                 case ConversionKind.ImplicitDynamic:
@@ -9751,6 +9900,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     goto case ConversionKind.Identity;
 
                 case ConversionKind.Identity:
+                    if (conversion.IsIdentity && trackMembers && (conversionOpt is { } ? !conversionOpt.Conversion.IsIdentity : (targetInstanceSlotOpt > 0)))
+                    {
+                        int operandSlot = MakeSlot(conversionOperand);
+                        if (operandSlot > 0)
+                        {
+                            int containingSlot = conversionOpt is null ? targetInstanceSlotOpt : GetOrCreatePlaceholderSlot(conversionOpt);
+                            Debug.Assert(containingSlot > 0);
+                            TrackNullableStateForAssignment(conversionOperand, targetTypeWithNullability, containingSlot, operandType, operandSlot);
+                        }
+                    }
+
                     // If the operand is an explicit conversion, and this identity conversion
                     // is converting to the same type including nullability, skip the conversion
                     // to avoid reporting redundant warnings. Also check useLegacyWarnings
@@ -9758,7 +9918,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Don't skip the node when it's a user-defined conversion, as identity conversions
                     // on top of user-defined conversions means that we're coming in from VisitUserDefinedConversion
                     // and that any warnings caught by this recursive call of VisitConversion won't be redundant.
-                    if (useLegacyWarnings && conversionOperand is BoundConversion operandConversion && !operandConversion.ConversionKind.IsUserDefinedConversion())
+                    if (useLegacyWarnings && conversionOperand is BoundConversion operandConversion && !operandConversion.ConversionKind.IsUserDefinedConversion()) // PROTOTYPE: Follow up
                     {
                         var explicitType = operandConversion.ConversionGroupOpt?.ExplicitType;
                         if (explicitType?.Equals(targetTypeWithNullability, TypeCompareKind.ConsiderEverything) == true)
@@ -9770,6 +9930,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return operandType;
                         }
                     }
+
+                    targetInstanceSlotOpt = -1;
+
                     if (operandType.Type?.IsTupleType == true || conversionOperand.Kind == BoundKind.TupleLiteral)
                     {
                         goto case ConversionKind.ImplicitTuple;
@@ -9778,6 +9941,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case ConversionKind.ImplicitReference:
                 case ConversionKind.ExplicitReference:
+                    Debug.Assert(targetInstanceSlotOpt < 0);
                     // Inherit state from the operand.
                     if (checkConversion)
                     {
@@ -9798,7 +9962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             int valueSlot = MakeSlot(conversionOperand);
                             if (valueSlot > 0)
                             {
-                                int containingSlot = GetOrCreatePlaceholderSlot(conversionOpt);
+                                int containingSlot = conversionOpt is null ? targetInstanceSlotOpt : GetOrCreatePlaceholderSlot(conversionOpt);
                                 Debug.Assert(containingSlot > 0);
                                 TrackNullableStateOfNullableValue(containingSlot, targetType, conversionOperand, underlyingType.ToTypeWithState(), valueSlot);
                             }
@@ -9836,6 +10000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitTupleLiteral:
                 case ConversionKind.ExplicitTupleLiteral:
                 case ConversionKind.ExplicitTuple:
+                    Debug.Assert(targetInstanceSlotOpt < 0);
                     if (trackMembers)
                     {
                         Debug.Assert(conversionOperand != null);
@@ -9843,25 +10008,47 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             case ConversionKind.ImplicitTuple:
                             case ConversionKind.ExplicitTuple:
-                                int valueSlot = MakeSlot(conversionOperand);
-                                if (valueSlot > 0)
                                 {
-                                    int slot = GetOrCreatePlaceholderSlot(conversionOpt);
-                                    if (slot > 0)
+                                    int valueSlot = MakeSlot(conversionOperand);
+                                    if (valueSlot > 0)
                                     {
-                                        TrackNullableStateOfTupleConversion(conversionOpt, conversionOperand, conversion, targetType, operandType.Type, slot, valueSlot, assignmentKind, parameterOpt, reportWarnings: reportRemainingWarnings);
+                                        int slot = GetOrCreatePlaceholderSlot(conversionOpt);
+                                        if (slot > 0)
+                                        {
+                                            TrackNullableStateOfTupleConversion(conversionOpt, conversionOperand, conversion, targetType, operandType.Type, fromExplicitCast: fromExplicitCast, slot, valueSlot, assignmentKind, parameterOpt, reportWarnings: reportRemainingWarnings);
+                                        }
                                     }
+                                    break;
                                 }
-                                break;
                         }
                     }
 
                     if (checkConversion && !targetType.IsErrorType())
                     {
                         // https://github.com/dotnet/roslyn/issues/29699: Report warnings for user-defined conversions on tuple elements.
-                        conversion = GenerateConversion(_conversions, conversionOperand, operandType.Type, targetType, fromExplicitCast, extensionMethodThisArgument, isChecked: conversionOpt?.Checked ?? false);
-                        canConvertNestedNullability = conversion.Exists;
+                        canConvertNestedNullability = GenerateConversion(_conversions, conversionOperand, operandType.Type, targetType, fromExplicitCast, extensionMethodThisArgument, isChecked: conversionOpt?.Checked ?? false).Exists;
+
+                        if (canConvertNestedNullability && trackMembers && conversionOpt is { } && conversionOperand.Type.Equals(conversionOpt.Type, TypeCompareKind.AllIgnoreOptions))
+                        {
+                            Debug.Assert(conversionOperand != null);
+                            switch (conversion.Kind)
+                            {
+                                case ConversionKind.ImplicitTupleLiteral:
+                                case ConversionKind.ExplicitTupleLiteral:
+                                    int valueSlot = MakeSlot(conversionOperand);
+                                    if (valueSlot > 0)
+                                    {
+                                        int slot = GetOrCreatePlaceholderSlot(conversionOpt);
+                                        if (slot > 0)
+                                        {
+                                            InheritNullableStateOfTrackableType(slot, valueSlot, slot);
+                                        }
+                                    }
+                                    break;
+                            }
+                        }
                     }
+
                     resultState = NullableFlowState.NotNull;
                     break;
 
@@ -9877,8 +10064,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.InlineArray:
                     if (checkConversion)
                     {
-                        conversion = GenerateConversion(_conversions, conversionOperand, operandType.Type, targetType, fromExplicitCast, extensionMethodThisArgument, isChecked: conversionOpt?.Checked ?? false);
-                        canConvertNestedNullability = conversion.Exists;
+                        Conversion generated = GenerateConversion(_conversions, conversionOperand, operandType.Type, targetType, fromExplicitCast, extensionMethodThisArgument, isChecked: conversionOpt?.Checked ?? false);
+                        canConvertNestedNullability = generated.Exists;
                     }
                     break;
 
@@ -9886,10 +10073,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ExplicitSpan:
                     if (checkConversion)
                     {
-                        var previousKind = conversion.Kind;
-                        conversion = GenerateConversion(_conversions, conversionOperand, operandType.Type, targetType, fromExplicitCast, extensionMethodThisArgument, isChecked: conversionOpt?.Checked ?? false);
+                        Conversion generated = GenerateConversion(_conversions, conversionOperand, operandType.Type, targetType, fromExplicitCast, extensionMethodThisArgument, isChecked: conversionOpt?.Checked ?? false);
                         // We do not want user-defined conversions to relax nullability, so we consider only span conversions.
-                        canConvertNestedNullability = conversion.Exists && conversion.IsSpan;
+                        canConvertNestedNullability = generated.Exists && generated.IsSpan;
                     }
                     break;
 
@@ -10281,6 +10467,156 @@ namespace Microsoft.CodeAnalysis.CSharp
             return operandType;
         }
 
+        private TypeWithState VisitUnionConversion(
+            BoundConversion? conversionOpt,
+            BoundExpression conversionOperand,
+            Conversion conversion,
+            TypeWithAnnotations targetTypeWithNullability,
+            TypeWithState operandType,
+            bool fromExplicitCast,
+            bool useLegacyWarnings,
+            AssignmentKind assignmentKind,
+            ParameterSymbol? parameterOpt,
+            bool reportTopLevelWarnings,
+            bool reportRemainingWarnings,
+            bool trackMembers,
+            int targetInstanceSlotOpt,
+            Location diagnosticLocation)
+        {
+            Debug.Assert(!IsConditionalState);
+            Debug.Assert(conversionOperand != null);
+            Debug.Assert(targetTypeWithNullability.HasType);
+            Debug.Assert(diagnosticLocation != null);
+            Debug.Assert(conversion.IsUnion);
+            Debug.Assert(conversionOpt is null || targetInstanceSlotOpt < 0);
+
+            UserDefinedConversionAnalysis analysis = conversion.BestUnionConversionAnalysis;
+
+            Debug.Assert(analysis.Kind == UserDefinedConversionAnalysisKind.ApplicableInNormalForm);
+            Debug.Assert(analysis.Operator is { MethodKind: MethodKind.Constructor, ParameterCount: 1 });
+            Debug.Assert(TypeSymbol.Equals(analysis.FromType, analysis.Operator.GetParameterType(0), TypeCompareKind.AllIgnoreOptions));
+            Debug.Assert(TypeSymbol.Equals(targetTypeWithNullability.Type.StrippedType(), analysis.Operator.ContainingType, TypeCompareKind.AllIgnoreOptions));
+            Debug.Assert(TypeSymbol.Equals(targetTypeWithNullability.Type.StrippedType(), analysis.ToType, TypeCompareKind.AllIgnoreOptions));
+            Debug.Assert(analysis.TargetConversion is { IsIdentity: true } or { IsNullable: true, IsImplicit: true });
+
+            BoundConversion? sourceToParameterConversion = null;
+            BoundConversion? unionConstructionConversion = null;
+
+            if (conversionOpt is { ConversionGroupOpt.Conversion.IsUnion: true })
+            {
+                conversionOpt.TryGetUnionConversionParts(out sourceToParameterConversion, out unionConstructionConversion, out _);
+                Debug.Assert(unionConstructionConversion is not null, "Unexpected conversion group structure for union conversion.");
+                Debug.Assert(sourceToParameterConversion is not null || analysis.SourceConversion.IsIdentity);
+            }
+            else
+            {
+                Debug.Assert(conversionOpt is null);
+            }
+
+            MethodSymbol constructor = analysis.Operator;
+            TypeSymbol targetType = targetTypeWithNullability.Type;
+            var toType = (NamedTypeSymbol)targetType.StrippedType();
+
+#if DEBUG
+            bool found = false;
+#endif
+            foreach (var ctor in toType.InstanceConstructors)
+            {
+                if (ctor.OriginalDefinition == (object)constructor.OriginalDefinition)
+                {
+                    constructor = ctor;
+#if DEBUG
+                    found = true;
+#endif
+                    break;
+                }
+            }
+
+#if DEBUG
+            Debug.Assert(found);
+#endif
+
+            // operand -> conversion "from" type
+            var parameter = constructor.Parameters[0];
+            var parameterAnnotations = GetParameterAnnotations(parameter);
+            var parameterType = ApplyLValueAnnotations(parameter.TypeWithAnnotations, parameterAnnotations);
+
+            Debug.Assert(TypeSymbol.Equals(analysis.FromType, parameterType.Type, TypeCompareKind.AllIgnoreOptions));
+            Debug.Assert(TypeSymbol.Equals(toType, analysis.ToType, TypeCompareKind.AllIgnoreOptions));
+
+            operandType = VisitConversion(
+                conversionOpt: null,
+                conversionOperand,
+                analysis.SourceConversion,
+                parameterType,
+                operandType,
+                checkConversion: true,
+                fromExplicitCast: false,
+                useLegacyWarnings,
+                AssignmentKind.Argument,
+                parameterOpt: parameter,
+                reportTopLevelWarnings,
+                reportRemainingWarnings,
+                trackMembers: false,
+                diagnosticLocation: diagnosticLocation);
+
+            Debug.Assert(operandType.Type is object);
+
+            if (CheckDisallowedNullAssignment(operandType, parameterAnnotations, conversionOperand.Syntax))
+            {
+                LearnFromNonNullTest(conversionOperand, ref State);
+            }
+
+            LearnFromPostConditions(conversionOperand, parameterAnnotations);
+
+            if (sourceToParameterConversion is { })
+            {
+                SetAnalyzedNullability(sourceToParameterConversion, new VisitResult(operandType, operandType.ToTypeWithAnnotations(compilation)));
+            }
+
+            // toType -> target type
+            var unionInstance = new BoundValueForNullableAnalysis((unionConstructionConversion ?? conversionOperand).Syntax, unionConstructionConversion, toType);
+            var unionTypeWithState = TypeWithState.Create(toType, NullableFlowState.NotNull);
+
+            if (unionConstructionConversion is { })
+            {
+                SetAnalyzedNullability(unionConstructionConversion, new VisitResult(unionTypeWithState, unionTypeWithState.ToTypeWithAnnotations(compilation)));
+            }
+
+            if (trackMembers && (conversionOpt is { } || targetInstanceSlotOpt > 0) &&
+                targetTypeWithNullability.Type.StrippedType() is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true } unionType &&
+                Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(unionType) is { } valueProperty)
+            {
+                // When a union constructor is called through a union conversion, the new union's Value gets the null state of the incoming value.
+                Debug.Assert(conversionOperand != null);
+                int containingSlot = GetOrCreatePlaceholderSlot(unionInstance);
+                Debug.Assert(containingSlot > 0);
+
+                SetUnionValueStateFromConstructorArgument(conversionOperand, operandType, containingSlot, valueProperty);
+            }
+
+            operandType = VisitConversion(
+                conversionOpt: conversionOpt,
+                conversionOperand: unionInstance,
+                analysis.TargetConversion,
+                targetTypeWithNullability: targetTypeWithNullability,
+                operandType: unionTypeWithState,
+                checkConversion: true,
+                fromExplicitCast: fromExplicitCast,
+                useLegacyWarnings,
+                assignmentKind,
+                parameterOpt: null,
+                reportTopLevelWarnings,
+                reportRemainingWarnings,
+                trackMembers: trackMembers,
+                targetInstanceSlotOpt: targetInstanceSlotOpt,
+                diagnosticLocation: diagnosticLocation);
+
+            // Update constructor symbol in the tree: see https://github.com/dotnet/roslyn/issues/29605.
+
+            return TypeWithState.Create(targetType, NullableFlowState.NotNull);
+        }
+
         private void SnapshotWalkerThroughConversionGroup(BoundExpression conversionExpression, BoundExpression convertedNode)
         {
             if (_snapshotBuilderOpt is null)
@@ -10304,9 +10640,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var visitResult = new VisitResult(resultType, resultType.ToTypeWithAnnotations(compilation));
             var conversionGroup = conversionOpt?.ConversionGroupOpt;
-            while (conversionOpt != null && conversionOpt != convertedNode)
+            while (conversionOpt != null && conversionOpt != convertedNode &&
+                   conversionOpt != (convertedNode as BoundValueForNullableAnalysis)?.OriginalExpression)
             {
                 Debug.Assert(conversionOpt.ConversionGroupOpt == conversionGroup);
+                if (conversionOpt.ConversionGroupOpt != conversionGroup)
+                {
+                    break;
+                }
 
                 // https://github.com/dotnet/roslyn/issues/35046
                 // SetAnalyzedNullability will drop the type if the visitResult.RValueType.Type differs from conversionOpt.Type.
@@ -11341,9 +11682,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Analyze operator call properly (honoring [Disallow|Allow|Maybe|NotNull] attribute annotations) https://github.com/dotnet/roslyn/issues/32671
                 // https://github.com/dotnet/roslyn/issues/29961 Update conversion method based on operand type.
-                if (node.OperandConversion is BoundConversion { Conversion: var operandConversion } && operandConversion.IsUserDefined && operandConversion.Method?.ParameterCount == 1)
+                if (node.OperandConversion is BoundConversion { Conversion: ({ IsUserDefined: true } or { IsUnion: true }) and { Method.ParameterCount: 1 } operandConversion })
                 {
-                    targetTypeOfOperandConversion = operandConversion.Method.ReturnTypeWithAnnotations;
+                    if (operandConversion.IsUserDefined)
+                    {
+                        targetTypeOfOperandConversion = operandConversion.Method.ReturnTypeWithAnnotations;
+                    }
+                    else
+                    {
+                        targetTypeOfOperandConversion = TypeWithAnnotations.Create(node.OperandConversion.Type, nullableAnnotation: NullableAnnotation.NotAnnotated); // PROTOTYPE: Add coverage
+                        // PROTOTYPE: Track something for the underlying value?
+                    }
                 }
                 else if (incrementOperator is object)
                 {
@@ -11786,10 +12135,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverType = (receiverOpt != null) ? VisitRvalueWithState(receiverOpt) : default;
 
             SpecialMember? nullableOfTMember = null;
+            PropertySymbol? unionValue = null;
             if (member.RequiresInstanceReceiver())
             {
                 member = AsMemberOfType(receiverType.Type, member);
                 nullableOfTMember = GetNullableOfTMember(member);
+
+                if (member is PropertySymbol { Name: WellKnownMemberNames.HasValuePropertyName } property &&
+                    receiverType.Type is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true } unionType &&
+                    Binder.IsUnionTypeHasValueProperty(unionType, property))
+                {
+                    unionValue = Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(unionType);
+                }
+
                 // https://github.com/dotnet/roslyn/issues/30598: For l-values, mark receiver as not null
                 // after RHS has been visited, and only if the receiver has not changed.
                 bool skipReceiverNullCheck = nullableOfTMember != SpecialMember.System_Nullable_T_get_Value;
@@ -11813,13 +12171,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(!IsConditionalState);
-            if (nullableOfTMember == SpecialMember.System_Nullable_T_get_HasValue && !(receiverOpt is null))
+            if (receiverOpt is not null)
             {
-                int containingSlot = MakeSlot(receiverOpt);
-                if (containingSlot > 0)
+                int slotToSet = -1;
+
+                if (nullableOfTMember == SpecialMember.System_Nullable_T_get_HasValue)
+                {
+                    slotToSet = MakeSlot(receiverOpt);
+                }
+                else if (unionValue is not null)
+                {
+                    slotToSet = MakeMemberSlot(receiverOpt, unionValue);
+                }
+
+                if (slotToSet > 0)
                 {
                     Split();
-                    SetState(ref this.StateWhenTrue, containingSlot, NullableFlowState.NotNull);
+                    SetState(ref this.StateWhenTrue, slotToSet, NullableFlowState.NotNull);
                 }
             }
 
@@ -13192,6 +13560,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var typeWithAnnotations = TypeWithAnnotations.Create(node.Type, node.NullableAnnotation);
             SetResult(node.Expression, typeWithAnnotations.ToTypeWithState(), typeWithAnnotations);
             return null;
+        }
+
+        public override BoundNode? VisitValueForNullableAnalysis(BoundValueForNullableAnalysis node)
+        {
+            ExceptionUtilities.UnexpectedValue(node);
+            return base.VisitValueForNullableAnalysis(node);
         }
 
         public override BoundNode? VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
