@@ -4279,6 +4279,7 @@ public sealed partial class SpreadElementSyntax : CollectionElementSyntax
 /// <item><description><see cref="SyntaxKind.WithElement"/></description></item>
 /// </list>
 /// </remarks>
+[Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82210")]
 public sealed partial class WithElementSyntax : CollectionElementSyntax
 {
     private ArgumentListSyntax? argumentList;

@@ -33,6 +33,12 @@ namespace IOperationGenerator
                     error = true;
                 }
 
+                if (abstractNode.IsInternal && !string.IsNullOrEmpty(abstractNode.ExperimentalUrl))
+                {
+                    Console.WriteLine($"{abstractNode.Name} is marked as internal and experimental. Internal nodes cannot be experimental.");
+                    error = true;
+                }
+
                 if (!abstractNode.IsInternal && abstractNode.Obsolete is null)
                 {
                     if (abstractNode.Comments?.Elements?[0].Name != "summary")
@@ -43,6 +49,12 @@ namespace IOperationGenerator
 
                     foreach (var prop in abstractNode.Properties)
                     {
+                        if (prop.IsInternal && !string.IsNullOrEmpty(prop.ExperimentalUrl))
+                        {
+                            Console.WriteLine($"{abstractNode.Name}.{prop.Name} is marked as internal and experimental. Internal properties cannot be experimental.");
+                            error = true;
+                        }
+
                         if (prop.Comments?.Elements?[0].Name != "summary" && !prop.IsInternal && !prop.IsOverride)
                         {
                             Console.WriteLine($"{abstractNode.Name}.{prop.Name} does not have correctly formatted comments, please ensure that there is a <summary> block for the property.");
