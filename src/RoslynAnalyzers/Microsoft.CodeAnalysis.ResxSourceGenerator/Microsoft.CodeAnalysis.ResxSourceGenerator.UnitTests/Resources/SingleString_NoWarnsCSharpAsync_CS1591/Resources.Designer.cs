@@ -5,7 +5,6 @@
 #nullable enable
 using System.Reflection;
 
-
 namespace TestProject
 {
     /// <summary>

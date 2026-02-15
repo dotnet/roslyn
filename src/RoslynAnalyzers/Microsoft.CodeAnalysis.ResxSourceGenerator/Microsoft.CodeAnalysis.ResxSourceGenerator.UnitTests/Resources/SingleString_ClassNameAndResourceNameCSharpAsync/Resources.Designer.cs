@@ -14,7 +14,7 @@ namespace TestProject
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
-        public static global::System.Resources.ResourceManager ResourceManager => s_resourceManager ?? (s_resourceManager = new global::System.Resources.ResourceManager(typeof(Resources)));
+        public static global::System.Resources.ResourceManager ResourceManager => s_resourceManager ?? (s_resourceManager = new global::System.Resources.ResourceManager("RootNS.Folder.File", typeof(Resources).Assembly));
         /// <summary>
         ///   Overrides the current thread's CurrentUICulture property for all
         ///   resource lookups using this strongly typed resource class.
@@ -23,7 +23,7 @@ namespace TestProject
         [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         [return: global::System.Diagnostics.CodeAnalysis.NotNullIfNotNull("defaultValue")]
         internal static string? GetResourceString(string resourceKey, string? defaultValue = null) =>  ResourceManager.GetString(resourceKey, Culture) ?? defaultValue;
-        /// <summary>value {replacement}</summary>
+        /// <summary>value</summary>
         public static string @Name => GetResourceString("Name")!;
 
     }

@@ -424,6 +424,40 @@ public sealed class ResxGeneratorTests
     [InlineData("")]
     [InlineData("NS")]
     [InlineData("NS1.NS2")]
+    public async Task SingleString_ClassNameAndResourceNameCSharpAsync(string className)
+    {
+        var code = ResxHeader
+            + """
+            <data name="Name" xml:space="preserve">
+              <value>value</value>
+              <comment>comment</comment>
+            </data>
+            """
+            + ResxFooter;
+
+        await new VerifyCS.Test(identifier: className)
+        {
+            TestState =
+            {
+                AdditionalFiles = { ("/0/Resources.resx", code) },
+                AnalyzerConfigFiles =
+                {
+                    ("/.globalconfig", $"""
+                    is_global = true
+
+                    [/0/Resources.resx]
+                    build_metadata.AdditionalFiles.ClassName = {className}
+                    build_metadata.AdditionalFiles.ManifestResourceName = RootNS.Folder.File
+                    """),
+                },
+            },
+        }.AddGeneratedSources().RunAsync();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("NS")]
+    [InlineData("NS1.NS2")]
     public async Task SingleString_ClassNameVisualBasicAsync(string className)
     {
         var code = ResxHeader
@@ -447,6 +481,40 @@ public sealed class ResxGeneratorTests
 
                     [/0/Resources.resx]
                     build_metadata.AdditionalFiles.ClassName = {className}
+                    """),
+                },
+            },
+        }.AddGeneratedSources().RunAsync();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("NS")]
+    [InlineData("NS1.NS2")]
+    public async Task SingleString_ClassNameAndResourceNameVisualBasicAsync(string className)
+    {
+        var code = ResxHeader
+            + """
+            <data name="Name" xml:space="preserve">
+              <value>value</value>
+              <comment>comment</comment>
+            </data>
+            """
+            + ResxFooter;
+
+        await new VerifyVB.Test(identifier: className)
+        {
+            TestState =
+            {
+                AdditionalFiles = { ("/0/Resources.resx", code) },
+                AnalyzerConfigFiles =
+                {
+                    ("/.globalconfig", $"""
+                    is_global = true
+
+                    [/0/Resources.resx]
+                    build_metadata.AdditionalFiles.ClassName = {className}
+                    build_metadata.AdditionalFiles.ManifestResourceName = RootNS.Folder.File
                     """),
                 },
             },

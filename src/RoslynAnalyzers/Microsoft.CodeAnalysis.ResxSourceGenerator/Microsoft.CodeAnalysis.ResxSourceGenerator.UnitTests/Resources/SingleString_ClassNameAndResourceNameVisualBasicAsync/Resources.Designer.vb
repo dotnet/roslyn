@@ -6,7 +6,7 @@ Namespace Global.TestProject
     ''' <summary>
     '''   A strongly-typed resource class, for looking up localized strings, etc.
     ''' </summary>
-    Friend Partial Class NSResources
+    Friend Partial Class Resources
         Private Sub New
         End Sub
         
@@ -17,7 +17,7 @@ Namespace Global.TestProject
         Public Shared ReadOnly Property ResourceManager As Global.System.Resources.ResourceManager
             Get
                 If s_resourceManager Is Nothing Then
-                    s_resourceManager = New Global.System.Resources.ResourceManager(GetType(NSResources))
+                    s_resourceManager = New Global.System.Resources.ResourceManager("RootNS.Folder.File", GetType(Resources).Assembly)
                 End If
                 Return s_resourceManager
             End Get
