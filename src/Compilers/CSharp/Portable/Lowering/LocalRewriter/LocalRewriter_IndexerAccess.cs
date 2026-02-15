@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.CodeGen;
@@ -1024,13 +1025,67 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddPlaceholderReplacement(node.ArgumentPlaceholders[1], rangeSizeExpr);
 
             var sliceCall = (BoundCall)node.IndexerOrSliceAccess;
-            var rewrittenIndexerAccess = VisitExpression(sliceCall);
+
+            // [start..] can be simplified to .Substring(start) or .Slice(start) for some built-in types
+            // e.g. string and (ReadOnly)Span
+
+            BoundExpression? moreEfficientIndexerAccess = null;
+            if (endMakeOffsetInput is null)
+            {
+                MethodSymbol? singleArgumentOverload = null;
+
+                if (TryGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__SubstringIntInt, out var stringSubstring, isOptional: true)
+                    && sliceCall.Method.Equals(stringSubstring, TypeCompareKind.ConsiderEverything))
+                {
+                    if (TryGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__SubstringInt, out var stringOverload, isOptional: true))
+                    {
+                        singleArgumentOverload = stringOverload;
+                    }
+                }
+                // with single typeWithElementType parameter ((ReadOnly)(Span|Memory))
+                // Method name is always "Slice"
+                else if (sliceCall is { Method: SubstitutedMethodSymbol { UnderlyingMethod: var generalizedMethod, Name: WellKnownMemberNames.SliceMethodName }, Type: NamedTypeSymbol { Name: var typeName } typeWithElementType })
+                {
+                    // We use the return typeWithElementType of the current twoArgumentOverloadSymbol to simplify the logic
+                    singleArgumentOverload = (typeName switch
+                    {
+                        nameof(Span<>) => tryGetCorrespondingOneArgumentOverload(WellKnownMember.System_Span_T__Slice_Int_Int, WellKnownMember.System_Span_T__Slice_Int, generalizedMethod, node.Syntax),
+                        nameof(ReadOnlySpan<>) => tryGetCorrespondingOneArgumentOverload(WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int, WellKnownMember.System_ReadOnlySpan_T__Slice_Int, generalizedMethod, node.Syntax),
+                        nameof(Memory<>) => tryGetCorrespondingOneArgumentOverload(WellKnownMember.System_Memory_T__Slice_Int_Int, WellKnownMember.System_Memory_T__Slice_Int, generalizedMethod, node.Syntax),
+                        nameof(ReadOnlyMemory<>) => tryGetCorrespondingOneArgumentOverload(WellKnownMember.System_ReadOnlyMemory_T__Slice_Int_Int, WellKnownMember.System_ReadOnlyMemory_T__Slice_Int, generalizedMethod, node.Syntax),
+                        _ => null,
+                        // The returned typeWithElementType of the above twoArgumentOverloadSymbol has not had a concrete element typeWithElementType yet.
+                    })?.AsMember(typeWithElementType);
+                }
+
+                if (singleArgumentOverload is not null)
+                {
+                    moreEfficientIndexerAccess = F.Call(VisitExpression(receiver), singleArgumentOverload, VisitExpression(startExpr));
+                }
+            }
+
+            var rewrittenIndexerAccess = moreEfficientIndexerAccess ?? VisitExpression(sliceCall);
 
             RemovePlaceholderReplacement(node.ArgumentPlaceholders[0]);
             RemovePlaceholderReplacement(node.ArgumentPlaceholders[1]);
             RemovePlaceholderReplacement(node.ReceiverPlaceholder);
 
             return rewrittenIndexerAccess;
+
+            MethodSymbol? tryGetCorrespondingOneArgumentOverload(WellKnownMember twoArgumentOverloadMember, WellKnownMember oneArgumentOverloadMember, MethodSymbol method, SyntaxNode syntax)
+            {
+                if (!TryGetWellKnownTypeMember(syntax, twoArgumentOverloadMember, out MethodSymbol? twoArgumentOverloadSymbol, isOptional: true)
+                    || !method.Equals(twoArgumentOverloadSymbol)
+                    || !TryGetWellKnownTypeMember(syntax, oneArgumentOverloadMember, out MethodSymbol? oneArgumentOverloadSymbol, isOptional: true))
+                {
+                    return null;
+                }
+
+                Debug.Assert(twoArgumentOverloadSymbol.Name == oneArgumentOverloadSymbol.Name
+                             && twoArgumentOverloadSymbol.ReturnType.Equals(oneArgumentOverloadSymbol.ReturnType, TypeCompareKind.ConsiderEverything));
+
+                return oneArgumentOverloadSymbol;
+            }
         }
 
         private BoundExpression MakeRangeSize(ref BoundExpression startExpr, BoundExpression endExpr, ArrayBuilder<LocalSymbol> localsBuilder, ArrayBuilder<BoundExpression> sideEffectsBuilder)
