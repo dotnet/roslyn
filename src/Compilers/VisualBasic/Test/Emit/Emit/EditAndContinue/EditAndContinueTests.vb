@@ -6135,8 +6135,8 @@ End Class
                             "C._Closure$__: {$I1-1, _Lambda$__1-1}")
                         g.VerifyTypeDefNames("HotReloadException")
                         g.VerifyMethodDefNames("F", "_Lambda$__1-0", "_Lambda$__1-1", ".ctor")
-                        g.VerifyTypeRefNames("Object", "Action", "CompilerGeneratedAttribute", "Exception", "Console")
-                        g.VerifyMemberRefNames(".ctor", ".ctor", "WriteLine", ".ctor")
+                        g.VerifyTypeRefNames("Object", "Action", "CompilerGeneratedAttribute", "Exception", "Console", "Action`1", "AppContext")
+                        g.VerifyMemberRefNames("GetData", ".ctor", ".ctor", "WriteLine", ".ctor", "Invoke")
 
                         g.VerifyEncLogDefinitions(
                         {
@@ -6201,15 +6201,25 @@ _Lambda$__1-1
 }
 .ctor
 {
-  // Code size       15 (0xf)
-  .maxstack  8
-  IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  call       0x0A00000B
-  IL_0007:  ldarg.0
-  IL_0008:  ldarg.2
-  IL_0009:  stfld      0x04000004
-  IL_000e:  ret
+  // Code size       43 (0x2b)
+  .maxstack  2
+  IL_0000:  ldstr      0x70000005
+  IL_0005:  call       0x0A00000B
+  IL_000a:  castclass  0x1B000001
+  IL_000f:  stloc.0
+  IL_0010:  ldarg.0
+  IL_0011:  ldarg.1
+  IL_0012:  call       0x0A00000C
+  IL_0017:  ldarg.0
+  IL_0018:  ldarg.2
+  IL_0019:  stfld      0x04000004
+  IL_001e:  ldloc.0
+  IL_001f:  brfalse.s  IL_002a
+  IL_0021:  ldloc.0
+  IL_0022:  ldarg.0
+  IL_0023:  callvirt   0x0A00000D
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ret
 }
 ")
                     End Sub).
@@ -6249,8 +6259,8 @@ End Class
                         g.VerifySynthesizedMembers("System.Runtime.CompilerServices.HotReloadException")
                         g.VerifyTypeDefNames("HotReloadException")
                         g.VerifyMethodDefNames("F", "_Lambda$__1-0", ".ctor")
-                        g.VerifyTypeRefNames("Object", "Exception")
-                        g.VerifyMemberRefNames(".ctor")
+                        g.VerifyTypeRefNames("Object", "Exception", "Action", "AppContext")
+                        g.VerifyMemberRefNames("GetData", ".ctor", "Invoke")
 
                         g.VerifyEncLogDefinitions(
                         {
@@ -6293,15 +6303,25 @@ _Lambda$__1-0
 }
 .ctor
 {
-    // Code size       15 (0xf)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  ldarg.1
-    IL_0002:  call       0x0A000008
-    IL_0007:  ldarg.0
-    IL_0008:  ldarg.2
-    IL_0009:  stfld      0x04000003
-    IL_000e:  ret
+    // Code size       43 (0x2b)
+    .maxstack  2
+    IL_0000:  ldstr      0x7000014E
+    IL_0005:  call       0x0A000008
+    IL_000a:  castclass  0x1B000001
+    IL_000f:  stloc.0
+    IL_0010:  ldarg.0
+    IL_0011:  ldarg.1
+    IL_0012:  call       0x0A000009
+    IL_0017:  ldarg.0
+    IL_0018:  ldarg.2
+    IL_0019:  stfld      0x04000003
+    IL_001e:  ldloc.0
+    IL_001f:  brfalse.s  IL_002a
+    IL_0021:  ldloc.0
+    IL_0022:  ldarg.0
+    IL_0023:  callvirt   0x0A00000A
+    IL_0028:  br.s       IL_002a
+    IL_002a:  ret
 }
 ")
                     End Sub).
@@ -6430,7 +6450,7 @@ F
 {
   // Code size       13 (0xd)
   .maxstack  8
-  IL_0000:  ldstr      0x70000299
+  IL_0000:  ldstr      0x700002ED
   IL_0005:  ldc.i4.s   -2
   IL_0007:  newobj     0x06000006
   IL_000c:  throw
@@ -6439,7 +6459,7 @@ _Lambda$__1#2-0#2
 {
   // Code size       12 (0xc)
   .maxstack  8
-  IL_0000:  ldstr      0x700003E2
+  IL_0000:  ldstr      0x70000436
   IL_0005:  ldc.i4.m1
   IL_0006:  newobj     0x06000006
   IL_000b:  throw
@@ -6508,11 +6528,12 @@ End Class
 
                         g.VerifyTypeDefNames("HotReloadException")
                         g.VerifyMethodDefNames("F", "_Lambda$__1#1-0#1", ".ctor")
-                        g.VerifyTypeRefNames("Object", "Exception")
-                        g.VerifyMemberRefNames(".ctor")
+                        g.VerifyTypeRefNames("Object", "Exception", "Action`1", "AppContext")
+                        g.VerifyMemberRefNames("GetData", ".ctor", "Invoke")
 
                         g.VerifyEncLogDefinitions(
                         {
+                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
                             Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                             Row(3, TableIndex.Field, EditAndContinueOperation.Default),
@@ -6527,7 +6548,8 @@ End Class
                             Handle(3, TableIndex.Field),
                             Handle(2, TableIndex.MethodDef),
                             Handle(5, TableIndex.MethodDef),
-                            Handle(6, TableIndex.MethodDef)
+                            Handle(6, TableIndex.MethodDef),
+                            Handle(2, TableIndex.StandAloneSig)
                         })
 
                         g.VerifyIL("
@@ -6551,15 +6573,25 @@ _Lambda$__1#1-0#1
 }
 .ctor
 {
-  // Code size       15 (0xf)
-  .maxstack  8
-  IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  call       0x0A000009
-  IL_0007:  ldarg.0
-  IL_0008:  ldarg.2
-  IL_0009:  stfld      0x04000003
-  IL_000e:  ret
+  // Code size       43 (0x2b)
+  .maxstack  2
+  IL_0000:  ldstr      0x70000297
+  IL_0005:  call       0x0A000009
+  IL_000a:  castclass  0x1B000001
+  IL_000f:  stloc.0
+  IL_0010:  ldarg.0
+  IL_0011:  ldarg.1
+  IL_0012:  call       0x0A00000A
+  IL_0017:  ldarg.0
+  IL_0018:  ldarg.2
+  IL_0019:  stfld      0x04000003
+  IL_001e:  ldloc.0
+  IL_001f:  brfalse.s  IL_002a
+  IL_0021:  ldloc.0
+  IL_0022:  ldarg.0
+  IL_0023:  callvirt   0x0A00000B
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ret
 }
 ")
                     End Sub).
@@ -6647,12 +6679,13 @@ End Class
 
                         g.VerifyTypeDefNames("HotReloadException")
                         g.VerifyMethodDefNames("F", "_Lambda$__1-0", "_Lambda$__1-1#1", "_Lambda$__1-2#2", ".ctor")
-                        g.VerifyTypeRefNames("Object", "Exception")
+                        g.VerifyTypeRefNames("Object", "Exception", "Action`1", "AppContext")
 
-                        g.VerifyMemberRefNames(".ctor")
+                        g.VerifyMemberRefNames("GetData", ".ctor", "Invoke")
 
                         g.VerifyEncLogDefinitions(
                         {
+                            Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
                             Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                             Row(5, TableIndex.Field, EditAndContinueOperation.Default),
@@ -6672,7 +6705,8 @@ End Class
                             Handle(6, TableIndex.MethodDef),
                             Handle(7, TableIndex.MethodDef),
                             Handle(8, TableIndex.MethodDef),
-                            Handle(9, TableIndex.MethodDef)
+                            Handle(9, TableIndex.MethodDef),
+                            Handle(4, TableIndex.StandAloneSig)
                         })
 
                         g.VerifyIL("
@@ -6696,15 +6730,25 @@ _Lambda$__1-0, _Lambda$__1-1#1, _Lambda$__1-2#2
 }
 .ctor
 {
-  // Code size       15 (0xf)
-  .maxstack  8
-  IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  call       0x0A000023
-  IL_0007:  ldarg.0
-  IL_0008:  ldarg.2
-  IL_0009:  stfld      0x04000005
-  IL_000e:  ret
+  // Code size       43 (0x2b)
+  .maxstack  2
+  IL_0000:  ldstr      0x70000156
+  IL_0005:  call       0x0A000023
+  IL_000a:  castclass  0x1B000001
+  IL_000f:  stloc.0
+  IL_0010:  ldarg.0
+  IL_0011:  ldarg.1
+  IL_0012:  call       0x0A000024
+  IL_0017:  ldarg.0
+  IL_0018:  ldarg.2
+  IL_0019:  stfld      0x04000005
+  IL_001e:  ldloc.0
+  IL_001f:  brfalse.s  IL_002a
+  IL_0021:  ldloc.0
+  IL_0022:  ldarg.0
+  IL_0023:  callvirt   0x0A000025
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ret
 }
 ")
                     End Sub).
@@ -6761,15 +6805,15 @@ F
   // Code size        7 (0x7)
   .maxstack  8
   IL_0000:  ldarg.0
-  IL_0001:  call       0x0A000029
+  IL_0001:  call       0x0A00002B
   IL_0006:  ret
 }
 .cctor
 {
   // Code size       11 (0xb)
   .maxstack  8
-  IL_0000:  newobj     0x0A00002A
-  IL_0005:  stsfld     0x0A00002B
+  IL_0000:  newobj     0x0A00002C
+  IL_0005:  stsfld     0x0A00002D
   IL_000a:  ret
 }
 _Lambda$__1#4-0#4
@@ -6778,7 +6822,7 @@ _Lambda$__1#4-0#4
   .maxstack  8
   IL_0000:  nop
   IL_0001:  ldc.i4.4
-  IL_0002:  call       0x0A00002C
+  IL_0002:  call       0x0A00002E
   IL_0007:  nop
   IL_0008:  ret
 }
@@ -6826,7 +6870,7 @@ F
 {
   // Code size       13 (0xd)
   .maxstack  8
-  IL_0000:  ldstr      0x700002A1
+  IL_0000:  ldstr      0x700002F5
   IL_0005:  ldc.i4.s   -2
   IL_0007:  newobj     0x06000009
   IL_000c:  throw
@@ -6835,7 +6879,7 @@ _Lambda$__1#4-0#4
 {
   // Code size       12 (0xc)
   .maxstack  8
-  IL_0000:  ldstr      0x700003EA
+  IL_0000:  ldstr      0x7000043E
   IL_0005:  ldc.i4.m1
   IL_0006:  newobj     0x06000009
   IL_000b:  throw
@@ -7476,8 +7520,6 @@ End Class",
                         v.VerifyEncLogDefinitions(
                         {
                             Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
@@ -7487,7 +7529,6 @@ End Class",
                         v.VerifyEncMapDefinitions(
                         {
                             Handle(4, TableIndex.TypeDef),
-                            Handle(1, TableIndex.Field),
                             Handle(3, TableIndex.MethodDef),
                             Handle(4, TableIndex.MethodDef),
                             Handle(5, TableIndex.CustomAttribute)
