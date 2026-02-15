@@ -3233,9 +3233,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            var diagnosticCount = diagnostics.DiagnosticBag?.Count ?? 0;
+                            var diagnosticCount = diagnostics.DiagnosticBag
+                                ?.AsEnumerable()
+                                .Count(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error) ?? 0;
+
                             GenerateImplicitConversionError(diagnostics, argument.Syntax, conversion, argument, returnType);
-                            hasImplicitConversionError = diagnosticCount < (diagnostics.DiagnosticBag?.Count ?? 0);
+
+                            var changedDiagnosticCount = diagnostics.DiagnosticBag
+                                ?.AsEnumerable()
+                                .Count(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error) ?? 0;
+                            hasImplicitConversionError = diagnosticCount < changedDiagnosticCount;
 
                             if (this.ContainingMemberOrLambda is LambdaSymbol)
                             {
