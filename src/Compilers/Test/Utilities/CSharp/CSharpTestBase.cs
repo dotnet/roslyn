@@ -1291,6 +1291,8 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
         internal const string RuntimeAsyncMethodGenerationAttributeDefinition = """
             namespace System.Runtime.CompilerServices;
 
+            #pragma warning disable CS9113 // Unread primary constructor parameter
+
             [AttributeUsage(AttributeTargets.Method)]
             public class RuntimeAsyncMethodGenerationAttribute(bool runtimeAsync) : Attribute();
             """;

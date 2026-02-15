@@ -10778,5 +10778,65 @@ static class Test1
                 }
                 """);
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82397")]
+        public void RuntimeAsyncLocalFunctionAwaitedFromNonRuntimeAsyncLambda()
+        {
+            var source = """
+using System.Threading.Tasks;
+
+await Task.Run(
+[System.Runtime.CompilerServices.RuntimeAsyncMethodGeneration(false)]
+async () =>
+{
+   await Func();
+
+    [System.Runtime.CompilerServices.RuntimeAsyncMethodGeneration(true)]
+   static async Task Func()
+   {
+       await Task.Delay(1);
+       await Task.Yield();
+   }
+});
+""";
+
+            var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition]);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    {ReturnValueMissing("<Main>$", "0x29")}
+                    {ReturnValueMissing("<<Main>$>g__Func|0_1", "0x2f")}
+                    """
+
+            });
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<<Main>$>g__Func|0_1", """
+{
+  // Code size       48 (0x30)
+  .maxstack  1
+  .locals init (System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_0,
+                System.Runtime.CompilerServices.YieldAwaitable V_1)
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.Delay(int)"
+  IL_0006:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+  IL_000b:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+  IL_0010:  stloc.1
+  IL_0011:  ldloca.s   V_1
+  IL_0013:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+  IL_0018:  stloc.0
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+  IL_0020:  brtrue.s   IL_0028
+  IL_0022:  ldloc.0
+  IL_0023:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+  IL_002f:  ret
+}
+""");
+        }
     }
 }
