@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
-using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using RoslynLog = Microsoft.CodeAnalysis.Internal.Log;
@@ -117,7 +116,6 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
 
     var serviceBrokerFactory = exportProvider.GetExportedValue<ServiceBrokerFactory>();
-    StarredCompletionAssemblyHelper.InitializeInstance(serverConfiguration.StarredCompletionsPath, extensionManager, loggerFactory, serviceBrokerFactory);
 
     LanguageServerHost? server = null;
     if (serverConfiguration.UseStdIo)
@@ -184,12 +182,6 @@ static RootCommand CreateCommand()
     var logLevelOption = new Option<LogLevel?>("--logLevel")
     {
         Description = "The minimum log verbosity.",
-        Required = false,
-    };
-
-    var starredCompletionsPathOption = new Option<string?>("--starredCompletionComponentPath")
-    {
-        Description = "The location of the starred completion component (if one exists).",
         Required = false,
     };
 
@@ -279,7 +271,6 @@ static RootCommand CreateCommand()
         debugOption,
         brokeredServicePipeNameOption,
         logLevelOption,
-        starredCompletionsPathOption,
         telemetryLevelOption,
         sessionIdOption,
         extensionAssemblyPathsOption,
@@ -299,7 +290,6 @@ static RootCommand CreateCommand()
     {
         var launchDebugger = parseResult.GetValue(debugOption);
         var logLevel = parseResult.GetValue(logLevelOption);
-        var starredCompletionsPath = parseResult.GetValue(starredCompletionsPathOption);
         var telemetryLevel = parseResult.GetValue(telemetryLevelOption);
         var sessionId = parseResult.GetValue(sessionIdOption);
         var extensionAssemblyPaths = parseResult.GetValue(extensionAssemblyPathsOption) ?? [];
@@ -316,7 +306,6 @@ static RootCommand CreateCommand()
         var serverConfiguration = new ServerConfiguration(
             LaunchDebugger: launchDebugger,
             LogConfiguration: new LogConfiguration(logLevel ?? LogLevel.Information),
-            StarredCompletionsPath: starredCompletionsPath,
             TelemetryLevel: telemetryLevel,
             SessionId: sessionId,
             ExtensionAssemblyPaths: extensionAssemblyPaths,

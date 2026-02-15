@@ -44,7 +44,6 @@ internal sealed class ServerConfigurationFactory
 internal sealed record class ServerConfiguration(
     bool LaunchDebugger,
     LogConfiguration LogConfiguration,
-    string? StarredCompletionsPath,
     string? TelemetryLevel,
     string? SessionId,
     IEnumerable<string> ExtensionAssemblyPaths,

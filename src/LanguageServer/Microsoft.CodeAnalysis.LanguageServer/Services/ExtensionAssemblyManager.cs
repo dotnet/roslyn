@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Runtime.Loader;
-using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.Extensions.Logging;
@@ -57,18 +56,6 @@ internal sealed class ExtensionAssemblyManager
         var directoryLoadContexts = new Dictionary<string, AssemblyLoadContext>(StringComparer.Ordinal);
         var assemblyFullNameToLoadContext = new Dictionary<string, AssemblyLoadContext>(StringComparer.Ordinal);
         using var _ = ArrayBuilder<string>.GetInstance(out var validExtensionAssemblies);
-
-        if (serverConfiguration.StarredCompletionsPath is not null)
-        {
-            // HACK: Load the intellicode dll as an extension, but importantly do not add it to the valid extension assemblies set.
-            // While we do want to load it into its own ALC because it comes from a different ship vehicle, we do not want it
-            // to contribute to the MEF catalog / analyzers as a 'normal' extension would.  Instead it gets reflection loaded elsewhere.
-            //
-            // We should migrate the intellicode completion provider to be a normal extension component with MEF provided parts,
-            // but it requires changes to the intellicode vscode extension and here to access our IServiceBroker instance via MEF.
-            var starredCompletionsComponentDll = StarredCompletionAssemblyHelper.GetStarredCompletionAssemblyPath(serverConfiguration.StarredCompletionsPath);
-            Contract.ThrowIfFalse(TryGetOrCreateLoadContext(starredCompletionsComponentDll));
-        }
 
         foreach (var assemblyFilePath in serverConfiguration.ExtensionAssemblyPaths)
         {
