@@ -1910,4 +1910,10 @@ Additional information: {1}</value>
     <value>Include Roslyn source-generated files</value>
     <comment>Used in the unified settings registration for real-time test discovery</comment>
   </data>
+  <data name="Logging_Roslyn_Workspace_structure" xml:space="preserve">
+    <value>Logging Roslyn Workspace structure...</value>
+  </data>
+  <data name="Visual_Studio" xml:space="preserve">
+    <value>Visual Studio</value>
+  </data>
 </root>

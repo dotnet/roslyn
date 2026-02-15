@@ -307,6 +307,21 @@
         <target state="new">Warning</target>
         <note />
       </trans-unit>
+      <trans-unit id="cmdidLogWorkspaceStructure|ButtonText">
+        <source>Log Roslyn Workspace Structure</source>
+        <target state="new">Log Roslyn Workspace Structure</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidLogWorkspaceStructure|CommandName">
+        <source>LogRoslynWorkspaceStructure</source>
+        <target state="new">LogRoslynWorkspaceStructure</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidLogWorkspaceStructure|LocCanonicalName">
+        <source>LogRoslynWorkspaceStructure</source>
+        <target state="new">LogRoslynWorkspaceStructure</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidProjectContextAddAnalyzer|ButtonText">
         <source>&amp;Analyzer...</source>
         <target state="translated">&amp;Анализатор...</target>

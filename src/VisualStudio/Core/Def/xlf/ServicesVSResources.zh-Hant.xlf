@@ -672,6 +672,11 @@
         <target state="translated">位置</target>
         <note />
       </trans-unit>
+      <trans-unit id="Logging_Roslyn_Workspace_structure">
+        <source>Logging Roslyn Workspace structure...</source>
+        <target state="new">Logging Roslyn Workspace structure...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_0_abstract">
         <source>Make '{0}' abstract</source>
         <target state="translated">將 '{0}' 抽象化</target>
@@ -1700,6 +1705,11 @@
       <trans-unit id="Value_to_inject_at_call_sites">
         <source>Value to inject at call sites</source>
         <target state="translated">要在呼叫位置插入的值</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Studio">
+        <source>Visual Studio</source>
+        <target state="new">Visual Studio</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Studio_Settings">
