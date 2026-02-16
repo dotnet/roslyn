@@ -117,7 +117,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return MessageID.IDS_FeatureUnsafeEvolution.GetFeatureAvailabilityDiagnosticInfo(this.Compilation);
                     }
 
-                    // PROTOTYPE: Update the error message to hint that one can enable updated memory safety rules.
                     return ((object?)sizeOfTypeOpt == null)
                         ? new CSDiagnosticInfo(ErrorCode.ERR_UnsafeNeeded)
                         : new CSDiagnosticInfo(ErrorCode.ERR_SizeofUnsafe, sizeOfTypeOpt);
