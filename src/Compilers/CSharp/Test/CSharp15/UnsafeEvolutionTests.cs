@@ -75,14 +75,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             CreateCompilation(caller, [libUpdatedRef],
                 targetFramework: targetFramework,
                 parseOptions: parseOptions,
-                options: optionsExe.WithSpecificDiagnosticOptions(GetIdForErrorCode(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules), ReportDiagnostic.Suppress))
+                options: optionsExe.AddSpecificDiagnosticOptions(GetIdForErrorCode(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules), ReportDiagnostic.Suppress))
                 .VerifyDiagnostics(expectedDiagnosticsForLegacyCaller ?? []);
         }
 
         var libLegacy = CompileAndVerify([lib, .. additionalSources],
             targetFramework: targetFramework,
             parseOptions: parseOptions,
-            options: optionsDll.WithSpecificDiagnosticOptions(GetIdForErrorCode(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules), ReportDiagnostic.Suppress),
+            options: optionsDll.AddSpecificDiagnosticOptions(GetIdForErrorCode(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules), ReportDiagnostic.Suppress),
             verify: verify,
             symbolValidator: module =>
             {
@@ -108,7 +108,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(caller, [libLegacy],
             targetFramework: targetFramework,
             parseOptions: parseOptions,
-            options: optionsExe.WithSpecificDiagnosticOptions(GetIdForErrorCode(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules), ReportDiagnostic.Suppress))
+            options: optionsExe.AddSpecificDiagnosticOptions(GetIdForErrorCode(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules), ReportDiagnostic.Suppress))
             .VerifyEmitDiagnostics(expectedDiagnosticsForLegacyCaller ?? []);
 
         void symbolValidator(ModuleSymbol module)
@@ -2659,7 +2659,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CompileAndVerify(source,
             parseOptions: TestOptions.Regular14,
-            options: TestOptions.UnsafeReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            options: TestOptions.UnsafeReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All)
+                .WithSpecificDiagnosticOptions(GetIdForErrorCode(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules), ReportDiagnostic.Suppress),
             symbolValidator: m =>
             {
                 VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false);
@@ -4431,7 +4432,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             targetFramework: TargetFramework.Empty,
             optionsDll: TestOptions.UnsafeDebugDll
                 // warning CS8021: No value for RuntimeMetadataVersion found
-                .WithSpecificDiagnosticOptions([KeyValuePair.Create("CS8021", ReportDiagnostic.Suppress)]),
+                .WithSpecificDiagnosticOptions(GetIdForErrorCode(ErrorCode.WRN_NoRuntimeMetadataVersion), ReportDiagnostic.Suppress),
             expectedUnsafeSymbols: ["System.IDisposable.Dispose"],
             expectedSafeSymbols: ["C", "C.Dispose", "System.IDisposable"],
             verify: Verification.FailsPEVerify,
@@ -5106,9 +5107,19 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2.set").WithLocation(3, 1),
             ]);
 
-        CreateCompilation([lib, RequiresUnsafeAttributeDefinition], parseOptions: TestOptions.Regular14).VerifyEmitDiagnostics();
-        CreateCompilation([lib, RequiresUnsafeAttributeDefinition], parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
-        CreateCompilation([lib, RequiresUnsafeAttributeDefinition], parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics();
+        var expectedDiagnostics = new[]
+        {
+            // (3,22): warning CS9508: RequiresUnsafeAttribute is only valid under the updated memory safety rules.
+            //     public int P1 { [System.Runtime.CompilerServices.RequiresUnsafe] get; set; }
+            Diagnostic(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules, "System.Runtime.CompilerServices.RequiresUnsafe").WithLocation(3, 22),
+            // (4,27): warning CS9508: RequiresUnsafeAttribute is only valid under the updated memory safety rules.
+            //     public int P2 { get; [System.Runtime.CompilerServices.RequiresUnsafe] set; }
+            Diagnostic(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules, "System.Runtime.CompilerServices.RequiresUnsafe").WithLocation(4, 27),
+        };
+
+        CreateCompilation([lib, RequiresUnsafeAttributeDefinition], parseOptions: TestOptions.Regular14).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilation([lib, RequiresUnsafeAttributeDefinition], parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilation([lib, RequiresUnsafeAttributeDefinition], parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics(expectedDiagnostics);
     }
 
     [Fact]
@@ -5495,8 +5506,18 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c2[0]").WithArguments("C2.this[int].set").WithLocation(4, 1),
             ]);
 
-        CreateCompilation([lib, RequiresUnsafeAttributeDefinition], parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
-        CreateCompilation([lib, RequiresUnsafeAttributeDefinition], parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics();
+        var expectedDiagnostics = new[]
+        {
+            // (3,31): warning CS9508: RequiresUnsafeAttribute is only valid under the updated memory safety rules.
+            //     public int this[int i] { [System.Runtime.CompilerServices.RequiresUnsafe] get => i; set { } }
+            Diagnostic(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules, "System.Runtime.CompilerServices.RequiresUnsafe").WithLocation(3, 31),
+            // (7,41): warning CS9508: RequiresUnsafeAttribute is only valid under the updated memory safety rules.
+            //     public int this[int i] { get => i; [System.Runtime.CompilerServices.RequiresUnsafe] set { } }
+            Diagnostic(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules, "System.Runtime.CompilerServices.RequiresUnsafe").WithLocation(7, 41),
+        };
+
+        CreateCompilation([lib, RequiresUnsafeAttributeDefinition], parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilation([lib, RequiresUnsafeAttributeDefinition], parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics(expectedDiagnostics);
     }
 
     [Fact]
