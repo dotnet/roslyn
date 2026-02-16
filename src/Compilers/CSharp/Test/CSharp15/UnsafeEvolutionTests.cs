@@ -4796,31 +4796,16 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Lambda()
     {
-        // PROTOTYPE: confirm with LDM that lambdas cannot be marked caller-unsafe
         var source = """
-            var lam = unsafe () => { };
+            var lam = [System.Runtime.CompilerServices.RequiresUnsafe] () => { };
+            lam();
             """;
-        CreateCompilation(source,
+        CreateCompilation([source, RequiresUnsafeAttributeDefinition],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (1,11): error CS1525: Invalid expression term 'unsafe'
-            // var lam = unsafe () => { };
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "unsafe").WithArguments("unsafe").WithLocation(1, 11),
-            // (1,11): error CS1002: ; expected
-            // var lam = unsafe () => { };
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "unsafe").WithLocation(1, 11),
-            // (1,19): error CS8124: Tuple must contain at least two elements.
-            // var lam = unsafe () => { };
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 19),
-            // (1,21): error CS1001: Identifier expected
-            // var lam = unsafe () => { };
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 21),
-            // (1,24): error CS1525: Invalid expression term '{'
-            // var lam = unsafe () => { };
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(1, 24),
-            // (1,24): error CS1002: ; expected
-            // var lam = unsafe () => { };
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 24));
+            // (1,12): error CS9507: RequiresUnsafeAttribute cannot be applied to this symbol.
+            // var lam = [System.Runtime.CompilerServices.RequiresUnsafe] () => { };
+            Diagnostic(ErrorCode.ERR_RequiresUnsafeAttributeUnsupportedMemberTarget, "System.Runtime.CompilerServices.RequiresUnsafe").WithLocation(1, 12));
     }
 
     [Fact]
@@ -8873,83 +8858,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (6,42): error CS0234: The type or namespace name 'RequiresUnsafe' does not exist in the namespace 'System.Runtime.CompilerServices' (are you missing an assembly reference?)
             //         [System.Runtime.CompilerServices.RequiresUnsafe]
             Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "RequiresUnsafe").WithArguments("RequiresUnsafe", "System.Runtime.CompilerServices").WithLocation(6, 42));
-    }
-
-    /// <summary>
-    /// Lambdas cannot be marked <see langword="unsafe"/>. If that changes, we should synthesize the attribute similarly to <see cref="RequiresUnsafeAttribute_LocalFunction"/>.
-    /// </summary>
-    [Fact]
-    public void RequiresUnsafeAttribute_Lambda()
-    {
-        var source = """
-            class C
-            {
-                void M()
-                {
-                    var lam1 = unsafe () => { };
-                    var lam2 = () => { };
-                }
-            }
-            """;
-        CreateCompilation(source).VerifyDiagnostics(
-            // (5,20): error CS1525: Invalid expression term 'unsafe'
-            //         var lam1 = unsafe () => { };
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "unsafe").WithArguments("unsafe").WithLocation(5, 20),
-            // (5,20): error CS1002: ; expected
-            //         var lam1 = unsafe () => { };
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "unsafe").WithLocation(5, 20),
-            // (5,20): error CS0106: The modifier 'unsafe' is not valid for this item
-            //         var lam1 = unsafe () => { };
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "unsafe").WithArguments("unsafe").WithLocation(5, 20),
-            // (5,28): error CS8124: Tuple must contain at least two elements.
-            //         var lam1 = unsafe () => { };
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 28),
-            // (5,30): error CS1001: Identifier expected
-            //         var lam1 = unsafe () => { };
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(5, 30),
-            // (5,30): error CS1003: Syntax error, ',' expected
-            //         var lam1 = unsafe () => { };
-            Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(5, 30),
-            // (5,33): error CS1002: ; expected
-            //         var lam1 = unsafe () => { };
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(5, 33));
-
-        source = """
-            class C
-            {
-                void M()
-                {
-                    var lam = () => { };
-                }
-            }
-            """;
-
-        var lam = "C.<>c.<M>b__0_0";
-
-        CompileAndVerify(source,
-            options: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
-            symbolValidator: m => VerifyRequiresUnsafeAttribute(
-                m,
-                expectedUnsafeSymbols: [],
-                expectedSafeSymbols: [lam]))
-            .VerifyDiagnostics();
-
-        CompileAndVerify(source,
-            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All),
-            symbolValidator: m => VerifyRequiresUnsafeAttribute(
-                m,
-                expectedUnsafeSymbols: [],
-                expectedSafeSymbols: [lam]))
-            .VerifyDiagnostics();
-
-        CompileAndVerify([source, MemorySafetyRulesAttributeDefinition],
-            options: TestOptions.ReleaseModule.WithAllowUnsafe(true).WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All),
-            verify: Verification.Skipped,
-            symbolValidator: m => VerifyRequiresUnsafeAttribute(
-                m,
-                expectedUnsafeSymbols: [],
-                expectedSafeSymbols: [lam]))
-            .VerifyDiagnostics();
     }
 
     [Fact]
