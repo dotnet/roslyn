@@ -8718,6 +8718,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules, "System.Runtime.CompilerServices.RequiresUnsafe").WithLocation(3, 6),
         };
 
+        CreateCompilation([source, RequiresUnsafeAttributeDefinition],
+            options: TestOptions.UnsafeReleaseDll.WithWarningLevel(10))
+            .VerifyEmitDiagnostics();
+        CreateCompilation([source, RequiresUnsafeAttributeDefinition],
+            options: TestOptions.UnsafeReleaseDll.WithWarningLevel(11))
+            .VerifyEmitDiagnostics(expectedDiagnostics);
+
         CompileAndVerify([source, RequiresUnsafeAttributeDefinition],
             options: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
             symbolValidator: m => VerifyRequiresUnsafeAttribute(
