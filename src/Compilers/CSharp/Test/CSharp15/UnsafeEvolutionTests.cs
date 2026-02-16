@@ -5798,12 +5798,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 {
                     int _x = x;
                 }
+                [method: System.Runtime.CompilerServices.RequiresUnsafe] public class C3();
                 """,
             caller: """
                 _ = new C(0);
                 _ = new C();
                 unsafe { _ = new C(); }
                 _ = new C2(0);
+                _ = new C3();
+                unsafe { _ = new C3(); }
                 """,
             additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: [Overload("C..ctor", parameterCount: 0)],
@@ -5813,6 +5816,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (2,5): error CS9502: 'C.C()' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'
                 // _ = new C();
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "new C()").WithArguments("C.C()").WithLocation(2, 5),
+                // (5,5): error CS9502: 'C3.C3()' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'
+                // _ = new C3();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "new C3()").WithArguments("C3.C3()").WithLocation(5, 5),
             ]);
     }
 
