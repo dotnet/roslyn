@@ -75,14 +75,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             CreateCompilation(caller, [libUpdatedRef],
                 targetFramework: targetFramework,
                 parseOptions: parseOptions,
-                options: optionsExe)
+                options: optionsExe.WithSpecificDiagnosticOptions(GetIdForErrorCode(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules), ReportDiagnostic.Suppress))
                 .VerifyDiagnostics(expectedDiagnosticsForLegacyCaller ?? []);
         }
 
         var libLegacy = CompileAndVerify([lib, .. additionalSources],
             targetFramework: targetFramework,
             parseOptions: parseOptions,
-            options: optionsDll,
+            options: optionsDll.WithSpecificDiagnosticOptions(GetIdForErrorCode(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules), ReportDiagnostic.Suppress),
             verify: verify,
             symbolValidator: module =>
             {
@@ -108,7 +108,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(caller, [libLegacy],
             targetFramework: targetFramework,
             parseOptions: parseOptions,
-            options: optionsExe)
+            options: optionsExe.WithSpecificDiagnosticOptions(GetIdForErrorCode(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules), ReportDiagnostic.Suppress))
             .VerifyEmitDiagnostics(expectedDiagnosticsForLegacyCaller ?? []);
 
         void symbolValidator(ModuleSymbol module)
@@ -8705,6 +8705,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
+        var expectedDiagnostics = new[]
+        {
+            // (3,6): warning CS9508: RequiresUnsafeAttribute is only valid under the updated memory safety rules.
+            //     [System.Runtime.CompilerServices.RequiresUnsafe]
+            Diagnostic(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules, "System.Runtime.CompilerServices.RequiresUnsafe").WithLocation(3, 6),
+        };
+
         CompileAndVerify([source, RequiresUnsafeAttributeDefinition],
             options: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
             symbolValidator: m => VerifyRequiresUnsafeAttribute(
@@ -8712,7 +8719,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedUnsafeSymbols: ["C.M1"],
                 expectedSafeSymbols: ["C", "C.M2"],
                 expectedUnsafeMode: CallerUnsafeMode.None))
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(expectedDiagnostics);
 
         var ref1 = CompileAndVerify([source, RequiresUnsafeAttributeDefinition],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All),
@@ -8756,7 +8763,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedUnsafeSymbols: ["C.M1"],
                 expectedSafeSymbols: ["C", "C.M2"],
                 expectedUnsafeMode: CallerUnsafeMode.None))
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation([source, MemorySafetyRulesAttributeDefinition],
             options: TestOptions.ReleaseModule.WithAllowUnsafe(true).WithUpdatedMemorySafetyRules())
@@ -8823,6 +8830,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         var m1 = "C.<M>g__M1|0_0";
         var m2 = "C.<M>g__M2|0_1";
 
+        var expectedDiagnostics = new[]
+        {
+            // (6,10): warning CS9508: RequiresUnsafeAttribute is only valid under the updated memory safety rules.
+            //         [System.Runtime.CompilerServices.RequiresUnsafe]
+            Diagnostic(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules, "System.Runtime.CompilerServices.RequiresUnsafe").WithLocation(6, 10),
+        };
+
         CompileAndVerify([source, RequiresUnsafeAttributeDefinition],
             options: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
             symbolValidator: m => VerifyRequiresUnsafeAttribute(
@@ -8830,7 +8844,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedUnsafeSymbols: [m1],
                 expectedSafeSymbols: [m2],
                 expectedUnsafeMode: CallerUnsafeMode.None))
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CompileAndVerify([source, RequiresUnsafeAttributeDefinition],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All),
@@ -8848,7 +8862,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedUnsafeSymbols: [m1],
                 expectedSafeSymbols: [m2],
                 expectedUnsafeMode: CallerUnsafeMode.None))
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation([source, MemorySafetyRulesAttributeDefinition],
             options: TestOptions.ReleaseModule.WithAllowUnsafe(true).WithUpdatedMemorySafetyRules())
@@ -9001,7 +9015,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedUnsafeSymbols: ["C.M"],
                 expectedSafeSymbols: ["C"],
                 expectedUnsafeMode: CallerUnsafeMode.None))
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(
+            // (3,6): warning CS9508: RequiresUnsafeAttribute is only valid under the updated memory safety rules.
+            //     [System.Runtime.CompilerServices.RequiresUnsafe]
+            Diagnostic(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules, "System.Runtime.CompilerServices.RequiresUnsafe").WithLocation(3, 6));
 
         CompileAndVerify([source, RequiresUnsafeAttributeDefinition],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(),
@@ -9340,7 +9357,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             CompilerFeatureRequiredAttribute,
         ];
 
-        var commonDiagnostics = new[]
+        var commonErrors = new[]
         {
             // (14,6): error CS9507: RequiresUnsafeAttribute cannot be applied to this symbol.
             //     [RequiresUnsafeAttribute] ~C() { }
@@ -9353,9 +9370,41 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_RequiresUnsafeAttributeUnsupportedMemberTarget, "RequiresUnsafeAttribute").WithLocation(23, 27),
         };
 
+        var commonWarnings = new[]
+        {
+            // (4,6): warning CS9508: RequiresUnsafeAttribute is only valid under the updated memory safety rules.
+            //     [RequiresUnsafeAttribute] void M() { }
+            Diagnostic(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules, "RequiresUnsafeAttribute").WithLocation(4, 6),
+            // (7,15): warning CS9508: RequiresUnsafeAttribute is only valid under the updated memory safety rules.
+            //     int P3 { [RequiresUnsafeAttribute] get; [RequiresUnsafeAttribute] set; }
+            Diagnostic(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules, "RequiresUnsafeAttribute").WithLocation(7, 15),
+            // (7,46): warning CS9508: RequiresUnsafeAttribute is only valid under the updated memory safety rules.
+            //     int P3 { [RequiresUnsafeAttribute] get; [RequiresUnsafeAttribute] set; }
+            Diagnostic(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules, "RequiresUnsafeAttribute").WithLocation(7, 46),
+            // (11,31): warning CS9508: RequiresUnsafeAttribute is only valid under the updated memory safety rules.
+            //     event System.Action E3 { [RequiresUnsafeAttribute] add { } [RequiresUnsafeAttribute] remove { } }
+            Diagnostic(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules, "RequiresUnsafeAttribute").WithLocation(11, 31),
+            // (11,65): warning CS9508: RequiresUnsafeAttribute is only valid under the updated memory safety rules.
+            //     event System.Action E3 { [RequiresUnsafeAttribute] add { } [RequiresUnsafeAttribute] remove { } }
+            Diagnostic(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules, "RequiresUnsafeAttribute").WithLocation(11, 65),
+            // (13,6): warning CS9508: RequiresUnsafeAttribute is only valid under the updated memory safety rules.
+            //     [RequiresUnsafeAttribute] C() { }
+            Diagnostic(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules, "RequiresUnsafeAttribute").WithLocation(13, 6),
+            // (16,6): warning CS9508: RequiresUnsafeAttribute is only valid under the updated memory safety rules.
+            //     [RequiresUnsafeAttribute] public static C operator +(C c1, C c2) => c1;
+            Diagnostic(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules, "RequiresUnsafeAttribute").WithLocation(16, 6),
+            // (17,6): warning CS9508: RequiresUnsafeAttribute is only valid under the updated memory safety rules.
+            //     [RequiresUnsafeAttribute] public void operator +=(C c) { }
+            Diagnostic(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules, "RequiresUnsafeAttribute").WithLocation(17, 6),
+        };
+
         CreateCompilation(source, [ref1],
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
-            .VerifyDiagnostics(commonDiagnostics);
+            .VerifyDiagnostics(
+            [
+                .. commonErrors,
+                .. (updatedRules ? default(ReadOnlySpan<DiagnosticDescription>) : commonWarnings),
+            ]);
 
         var comp2 = CreateCompilation(RequiresUnsafeAttributeDefinition).VerifyDiagnostics();
         var ref2 = AsReference(comp2, useCompilationReference);
@@ -9364,7 +9413,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyDiagnostics(
             [
-                .. commonDiagnostics,
+                .. commonErrors,
+                .. (updatedRules ? default(ReadOnlySpan<DiagnosticDescription>) : commonWarnings),
                 // (3,12): error CS0592: Attribute 'RequiresUnsafeAttribute' is not valid on this declaration type. It is only valid on 'constructor, method, property, indexer, event' declarations.
                 // [assembly: RequiresUnsafeAttribute]
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "RequiresUnsafeAttribute").WithArguments("RequiresUnsafeAttribute", "constructor, method, property, indexer, event").WithLocation(3, 12),

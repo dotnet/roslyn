@@ -3882,6 +3882,16 @@
         <target state="translated">Der Strukturmember gibt "this" oder andere Instanzmember als Verweis zurück.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules">
+        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
+        <target state="new">RequiresUnsafeAttribute is only valid under the updated memory safety rules.</target>
+        <note>'RequiresUnsafeAttribute' is not localizable</note>
+      </trans-unit>
+      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules_Title">
+        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
+        <target state="new">RequiresUnsafeAttribute is only valid under the updated memory safety rules.</target>
+        <note>'RequiresUnsafeAttribute' is not localizable</note>
+      </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
         <source>Return value must be non-null because parameter '{0}' is non-null.</source>
         <target state="translated">Der Rückgabewert muss ungleich NULL sein, weil der Parameter "{0}" nicht NULL ist.</target>

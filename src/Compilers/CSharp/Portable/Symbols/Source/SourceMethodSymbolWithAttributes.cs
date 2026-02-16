@@ -641,7 +641,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    if (ContainingModule.UseUpdatedMemorySafetyRules) MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
+                    if (ContainingModule.UseUpdatedMemorySafetyRules)
+                    {
+                        MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
+                    }
+                    else
+                    {
+                        diagnostics.Add(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules, arguments.AttributeSyntaxOpt.Location);
+                    }
 
                     arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasRequiresUnsafeAttribute = true;
                 }

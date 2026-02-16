@@ -3882,6 +3882,16 @@
         <target state="translated">O membro do struct retorna 'this' ou outros membros da instância por referência</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules">
+        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
+        <target state="new">RequiresUnsafeAttribute is only valid under the updated memory safety rules.</target>
+        <note>'RequiresUnsafeAttribute' is not localizable</note>
+      </trans-unit>
+      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules_Title">
+        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
+        <target state="new">RequiresUnsafeAttribute is only valid under the updated memory safety rules.</target>
+        <note>'RequiresUnsafeAttribute' is not localizable</note>
+      </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
         <source>Return value must be non-null because parameter '{0}' is non-null.</source>
         <target state="translated">O valor retornado precisa ser não nulo porque o parâmetro '{0}' não é nulo.</target>

@@ -3882,6 +3882,16 @@
         <target state="translated">구조체 멤버는 참조로 'this' 또는 다른 인스턴스 멤버를 반환합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules">
+        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
+        <target state="new">RequiresUnsafeAttribute is only valid under the updated memory safety rules.</target>
+        <note>'RequiresUnsafeAttribute' is not localizable</note>
+      </trans-unit>
+      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules_Title">
+        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
+        <target state="new">RequiresUnsafeAttribute is only valid under the updated memory safety rules.</target>
+        <note>'RequiresUnsafeAttribute' is not localizable</note>
+      </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
         <source>Return value must be non-null because parameter '{0}' is non-null.</source>
         <target state="translated">매개 변수 '{0}'이(가) null이 아니기 때문에 반환 값은 null이 아니어야 합니다.</target>
