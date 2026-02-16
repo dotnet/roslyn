@@ -2943,7 +2943,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Method_InUnsafeClass()
     {
-        // PROTOTYPE: unsafe modifier on a class should result in a warning
         CompileAndVerifyUnsafe(
             lib: """
                 using System.Collections.Generic;
