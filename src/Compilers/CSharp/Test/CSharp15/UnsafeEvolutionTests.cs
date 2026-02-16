@@ -2626,7 +2626,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 [System.Runtime.CompilerServices.RequiresUnsafe] event System.Action E { add { } remove { } }
                 [System.Runtime.CompilerServices.RequiresUnsafe] int this[int i] { get => i; set { } }
                 [System.Runtime.CompilerServices.RequiresUnsafe] C() { }
-                [System.Runtime.CompilerServices.RequiresUnsafe] ~C() { }
                 [System.Runtime.CompilerServices.RequiresUnsafe] public static C operator +(C c1, C c2) => c1;
                 [System.Runtime.CompilerServices.RequiresUnsafe] public void operator +=(C c) { }
             #pragma warning disable CS0169 // unused field
@@ -2653,7 +2652,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             "C.E", "C.add_E", "C.remove_E",
             "C.this[]", "C.get_Item", "C.set_Item",
             "C..ctor",
-            "C.Finalize",
             "C.op_Addition",
             "C.op_AdditionAssignment",
         ];
@@ -2710,14 +2708,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             //     [System.Runtime.CompilerServices.RequiresUnsafe] C() { }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Runtime.CompilerServices.RequiresUnsafe").WithArguments("updated memory safety rules").WithLocation(10, 6),
             // (11,6): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     [System.Runtime.CompilerServices.RequiresUnsafe] ~C() { }
+            //     [System.Runtime.CompilerServices.RequiresUnsafe] public static C operator +(C c1, C c2) => c1;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Runtime.CompilerServices.RequiresUnsafe").WithArguments("updated memory safety rules").WithLocation(11, 6),
             // (12,6): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     [System.Runtime.CompilerServices.RequiresUnsafe] public static C operator +(C c1, C c2) => c1;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Runtime.CompilerServices.RequiresUnsafe").WithArguments("updated memory safety rules").WithLocation(12, 6),
-            // (13,6): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     [System.Runtime.CompilerServices.RequiresUnsafe] public void operator +=(C c) { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Runtime.CompilerServices.RequiresUnsafe").WithArguments("updated memory safety rules").WithLocation(13, 6));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Runtime.CompilerServices.RequiresUnsafe").WithArguments("updated memory safety rules").WithLocation(12, 6));
     }
 
     [Theory, CombinatorialData]
@@ -5927,8 +5922,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Constructor_Static()
     {
-        CompileAndVerifyUnsafe(
-            lib: """
+        CreateCompilation(
+            [
+                """
                 public class C
                 {
                     public static readonly int F = 42;
@@ -5936,14 +5932,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     static C() { }
                 }
                 """,
-            caller: """
-                _ = C.F;
-                """,
-            optionsDll: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
-            additionalSources: [RequiresUnsafeAttributeDefinition],
-            expectedUnsafeSymbols: ["C..cctor"],
-            expectedSafeSymbols: ["C", "C..ctor"],
-            expectedDiagnostics: []);
+                RequiresUnsafeAttributeDefinition,
+            ],
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (4,6): error CS9507: RequiresUnsafeAttribute cannot be applied to this symbol.
+            //     [System.Runtime.CompilerServices.RequiresUnsafe]
+            Diagnostic(ErrorCode.ERR_RequiresUnsafeAttributeUnsupportedMemberTarget, "System.Runtime.CompilerServices.RequiresUnsafe").WithLocation(4, 6));
     }
 
     [Fact]
@@ -5979,43 +5974,36 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Destructor()
     {
-        CompileAndVerifyUnsafe(
-            lib: """
-                public class C
+        var comp = CreateCompilation(
+            [
+                """
+                class C
                 {
                     [System.Runtime.CompilerServices.RequiresUnsafe]
                     ~C() { }
+                    void M() { Finalize(); }
+                }
+                class D : C
+                {
+                    ~D() { } // implicitly calls base finalizer
                 }
                 """,
-            caller: """
-                _ = new C();
-                """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
-            expectedUnsafeSymbols: ["C.Finalize"],
-            expectedSafeSymbols: [],
-            expectedDiagnostics: []);
-
-        var source = """
-            class C
-            {
-                [System.Runtime.CompilerServices.RequiresUnsafe]
-                ~C() { }
-                void M() { Finalize(); }
-            }
-            class D : C
-            {
-                ~D() { } // implicitly calls base finalizer
-            }
-            """;
-        CreateCompilation([source, RequiresUnsafeAttributeDefinition],
+                RequiresUnsafeAttributeDefinition,
+            ],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (5,16): error CS9502: 'C.~C()' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'
-            //     void M() { Finalize(); }
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "Finalize()").WithArguments("C.~C()").WithLocation(5, 16),
+            // (3,6): error CS9507: RequiresUnsafeAttribute cannot be applied to this symbol.
+            //     [System.Runtime.CompilerServices.RequiresUnsafe]
+            Diagnostic(ErrorCode.ERR_RequiresUnsafeAttributeUnsupportedMemberTarget, "System.Runtime.CompilerServices.RequiresUnsafe").WithLocation(3, 6),
             // (5,16): error CS0245: Destructors and object.Finalize cannot be called directly. Consider calling IDisposable.Dispose if available.
             //     void M() { Finalize(); }
             Diagnostic(ErrorCode.ERR_CallingFinalizeDeprecated, "Finalize()").WithLocation(5, 16));
+
+        VerifyRequiresUnsafeAttribute(
+            comp.SourceModule,
+            expectedUnsafeSymbols: [],
+            expectedSafeSymbols: ["C.Finalize"],
+            expectedAttribute: ["C.Finalize"]);
     }
 
     [Fact]
@@ -9322,14 +9310,17 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             [RequiresUnsafeAttribute] class C
             {
                 [RequiresUnsafeAttribute] void M() { }
-                [RequiresUnsafeAttribute] [field: RequiresUnsafeAttribute] int P { get; set; }
-                int P2 { [RequiresUnsafeAttribute] get; [RequiresUnsafeAttribute] set; }
+                [RequiresUnsafeAttribute] int P1 { get; set; }
+                [field: RequiresUnsafeAttribute] int P2 { get; set; }
+                int P3 { [RequiresUnsafeAttribute] get; [RequiresUnsafeAttribute] set; }
             #pragma warning disable CS0067 // unused event
-                [RequiresUnsafeAttribute] [field: RequiresUnsafeAttribute] event System.Action E1;
-                event System.Action E2 { [RequiresUnsafeAttribute] add { } [RequiresUnsafeAttribute] remove { } }
+                [RequiresUnsafeAttribute] event System.Action E1;
+                [field: RequiresUnsafeAttribute] event System.Action E2;
+                event System.Action E3 { [RequiresUnsafeAttribute] add { } [RequiresUnsafeAttribute] remove { } }
                 [RequiresUnsafeAttribute] int this[int i] { get => i; set { } }
                 [RequiresUnsafeAttribute] C() { }
                 [RequiresUnsafeAttribute] ~C() { }
+                [RequiresUnsafeAttribute] static C() { }
                 [RequiresUnsafeAttribute] public static C operator +(C c1, C c2) => c1;
                 [RequiresUnsafeAttribute] public void operator +=(C c) { }
                 public void M([RequiresUnsafeAttribute] int x) { }
@@ -9337,6 +9328,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 public void M<[RequiresUnsafeAttribute] T>() { }
             #pragma warning disable CS0169 // unused field
                 [RequiresUnsafeAttribute] int F;
+                void L() { var lam = [RequiresUnsafeAttribute] () => { }; }
             }
             [RequiresUnsafeAttribute] delegate void D();
             [RequiresUnsafeAttribute] enum E { X }
@@ -9348,9 +9340,22 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             CompilerFeatureRequiredAttribute,
         ];
 
+        var commonDiagnostics = new[]
+        {
+            // (14,6): error CS9507: RequiresUnsafeAttribute cannot be applied to this symbol.
+            //     [RequiresUnsafeAttribute] ~C() { }
+            Diagnostic(ErrorCode.ERR_RequiresUnsafeAttributeUnsupportedMemberTarget, "RequiresUnsafeAttribute").WithLocation(14, 6),
+            // (15,6): error CS9507: RequiresUnsafeAttribute cannot be applied to this symbol.
+            //     [RequiresUnsafeAttribute] static C() { }
+            Diagnostic(ErrorCode.ERR_RequiresUnsafeAttributeUnsupportedMemberTarget, "RequiresUnsafeAttribute").WithLocation(15, 6),
+            // (23,27): error CS9507: RequiresUnsafeAttribute cannot be applied to this symbol.
+            //     void L() { var lam = [RequiresUnsafeAttribute] () => { }; }
+            Diagnostic(ErrorCode.ERR_RequiresUnsafeAttributeUnsupportedMemberTarget, "RequiresUnsafeAttribute").WithLocation(23, 27),
+        };
+
         CreateCompilation(source, [ref1],
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(commonDiagnostics);
 
         var comp2 = CreateCompilation(RequiresUnsafeAttributeDefinition).VerifyDiagnostics();
         var ref2 = AsReference(comp2, useCompilationReference);
@@ -9358,38 +9363,41 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source, [ref2],
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyDiagnostics(
-            // (2,2): error CS0592: Attribute 'RequiresUnsafeAttribute' is not valid on this declaration type. It is only valid on 'constructor, method, property, indexer, event' declarations.
-            // [RequiresUnsafeAttribute] class C
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "RequiresUnsafeAttribute").WithArguments("RequiresUnsafeAttribute", "constructor, method, property, indexer, event").WithLocation(2, 2),
-            // (2,10): error CS0592: Attribute 'RequiresUnsafeAttribute' is not valid on this declaration type. It is only valid on 'constructor, method, property, indexer, event' declarations.
-            // [module: RequiresUnsafeAttribute]
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "RequiresUnsafeAttribute").WithArguments("RequiresUnsafeAttribute", "constructor, method, property, indexer, event").WithLocation(2, 10),
-            // (3,12): error CS0592: Attribute 'RequiresUnsafeAttribute' is not valid on this declaration type. It is only valid on 'constructor, method, property, indexer, event' declarations.
-            // [assembly: RequiresUnsafeAttribute]
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "RequiresUnsafeAttribute").WithArguments("RequiresUnsafeAttribute", "constructor, method, property, indexer, event").WithLocation(3, 12),
-            // (5,39): error CS0592: Attribute 'RequiresUnsafeAttribute' is not valid on this declaration type. It is only valid on 'constructor, method, property, indexer, event' declarations.
-            //     [RequiresUnsafeAttribute] [field: RequiresUnsafeAttribute] int P { get; set; }
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "RequiresUnsafeAttribute").WithArguments("RequiresUnsafeAttribute", "constructor, method, property, indexer, event").WithLocation(5, 39),
-            // (8,39): error CS0592: Attribute 'RequiresUnsafeAttribute' is not valid on this declaration type. It is only valid on 'constructor, method, property, indexer, event' declarations.
-            //     [RequiresUnsafeAttribute] [field: RequiresUnsafeAttribute] event System.Action E1;
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "RequiresUnsafeAttribute").WithArguments("RequiresUnsafeAttribute", "constructor, method, property, indexer, event").WithLocation(8, 39),
-            // (15,20): error CS0592: Attribute 'RequiresUnsafeAttribute' is not valid on this declaration type. It is only valid on 'constructor, method, property, indexer, event' declarations.
-            //     public void M([RequiresUnsafeAttribute] int x) { }
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "RequiresUnsafeAttribute").WithArguments("RequiresUnsafeAttribute", "constructor, method, property, indexer, event").WithLocation(15, 20),
-            // (16,14): error CS0592: Attribute 'RequiresUnsafeAttribute' is not valid on this declaration type. It is only valid on 'constructor, method, property, indexer, event' declarations.
-            //     [return: RequiresUnsafeAttribute] public int Func() => 0;
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "RequiresUnsafeAttribute").WithArguments("RequiresUnsafeAttribute", "constructor, method, property, indexer, event").WithLocation(16, 14),
-            // (17,20): error CS0592: Attribute 'RequiresUnsafeAttribute' is not valid on this declaration type. It is only valid on 'constructor, method, property, indexer, event' declarations.
-            //     public void M<[RequiresUnsafeAttribute] T>() { }
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "RequiresUnsafeAttribute").WithArguments("RequiresUnsafeAttribute", "constructor, method, property, indexer, event").WithLocation(17, 20),
-            // (19,6): error CS0592: Attribute 'RequiresUnsafeAttribute' is not valid on this declaration type. It is only valid on 'constructor, method, property, indexer, event' declarations.
-            //     [RequiresUnsafeAttribute] int F;
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "RequiresUnsafeAttribute").WithArguments("RequiresUnsafeAttribute", "constructor, method, property, indexer, event").WithLocation(19, 6),
-            // (21,2): error CS0592: Attribute 'RequiresUnsafeAttribute' is not valid on this declaration type. It is only valid on 'constructor, method, property, indexer, event' declarations.
-            // [RequiresUnsafeAttribute] delegate void D();
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "RequiresUnsafeAttribute").WithArguments("RequiresUnsafeAttribute", "constructor, method, property, indexer, event").WithLocation(21, 2),
-            // (22,2): error CS0592: Attribute 'RequiresUnsafeAttribute' is not valid on this declaration type. It is only valid on 'constructor, method, property, indexer, event' declarations.
-            // [RequiresUnsafeAttribute] enum E { X }
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "RequiresUnsafeAttribute").WithArguments("RequiresUnsafeAttribute", "constructor, method, property, indexer, event").WithLocation(22, 2));
+            [
+                .. commonDiagnostics,
+                // (3,12): error CS0592: Attribute 'RequiresUnsafeAttribute' is not valid on this declaration type. It is only valid on 'constructor, method, property, indexer, event' declarations.
+                // [assembly: RequiresUnsafeAttribute]
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "RequiresUnsafeAttribute").WithArguments("RequiresUnsafeAttribute", "constructor, method, property, indexer, event").WithLocation(3, 12),
+                // (2,10): error CS0592: Attribute 'RequiresUnsafeAttribute' is not valid on this declaration type. It is only valid on 'constructor, method, property, indexer, event' declarations.
+                // [module: RequiresUnsafeAttribute]
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "RequiresUnsafeAttribute").WithArguments("RequiresUnsafeAttribute", "constructor, method, property, indexer, event").WithLocation(2, 10),
+                // (2,2): error CS0592: Attribute 'RequiresUnsafeAttribute' is not valid on this declaration type. It is only valid on 'constructor, method, property, indexer, event' declarations.
+                // [RequiresUnsafeAttribute] class C
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "RequiresUnsafeAttribute").WithArguments("RequiresUnsafeAttribute", "constructor, method, property, indexer, event").WithLocation(2, 2),
+                // (25,2): error CS0592: Attribute 'RequiresUnsafeAttribute' is not valid on this declaration type. It is only valid on 'constructor, method, property, indexer, event' declarations.
+                // [RequiresUnsafeAttribute] delegate void D();
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "RequiresUnsafeAttribute").WithArguments("RequiresUnsafeAttribute", "constructor, method, property, indexer, event").WithLocation(25, 2),
+                // (26,2): error CS0592: Attribute 'RequiresUnsafeAttribute' is not valid on this declaration type. It is only valid on 'constructor, method, property, indexer, event' declarations.
+                // [RequiresUnsafeAttribute] enum E { X }
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "RequiresUnsafeAttribute").WithArguments("RequiresUnsafeAttribute", "constructor, method, property, indexer, event").WithLocation(26, 2),
+                // (18,20): error CS0592: Attribute 'RequiresUnsafeAttribute' is not valid on this declaration type. It is only valid on 'constructor, method, property, indexer, event' declarations.
+                //     public void M([RequiresUnsafeAttribute] int x) { }
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "RequiresUnsafeAttribute").WithArguments("RequiresUnsafeAttribute", "constructor, method, property, indexer, event").WithLocation(18, 20),
+                // (20,20): error CS0592: Attribute 'RequiresUnsafeAttribute' is not valid on this declaration type. It is only valid on 'constructor, method, property, indexer, event' declarations.
+                //     public void M<[RequiresUnsafeAttribute] T>() { }
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "RequiresUnsafeAttribute").WithArguments("RequiresUnsafeAttribute", "constructor, method, property, indexer, event").WithLocation(20, 20),
+                // (6,13): error CS0592: Attribute 'RequiresUnsafeAttribute' is not valid on this declaration type. It is only valid on 'constructor, method, property, indexer, event' declarations.
+                //     [field: RequiresUnsafeAttribute] int P2 { get; set; }
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "RequiresUnsafeAttribute").WithArguments("RequiresUnsafeAttribute", "constructor, method, property, indexer, event").WithLocation(6, 13),
+                // (10,13): error CS0592: Attribute 'RequiresUnsafeAttribute' is not valid on this declaration type. It is only valid on 'constructor, method, property, indexer, event' declarations.
+                //     [field: RequiresUnsafeAttribute] event System.Action E2;
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "RequiresUnsafeAttribute").WithArguments("RequiresUnsafeAttribute", "constructor, method, property, indexer, event").WithLocation(10, 13),
+                // (19,14): error CS0592: Attribute 'RequiresUnsafeAttribute' is not valid on this declaration type. It is only valid on 'constructor, method, property, indexer, event' declarations.
+                //     [return: RequiresUnsafeAttribute] public int Func() => 0;
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "RequiresUnsafeAttribute").WithArguments("RequiresUnsafeAttribute", "constructor, method, property, indexer, event").WithLocation(19, 14),
+                // (22,6): error CS0592: Attribute 'RequiresUnsafeAttribute' is not valid on this declaration type. It is only valid on 'constructor, method, property, indexer, event' declarations.
+                //     [RequiresUnsafeAttribute] int F;
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "RequiresUnsafeAttribute").WithArguments("RequiresUnsafeAttribute", "constructor, method, property, indexer, event").WithLocation(22, 6),
+            ]);
     }
 }
