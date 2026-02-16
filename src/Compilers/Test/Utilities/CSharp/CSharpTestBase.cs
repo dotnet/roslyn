@@ -694,6 +694,7 @@ namespace System.Runtime.CompilerServices
         protected static readonly string RequiresUnsafeAttributeDefinition = """
             namespace System.Runtime.CompilerServices
             {
+                [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Event | AttributeTargets.Method | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
                 public sealed class RequiresUnsafeAttribute : Attribute { }
             }
             """;
