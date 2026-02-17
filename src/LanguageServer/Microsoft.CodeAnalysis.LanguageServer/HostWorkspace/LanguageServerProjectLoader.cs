@@ -84,8 +84,8 @@ internal abstract class LanguageServerProjectLoader
         /// Represents a project which was forked from the canonical miscellaneous files project (which itself is represented as a <see cref="LoadedTargets"/> instance.)
         /// Forked projects have a full set of standard references, etc., but design-time builds are not performed for them.
         /// </summary>
-        /// <param name="ContainedInCsprojCone">Whether the misc file has a .csproj in the same or a containing directory, or null if not yet determined.</param>
-        public sealed record CanonicalForked(ProjectId ForkedProjectId, bool? ContainedInCsprojCone) : ProjectLoadState;
+        /// <param name="ContainedInCsprojCone">Whether the misc file had a .csproj in the same or containing directory at the time it was opened.</param>
+        public sealed record CanonicalForked(ProjectId ForkedProjectId, bool ContainedInCsprojCone) : ProjectLoadState;
     }
 
     /// <summary>

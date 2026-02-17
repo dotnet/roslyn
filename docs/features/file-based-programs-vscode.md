@@ -75,26 +75,27 @@ This is the decision tree for determining how to classify a C# file:
    - **No** → Classify as **Misc File**
    - **Yes** → Continue to next check
 
-3. **Does the file exist on disk?** (i.e. it is not a "virtual document" created for a new, not-yet-saved file, or similar.)
-   - **Yes** → Go to (3)
-   - **No** → Go to (4)
+3. **Does the file have an absolute path?** (i.e. it represents a file on disk, and it is not a "virtual document" created for a new, not-yet-saved file, or similar.)
+   - **Yes** → Go to (4)
+   - **No** → Go to (5)
 
-3. **Does the file have `#:` or `#!` directives?**
+4. **Does the file have `#:` or `#!` directives?**
    - **Yes** → Classify as **File-Based App**. Restore if needed and show semantic errors.
    - **No** → Continue to next check
 
-4. **Is `enableFileBasedProgramsWhenAmbiguous` enabled?** (default: `false` in release, `true` in prerelease)
+5. **Is `enableFileBasedProgramsWhenAmbiguous` enabled?** (default: `false` in release, `true` in prerelease)
    - **No** → Classify as **Misc File**
    - **Yes** → Continue to heuristic detection
 
 **Heuristic Detection (when `enableFileBasedProgramsWhenAmbiguous: true`):**
 
-5. **Are top-level statements present?**
+6. **Are top-level statements present?**
    - **No** → Classify as **Misc File**
    - **Yes** → Continue to next check
 
-6. **Is the file included in a `.csproj` cone?**
+7. **Is the file included in a `.csproj` cone?**
    - "Cone" means that a containing directory, at some level of nesting, has a `.csproj` file in it.
+   - Note that this specific check is only performed at the time the file is opened. We think that the typical case is that the user will load a new project they are creating. Loading the project will cause the file to start being treated as project-based app per (1). If the user does not load the new project, then stale diagnostics may remain present until the file is closed and re-opened.
    - **Yes** → Classify as **Misc File** (wait for project to load)
    - **No** → Classify as **Misc File w/ Semantic Errors**
 

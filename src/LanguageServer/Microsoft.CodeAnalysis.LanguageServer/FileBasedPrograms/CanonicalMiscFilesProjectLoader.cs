@@ -107,15 +107,8 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
             filePath: documentPath);
 
         var forkedProjectId = ProjectId.CreateNewId(debugName: $"Forked Misc Project for '{documentPath}'");
-
-        bool? containedInCsprojCone = null;
-        var hasAllInformation = false;
-        if (await CalcHasAllInformation_EasyOutAsync(GlobalOptionService, syntaxTree, cancellationToken))
-        {
-            var inCone = CalcIsContainedInCsprojCone(documentPath);
-            hasAllInformation = !inCone;
-            containedInCsprojCone = inCone;
-        }
+        var containedInCsprojCone = CalcIsContainedInCsprojCone(documentPath);
+        var hasAllInformation = await CalcHasAllInformationAsync(containedInCsprojCone, syntaxTree, cancellationToken);
 
         var forkedProjectAttributes = new ProjectInfo.ProjectAttributes(
             newDocumentInfo.Id.ProjectId,
@@ -145,7 +138,7 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
         {
             workspace.OnProjectAdded(forkedProjectInfo);
         }, cancellationToken);
-        loadedProjects[documentPath] = new ProjectLoadState.CanonicalForked(forkedProjectInfo.Id, containedInCsprojCone);
+        loadedProjects.Add(documentPath, new ProjectLoadState.CanonicalForked(forkedProjectInfo.Id, containedInCsprojCone));
 
         var miscWorkspace = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace;
         var addedDocument = miscWorkspace.CurrentSolution.GetRequiredDocument(newDocumentInfo.Id);
@@ -162,36 +155,11 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
         }
     }
 
-    internal async Task<bool?> GetHasAllInformation_IncrementalAsync(IGlobalOptionService globalOptionService, SyntaxTree tree, CancellationToken cancellationToken)
+    private async ValueTask<bool> CalcHasAllInformationAsync(bool isInCsprojCone, SyntaxTree tree, CancellationToken cancellationToken)
     {
-        return await ExecuteUnderGateAsync(async loadedProjects =>
-        {
-            // Note: caller is making a decision on whether to unload a project.
-            // If the forked project isn't even fully loaded yet, then, give a null back to indicate they should not unload, so the project has an opportunity to finish loading.
-            if (!loadedProjects.TryGetValue(tree.FilePath, out var loadState) || loadState is not ProjectLoadState.CanonicalForked forkedState)
-            {
-                return (bool?)null;
-            }
-
-            if (!await CalcHasAllInformation_EasyOutAsync(globalOptionService, tree, cancellationToken))
-                return false;
-
-            if (forkedState.ContainedInCsprojCone is null)
-            {
-                var containedInCsprojCone = CalcIsContainedInCsprojCone(tree.FilePath);
-                loadedProjects[tree.FilePath] = forkedState = forkedState with { ContainedInCsprojCone = containedInCsprojCone };
-            }
-
-            var hasAllInformation = !forkedState.ContainedInCsprojCone.GetValueOrDefault();
-            return hasAllInformation;
-        }, cancellationToken);
-    }
-
-    /// <summary>Check if HasAllInformation should be enabled in a file. Includes only checks which are cheap, i.e. we are OK with performing on keystroke+delay.</summary>
-    private static async Task<bool> CalcHasAllInformation_EasyOutAsync(IGlobalOptionService globalOptionService, SyntaxTree tree, CancellationToken cancellationToken)
-    {
-        if (!globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms)
-            || !globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedProgramsWhenAmbiguous))
+        if (isInCsprojCone
+            || !GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms)
+            || !GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedProgramsWhenAmbiguous))
         {
             return false;
         }
@@ -203,24 +171,15 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
         return compilationUnit.Members.Any(SyntaxKind.GlobalStatement);
     }
 
-    internal async ValueTask ClearCsprojInConeInfoAsync(string containingDirectory)
+    internal async ValueTask<bool> GetHasAllInformationAsync(SyntaxTree tree, CancellationToken cancellationToken)
     {
-        _ = await ExecuteUnderGateAsync(async loadedProjects =>
+        return await ExecuteUnderGateAsync(async loadedProjects =>
         {
-            foreach (var (path, loadState) in loadedProjects)
-            {
-                if (loadState is not ProjectLoadState.CanonicalForked forkedState
-                    || !PathUtilities.IsSameDirectoryOrChildOf(child: path, parent: containingDirectory))
-                {
-                    continue;
-                }
+            if (!loadedProjects.TryGetValue(tree.FilePath, out var loadState) || loadState is not ProjectLoadState.CanonicalForked forkedState)
+                return false;
 
-                // Note: .NET supports overwriting dictionary entries while enumerating
-                loadedProjects[path] = forkedState with { ContainedInCsprojCone = null };
-            }
-
-            return (object?)null;
-        }, CancellationToken.None);
+            return await CalcHasAllInformationAsync(forkedState.ContainedInCsprojCone, tree, cancellationToken);
+        }, cancellationToken);
     }
 
     /// <summary>
@@ -233,10 +192,8 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
     /// 1. File has top-level statements, and
     /// 2. File is not contained in a .csproj cone
     ///
-    /// We want to minimize the amount of work we do incrementally to keep track of this information. Therefore:
-    /// - We handle a possible change in (1) by doing a check on the latest syntax tree.
-    /// - We handle a possible change in (2) by unloading and reloading relevant forked canonical project(s).
-    /// Therefore this is the only place we want to actually do the work to determine (2).
+    /// This is only checked when a document is initially opened.
+    /// In cases where a new csproj is dropped onto disk, the user will typically load the project, which will cause any kind of misc project for this file to unload.
     /// </remarks>
     internal bool CalcIsContainedInCsprojCone(string csFilePath)
     {
@@ -244,16 +201,16 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
         if (WorkspaceFoldersOpt.IsDefaultOrEmpty)
             return false;
 
+        // When the path is not absolute (for virtual documents, etc), we can't perform this search.
+        // Optimistically assume there is no csproj in cone.
+        if (!PathUtilities.IsAbsolute(csFilePath))
+            return false;
+
         // Precondition: opened workspace folder paths, have already been deduplicated to remove folders in the same hierarchy.
         // e.g. 'workspaceFolderPaths' will not contain both `C:\src\roslyn`, and `C:\src\roslyn\docs`.
         var containingWorkspacePath = WorkspaceFoldersOpt.FirstOrDefault(
             (workspacePath, csFilePath) => PathUtilities.IsSameDirectoryOrChildOf(child: csFilePath, parent: workspacePath), arg: csFilePath);
         if (containingWorkspacePath is null)
-            return false;
-
-        // When the path is not absolute (for virtual documents, etc), we can't perform this search.
-        // Optimistically assume there is no csproj in cone.
-        if (!PathUtilities.IsAbsolute(csFilePath))
             return false;
 
         var directoryName = PathUtilities.GetDirectoryName(csFilePath);

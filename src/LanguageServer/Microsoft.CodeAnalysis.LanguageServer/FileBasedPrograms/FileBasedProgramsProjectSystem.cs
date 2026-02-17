@@ -29,8 +29,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     private readonly ILogger<FileBasedProgramsProjectSystem> _logger;
     private readonly VirtualProjectXmlProvider _projectXmlProvider;
     private readonly CanonicalMiscFilesProjectLoader _canonicalMiscFilesLoader;
-    private readonly IFileChangeWatcher _fileChangeWatcher;
-    private IFileChangeContext? _csprojWatcher;
 
     public FileBasedProgramsProjectSystem(
         ILspServices lspServices,
@@ -56,7 +54,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 dotnetCliHelper)
     {
         _lspServices = lspServices;
-        _fileChangeWatcher = fileChangeWatcher;
         _logger = loggerFactory.CreateLogger<FileBasedProgramsProjectSystem>();
         _projectXmlProvider = projectXmlProvider;
         _canonicalMiscFilesLoader = new CanonicalMiscFilesProjectLoader(
@@ -77,7 +74,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     {
         _canonicalMiscFilesLoader.Dispose();
         GlobalOptionService.RemoveOptionChangedHandler(this, OnGlobalOptionChanged);
-        _csprojWatcher?.Dispose();
     }
 
     private void OnGlobalOptionChanged(object sender, object target, OptionChangedEventArgs args)
@@ -104,29 +100,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 _logger.LogInformation($"Detected enableFileBasedPrograms changed to '{value}'. Unloading loose file projects.");
                 await UnloadAllProjectsAsync();
                 await _canonicalMiscFilesLoader.UnloadAllProjectsAsync();
-            }
-            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
-        }
-    }
-
-    private void OnCsprojFileChanged(object? sender, string changedFile)
-    {
-        Contract.ThrowIfFalse(PathUtilities.IsAbsolute(changedFile));
-        if (PathUtilities.GetExtension(changedFile) != ".csproj")
-            return;
-
-        var directoryName = PathUtilities.GetDirectoryName(changedFile);
-        _ = HandleCsprojFileChangedAsync(directoryName);
-
-        async Task HandleCsprojFileChangedAsync(string directoryName)
-        {
-            using var token = Listener.BeginAsyncOperation(nameof(HandleCsprojFileChangedAsync));
-            try
-            {
-                await _canonicalMiscFilesLoader.ClearCsprojInConeInfoAsync(directoryName);
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
             {
@@ -162,7 +135,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 && textDocument is Document document
                 && await document.GetSyntaxTreeAsync(cancellationToken) is { } syntaxTree)
             {
-                if (await _canonicalMiscFilesLoader.GetHasAllInformation_IncrementalAsync(GlobalOptionService, syntaxTree, cancellationToken) is bool newHasAllInformation
+                if (await _canonicalMiscFilesLoader.GetHasAllInformationAsync(syntaxTree, cancellationToken) is bool newHasAllInformation
                     && newHasAllInformation != document.Project.State.HasAllInformation)
                 {
                     // TODO: replace this method and the call site in LspWorkspaceManager,
@@ -300,16 +273,10 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
     public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfFalse(_csprojWatcher == null, "This should be the first notification which can possibly initialize _csprojWatcher");
         var initializeManager = context.GetRequiredService<IInitializeManager>();
         if (initializeManager.TryGetInitializeParams() is { WorkspaceFolders: [_, ..] nonEmptyWorkspaceFolders })
         {
             var nonOverlappingWorkspacePaths = getNonOverlappingFolderPaths(nonEmptyWorkspaceFolders);
-
-            // TODO2: handle 'workspace/didChangeWorkspaceFolders'
-            _csprojWatcher = _fileChangeWatcher.CreateContext(
-                nonOverlappingWorkspacePaths.SelectAsArray(path => new WatchedDirectory(path, extensionFilters: [".csproj"])));
-            _csprojWatcher.FileChanged += OnCsprojFileChanged;
             _canonicalMiscFilesLoader.WorkspaceFoldersOpt = nonOverlappingWorkspacePaths;
         }
 
