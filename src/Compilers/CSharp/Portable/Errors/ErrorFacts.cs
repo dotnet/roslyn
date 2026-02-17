@@ -84,6 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor));
 
             nullableWarnings.Add(GetId(ErrorCode.WRN_UninitializedNonNullableBackingField));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_UninitializedNonNullableEvent));
 
             NullableWarnings = nullableWarnings.ToImmutable();
         }
@@ -568,6 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_PartialMemberSignatureDifference:
                 case ErrorCode.WRN_FieldIsAmbiguous:
                 case ErrorCode.WRN_UninitializedNonNullableBackingField:
+                case ErrorCode.WRN_UninitializedNonNullableEvent:
                 case ErrorCode.WRN_AccessorDoesNotUseBackingField:
                 case ErrorCode.WRN_UnscopedRefAttributeOldRules:
                 case ErrorCode.WRN_RedundantPattern:
@@ -2477,6 +2479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember
                 or ErrorCode.ERR_PartialPropertyDuplicateInitializer
                 or ErrorCode.WRN_UninitializedNonNullableBackingField
+                or ErrorCode.WRN_UninitializedNonNullableEvent
                 or ErrorCode.WRN_UnassignedInternalRefField
                 or ErrorCode.WRN_AccessorDoesNotUseBackingField
                 or ErrorCode.ERR_IteratorRefLikeElementType

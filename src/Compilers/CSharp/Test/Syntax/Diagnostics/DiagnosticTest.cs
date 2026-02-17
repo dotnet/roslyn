@@ -424,6 +424,7 @@ class X
                         case ErrorCode.INF_TooManyBoundLambdas:
                         case ErrorCode.WRN_FieldIsAmbiguous:
                         case ErrorCode.WRN_UninitializedNonNullableBackingField:
+                        case ErrorCode.WRN_UninitializedNonNullableEvent:
                         case ErrorCode.WRN_AccessorDoesNotUseBackingField:
                         case ErrorCode.WRN_RedundantPattern:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));

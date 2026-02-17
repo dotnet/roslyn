@@ -5800,6 +5800,16 @@
         <target state="translated">La propiedad que admite valores NULL debe contener un valor que no sea null al salir del constructor. Considere agregar el modificador “required”, declarar la propiedad como que no acepta valores null o manejar de forma segura el caso en que “field” sea null en el accesor “get”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableEvent">
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</source>
+        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableEvent_Title">
+        <source>Non-nullable event must contain a non-null value when exiting constructor. Consider declaring the event as nullable.</source>
+        <target state="new">Non-nullable event must contain a non-null value when exiting constructor. Consider declaring the event as nullable.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the {0} as nullable.</source>
         <target state="translated">El elemento {0} "{1}" que no acepta valores NULL debe contener un valor distinto de NULL al salir del constructor. Considere la posibilidad de agregar el modificador "required'"o declarar el {0} como un valor que acepta valores NULL.</target>

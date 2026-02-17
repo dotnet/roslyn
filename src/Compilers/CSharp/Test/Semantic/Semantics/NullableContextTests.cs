@@ -1124,9 +1124,9 @@ class Program
     static event D E2;
 }";
             verify(source, expectedAnalyzedKeys: new[] { ".cctor" },
-                // (8,20): warning CS8618: Non-nullable event 'E2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the event as nullable.
+                // (8,20): warning CS9360: Non-nullable event 'E2' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //     static event D E2;
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E2").WithArguments("event", "E2").WithLocation(8, 20));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "E2").WithArguments("event", "E2").WithLocation(8, 20));
 
             source =
 @"#pragma warning disable 67
@@ -1139,9 +1139,9 @@ class Program
     static event D E2;
 }";
             verify(source, expectedAnalyzedKeys: new[] { ".ctor" },
-                // (6,13): warning CS8618: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the event as nullable.
+                // (6,13): warning CS9360: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
                 //     event D E1;
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E1").WithArguments("event", "E1").WithLocation(6, 13));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableEvent, "E1").WithArguments("event", "E1").WithLocation(6, 13));
 
             static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
