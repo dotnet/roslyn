@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _allCapturedVariables = allCapturedVars.ToImmutable();
 
             var deferrableCaptured = ImmutableHashSet.CreateBuilder<Symbol>();
-            _deferredEnvironmentsByLocalFunction = new Dictionary<MethodSymbol, Analysis.ClosureEnvironment>(SymbolEqualityComparer.ConsiderEverything);
+            _deferredEnvironmentsByLocalFunction = new Dictionary<MethodSymbol, Analysis.ClosureEnvironment>(ReferenceEqualityComparer.Instance);
             Analysis.VisitScopeTree(analysis.ScopeTree, scope =>
             {
                 if (scope.DeclaredEnvironment is not { IsDeferrable: true } env)
@@ -235,7 +235,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private bool TryGetDeferredEnvironment(MethodSymbol localFunction, out Analysis.ClosureEnvironment environment)
-            => _deferredEnvironmentsByLocalFunction.TryGetValue(localFunction.OriginalDefinition, out environment);
+        {
+            if (_deferredEnvironmentsByLocalFunction.TryGetValue(localFunction.OriginalDefinition, out var deferredEnvironment))
+            {
+                environment = deferredEnvironment;
+                return true;
+            }
+
+            environment = null!;
+            return false;
+        }
 
         private void CopyCapturedVariableToFrame(SyntaxNode syntax, Symbol symbol, LocalSymbol framePointer, ArrayBuilder<BoundExpression> prologue)
         {
@@ -274,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 static (frameType, arg) => new BoundLocal(arg.syntax, arg.framePointer, null, arg.framePointer.Type),
                 (syntax, framePointer));
 
-            prologue.Add(new BoundAssignmentOperator(syntax, left, value, value.Type));
+            prologue.Add(new BoundAssignmentOperator(syntax, left, value, value.Type!));
         }
 
         private BoundSequence CreateDeferredFrameInitializationSequence(BoundExpression expression, Analysis.ClosureEnvironment env)
@@ -304,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<LocalSymbol>.Empty,
                 sideEffects.ToImmutableAndFree(),
                 expression,
-                expression.Type);
+                expression.Type!);
         }
 
         private sealed class DeferredCapturedToFrameSymbolReplacement : CapturedSymbolReplacement
@@ -351,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var frame = makeFrame(HoistedField.ContainingType, arg);
-                var field = HoistedField.AsMember((NamedTypeSymbol)frame.Type);
+                var field = HoistedField.AsMember((NamedTypeSymbol)frame.Type!);
                 return new BoundFieldAccess(node, frame, field, constantValueOpt: null);
             }
         }
