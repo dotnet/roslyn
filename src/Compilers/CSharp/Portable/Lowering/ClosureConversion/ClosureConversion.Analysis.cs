@@ -805,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override BoundNode VisitCall(BoundCall node)
                 {
                     if (node.Method.MethodKind == MethodKind.LocalFunction &&
-                        SymbolEqualityComparer.ConsiderEverything.Equals(node.Method.OriginalDefinition, _targetLocalFunction))
+                        ReferenceEquals(node.Method.OriginalDefinition, _targetLocalFunction))
                     {
                         _targetCallCount++;
                         _sawCall = true;
@@ -832,7 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return expression is BoundCall call &&
                         call.Method.MethodKind == MethodKind.LocalFunction &&
-                        SymbolEqualityComparer.ConsiderEverything.Equals(call.Method.OriginalDefinition, _targetLocalFunction);
+                        ReferenceEquals(call.Method.OriginalDefinition, _targetLocalFunction);
                 }
 
                 private static bool IsWithinLoopSyntax(SyntaxNode syntax)

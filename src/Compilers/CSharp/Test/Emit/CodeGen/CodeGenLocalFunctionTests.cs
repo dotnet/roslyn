@@ -6523,7 +6523,7 @@ class Program
 """;
 
             var verifier = CompileAndVerify(source, expectedOutput: "5");
-            var methodName = verifier.TestData.GetMethodsByName().Keys.Single(name => name.StartsWith("Program.M", StringComparison.Ordinal));
+            var methodName = verifier.TestData.GetMethodsByName().Keys.Single(name => name.StartsWith("Program.M<", StringComparison.Ordinal));
             var il = verifier.VisualizeIL(methodName);
 
             int checkIndex = il.IndexOf("get_IsCompleted()", StringComparison.Ordinal);
