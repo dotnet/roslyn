@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -156,6 +156,13 @@ namespace Microsoft.CodeAnalysis
 
         private readonly bool _hasGlobalFileName;
 
+        /// <param name="pathToFile">
+        /// The drive-rooted absolute path to the .editorconfig file.
+        /// 
+        /// In the compiler, this is already OS-normalized (on Windows separators and relative segments are resolved, but NOT casing)
+        /// by <see cref="CommonCompiler.TryGetAnalyzerConfigSet" /> via <see cref="StandardFileSystem.OpenFileEx" />
+        /// which reads the canonical path from <see cref="FileStream.Name" />.
+        /// </param>
         private AnalyzerConfig(
             Section globalSection,
             ImmutableArray<Section> namedSections,
@@ -163,18 +170,16 @@ namespace Microsoft.CodeAnalysis
         {
             GlobalSection = globalSection;
             NamedSections = namedSections;
-            // Only the drive letter is normalized — the rest of the path casing is
-            // preserved intentionally. See PathUtilities.NormalizeDriveLetter remarks.
-            PathToFile = PathUtilities.NormalizeDriveLetter(pathToFile);
+            // Only the drive letter is normalized here on Windows - the rest of the path is already
+            // OS-normalized by the caller (see pathToFile param docs above).
+            PathToFile = pathToFile = PathUtilities.NormalizeDriveLetter(pathToFile);
             _hasGlobalFileName = Path.GetFileName(pathToFile).Equals(UserGlobalConfigName, StringComparison.OrdinalIgnoreCase);
 
-            // Find the containing directory and run it through the same normalization
-            // pipeline used for source paths in AnalyzerConfigSet.GetOptionsForSourcePath,
-            // so that ordinal comparison between the two is correct.
+            // Find the containing directory and normalize backslashes to forward slashes.
+            // The path is already OS-normalized by the caller; this just ensures the
+            // editorconfig-spec-required '/' separator.
             string directory = Path.GetDirectoryName(pathToFile) ?? pathToFile;
-            var normalizedDirectory = PathUtilities.CollapseWithForwardSlash(directory.AsSpan());
-            normalizedDirectory = PathUtilities.ExpandAbsolutePathWithRelativeParts(normalizedDirectory);
-            NormalizedDirectory = PathUtilities.NormalizeDriveLetter(normalizedDirectory);
+            NormalizedDirectory = PathUtilities.NormalizeWithForwardSlash(directory);
         }
 
         /// <summary>
@@ -269,7 +274,7 @@ namespace Microsoft.CodeAnalysis
                 // No-op for glob patterns like [*.cs] since they aren't drive-rooted absolute paths.
                 // Note: unlike NormalizedDirectory, section names are NOT run through the full
                 // normalization pipeline (CollapseWithForwardSlash / ExpandAbsolutePathWithRelativeParts)
-                // used for source paths. Only drive letter normalization is applied here.
+                // used for source paths. Only drive letter normalization is applied here on Windows.
                 var sectionName = PathUtilities.NormalizeDriveLetter(activeSectionName);
 
                 // Close out the previous section

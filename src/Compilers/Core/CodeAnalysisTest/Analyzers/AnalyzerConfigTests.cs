@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -211,15 +211,6 @@ build_metadata.compile.toretrieve = def456
 
             var options = configSet.GetOptionsForSourcePath(@"C:\Repo\src\shared\Foo.cs");
             Assert.Equal("my_val", options.AnalyzerOptions["my_prop"]);
-        }
-
-        [ConditionalFact(typeof(WindowsOnly))]
-        public void WindowsPath_NormalizedDirectoryIsFullyNormalized()
-        {
-            var config = Parse("", @"C:\Repo\\Src\..\Src/Shared\.editorconfig");
-
-            // Should be collapsed and expanded, but casing is preserved (case-sensitive by design)
-            Assert.Equal("C:/Repo/Src/Shared", config.NormalizedDirectory);
         }
 
         [Fact]
