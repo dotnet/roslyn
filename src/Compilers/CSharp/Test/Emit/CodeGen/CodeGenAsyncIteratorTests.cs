@@ -11930,5 +11930,76 @@ static class Test1
                 }
                 """);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39814")]
+        public void AsyncIterator_ForLoopWithAwaitAndYield_UsesTwoLevelLoopDispatch()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class C
+{
+    static async IAsyncEnumerable<int> M()
+    {
+        for (int i = 0; i < 2; i++)
+        {
+            await Task.CompletedTask;
+            yield return i;
+        }
+    }
+
+    static async Task Main()
+    {
+        await foreach (var i in M())
+        {
+            Console.Write(i);
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("01"));
+            var il = verifier.VisualizeIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
+            Assert.True(StateDispatchILCounter.CountStateDispatchChecks(il) >= 2, il);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39814")]
+        public void AsyncIterator_WhileLoopWithAwaitAndYield_UsesTwoLevelLoopDispatch()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class C
+{
+    static async IAsyncEnumerable<int> M()
+    {
+        int i = 0;
+        while (i < 2)
+        {
+            await Task.CompletedTask;
+            yield return i++;
+        }
+    }
+
+    static async Task Main()
+    {
+        await foreach (var i in M())
+        {
+            Console.Write(i);
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("01"));
+            var il = verifier.VisualizeIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
+            Assert.True(StateDispatchILCounter.CountStateDispatchChecks(il) >= 2, il);
+        }
     }
 }

@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -39,6 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         }
 
         private static string ReturnValueMissing(string method, string offset) => $$"""[{{method}}]: Return value missing on the stack. { Offset = {{offset}} }""";
+
+        private static int CountImmediateBrFalseStateDispatches(string il)
+            => StateDispatchILCounter.CountStateDispatchChecks(il);
 
         [Fact]
         public void StructVsClass()
@@ -7200,6 +7204,512 @@ namespace Test
   IL_00a9:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00ae:  ret
 }");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39814")]
+        public void AsyncForLoopAwait_UsesTwoLevelLoopDispatch()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+namespace Test
+{
+    class Program
+    {
+        public static void Main()
+        {
+            System.Console.Write(M().Result);
+        }
+
+        public static async Task<int> M()
+        {
+            int sum = 0;
+            for (int i = 0; i < 2; i++)
+            {
+                await Task.CompletedTask;
+                sum++;
+            }
+
+            return sum;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "2");
+
+            var il = verifier.VisualizeIL("Test.Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
+            Assert.True(CountImmediateBrFalseStateDispatches(il) >= 2, il);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39814")]
+        public void AsyncWhileLoopAwait_UsesTwoLevelLoopDispatch()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+namespace Test
+{
+    class Program
+    {
+        public static void Main()
+        {
+            System.Console.Write(M().Result);
+        }
+
+        public static async Task<int> M()
+        {
+            int i = 0;
+            while (i < 2)
+            {
+                await Task.CompletedTask;
+                i++;
+            }
+
+            return i;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "2");
+
+            var il = verifier.VisualizeIL("Test.Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
+            Assert.True(CountImmediateBrFalseStateDispatches(il) >= 2, il);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39814")]
+        public void AsyncDoWhileLoopAwait_UsesTwoLevelLoopDispatch()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+namespace Test
+{
+    class Program
+    {
+        public static void Main()
+        {
+            System.Console.Write(M().Result);
+        }
+
+        public static async Task<int> M()
+        {
+            int i = 0;
+            do
+            {
+                await Task.CompletedTask;
+                i++;
+            }
+            while (i < 2);
+
+            return i;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "2");
+
+            var il = verifier.VisualizeIL("Test.Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
+            Assert.True(CountImmediateBrFalseStateDispatches(il) >= 2, il);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39814")]
+        public void AsyncForeachArrayLoopAwait_UsesTwoLevelLoopDispatch()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+namespace Test
+{
+    class Program
+    {
+        public static void Main()
+        {
+            System.Console.Write(M().Result);
+        }
+
+        public static async Task<int> M()
+        {
+            int sum = 0;
+            foreach (var i in new[] { 1, 2 })
+            {
+                await Task.CompletedTask;
+                sum += i;
+            }
+
+            return sum;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "3");
+
+            var il = verifier.VisualizeIL("Test.Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
+            Assert.True(CountImmediateBrFalseStateDispatches(il) >= 2, il);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39814")]
+        public void AsyncForeachEnumeratorLoopAwait_UsesTwoLevelLoopDispatch()
+        {
+            var source = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace Test
+{
+    class Program
+    {
+        public static void Main()
+        {
+            System.Console.Write(M().Result);
+        }
+
+        public static async Task<int> M()
+        {
+            int sum = 0;
+            foreach (var i in new List<int> { 1, 2 })
+            {
+                await Task.CompletedTask;
+                sum += i;
+            }
+
+            return sum;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "3");
+
+            var il = verifier.VisualizeIL("Test.Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
+            Assert.True(CountImmediateBrFalseStateDispatches(il) >= 3, il);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39814")]
+        public void AsyncForLoopWithInnerLocalsAwait_UsesTwoLevelLoopDispatch()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+namespace Test
+{
+    class Program
+    {
+        public static void Main()
+        {
+            System.Console.Write(M().Result);
+        }
+
+        public static async Task<int> M()
+        {
+            int sum = 0;
+            for (int i = 0; i < 2 && int.TryParse(""1"", out var parsed); i++)
+            {
+                await Task.CompletedTask;
+                sum += parsed;
+            }
+
+            return sum;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "2");
+
+            var il = verifier.VisualizeIL("Test.Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
+            Assert.True(CountImmediateBrFalseStateDispatches(il) >= 2, il);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39814")]
+        public void AsyncLoopWithMultipleAwaits_UsesTwoLevelLoopDispatch()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+namespace Test
+{
+    class Program
+    {
+        public static void Main()
+        {
+            System.Console.Write(M().Result);
+        }
+
+        public static async Task<int> M()
+        {
+            int sum = 0;
+            for (int i = 0; i < 2; i++)
+            {
+                await Task.CompletedTask;
+                await Task.CompletedTask;
+                sum++;
+            }
+
+            return sum;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "2");
+
+            var il = verifier.VisualizeIL("Test.Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
+            Assert.True(CountImmediateBrFalseStateDispatches(il) >= 2, il);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39814")]
+        public void AsyncLoopWithBreakAndContinueAwait_UsesTwoLevelLoopDispatch()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+namespace Test
+{
+    class Program
+    {
+        public static void Main()
+        {
+            System.Console.Write(M().Result);
+        }
+
+        public static async Task<int> M()
+        {
+            int sum = 0;
+            for (int i = 0; i < 4; i++)
+            {
+                if ((i % 2) == 0)
+                {
+                    await Task.CompletedTask;
+                    continue;
+                }
+
+                await Task.CompletedTask;
+                if (i == 3)
+                {
+                    break;
+                }
+
+                sum++;
+            }
+
+            return sum;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "1");
+
+            var il = verifier.VisualizeIL("Test.Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
+            Assert.True(CountImmediateBrFalseStateDispatches(il) >= 2, il);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39814")]
+        public void AsyncLoopWithGotoOutsideAwait_UsesTwoLevelLoopDispatch()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+namespace Test
+{
+    class Program
+    {
+        public static void Main()
+        {
+            System.Console.Write(M().Result);
+        }
+
+        public static async Task<int> M()
+        {
+            int sum = 0;
+            for (int i = 0; i < 3; i++)
+            {
+                await Task.CompletedTask;
+                if (i == 1)
+                {
+                    goto done;
+                }
+
+                sum++;
+            }
+
+        done:
+            return sum;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "1");
+
+            var il = verifier.VisualizeIL("Test.Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
+            Assert.True(CountImmediateBrFalseStateDispatches(il) >= 2, il);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39814")]
+        public void AsyncNestedLoopsAwait_ComposesLoopDispatch()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+namespace Test
+{
+    class Program
+    {
+        public static void Main()
+        {
+            System.Console.Write(M().Result);
+        }
+
+        public static async Task<int> M()
+        {
+            int sum = 0;
+            for (int i = 0; i < 2; i++)
+            {
+                for (int j = 0; j < 2; j++)
+                {
+                    await Task.CompletedTask;
+                    sum++;
+                }
+            }
+
+            return sum;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "4");
+
+            var il = verifier.VisualizeIL("Test.Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
+            Assert.True(CountImmediateBrFalseStateDispatches(il) >= 3, il);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39814")]
+        public void AsyncLoopInsideTryAwait_ComposesTryAndLoopDispatch()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+namespace Test
+{
+    class Program
+    {
+        public static void Main()
+        {
+            System.Console.Write(M().Result);
+        }
+
+        public static async Task<int> M()
+        {
+            int sum = 0;
+            try
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    await Task.CompletedTask;
+                    sum++;
+                }
+            }
+            catch
+            {
+                sum = -1;
+            }
+
+            return sum;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "2");
+
+            var il = verifier.VisualizeIL("Test.Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
+            Assert.True(CountImmediateBrFalseStateDispatches(il) >= 3, il);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39814")]
+        public void AsyncTryInsideLoopAwait_ComposesTryAndLoopDispatch()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+namespace Test
+{
+    class Program
+    {
+        public static void Main()
+        {
+            System.Console.Write(M().Result);
+        }
+
+        public static async Task<int> M()
+        {
+            int sum = 0;
+            for (int i = 0; i < 2; i++)
+            {
+                try
+                {
+                    await Task.CompletedTask;
+                    sum++;
+                }
+                catch
+                {
+                    sum = -1;
+                }
+            }
+
+            return sum;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "2");
+
+            var il = verifier.VisualizeIL("Test.Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
+            Assert.True(CountImmediateBrFalseStateDispatches(il) >= 3, il);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39814")]
+        public void AsyncLoopWithoutAwait_DoesNotAddLoopDispatch()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+namespace Test
+{
+    class Program
+    {
+        public static void Main()
+        {
+            System.Console.Write(M().Result);
+        }
+
+        public static async Task<int> M()
+        {
+            int sum = 0;
+            for (int i = 0; i < 2; i++)
+            {
+                sum++;
+            }
+
+            await Task.CompletedTask;
+            return sum;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "2");
+
+            var il = verifier.VisualizeIL("Test.Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
+            Assert.Equal(1, CountImmediateBrFalseStateDispatches(il));
         }
 
         [Fact, WorkItem(25991, "https://github.com/dotnet/roslyn/issues/25991")]

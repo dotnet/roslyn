@@ -245,7 +245,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Generates code that switches over states and jumps to the target labels listed in <see cref="_dispatches"/>.
         /// </summary>
         /// <param name="isOutermost">
-        /// If this is the outermost state dispatch switching over all states of the state machine - i.e. not state dispatch generated for a try-block.
+        /// If this is the outermost state dispatch switching over all states of the state machine - i.e. not state dispatch generated for nested regions
+        /// such as try blocks or lowered loop regions.
         /// </param>
         protected BoundStatement Dispatch(bool isOutermost)
         {
@@ -529,7 +530,237 @@ namespace Microsoft.CodeAnalysis.CSharp
                 instrumentation = (BoundBlockInstrumentation)Visit(node.Instrumentation);
             }
 
-            return PossibleIteratorScope(node.Locals, () => VisitBlock(node, removeInstrumentation: true));
+            return PossibleIteratorScope(node.Locals, () => VisitBlockWithLoopDispatch(node, removeInstrumentation: true));
+        }
+
+        private BoundBlock VisitBlockWithLoopDispatch(BoundBlock node, bool removeInstrumentation)
+        {
+            // Note: Instrumentation variable is intentionally not rewritten. It should never be lifted.
+            var newLocals = this.VisitLocals(node.Locals);
+            var newLocalFunctions = this.VisitDeclaredLocalFunctions(node.LocalFunctions);
+            var newStatements = VisitListWithLoopDispatch(node.Statements);
+            var newInstrumentation = removeInstrumentation ? null : (BoundBlockInstrumentation?)Visit(node.Instrumentation);
+            return node.Update(newLocals, newLocalFunctions, node.HasUnsafeModifier, newInstrumentation, newStatements);
+        }
+
+        public override BoundNode VisitStatementList(BoundStatementList node)
+        {
+            return node.Update(VisitListWithLoopDispatch(node.Statements));
+        }
+
+        private ImmutableArray<BoundStatement> VisitListWithLoopDispatch(ImmutableArray<BoundStatement> statements)
+        {
+            if (statements.IsEmpty)
+            {
+                return statements;
+            }
+
+            var rewritten = ArrayBuilder<BoundStatement>.GetInstance();
+            for (int i = 0; i < statements.Length; i++)
+            {
+                if (TryGetLoweredLoopRegion(statements, i, out int loopEnd, out LabelSymbol loopEntryLabel))
+                {
+                    VisitLoweredLoopRegion(statements, i, loopEnd, loopEntryLabel, rewritten);
+                    i = loopEnd;
+                    continue;
+                }
+
+                var rewrittenStatement = (BoundStatement)Visit(statements[i]);
+                if (rewrittenStatement != null)
+                {
+                    rewritten.Add(rewrittenStatement);
+                }
+            }
+
+            return rewritten.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Rewrites a lowered loop region using a two-level dispatch:
+        /// outer dispatch -> loop dispatch label -> loop-header inner dispatch -> resume label.
+        /// This mirrors try-dispatch logic and avoids direct state dispatch into a loop body.
+        /// </summary>
+        private void VisitLoweredLoopRegion(
+            ImmutableArray<BoundStatement> statements,
+            int loopStart,
+            int loopEnd,
+            LabelSymbol loopEntryLabel,
+            ArrayBuilder<BoundStatement> rewrittenStatements)
+        {
+            var oldDispatches = _dispatches;
+            _dispatches = null;
+
+            var rewrittenLoopRegionBuilder = ArrayBuilder<BoundStatement>.GetInstance();
+            for (int i = loopStart; i <= loopEnd; i++)
+            {
+                var rewrittenStatement = (BoundStatement)Visit(statements[i]);
+                if (rewrittenStatement != null)
+                {
+                    rewrittenLoopRegionBuilder.Add(rewrittenStatement);
+                }
+            }
+
+            var rewrittenLoopRegion = rewrittenLoopRegionBuilder.ToImmutableAndFree();
+            GeneratedLabelSymbol loopDispatchLabel = null;
+            if (_dispatches != null)
+            {
+                int loopEntryIndex = FindLoopEntryIndex(rewrittenLoopRegion, loopEntryLabel);
+                Debug.Assert(loopEntryIndex >= 0, "Expected to preserve lowered loop entry label through rewriting.");
+                loopDispatchLabel = F.GenerateLabel("loopDispatch");
+
+                var rewrittenLoopRegionWithDispatchBuilder = ArrayBuilder<BoundStatement>.GetInstance();
+                if (loopEntryIndex < 0)
+                {
+                    // Fallback for unexpected rewrites that remove the tracked label:
+                    // place dispatch at region start rather than dropping the inner dispatch.
+                    // Since loopEntryIndex is negative, the loop below will not add a second dispatch.
+                    rewrittenLoopRegionWithDispatchBuilder.Add(F.HiddenSequencePoint());
+                    rewrittenLoopRegionWithDispatchBuilder.Add(Dispatch(isOutermost: false));
+                }
+
+                for (int i = 0; i < rewrittenLoopRegion.Length; i++)
+                {
+                    rewrittenLoopRegionWithDispatchBuilder.Add(rewrittenLoopRegion[i]);
+
+                    if (i == loopEntryIndex)
+                    {
+                        rewrittenLoopRegionWithDispatchBuilder.Add(F.HiddenSequencePoint());
+                        rewrittenLoopRegionWithDispatchBuilder.Add(Dispatch(isOutermost: false));
+                    }
+                }
+
+                rewrittenLoopRegion = rewrittenLoopRegionWithDispatchBuilder.ToImmutableAndFree();
+
+                oldDispatches ??= new Dictionary<LabelSymbol, List<StateMachineState>>();
+                oldDispatches.Add(loopDispatchLabel, new List<StateMachineState>(from kv in _dispatches.Values from n in kv orderby n select n));
+            }
+
+            _dispatches = oldDispatches;
+
+            if (loopDispatchLabel is not null)
+            {
+                rewrittenStatements.Add(F.HiddenSequencePoint());
+                rewrittenStatements.Add(F.Label(loopDispatchLabel));
+            }
+
+            rewrittenStatements.AddRange(rewrittenLoopRegion);
+        }
+
+        private static int FindLoopEntryIndex(ImmutableArray<BoundStatement> statements, LabelSymbol loopEntryLabel)
+        {
+            for (int i = 0; i < statements.Length; i++)
+            {
+                if (DefinesLabel(statements[i], loopEntryLabel))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        private static bool TryGetLoweredLoopRegion(ImmutableArray<BoundStatement> statements, int startIndex, out int endIndex, out LabelSymbol loopEntryLabel)
+        {
+            endIndex = -1;
+            loopEntryLabel = null;
+
+            // Heuristic: lowered loops are recognized by a generated label that has a back-edge
+            // in the same statement list (or as the trailing statement in the immediately nested block).
+            // This intentionally avoids introducing a new bound node.
+            if (!TryGetDefinedLabel(statements[startIndex], out var candidateLoopEntryLabel) ||
+                candidateLoopEntryLabel is not GeneratedLabelSymbol)
+            {
+                return false;
+            }
+
+            for (int i = startIndex + 1; i < statements.Length; i++)
+            {
+                if (IsBranchToLabel(statements[i], candidateLoopEntryLabel))
+                {
+                    endIndex = i;
+                    loopEntryLabel = candidateLoopEntryLabel;
+                    return true;
+                }
+            }
+
+            if (startIndex + 1 < statements.Length &&
+                TryGetNestedStatements(statements[startIndex + 1], out var nestedStatements) &&
+                nestedStatements.Length > 0 &&
+                IsBranchToLabel(nestedStatements[nestedStatements.Length - 1], candidateLoopEntryLabel))
+            {
+                endIndex = startIndex + 1;
+                loopEntryLabel = candidateLoopEntryLabel;
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool TryGetNestedStatements(BoundStatement statement, out ImmutableArray<BoundStatement> nestedStatements)
+        {
+            switch (statement)
+            {
+                case BoundBlock block:
+                    nestedStatements = block.Statements;
+                    return true;
+
+                case BoundStatementList list:
+                    nestedStatements = list.Statements;
+                    return true;
+
+                case BoundSequencePoint { StatementOpt: { } statementOpt }:
+                    return TryGetNestedStatements(statementOpt, out nestedStatements);
+
+                case BoundSequencePointWithSpan { StatementOpt: { } statementOptWithSpan }:
+                    return TryGetNestedStatements(statementOptWithSpan, out nestedStatements);
+            }
+
+            nestedStatements = default;
+            return false;
+        }
+
+        private static bool DefinesLabel(BoundStatement statement, LabelSymbol label)
+        {
+            return TryGetDefinedLabel(statement, out var definedLabel) && ReferenceEquals(definedLabel, label);
+        }
+
+        private static bool TryGetDefinedLabel(BoundStatement statement, out LabelSymbol label)
+        {
+            switch (statement)
+            {
+                case BoundLabelStatement labelStatement:
+                    label = labelStatement.Label;
+                    return true;
+
+                case BoundSequencePoint { StatementOpt: { } statementOpt }:
+                    return TryGetDefinedLabel(statementOpt, out label);
+
+                case BoundSequencePointWithSpan { StatementOpt: { } statementOptWithSpan }:
+                    return TryGetDefinedLabel(statementOptWithSpan, out label);
+            }
+
+            label = null;
+            return false;
+        }
+
+        private static bool IsBranchToLabel(BoundStatement statement, LabelSymbol targetLabel)
+        {
+            switch (statement)
+            {
+                case BoundGotoStatement gotoStatement:
+                    return ReferenceEquals(gotoStatement.Label, targetLabel);
+
+                case BoundConditionalGoto conditionalGoto:
+                    return ReferenceEquals(conditionalGoto.Label, targetLabel);
+
+                case BoundSequencePoint { StatementOpt: { } statementOpt }:
+                    return IsBranchToLabel(statementOpt, targetLabel);
+
+                case BoundSequencePointWithSpan { StatementOpt: { } statementOptWithSpan }:
+                    return IsBranchToLabel(statementOptWithSpan, targetLabel);
+            }
+
+            return false;
         }
 
         public override BoundNode VisitStateMachineInstanceId(BoundStateMachineInstanceId node)
@@ -559,6 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hoistedLocalsWithDebugScopes.Add(((CapturedToStateMachineFieldReplacement)proxies[local]).HoistedField);
             }
 
+            // Loop dispatch is handled by VisitBlock/VisitStatementList. Scope here is used for switch locals.
             var statements = VisitList(node.Statements);
 
             // wrap the node in an iterator scope for debugging
