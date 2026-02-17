@@ -6377,7 +6377,7 @@ class Program
             var verifier = CompileAndVerify(source, expectedOutput: "2");
             var il = verifier.VisualizeIL("Program.M(System.Threading.Tasks.Task<int>)");
 
-            int checkIndex = il.IndexOf("get_IsCompleted()", StringComparison.Ordinal);
+            int checkIndex = il.IndexOf("IsCompleted.get", StringComparison.Ordinal);
             int allocIndex = il.IndexOf("newobj     \"Program.<>c__DisplayClass", StringComparison.Ordinal);
             Assert.True(checkIndex >= 0, il);
             Assert.True(allocIndex >= 0, il);
@@ -6427,7 +6427,7 @@ class Program
             var verifier = CompileAndVerify(source, expectedOutput: "2");
             var il = verifier.VisualizeIL("Program.M(System.Threading.Tasks.Task<int>)");
 
-            int checkIndex = il.IndexOf("get_IsCompleted()", StringComparison.Ordinal);
+            int checkIndex = il.IndexOf("IsCompleted.get", StringComparison.Ordinal);
             int allocIndex = il.IndexOf("newobj     \"Program.<>c__DisplayClass", StringComparison.Ordinal);
             Assert.True(checkIndex >= 0, il);
             Assert.True(allocIndex >= 0, il);
@@ -6478,7 +6478,7 @@ class Program
             var verifier = CompileAndVerify(source, expectedOutput: "2");
             var il = verifier.VisualizeIL("Program.M(System.Threading.Tasks.Task<int>)");
 
-            int checkIndex = il.IndexOf("get_IsCompleted()", StringComparison.Ordinal);
+            int checkIndex = il.IndexOf("IsCompleted.get", StringComparison.Ordinal);
             int allocIndex = il.IndexOf("newobj     \"Program.<>c__DisplayClass", StringComparison.Ordinal);
             Assert.True(checkIndex >= 0, il);
             Assert.True(allocIndex >= 0, il);
@@ -6526,7 +6526,7 @@ class Program
             var methodName = verifier.TestData.GetMethodsByName().Keys.Single(name => name.StartsWith("Program.M<", StringComparison.Ordinal));
             var il = verifier.VisualizeIL(methodName);
 
-            int checkIndex = il.IndexOf("get_IsCompleted()", StringComparison.Ordinal);
+            int checkIndex = il.IndexOf("IsCompleted.get", StringComparison.Ordinal);
             int allocIndex = il.IndexOf("newobj     \"Program.<>c__DisplayClass", StringComparison.Ordinal);
             Assert.True(checkIndex >= 0, il);
             Assert.True(allocIndex >= 0, il);
@@ -6576,7 +6576,7 @@ class Program
             var verifier = CompileAndVerify(source, expectedOutput: "2");
             var il = verifier.VisualizeIL("Program.M(System.Threading.Tasks.Task<int>)");
 
-            int checkIndex = il.IndexOf("get_IsCompleted()", StringComparison.Ordinal);
+            int checkIndex = il.IndexOf("IsCompleted.get", StringComparison.Ordinal);
             int allocIndex = il.IndexOf("newobj     \"Program.<>c__DisplayClass", StringComparison.Ordinal);
             Assert.True(checkIndex >= 0, il);
             Assert.True(allocIndex >= 0, il);
@@ -6624,7 +6624,7 @@ class Program
             var verifier = CompileAndVerify(source, expectedOutput: "3");
             var il = verifier.VisualizeIL("Program.M(System.Threading.Tasks.Task<int>)");
 
-            int checkIndex = il.IndexOf("get_IsCompleted()", StringComparison.Ordinal);
+            int checkIndex = il.IndexOf("IsCompleted.get", StringComparison.Ordinal);
             int allocIndex = il.IndexOf("newobj     \"Program.<>c__DisplayClass", StringComparison.Ordinal);
             Assert.True(checkIndex >= 0, il);
             Assert.True(allocIndex >= 0, il);
@@ -6672,7 +6672,7 @@ class Program
             var verifier = CompileAndVerify(source, expectedOutput: "2");
             var il = verifier.VisualizeIL("Program.M(System.Threading.Tasks.Task<int>)");
 
-            int checkIndex = il.IndexOf("get_IsCompleted()", StringComparison.Ordinal);
+            int checkIndex = il.IndexOf("IsCompleted.get", StringComparison.Ordinal);
             int allocIndex = il.IndexOf("newobj     \"Program.<>c__DisplayClass", StringComparison.Ordinal);
             Assert.True(checkIndex >= 0, il);
             Assert.True(allocIndex >= 0, il);
@@ -6722,7 +6722,7 @@ class Program
             var verifier = CompileAndVerify(compilation, expectedOutput: "2");
             var il = verifier.VisualizeIL("Program.M(System.Threading.Tasks.Task<int>)");
 
-            int checkIndex = il.IndexOf("get_IsCompleted()", StringComparison.Ordinal);
+            int checkIndex = il.IndexOf("IsCompleted.get", StringComparison.Ordinal);
             int allocIndex = il.IndexOf("newobj     \"Program.<>c__DisplayClass", StringComparison.Ordinal);
             Assert.True(checkIndex >= 0, il);
             Assert.True(allocIndex >= 0, il);
