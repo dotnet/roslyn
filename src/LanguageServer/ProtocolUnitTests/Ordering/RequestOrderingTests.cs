@@ -168,19 +168,26 @@ public sealed partial class RequestOrderingTests : AbstractLanguageServerProtoco
             new TestRequest(NonMutatingRequestHandler.MethodName),
         };
 
-        await using var testLspServer = await CreateTestLspServerAsync("class C { }", mutatingLspWorkspace);
-        var waitables = StartTestRun(testLspServer, requests);
+        var testLspServer = await CreateTestLspServerAsync("class C { }", mutatingLspWorkspace);
+        try
+        {
+            var waitables = StartTestRun(testLspServer, requests);
 
-        // first task should fail
-        await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(() => waitables[0]);
+            // first task should fail
+            await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(() => waitables[0]);
 
-        // The failed request returns to the client before the shutdown completes.
-        // Wait for the queue to finish handling the failed request and shutdown.
-        await testLspServer.GetQueueAccessor()!.Value.WaitForProcessingToStopAsync().ConfigureAwait(false);
+            // The failed request returns to the client before the shutdown completes.
+            // Wait for the queue to finish handling the failed request and shutdown.
+            await testLspServer.GetQueueAccessor()!.Value.WaitForProcessingToStopAsync().ConfigureAwait(false);
 
-        // remaining tasks should be canceled
-        var areAllItemsCancelled = await testLspServer.GetQueueAccessor()!.Value.AreAllItemsCancelledUnsafeAsync();
-        Assert.True(areAllItemsCancelled);
+            // remaining tasks should be canceled
+            var areAllItemsCancelled = await testLspServer.GetQueueAccessor()!.Value.AreAllItemsCancelledUnsafeAsync();
+            Assert.True(areAllItemsCancelled);
+        }
+        finally
+        {
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await testLspServer.DisposeAsync());
+        }
     }
 
     [Theory, CombinatorialData]

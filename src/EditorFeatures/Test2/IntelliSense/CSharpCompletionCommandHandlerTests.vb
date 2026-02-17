@@ -13783,5 +13783,68 @@ namespace NS
                 Assert.Equal(SymbolMatchPriority.PreferFieldOrProperty, item.Rules.MatchPriority)
             End Using
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70537")>
+        Public Async Function PropertyWithIdenticalNamedExtensionMethod() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document><![CDATA[
+public class TestClass
+{
+    public int Age => 42;
+}
+
+public static class Extensions
+{
+    public static int Age(this TestClass c) => 100;
+}
+
+internal class Program
+{
+    static void Main(string[] args)
+    {
+        var t = new TestClass();
+        var x = t.$$
+    }
+}
+                ]]></Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "Age" AndAlso i.Tags.Contains(WellKnownTags.Property))
+                Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "Age" AndAlso i.Tags.Contains(WellKnownTags.ExtensionMethod))
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70537")>
+        Public Async Function MethodWithIdenticalNamedExtensionProperty() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document><![CDATA[
+public class TestClass
+{
+    public int Age() => 42;
+}
+
+public static class Extensions
+{    
+    extension(TestClass testclass)
+    {
+        public int Age => 0;
+    }
+}
+
+internal class Program
+{
+    static void Main(string[] args)
+    {
+        var t = new TestClass();
+        var x = t.$$
+    }
+}
+                ]]></Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "Age" AndAlso i.Tags.Contains(WellKnownTags.Method))
+                Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "Age" AndAlso i.Tags.Contains(WellKnownTags.Property))
+            End Using
+        End Function
     End Class
 End Namespace

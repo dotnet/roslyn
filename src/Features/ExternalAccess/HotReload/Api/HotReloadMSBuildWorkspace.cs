@@ -46,14 +46,21 @@ internal sealed partial class HotReloadMSBuildWorkspace : Workspace
         _projectGraphFileInfoProvider = new ProjectFileInfoProvider(getBuildProjects, _loader.ProjectFileExtensionRegistry);
     }
 
-    public async ValueTask<Solution> UpdateProjectConeAsync(string projectPath, CancellationToken cancellationToken)
+    // TODO: remove
+    public ValueTask<Solution> UpdateProjectConeAsync(string projectPath, CancellationToken cancellationToken)
+        => UpdateProjectGraphAsync([projectPath], cancellationToken);
+
+    /// <summary>
+    /// Updates all projects in the workspace whose file paths are specified in <paramref name="projectPaths"/> and all their transitive dependencies.
+    /// </summary>
+    public async ValueTask<Solution> UpdateProjectGraphAsync(ImmutableArray<string> projectPaths, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfFalse(Path.IsPathFullyQualified(projectPath));
+        Contract.ThrowIfFalse(projectPaths.All(Path.IsPathFullyQualified));
 
         var projectMap = ProjectMap.Create();
 
         var projectInfos = await _loader.LoadInfosAsync(
-            [projectPath],
+            projectPaths,
             _projectGraphFileInfoProvider,
             projectMap,
             progress: null,

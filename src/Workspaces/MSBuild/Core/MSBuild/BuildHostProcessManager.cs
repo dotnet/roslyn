@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal sealed class BuildHostProcessManager : IAsyncDisposable
 {
+    private readonly ImmutableArray<string> _knownCommandLineParserLanguages;
     private readonly ImmutableDictionary<string, string> _globalMSBuildProperties;
     private readonly ILoggerFactory? _loggerFactory;
     private readonly ILogger? _logger;
@@ -35,8 +37,13 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
     private static readonly string DotnetExecutable = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "dotnet.exe" : "dotnet";
 
-    public BuildHostProcessManager(ImmutableDictionary<string, string>? globalMSBuildProperties = null, IBinLogPathProvider? binaryLogPathProvider = null, ILoggerFactory? loggerFactory = null)
+    public BuildHostProcessManager(
+        ImmutableArray<string> knownCommandLineParserLanguages,
+        ImmutableDictionary<string, string>? globalMSBuildProperties = null,
+        IBinLogPathProvider? binaryLogPathProvider = null,
+        ILoggerFactory? loggerFactory = null)
     {
+        _knownCommandLineParserLanguages = knownCommandLineParserLanguages;
         _globalMSBuildProperties = globalMSBuildProperties ?? ImmutableDictionary<string, string>.Empty;
         _binaryLogPathProvider = binaryLogPathProvider;
         _loggerFactory = loggerFactory;
@@ -127,7 +134,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
                 throw new Exception($"The build host was started but we were unable to connect to it's pipe. The process exited with {process.ExitCode}. Process output:{Environment.NewLine}{buildHostProcess.GetBuildHostProcessOutput()}", innerException: e);
             }
 
-            await buildHostProcess.BuildHost.ConfigureGlobalStateAsync(_globalMSBuildProperties, _binaryLogPathProvider?.GetNewLogPath(), cancellationToken).ConfigureAwait(false);
+            await buildHostProcess.BuildHost.ConfigureGlobalStateAsync(_knownCommandLineParserLanguages, _globalMSBuildProperties, _binaryLogPathProvider?.GetNewLogPath(), cancellationToken).ConfigureAwait(false);
 
             if (buildHostKind != BuildHostProcessKind.NetCore
                 || projectOrSolutionFilePath is null
