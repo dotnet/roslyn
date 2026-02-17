@@ -39,7 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = isPatternRewriter.LowerIsPatternAsLinearTestSequence(node, decisionDag, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel);
                 isPatternRewriter.Free();
             }
-            else if (canProduceLinearSequence(decisionDag.RootNode, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel, maxTests: LinearSequenceMaxTests))
+            else if (canProduceLinearSequence(decisionDag.RootNode, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel, maxTests: LinearSequenceMaxTests)
+                     && !dagContainsBindings(decisionDag))
             {
                 // If we can build a short linear test sequence with the labels swapped, do so and negate the result.
                 // This handles `or` patterns like `is '/' or '\\'` by producing an inverted AND sequence
@@ -47,6 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // unnecessary boolean temporaries and a SpillSequence.
                 // We limit this to short sequences because the general DAG lowering can use switch dispatch
                 // (binary search trees) which is more efficient for large `or` patterns.
+                // We exclude DAGs with bindings (e.g., `(B or C) and var x`) because the inverted traversal
+                // follows the "failure" branches, skipping BoundWhenDecisionDagNodes that contain variable
+                // bindings, which would leave captured variables uninitialized.
                 negated = !negated;
                 var isPatternRewriter = new IsPatternExpressionLinearLocalRewriter(node, this);
                 result = isPatternRewriter.LowerIsPatternAsLinearTestSequence(node, decisionDag, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel);
@@ -161,6 +165,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node is BoundWhenDecisionDagNode w)
                 node = w.WhenTrue;
             return node is BoundLeafDecisionDagNode l && l.Label == whenFalseLabel;
+        }
+
+        /// <summary>
+        /// Returns true if any node in the decision DAG contains variable bindings
+        /// (e.g., from <c>var</c> or declaration patterns).
+        /// </summary>
+        private static bool dagContainsBindings(BoundDecisionDag decisionDag)
+        {
+            foreach (var node in decisionDag.TopologicallySortedNodes)
+            {
+                if (node is BoundWhenDecisionDagNode { Bindings.Length: > 0 })
+                    return true;
+            }
+
+            return false;
         }
 
         private sealed class IsPatternExpressionLinearLocalRewriter : PatternLocalRewriter
