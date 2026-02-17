@@ -1295,6 +1295,7 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
 
             [AttributeUsage(AttributeTargets.Method)]
             public class RuntimeAsyncMethodGenerationAttribute(bool runtimeAsync) : Attribute();
+            #pragma warning restore CS9113 // Unread primary constructor parameter
             """;
 
         protected static T GetSyntax<T>(SyntaxTree tree, string text, bool descendIntoTrivia = false)

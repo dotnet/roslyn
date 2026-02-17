@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal sealed override ThreeState IsRuntimeAsyncEnabledInMethod =>
-            BaseMethod is SourceMethodSymbol { IsRuntimeAsyncEnabledInMethod: var value }
+            InheritsBaseMethodAttributes && BaseMethod is SourceMethodSymbol { IsRuntimeAsyncEnabledInMethod: var value }
                 ? value
                 : ThreeState.Unknown;
     }
