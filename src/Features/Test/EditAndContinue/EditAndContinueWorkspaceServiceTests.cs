@@ -232,8 +232,25 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
     public async Task ProjectThatDoesNotSupportEnC_Language(bool breakMode)
     {
         using var _ = CreateWorkspace(out var solution, out var service, [typeof(NoCompilationLanguageService)]);
-        var project = solution.AddProject("dummy_proj", "dummy_proj", NoCompilationConstants.LanguageName);
-        var document = project.AddDocument("test", "dummy1");
+
+        var projectId = ProjectId.CreateNewId("dummy_proj");
+
+        var sourceFilePath = Path.Combine(TempRoot.Root, "test");
+        var source = CreateText("class C;");
+
+        // Use C# to compile the F# library. The metadata doesn't matter for this test, only the document debug info.
+        LoadLibraryToDebuggee(EmitLibrary(projectId, [(source, sourceFilePath)], assemblyName: "dummy_proj"));
+
+        var project = solution.AddProject(ProjectInfo.Create(
+            projectId,
+            VersionStamp.Create(),
+            name: "dummy_proj",
+            assemblyName: "dummy_proj",
+            language: NoCompilationConstants.LanguageName,
+            filePath: Path.Combine(TempRoot.Root, "dummy.proj"))
+            .WithCompilationOutputInfo(new CompilationOutputInfo())).GetRequiredProject(projectId);
+
+        var document = project.AddDocument(name: "test", source, filePath: sourceFilePath);
         solution = document.Project.Solution;
 
         var debuggingSession = StartDebuggingSession(service, solution);
@@ -252,9 +269,19 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         // validate solution update status and emit:
         var results = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        Assert.Equal(ModuleUpdateStatus.None, results.ModuleUpdates.Status);
+        Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
         Assert.Empty(results.ModuleUpdates.Updates);
-        Assert.Empty(results.Diagnostics);
+
+        var message = string.Format(
+            FeaturesResources.Changing_source_file_0_in_a_project_1_that_does_not_support_hot_reload_requires_restarting_the_application_2,
+            ["test", "dummy_proj", string.Format(FeaturesResources._0_does_not_support_Hot_Reload, NoCompilationConstants.LanguageName)]);
+
+        AssertEx.Equal(
+        [
+            $"dummy_proj: {document.FilePath}: (0,0)-(0,0): Error ENC1009: {message}"
+        ], InspectDiagnostics(results.Diagnostics));
+
+        AssertEx.SequenceEqual([projectId], results.ProjectsToRestart.Keys);
 
         var document2 = solution.GetDocument(document1.Id);
         diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
@@ -2277,10 +2304,10 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var projectE = solution.AddTestProject("E", language: NoCompilationConstants.LanguageName);
         solution = projectE.Solution;
 
-        Assert.False(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
+        Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
 
         // remove a project that doesn't support EnC:
-        Assert.False(await EditSession.HasChangesAsync(solution, oldSolution, CancellationToken.None));
+        Assert.True(await EditSession.HasChangesAsync(solution, oldSolution, CancellationToken.None));
 
         EndDebuggingSession(debuggingSession);
     }

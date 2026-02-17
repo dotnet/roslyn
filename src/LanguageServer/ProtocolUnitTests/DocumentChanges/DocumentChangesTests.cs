@@ -104,12 +104,16 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
             }
             """, mutatingLspWorkspace);
 
-        await using (testLspServer)
+        try
         {
             await DidOpen(testLspServer, locationTyped.DocumentUri);
 
             await Assert.ThrowsAnyAsync<StreamJsonRpc.RemoteRpcException>(() => DidOpen(testLspServer, locationTyped.DocumentUri));
             await testLspServer.AssertServerShuttingDownAsync();
+        }
+        finally
+        {
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await testLspServer.DisposeAsync());
         }
     }
 
@@ -126,10 +130,14 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
             }
             """, mutatingLspWorkspace);
 
-        await using (testLspServer)
+        try
         {
             await Assert.ThrowsAnyAsync<StreamJsonRpc.RemoteRpcException>(() => DidClose(testLspServer, locationTyped.DocumentUri));
             await testLspServer.AssertServerShuttingDownAsync();
+        }
+        finally
+        {
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await testLspServer.DisposeAsync());
         }
     }
 
@@ -146,10 +154,14 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
             }
             """, mutatingLspWorkspace);
 
-        await using (testLspServer)
+        try
         {
             await Assert.ThrowsAnyAsync<StreamJsonRpc.RemoteRpcException>(() => DidChange(testLspServer, locationTyped.DocumentUri, (0, 0, "goo")));
             await testLspServer.AssertServerShuttingDownAsync();
+        }
+        finally
+        {
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await testLspServer.DisposeAsync());
         }
     }
 

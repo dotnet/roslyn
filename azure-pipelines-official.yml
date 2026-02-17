@@ -46,6 +46,10 @@ parameters:
   type: boolean
   default: true
 
+- name: PMEOverride
+  type: boolean
+  default: false
+
 # An optional VS commit SHA that will be automatically cherry-picked
 # to the insertion PR created by this build.
 - name: VisualStudioCherryPickSHA
@@ -137,7 +141,7 @@ extends:
         configFile: '$(Build.SourcesDirectory)/eng/TSAConfig.gdntsa'
     pool:
       name: $(DncEngInternalBuildPool)
-      image: windows.vs2022preview.scout.amd64
+      image: windows.vs2022.amd64
       os: windows
     customBuildTags:
     - ES365AIMigrationTooling
@@ -301,7 +305,7 @@ extends:
             zipSources: false
             feedSource: https://dnceng.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json
             # Set ConnectedPMEServiceName if the build is a CI build, otherwise it is not needed
-            ${{ if or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'Schedule')) }}:
+            ${{ if or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'Schedule'), parameters.PMEOverride) }}:
               ConnectedPMEServiceName: 248d384a-b39b-46e3-8ad5-c2c210d5e7ca
           condition: and(succeeded(), in('${{ parameters.SignType }}', 'test', 'real'))
 

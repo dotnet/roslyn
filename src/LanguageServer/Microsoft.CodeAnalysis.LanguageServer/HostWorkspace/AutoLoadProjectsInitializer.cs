@@ -46,6 +46,30 @@ internal sealed class AutoLoadProjectsInitializer(
             return;
         }
 
+        // If there's a single workspace folder with a single solution file at the root, load that solution.
+        if (workspaceFolders.Length == 1)
+        {
+            var folder = workspaceFolders[0];
+            if (folder.DocumentUri.ParsedUri is not null && folder.DocumentUri.ParsedUri.Scheme == Uri.UriSchemeFile)
+            {
+                var folderPath = ProtocolConversions.GetDocumentFilePathFromUri(folder.DocumentUri.ParsedUri);
+                if (Directory.Exists(folderPath))
+                {
+                    var solutionFiles = Directory.EnumerateFiles(folderPath, "*.sln", SearchOption.TopDirectoryOnly)
+                        .Concat(Directory.EnumerateFiles(folderPath, "*.slnx", SearchOption.TopDirectoryOnly))
+                        .ToArray();
+
+                    if (solutionFiles.Length == 1)
+                    {
+                        _logger.LogInformation("Found single solution file {SolutionFile} to auto load", solutionFiles[0]);
+                        // We don't want to block initialization on loading the solution - fire and forget.
+                        projectSystem.OpenSolutionAsync(solutionFiles[0]).ReportNonFatalErrorAsync().Forget();
+                        return;
+                    }
+                }
+            }
+        }
+
         using var _ = ArrayBuilder<string>.GetInstance(out var projectFiles);
         foreach (var folder in workspaceFolders)
         {

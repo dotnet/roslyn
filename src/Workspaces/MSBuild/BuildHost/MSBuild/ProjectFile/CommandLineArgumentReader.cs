@@ -112,18 +112,6 @@ internal abstract class CommandLineArgumentReader
         }
     }
 
-    protected string GetDocumentFilePath(MSB.Framework.ITaskItem documentItem)
-    {
-        return GetAbsolutePath(documentItem.ItemSpec);
-    }
-
-    protected string GetAbsolutePath(string path)
-    {
-        var baseDirectory = PathUtilities.GetDirectoryName(Project.FullPath);
-        var absolutePath = FileUtilities.ResolveRelativePath(path, baseDirectory) ?? path;
-        return FileUtilities.TryNormalizeAbsolutePath(absolutePath) ?? absolutePath;
-    }
-
     protected void ReadAdditionalFiles()
     {
         var additionalFiles = Project.GetAdditionalFiles();
@@ -131,7 +119,7 @@ internal abstract class CommandLineArgumentReader
         {
             foreach (var additionalFile in additionalFiles)
             {
-                Add("additionalfile", GetDocumentFilePath(additionalFile));
+                Add("additionalfile", Project.GetAbsolutePath(additionalFile.ItemSpec));
             }
         }
     }
@@ -143,14 +131,14 @@ internal abstract class CommandLineArgumentReader
         {
             foreach (var analyzer in analyzers)
             {
-                Add("analyzer", GetDocumentFilePath(analyzer));
+                Add("analyzer", Project.GetAbsolutePath(analyzer.ItemSpec));
             }
         }
     }
 
     protected void ReadCodePage()
     {
-        var codePage = Project.ReadPropertyInt(PropertyNames.CodePage);
+        var codePage = Project.ReadCodePage();
         AddIfTrue("codepage", codePage.ToString(), codePage != 0);
     }
 
@@ -238,33 +226,23 @@ internal abstract class CommandLineArgumentReader
 
     protected void ReadReferences()
     {
-        var references = Project.GetMetadataReferences();
-        if (references != null)
+        foreach (var (filePath, aliases) in Project.GetMetadataReferences())
         {
-            foreach (var reference in references)
+            if (aliases.IsEmpty)
             {
-                if (reference.ReferenceOutputAssemblyIsTrue())
+                Add("reference", filePath);
+            }
+            else
+            {
+                foreach (var alias in aliases)
                 {
-                    var filePath = GetDocumentFilePath(reference);
-
-                    var aliases = reference.GetAliases();
-                    if (aliases.IsDefaultOrEmpty)
+                    if (string.Equals(alias, "global", StringComparison.OrdinalIgnoreCase))
                     {
                         Add("reference", filePath);
                     }
                     else
                     {
-                        foreach (var alias in aliases)
-                        {
-                            if (string.Equals(alias, "global", StringComparison.OrdinalIgnoreCase))
-                            {
-                                Add("reference", filePath);
-                            }
-                            else
-                            {
-                                Add("reference", $"{alias}=\"{filePath}\"");
-                            }
-                        }
+                        Add("reference", $"{alias}=\"{filePath}\"");
                     }
                 }
             }

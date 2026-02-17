@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -300,5 +301,11 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
         var token = root.FindToken(characterPosition);
 
         return IsTriggerOnDot(token, characterPosition);
+    }
+
+    protected override ImmutableArray<ImmutableArray<SymbolAndSelectionInfo>> DeduplicateSymbols(
+        MultiDictionary<(string displayText, string suffix, string insertionText), SymbolAndSelectionInfo>.ValueSet symbols)
+    {
+        return symbols.GroupBy(symbol => symbol.Symbol.Kind).Select(group => group.ToImmutableArray()).ToImmutableArray();
     }
 }
