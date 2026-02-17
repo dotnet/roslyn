@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
         private static string ReturnValueMissing(string method, string offset) => $$"""[{{method}}]: Return value missing on the stack. { Offset = {{offset}} }""";
 
-        private static int CountImmediateBrFalseStateDispatches(string il)
+        private static int CountStateDispatchChecks(string il)
             => StateDispatchILCounter.CountStateDispatchChecks(il);
 
         [Fact]
@@ -7239,7 +7239,7 @@ namespace Test
             var verifier = CompileAndVerify(comp, expectedOutput: "2");
 
             var il = verifier.VisualizeIL("Test.Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
-            Assert.True(CountImmediateBrFalseStateDispatches(il) >= 2, il);
+            Assert.True(CountStateDispatchChecks(il) >= 2, il);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39814")]
@@ -7275,7 +7275,7 @@ namespace Test
             var verifier = CompileAndVerify(comp, expectedOutput: "2");
 
             var il = verifier.VisualizeIL("Test.Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
-            Assert.True(CountImmediateBrFalseStateDispatches(il) >= 2, il);
+            Assert.True(CountStateDispatchChecks(il) >= 2, il);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39814")]
@@ -7312,7 +7312,7 @@ namespace Test
             var verifier = CompileAndVerify(comp, expectedOutput: "2");
 
             var il = verifier.VisualizeIL("Test.Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
-            Assert.True(CountImmediateBrFalseStateDispatches(il) >= 2, il);
+            Assert.True(CountStateDispatchChecks(il) >= 2, il);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39814")]
@@ -7348,7 +7348,7 @@ namespace Test
             var verifier = CompileAndVerify(comp, expectedOutput: "3");
 
             var il = verifier.VisualizeIL("Test.Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
-            Assert.True(CountImmediateBrFalseStateDispatches(il) >= 2, il);
+            Assert.True(CountStateDispatchChecks(il) >= 2, il);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39814")]
@@ -7385,7 +7385,7 @@ namespace Test
             var verifier = CompileAndVerify(comp, expectedOutput: "3");
 
             var il = verifier.VisualizeIL("Test.Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
-            Assert.True(CountImmediateBrFalseStateDispatches(il) >= 3, il);
+            Assert.True(CountStateDispatchChecks(il) >= 3, il);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39814")]
@@ -7422,7 +7422,7 @@ namespace Test
             var verifier = CompileAndVerify(comp, expectedOutput: "2");
 
             var il = verifier.VisualizeIL("Test.Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
-            Assert.True(CountImmediateBrFalseStateDispatches(il) >= 2, il);
+            Assert.True(CountStateDispatchChecks(il) >= 2, il);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39814")]
@@ -7459,7 +7459,7 @@ namespace Test
             var verifier = CompileAndVerify(comp, expectedOutput: "2");
 
             var il = verifier.VisualizeIL("Test.Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
-            Assert.True(CountImmediateBrFalseStateDispatches(il) >= 2, il);
+            Assert.True(CountStateDispatchChecks(il) >= 2, il);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39814")]
@@ -7506,7 +7506,7 @@ namespace Test
             var verifier = CompileAndVerify(comp, expectedOutput: "1");
 
             var il = verifier.VisualizeIL("Test.Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
-            Assert.True(CountImmediateBrFalseStateDispatches(il) >= 2, il);
+            Assert.True(CountStateDispatchChecks(il) >= 2, il);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39814")]
@@ -7548,7 +7548,7 @@ namespace Test
             var verifier = CompileAndVerify(comp, expectedOutput: "1");
 
             var il = verifier.VisualizeIL("Test.Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
-            Assert.True(CountImmediateBrFalseStateDispatches(il) >= 2, il);
+            Assert.True(CountStateDispatchChecks(il) >= 2, il);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39814")]
@@ -7587,7 +7587,7 @@ namespace Test
             var verifier = CompileAndVerify(comp, expectedOutput: "4");
 
             var il = verifier.VisualizeIL("Test.Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
-            Assert.True(CountImmediateBrFalseStateDispatches(il) >= 3, il);
+            Assert.True(CountStateDispatchChecks(il) >= 3, il);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39814")]
@@ -7630,7 +7630,7 @@ namespace Test
             var verifier = CompileAndVerify(comp, expectedOutput: "2");
 
             var il = verifier.VisualizeIL("Test.Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
-            Assert.True(CountImmediateBrFalseStateDispatches(il) >= 3, il);
+            Assert.True(CountStateDispatchChecks(il) >= 3, il);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39814")]
@@ -7673,7 +7673,7 @@ namespace Test
             var verifier = CompileAndVerify(comp, expectedOutput: "2");
 
             var il = verifier.VisualizeIL("Test.Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
-            Assert.True(CountImmediateBrFalseStateDispatches(il) >= 3, il);
+            Assert.True(CountStateDispatchChecks(il) >= 3, il);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39814")]
@@ -7709,7 +7709,7 @@ namespace Test
             var verifier = CompileAndVerify(comp, expectedOutput: "2");
 
             var il = verifier.VisualizeIL("Test.Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
-            Assert.Equal(1, CountImmediateBrFalseStateDispatches(il));
+            Assert.Equal(1, CountStateDispatchChecks(il));
         }
 
         [Fact, WorkItem(25991, "https://github.com/dotnet/roslyn/issues/25991")]
