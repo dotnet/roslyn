@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var newLocals = this.VisitLocals(node.Locals);
             var newLocalFunctions = this.VisitDeclaredLocalFunctions(node.LocalFunctions);
             var newStatements = VisitListWithLoopDispatch(node.Statements);
-            var newInstrumentation = removeInstrumentation ? null : (BoundBlockInstrumentation?)Visit(node.Instrumentation);
+            var newInstrumentation = removeInstrumentation ? null : (BoundBlockInstrumentation)Visit(node.Instrumentation);
             return node.Update(newLocals, newLocalFunctions, node.HasUnsafeModifier, newInstrumentation, newStatements);
         }
 
