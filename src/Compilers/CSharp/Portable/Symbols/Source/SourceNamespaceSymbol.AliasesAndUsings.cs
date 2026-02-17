@@ -643,7 +643,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // A binder that contains the extern aliases but not the usings. The resolution of the target of a using directive or alias 
                     // should not make use of other peer usings.
-                    Binder? declarationBinder = null;
+                    Binder? declarationBinderSafe = null;
+                    Binder? declarationBinderUnsafe = null;
 
                     PooledHashSet<NamespaceOrTypeSymbol>? uniqueUsings = null;
                     PooledHashSet<NamespaceOrTypeSymbol>? uniqueGlobalUsings = null;
@@ -732,7 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 continue;
                             }
 
-                            var flags = BinderFlags.SuppressConstraintChecks;
+                            bool needsUnsafeBinder = false;
                             if (usingDirective.UnsafeKeyword != default)
                             {
                                 var unsafeKeywordLocation = usingDirective.UnsafeKeyword.GetLocation();
@@ -746,7 +747,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     declaringSymbol.CheckUnsafeModifier(DeclarationModifiers.Unsafe, unsafeKeywordLocation, diagnostics);
                                 }
 
-                                flags |= BinderFlags.UnsafeRegion;
+                                needsUnsafeBinder = true;
                             }
                             else
                             {
@@ -755,14 +756,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 // List<int*[]>;` to be written.  In 12.0 and onwards though, we require the code to
                                 // explicitly contain the `unsafe` keyword.
                                 if (!compilation.IsFeatureEnabled(MessageID.IDS_FeatureUsingTypeAlias))
-                                    flags |= BinderFlags.UnsafeRegion;
+                                    needsUnsafeBinder = true;
                             }
 
                             var directiveDiagnostics = BindingDiagnosticBag.GetInstance();
                             Debug.Assert(directiveDiagnostics.DiagnosticBag is object);
                             Debug.Assert(directiveDiagnostics.DependenciesBag is object);
 
-                            declarationBinder ??= compilation.GetBinderFactory(declarationSyntax.SyntaxTree).GetBinder(usingDirective.NamespaceOrType).WithAdditionalFlags(flags);
+                            declarationBinderSafe ??= compilation.GetBinderFactory(declarationSyntax.SyntaxTree).GetBinder(usingDirective.NamespaceOrType).WithAdditionalFlags(BinderFlags.SuppressConstraintChecks);
+
+                            Binder declarationBinder;
+                            if (needsUnsafeBinder)
+                            {
+                                declarationBinderUnsafe ??= declarationBinderSafe.WithAdditionalFlags(BinderFlags.UnsafeRegion);
+                                declarationBinder = declarationBinderUnsafe;
+                            }
+                            else
+                            {
+                                declarationBinder = declarationBinderSafe;
+                            }
+
                             var imported = declarationBinder.BindNamespaceOrTypeSymbol(usingDirective.NamespaceOrType, directiveDiagnostics, basesBeingResolved).NamespaceOrTypeSymbol;
                             bool addDirectiveDiagnostics = true;
 
