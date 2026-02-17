@@ -12,6 +12,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
     {
+        /// <summary>
+        /// Maximum number of test nodes allowed in an inverted linear sequence for `or` patterns.
+        /// Beyond this threshold, the general DAG lowering with switch dispatch is preferred.
+        /// </summary>
+        private const int LinearSequenceMaxTests = 4;
+
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
             BoundDecisionDag decisionDag = node.GetDecisionDagForLowering(_factory.Compilation);
@@ -28,8 +34,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If the given pattern always fails due to a constant input (see comments on BoundDecisionDag.SimplifyDecisionDagIfConstantInput),
                 // we build a linear test sequence with the whenTrue and whenFalse labels swapped and then negate the result, to keep the result a constant.
-                // Note that the positive case will be handled by canProduceLinearSequence above, however, we avoid to produce a full inverted linear sequence here
-                // because we may be able to generate better code for a sequence of `or` patterns, using a switch dispatch, for example, which is done in the general rewriter.
+                negated = !negated;
+                var isPatternRewriter = new IsPatternExpressionLinearLocalRewriter(node, this);
+                result = isPatternRewriter.LowerIsPatternAsLinearTestSequence(node, decisionDag, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel);
+                isPatternRewriter.Free();
+            }
+            else if (canProduceLinearSequence(decisionDag.RootNode, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel, maxTests: LinearSequenceMaxTests))
+            {
+                // If we can build a short linear test sequence with the labels swapped, do so and negate the result.
+                // This handles `or` patterns like `is '/' or '\\'` by producing an inverted AND sequence
+                // (e.g., `!(x != '/' && x != '\\')`) instead of the general DAG lowering which introduces
+                // unnecessary boolean temporaries and a SpillSequence.
+                // We limit this to short sequences because the general DAG lowering can use switch dispatch
+                // (binary search trees) which is more efficient for large `or` patterns.
                 negated = !negated;
                 var isPatternRewriter = new IsPatternExpressionLinearLocalRewriter(node, this);
                 result = isPatternRewriter.LowerIsPatternAsLinearTestSequence(node, decisionDag, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel);
@@ -53,11 +70,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // linear tests with a single "golden" path to the true label and all other paths leading
             // to the false label?  This occurs with an is-pattern expression that uses no "or" or "not"
             // pattern forms.
+            // When maxTests is specified, the sequence is limited to at most that many test nodes.
             static bool canProduceLinearSequence(
                 BoundDecisionDagNode node,
                 LabelSymbol whenTrueLabel,
-                LabelSymbol whenFalseLabel)
+                LabelSymbol whenFalseLabel,
+                int maxTests = int.MaxValue)
             {
+                int testCount = 0;
                 while (true)
                 {
                     switch (node)
@@ -72,6 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             node = e.Next;
                             break;
                         case BoundTestDecisionDagNode t:
+                            if (++testCount > maxTests)
+                                return false;
                             bool falseFail = IsFailureNode(t.WhenFalse, whenFalseLabel);
                             if (falseFail == IsFailureNode(t.WhenTrue, whenFalseLabel))
                                 return false;
