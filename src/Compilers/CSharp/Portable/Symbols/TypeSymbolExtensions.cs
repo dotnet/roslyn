@@ -382,13 +382,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal static bool IsArrayInterface(this TypeSymbol type, out TypeWithAnnotations typeArgument)
+            => IsReadOnlyArrayInterface(type, out typeArgument) || IsMutableArrayInterface(type, out typeArgument);
+
+        internal static bool IsReadOnlyArrayInterface(this TypeSymbol type, out TypeWithAnnotations typeArgument)
         {
             if (type is NamedTypeSymbol
                 {
                     OriginalDefinition.SpecialType:
                         SpecialType.System_Collections_Generic_IEnumerable_T or
                         SpecialType.System_Collections_Generic_IReadOnlyCollection_T or
-                        SpecialType.System_Collections_Generic_IReadOnlyList_T or
+                        SpecialType.System_Collections_Generic_IReadOnlyList_T,
+                    TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: [var typeArg]
+                })
+            {
+                typeArgument = typeArg;
+                return true;
+            }
+            typeArgument = default;
+            return false;
+        }
+
+        internal static bool IsMutableArrayInterface(this TypeSymbol type, out TypeWithAnnotations typeArgument)
+        {
+            if (type is NamedTypeSymbol
+                {
+                    OriginalDefinition.SpecialType:
                         SpecialType.System_Collections_Generic_ICollection_T or
                         SpecialType.System_Collections_Generic_IList_T,
                     TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: [var typeArg]

@@ -33,6 +33,7 @@
  
     <!-- An extern alias is necessary to prevent ambiguity between shared projects linked to both Workspace and BuildHost -->
     <ProjectReference Include="..\..\..\Workspaces\MSBuild\BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj" Aliases="BuildHost" />
+    <ProjectReference Include="..\..\..\Workspaces\MSBuild\Contracts\Microsoft.CodeAnalysis.Workspaces.MSBuild.Contracts.csproj" Aliases="Contracts" />
   </ItemGroup>
 
   <ItemGroup>

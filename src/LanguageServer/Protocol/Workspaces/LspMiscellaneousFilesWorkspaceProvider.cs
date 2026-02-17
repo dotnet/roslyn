@@ -8,11 +8,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// Future work for this workspace includes supporting basic metadata references (mscorlib, System dlls, etc),
 /// but that is dependent on having a x-plat mechanism for retrieving those references from the framework / sdk.
 /// </summary>
-internal sealed class LspMiscellaneousFilesWorkspaceProvider(ILspServices lspServices, HostServices hostServices)
+internal sealed class LspMiscellaneousFilesWorkspaceProvider(ILspServices lspServices, HostServices hostServices, IGlobalOptionService globalOptionService)
     : Workspace(hostServices, WorkspaceKind.MiscellaneousFiles), ILspMiscellaneousFilesWorkspaceProvider, ILspWorkspace
 {
     public bool SupportsMutation => true;
@@ -63,8 +64,9 @@ internal sealed class LspMiscellaneousFilesWorkspaceProvider(ILspServices lspSer
 
         var sourceTextLoader = new SourceTextLoader(documentText, documentFilePath);
 
+        var enableFileBasedPrograms = globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms);
         var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
-            this, documentFilePath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, Services.SolutionServices, []);
+            this, documentFilePath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, Services.SolutionServices, [], enableFileBasedPrograms);
         OnProjectAdded(projectInfo);
 
         if (languageInformation.LanguageName == "Razor")

@@ -136,7 +136,7 @@ See also [types](#types) and [members](#members) lists below.
 - extension based Dispose, DisposeAsync, GetEnumerator, GetAsyncEnumerator, Deconstruct, GetAwaiter etc.
 - UTF8 String Literals (string literals with 'u8' or 'U8' type suffix).
 - Inline array element access and slicing.
-- Collection expressions and spread elements
+- Collection expressions,  spread-elements (`.. expr`), and with-elements (`[with(...)]`).
 
 ## Misc
 - reserved keywords (sometimes contextual)

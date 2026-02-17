@@ -614,13 +614,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract ICollection<string> NamespaceNames { get; }
 
         /// <summary>
-        /// Returns true if this assembly might contain extension methods. If this property
-        /// returns false, there are no extension methods in this assembly.
+        /// Returns true if this assembly might contain extension members or methods. If this property
+        /// returns false, there are no extension members or methods in this assembly.
         /// </summary>
         /// <remarks>
-        /// This property allows the search for extension methods to be narrowed quickly.
+        /// This property allows the search for extension members or methods to be narrowed quickly.
         /// </remarks>
-        public abstract bool MightContainExtensionMethods { get; }
+        public abstract bool MightContainExtensions { get; }
 
         /// <summary>
         /// Gets the symbol for the pre-defined type from core library associated with this assembly.

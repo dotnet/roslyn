@@ -16,5 +16,12 @@
   <ItemGroup>
     <InternalsVisibleTo Include="SemanticSearch.BuildTask.UnitTests" />
   </ItemGroup>
+  <!-- https://github.com/dotnet/roslyn/issues/82006 -->
+  <Target Name="RemoveSystemMemoryFromCopyLocal" AfterTargets="ResolveReferences" BeforeTargets="CopyFilesToOutputDirectory">
+    <ItemGroup>
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+                               Condition="'%(ReferenceCopyLocalPaths.Filename)' == 'System.Memory'" />
+    </ItemGroup>
+  </Target>
   <Import Project="..\..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
 </Project>

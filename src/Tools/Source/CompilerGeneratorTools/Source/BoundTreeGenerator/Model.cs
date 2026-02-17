@@ -33,6 +33,9 @@ namespace BoundTreeGenerator
 
         [XmlAttribute]
         public string HasValidate;
+
+        [XmlAttribute]
+        public string UpdateMethodModifiers;
     }
 
     public class PredefinedNode : TreeType

@@ -177,40 +177,69 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
 
         foreach (var symbolGroup in symbolGroups)
         {
-            var includeItemInTargetTypedCompletion = false;
-            using var symbolListBuilder = TemporaryArray<SymbolAndSelectionInfo>.Empty;
-            foreach (var symbol in symbolGroup.Value)
-                symbolListBuilder.Add(symbol);
-
-            var symbolList = symbolListBuilder.ToImmutableAndClear();
-            var arbitraryFirstContext = contextLookup(symbolList[0]);
-
-            if (completionContext.CompletionOptions.TargetTypedCompletionFilter)
+            if (symbolGroup.Value.Count == 1)
             {
-                includeItemInTargetTypedCompletion = TryFindFirstSymbolMatchesTargetTypes(contextLookup, symbolList, typeConvertibilityCache, out var index);
-                if (includeItemInTargetTypedCompletion && index > 0)
+                // It's very rare to have multiple symbols with identical texts, 
+                // so we optimize for single symbol case to minimize overhead.
+                CreateAndAddItem([symbolGroup.Value.Single()], false);
+            }
+            else
+            {
+                var symbolLists = DeduplicateSymbols(symbolGroup.Value);
+                var noMerge = symbolLists.Length > 1;
+                foreach (var symbolList in symbolLists)
                 {
-                    // This would ensure a symbol matches target types to be used for description if there's any,
-                    // assuming the default implementation of GetDescriptionWorkerAsync is used.
-                    var firstMatch = symbolList[index];
-                    symbolList = symbolList.RemoveAt(index);
-                    symbolList = symbolList.Insert(0, firstMatch);
+                    CreateAndAddItem(symbolList, noMerge);
                 }
             }
 
-            var supportedPlatformData = ComputeSupportedPlatformData(completionContext, symbolList, invalidProjectMap, totalProjects);
-            var item = CreateItem(
-                completionContext, symbolGroup.Key.displayText, symbolGroup.Key.suffix, symbolGroup.Key.insertionText, symbolList, arbitraryFirstContext, supportedPlatformData);
-
-            if (includeItemInTargetTypedCompletion)
+            void CreateAndAddItem(ImmutableArray<SymbolAndSelectionInfo> symbolList, bool doNotMerge)
             {
-                item = item.AddTag(WellKnownTags.TargetTypeMatch);
-            }
+                var includeItemInTargetTypedCompletion = false;
+                var arbitraryFirstContext = contextLookup(symbolList[0]);
 
-            itemListBuilder.Add(item);
+                if (completionContext.CompletionOptions.TargetTypedCompletionFilter)
+                {
+                    includeItemInTargetTypedCompletion = TryFindFirstSymbolMatchesTargetTypes(contextLookup, symbolList, typeConvertibilityCache, out var index);
+                    if (includeItemInTargetTypedCompletion && index > 0)
+                    {
+                        // This would ensure a symbol matches target types to be used for description if there's any,
+                        // assuming the default implementation of GetDescriptionWorkerAsync is used.
+                        var firstMatch = symbolList[index];
+                        symbolList = symbolList.RemoveAt(index);
+                        symbolList = symbolList.Insert(0, firstMatch);
+                    }
+                }
+
+                var supportedPlatformData = ComputeSupportedPlatformData(completionContext, symbolList, invalidProjectMap, totalProjects);
+                var item = CreateItem(
+                    completionContext, symbolGroup.Key.displayText, symbolGroup.Key.suffix, symbolGroup.Key.insertionText, symbolList, arbitraryFirstContext, supportedPlatformData);
+
+                if (includeItemInTargetTypedCompletion)
+                {
+                    item = item.AddTag(WellKnownTags.TargetTypeMatch);
+                }
+
+                if (doNotMerge)
+                {
+                    item = item.AddProperty(CommonCompletionItem.DoNotMergeProperty, string.Empty);
+                }
+
+                itemListBuilder.Add(item);
+            }
         }
 
         return itemListBuilder.ToImmutableAndClear();
+    }
+
+    protected virtual ImmutableArray<ImmutableArray<SymbolAndSelectionInfo>> DeduplicateSymbols(
+       MultiDictionary<(string displayText, string suffix, string insertionText), SymbolAndSelectionInfo>.ValueSet symbols)
+    {
+        using var symbolListBuilder = TemporaryArray<SymbolAndSelectionInfo>.Empty;
+        foreach (var symbol in symbols)
+            symbolListBuilder.Add(symbol);
+
+        return [symbolListBuilder.ToImmutableAndClear()];
     }
 
     /// <summary>

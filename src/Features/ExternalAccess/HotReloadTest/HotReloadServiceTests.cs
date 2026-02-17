@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
@@ -293,9 +294,14 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
             InspectDiagnostics(result.TransientDiagnostics));
     }
 
-    [Fact]
-    public async Task StaleSource()
+    [Theory]
+    [InlineData(LanguageNames.CSharp)]
+    [InlineData(NoCompilationConstants.LanguageName)]
+    public async Task StaleSource(string language)
     {
+        // When testing non-C# projects we compile the code using C# compiler but pretend it's not a C# assembly.
+        // The actual content of the assembly is irrelevant to the test as long as the PDB has correct document checksums.
+
         var source1 = "class C { void M() { System.Console.WriteLine(1); } }";
         var source2 = "class C { void M() { System.Console.WriteLine(2); } }";
         var source3 = "class C { void M() { System.Console.WriteLine(3); } }";
@@ -305,7 +311,7 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         using var workspace = CreateWorkspace(out var solution, out _);
 
         solution = solution.
-            AddTestProject("P", out var projectId).
+            AddTestProject("P", language: language, out var projectId).
             AddTestDocument(source: null, sourceFileA.Path, out var documentIdA).Project.Solution;
 
         EmitLibrary(projectId, source1, sourceFileA.Path, assemblyName: "Proj");
@@ -326,9 +332,15 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         Assert.Empty(result.ProjectsToRestart);
         Assert.Empty(result.ProjectsToRebuild);
 
+        var message = string.Format(
+            FeaturesResources.Changing_source_file_0_in_a_stale_project_1_has_no_effect_until_the_project_is_rebuilt_2,
+            sourceFileA.Path,
+            "P",
+            FeaturesResources.the_content_of_the_document_is_stale);
+
         AssertEx.Equal(
         [
-            $"P: {sourceFileA.Path}: (0,0)-(0,0): Warning ENC1008: {string.Format(FeaturesResources.Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit, sourceFileA.Path)}",
+            $"P: {sourceFileA.Path}: (0,0)-(0,0): Warning ENC1008: {message}",
         ], InspectDiagnostics(result.TransientDiagnostics));
     }
 
@@ -380,6 +392,34 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         AssertEx.Equal(
             [$"A: {generatedDoc.FilePath}: (0,26)-(0,42): Error ENC0023: {string.Format(FeaturesResources.Adding_an_abstract_0_or_overriding_an_inherited_0_requires_restarting_the_application, FeaturesResources.method)}"],
             InspectDiagnostics(result.TransientDiagnostics));
+    }
+
+    [Theory]
+    [InlineData(LanguageNames.VisualBasic)]
+    [InlineData(LanguageNames.CSharp)]
+    [InlineData(NoCompilationConstants.LanguageName)]
+    public async Task HydrateDocumentsAsync(string language)
+    {
+        var dir = Temp.CreateDirectory();
+        var sourceFileA = dir.CreateFile("A.nolang");
+
+        using var workspace = CreateWorkspace(out var solution, out _, [typeof(NoCompilationLanguageService)]);
+
+        solution = solution.
+            AddTestProject("P", language, out var projectId).
+            AddTestDocument(source: null, sourceFileA.Path, out var documentIdA).Project.Solution;
+
+        sourceFileA.WriteAllText("source", Encoding.UTF8);
+
+        var hotReload = new HotReloadService(workspace.Services, ["Baseline"]);
+
+        await hotReload.StartSessionAsync(solution, CancellationToken.None);
+
+        // text should be loaded from disk:
+        var document = solution.GetRequiredDocument(documentIdA);
+        document.TryGetText(out var text);
+        Assert.NotNull(text);
+        Assert.Equal("source", text.ToString());
     }
 }
 #endif

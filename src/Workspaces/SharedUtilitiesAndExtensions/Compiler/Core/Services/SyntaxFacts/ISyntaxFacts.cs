@@ -98,6 +98,7 @@ internal interface ISyntaxFacts
     bool SupportsImplicitImplementationOfNonPublicInterfaceMembers(ParseOptions options);
     bool SupportsIndexingInitializer(ParseOptions options);
     bool SupportsIsNotTypeExpression(ParseOptions options);
+    bool SupportsKeyValuePairElement(ParseOptions options);
     bool SupportsLocalFunctionDeclaration(ParseOptions options);
     bool SupportsNotPattern(ParseOptions options);
     bool SupportsNullConditionalAssignment(ParseOptions options);

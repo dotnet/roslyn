@@ -228,6 +228,9 @@ public partial class CSharpSyntaxVisitor<TResult>
     /// <summary>Called when the visitor visits a SpreadElementSyntax node.</summary>
     public virtual TResult? VisitSpreadElement(SpreadElementSyntax node) => this.DefaultVisit(node);
 
+    /// <summary>Called when the visitor visits a WithElementSyntax node.</summary>
+    public virtual TResult? VisitWithElement(WithElementSyntax node) => this.DefaultVisit(node);
+
     /// <summary>Called when the visitor visits a QueryExpressionSyntax node.</summary>
     public virtual TResult? VisitQueryExpression(QueryExpressionSyntax node) => this.DefaultVisit(node);
 
@@ -972,6 +975,9 @@ public partial class CSharpSyntaxVisitor
     /// <summary>Called when the visitor visits a SpreadElementSyntax node.</summary>
     public virtual void VisitSpreadElement(SpreadElementSyntax node) => this.DefaultVisit(node);
 
+    /// <summary>Called when the visitor visits a WithElementSyntax node.</summary>
+    public virtual void VisitWithElement(WithElementSyntax node) => this.DefaultVisit(node);
+
     /// <summary>Called when the visitor visits a QueryExpressionSyntax node.</summary>
     public virtual void VisitQueryExpression(QueryExpressionSyntax node) => this.DefaultVisit(node);
 
@@ -1715,6 +1721,9 @@ public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
 
     public override SyntaxNode? VisitSpreadElement(SpreadElementSyntax node)
         => node.Update(VisitToken(node.OperatorToken), (ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
+
+    public override SyntaxNode? VisitWithElement(WithElementSyntax node)
+        => node.Update(VisitToken(node.WithKeyword), (ArgumentListSyntax?)Visit(node.ArgumentList) ?? throw new ArgumentNullException("argumentList"));
 
     public override SyntaxNode? VisitQueryExpression(QueryExpressionSyntax node)
         => node.Update((FromClauseSyntax?)Visit(node.FromClause) ?? throw new ArgumentNullException("fromClause"), (QueryBodySyntax?)Visit(node.Body) ?? throw new ArgumentNullException("body"));
@@ -3435,6 +3444,18 @@ public static partial class SyntaxFactory
     /// <summary>Creates a new SpreadElementSyntax instance.</summary>
     public static SpreadElementSyntax SpreadElement(ExpressionSyntax expression)
         => SyntaxFactory.SpreadElement(SyntaxFactory.Token(SyntaxKind.DotDotToken), expression);
+
+    /// <summary>Creates a new WithElementSyntax instance.</summary>
+    public static WithElementSyntax WithElement(SyntaxToken withKeyword, ArgumentListSyntax argumentList)
+    {
+        if (withKeyword.Kind() != SyntaxKind.WithKeyword) throw new ArgumentException(nameof(withKeyword));
+        if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
+        return (WithElementSyntax)Syntax.InternalSyntax.SyntaxFactory.WithElement((Syntax.InternalSyntax.SyntaxToken)withKeyword.Node!, (Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green).CreateRed();
+    }
+
+    /// <summary>Creates a new WithElementSyntax instance.</summary>
+    public static WithElementSyntax WithElement(ArgumentListSyntax? argumentList = default)
+        => SyntaxFactory.WithElement(SyntaxFactory.Token(SyntaxKind.WithKeyword), argumentList ?? SyntaxFactory.ArgumentList());
 
     /// <summary>Creates a new QueryExpressionSyntax instance.</summary>
     public static QueryExpressionSyntax QueryExpression(FromClauseSyntax fromClause, QueryBodySyntax body)

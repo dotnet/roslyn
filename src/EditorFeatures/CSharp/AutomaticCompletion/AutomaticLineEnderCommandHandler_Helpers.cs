@@ -474,7 +474,7 @@ internal sealed partial class AutomaticLineEnderCommandHandler
             BaseTypeDeclarationSyntax baseTypeDeclarationNode => ShouldAddBraceForBaseTypeDeclaration(baseTypeDeclarationNode, caretPosition),
             BaseMethodDeclarationSyntax baseMethodDeclarationNode => ShouldAddBraceForBaseMethodDeclaration(baseMethodDeclarationNode, caretPosition),
             LocalFunctionStatementSyntax localFunctionStatementNode => ShouldAddBraceForLocalFunctionStatement(localFunctionStatementNode, caretPosition),
-            ObjectCreationExpressionSyntax objectCreationExpressionNode => ShouldAddBraceForObjectCreationExpression(objectCreationExpressionNode),
+            BaseObjectCreationExpressionSyntax baseObjectCreationExpressionNode => ShouldAddBraceForBaseObjectCreationExpression(baseObjectCreationExpressionNode),
             BaseFieldDeclarationSyntax baseFieldDeclarationNode => ShouldAddBraceForBaseFieldDeclaration(baseFieldDeclarationNode),
             AccessorDeclarationSyntax accessorDeclarationNode => ShouldAddBraceForAccessorDeclaration(accessorDeclarationNode),
             IndexerDeclarationSyntax indexerDeclarationNode => ShouldAddBraceForIndexerDeclaration(indexerDeclarationNode, caretPosition),
@@ -536,10 +536,10 @@ internal sealed partial class AutomaticLineEnderCommandHandler
            && !WithinMethodBody(localFunctionStatementNode, caretPosition);
 
     /// <summary>
-    /// Add brace for ObjectCreationExpression if it doesn't have initializer
+    /// Add brace for BaseObjectCreationExpression if it doesn't have initializer
     /// </summary>
-    private static bool ShouldAddBraceForObjectCreationExpression(ObjectCreationExpressionSyntax objectCreationExpressionNode)
-        => objectCreationExpressionNode.Initializer == null;
+    private static bool ShouldAddBraceForBaseObjectCreationExpression(BaseObjectCreationExpressionSyntax baseObjectCreationExpressionNode)
+        => baseObjectCreationExpressionNode.Initializer is null;
 
     /// <summary>
     /// Add braces for field and event field if they only have one variable, semicolon is missing and don't have readonly keyword
@@ -783,7 +783,7 @@ internal sealed partial class AutomaticLineEnderCommandHandler
     private static bool ShouldRemoveBraces(SyntaxNode node, int caretPosition)
         => node switch
         {
-            BaseObjectCreationExpressionSyntax baseObjectCreationExpressionNode => ShouldRemoveBraceForObjectCreationExpression(baseObjectCreationExpressionNode),
+            BaseObjectCreationExpressionSyntax baseObjectCreationExpressionNode => ShouldRemoveBraceForBaseObjectCreationExpression(baseObjectCreationExpressionNode),
             AccessorDeclarationSyntax accessorDeclarationNode => ShouldRemoveBraceForAccessorDeclaration(accessorDeclarationNode, caretPosition),
             PropertyDeclarationSyntax propertyDeclarationNode => ShouldRemoveBraceForPropertyDeclaration(propertyDeclarationNode, caretPosition),
             EventDeclarationSyntax eventDeclarationNode => ShouldRemoveBraceForEventDeclaration(eventDeclarationNode, caretPosition),
@@ -793,11 +793,8 @@ internal sealed partial class AutomaticLineEnderCommandHandler
     /// <summary>
     /// Remove the braces if the BaseObjectCreationExpression has an empty Initializer.
     /// </summary>
-    private static bool ShouldRemoveBraceForObjectCreationExpression(BaseObjectCreationExpressionSyntax baseObjectCreationExpressionNode)
-    {
-        var initializer = baseObjectCreationExpressionNode.Initializer;
-        return initializer != null && initializer.Expressions.IsEmpty();
-    }
+    private static bool ShouldRemoveBraceForBaseObjectCreationExpression(BaseObjectCreationExpressionSyntax baseObjectCreationExpressionNode)
+        => baseObjectCreationExpressionNode.Initializer is { Expressions.Count: 0 };
 
     // Only do this when it is an accessor in property
     // Since it is illegal to have something like
