@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly Scope ScopeTree;
 
             private readonly MethodSymbol _topLevelMethod;
+            private readonly BoundNode _loweredBody;
             private readonly int _topLevelMethodOrdinal;
             private readonly VariableSlotAllocator? _slotAllocator;
             private readonly TypeCompilationState _compilationState;
@@ -54,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Scope scopeTree,
                 PooledHashSet<MethodSymbol> methodsConvertedToDelegates,
                 MethodSymbol topLevelMethod,
+                BoundNode loweredBody,
                 int topLevelMethodOrdinal,
                 VariableSlotAllocator? slotAllocator,
                 TypeCompilationState compilationState)
@@ -61,6 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ScopeTree = scopeTree;
                 MethodsConvertedToDelegates = methodsConvertedToDelegates;
                 _topLevelMethod = topLevelMethod;
+                _loweredBody = loweredBody;
                 _topLevelMethodOrdinal = topLevelMethodOrdinal;
                 _slotAllocator = slotAllocator;
                 _compilationState = compilationState;
@@ -87,6 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     scopeTree,
                     methodsConvertedToDelegates,
                     method,
+                    node,
                     topLevelMethodOrdinal,
                     slotAllocatorOpt,
                     compilationState);
@@ -338,8 +342,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         });
                     } while (addedItem == true);
 
+                    bool isDeferrable = IsDeferrableEnvironment(scope, closures, isStruct);
+
                     // Next create the environment and add it to the declaration scope
-                    var env = new ClosureEnvironment(variablesInEnvironment, isStruct);
+                    var env = new ClosureEnvironment(variablesInEnvironment, isStruct, isDeferrable: isDeferrable);
                     Debug.Assert(scope.DeclaredEnvironment is null);
                     scope.DeclaredEnvironment = env;
 
@@ -353,6 +359,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 });
+            }
+
+            private bool IsDeferrableEnvironment(Scope scope, SetWithInsertionOrder<NestedFunction> closures, bool isStruct)
+            {
+                if (isStruct || scope != ScopeTree || closures.Count != 1)
+                {
+                    return false;
+                }
+
+                // Keep optimization conservative: avoid changing debug/EnC closure behavior.
+                if (_compilationState.Compilation.Options.OptimizationLevel != OptimizationLevel.Release ||
+                    _slotAllocator is object)
+                {
+                    return false;
+                }
+
+                var closure = closures.Single();
+                var localFunction = closure.OriginalMethodSymbol;
+                if (!scope.NestedFunctions.Any(f => f == closure))
+                {
+                    return false;
+                }
+
+                if (localFunction.MethodKind != MethodKind.LocalFunction || !localFunction.IsAsync)
+                {
+                    return false;
+                }
+
+                if (MethodsConvertedToDelegates.Contains(localFunction) ||
+                    closure.CapturedVariables.Any(static s => s is MethodSymbol { MethodKind: MethodKind.LocalFunction }))
+                {
+                    return false;
+                }
+
+                if (scope.DeclaredVariables.Any(static s => s.Kind is not (SymbolKind.Local or SymbolKind.Parameter)))
+                {
+                    return false;
+                }
+
+                if (_topLevelMethod.TryGetThisParameter(out var thisParam) &&
+                    thisParam is object &&
+                    scope.DeclaredVariables.Contains(thisParam))
+                {
+                    return false;
+                }
+
+                return LocalFunctionCallSiteAnalyzer.AllCallsInTopLevelReturnPosition(_loweredBody, localFunction);
             }
 
             /// <summary>
@@ -492,6 +545,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         targetEnv.CapturedVariables.Add(variable);
                     }
+
+                    targetEnv.IsDeferrable = false;
 
                     scope.DeclaredEnvironment = null;
 
@@ -690,6 +745,112 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return null;
+                }
+            }
+
+            private sealed class LocalFunctionCallSiteAnalyzer : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+            {
+                private readonly MethodSymbol _targetLocalFunction;
+                private int _nestedFunctionDepth;
+                private int _returnExpressionDepth;
+                private int _targetCallCount;
+
+                private bool _allCallsAreInTopLevelReturnPosition = true;
+                private bool _sawCall;
+
+                private LocalFunctionCallSiteAnalyzer(MethodSymbol targetLocalFunction)
+                {
+                    _targetLocalFunction = targetLocalFunction.OriginalDefinition;
+                }
+
+                public static bool AllCallsInTopLevelReturnPosition(BoundNode body, MethodSymbol targetLocalFunction)
+                {
+                    var analyzer = new LocalFunctionCallSiteAnalyzer(targetLocalFunction);
+                    analyzer.Visit(body);
+                    return analyzer._sawCall && analyzer._allCallsAreInTopLevelReturnPosition;
+                }
+
+                public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+                {
+                    _nestedFunctionDepth++;
+                    var result = base.VisitLocalFunctionStatement(node);
+                    _nestedFunctionDepth--;
+                    return result;
+                }
+
+                public override BoundNode VisitReturnStatement(BoundReturnStatement node)
+                {
+                    if (node.ExpressionOpt is null)
+                    {
+                        return base.VisitReturnStatement(node);
+                    }
+
+                    int callCountBefore = _targetCallCount;
+                    _returnExpressionDepth++;
+                    var result = base.VisitReturnStatement(node);
+                    _returnExpressionDepth--;
+
+                    int callsInThisReturn = _targetCallCount - callCountBefore;
+                    if (callsInThisReturn > 0)
+                    {
+                        if (!IsDirectTargetCall(node.ExpressionOpt) || IsWithinLoopSyntax(node.Syntax))
+                        {
+                            _allCallsAreInTopLevelReturnPosition = false;
+                        }
+                    }
+
+                    return result;
+                }
+
+                public override BoundNode VisitCall(BoundCall node)
+                {
+                    if (node.Method.MethodKind == MethodKind.LocalFunction &&
+                        SymbolEqualityComparer.ConsiderEverything.Equals(node.Method.OriginalDefinition, _targetLocalFunction))
+                    {
+                        _targetCallCount++;
+                        _sawCall = true;
+                        if (!(_nestedFunctionDepth == 0 && _returnExpressionDepth > 0))
+                        {
+                            _allCallsAreInTopLevelReturnPosition = false;
+                        }
+                    }
+
+                    return base.VisitCall(node);
+                }
+
+                private bool IsDirectTargetCall(BoundExpression expression)
+                {
+                    while (expression is BoundSequence sequence)
+                    {
+                        expression = sequence.Value;
+                    }
+
+                    while (expression is BoundConversion conversion)
+                    {
+                        expression = conversion.Operand;
+                    }
+
+                    return expression is BoundCall call &&
+                        call.Method.MethodKind == MethodKind.LocalFunction &&
+                        SymbolEqualityComparer.ConsiderEverything.Equals(call.Method.OriginalDefinition, _targetLocalFunction);
+                }
+
+                private static bool IsWithinLoopSyntax(SyntaxNode syntax)
+                {
+                    for (var current = syntax.Parent; current is object; current = current.Parent)
+                    {
+                        switch (current.Kind())
+                        {
+                            case SyntaxKind.ForStatement:
+                            case SyntaxKind.ForEachStatement:
+                            case SyntaxKind.ForEachVariableStatement:
+                            case SyntaxKind.WhileStatement:
+                            case SyntaxKind.DoStatement:
+                                return true;
+                        }
+                    }
+
+                    return false;
                 }
             }
 

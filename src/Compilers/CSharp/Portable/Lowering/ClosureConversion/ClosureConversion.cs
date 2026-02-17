@@ -150,6 +150,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// the proxy list.
         /// </summary>
         private readonly ImmutableHashSet<Symbol> _allCapturedVariables;
+        private readonly ImmutableHashSet<Symbol> _deferrableCapturedVariables;
+        private readonly Dictionary<MethodSymbol, Analysis.ClosureEnvironment> _deferredEnvironmentsByLocalFunction;
 
         /// <summary>
         /// Containing Symbols are not checked after this step - for performance reasons we can allow inaccurate locals
@@ -200,13 +202,158 @@ namespace Microsoft.CodeAnalysis.CSharp
                 allCapturedVars.UnionWith(function.CapturedVariables);
             });
             _allCapturedVariables = allCapturedVars.ToImmutable();
+
+            var deferrableCaptured = ImmutableHashSet.CreateBuilder<Symbol>();
+            _deferredEnvironmentsByLocalFunction = new Dictionary<MethodSymbol, Analysis.ClosureEnvironment>(SymbolEqualityComparer.ConsiderEverything);
+            Analysis.VisitScopeTree(analysis.ScopeTree, scope =>
+            {
+                if (scope.DeclaredEnvironment is not { IsDeferrable: true } env)
+                {
+                    return;
+                }
+
+                foreach (var function in scope.NestedFunctions)
+                {
+                    if (function.OriginalMethodSymbol.MethodKind == MethodKind.LocalFunction &&
+                        function.CapturedEnvironments.Contains(env))
+                    {
+                        _deferredEnvironmentsByLocalFunction[function.OriginalMethodSymbol.OriginalDefinition] = env;
+                    }
+                }
+
+                deferrableCaptured.UnionWith(env.CapturedVariables);
+            });
+            _deferrableCapturedVariables = deferrableCaptured.ToImmutable();
         }
 
         protected override bool NeedsProxy(Symbol localOrParameter)
         {
             Debug.Assert(localOrParameter is LocalSymbol || localOrParameter is ParameterSymbol ||
                 (localOrParameter as MethodSymbol)?.MethodKind == MethodKind.LocalFunction);
-            return _allCapturedVariables.Contains(localOrParameter);
+            return _allCapturedVariables.Contains(localOrParameter) &&
+                !(_currentMethod == _topLevelMethod && _deferrableCapturedVariables.Contains(localOrParameter));
+        }
+
+        private bool TryGetDeferredEnvironment(MethodSymbol localFunction, out Analysis.ClosureEnvironment environment)
+            => _deferredEnvironmentsByLocalFunction.TryGetValue(localFunction.OriginalDefinition, out environment);
+
+        private void CopyCapturedVariableToFrame(SyntaxNode syntax, Symbol symbol, LocalSymbol framePointer, ArrayBuilder<BoundExpression> prologue)
+        {
+            if (!proxies.TryGetValue(symbol, out var proxy))
+            {
+                return;
+            }
+
+            BoundExpression value;
+            switch (symbol.Kind)
+            {
+                case SymbolKind.Parameter:
+                    var parameter = (ParameterSymbol)symbol;
+                    if (!_parameterMap.TryGetValue(parameter, out var parameterToUse))
+                    {
+                        parameterToUse = parameter;
+                    }
+                    value = new BoundParameter(syntax, parameterToUse);
+                    break;
+
+                case SymbolKind.Local:
+                    var local = (LocalSymbol)symbol;
+                    if (!TryGetRewrittenLocal(local, out var localToUse))
+                    {
+                        localToUse = local;
+                    }
+                    value = new BoundLocal(syntax, localToUse, null, localToUse.Type);
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
+            }
+
+            var left = proxy.Replacement(
+                syntax,
+                static (frameType, arg) => new BoundLocal(arg.syntax, arg.framePointer, null, arg.framePointer.Type),
+                (syntax, framePointer));
+
+            prologue.Add(new BoundAssignmentOperator(syntax, left, value, value.Type));
+        }
+
+        private BoundSequence CreateDeferredFrameInitializationSequence(BoundExpression expression, Analysis.ClosureEnvironment env)
+        {
+            var frame = env.SynthesizedEnvironment;
+            Debug.Assert(frame.Constructor is object);
+
+            var frameTypeParameters = ImmutableArray.Create(_currentTypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t)), 0, frame.Arity);
+            var frameType = frame.ConstructIfGeneric(frameTypeParameters);
+            var framePointer = (LocalSymbol)_framePointers[frame];
+
+            var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
+
+            sideEffects.Add(new BoundAssignmentOperator(
+                expression.Syntax,
+                new BoundLocal(expression.Syntax, framePointer, null, frameType),
+                new BoundObjectCreationExpression(expression.Syntax, frame.Constructor.AsMember(frameType)),
+                frameType));
+
+            foreach (var captured in env.CapturedVariables)
+            {
+                CopyCapturedVariableToFrame(expression.Syntax, captured, framePointer, sideEffects);
+            }
+
+            return new BoundSequence(
+                expression.Syntax,
+                ImmutableArray<LocalSymbol>.Empty,
+                sideEffects.ToImmutableAndFree(),
+                expression,
+                expression.Type);
+        }
+
+        private sealed class DeferredCapturedToFrameSymbolReplacement : CapturedSymbolReplacement
+        {
+            public readonly LambdaCapturedVariable HoistedField;
+            private readonly Symbol _capturedSymbol;
+            private readonly MethodSymbol _topLevelMethod;
+
+            public DeferredCapturedToFrameSymbolReplacement(LambdaCapturedVariable hoistedField, Symbol capturedSymbol, MethodSymbol topLevelMethod, bool isReusable)
+                : base(isReusable)
+            {
+                HoistedField = hoistedField;
+                _capturedSymbol = capturedSymbol;
+                _topLevelMethod = topLevelMethod;
+            }
+
+            public override BoundExpression Replacement<TArg>(SyntaxNode node, Func<NamedTypeSymbol, TArg, BoundExpression> makeFrame, TArg arg)
+            {
+                // This replacement is used from two contexts:
+                //   1) MethodToClassRewriter.TryReplaceWithProxy: arg is ProxyReplacementContext.
+                //      For the top-level method fast path we return the original local/parameter.
+                //   2) CopyCapturedVariableToFrame: arg is (syntax, framePointer).
+                //      In that context we intentionally fall through and return frame field access.
+                if (arg is MethodToClassRewriter.ProxyReplacementContext replacementContext &&
+                    replacementContext.Rewriter is ClosureConversion closureConversion &&
+                    closureConversion._currentMethod == _topLevelMethod)
+                {
+                    switch (_capturedSymbol.Kind)
+                    {
+                        case SymbolKind.Parameter:
+                            return new BoundParameter(node, (ParameterSymbol)_capturedSymbol);
+
+                        case SymbolKind.Local:
+                            var local = (LocalSymbol)_capturedSymbol;
+                            if (!closureConversion.TryGetRewrittenLocal(local, out var rewrittenLocal))
+                            {
+                                rewrittenLocal = local;
+                            }
+                            return new BoundLocal(node, rewrittenLocal, null, rewrittenLocal.Type);
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(_capturedSymbol.Kind);
+                    }
+                }
+
+                var frame = makeFrame(HoistedField.ContainingType, arg);
+                var field = HoistedField.AsMember((NamedTypeSymbol)frame.Type);
+                return new BoundFieldAccess(node, frame, field, constantValueOpt: null);
+            }
         }
 
         /// <summary>
@@ -395,7 +542,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(!proxies.ContainsKey(captured));
 
                     var hoistedField = LambdaCapturedVariable.Create(synthesizedEnv, captured, ref _synthesizedFieldNameIdDispenser);
-                    proxies.Add(captured, new CapturedToFrameSymbolReplacement(hoistedField, isReusable: false));
+                    proxies.Add(captured,
+                        env.IsDeferrable
+                            ? new DeferredCapturedToFrameSymbolReplacement(hoistedField, captured, _topLevelMethod, isReusable: false)
+                            : new CapturedToFrameSymbolReplacement(hoistedField, isReusable: false));
                     synthesizedEnv.AddHoistedField(hoistedField);
                     CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(synthesizedEnv, hoistedField.GetCciAdapter());
                 }
@@ -675,8 +825,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // assign new frame to the frame variable
 
             var prologue = ArrayBuilder<BoundExpression>.GetInstance();
+            bool deferFrameInitialization = env.IsDeferrable && _currentMethod == _topLevelMethod;
 
-            if ((object)frame.Constructor != null)
+            if (!deferFrameInitialization && (object)frame.Constructor != null)
             {
                 MethodSymbol constructor = frame.Constructor.AsMember(frameType);
                 Debug.Assert(TypeSymbol.Equals(frameType, constructor.ContainingType, TypeCompareKind.ConsiderEverything2));
@@ -715,7 +866,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // at the top level of a method or lambda with captured parameters.
             foreach (var variable in env.CapturedVariables)
             {
-                InitVariableProxy(syntax, variable, framePointer, prologue);
+                if (!deferFrameInitialization)
+                {
+                    InitVariableProxy(syntax, variable, framePointer, prologue);
+                }
             }
 
             Symbol oldInnermostFramePointer = _innermostFramePointer;
@@ -1089,7 +1243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ref args,
                     ref argRefKinds);
 
-                return node.Update(
+                var rewrittenCall = node.Update(
                     receiver,
                     node.InitialBindingReceiverIsSubjectToCloning,
                     method,
@@ -1103,6 +1257,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.DefaultArguments,
                     node.ResultKind,
                     type);
+
+                if (_currentMethod == _topLevelMethod &&
+                    TryGetDeferredEnvironment(node.Method, out var deferredEnvironment))
+                {
+                    return CreateDeferredFrameInitializationSequence(rewrittenCall, deferredEnvironment);
+                }
+
+                return rewrittenCall;
             }
 
             var visited = base.VisitCall(node);

@@ -6335,6 +6335,400 @@ public class CAttribute : System.Attribute { }
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
         }
 
+        [Fact]
+        [WorkItem(18946, "https://github.com/dotnet/roslyn/issues/18946")]
+        public void AsyncLocalFunctionCaptures_DeferredDisplayClassAllocation()
+        {
+            var source = """
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    public static Task<int> M(Task<int> task)
+    {
+        int total = 0;
+        int i = 0;
+
+        if (task.IsCompleted)
+        {
+            total += task.Result;
+            i++;
+            return Task.FromResult(total + i);
+        }
+
+        return Awaited();
+
+        async Task<int> Awaited()
+        {
+            total += await task;
+            i++;
+            return total + i;
+        }
+    }
+
+    static void Main()
+    {
+        Console.WriteLine(M(Task.FromResult(1)).Result);
+    }
+}
+""";
+
+            var verifier = CompileAndVerify(source, expectedOutput: "2");
+            var il = verifier.VisualizeIL("Program.M(System.Threading.Tasks.Task<int>)");
+
+            int checkIndex = il.IndexOf("get_IsCompleted()", StringComparison.Ordinal);
+            int allocIndex = il.IndexOf("newobj     \"Program.<>c__DisplayClass", StringComparison.Ordinal);
+            Assert.True(checkIndex >= 0, il);
+            Assert.True(allocIndex >= 0, il);
+            Assert.True(allocIndex > checkIndex, il);
+        }
+
+        [Fact]
+        [WorkItem(18946, "https://github.com/dotnet/roslyn/issues/18946")]
+        public void AsyncLocalFunctionCaptures_ConvertedToDelegate_NotDeferred()
+        {
+            var source = """
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    public static Task<int> M(Task<int> task)
+    {
+        int total = 0;
+        int i = 0;
+        Func<Task<int>> invoke = Awaited;
+
+        if (task.IsCompleted)
+        {
+            total += task.Result;
+            i++;
+            return Task.FromResult(total + i);
+        }
+
+        return invoke();
+
+        async Task<int> Awaited()
+        {
+            total += await task;
+            i++;
+            return total + i;
+        }
+    }
+
+    static void Main()
+    {
+        Console.WriteLine(M(Task.FromResult(1)).Result);
+    }
+}
+""";
+
+            var verifier = CompileAndVerify(source, expectedOutput: "2");
+            var il = verifier.VisualizeIL("Program.M(System.Threading.Tasks.Task<int>)");
+
+            int checkIndex = il.IndexOf("get_IsCompleted()", StringComparison.Ordinal);
+            int allocIndex = il.IndexOf("newobj     \"Program.<>c__DisplayClass", StringComparison.Ordinal);
+            Assert.True(checkIndex >= 0, il);
+            Assert.True(allocIndex >= 0, il);
+            Assert.True(allocIndex < checkIndex, il);
+        }
+
+        [Fact]
+        [WorkItem(18946, "https://github.com/dotnet/roslyn/issues/18946")]
+        public void AsyncLocalFunctionCaptures_NonReturnCallSite_NotDeferred()
+        {
+            var source = """
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    public static Task<int> M(Task<int> task)
+    {
+        int total = 0;
+        int i = 0;
+
+        if (!task.IsCompleted)
+        {
+            var pending = Awaited();
+            total++;
+            return pending;
+        }
+
+        total += task.Result;
+        i++;
+        return Task.FromResult(total + i);
+
+        async Task<int> Awaited()
+        {
+            total += await task;
+            i++;
+            return total + i;
+        }
+    }
+
+    static void Main()
+    {
+        Console.WriteLine(M(Task.FromResult(1)).Result);
+    }
+}
+""";
+
+            var verifier = CompileAndVerify(source, expectedOutput: "2");
+            var il = verifier.VisualizeIL("Program.M(System.Threading.Tasks.Task<int>)");
+
+            int checkIndex = il.IndexOf("get_IsCompleted()", StringComparison.Ordinal);
+            int allocIndex = il.IndexOf("newobj     \"Program.<>c__DisplayClass", StringComparison.Ordinal);
+            Assert.True(checkIndex >= 0, il);
+            Assert.True(allocIndex >= 0, il);
+            Assert.True(allocIndex < checkIndex, il);
+        }
+
+        [Fact]
+        [WorkItem(18946, "https://github.com/dotnet/roslyn/issues/18946")]
+        public void AsyncLocalFunctionCaptures_GenericMethod_DeferredDisplayClassAllocation()
+        {
+            var source = """
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+
+class Program
+{
+    public static Task<T> M<T>(Task<T> task, T fallback)
+    {
+        T value = fallback;
+
+        if (task.IsCompleted)
+        {
+            value = task.Result;
+            return Task.FromResult(value);
+        }
+
+        return Awaited();
+
+        async Task<T> Awaited()
+        {
+            value = await task;
+            return value;
+        }
+    }
+
+    static void Main()
+    {
+        Console.WriteLine(M(Task.FromResult(5), 0).Result);
+    }
+}
+""";
+
+            var verifier = CompileAndVerify(source, expectedOutput: "5");
+            var methodName = verifier.TestData.GetMethodsByName().Keys.Single(name => name.StartsWith("Program.M", StringComparison.Ordinal));
+            var il = verifier.VisualizeIL(methodName);
+
+            int checkIndex = il.IndexOf("get_IsCompleted()", StringComparison.Ordinal);
+            int allocIndex = il.IndexOf("newobj     \"Program.<>c__DisplayClass", StringComparison.Ordinal);
+            Assert.True(checkIndex >= 0, il);
+            Assert.True(allocIndex >= 0, il);
+            Assert.True(allocIndex > checkIndex, il);
+        }
+
+        [Fact]
+        [WorkItem(18946, "https://github.com/dotnet/roslyn/issues/18946")]
+        public void AsyncLocalFunctionCaptures_MultipleClosuresSharingEnvironment_NotDeferred()
+        {
+            var source = """
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    public static Task<int> M(Task<int> task)
+    {
+        int total = 0;
+        int i = 0;
+        int Read() => total + i;
+
+        if (task.IsCompleted)
+        {
+            total += task.Result;
+            i++;
+            return Task.FromResult(Read());
+        }
+
+        return Awaited();
+
+        async Task<int> Awaited()
+        {
+            total += await task;
+            i++;
+            return total + i;
+        }
+    }
+
+    static void Main()
+    {
+        Console.WriteLine(M(Task.FromResult(1)).Result);
+    }
+}
+""";
+
+            var verifier = CompileAndVerify(source, expectedOutput: "2");
+            var il = verifier.VisualizeIL("Program.M(System.Threading.Tasks.Task<int>)");
+
+            int checkIndex = il.IndexOf("get_IsCompleted()", StringComparison.Ordinal);
+            int allocIndex = il.IndexOf("newobj     \"Program.<>c__DisplayClass", StringComparison.Ordinal);
+            Assert.True(checkIndex >= 0, il);
+            Assert.True(allocIndex >= 0, il);
+            Assert.True(allocIndex < checkIndex, il);
+        }
+
+        [Fact]
+        [WorkItem(18946, "https://github.com/dotnet/roslyn/issues/18946")]
+        public void AsyncLocalFunctionCaptures_CallInLoop_NotDeferred()
+        {
+            var source = """
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    public static Task<int> M(Task<int> task)
+    {
+        int total = 0;
+
+        if (!task.IsCompleted)
+        {
+            for (int i = 0; i < 1; i++)
+            {
+                return Awaited();
+            }
+        }
+
+        return Task.FromResult(task.Result + total);
+
+        async Task<int> Awaited()
+        {
+            total += await task;
+            return total;
+        }
+    }
+
+    static void Main()
+    {
+        Console.WriteLine(M(Task.FromResult(3)).Result);
+    }
+}
+""";
+
+            var verifier = CompileAndVerify(source, expectedOutput: "3");
+            var il = verifier.VisualizeIL("Program.M(System.Threading.Tasks.Task<int>)");
+
+            int checkIndex = il.IndexOf("get_IsCompleted()", StringComparison.Ordinal);
+            int allocIndex = il.IndexOf("newobj     \"Program.<>c__DisplayClass", StringComparison.Ordinal);
+            Assert.True(checkIndex >= 0, il);
+            Assert.True(allocIndex >= 0, il);
+            Assert.True(allocIndex < checkIndex, il);
+        }
+
+        [Fact]
+        [WorkItem(18946, "https://github.com/dotnet/roslyn/issues/18946")]
+        public void AsyncLocalFunctionCaptures_ThisCapture_NotDeferred()
+        {
+            var source = """
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    private readonly int _offset = 1;
+
+    public Task<int> M(Task<int> task)
+    {
+        int total = 0;
+
+        if (task.IsCompleted)
+        {
+            total += task.Result;
+            return Task.FromResult(total + _offset);
+        }
+
+        return Awaited();
+
+        async Task<int> Awaited()
+        {
+            total += await task;
+            return total + _offset;
+        }
+    }
+
+    static void Main()
+    {
+        Console.WriteLine(new Program().M(Task.FromResult(1)).Result);
+    }
+}
+""";
+
+            var verifier = CompileAndVerify(source, expectedOutput: "2");
+            var il = verifier.VisualizeIL("Program.M(System.Threading.Tasks.Task<int>)");
+
+            int checkIndex = il.IndexOf("get_IsCompleted()", StringComparison.Ordinal);
+            int allocIndex = il.IndexOf("newobj     \"Program.<>c__DisplayClass", StringComparison.Ordinal);
+            Assert.True(checkIndex >= 0, il);
+            Assert.True(allocIndex >= 0, il);
+            Assert.True(allocIndex < checkIndex, il);
+        }
+
+        [Fact]
+        [WorkItem(18946, "https://github.com/dotnet/roslyn/issues/18946")]
+        public void AsyncLocalFunctionCaptures_DebugMode_NotDeferred()
+        {
+            var source = """
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    public static Task<int> M(Task<int> task)
+    {
+        int total = 0;
+        int i = 0;
+
+        if (task.IsCompleted)
+        {
+            total += task.Result;
+            i++;
+            return Task.FromResult(total + i);
+        }
+
+        return Awaited();
+
+        async Task<int> Awaited()
+        {
+            total += await task;
+            i++;
+            return total + i;
+        }
+    }
+
+    static void Main()
+    {
+        Console.WriteLine(M(Task.FromResult(1)).Result);
+    }
+}
+""";
+
+            var compilation = CreateCompilationWithMscorlib461AndCSharp(source, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "2");
+            var il = verifier.VisualizeIL("Program.M(System.Threading.Tasks.Task<int>)");
+
+            int checkIndex = il.IndexOf("get_IsCompleted()", StringComparison.Ordinal);
+            int allocIndex = il.IndexOf("newobj     \"Program.<>c__DisplayClass", StringComparison.Ordinal);
+            Assert.True(checkIndex >= 0, il);
+            Assert.True(allocIndex >= 0, il);
+            Assert.True(allocIndex < checkIndex, il);
+        }
+
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options, Verification verify = default)
         {
             var comp = CreateCompilationWithMscorlib461AndCSharp(source, options: options);

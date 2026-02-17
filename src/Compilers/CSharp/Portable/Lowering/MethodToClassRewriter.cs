@@ -15,6 +15,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal abstract partial class MethodToClassRewriter : BoundTreeToDifferentEnclosingContextRewriter
     {
+        protected readonly struct ProxyReplacementContext
+        {
+            public readonly SyntaxNode Syntax;
+            public readonly MethodToClassRewriter Rewriter;
+
+            public ProxyReplacementContext(SyntaxNode syntax, MethodToClassRewriter rewriter)
+            {
+                Syntax = syntax;
+                Rewriter = rewriter;
+            }
+        }
+
         // For each captured variable, information about its replacement.  May be populated lazily (that is, not all
         // upfront) by subclasses.  Specifically, the async rewriter produces captured symbols for temps, including
         // ref locals, lazily.
@@ -183,10 +195,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (proxies.TryGetValue(parameterOrLocal, out CapturedSymbolReplacement? proxy))
             {
+                var replacementContext = new ProxyReplacementContext(syntax, this);
                 replacement = proxy.Replacement(
                     syntax,
-                    static (frameType, arg) => arg.self.FramePointer(arg.syntax, frameType),
-                    (syntax, self: this));
+                    static (frameType, arg) => arg.Rewriter.FramePointer(arg.Syntax, frameType),
+                    replacementContext);
 
                 return true;
             }
