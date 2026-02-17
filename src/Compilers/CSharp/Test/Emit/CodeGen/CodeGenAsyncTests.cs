@@ -10790,14 +10790,14 @@ await Task.Run(
 [System.Runtime.CompilerServices.RuntimeAsyncMethodGeneration(false)]
 async () =>
 {
-   await Func();
+    await Func();
 
     [System.Runtime.CompilerServices.RuntimeAsyncMethodGeneration(true)]
-   static async Task Func()
-   {
-       await Task.Delay(1);
-       await Task.Yield();
-   }
+    static async Task Func()
+    {
+        await Task.Delay(1);
+        await Task.Yield();
+    }
 });
 """;
 
@@ -10835,6 +10835,51 @@ async () =>
   IL_0028:  ldloca.s   V_0
   IL_002a:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
   IL_002f:  ret
+}
+""");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82397")]
+        public void NonRuntimeAsyncLocalFunctionAwaitedFromRuntimeAsyncLambda()
+        {
+            var source = """
+using System.Threading.Tasks;
+
+await Task.Run(
+[System.Runtime.CompilerServices.RuntimeAsyncMethodGeneration(true)]
+async () =>
+{
+    await Func();
+
+    [System.Runtime.CompilerServices.RuntimeAsyncMethodGeneration(false)]
+    static async Task Func()
+    {
+        await Task.Delay(1);
+        await Task.Yield();
+    }
+});
+""";
+
+            var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition]);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    {ReturnValueMissing("<Main>$", "0x29")}
+                    {ReturnValueMissing("<<Main>$>b__0_0", "0xa")}
+                    """
+
+            });
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<>c.<<Main>$>b__0_0()", """
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  call       "System.Threading.Tasks.Task Program.<<Main>$>g__Func|0_1()"
+  IL_0005:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+  IL_000a:  ret
 }
 """);
         }
