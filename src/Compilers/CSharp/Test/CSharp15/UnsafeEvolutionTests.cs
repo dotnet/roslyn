@@ -3581,7 +3581,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 public class B<T>
                 {
                     public void M1(T x) { }
-                    public unsafe void M2(T x) { }
+                    [System.Runtime.CompilerServices.RequiresUnsafe]
+                    public void M2(T x) { }
                 }
                 """,
             caller: """
@@ -3595,14 +3596,16 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
                 interface I
                 {
-                    unsafe void M1(D x);
+                    [System.Runtime.CompilerServices.RequiresUnsafe]
+                    void M1(D x);
                 }
                 """,
+            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["B.M2"],
             expectedSafeSymbols: ["B.M1"],
             expectedDiagnostics:
             [
-                // (3,1): error CS9502: 'B<D>.M2(D)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // (3,1): error CS9502: 'B<D>.M2(D)' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'
                 // c.M2(null);
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.M2(null)").WithArguments("B<D>.M2(D)").WithLocation(3, 1),
             ]);
