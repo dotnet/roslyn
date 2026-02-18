@@ -77351,12 +77351,12 @@ class C
         public void NullableAttribute_04()
         {
             var source =
-@"#pragma warning disable 8618
+@"#pragma warning disable 8618, 9398
 using System.Runtime.CompilerServices;
 
 public abstract class B
 {
-    [Nullable(0)] public string F1; 
+    [Nullable(0)] public string F1;
     [Nullable(1)] public event System.Action E1;
     [Nullable(2)] public string[][,] P2 {get; set;}
     [return:Nullable(0)] public System.Action<string?> M1(string? x) 
@@ -82022,7 +82022,7 @@ public class D
         public void NonNullTypesInCSharp7_FromMetadata()
         {
             var libSource = @"#nullable enable
-#pragma warning disable 8618
+#pragma warning disable 8618, 9398
 public class C
 {
     public static string field;
@@ -110414,7 +110414,7 @@ class B
 @"using System;
 #pragma warning disable 0067
 #pragma warning disable 0169
-#pragma warning disable 8618
+#pragma warning disable 8618, 9398
 delegate T? D<T>();
 class A<T>
 {
