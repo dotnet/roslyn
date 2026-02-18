@@ -641,10 +641,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableDictionary<string, AliasAndUsingDirective>.Builder? usingAliasesMap = null;
                     ArrayBuilder<AliasAndUsingDirective>? usingAliases = null;
 
-                    // A binder that contains the extern aliases but not the usings. The resolution of the target of a using directive or alias 
+                    // Binders that contain the extern aliases but not the usings. The resolution of the target of a using directive or alias 
                     // should not make use of other peer usings.
                     Binder? declarationBinderSafe = null;
-                    Binder? declarationBinderUnsafe = null;
+                    Binder? declarationBinderUnsafe = null; // with UnsafeRegion flag
 
                     PooledHashSet<NamespaceOrTypeSymbol>? uniqueUsings = null;
                     PooledHashSet<NamespaceOrTypeSymbol>? uniqueGlobalUsings = null;
