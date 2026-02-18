@@ -150,14 +150,24 @@ build_metadata.compile.toretrieve = def456
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
-        public void WindowsPath_UppercaseDriveLetter_NormalizedDirectory()
+        public void WindowsPath()
+        {
+            const string path = "Z:\\bogus\\.editorconfig";
+            var config = Parse("", path);
+
+            Assert.Equal("Z:/bogus", config.NormalizedDirectory);
+            Assert.Equal(path, config.PathToFile);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void WindowsPath_DoubleBackslash_NormalizedDirectory()
         {
             var config = Parse("", @"Z:\\bogus\\.editorconfig");
             Assert.Equal("Z:/bogus", config.NormalizedDirectory);
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
-        public void WindowsPath_UppercaseDriveLetter_PathToFileIsPreserved()
+        public void WindowsPath_DoubleBackslash_PathToFileIsPreserved()
         {
             const string path = @"Z:\\bogus\\.editorconfig";
             var config = Parse("", path);
