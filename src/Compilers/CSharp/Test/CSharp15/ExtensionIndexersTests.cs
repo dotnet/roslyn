@@ -4,7 +4,6 @@
 #nullable disable
 
 using System.Linq;
-using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -703,6 +702,41 @@ public static class E
     [Fact]
     public void Indexing_09()
     {
+        // Obsolete extension this[Index]
+        var src = """
+var c = new C();
+_ = c[^1];
+c[^2] = 10;
+
+static class E
+{
+    extension(C c)
+    {
+        [System.Obsolete("indexer")]
+        public int this[System.Index i]
+        {
+            get { System.Console.Write($"get({i}) "); return 42; }
+            set { System.Console.Write($"set({i}, {value}) "); }
+        }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("get(^1) set(^2, 10) "), verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (2,5): warning CS0618: 'E.extension(C).this[Index]' is obsolete: 'indexer'
+            // _ = c[^1];
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c[^1]").WithArguments("E.extension(C).this[System.Index]", "indexer").WithLocation(2, 5),
+            // (3,1): warning CS0618: 'E.extension(C).this[Index]' is obsolete: 'indexer'
+            // c[^2] = 10;
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c[^2]").WithArguments("E.extension(C).this[System.Index]", "indexer").WithLocation(3, 1));
+    }
+
+    [Fact]
+    public void Indexing_10()
+    {
         var src = """
 C.M(new C());
 
@@ -733,7 +767,7 @@ public static class E
     }
 
     [Fact]
-    public void Indexing_10()
+    public void Indexing_11()
     {
         // generic extension block
         var src = """
@@ -774,7 +808,7 @@ public static class E
     }
 
     [Fact]
-    public void Indexing_11()
+    public void Indexing_12()
     {
         // generic extension block, type parameter used in indexer parameter
         var src = """
@@ -808,7 +842,7 @@ public static class E
     }
 
     [Fact]
-    public void Indexing_12()
+    public void Indexing_13()
     {
         // named arguments and evaluation order
         var src = """
@@ -836,7 +870,7 @@ public static class E
     }
 
     [Fact]
-    public void Indexing_13()
+    public void Indexing_14()
     {
         // convert receiver
         var src = """
@@ -869,7 +903,7 @@ class C { }
     }
 
     [Fact]
-    public void Indexing_14()
+    public void Indexing_15()
     {
         // default parameter values
         var src = """
@@ -895,7 +929,7 @@ public static class E
     }
 
     [Fact]
-    public void Indexing_15()
+    public void Indexing_16()
     {
         // params
         var src = """
@@ -919,7 +953,7 @@ public static class E
     }
 
     [Fact]
-    public void Indexing_16()
+    public void Indexing_17()
     {
         // multiple scopes
         var src = """
@@ -960,7 +994,7 @@ public static class E2
     }
 
     [Fact]
-    public void Indexing_17()
+    public void Indexing_18()
     {
         // broken constraint
         var src = """
@@ -988,7 +1022,7 @@ public static class E
     }
 
     [Fact]
-    public void Indexing_18()
+    public void Indexing_19()
     {
         // no getter
         var src = """
@@ -1025,7 +1059,7 @@ class C
     }
 
     [Fact]
-    public void Indexing_19()
+    public void Indexing_20()
     {
         // inaccessible, file-scope
         var src = """
@@ -1050,7 +1084,7 @@ file static class E
     }
 
     [Fact]
-    public void Indexing_20()
+    public void Indexing_21()
     {
         // constant receiver
         var src = """
@@ -1073,7 +1107,7 @@ static class E
     }
 
     [Fact]
-    public void Indexing_21()
+    public void Indexing_22()
     {
         // ref receiver parameter
         var src = """
@@ -1095,7 +1129,7 @@ static class E
     }
 
     [Fact]
-    public void Indexing_22()
+    public void Indexing_23()
     {
         // ref receiver parameter, variable
         var src = """
@@ -1119,7 +1153,7 @@ static class E
     [Theory]
     [InlineData("ref readonly")]
     [InlineData("in")]
-    public void Indexing_23(string refKind)
+    public void Indexing_24(string refKind)
     {
         // ref readonly receiver parameter, variable
         var src = $$"""
@@ -1140,7 +1174,7 @@ static class E
     }
 
     [Fact]
-    public void Indexing_24()
+    public void Indexing_25()
     {
         // ref and out parameters in indexer
         var src = """
@@ -1174,7 +1208,7 @@ class C
     }
 
     [Fact]
-    public void Indexing_25()
+    public void Indexing_26()
     {
         // in parameters in indexer
         var src = """
@@ -1195,7 +1229,7 @@ static class E
     }
 
     [Fact]
-    public void Indexing_26()
+    public void Indexing_27()
     {
         // in parameters in indexer
         var src = """
@@ -1216,7 +1250,7 @@ static class E
     }
 
     [Fact]
-    public void Indexing_27()
+    public void Indexing_28()
     {
         // in parameters in indexer
         var src = """
@@ -1237,7 +1271,7 @@ static class E
     }
 
     [Fact]
-    public void Indexing_28()
+    public void Indexing_29()
     {
         // ref-returning indexer
         var src = """
@@ -1259,7 +1293,7 @@ static class E
     }
 
     [Fact]
-    public void Indexing_29()
+    public void Indexing_30()
     {
         var src = """
 int x = 42;
@@ -1294,7 +1328,7 @@ static class E
     }
 
     [Fact]
-    public void Indexing_30()
+    public void Indexing_31()
     {
         var src = """
 _ = 42[43];
@@ -1318,7 +1352,7 @@ static class E
     }
 
     [Fact]
-    public void Indexing_31()
+    public void Indexing_32()
     {
         var src = """
 _ = new Derived()[new Base()];
@@ -1347,7 +1381,7 @@ public class Derived : Base { }
     }
 
     [Fact]
-    public void Indexing_32()
+    public void Indexing_33()
     {
         var src = """
 new Derived()[42] = new Base();
@@ -1375,7 +1409,7 @@ public class Derived : Base { }
     }
 
     [Fact]
-    public void Indexing_33()
+    public void Indexing_34()
     {
         var src = """
 var result = new C()[42];
@@ -1404,7 +1438,7 @@ static class E
     }
 
     [Fact]
-    public void Indexing_34()
+    public void Indexing_35()
     {
         // inapplicable instance indexer and applicable extension indexer
         var source = """
@@ -1436,7 +1470,7 @@ static class E1
     }
 
     [Fact]
-    public void Indexing_35()
+    public void Indexing_36()
     {
         // inapplicable inner extension indexer and applicable extension indexer
         var source = """
@@ -1478,7 +1512,7 @@ namespace N
     }
 
     [Fact]
-    public void Indexing_36()
+    public void Indexing_37()
     {
         // prefer more specific extension indexer
         var source = """
@@ -1516,7 +1550,7 @@ static class E2
     }
 
     [Fact]
-    public void Indexing_37()
+    public void Indexing_38()
     {
         var source = """
 struct S1(Color Color)
@@ -1544,7 +1578,7 @@ static class E
     }
 
     [Fact]
-    public void Indexing_38()
+    public void Indexing_39()
     {
         var source = """
 
@@ -1579,7 +1613,7 @@ static class E
     }
 
     [Fact]
-    public void Indexing_39()
+    public void Indexing_40()
     {
         var src = """
 _ = new C()[0];
@@ -1611,7 +1645,7 @@ static class E
     }
 
     [Fact]
-    public void Indexing_40()
+    public void Indexing_41()
     {
         var missingSrc = """
 public class Missing { }
@@ -1642,7 +1676,7 @@ static class E
     }
 
     [Fact]
-    public void Indexing_41()
+    public void Indexing_42()
     {
         var src = """
 new object()[0].field = 1;
@@ -1667,7 +1701,7 @@ static class E
     }
 
     [Fact]
-    public void Indexing_42()
+    public void Indexing_43()
     {
         // ref readonly extension parameter, constant receiver
         var src = """
@@ -1688,7 +1722,7 @@ static class E
     }
 
     [Fact]
-    public void Indexing_43()
+    public void Indexing_44()
     {
         // ref readonly extension parameter, variable receiver
         var src = """
@@ -1707,7 +1741,7 @@ static class E
     }
 
     [Fact]
-    public void Indexing_44()
+    public void Indexing_45()
     {
         // ref readonly extension parameter, ref readonly receiver
         var src = """
@@ -1727,7 +1761,7 @@ static class E
     }
 
     [Fact]
-    public void Indexing_45()
+    public void Indexing_46()
     {
         // inaccessible type argument
         var src = """
@@ -1758,7 +1792,7 @@ class A
     }
 
     [Fact]
-    public void Indexing_46()
+    public void Indexing_47()
     {
         // indexing on type
         var src = """
@@ -1781,7 +1815,7 @@ class C { }
     }
 
     [Fact]
-    public void Indexing_47()
+    public void Indexing_48()
     {
         // extra ref
         var src = """
@@ -1804,7 +1838,7 @@ static class E
     }
 
     [Fact]
-    public void Indexing_48()
+    public void Indexing_49()
     {
         // indexing null
         var src = """
@@ -1826,7 +1860,7 @@ static class E
     }
 
     [Fact]
-    public void Indexing_49()
+    public void Indexing_50()
     {
         // generic vs. non-generic extension indexer
         var src = """
@@ -1850,7 +1884,7 @@ static class E
     }
 
     [Fact]
-    public void Indexing_50()
+    public void Indexing_51()
     {
         //public static class E
         //{
@@ -1913,7 +1947,7 @@ _ = 42[43];
     }
 
     [Fact(Skip = "PROTOTYPE existing crash")]
-    public void Indexing_51()
+    public void Indexing_52()
     {
         //public class C
         //{
@@ -1946,7 +1980,7 @@ _ = new C()[43];
     }
 
     [Fact]
-    public void Indexing_52()
+    public void Indexing_53()
     {
         // two ambiguous/applicable candidates mask an outer applicable candidate
         var src = """
@@ -1986,7 +2020,7 @@ namespace N
     }
 
     [Fact]
-    public void Indexing_53()
+    public void Indexing_54()
     {
         // convert receiver, struct
         var src = """
@@ -2036,7 +2070,7 @@ struct S { }
     }
 
     [Fact]
-    public void Indexing_54()
+    public void Indexing_55()
     {
         // inaccessible, private
         var src = """
@@ -2059,7 +2093,7 @@ static class E
     }
 
     [Fact]
-    public void Indexing_55()
+    public void Indexing_56()
     {
         var src = """
 System.Console.Write(""[""]);
@@ -2250,42 +2284,37 @@ static class E
     [Fact]
     public void ImplicitIndexIndexer_01()
     {
-        // extension Index indexer takes precedence over implicit indexer
+        // instance implicit indexer takes precedence over extension this[Index]
         var src = """
 var c = new C();
-_ = c[^1];
-c[^2] = 10;
+System.Console.Write(c[^1]);
 
 static class E
 {
     extension(C c)
     {
-        public int this[System.Index i]
-        {
-            get { System.Console.Write($"get({i}) "); return 42; }
-            set { System.Console.Write($"set({i}, {value}) "); }
-        }
+        public int this[System.Index i] { get => throw null; }
     }
 }
 
 class C
 {
-    public int Length => throw null;
+    public int Length => 3;
     public int this[int i]
     {
-        get => throw null;
+        get { System.Console.Write($"instance({i}) "); return 99; }
     }
 }
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("get(^1) set(^2, 10)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("instance(2) 99"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
     public void ImplicitIndexIndexer_02()
     {
-        // extension Length doesn't count towards implicit Index indexer
+        // extension Length paired with instance this[int]
         var src = """
 var c = new C();
 _ = c[^1];
@@ -2304,11 +2333,11 @@ class C
     public int this[int i]
     {
         get => throw null;
+        set => throw null;
     }
 }
 """;
 
-        // PROTOTYPE where should extension Length/Count count?
         CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
             // (2,7): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
             // _ = c[^1];
@@ -2321,7 +2350,7 @@ class C
     [Fact]
     public void ImplicitIndexIndexer_03()
     {
-        // extension this[int] doesn't count towards implicit Index indexer
+        // extension this[int] paired with instance Length
         var src = """
 var c = new C();
 _ = c[^1];
@@ -2334,6 +2363,7 @@ static class E
         public int this[int i]
         {
             get => throw null;
+            set => throw null;
         }
     }
 }
@@ -2354,41 +2384,1135 @@ class C
     }
 
     [Fact]
-    public void ImplicitRangeIndexer_01()
+    public void ImplicitIndexIndexer_04()
     {
-        // extension Range indexer takes precedence over implicit indexer
+        // extension Length + extension this[int] in same scope
         var src = """
 var c = new C();
-_ = c[0..^1];
-c[0..^1] = 10;
+System.Console.Write(c[^1]);
 
 static class E
 {
     extension(C c)
     {
-        public int this[System.Range i]
+        public int Length => 3;
+        public int this[int i]
         {
             get { System.Console.Write($"get({i}) "); return 42; }
-            set { System.Console.Write($"set({i}, {value}) "); }
+        }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("get(2) 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_05()
+    {
+        // extension Length in outer scope + extension this[int] in inner scope
+        var src = """
+using Outer;
+
+namespace Inner
+{
+    class Program
+    {
+        void Main()
+        {
+            _ = new C()[^1];
+        }
+    }
+
+    static class E1
+    {
+        extension(C c)
+        {
+            public int this[int i] => throw null;
+        }
+    }
+}
+
+namespace Outer
+{
+    static class E2
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+        }
+    }
+}
+
+class C { }
+""";
+
+        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
+            // (9,17): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //             _ = new C()[^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "new C()[^1]").WithArguments("C").WithLocation(9, 17));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_06()
+    {
+        // extension Count + extension this[int] in same scope
+        var src = """
+var c = new C();
+System.Console.Write(c[^1]);
+
+static class E
+{
+    extension(C c)
+    {
+        public int Count => 3;
+        public int this[int i]
+        {
+            get { System.Console.Write($"get({i}) "); return 42; }
+        }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("get(2) 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_07()
+    {
+        // instance Length + instance this[int] takes precedence over extension implicit pattern
+        var src = """
+var c = new C();
+System.Console.Write(c[^1]);
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => throw null;
+        public int this[int i]
+        {
+            get => throw null;
         }
     }
 }
 
 class C
 {
-    public int Length => throw null;
-    public int Slice(int i, int j) => throw null;
+    public int Length => 3;
+    public int this[int i]
+    {
+        get { System.Console.Write($"instance({i}) "); return 99; }
+    }
 }
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("get(0..^1) set(0..^1, 10)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("instance(2) 99"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_08()
+    {
+        // extension this[Index] is preferred over extension Length + extension this[int] in same scope
+        var src = """
+var c = new C();
+System.Console.Write(c[^1]);
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => throw null;
+        public int this[int i] { get => throw null; }
+        public int this[System.Index i]
+        {
+            get { System.Console.Write($"real({i}) "); return 42; }
+        }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("real(^1) 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_09()
+    {
+        // Inner extension Length + inner extension this[int] is preferred over outer this[Index].
+        var src = """
+using Outer;
+
+namespace Inner
+{
+    class Program
+    {
+        static void Main()
+        {
+            var c = new C();
+            System.Console.Write(c[^1]);
+        }
+    }
+
+    static class E1
+    {
+        extension(C c)
+        {
+            public int Length => 3;
+            public int this[int i]
+            {
+                get { System.Console.Write($"implicit({i}) "); return 42; }
+            }
+        }
+    }
+}
+
+namespace Outer
+{
+    static class E2
+    {
+        extension(C c)
+        {
+            public int this[System.Index i] { get => throw null; }
+        }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("implicit(2) 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using Outer;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Outer;").WithLocation(1, 1));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_10()
+    {
+        // Inner extension this[Index] is preferred over outer extension Length + outer extension this[int]
+        var src = """
+using Outer;
+
+namespace Inner
+{
+    class Program
+    {
+        static void Main()
+        {
+            var c = new C();
+            System.Console.Write(c[^1]);
+        }
+    }
+
+    static class E1
+    {
+        extension(C c)
+        {
+            public int this[System.Index i]
+            {
+                get { System.Console.Write($"real({i}) "); return 42; }
+            }
+        }
+    }
+}
+
+namespace Outer
+{
+    static class E2
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+            public int this[int i] { get => throw null; }
+        }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("real(^1) 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using Outer;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Outer;").WithLocation(1, 1));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_11()
+    {
+        // Instance this[string] and extension Length + extension this[int]
+        var src = """
+var c = new C();
+System.Console.Write(c[^1]);
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => 3;
+        public int this[int i]
+        {
+            get { System.Console.Write($"ext({i}) "); return 42; }
+        }
+    }
+}
+
+class C
+{
+    public int this[string s] { get => throw null; }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("ext(2) 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_12()
+    {
+        // extension Length + extension this[int] with no getter
+        var src = """
+var c = new C();
+System.Console.Write(c[^1]);
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => throw null;
+        public int this[int i]
+        {
+            set { System.Console.Write($"set({i}, {value}) "); }
+        }
+    }
+}
+
+class C { }
+""";
+
+        CreateCompilation(src, targetFramework: TargetFramework.Net100)
+            .VerifyEmitDiagnostics(
+                // (2,22): error CS0154: The property or indexer 'E.extension(C).this[int]' cannot be used in this context because it lacks the get accessor
+                // System.Console.Write(c[^1]);
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "c[^1]").WithArguments("E.extension(C).this[int]").WithLocation(2, 22));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_13()
+    {
+        // Inner extension this[Index] preferred over outer this[Index].
+        var src = """
+using Outer;
+
+namespace Inner
+{
+    class Program
+    {
+        static void Main()
+        {
+            var c = new C();
+            System.Console.Write(c[^1]);
+        }
+    }
+
+    static class E1
+    {
+        extension(C c)
+        {
+            public int this[System.Index i]
+            {
+                get { System.Console.Write($"inner({i}) "); return 42; }
+            }
+        }
+    }
+}
+
+namespace Outer
+{
+    static class E2
+    {
+        extension(C c)
+        {
+            public int this[System.Index i] { get => throw null; }
+        }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("inner(^1) 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using Outer;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Outer;").WithLocation(1, 1));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_14()
+    {
+        // Inner extension Length and outer extension Length + outer extension this[int]
+        var src = """
+using Outer;
+
+namespace Inner
+{
+    class Program
+    {
+        static void Main()
+        {
+            var c = new C();
+            System.Console.Write(c[^1]);
+        }
+    }
+
+    static class E1
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+        }
+    }
+}
+
+namespace Outer
+{
+    static class E2
+    {
+        extension(C c)
+        {
+            public int Length => 3;
+            public int this[int i]
+            {
+                get { System.Console.Write($"outer({i}) "); return 42; }
+            }
+        }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("outer(2) 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_15()
+    {
+        // Instance this[string] and extension this[Index]
+        var src = """
+var c = new C();
+System.Console.Write(c[^1]);
+
+static class E
+{
+    extension(C c)
+    {
+        public int this[System.Index i]
+        {
+            get { System.Console.Write($"ext({i}) "); return 42; }
+        }
+    }
+}
+
+class C
+{
+    public int this[string s] { get => throw null; }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("ext(^1) 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_16()
+    {
+        // Obsolete extension Length property
+        var src = """
+var c = new C();
+System.Console.Write(c[^1]);
+
+static class E
+{
+    extension(C c)
+    {
+        [System.Obsolete("obsolete")]
+        public int Length => 3;
+        public int this[int i]
+        {
+            get { System.Console.Write($"get({i}) "); return 42; }
+        }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("get(2) 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (2,22): warning CS0618: 'C.Length' is obsolete: 'obsolete'
+            // System.Console.Write(c[^1]);
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c[^1]").WithArguments("E.extension(C).Length", "obsolete").WithLocation(2, 22));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_17()
+    {
+        // Obsolete extension this[int]
+        var src = """
+var c = new C();
+System.Console.Write(c[^1]);
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => 3;
+        [System.Obsolete("old indexer")]
+        public int this[int i]
+        {
+            get { System.Console.Write($"get({i}) "); return 42; }
+        }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("get(2) 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (2,22): warning CS0618: 'C.this[int]' is obsolete: 'old indexer'
+            // System.Console.Write(c[^1]);
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c[^1]").WithArguments("E.extension(C).this[int]", "old indexer").WithLocation(2, 22));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_18()
+    {
+        // extension implicit indexer with receiver conversion
+        var src = """
+var d = new Derived();
+System.Console.Write(d[^1]);
+
+static class E
+{
+    extension(Base b)
+    {
+        public int Length => 3;
+        public int this[int i]
+        {
+            get { System.Console.Write($"get({i}) "); return 42; }
+        }
+    }
+}
+
+class Base { }
+class Derived : Base { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("get(2) 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_19()
+    {
+        // Length from extension(Base), this[int] from extension(Derived)
+        var src = """
+var d = new Derived();
+System.Console.Write(d[^1]);
+
+static class E
+{
+    extension(Base b)
+    {
+        public int Length => 3;
+    }
+    extension(Derived d)
+    {
+        public int this[int i]
+        {
+            get { System.Console.Write($"get({i}) "); return 42; }
+        }
+    }
+}
+
+class Base { }
+class Derived : Base { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("get(2) 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_20()
+    {
+        // Length from extension(Derived), this[int] from extension(Base)
+        var src = """
+var d = new Derived();
+System.Console.Write(d[^1]);
+
+static class E
+{
+    extension(Derived d)
+    {
+        public int Length => 3;
+    }
+    extension(Base b)
+    {
+        public int this[int i]
+        {
+            get { System.Console.Write($"get({i}) "); return 42; }
+        }
+    }
+}
+
+class Base { }
+class Derived : Base { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("get(2) 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_21()
+    {
+        // static extension Length
+        var src = """
+var c = new C();
+_ = c[^1];
+
+static class E
+{
+    extension(C c)
+    {
+        public static int Length => throw null;
+        public int this[int i] { get => throw null; }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //_ = c[^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_22()
+    {
+        // extension Length with no getter
+        var src = """
+var c = new C();
+_ = c[^1];
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length { set { } }
+        public int this[int i] { get => throw null; }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //_ = c[^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_23()
+    {
+        // extension Length returning long
+        var src = """
+var c = new C();
+_ = c[^1];
+
+static class E
+{
+    extension(C c)
+    {
+        public long Length => 3;
+        public int this[int i] { get => throw null; }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //_ = c[^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_24()
+    {
+        // extension ref-returning Length
+        var src = """
+var c = new C();
+_ = c[^1];
+
+static class E
+{
+    extension(C c)
+    {
+        public ref int Length { get => throw null; }
+        public int this[int i] { get => throw null; }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //_ = c[^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_25()
+    {
+        // extension Length with private getter
+        var src = """
+var c = new C();
+_ = c[^1];
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length { private get => throw null; set { } }
+        public int this[int i] { get => throw null; }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //_ = c[^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_26()
+    {
+        // extension Length method + extension this[int]
+        var src = """
+var c = new C();
+_ = c[^1];
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length() => 3;
+        public int this[int i] { get => throw null; }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //_ = c[^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_27()
+    {
+        // extension Count + extension this[int]
+        var src = """
+var c = new C();
+System.Console.Write(c[^1]);
+
+static class E
+{
+    extension(C c)
+    {
+        public int Count => 3;
+        public int this[int i]
+        {
+            get { System.Console.Write($"get({i}) "); return 42; }
+        }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("get(2) 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_28()
+    {
+        // extension Length + extension this[string]
+        var src = """
+var c = new C();
+_ = c[^1];
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => throw null;
+        public int this[string s] { get => throw null; }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //_ = c[^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_29()
+    {
+        // extension Length + extension this[int, int]
+        var src = """
+var c = new C();
+_ = c[^1];
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => throw null;
+        public int this[int i, int j] { get => throw null; }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //_ = c[^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_30()
+    {
+        // extension Length + extension this[int, int = 42]
+        var src = """
+var c = new C();
+_ = c[^1];
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => throw null;
+        public int this[int i, int j = 42] { get => throw null; }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //_ = c[^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_31()
+    {
+        // extension Length + extension this[ref int]
+        var src = """
+var c = new C();
+_ = c[^1];
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => throw null;
+        public int this[ref int i] { get => throw null; }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //_ = c[^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5),
+            // (9,25): error CS0631: ref and out are not valid in this context
+            //         public int this[ref int i] { get => throw null; }
+            Diagnostic(ErrorCode.ERR_IllegalRefParam, "ref").WithLocation(9, 25));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_32()
+    {
+        // extension Length + private extension this[int]
+        var src = """
+var c = new C();
+_ = c[^1];
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => throw null;
+        private int this[int i] { get => throw null; }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //_ = c[^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_33()
+    {
+        // named argument matching extension this[int] parameter name
+        var src = """
+var c = new C();
+_ = c[i: ^1];
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => throw null;
+        public int this[int i] { get => throw null; }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,7): error CS8428: Invocation of implicit Index Indexer cannot name the argument.
+            //_ = c[i: ^1];
+            Diagnostic(ErrorCode.ERR_ImplicitIndexIndexerWithName, "i").WithLocation(2, 7));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_34()
+    {
+        // named argument not matching extension this[int] parameter name
+        var src = """
+var c = new C();
+_ = c[index: ^1];
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => throw null;
+        public int this[int i] { get => throw null; }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,7): error CS8428: Invocation of implicit Index Indexer cannot name the argument.
+            //_ = c[index: ^1];
+            Diagnostic(ErrorCode.ERR_ImplicitIndexIndexerWithName, "index").WithLocation(2, 7));
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_35()
+    {
+        // instance Length takes precedence over instance Count
+        var src = """
+var c = new C();
+System.Console.Write(c[^1]);
+
+class C
+{
+    public int Length { get { System.Console.Write("Length "); return 3; } }
+    public int Count => throw null;
+    public int this[int i]
+    {
+        get { System.Console.Write($"get({i}) "); return 42; }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("Length get(2) 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_36()
+    {
+        // extension Length takes precedence over extension Count
+        var src = """
+var c = new C();
+System.Console.Write(c[^1]);
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length { get { System.Console.Write("Length "); return 3; } }
+        public int Count => throw null;
+        public int this[int i]
+        {
+            get { System.Console.Write($"get({i}) "); return 42; }
+        }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("Length get(2) 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexer_37()
+    {
+        // inner extension Count and outer extension Length
+        var src = """
+using Outer;
+
+namespace Inner
+{
+    class Program
+    {
+        static void Main()
+        {
+            var c = new C();
+            System.Console.Write(c[^1]);
+        }
+    }
+
+    static class E1
+    {
+        extension(C c)
+        {
+            public int Count { get { System.Console.Write("Count "); return 3; } }
+            public int this[int i]
+            {
+                get { System.Console.Write($"get({i}) "); return 42; }
+            }
+        }
+    }
+}
+
+namespace Outer
+{
+    static class E2
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+            public int this[int i]
+            {
+                get => throw null;
+            }
+        }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("Count get(2) 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using Outer;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Outer;").WithLocation(1, 1));
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_01()
+    {
+        // instance implicit indexer (instance scope) takes precedence over extension this[Range] (extension scope)
+        var src = """
+var c = new C();
+System.Console.Write(c[1..^1]);
+
+static class E
+{
+    extension(C c)
+    {
+        public int this[System.Range r] { get => throw null; }
+    }
+}
+
+class C
+{
+    public int Length => 5;
+    public C Slice(int start, int length)
+    {
+        System.Console.Write($"instance({start}, {length}) ");
+        return new C();
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("instance(1, 3) C"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
     public void ImplicitRangeIndexer_02()
     {
-        // extension Length doesn't count towards implicit Range indexer
+        // extension Length + instance Slice
         var src = """
 var c = new C();
 _ = c[0..^1];
@@ -2407,7 +3531,6 @@ class C
 }
 """;
 
-        // PROTOTYPE where should extension Length/Count count?
         CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
             // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             // _ = c[0..^1];
@@ -2417,7 +3540,7 @@ class C
     [Fact]
     public void ImplicitRangeIndexer_03()
     {
-        // extension Slice doesn't count towards implicit Range indexer
+        // extension Slice + instance Length
         var src = """
 var c = new C();
 _ = c[0..^1];
@@ -2440,6 +3563,522 @@ class C
             // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             // _ = c[0..^1];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[0..^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_04()
+    {
+        // extension Length + extension Slice
+        var src = """
+var c = new C();
+System.Console.Write(c[1..^1]);
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => 5;
+        public C Slice(int start, int length)
+        {
+            System.Console.Write($"Slice({start}, {length}) ");
+            return new C();
+        }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("Slice(1, 3) C"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_05()
+    {
+        // extension Count + extension Slice
+        var src = """
+var c = new C();
+System.Console.Write(c[1..^1]);
+
+static class E
+{
+    extension(C c)
+    {
+        public int Count => 5;
+        public C Slice(int start, int length)
+        {
+            System.Console.Write($"Slice({start}, {length}) ");
+            return new C();
+        }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("Slice(1, 3) C"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_06()
+    {
+        // outer extension Length + inner extension Slice
+        var src = """
+using Outer;
+
+namespace Inner
+{
+    class Program
+    {
+        void Main()
+        {
+            _ = new C()[0..^1];
+        }
+    }
+    static class E1
+    {
+        extension(C c)
+        {
+            public int Slice(int start, int length) => throw null;
+        }
+    }
+}
+
+namespace Outer
+{
+    static class E2
+    {
+        extension(C c)
+        {
+            public int Length => throw null;
+        }
+    }
+}
+
+class C { }
+""";
+
+        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
+            // (9,17): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //             _ = new C()[0..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "new C()[0..^1]").WithArguments("C").WithLocation(9, 17));
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_07()
+    {
+        // extension this[Range] is preferred over extension Length + extension Slice
+        var src = """
+var c = new C();
+System.Console.Write(c[1..^1]);
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => throw null;
+        public int Slice(int start, int length) => throw null;
+        public int this[System.Range r]
+        {
+            get { System.Console.Write($"real({r}) "); return 42; }
+        }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("real(1..^1) 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_08()
+    {
+        // instance Length + instance Slice preferred over extension Length + extension Slice
+        var src = """
+var c = new C();
+System.Console.Write(c[1..^1]);
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => throw null;
+        public C Slice(int start, int length) => throw null;
+    }
+}
+
+class C
+{
+    public int Length => 5;
+    public C Slice(int start, int length)
+    {
+        System.Console.Write($"instance({start}, {length}) ");
+        return new C();
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("instance(1, 3) C"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_09()
+    {
+        // instance Length + instance this[string] and extension this[Range]
+        var src = """
+var c = new C();
+System.Console.Write(c[1..^1]);
+
+static class E
+{
+    extension(C c)
+    {
+        public int this[System.Range r]
+        {
+            get { System.Console.Write($"ext({r}) "); return 42; }
+        }
+    }
+}
+
+class C
+{
+    public int Length => throw null;
+    public int this[string s] { get => throw null; }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("ext(1..^1) 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_10()
+    {
+        // extension Length + extension Slice with receiver conversion
+        var src = """
+var d = new Derived();
+System.Console.Write(d[1..^1]);
+
+static class E
+{
+    extension(Base b)
+    {
+        public int Length => 5;
+        public string Slice(int start, int length)
+        {
+            System.Console.Write($"slice({start},{length}) ");
+            return "ok";
+        }
+    }
+}
+
+class Base { }
+class Derived : Base { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("slice(1,3) ok"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_11()
+    {
+        // extension(Base) Length + extension(Derived) Slice
+        var src = """
+var d = new Derived();
+System.Console.Write(d[1..^1]);
+
+static class E
+{
+    extension(Base b)
+    {
+        public int Length => 5;
+    }
+    extension(Derived d)
+    {
+        public string Slice(int start, int length)
+        {
+            System.Console.Write($"slice({start},{length}) ");
+            return "ok";
+        }
+    }
+}
+
+class Base { }
+class Derived : Base { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("slice(1,3) ok"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_12()
+    {
+        // extension Length + static extension Slice
+        var src = """
+var c = new C();
+_ = c[1..^1];
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => throw null;
+        public static string Slice(int start, int length) => throw null;
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //_ = c[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_13()
+    {
+        // extension Length + extension property named Slice
+        var src = """
+var c = new C();
+_ = c[1..^1];
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => throw null;
+        public string Slice => throw null;
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //_ = c[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_14()
+    {
+        // extension Length + extension void-returning Slice(int, int)
+        var src = """
+var c = new C();
+_ = c[1..^1];
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => throw null;
+        public void Slice(int start, int length) { }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //_ = c[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_15()
+    {
+        // extension Length + extension Slice(int)
+        var src = """
+var c = new C();
+_ = c[1..^1];
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => throw null;
+        public string Slice(int start) => throw null;
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //_ = c[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_16()
+    {
+        // extension Length + extension Slice(int, int = 0)
+        var src = """
+var c = new C();
+System.Console.Write(c[1..^1]);
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => 5;
+        public string Slice(int start, int length = 0)
+        {
+            System.Console.Write($"Slice({start}, {length}) ");
+            return "ok";
+        }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("Slice(1, 3) ok"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        // instance Length + instance Slice(int, int = 0)
+        var src2 = """
+System.Console.Write(new C()[1..^1]);
+
+class C
+{
+    public int Length => 5;
+    public string Slice(int start, int length = 0)
+    {
+        System.Console.Write($"Slice({start}, {length}) ");
+        return "ok";
+    }
+}
+""";
+
+        var comp2 = CreateCompilation(src2, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp2, expectedOutput: ExpectedOutput("Slice(1, 3) ok"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_17()
+    {
+        // extension Length + extension Slice(string, int)
+        var src = """
+var c = new C();
+_ = c[1..^1];
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => throw null;
+        public string Slice(string start, int length) => throw null;
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //_ = c[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_18()
+    {
+        // extension Length + extension Slice(int, string)
+        var src = """
+var c = new C();
+_ = c[1..^1];
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => throw null;
+        public string Slice(int start, string length) => throw null;
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //_ = c[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_19()
+    {
+        // extension Length + extension private Slice
+        var src = """
+var c = new C();
+_ = c[1..^1];
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => throw null;
+        private string Slice(int start, int length) => throw null;
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            //_ = c[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexer_20()
+    {
+        // extension Length takes precedence over extension Count
+        var src = """
+var c = new C();
+System.Console.Write(c[1..^1]);
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length { get { System.Console.Write("Length "); return 5; } }
+        public int Count => throw null;
+        public string Slice(int start, int length)
+        {
+            System.Console.Write($"slice({start},{length}) ");
+            return "ok";
+        }
+    }
+}
+
+class C { }
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("Length slice(1,3) ok"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -4393,7 +6032,7 @@ static class E
     }
 
     [Fact]
-    public void Nullability_Indexing_09()
+    public void Nullability_Indexing_10()
     {
         // indexer parameter disallows null
         string source = """
@@ -4420,7 +6059,7 @@ static class E
     }
 
     [Fact]
-    public void Nullability_Indexing_10()
+    public void Nullability_Indexing_11()
     {
         string source = """
 static class E
@@ -4437,7 +6076,7 @@ static class E
     }
 
     [Fact]
-    public void Nullability_Indexing_11()
+    public void Nullability_Indexing_12()
     {
         // generic, check returned value
         string source = """
@@ -4464,7 +6103,7 @@ static class E
     }
 
     [Fact]
-    public void Nullability_Indexing_12()
+    public void Nullability_Indexing_13()
     {
         // `ref` extension parameter
         var src = """
@@ -4508,7 +6147,7 @@ static class E
     }
 
     [Fact]
-    public void Nullability_Indexing_13()
+    public void Nullability_Indexing_14()
     {
         // `in` extension parameter
         var src = """
@@ -4562,7 +6201,7 @@ public static class E
     }
 
     [Fact]
-    public void Nullability_Indexing_14()
+    public void Nullability_Indexing_15()
     {
         // NotNullIfNotNull
         var src = """
@@ -4643,7 +6282,7 @@ class C
     }
 
     [Fact]
-    public void Nullability_Indexing_15()
+    public void Nullability_Indexing_16()
     {
         // NotNull
         var src = """
@@ -4687,7 +6326,7 @@ public static class E
     }
 
     [Fact]
-    public void Nullability_Indexing_16()
+    public void Nullability_Indexing_17()
     {
         // MaybeNull
         var src = """
@@ -4747,7 +6386,7 @@ public static class E
     }
 
     [Fact]
-    public void Nullability_Indexing_17()
+    public void Nullability_Indexing_18()
     {
         // AllowNull
         var src = """
@@ -4788,7 +6427,7 @@ public static class E
     }
 
     [Fact]
-    public void Nullability_Indexing_18()
+    public void Nullability_Indexing_19()
     {
         // DisallowNull
         var src = """
@@ -4846,7 +6485,7 @@ public static class E
     }
 
     [Fact]
-    public void Nullability_Indexing_19()
+    public void Nullability_Indexing_20()
     {
         // DoesNotReturn
         var src = """
@@ -4918,7 +6557,7 @@ public static class E
     }
 
     [Fact]
-    public void Nullability_Indexing_20()
+    public void Nullability_Indexing_21()
     {
         // NotNullWhen
         var src = """
@@ -4965,7 +6604,7 @@ public static class E
     }
 
     [Fact]
-    public void Nullability_Indexing_21()
+    public void Nullability_Indexing_22()
     {
         // MaybeNullWhen
         var src = """
@@ -5012,7 +6651,7 @@ public static class E
     }
 
     [Fact]
-    public void Nullability_Indexing_22()
+    public void Nullability_Indexing_23()
     {
         // MemberNotNull
         var src = """
@@ -5068,7 +6707,7 @@ public static class E
     }
 
     [Fact]
-    public void Nullability_Indexing_23()
+    public void Nullability_Indexing_24()
     {
         // value of type parameter as receiver
         var src = """
@@ -5088,7 +6727,7 @@ public static class E
     }
 
     [Fact]
-    public void Nullability_Indexing_24()
+    public void Nullability_Indexing_25()
     {
         // nullability check on the receiver, un-annotated extension parameter
         var src = """
@@ -5134,7 +6773,7 @@ public static class E
     }
 
     [Fact]
-    public void Nullability_Indexing_25()
+    public void Nullability_Indexing_26()
     {
         // nullability check on the receiver, annotated extension parameter
         var src = """
@@ -5173,7 +6812,7 @@ public static class E
     }
 
     [Fact]
-    public void Nullability_Indexing_26()
+    public void Nullability_Indexing_27()
     {
         // nullability check on the return value
         var src = """
@@ -5227,7 +6866,7 @@ public static class E
     }
 
     [Fact]
-    public void Nullability_Indexing_27()
+    public void Nullability_Indexing_28()
     {
         // nullability check on the set value
         var src = """
@@ -5281,7 +6920,7 @@ public static class E
     }
 
     [Fact]
-    public void Nullability_Indexing_28()
+    public void Nullability_Indexing_29()
     {
         // nullability check on compound assignment
         var src = """
@@ -5316,7 +6955,7 @@ static class E
     }
 
     [Fact]
-    public void Nullability_Indexing_29()
+    public void Nullability_Indexing_30()
     {
         // generic extension parameter, property read access
         var src = """
@@ -5354,7 +6993,7 @@ static class E
     }
 
     [Fact]
-    public void Nullability_Indexing_30()
+    public void Nullability_Indexing_31()
     {
         // generic extension parameter, instance member, property write access
         var src = """
@@ -5392,7 +7031,7 @@ static class E
     }
 
     [Fact]
-    public void Nullability_Indexing_31()
+    public void Nullability_Indexing_32()
     {
         // notnull constraint
         var src = """
@@ -5433,7 +7072,7 @@ static class E
     }
 
     [Fact]
-    public void Nullability_Indexing_32()
+    public void Nullability_Indexing_33()
     {
         // notnull constraint, in tuple
         var src = """
@@ -5458,7 +7097,7 @@ static class E
     }
 
     [Fact]
-    public void Nullability_Indexing_34()
+    public void Nullability_Indexing_35()
     {
         // implicit reference conversion on the receiver
         var src = """
@@ -5485,7 +7124,7 @@ static class E
     }
 
     [Fact]
-    public void Nullability_Indexing_35()
+    public void Nullability_Indexing_36()
     {
         // implicit reference conversion on the receiver
         var src = """
@@ -5515,7 +7154,7 @@ static class E
     }
 
     [Fact]
-    public void Nullability_Indexing_36()
+    public void Nullability_Indexing_37()
     {
         // optional parameter
         var src = """
@@ -5537,7 +7176,7 @@ static class E
     }
 
     [Fact]
-    public void Nullability_Indexing_37()
+    public void Nullability_Indexing_38()
     {
         // optional parameter with nullability warning
         var src = """
@@ -7953,7 +9592,7 @@ public ref struct S
     }
 
     [Fact, CompilerTrait(CompilerFeature.RefLifetime)]
-    public void RefAnalysis_Indexing_09()
+    public void RefAnalysis_Indexing_10()
     {
         var src = """
 public static class E
@@ -8034,7 +9673,7 @@ public ref struct S
     }
 
     [Fact, CompilerTrait(CompilerFeature.RefLifetime)]
-    public void RefAnalysis_Indexing_10()
+    public void RefAnalysis_Indexing_11()
     {
         var src = """
 public static class E
@@ -8067,7 +9706,7 @@ public ref struct S
     }
 
     [Fact, CompilerTrait(CompilerFeature.RefLifetime)]
-    public void RefAnalysis_Indexing_11()
+    public void RefAnalysis_Indexing_12()
     {
         var src = """
 public static class E
