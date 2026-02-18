@@ -76,6 +76,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             node = (BoundConstantPattern)base.VisitConstantPattern(node)!;
             if (node.IsUnionMatching)
             {
+                Debug.Assert(node.InputType is NamedTypeSymbol { IsUnionType: true });
+
+                if (node.ConstantValue == ConstantValue.Null && !node.InputType.IsValueType && node.NarrowedType.Equals(node.InputType, TypeCompareKind.AllIgnoreOptions))
+                {
+                    // Special case of a null test for a class Union. Its meaning is equivalent to: (<union instance> is null or <union instance>.Value is null) 
+                    BoundPatternWithUnionMatching underlyingValueMatching = CreatePatternWithUnionMatching(
+                        (NamedTypeSymbol)node.InputType,
+                        node.Update(node.Value, node.ConstantValue, isUnionMatching: false, inputType: ObjectType, narrowedType: ObjectType));
+
+                    return new BoundBinaryPattern(
+                        node.Syntax, disjunction: true,
+                        left: node.Update(node.Value, node.ConstantValue, isUnionMatching: false, node.InputType, node.InputType),
+                        right: RewritePatternWithUnionMatchingToPropertyPattern(underlyingValueMatching),
+                        inputType: node.InputType,
+                        narrowedType: node.InputType)
+                    { WasCompilerGenerated = true };
+                }
+
                 return CreatePatternWithUnionMatching(
                     (NamedTypeSymbol)node.InputType,
                     node.Update(node.Value, node.ConstantValue, isUnionMatching: false, inputType: ObjectType, narrowedType: node.NarrowedType));

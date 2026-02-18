@@ -651,26 +651,29 @@ class Program
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseFalseTrue FalseTrueFalseFalse").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseFalseTrue FalseTrueFalseTrue").VerifyDiagnostics();
 
             // PROTOTYPE: Note the difference in behavior between S1? and C1.
             // For S1?, 'is null' is true only when S1? itself is null value. 
-            // For C1, 'is null' is true when the C1?.Value is null, it is false even for the case when C1 itself is a null reference.
-            // This behavior could be very confusing.
+            // Perhaps we should do union matching against the Nullable<union struct> and treat null check similar to a null check for class?
 
             verifier.VerifyIL("Program.Test2", @"
 {
-  // Code size       15 (0xf)
-  .maxstack  2
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (bool V_0)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000d
+  IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""object C1.Value.get""
-  IL_0009:  ldnull
-  IL_000a:  ceq
-  IL_000c:  ret
-  IL_000d:  ldc.i4.0
-  IL_000e:  ret
+  IL_0009:  brtrue.s   IL_000f
+  IL_000b:  ldc.i4.1
+  IL_000c:  stloc.0
+  IL_000d:  br.s       IL_0011
+  IL_000f:  ldc.i4.0
+  IL_0010:  stloc.0
+  IL_0011:  ldloc.0
+  IL_0012:  ret
 }
 ");
         }
@@ -4300,7 +4303,7 @@ class Program
         [Fact]
         public void Exhaustiveness_05()
         {
-            var src = @"
+            var src1 = @"
 #nullable enable
 
 [System.Runtime.CompilerServices.Union]
@@ -4321,6 +4324,7 @@ class Program
         System.Console.Write(Test1(new C1(10)));
         System.Console.Write(Test1(new C1()));
         System.Console.Write(Test1(new C1(""10"")));
+        System.Console.Write(Test1(null));
 
         System.Console.Write(' ');
         System.Console.Write(Test2(new C1(10)));
@@ -4337,7 +4341,8 @@ class Program
 
     static int Test2(C1? u)
     {
-        return u switch { int => -1, string => -2, null => -3, _ => -4 };
+#line 31
+        return u switch { int => -1, string => -2, _ => -3 };
     }
 
     static int Test3(C2? u)
@@ -4352,6 +4357,7 @@ class Program
 
     static int Test5(C2 u)
     {
+#line 46
         return u switch { null => -4, { Value: int } => -1, { Value: string } => -2, { Value: object } => -3 };
     }
 }
@@ -4362,29 +4368,50 @@ class C2
 }
 
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "132 -1-3-2-4").VerifyDiagnostics(
-
-                // PROTOTYPE: The WRN_SwitchExpressionNotExhaustiveForNull below is very confusing, especially that there is 
-                //            a case 'null => 3' in the switch expression. It looks like the only way to shut off the warning
-                //            is to use case '_'
-
-                // (26,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //         return u switch { int => 1, string => 2, null => 3 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(26, 18),
-
-                // PROTOTYPE: The following two warnings are misleading. The case covers a distinct value. 
-
+            var comp1 = CreateCompilation([src1, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp1, expectedOutput: "1323 -1-3-2-3").VerifyDiagnostics(
                 // (26,50): hidden CS9335: The pattern is redundant.
                 //         return u switch { int => 1, string => 2, null => 3 };
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(26, 50),
-                // (31,52): hidden CS9335: The pattern is redundant.
-                //         return u switch { int => -1, string => -2, null => -3, _ => -4 };
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(31, 52),
-
                 // (46,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{ Value: null }' is not covered.
                 //         return u switch { null => -4, { Value: int } => -1, { Value: string } => -2, { Value: object } => -3 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("{ Value: null }").WithLocation(46, 18)
+                );
+
+            var src2 = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+class C1
+{
+    private readonly object? _value;
+
+    public C1(){}
+    public C1(int x) { _value = x; }
+    public C1(string? x) { _value = x; }
+    public object? Value => _value;
+}
+
+class Program
+{
+    static int Test2(C1? u)
+    {
+#line 31
+        return u switch { int => -1, string => -2, null => -3, _ => -4 };
+    }
+}
+
+class C2
+{
+    public object? Value => null;
+}
+
+";
+            var comp2 = CreateCompilation([src2, UnionAttributeSource]);
+            comp2.VerifyDiagnostics(
+                // (31,64): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //         return u switch { int => -1, string => -2, null => -3, _ => -4 };
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(31, 64)
                 );
         }
 
@@ -9563,22 +9590,13 @@ class Program
 ";
             var comp1 = CreateCompilation([src1, UnionAttributeSource]);
 
-            // PROTOTYPE: The fact that exhausiveness warning are reported for all branches might look surprising,
-            //            but it matches the behavior for scenario when property pattern is used explicitly. See below.
-            //            Is this expected, a bug or do we need special rules for Unions here?
             comp1.VerifyDiagnostics(
                 // (100,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //             _ = s switch { int => 1, bool => 3 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(100, 19),
-                // (200,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //             _ = s switch { int => 1, bool => 3 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(200, 19),
                 // (300,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //             _ = s switch { int => 1, bool => 3 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(300, 19),
-                // (400,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //             _ = s switch { int => 1, bool => 3 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(400, 19)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(300, 19)
                 );
 
             var src2 = @"
@@ -9599,7 +9617,7 @@ class Program
     static void Test2(S1 s)
     {
         _ = s.Value;
-        if (s is  { Value: null })
+        if (s is null or { Value: null })
         {
 #line 1000
             _ = s switch { { Value: {} } => 1 };
@@ -9614,7 +9632,7 @@ class Program
     static void Test4(S2 s)
     {
         _ = s.Value;
-        if (s is { Value: null })
+        if (s is null or { Value: null })
         {
 #line 3000
             _ = s switch { { Value: {} } => 1 };
@@ -11345,21 +11363,25 @@ class S1
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalseTrueFalseFalse").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueTrueTrueFalseFalse").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       15 (0xf)
-  .maxstack  2
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (bool V_0)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000d
+  IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool S1.HasValue.get""
-  IL_0009:  ldc.i4.0
-  IL_000a:  ceq
-  IL_000c:  ret
-  IL_000d:  ldc.i4.0
-  IL_000e:  ret
+  IL_0009:  brtrue.s   IL_000f
+  IL_000b:  ldc.i4.1
+  IL_000c:  stloc.0
+  IL_000d:  br.s       IL_0011
+  IL_000f:  ldc.i4.0
+  IL_0010:  stloc.0
+  IL_0011:  ldloc.0
+  IL_0012:  ret
 }
 ");
 
@@ -11414,21 +11436,25 @@ class S1
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalseTrueFalseFalse").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueTrueTrueFalseFalse").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       15 (0xf)
-  .maxstack  2
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (bool V_0)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000d
+  IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""object S1.Value.get""
-  IL_0009:  ldnull
-  IL_000a:  ceq
-  IL_000c:  ret
-  IL_000d:  ldc.i4.0
-  IL_000e:  ret
+  IL_0009:  brtrue.s   IL_000f
+  IL_000b:  ldc.i4.1
+  IL_000c:  stloc.0
+  IL_000d:  br.s       IL_0011
+  IL_000f:  ldc.i4.0
+  IL_0010:  stloc.0
+  IL_0011:  ldloc.0
+  IL_0012:  ret
 }
 ");
 
@@ -11605,7 +11631,7 @@ class Program
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "FalseTrueFalse").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "FalseTrueTrue").VerifyDiagnostics();
         }
 
         [Fact]
@@ -11642,7 +11668,7 @@ class Program
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "FalseTrueFalse").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "FalseTrueTrue").VerifyDiagnostics();
         }
 
         [Fact]
@@ -11683,21 +11709,25 @@ class Program
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalse").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueTrue").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test1", @"
 {
-  // Code size       15 (0xf)
-  .maxstack  2
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (bool V_0)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000d
+  IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool C2.HasValue.get""
-  IL_0009:  ldc.i4.0
-  IL_000a:  ceq
-  IL_000c:  ret
-  IL_000d:  ldc.i4.0
-  IL_000e:  ret
+  IL_0009:  brtrue.s   IL_000f
+  IL_000b:  ldc.i4.1
+  IL_000c:  stloc.0
+  IL_000d:  br.s       IL_0011
+  IL_000f:  ldc.i4.0
+  IL_0010:  stloc.0
+  IL_0011:  ldloc.0
+  IL_0012:  ret
 }
 ");
         }
@@ -11775,53 +11805,65 @@ class Program
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalseTrueFalseFalseTrueFalse").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueTrueFalseTrueTrueFalseTrueTrue").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test1", @"
 {
-  // Code size       15 (0xf)
-  .maxstack  2
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (bool V_0)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000d
+  IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool C1.HasValue.get""
-  IL_0009:  ldc.i4.0
-  IL_000a:  ceq
-  IL_000c:  ret
-  IL_000d:  ldc.i4.0
-  IL_000e:  ret
+  IL_0009:  brtrue.s   IL_000f
+  IL_000b:  ldc.i4.1
+  IL_000c:  stloc.0
+  IL_000d:  br.s       IL_0011
+  IL_000f:  ldc.i4.0
+  IL_0010:  stloc.0
+  IL_0011:  ldloc.0
+  IL_0012:  ret
 }
 ");
 
             verifier.VerifyIL("Program.Test2", @"
 {
-  // Code size       15 (0xf)
-  .maxstack  2
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (bool V_0)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000d
+  IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool C1.HasValue.get""
-  IL_0009:  ldc.i4.0
-  IL_000a:  ceq
-  IL_000c:  ret
-  IL_000d:  ldc.i4.0
-  IL_000e:  ret
+  IL_0009:  brtrue.s   IL_000f
+  IL_000b:  ldc.i4.1
+  IL_000c:  stloc.0
+  IL_000d:  br.s       IL_0011
+  IL_000f:  ldc.i4.0
+  IL_0010:  stloc.0
+  IL_0011:  ldloc.0
+  IL_0012:  ret
 }
 ");
 
             verifier.VerifyIL("Program.Test3", @"
 {
-  // Code size       15 (0xf)
-  .maxstack  2
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (bool V_0)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000d
+  IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool C1.HasValue.get""
-  IL_0009:  ldc.i4.0
-  IL_000a:  ceq
-  IL_000c:  ret
-  IL_000d:  ldc.i4.0
-  IL_000e:  ret
+  IL_0009:  brtrue.s   IL_000f
+  IL_000b:  ldc.i4.1
+  IL_000c:  stloc.0
+  IL_000d:  br.s       IL_0011
+  IL_000f:  ldc.i4.0
+  IL_0010:  stloc.0
+  IL_0011:  ldloc.0
+  IL_0012:  ret
 }
 ");
         }
@@ -18989,6 +19031,576 @@ class Program
                 comp,
                 expectedOutput: "TryGetValue(int) True TryGetValue(int) False TryGetValue(int) False TryGetValue(int) False  TryGetValue(int) False TryGetValue(int) False TryGetValue(int) False TryGetValue(int) True TryGetValue(int) True"
                 ).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_69_TryGetValue_NullableAnalysis()
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    public S1(string? x) => throw null!;
+    public S1(bool? x) => throw null!;
+    public object? Value => throw null!;
+    public bool TryGetValue(out string? x) => throw null!;
+}
+
+class Program
+{
+    static void Test2(S1 s)
+    {
+        if (s.TryGetValue(out var value))
+        {
+#line 100
+            value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+        else
+        {
+#line 200
+            value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+    } 
+
+    static void Test4(S1 s)
+    {
+        if (!s.TryGetValue(out var value))
+        {
+#line 300
+            value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+        else
+        {
+#line 400
+            value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (200,13): warning CS8602: Dereference of a possibly null reference.
+                //             value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(200, 13),
+                // (201,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { string => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(201, 19),
+                // (300,13): warning CS8602: Dereference of a possibly null reference.
+                //             value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(300, 13),
+                // (301,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { string => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(301, 19)
+                );
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_70_TryGetValue_NullableAnalysis()
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    public S1(string? x) => throw null!;
+    public S1(bool? x) => throw null!;
+    public object? Value => throw null!;
+    public bool TryGetValue(out string? x) => throw null!;
+}
+
+class Program
+{
+    static void Test2(S1 s)
+    {
+        if (s.Value is null) return;
+
+        if (s.TryGetValue(out var value))
+        {
+#line 100
+            value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+        else
+        {
+#line 200
+            value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+    } 
+
+    static void Test4(S1 s)
+    {
+        if (s.Value is null) return;
+
+        if (!s.TryGetValue(out var value))
+        {
+#line 300
+            value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+        else
+        {
+#line 400
+            value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (200,13): warning CS8602: Dereference of a possibly null reference.
+                //             value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(200, 13),
+                // (300,13): warning CS8602: Dereference of a possibly null reference.
+                //             value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(300, 13)
+                );
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_71_TryGetValue_NullableAnalysis()
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    public S1(string? x) => throw null!;
+    public S1(bool? x) => throw null!;
+    public object? Value => throw null!;
+    [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(Value))]
+    public bool TryGetValue([System.Diagnostics.CodeAnalysis.NotNullWhen(true)]out string? x) => throw null!;
+}
+
+class Program
+{
+    static void Test2(S1 s)
+    {
+        if (s.TryGetValue(out var value))
+        {
+#line 100
+            value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+        else
+        {
+#line 200
+            value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+    } 
+
+    static void Test4(S1 s)
+    {
+        if (!s.TryGetValue(out var value))
+        {
+#line 300
+            value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+        else
+        {
+#line 400
+            value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource, MemberNotNullWhenAttributeDefinition, NotNullWhenAttributeDefinition]);
+            comp.VerifyDiagnostics(
+                // (200,13): warning CS8602: Dereference of a possibly null reference.
+                //             value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(200, 13),
+                // (201,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { string => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(201, 19),
+                // (300,13): warning CS8602: Dereference of a possibly null reference.
+                //             value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(300, 13),
+                // (301,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { string => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(301, 19)
+                );
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_72_TryGetValue_NullableAnalysis()
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    public S1(string? x) => throw null!;
+    public S1(bool? x) => throw null!;
+    public object? Value => throw null!;
+    [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(Value))]
+    public bool TryGetValue([System.Diagnostics.CodeAnalysis.NotNullWhen(true)]out string? x) => throw null!;
+}
+
+class Program
+{
+    static void Test2(S1 s)
+    {
+        if (s.Value is null) return;
+
+        if (s.TryGetValue(out var value))
+        {
+#line 100
+            value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+        else
+        {
+#line 200
+            value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+    } 
+
+    static void Test4(S1 s)
+    {
+        if (s.Value is null) return;
+
+        if (!s.TryGetValue(out var value))
+        {
+#line 300
+            value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+        else
+        {
+#line 400
+            value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource, MemberNotNullWhenAttributeDefinition, NotNullWhenAttributeDefinition]);
+            comp.VerifyDiagnostics(
+                // (200,13): warning CS8602: Dereference of a possibly null reference.
+                //             value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(200, 13),
+                // (300,13): warning CS8602: Dereference of a possibly null reference.
+                //             value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(300, 13)
+                );
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_73_TryGetValue_NullableAnalysis()
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    public S1(int? x) => throw null!;
+    public S1(bool? x) => throw null!;
+    public object? Value => throw null!;
+    public bool TryGetValue(out string? x) => throw null!;
+}
+
+class Program
+{
+    static void Test2(S1 s)
+    {
+        if (s.TryGetValue(out var value))
+        {
+#line 100
+            value.ToString();
+            _ = s switch { int => 1, bool => 3 };
+        }
+        else
+        {
+#line 200
+            value.ToString();
+            _ = s switch { int => 1, bool => 3 };
+        }
+    } 
+
+    static void Test4(S1 s)
+    {
+        if (!s.TryGetValue(out var value))
+        {
+#line 300
+            value.ToString();
+            _ = s switch { int => 1, bool => 3 };
+        }
+        else
+        {
+#line 400
+            value.ToString();
+            _ = s switch { int => 1, bool => 3 };
+        }
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (100,13): warning CS8602: Dereference of a possibly null reference.
+                //             value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(100, 13),
+                // (101,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(101, 19),
+                // (200,13): warning CS8602: Dereference of a possibly null reference.
+                //             value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(200, 13),
+                // (201,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(201, 19),
+                // (300,13): warning CS8602: Dereference of a possibly null reference.
+                //             value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(300, 13),
+                // (301,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(301, 19),
+                // (400,13): warning CS8602: Dereference of a possibly null reference.
+                //             value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(400, 13),
+                // (401,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(401, 19)
+                );
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_74_TryGetValue_NullableAnalysis_Generic()
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+struct S1<T>
+{
+    public S1(T x) => throw null!;
+    public S1(bool? x) => throw null!;
+    public object? Value => throw null!;
+    public bool TryGetValue(out T x) => throw null!;
+}
+
+class Program
+{
+    static void Test2(S1<string?> s)
+    {
+        if (s.TryGetValue(out var value))
+        {
+#line 100
+            value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+        else
+        {
+#line 200
+            value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+    } 
+
+    static void Test4(S1<string?> s)
+    {
+        if (!s.TryGetValue(out var value))
+        {
+#line 300
+            value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+        else
+        {
+#line 400
+            value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (200,13): warning CS8602: Dereference of a possibly null reference.
+                //             value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(200, 13),
+                // (201,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { string => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(201, 19),
+                // (300,13): warning CS8602: Dereference of a possibly null reference.
+                //             value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(300, 13),
+                // (301,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { string => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(301, 19)
+                );
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_75_TryGetValue_NullableAnalysis_Generic()
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+struct S1<T>
+{
+    public S1(T x) => throw null!;
+    public S1(bool? x) => throw null!;
+    public object? Value => throw null!;
+    public bool TryGetValue(out string? x) => throw null!;
+}
+
+class Program
+{
+    static void Test2(S1<string?> s)
+    {
+        if (s.TryGetValue(out var value))
+        {
+#line 100
+            value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+        else
+        {
+#line 200
+            value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+    } 
+
+    static void Test4(S1<string?> s)
+    {
+        if (!s.TryGetValue(out var value))
+        {
+#line 300
+            value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+        else
+        {
+#line 400
+            value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (100,13): warning CS8602: Dereference of a possibly null reference.
+                //             value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(100, 13),
+                // (101,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { string => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(101, 19),
+                // (200,13): warning CS8602: Dereference of a possibly null reference.
+                //             value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(200, 13),
+                // (201,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { string => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(201, 19),
+                // (300,13): warning CS8602: Dereference of a possibly null reference.
+                //             value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(300, 13),
+                // (301,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { string => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(301, 19),
+                // (400,13): warning CS8602: Dereference of a possibly null reference.
+                //             value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(400, 13),
+                // (401,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { string => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(401, 19)
+                );
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_76_TryGetValue_NullableAnalysis_Generic()
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+struct S1<T>
+{
+    public S1(string? x) => throw null!;
+    public S1(bool? x) => throw null!;
+    public object? Value => throw null!;
+    public T TryGetValue(out string? x) => throw null!;
+}
+
+class Program
+{
+    static void Test2(S1<bool> s)
+    {
+        if (s.TryGetValue(out var value))
+        {
+#line 100
+            value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+        else
+        {
+#line 200
+            value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+    } 
+
+    static void Test4(S1<bool> s)
+    {
+        if (!s.TryGetValue(out var value))
+        {
+#line 300
+            value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+        else
+        {
+#line 400
+            value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (100,13): warning CS8602: Dereference of a possibly null reference.
+                //             value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(100, 13),
+                // (101,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { string => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(101, 19),
+                // (200,13): warning CS8602: Dereference of a possibly null reference.
+                //             value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(200, 13),
+                // (201,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { string => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(201, 19),
+                // (300,13): warning CS8602: Dereference of a possibly null reference.
+                //             value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(300, 13),
+                // (301,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { string => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(301, 19),
+                // (400,13): warning CS8602: Dereference of a possibly null reference.
+                //             value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(400, 13),
+                // (401,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { string => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(401, 19)
+                );
         }
     }
 }
