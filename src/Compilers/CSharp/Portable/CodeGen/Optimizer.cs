@@ -2049,13 +2049,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             public override BoundNode Visit(BoundNode node)
             {
-                if (node is BoundPointerIndirectionOperator)
+                if (_pointerIndirectionMayFlowToRefResult)
                 {
-                    _pointerIndirectionMayFlowToRefResult = true;
+                    // No need to continue visiting nodes if the result is `true`.
                     return node;
                 }
 
                 return base.Visit(node);
+            }
+
+            public override BoundNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
+            {
+                _pointerIndirectionMayFlowToRefResult = true;
+                return node;
             }
 
             public override BoundNode VisitCall(BoundCall node)
