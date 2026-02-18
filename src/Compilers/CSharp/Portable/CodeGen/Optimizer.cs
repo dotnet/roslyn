@@ -400,14 +400,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private ExprContext _context;
         private BoundLocal _assignmentLocal;
 
-        /// <summary>
-        /// Whether we have seen a pointer indirection that may directly contribute to the final by-ref result of the currently visited expression.
-        /// For example, <c>*ptr</c> or <c>ptr->Field</c>, but not <c>Method(ref *ptr)</c>.
-        /// If such expression is assigned to a ref local, we cannot optimize that local away, so that GC can retrack the address.
-        /// This is a conservative check (we prefer correctness over optimization).
-        /// </summary>
-        private bool _pointerIndirectionMayFlowToRefResult;
-
         private readonly Dictionary<LocalSymbol, LocalDefUseInfo> _locals;
 
         // we need to guarantee same stack patterns at branches and labels.
@@ -593,8 +585,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _context = prevContext;
             SetStackDepth(origStack);
             _counter += 1;
-
-            _pointerIndirectionMayFlowToRefResult = false;
 
             return result;
         }
@@ -1013,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // but when a pointer is converted to a user-defined ref local, it becomes a use of a "safe" feature where we should guarantee the ref is tracked by GC.
                 else if (localSymbol.RefKind != RefKind.None &&
                     localSymbol.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
-                    _pointerIndirectionMayFlowToRefResult)
+                    PointerIndirectionMayFlowToRefResultVisitor.Check(right))
                 {
                     ShouldNotSchedule(localSymbol);
                 }
@@ -1023,12 +1013,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             return node.Update(left, right, node.IsRef, node.Type);
-        }
-
-        public override BoundNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
-        {
-            _pointerIndirectionMayFlowToRefResult = true;
-            return base.VisitPointerIndirectionOperator(node);
         }
 
         /// <summary>
@@ -1299,13 +1283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             ExprContext context = (argRefKind == RefKind.None) ? ExprContext.Value : ExprContext.Address;
 
             var arg = arguments[i];
-
-            var previousPointerIndirectionMayFlowToRefResult = _pointerIndirectionMayFlowToRefResult;
-            _pointerIndirectionMayFlowToRefResult = false;
-
             BoundExpression rewrittenArg = VisitExpression(arg, context);
-
-            _pointerIndirectionMayFlowToRefResult = previousPointerIndirectionMayFlowToRefResult;
 
             if (rewrittenArguments == null && arg != rewrittenArg)
             {
@@ -2047,6 +2025,41 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         }
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Checks whether there is a pointer indirection that may directly contribute to the final by-ref result of the visited expression.
+        /// For example, <c>*ptr</c> or <c>ptr->Field</c>, but not <c>Method(ref *ptr)</c>.
+        /// If such expression is assigned to a ref local, we cannot optimize that local away, so that GC can retrack the address.
+        /// This is a conservative check (we prefer correctness over optimization).
+        /// </summary>
+        private sealed class PointerIndirectionMayFlowToRefResultVisitor : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        {
+            private bool _pointerIndirectionMayFlowToRefResult;
+
+            private PointerIndirectionMayFlowToRefResultVisitor() { }
+
+            public static bool Check(BoundExpression expression)
+            {
+                var visitor = new PointerIndirectionMayFlowToRefResultVisitor();
+                visitor.Visit(expression);
+                return visitor._pointerIndirectionMayFlowToRefResult;
+            }
+
+            public override BoundNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
+            {
+                _pointerIndirectionMayFlowToRefResult = true;
+                return base.VisitPointerIndirectionOperator(node);
+            }
+
+            public override BoundNode VisitCall(BoundCall node)
+            {
+                var previousPointerIndirectionMayFlowToRefResult = _pointerIndirectionMayFlowToRefResult;
+                _pointerIndirectionMayFlowToRefResult = false;
+                var result = base.VisitCall(node);
+                _pointerIndirectionMayFlowToRefResult = previousPointerIndirectionMayFlowToRefResult;
+                return result;
             }
         }
     }
