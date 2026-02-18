@@ -46,27 +46,23 @@ internal sealed class LanguageServerWorkspaceFactory
             .ToImmutableArray();
 
         // Create the workspace and set analyzer references for it
-        _logger.LogError("Start solution level analyzers 1: {Now}", DateTimeOffset.Now);
         var workspace = new LanguageServerWorkspace(hostServicesProvider.HostServices, WorkspaceKind.Host);
         var hostAnalyzerLoaderProvider = workspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-        var analyzerReferences = CreateSolutionLevelAnalyzerReferencesForWorkspace(hostAnalyzerLoaderProvider);
+        var analyzerReferences = CreateSolutionLevelAnalyzerReferences(hostAnalyzerLoaderProvider);
         workspace.SetCurrentSolution(s => s.WithAnalyzerReferences(analyzerReferences), WorkspaceChangeKind.SolutionChanged);
-        _logger.LogError("End solution level analyzers 1: {Now}", DateTimeOffset.Now);
 
         HostProjectFactory = new ProjectSystemProjectFactory(
             workspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { },
             CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
         workspace.ProjectSystemProjectFactory = HostProjectFactory;
 
-        _logger.LogError("Start solution level analyzers 2: {Now}", DateTimeOffset.Now);
         // https://github.com/dotnet/roslyn/issues/78560: Move this workspace creation to 'FileBasedProgramsWorkspaceProviderFactory'.
-        // 'CreateSolutionLevelAnalyzerReferencesForWorkspace' needs to be broken out into its own service for us to be able to move this.
+        // 'CreateSolutionLevelAnalyzerReferences' needs to be broken out into its own service for us to be able to move this.
         var miscellaneousFilesWorkspace = new LanguageServerWorkspace(hostServicesProvider.HostServices, WorkspaceKind.MiscellaneousFiles);
         Contract.ThrowIfFalse(
             object.ReferenceEquals(hostAnalyzerLoaderProvider, miscellaneousFilesWorkspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>()),
             "Expected same AnalyzerLoaderProvider to be used for both host and misc workspaces.");
         miscellaneousFilesWorkspace.SetCurrentSolution(s => s.WithAnalyzerReferences(analyzerReferences), WorkspaceChangeKind.SolutionChanged);
-        _logger.LogError("End solution level analyzers 2: {Now}", DateTimeOffset.Now);
 
         MiscellaneousFilesWorkspaceProjectFactory = new ProjectSystemProjectFactory(
             miscellaneousFilesWorkspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { }, CancellationToken.None);
@@ -87,9 +83,8 @@ internal sealed class LanguageServerWorkspaceFactory
     public ProjectSystemHostInfo ProjectSystemHostInfo { get; }
     public ProjectTargetFrameworkManager TargetFrameworkManager { get; }
 
-    public ImmutableArray<AnalyzerFileReference> CreateSolutionLevelAnalyzerReferencesForWorkspace(IAnalyzerAssemblyLoaderProvider loaderProvider)
+    private ImmutableArray<AnalyzerFileReference> CreateSolutionLevelAnalyzerReferences(IAnalyzerAssemblyLoaderProvider loaderProvider)
     {
-        _logger.LogError("Start CreateSolutionLevelAnalyzerReferencesForWorkspace: {Now}", DateTimeOffset.Now);
         // Load all analyzers into a fresh shadow copied load context.  In the future, if we want to support reloading
         // of solution-level analyzer references, we should just need to listen for changes to those analyzer paths and
         // then call back into this method to update the solution accordingly.
@@ -112,7 +107,6 @@ internal sealed class LanguageServerWorkspaceFactory
             })
             .ToImmutableArray();
 
-        _logger.LogError("End CreateSolutionLevelAnalyzerReferencesForWorkspace: {Now}", DateTimeOffset.Now);
         return references;
     }
 }
