@@ -3568,6 +3568,41 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Member_Method_Implementation_Synthesized()
+    {
+        CompileAndVerifyUnsafe(
+            lib: """
+                public class B<T>
+                {
+                    public void M1(T x) { }
+                    public unsafe void M2(T x) { }
+                }
+                """,
+            caller: """
+                var c = new C();
+                c.M1(null);
+                c.M2(null);
+
+                class C : B<D>, I;
+
+                class D;
+
+                interface I
+                {
+                    unsafe void M1(D x);
+                }
+                """,
+            expectedUnsafeSymbols: ["B.M2"],
+            expectedSafeSymbols: ["B.M1"],
+            expectedDiagnostics:
+            [
+                // (3,1): error CS9502: 'B<D>.M2(D)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // c.M2(null);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.M2(null)").WithArguments("B<D>.M2(D)").WithLocation(3, 1),
+            ]);
+    }
+
+    [Fact]
     public void Member_Method_OverrideOfImplementation()
     {
         CompileAndVerifyUnsafe(
