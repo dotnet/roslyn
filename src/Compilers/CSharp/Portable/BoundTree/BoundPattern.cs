@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private partial void Validate()
         {
-            Debug.Assert(!IsUnionMatching || InputType is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true });
+            Debug.Assert(!IsUnionMatching || InputType is NamedTypeSymbol { IsUnionType: true });
         }
     }
 }

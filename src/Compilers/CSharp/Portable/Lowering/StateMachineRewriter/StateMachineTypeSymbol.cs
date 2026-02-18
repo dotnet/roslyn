@@ -87,5 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
         internal override bool HasCompilerLoweringPreserveAttribute => false;
+
+        internal override bool HasUnionAttribute => false;
     }
 }

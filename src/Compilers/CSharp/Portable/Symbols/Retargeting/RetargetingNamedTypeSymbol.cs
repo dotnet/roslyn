@@ -478,6 +478,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         internal override bool HasCompilerLoweringPreserveAttribute => _underlyingType.HasCompilerLoweringPreserveAttribute;
 
+        internal override bool HasUnionAttribute => _underlyingType.HasUnionAttribute;
+
         internal override string? ExtensionGroupingName
             => _underlyingType.ExtensionGroupingName;
 

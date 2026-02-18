@@ -16,14 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class UnionsTests : CSharpTestBase
     {
-        public static string IUnionSource => @"
+        public static string UnionAttributeSource => @"
 namespace System.Runtime.CompilerServices
 {
-    public interface IUnion
+    public class UnionAttribute : System.Attribute
     {
-#nullable enable
-        object? Value { get; }
-#nullable disable
     }
 }
 ";
@@ -32,6 +29,7 @@ namespace System.Runtime.CompilerServices
         public void UnionType_01()
         {
             var src = @"
+[System.Runtime.CompilerServices.Union]
 public interface IUnion
 {
 #nullable enable
@@ -39,9 +37,11 @@ public interface IUnion
 #nullable disable
 }
 
-interface I1 : System.Runtime.CompilerServices.IUnion;
+[System.Runtime.CompilerServices.Union]
+interface I1;
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public object Value => null;
 }
@@ -51,12 +51,14 @@ struct S2 : IUnion
     public object Value => null;
 }
 
-class C1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+class C1
 {
     public object Value => null;
 }
 
-sealed class C2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+sealed class C2
 {
     public object Value => null;
 }
@@ -69,102 +71,106 @@ sealed class C3 : IUnion
 sealed class C4 : C1
 {
 }
-
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyEmitDiagnostics();
 
-            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionTypeNoUseSiteDiagnostics);
-            Assert.True(comp.GetTypeByMetadataName("C1").IsUnionTypeNoUseSiteDiagnostics);
-            Assert.True(comp.GetTypeByMetadataName("C2").IsUnionTypeNoUseSiteDiagnostics);
-            Assert.True(comp.GetTypeByMetadataName("C4").IsUnionTypeNoUseSiteDiagnostics);
+            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            Assert.True(comp.GetTypeByMetadataName("C1").IsUnionType);
+            Assert.True(comp.GetTypeByMetadataName("C2").IsUnionType);
+            Assert.False(comp.GetTypeByMetadataName("C4").IsUnionType);
 
-            Assert.False(comp.GetTypeByMetadataName("I1").IsUnionTypeNoUseSiteDiagnostics);
-            Assert.False(comp.GetTypeByMetadataName("S2").IsUnionTypeNoUseSiteDiagnostics);
-            Assert.False(comp.GetTypeByMetadataName("C3").IsUnionTypeNoUseSiteDiagnostics);
+            Assert.False(comp.GetTypeByMetadataName("I1").IsUnionType);
+            Assert.False(comp.GetTypeByMetadataName("S2").IsUnionType);
+            Assert.False(comp.GetTypeByMetadataName("C3").IsUnionType);
         }
 
         [Fact]
-        public void UnionType_02_IUnionNotPublic()
+        public void UnionType_02_UnionNotPublic()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public object Value => null;
 }
 
 namespace System.Runtime.CompilerServices
 {
-    internal interface IUnion
+    public class UnionAttribute : System.Attribute
     {
-#nullable enable
-        object? Value { get; }
-#nullable disable
     }
 }
 ";
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics();
 
-            Assert.False(comp.GetTypeByMetadataName("S1").IsUnionTypeNoUseSiteDiagnostics);
+            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
         }
 
         [Fact]
-        public void UnionType_03_ManyIUnionTypes()
+        public void UnionType_03_ManyUnionAttributeTypes()
         {
             var src1 = @"
-public struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+public struct S1
 {
     public object Value => null;
 }
 ";
-            var comp1 = CreateCompilation([src1, IUnionSource]);
+            var comp1 = CreateCompilation([src1, UnionAttributeSource]);
             comp1.VerifyEmitDiagnostics();
-            Assert.True(comp1.GetTypeByMetadataName("S1").IsUnionTypeNoUseSiteDiagnostics);
+            Assert.True(comp1.GetTypeByMetadataName("S1").IsUnionType);
 
             var src2 = @"
-struct S2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S2
 {
     public object Value => null;
 }
 ";
-            var comp2 = CreateCompilation([src2, IUnionSource], references: [comp1.EmitToImageReference()]);
+            var comp2 = CreateCompilation([src2, UnionAttributeSource], references: [comp1.EmitToImageReference()]);
             comp1.VerifyEmitDiagnostics();
 
-            Assert.True(comp2.GetTypeByMetadataName("S1").IsUnionTypeNoUseSiteDiagnostics);
-            Assert.True(comp2.GetTypeByMetadataName("S2").IsUnionTypeNoUseSiteDiagnostics);
+            Assert.True(comp2.GetTypeByMetadataName("S1").IsUnionType);
+            Assert.True(comp2.GetTypeByMetadataName("S2").IsUnionType);
         }
 
         [Fact]
         public void CaseTypes_01()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public object Value => null;
 }
 
-struct S2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S2
 {
     public S2(int x){}
     public S2(string x){}
     public object Value => null;
 }
 
-struct S3 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S3
 {
     private S3(int x){}
     internal S3(string x){}
     public object Value => null;
 }
 
-struct S4 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S4
 {
     public S4(int x, string y){}
     public object Value => null;
 }
 
-class C5 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+class C5
 {
     protected C5(int x){}
     protected internal C5(string x){}
@@ -172,7 +178,7 @@ class C5 : System.Runtime.CompilerServices.IUnion
     public object Value => null;
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyEmitDiagnostics();
 
             VerifyCaseTypes(comp, "S1", []);
@@ -185,7 +191,7 @@ class C5 : System.Runtime.CompilerServices.IUnion
         private static void VerifyCaseTypes(CSharpCompilation comp, string typeName, string[] caseTypes)
         {
             var type = comp.GetTypeByMetadataName(typeName);
-            Assert.True(type.IsUnionTypeNoUseSiteDiagnostics);
+            Assert.True(type.IsUnionType);
             AssertEx.SequenceEqual(caseTypes, type.UnionCaseTypes.ToTestDisplayStrings());
         }
 
@@ -193,13 +199,15 @@ class C5 : System.Runtime.CompilerServices.IUnion
         public void CaseTypes_02()
         {
             var src = @"
-struct S2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S2
 {
+#line 4
     public static S2(int x){}
     public object Value => null;
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (4,19): error CS0515: 'S2.S2(int)': access modifiers are not allowed on static constructors
                 //     public static S2(int x){}
@@ -227,7 +235,7 @@ struct S2
             comp.VerifyEmitDiagnostics();
 
             var type = comp.GetTypeByMetadataName("S2");
-            Assert.False(type.IsUnionTypeNoUseSiteDiagnostics);
+            Assert.False(type.IsUnionType);
             AssertEx.SequenceEqual([], type.UnionCaseTypes.ToTestDisplayStrings());
         }
 
@@ -235,13 +243,15 @@ struct S2
         public void CaseTypes_04()
         {
             var src = @"
-class C1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+class C1
 {
     public C1(int x){}
     public object Value => null;
 }
 
-sealed class C2 : C1, System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+sealed class C2 : C1
 {
     public C2(string x) : base(0) {}
     public new object Value => null;
@@ -252,7 +262,8 @@ class C3
     public C3(int x){}
 }
 
-sealed class C4 : C3, System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+sealed class C4 : C3
 {
     public C4(string x) : base(0) {}
     public object Value => null;
@@ -263,17 +274,16 @@ sealed class C5 : C1
     public C5(string x) : base(0) {}
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyEmitDiagnostics();
 
             VerifyCaseTypes(comp, "C1", ["System.Int32"]);
             VerifyCaseTypes(comp, "C2", ["System.String"]);
             VerifyCaseTypes(comp, "C4", ["System.String"]);
 
-            // PROTOTYPE: This looks strange. C5 simply inherits from C1 and because of that it is treated as a union type.
-            //            It doesn't change what IUnion.Value returns, but its constructors are treated as though they
-            //            define possible types returned by IUnion.Value.
-            VerifyCaseTypes(comp, "C5", ["System.String"]);
+            var c5 = comp.GetTypeByMetadataName("C5");
+            Assert.False(c5.IsUnionType);
+            AssertEx.SequenceEqual([], c5.UnionCaseTypes.ToTestDisplayStrings());
         }
 
         [Fact]
@@ -281,9 +291,11 @@ sealed class C5 : C1
         {
             var src = @"
 #nullable enable
-struct S2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S2
 {
     public S2(string?[] x){}
+#line 6
     public S2(string[] x){}
     public S2((int a, int b) x){}
     public S2((int, int) x){}
@@ -291,7 +303,7 @@ struct S2 : System.Runtime.CompilerServices.IUnion
     public object Value => null!;
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (6,12): error CS0111: Type 'S2' already defines a member called 'S2' with the same parameter types
                 //     public S2(string? x){}
@@ -308,7 +320,8 @@ struct S2 : System.Runtime.CompilerServices.IUnion
         public void UnionMatching_01_Discard()
         {
             var src = @"
-class S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+class S1
 {
     public S1() { Value = null; }
     public S1(int x) { Value = x; }
@@ -336,7 +349,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "TrueTrueTrue").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test", @"
@@ -357,7 +370,8 @@ class Program
         public void UnionMatching_02_Var()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) { Value = x; }
     public S1(string x) { Value = x; }
@@ -380,7 +394,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "123123").VerifyDiagnostics();
         }
 
@@ -388,7 +402,8 @@ class Program
         public void UnionMatching_03_Var_Deconstruct()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) { Value = x; }
     public S1(string x) { Value = x; }
@@ -420,7 +435,7 @@ static class Extensions
     }
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "1020-1").VerifyDiagnostics();
         }
 
@@ -428,12 +443,13 @@ static class Extensions
         public void UnionMatching_04_Var_ITuple()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(C x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -495,7 +511,7 @@ static class Extensions
     }
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseFalseTrue FalseFalseTrue FalseFalseTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
         }
 
@@ -503,12 +519,13 @@ static class Extensions
         public void UnionMatching_05_Constant()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -559,27 +576,26 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue FalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
             verifier.VerifyIL("Program.Test1", @"
 {
-  // Code size       35 (0x23)
+  // Code size       29 (0x1d)
   .maxstack  2
   .locals init (object V_0)
   IL_0000:  ldarga.s   V_0
-  IL_0002:  constrained. ""S1""
-  IL_0008:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_000d:  stloc.0
-  IL_000e:  ldloc.0
-  IL_000f:  isinst     ""int""
-  IL_0014:  brfalse.s  IL_0021
-  IL_0016:  ldloc.0
-  IL_0017:  unbox.any  ""int""
-  IL_001c:  ldc.i4.s   10
-  IL_001e:  ceq
-  IL_0020:  ret
-  IL_0021:  ldc.i4.0
-  IL_0022:  ret
+  IL_0002:  call       ""object S1.Value.get""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  isinst     ""int""
+  IL_000e:  brfalse.s  IL_001b
+  IL_0010:  ldloc.0
+  IL_0011:  unbox.any  ""int""
+  IL_0016:  ldc.i4.s   10
+  IL_0018:  ceq
+  IL_001a:  ret
+  IL_001b:  ldc.i4.0
+  IL_001c:  ret
 }
 ");
         }
@@ -588,21 +604,23 @@ class Program
         public void UnionMatching_06_Constant()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
-class C1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+class C1
 {
     private readonly object _value;
     public C1() {}
     public C1(int x) { _value = x; }
     public C1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -632,7 +650,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseFalseTrue FalseTrueFalseFalse").VerifyDiagnostics();
 
             // PROTOTYPE: Note the difference in behavior between S1? and C1.
@@ -647,7 +665,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_000d
   IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_0004:  callvirt   ""object C1.Value.get""
   IL_0009:  ldnull
   IL_000a:  ceq
   IL_000c:  ret
@@ -661,12 +679,13 @@ class Program
         public void UnionMatching_07_Constant()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -698,7 +717,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse FalseTrueFalse").VerifyDiagnostics();
         }
 
@@ -706,13 +725,14 @@ class Program
         public void UnionMatching_08_Recursive_Property()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(S2<int> x) { _value = x; }
     public S1(S2<string> x) { _value = x; }
     public S1(S2<object> x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 struct S2<T>
@@ -762,11 +782,12 @@ class Program
 
     static bool Test4(S1 u)
     {
+#line 58
         return u is S2<object> { Value: not A or B };
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics(
                 // (58,50): warning CS9336: The pattern is redundant.
                 //         return u is S2<object> { Value: not A or B };
@@ -778,12 +799,13 @@ class Program
         public void UnionMatching_09_Recursive_ITuple()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(C x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -808,7 +830,7 @@ public class C : System.Runtime.CompilerServices.ITuple
 }
 
 ";
-            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseFalseTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
         }
 
@@ -816,13 +838,14 @@ public class C : System.Runtime.CompilerServices.ITuple
         public void UnionMatching_10_Recursive_Deconstruct()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(S2<int> x) { _value = x; }
     public S1(S2<string> x) { _value = x; }
     public S1(S2<object> x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 struct S2<T>
@@ -877,7 +900,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
         }
 
@@ -885,12 +908,13 @@ class Program
         public void UnionMatching_11_Type()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -909,7 +933,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalseTrue").VerifyDiagnostics(
                 );
 
@@ -919,15 +943,14 @@ class Program
 
             verifier.VerifyIL("Program.Test1", @"
 {
-  // Code size       22 (0x16)
+  // Code size       16 (0x10)
   .maxstack  2
   IL_0000:  ldarga.s   V_0
-  IL_0002:  constrained. ""S1""
-  IL_0008:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_000d:  isinst     ""int""
-  IL_0012:  ldnull
-  IL_0013:  cgt.un
-  IL_0015:  ret
+  IL_0002:  call       ""object S1.Value.get""
+  IL_0007:  isinst     ""int""
+  IL_000c:  ldnull
+  IL_000d:  cgt.un
+  IL_000f:  ret
 }
 ");
         }
@@ -936,12 +959,13 @@ class Program
         public void UnionMatching_12_Type()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -970,7 +994,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseTrue FalseFalseTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
         }
 
@@ -978,12 +1002,13 @@ class Program
         public void UnionMatching_13_Declaration()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -1014,7 +1039,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseTrue TrueFalseFalseFalseTrue").VerifyDiagnostics();
         }
 
@@ -1022,12 +1047,13 @@ class Program
         public void UnionMatching_14_Negated()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -1113,7 +1139,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseTrueTrueTrue FalseTrueTrueTrueFalse TrueTrueFalse TrueFalseTrue FalseTrueTrueFalse FalseTrueTrueTrueFalse FalseTrueTrueTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
         }
 
@@ -1121,12 +1147,13 @@ class Program
         public void UnionMatching_15_Negated()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -1164,7 +1191,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "11-1-1 11-1-1").VerifyDiagnostics();
         }
 
@@ -1172,18 +1199,20 @@ class Program
         public void UnionMatching_16_Negated()
         {
             var src = @"
-sealed class C1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+sealed class C1
 {
     private readonly object _value;
     public C1(int x) { _value = x; }
     public C1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
 {
     static int Test5(C1 u)
     {
+#line 14
         if (u is not int x)
         {
             return -1;
@@ -1218,15 +1247,16 @@ class Program
     }   
 }
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             // There is an implicit null check for class union types.  
             comp.VerifyDiagnostics(
                 // (14,26): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
@@ -1256,21 +1286,23 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void UnionMatching_17_Negated()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
-class C1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+class C1
 {
     private readonly object _value;
     public C1() {}
     public C1(int x) { _value = x; }
     public C1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -1300,7 +1332,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueTrueTrueFalse TrueFalseTrueFalse").VerifyDiagnostics();
 
             // PROTOTYPE: Note the difference in behavior between S1? and C1.
@@ -1313,12 +1345,13 @@ class Program
         public void UnionMatching_17_BinaryOr()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -1339,7 +1372,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseTrueFalseFalseFalse").VerifyDiagnostics();
         }
 
@@ -1347,12 +1380,13 @@ class Program
         public void UnionMatching_18_BinaryAnd()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -1376,7 +1410,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "10___").VerifyDiagnostics();
         }
 
@@ -1384,12 +1418,13 @@ class Program
         public void UnionMatching_19_BinaryAnd()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -1412,7 +1447,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "System.Int32__").VerifyDiagnostics();
         }
 
@@ -1420,20 +1455,22 @@ class Program
         public void UnionMatching_20_BinaryAnd()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(S2 x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
-struct S2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S2
 {
     private readonly object _value;
     public S2(int x) { _value = x; }
     public S2(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -1469,7 +1506,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalseFalseFalse TrueFalseFalseFalseFalseFalseFalse").VerifyDiagnostics();
         }
 
@@ -1477,28 +1514,31 @@ class Program
         public void UnionMatching_21_BinaryAnd()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(S2 x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
-struct S2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S2
 {
     private readonly object _value;
     public S2(S3 x) { _value = x; }
     public S2(int x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
-struct S3 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S3
 {
     private readonly object _value;
     public S3(int x) { _value = x; }
     public S3(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -1591,7 +1631,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: @"
 TrueFalseFalseFalseFalseFalseFalseFalseFalseFalse
 TrueFalseFalseFalseFalseFalseFalseFalseFalseFalse
@@ -1605,28 +1645,31 @@ TrueFalseFalseFalseFalseFalseFalseFalseFalseFalse
         public void UnionMatching_22_BinaryAnd()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(S2 x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
-struct S2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S2
 {
     private readonly object _value;
     public S2(S3 x) { _value = x; }
     public S2(int x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
-struct S3 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S3
 {
     private readonly object _value;
     public S3(int x) { _value = x; }
     public S3(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -1719,7 +1762,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: @"
 TrueFalseFalseFalseFalseFalseFalseFalseFalseFalse
 TrueFalseFalseFalseFalseFalseFalseFalseFalseFalse
@@ -1733,12 +1776,13 @@ TrueFalseFalseFalseFalseFalseFalseFalseFalseFalse
         public void UnionMatching_23_Parenthesized()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -1789,7 +1833,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue FalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
         }
 
@@ -1797,12 +1841,13 @@ class Program
         public void UnionMatching_24_Relational()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -1833,7 +1878,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse FalseFalseFalseTrueTrue").VerifyDiagnostics();
         }
 
@@ -1841,18 +1886,20 @@ class Program
         public void UnionMatching_25_List()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int[] x) { _value = x; }
     public S1(string[] x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
 {
     static bool Test1(S1 u)
     {
+#line 14
         return u is [10];
     }   
 }
@@ -1865,7 +1912,7 @@ static class Extensions
     }
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             // PROTOTYPE: It looks like list pattern cannot work with union types.
             comp.VerifyDiagnostics(
                 // (14,21): error CS8985: List patterns may not be used for a value of type 'object'. No suitable 'Length' or 'Count' property was found.
@@ -1881,12 +1928,13 @@ static class Extensions
         public void UnionMatching_26_List_Subpattern()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 struct S2
@@ -1913,7 +1961,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
         }
 
@@ -1921,12 +1969,13 @@ class Program
         public void UnionMatching_27_Slice_Subpattern()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 struct S2
@@ -1954,7 +2003,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
         }
 
@@ -1962,12 +2011,13 @@ class Program
         public void UnionMatching_28_Tuple_Deconstruction_Subpattern()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -1986,7 +2036,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
         }
 
@@ -1994,12 +2044,13 @@ class Program
         public void UnionMatching_29_ITuple_Deconstruction_Subpattern()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -2027,7 +2078,7 @@ class C : System.Runtime.CompilerServices.ITuple
 }
 
 ";
-            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
         }
 
@@ -2035,12 +2086,13 @@ class C : System.Runtime.CompilerServices.ITuple
         public void UnionMatching_30_Deconstruction_Subpattern()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -2067,7 +2119,7 @@ class C
 }
 
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse").VerifyDiagnostics();
         }
 
@@ -2075,12 +2127,13 @@ class C
         public void UnionMatching_31_Property_Subpattern()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -2107,7 +2160,7 @@ class C
 }
 
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse").VerifyDiagnostics();
         }
 
@@ -2115,12 +2168,13 @@ class C
         public void UnionMatching_32_Negated_Subpattern()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -2140,7 +2194,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "FalseTrueTrueTrueTrue").VerifyDiagnostics();
         }
 
@@ -2148,12 +2202,13 @@ class Program
         public void UnionMatching_33_SwitchLabel()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -2191,7 +2246,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseTrue TrueFalseFalseFalse").VerifyDiagnostics();
         }
 
@@ -2199,28 +2254,31 @@ class Program
         public void UnionMatching_34_BinaryAnd()
         {
             var src = @"
-struct S0 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S0
 {
     private readonly object _value;
     public S0(S1 x) { _value = x; }
     public S0(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(S2 x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
-struct S2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S2
 {
     private readonly object _value;
     public S2(int x) { _value = x; }
     public S2(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -2256,7 +2314,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalseFalseFalse TrueFalseFalseFalseFalseFalseFalse").VerifyDiagnostics();
         }
 
@@ -2264,12 +2322,13 @@ class Program
         public void UnionMatching_35_TypeParameter()
         {
             var src = @"
-class C1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+class C1
 {
     private readonly object _value;
     public C1(int x) { _value = x; }
     public C1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -2303,7 +2362,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
             // PROTOTYPE: Confirm that a type parameter is never a union type, even when constrained to one.
             var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseFalseTrue").VerifyDiagnostics();
@@ -2364,12 +2423,13 @@ class Program
         public void UnionMatching_36_SwitchStatement()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -2396,7 +2456,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "1-1-1-12-1").VerifyDiagnostics();
         }
 
@@ -2404,12 +2464,13 @@ class Program
         public void UnionMatching_37_SwitchStatement()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -2438,7 +2499,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "44-1-1-155-1").VerifyDiagnostics();
         }
 
@@ -2446,12 +2507,13 @@ class Program
         public void UnionMatching_38_SwitchStatement()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -2462,6 +2524,7 @@ class Program
         {
             case 10: return 1;
             case ""11"": return 2;
+#line 18
             case true: return 3;
         }
 
@@ -2469,7 +2532,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (18,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'bool'.
                 //             case true: return 3;
@@ -2481,12 +2544,13 @@ class Program
         public void UnionMatching_39_SwitchStatement()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -2495,6 +2559,7 @@ class Program
     {
         switch (u)
         {
+#line 16
             case 10: goto case true;
             case ""11"": return 2;
         }
@@ -2503,7 +2568,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (16,13): error CS0163: Control cannot fall through from one case label ('case 10:') to another
                 //             case 10: goto case true;
@@ -2518,14 +2583,15 @@ class Program
         public void PatternWrongType_TypePattern_01_BindConstantPatternWithFallbackToTypePattern_UnionType_Out_UnionType_In()
         {
             var src1 = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
     public S1(C2 x) { _value = x; }
     public S1(C3 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class C1;
@@ -2547,7 +2613,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (100,25): hidden CS9335: The pattern is redundant.
                 //         _ = u is C1 and C2;
@@ -2568,14 +2634,15 @@ class Program
         public void PatternWrongType_TypePattern_02_BindTypePattern_UnionType_Out_UnionType_In()
         {
             var src1 = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
     public S1(C2 x) { _value = x; }
     public S1(C3 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class C1;
@@ -2597,7 +2664,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (401,29): error CS8121: An expression of type 'string' cannot be handled by a pattern of type 'int'.
                 //         _ = u is string and int;
@@ -2615,14 +2682,15 @@ class Program
         public void PatternWrongType_TypePattern_03()
         {
             var src1 = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
     public S1(C2 x) { _value = x; }
     public S1(C3 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class C1;
@@ -2647,7 +2715,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (404,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'byte'.
                 //             case byte:
@@ -2659,12 +2727,13 @@ class Program
         public void PatternWrongType_TypePattern_04_BindIsOperator()
         {
             var src1 = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 ";
             var src2 = @"
@@ -2680,7 +2749,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (10,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'long'.
                 //         _ = u is long;
@@ -2692,14 +2761,15 @@ class Program
         public void PatternWrongType_RecursivePattern_01_BindRecursivePattern_UnionType_In()
         {
             var src1 = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
     public S1(C2 x) { _value = x; }
     public S1(C3 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class C1;
@@ -2721,7 +2791,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (200,25): hidden CS9335: The pattern is redundant.
                 //         _ = u is C1 and C2 {};
@@ -2742,14 +2812,15 @@ class Program
         public void PatternWrongType_RecursivePattern_02_BindRecursivePattern_UnionType_Out()
         {
             var src1 = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
     public S1(C2 x) { _value = x; }
     public S1(C3 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class C1;
@@ -2770,7 +2841,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (1000,28): hidden CS9335: The pattern is redundant.
                 //         _ = u is C1 {} and C2;
@@ -2788,14 +2859,15 @@ class Program
         public void PatternWrongType_DeclarationPattern_01_BindDeclarationPattern_UnionType_In()
         {
             var src1 = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
     public S1(C2 x) { _value = x; }
     public S1(C3 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class C1;
@@ -2817,7 +2889,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (301,25): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
                 //         _ = u is C1 and C3 b;
@@ -2835,14 +2907,15 @@ class Program
         public void PatternWrongType_DeclarationPattern_02_BindDeclarationPattern_UnionType_Out()
         {
             var src1 = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
     public S1(C2 x) { _value = x; }
     public S1(C3 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class C1;
@@ -2863,7 +2936,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (900,27): hidden CS9335: The pattern is redundant.
                 //         _ = u is C1 a and C2;
@@ -2881,14 +2954,15 @@ class Program
         public void PatternWrongType_NegatedPattern_01_BindUnaryPattern_UnionType_Out()
         {
             var src1 = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
     public S1(C2 x) { _value = x; }
     public S1(C3 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class C1;
@@ -2908,7 +2982,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (501,29): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is not C5 and C4;
@@ -2920,14 +2994,15 @@ class Program
         public void PatternWrongType_NegatedPattern_02_BindUnaryPattern_UnionType_In()
         {
             var src1 = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
     public S1(C2 x) { _value = x; }
     public S1(C3 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class C1;
@@ -2949,7 +3024,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (701,29): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
                 //         _ = u is C1 and not C3;
@@ -2967,14 +3042,15 @@ class Program
         public void PatternWrongType_ParenthesizedPattern_01_BindParenthesizedPattern_UnionType_Out()
         {
             var src1 = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
     public S1(C2 x) { _value = x; }
     public S1(C3 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class C1;
@@ -2994,7 +3070,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (601,31): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is (not C5) and C4;
@@ -3006,14 +3082,15 @@ class Program
         public void PatternWrongType_ParenthesizedPattern_01_BindParenthesizedPattern_UnionType_In()
         {
             var src1 = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
     public S1(C2 x) { _value = x; }
     public S1(C3 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class C1;
@@ -3035,7 +3112,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (801,30): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
                 //         _ = u is C1 and (not C3);
@@ -3053,14 +3130,15 @@ class Program
         public void PatternWrongType_ListPattern_01_BindListPattern_UnionType_Out()
         {
             var src1 = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
     public S1(C2 x) { _value = x; }
     public S1(C3 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class C1;
@@ -3081,7 +3159,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (1100,18): error CS8985: List patterns may not be used for a value of type 'object'. No suitable 'Length' or 'Count' property was found.
                 //         _ = u is [] and C2;
@@ -3105,14 +3183,15 @@ class Program
         public void PatternWrongType_VarDeconstructionPattern_01_UnionType_Out()
         {
             var src1 = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
     public S1(C2 x) { _value = x; }
     public S1(C3 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class C1;
@@ -3141,7 +3220,7 @@ static class Extensions
     }
 }
 ";
-            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (101,33): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is var (c, d) and C4;
@@ -3153,12 +3232,13 @@ static class Extensions
         public void PatternWrongType_ConstantPattern_01_BindConstantPatternWithFallbackToTypePattern_UnionType_In()
         {
             var src1 = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(C1 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class C1
@@ -3182,7 +3262,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (100,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
                 //         _ = u is {} and "1";
@@ -3206,12 +3286,13 @@ class Program
         public void PatternWrongType_ConstantPattern_02_BindConstantPatternWithFallbackToTypePattern_UnionType_Out()
         {
             var src1 = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(byte x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class C2;
@@ -3227,7 +3308,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (100,27): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C2'.
                 //         _ = u is null and C2;
@@ -3242,12 +3323,13 @@ class Program
         public void PatternWrongType_ConstantPattern_03_BindIsOperator_UnionType_In()
         {
             var src1 = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(byte x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 ";
             var src2 = @"
@@ -3261,7 +3343,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (100,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
                 //         _ = u is empty;
@@ -3273,12 +3355,13 @@ class Program
         public void PatternWrongType_ConstantPattern_04_UnionType_In()
         {
             var src1 = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(byte x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 ";
             var src2 = @"
@@ -3296,7 +3379,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (102,13): error CS8070: Control cannot fall out of switch from final case label ('case 1:')
                 //             case 1:
@@ -3315,12 +3398,13 @@ class Program
         public void PatternWrongType_RelationalPattern_01_BindRelationalPattern_UnionType_In()
         {
             var src1 = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(string x) { _value = x; }
     public S1(C1 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class C1
@@ -3343,7 +3427,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (100,27): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
                 //         _ = u is {} and > 1;
@@ -3364,12 +3448,13 @@ class Program
         public void PatternWrongType_RelationalPattern_02_BindRelationalPattern_UnionType_Out()
         {
             var src1 = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(byte x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class C2;
@@ -3384,7 +3469,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (100,26): error CS8121: An expression of type 'int' cannot be handled by a pattern of type 'byte'.
                 //         _ = u is > 1 and byte;
@@ -3396,12 +3481,13 @@ class Program
         public void PatternWrongType_BinaryPattern_01_Disjunction_Snap_To_Previous_UnionType()
         {
             var src1 = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(C1 x) { _value = x; }
     public S1(C2 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class C1;
@@ -3425,7 +3511,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (100,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
                 //         _ = u is int or string or C3;
@@ -3491,12 +3577,13 @@ class Program
         public void PatternWrongType_BinaryPattern_02_Disjunction_Snap_To_Previous_UnionType()
         {
             var src1 = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(C1 x) { _value = x; }
     public S1(C2 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class C1;
@@ -3520,7 +3607,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (100,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
                 //         _ = u is {} and (int or string or C3);
@@ -3586,12 +3673,13 @@ class Program
         public void PatternWrongType_BinaryPattern_03_Disjunction_Snap_To_Previous_UnionType()
         {
             var src1 = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(C1 x) { _value = x; }
     public S1(C2 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class C1;
@@ -3613,7 +3701,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (100,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
                 //         _ = u is (S1 and int) or string or C3;
@@ -3634,20 +3722,22 @@ class Program
         public void PatternWrongType_BinaryPattern_04_Disjunction_Snap_To_Previous_UnionType()
         {
             var src1 = @"
-struct S0 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S0
 {
     private readonly object _value;
     public S0(byte x) { _value = x; }
     public S0(S1 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(C1 x) { _value = x; }
     public S1(C2 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class C1;
@@ -3669,7 +3759,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (100,34): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
                 //         _ = u is {} and ((S1 and int) or string or C3);
@@ -3726,20 +3816,22 @@ class Program
         public void PatternWrongType_BinaryPattern_05_Conjunction_Pass_UnionType_Through()
         {
             var src1 = @"
-struct S0 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S0
 {
     private readonly object _value;
     public S0(byte x) { _value = x; }
     public S0(S1 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(C1 x) { _value = x; }
     public S1(C2 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class C1;
@@ -3766,7 +3858,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src2, src1, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (100,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
                 //         _ = u is S1 and string;
@@ -3793,14 +3885,15 @@ class Program
         public void Exhaustiveness_01()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
 #nullable enable
     public S1(string? x) { _value = x; }
 #nullable disable
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -3906,7 +3999,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             var verifier = CompileAndVerify(comp).VerifyDiagnostics(
                 // (100,50): hidden CS9335: The pattern is redundant.
                 //         return u switch { int => 1, string => 2, null => 3 };
@@ -3952,35 +4045,34 @@ class Program
 
             verifier.VerifyIL("Program.Test1", @"
 {
-  // Code size       54 (0x36)
+  // Code size       48 (0x30)
   .maxstack  1
   .locals init (int V_0,
-                object V_1)
+            object V_1)
   IL_0000:  ldarga.s   V_0
-  IL_0002:  constrained. ""S1""
-  IL_0008:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_000d:  stloc.1
-  IL_000e:  ldloc.1
-  IL_000f:  isinst     ""int""
-  IL_0014:  brtrue.s   IL_0023
-  IL_0016:  ldloc.1
-  IL_0017:  isinst     ""string""
-  IL_001c:  brtrue.s   IL_0027
-  IL_001e:  ldloc.1
-  IL_001f:  brfalse.s  IL_002b
-  IL_0021:  br.s       IL_002f
-  IL_0023:  ldc.i4.1
-  IL_0024:  stloc.0
-  IL_0025:  br.s       IL_0034
-  IL_0027:  ldc.i4.2
-  IL_0028:  stloc.0
-  IL_0029:  br.s       IL_0034
-  IL_002b:  ldc.i4.3
-  IL_002c:  stloc.0
-  IL_002d:  br.s       IL_0034
-  IL_002f:  call       ""void <PrivateImplementationDetails>.ThrowInvalidOperationException()""
-  IL_0034:  ldloc.0
-  IL_0035:  ret
+  IL_0002:  call       ""object S1.Value.get""
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
+  IL_0009:  isinst     ""int""
+  IL_000e:  brtrue.s   IL_001d
+  IL_0010:  ldloc.1
+  IL_0011:  isinst     ""string""
+  IL_0016:  brtrue.s   IL_0021
+  IL_0018:  ldloc.1
+  IL_0019:  brfalse.s  IL_0025
+  IL_001b:  br.s       IL_0029
+  IL_001d:  ldc.i4.1
+  IL_001e:  stloc.0
+  IL_001f:  br.s       IL_002e
+  IL_0021:  ldc.i4.2
+  IL_0022:  stloc.0
+  IL_0023:  br.s       IL_002e
+  IL_0025:  ldc.i4.3
+  IL_0026:  stloc.0
+  IL_0027:  br.s       IL_002e
+  IL_0029:  call       ""void <PrivateImplementationDetails>.ThrowInvalidOperationException()""
+  IL_002e:  ldloc.0
+  IL_002f:  ret
 }
 ");
         }
@@ -3989,12 +4081,13 @@ class Program
         public void Exhaustiveness_02()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int? x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -4062,7 +4155,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (100,50): hidden CS9335: The pattern is redundant.
                 //         return u switch { int => 1, string => 2, null => 3 };
@@ -4098,14 +4191,15 @@ class Program
         public void Exhaustiveness_03()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
 #nullable enable
     public S1(string? x) { _value = x; }
 #nullable disable
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -4125,7 +4219,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (100,42): hidden CS9335: The pattern is redundant.
                 //         return u switch { not null => 2, null => 3 };
@@ -4140,14 +4234,15 @@ class Program
         public void Exhaustiveness_04()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(bool x) { _value = x; }
 #nullable enable
     public S1(string? x) { _value = x; }
 #nullable disable
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -4185,7 +4280,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (100,63): hidden CS9335: The pattern is redundant.
                 //         return u switch { true => 1, false => 4, string => 2, null => 3 };
@@ -4208,14 +4303,15 @@ class Program
             var src = @"
 #nullable enable
 
-class C1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+class C1
 {
     private readonly object? _value;
 
     public C1(){}
     public C1(int x) { _value = x; }
     public C1(string? x) { _value = x; }
-    object? System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object? Value => _value;
 }
 
 class Program
@@ -4266,7 +4362,7 @@ class C2
 }
 
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "132 -1-3-2-4").VerifyDiagnostics(
 
                 // PROTOTYPE: The WRN_SwitchExpressionNotExhaustiveForNull below is very confusing, especially that there is 
@@ -4298,14 +4394,15 @@ class C2
             var src = @"
 #nullable enable
 
-class C1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+class C1
 {
     private readonly object? _value;
 
     public C1(){}
     public C1(int x) { _value = x; }
     public C1(string? x) { _value = x; }
-    object? System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object? Value => _value;
 }
 
 class Program
@@ -4317,7 +4414,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (41,50): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //         return u switch { int => 1, string => 2, not null => 3 };
@@ -4335,12 +4432,13 @@ class Program
         public void Exhaustiveness_07()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(C1 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class C1;
@@ -4350,11 +4448,12 @@ class Program
 {
     static int Test1(S1 u)
     {
+#line 17
         return u switch { int => 1, C2 => 2, null => 3 };
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (17,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C1' is not covered.
                 //         return u switch { int => 1, C2 => 2, null => 3 };
@@ -4366,12 +4465,13 @@ class Program
         public void Exhaustiveness_08()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(C2 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class C1;
@@ -4381,11 +4481,12 @@ class Program
 {
     static int Test1(S1 u)
     {
+#line 17
         return u switch { int => 1, C1 => 2, null => 3 };
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (17,46): hidden CS9335: The pattern is redundant.
                 //         return u switch { int => 1, C1 => 2, null => 3 };
@@ -4397,12 +4498,13 @@ class Program
         public void Exhaustiveness_09()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(C2 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 interface I1;
@@ -4413,6 +4515,7 @@ class Program
 {
     static int Test1(S1 u)
     {
+#line 18
         return u switch { int => 1, I1 => 2, null => 3 };
     } 
 
@@ -4432,7 +4535,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (18,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C2' is not covered.
                 //         return u switch { int => 1, I1 => 2, null => 3 };
@@ -4454,16 +4557,18 @@ class Program
         {
             var src =
 @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(Q x) { _value = x; }
     public S1(int x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class C
 {
+#line 12
     int M2(S1 o) => o switch { not (Q(1, 2.5) { P1: 1 } and Q(3, 4, 5) { P2: 2 }) => 1 };
     int M3(S1 o) => o switch { null => 0, not (Q(1, 2.5) { P1: 1 } and Q(3, 4, 5) { P2: 2 }) => 1 };
 }
@@ -4475,7 +4580,7 @@ class Q
     public int P2 = 6;
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (12,23): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Q(1, 2.5D) and (3, 4, 5) { P1: 1,  P2: 2 }' is not covered.
                 //     int M2(S1 o) => o switch { not (Q(1, 2.5) { P1: 1 } and Q(3, 4, 5) { P2: 2 }) => 1 };
@@ -4491,12 +4596,13 @@ class Q
         {
             var src =
 @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(Q x) { _value = x; }
     public S1(int x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class C
@@ -4522,7 +4628,7 @@ class Q
     public bool P1 = false;
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (100,14): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Q{ P1: false }' is not covered.
                 //         => o switch { int => 1, Q { P1: true } => 2 };
@@ -4543,14 +4649,15 @@ class Q
         public void Exhaustiveness_12()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
 #nullable enable
     public S1(string? x) { _value = x; }
 #nullable disable
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -4588,7 +4695,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (100,40): hidden CS9335: The pattern is redundant.
                 //         return u switch { object => 1, null => 3 };
@@ -4611,9 +4718,10 @@ class Program
             var src = @"
 #nullable enable
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
-    object System.Runtime.CompilerServices.IUnion.Value => null!;
+    public object Value => null!;
 }
 
 class Program
@@ -4697,7 +4805,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (100,27): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
                 //         return u switch { int => 1, null => 3 };
@@ -4742,7 +4850,8 @@ class Program
         public void UnionConversion_01_Implicit()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x)
@@ -4759,7 +4868,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         System.Console.Write(""} "");
         _value = x;
     }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -4804,7 +4913,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -4927,7 +5036,8 @@ IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return 10;')
         public void UnionConversion_02_Implicit_Class()
         {
             var src = @"
-class S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+class S1
 {
     private readonly object _value;
     public S1(int x)
@@ -4944,7 +5054,7 @@ class S1 : System.Runtime.CompilerServices.IUnion
         System.Console.Write(""} "");
         _value = x;
     }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -4989,7 +5099,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "1-int {10} 2-3-4-5-string {11}").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test1", @"
@@ -5054,7 +5164,8 @@ class Program
         public void UnionConversion_03_Cast()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x)
@@ -5071,7 +5182,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         System.Console.Write(""} "");
         _value = x;
     }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -5116,7 +5227,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -5221,7 +5332,8 @@ IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: S1..ctor(Syste
         public void UnionConversion_04_Cast_Class()
         {
             var src = @"
-class S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+class S1
 {
     private readonly object _value;
     public S1(int x)
@@ -5238,7 +5350,7 @@ class S1 : System.Runtime.CompilerServices.IUnion
         System.Console.Write(""} "");
         _value = x;
     }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -5283,7 +5395,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "1-int {10} 2-3-4-5-string {11}").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test1", @"
@@ -5348,7 +5460,8 @@ class Program
         public void UnionConversion_05_No_Lifted_Form()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x)
@@ -5359,13 +5472,14 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     {
         _value = x;
     }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
 {
     static S1 Test1(int? x)
     {
+#line 20
         return x;
     }   
 
@@ -5375,7 +5489,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
 
             comp.VerifyDiagnostics(
                 // (20,16): error CS0029: Cannot implicitly convert type 'int?' to 'S1'
@@ -5391,7 +5505,8 @@ class Program
         public void UnionConversion_06_No_Lifted_Form_Class()
         {
             var src = @"
-class S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+class S1
 {
     private readonly object _value;
     public S1(int x)
@@ -5402,18 +5517,19 @@ class S1 : System.Runtime.CompilerServices.IUnion
     {
         _value = x;
     }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
 {
     static S1 Test1(int? x)
     {
+#line 20
         return x;
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (20,16): error CS0029: Cannot implicitly convert type 'int?' to 'S1'
                 //         return x;
@@ -5425,7 +5541,8 @@ class Program
         public void UnionConversion_07_Ambiguity_First_Declared_Wins()
         {
             var src1 = @"
-public struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+public struct S1
 {
     private readonly object _value;
     public S1(C1 x)
@@ -5434,10 +5551,11 @@ public struct S1 : System.Runtime.CompilerServices.IUnion
         _value = x;
     }
     public S1(C2 x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
-public struct S2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+public struct S2
 {
     private readonly object _value;
     public S2(C2 x)
@@ -5446,7 +5564,7 @@ public struct S2 : System.Runtime.CompilerServices.IUnion
         _value = x;
     }
     public S2(C1 x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 public class C1 { }
@@ -5472,7 +5590,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src1, src2, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src1, src2, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "C1C2").VerifyDiagnostics();
 
             comp = CreateCompilation(src2, references: [comp.EmitToImageReference()], options: TestOptions.ReleaseExe);
@@ -5483,7 +5601,8 @@ class Program
         public void UnionConversion_08_Standard_Conversion_For_Source_Allowed()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x)
@@ -5494,7 +5613,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         _value = x;
     }
     public S1(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -5516,7 +5635,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "int {15} int {16}").VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.First();
@@ -5607,11 +5726,12 @@ IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return (S1)x2;')
         public void UnionConversion_09_NonStandard_Conversion_For_Source_Not_Allowed()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(C1 x) => throw null;
     public S1(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 }
 
 class C1
@@ -5639,7 +5759,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (100,16): error CS0029: Cannot implicitly convert type 'byte' to 'S1'
                 //         return x;
@@ -5654,11 +5774,12 @@ class Program
         public void UnionConversion_10_Explicit_Conversion_For_Source_Not_Allowed()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null;
     public S1(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 }
 
 class Program
@@ -5675,7 +5796,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (100,16): error CS0029: Cannot implicitly convert type 'long' to 'S1'
                 //         return x;
@@ -5690,18 +5811,20 @@ class Program
         public void UnionConversion_11_Not_Standard_Conversion()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(S2 x) => throw null;
     public S1(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 }
 
-struct S2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S2
 {
     public S2(int x) => throw null;
     public S2(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 }
 
 class C1
@@ -5736,7 +5859,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (100,16): error CS0029: Cannot implicitly convert type 'int' to 'S1'
                 //         return x;
@@ -5751,7 +5874,8 @@ class Program
         public void UnionConversion_12_Implicit_UserDefined_Conversion_Wins()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null;
     public S1(string x)
@@ -5760,7 +5884,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         System.Console.Write(x);
         System.Console.Write(""} "");
     }
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 
     public static implicit operator S1(int x)
     {
@@ -5788,7 +5912,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "implicit operator string {10} implicit operator string {20}").VerifyDiagnostics();
         }
 
@@ -5796,7 +5920,8 @@ class Program
         public void UnionConversion_13_Cast_Explicit_UserDefined_Conversion_Wins()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null;
     public S1(string x)
@@ -5805,7 +5930,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         System.Console.Write(x);
         System.Console.Write(""} "");
     }
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 
     public static explicit operator S1(int x)
     {
@@ -5827,7 +5952,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "explicit operator string {20}").VerifyDiagnostics();
         }
 
@@ -5835,7 +5960,8 @@ class Program
         public void UnionConversion_14_Explicit_UserDefined_Conversion_Loses()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x)
     {
@@ -5844,7 +5970,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         System.Console.Write(""} "");
     }
     public S1(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 
     public static explicit operator S1(int x) => throw null;
 }
@@ -5862,7 +5988,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "int {10}").VerifyDiagnostics();
         }
 
@@ -5870,11 +5996,12 @@ class Program
         public void UnionConversion_15_Cast_From_Base_Class_Not_Union_Conversion()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(System.ValueType x) => throw null;
     public S1(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 }
 
 class Program
@@ -5890,7 +6017,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "S1").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test2", @"
@@ -5908,14 +6035,15 @@ class Program
         public void UnionConversion_16_Implicit_From_Base_Class_Union_Conversion()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(System.ValueType x)
     {
         System.Console.Write(""System.ValueType "");
     }
     public S1(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 }
 
 class Program
@@ -5931,7 +6059,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "System.ValueType S1").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test2", @"
@@ -5969,11 +6097,12 @@ struct S2
         public void UnionConversion_17_Cast_From_Implemented_Interface_Not_Union_Conversion()
         {
             var src = @"
-struct S1 : I1, System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1 : I1
 {
     public S1(I1 x) => throw null;
     public S1(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 }
 
 interface I1 { }
@@ -5991,7 +6120,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "S1").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test2", @"
@@ -6009,14 +6138,15 @@ class Program
         public void UnionConversion_18_Implicit_From_Implemented_Interface_Union_Conversion()
         {
             var src = @"
-struct S1 : I1, System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1 : I1
 {
     public S1(I1 x)
     {
         System.Console.Write(""I1 "");
     }
     public S1(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 }
 
 interface I1 { }
@@ -6034,7 +6164,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "I1 S1").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test2", @"
@@ -6074,14 +6204,15 @@ struct S2 : I1
         public void UnionConversion_19_From_Not_Implemented_Interface_Union_Conversion()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(I1 x)
     {
         System.Console.Write(""I1 "");
     }
     public S1(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 }
 
 interface I1 { }
@@ -6108,7 +6239,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "I1 S1 I1 S1").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test1", @"
@@ -6158,14 +6289,15 @@ struct S2
         public void UnionConversion_20_From_Not_Implemented_Interface_Union_Conversion()
         {
             var src = @"
-class S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+class S1
 {
     public S1(I1 x)
     {
         System.Console.Write(""I1 "");
     }
     public S1(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 }
 
 interface I1 { }
@@ -6190,7 +6322,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "I1 S1").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test1", @"
@@ -6240,7 +6372,8 @@ class S2
         public void UnionConversion_21_Through_Base_Class_Or_Interface()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(System.ValueType x)
@@ -6261,7 +6394,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         System.Console.Write(""} "");
         _value = x;
     }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -6285,7 +6418,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "1-System.ValueType {System.Int32 10} 5-System.IComparable {System.String 11}").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test1", @"
@@ -6318,22 +6451,24 @@ class Program
         public void UnionConversion_22_ExpressionTree()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null;
     public S1(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 }
 
 class Program
 {
     static System.Linq.Expressions.Expression<System.Func<S1>> Test1(int x)
     {
+#line 13
         return () => x;
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (13,22): error CS9400: An expression tree may not contain a union conversion.
                 //         return () => x;
@@ -6345,7 +6480,8 @@ class Program
         public void UnionConversion_23_ClassifyImplicitConversionFromType()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x)
     {
@@ -6354,7 +6490,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         System.Console.Write(""} "");
     }
     public S1(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 }
 
 class Program
@@ -6370,7 +6506,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "int {10}").VerifyDiagnostics();
         }
 
@@ -6378,7 +6514,8 @@ class Program
         public void UnionConversion_24_ClassifyConversionFromType()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x)
     {
@@ -6387,7 +6524,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         System.Console.Write(""} "");
     }
     public S1(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 }
 
 class Program
@@ -6400,7 +6537,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "int {123}").VerifyDiagnostics();
         }
 
@@ -6408,7 +6545,8 @@ class Program
         public void UnionConversion_25_ClassifyConversionFromTypeForCast_Implicit_UserDefined_Conversion_Wins()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null;
     public S1(string x)
@@ -6417,7 +6555,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         System.Console.Write(x);
         System.Console.Write(""} "");
     }
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 
     public static implicit operator S1(int x)
     {
@@ -6441,7 +6579,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "implicit operator string {10}").VerifyDiagnostics();
         }
 
@@ -6449,7 +6587,8 @@ class Program
         public void UnionConversion_26_ClassifyConversionFromTypeForCast_Explicit_UserDefined_Conversion_Wins()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null;
     public S1(string x)
@@ -6458,7 +6597,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         System.Console.Write(x);
         System.Console.Write(""} "");
     }
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 
     public static explicit operator S1(int x)
     {
@@ -6482,7 +6621,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "explicit operator string {20}").VerifyDiagnostics();
         }
 
@@ -6490,7 +6629,8 @@ class Program
         public void UnionConversion_27_ClassifyConversionFromTypeForCast()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x)
     {
@@ -6499,7 +6639,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         System.Console.Write(""} "");
     }
     public S1(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 }
 
 class Program
@@ -6517,7 +6657,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "int {10}").VerifyDiagnostics();
         }
 
@@ -6525,7 +6665,8 @@ class Program
         public void UnionConversion_28_Under_Tuple_Conversion()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(double x)
     {
@@ -6534,7 +6675,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         System.Console.Write(""} "");
     }
     public S1(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 }
 
 class Program
@@ -6550,7 +6691,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "double {10}").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test1", @"
@@ -6576,7 +6717,8 @@ class Program
         public void UnionConversion_30_In_Parameter()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(in int x)
     {
@@ -6585,7 +6727,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         System.Console.Write(""} "");
     }
     public S1(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 }
 
 class Program
@@ -6616,7 +6758,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "1-int {10} 2-int {11} 3-int {12}").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test1", @"
@@ -6666,7 +6808,8 @@ class Program
         public void UnionConversion_31_Ambiguity_In_Vs_Val_First_Declared_Wins()
         {
             var src1 = @"
-public struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+public struct S1
 {
     public S1(in int x)
     {
@@ -6674,10 +6817,11 @@ public struct S1 : System.Runtime.CompilerServices.IUnion
     }
     public S1(int x) => throw null;
     public S1(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 }
 
-public struct S2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+public struct S2
 {
     public S2(int x)
     {
@@ -6685,7 +6829,7 @@ public struct S2 : System.Runtime.CompilerServices.IUnion
     }
     public S2(in int x) => throw null;
     public S2(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 }
 ";
             var src2 = @"
@@ -6708,7 +6852,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src1, src2, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src1, src2, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "InVal").VerifyDiagnostics();
 
             comp = CreateCompilation(src2, references: [comp.EmitToImageReference()], options: TestOptions.ReleaseExe);
@@ -6719,22 +6863,24 @@ class Program
         public void UnionConversion_32_No_Params_Expansion()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(params int[] x) => throw null;
     public S1(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 }
 
 class Program
 {
     static S1 Test1(int x)
     {
+#line 13
         return (S1)x;
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (13,16): error CS0030: Cannot convert type 'int' to 'S1'
                 //         return (S1)x;
@@ -6746,23 +6892,25 @@ class Program
         public void UnionConversion_33_No_Optional()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(byte  x) => throw null;
     public S1(string x) => throw null;
     public S1(int x, object o = null) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 }
 
 class Program
 {
     static S1 Test1(int x)
     {
+#line 14
         return (S1)x;
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (14,16): error CS0030: Cannot convert type 'int' to 'S1'
                 //         return (S1)x;
@@ -6774,23 +6922,25 @@ class Program
         public void UnionConversion_34_No_Non_Public()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(byte  x) => throw null;
     public S1(string x) => throw null;
     internal S1(int x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 }
 
 class Program
 {
     static S1 Test1(int x)
     {
+#line 14
         return (S1)x;
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (14,16): error CS0030: Cannot convert type 'int' to 'S1'
                 //         return (S1)x;
@@ -6803,22 +6953,24 @@ class Program
         public void UnionConversion_35_No_Ref_Out([CombinatorialValues("ref", "out", "ref readonly")] string refModifier)
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(" + refModifier + @" int x) => throw null;
     public S1(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 }
 
 class Program
 {
     static S1 Test1(int x)
     {
+#line 13
         return (S1)x;
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (13,16): error CS0030: Cannot convert type 'int' to 'S1'
                 //         return (S1)x;
@@ -6830,7 +6982,8 @@ class Program
         public void UnionConversion_36_Implicit_ToNullableOfUnion()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x)
@@ -6847,7 +7000,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         System.Console.Write(""} "");
         _value = x;
     }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -6892,7 +7045,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -7023,7 +7176,8 @@ IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return 10;')
         public void UnionConversion_37_Cast_ToNullableOfUnion()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x)
@@ -7040,7 +7194,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         System.Console.Write(""} "");
         _value = x;
     }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -7085,7 +7239,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -7198,7 +7352,8 @@ IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type
         public void UnionConversion_38_Standard_Conversion_For_Source_Allowed_ToNullableOfUnion()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x)
@@ -7209,7 +7364,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         _value = x;
     }
     public S1(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -7231,7 +7386,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "int {15} int {16}").VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.First();
@@ -7328,7 +7483,8 @@ IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return (S1?)x2;')
         public void UnionConversion_39_Implicit_UserDefined_Conversion_Wins_ToNullableOfUnion()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null;
     public S1(string x)
@@ -7337,7 +7493,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         System.Console.Write(x);
         System.Console.Write(""} "");
     }
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 
     public static implicit operator S1(int x)
     {
@@ -7365,7 +7521,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "implicit operator string {10} implicit operator string {20}").VerifyDiagnostics();
         }
 
@@ -7373,7 +7529,8 @@ class Program
         public void UnionConversion_40_Cast_Explicit_UserDefined_Conversion_Wins_ToNullableOfUnion()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null;
     public S1(string x)
@@ -7382,7 +7539,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         System.Console.Write(x);
         System.Console.Write(""} "");
     }
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 
     public static explicit operator S1(int x)
     {
@@ -7404,7 +7561,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "explicit operator string {20}").VerifyDiagnostics();
         }
 
@@ -7412,7 +7569,8 @@ class Program
         public void UnionConversion_41_Explicit_UserDefined_Conversion_Loses_ToNullableOfUnion()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x)
     {
@@ -7421,7 +7579,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         System.Console.Write(""} "");
     }
     public S1(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 
     public static explicit operator S1(int x) => throw null;
 }
@@ -7439,7 +7597,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "int {10}").VerifyDiagnostics();
         }
 
@@ -7447,7 +7605,8 @@ class Program
         public void UnionConversion_42_Under_Tuple_Conversion_ToNullableOfUnion()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(double x)
     {
@@ -7456,7 +7615,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         System.Console.Write(""} "");
     }
     public S1(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 }
 
 class Program
@@ -7472,7 +7631,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "double {10}").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test1", @"
@@ -7499,7 +7658,8 @@ class Program
         public void UnionConversion_43_From_TupleLiteral()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1((int, object) x)
@@ -7516,7 +7676,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         System.Console.Write(""} "");
         _value = x;
     }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -7532,7 +7692,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -7569,7 +7729,8 @@ class Program
         public void UnionConversion_44_From_TupleLiteral()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1((int, object) x)
@@ -7586,7 +7747,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         System.Console.Write(""} "");
         _value = x;
     }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -7602,7 +7763,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -7639,7 +7800,8 @@ class Program
         public void UnionConversion_45_From_TupleLiteral_ToNullableOfUnion()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1((int, object) x)
@@ -7656,7 +7818,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         System.Console.Write(""} "");
         _value = x;
     }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -7672,7 +7834,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -7709,11 +7871,12 @@ class Program
         public void UnionConversion_46_Implicit_Ambiguous_UserDefined_Conversion_Shadows()
         {
             var src = @"
-public struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+public struct S1
 {
     public S1(S2 x) => throw null;
     public S1(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 
     public static implicit operator S1(S2 x) => throw null;
 }
@@ -7727,11 +7890,12 @@ class Program
 {
     static S1 Test2(S2 x)
     {
+#line 20
         return x;
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
 
             // Error duplication is tracked as https://github.com/dotnet/roslyn/issues/81984.
             comp.VerifyDiagnostics(
@@ -7748,11 +7912,12 @@ class Program
         public void UnionConversion_47_Cast_Emplicit_Ambiguous_UserDefined_Conversion_Shadows()
         {
             var src = @"
-public struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+public struct S1
 {
     public S1(S2 x) => throw null;
     public S1(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 
     public static explicit operator S1(S2 x) => throw null;
 }
@@ -7766,11 +7931,12 @@ class Program
 {
     static S1 Test2(S2 x)
     {
+#line 20
         return (S1)x;
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
 
             comp.VerifyDiagnostics(
                 // (20,16): error CS0457: Ambiguous user defined conversions 'S2.explicit operator S1(S2)' and 'S1.explicit operator S1(S2)' when converting from 'S2' to 'S1'
@@ -7783,17 +7949,19 @@ class Program
         public void UnionConversion_48_Abstract_Union()
         {
             var src = @"
-public abstract class C1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+public abstract class C1
 {
     public C1(int x) => throw null;
     public C1(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 }
 
 class Program
 {
     static C1 Test1(int x)
     {
+#line 13
         return new C1(x);
     }   
 
@@ -7803,7 +7971,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (13,16): error CS0144: Cannot create an instance of the abstract type or interface 'C1'
                 //         return new C1(x);
@@ -7818,11 +7986,12 @@ class Program
         public void UnionConversion_49_From_Dynamic()
         {
             var src = @"
-public struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+public struct S1
 {
     public S1(int x) => throw null;
     public S1(string x) => throw null;
-    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+    public object Value => throw null;
 }
 
 class Program
@@ -7845,7 +8014,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             // Conversion from dynamic is not a union conversion.
             CompileAndVerify(comp, expectedOutput: "RuntimeBinderException caught").VerifyDiagnostics();
         }
@@ -7911,13 +8080,14 @@ class Program
                     }
                 }
 
-                ref struct S : System.Runtime.CompilerServices.IUnion
+                [System.Runtime.CompilerServices.Union]
+                ref struct S
                 {
                     public S(in int x) => throw null;
-                    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+                    public object Value => throw null;
                 }
                 """;
-            CreateCompilation([source, IUnionSource]).VerifyDiagnostics(
+            CreateCompilation([source, UnionAttributeSource]).VerifyDiagnostics(
                 // (6,13): error CS8347: Cannot use a result of 'S.S(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         s = (S)100; // 1
                 Diagnostic(ErrorCode.ERR_EscapeCall, "(S)100").WithArguments("S.S(in int)", "x").WithLocation(6, 13),
@@ -8011,13 +8181,14 @@ class Program
                     }
                 }
 
-                ref struct S : System.Runtime.CompilerServices.IUnion
+                [System.Runtime.CompilerServices.Union]
+                ref struct S
                 {
                     public S(in int x) => throw null;
-                    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+                    public object Value => throw null;
                 }
                 """;
-            CreateCompilation([source, IUnionSource]).VerifyDiagnostics(
+            CreateCompilation([source, UnionAttributeSource]).VerifyDiagnostics(
                 // (6,13): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         s = 100; // 1
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "100").WithLocation(6, 13),
@@ -8069,13 +8240,14 @@ class Program
                     public static implicit operator S1(in int x) => throw null;
                 }
 
-                ref struct S2 : System.Runtime.CompilerServices.IUnion
+                [System.Runtime.CompilerServices.Union]
+                ref struct S2
                 {
                     public S2(S1 s1) => throw null;
-                    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+                    public object Value => throw null;
                 }
                 """;
-            CreateCompilation([source, IUnionSource]).VerifyDiagnostics(
+            CreateCompilation([source, UnionAttributeSource]).VerifyDiagnostics(
                 // (7,16): error CS8347: Cannot use a result of 'S2.S2(S1)' in this context because it may expose variables referenced by parameter 's1' outside of their declaration scope
                 //         return (S2)s1; // 1
                 Diagnostic(ErrorCode.ERR_EscapeCall, "(S2)s1").WithArguments("S2.S2(S1)", "s1").WithLocation(7, 16),
@@ -8138,13 +8310,14 @@ class Program
                     }
                 }
 
-                ref struct S : System.Runtime.CompilerServices.IUnion
+                [System.Runtime.CompilerServices.Union]
+                ref struct S
                 {
                     public S(in int? x) => throw null;
-                    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+                    public object Value => throw null;
                 }
                 """;
-            CreateCompilation([source, IUnionSource]).VerifyDiagnostics(
+            CreateCompilation([source, UnionAttributeSource]).VerifyDiagnostics(
                 // (6,13): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         s = 100; // 1
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "100").WithLocation(6, 13),
@@ -8200,13 +8373,14 @@ class Program
                     S M2(S s) => s;
                 }
 
-                ref struct S : System.Runtime.CompilerServices.IUnion
+                [System.Runtime.CompilerServices.Union]
+                ref struct S
                 {
                     public S(in int x) => throw null;
-                    object System.Runtime.CompilerServices.IUnion.Value => throw null;
+                    public object Value => throw null;
                 }
                 """;
-            CreateCompilation([source, IUnionSource]).VerifyDiagnostics(
+            CreateCompilation([source, UnionAttributeSource]).VerifyDiagnostics(
                 // (5,16): error CS8347: Cannot use a result of 'C.M2(S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
                 //         return M2(x);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "M2(x)").WithArguments("C.M2(S)", "s").WithLocation(5, 16),
@@ -8224,18 +8398,20 @@ class Program
             var src = @"
 #nullable enable
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
-struct S2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -8255,7 +8431,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (101,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         _ = s switch { int => 1, bool => 3 };
@@ -8269,18 +8445,20 @@ class Program
             var src = @"
 #nullable enable
 
-class S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+class S1
 {
     public S1(int x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
-class S2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+class S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -8300,7 +8478,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (101,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         _ = s switch { int => 1, bool => 3 };
@@ -8318,18 +8496,20 @@ class Program
             var src = @"
 #nullable enable
 
-" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S1
 {
     public S1(int x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
-" + typeKind + @" S2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -8347,7 +8527,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (200,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         _ = s switch { int => 1, bool => 3 };
@@ -8362,11 +8542,12 @@ class Program
             var src = @"
 #nullable enable
 
-" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S1
 {
     public S1(int x) => throw null!;
     public S1([System.Diagnostics.CodeAnalysis.NotNull] bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 class Program
 {
@@ -8377,7 +8558,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource, NotNullAttributeDefinition]);
+            var comp = CreateCompilation([src, UnionAttributeSource, NotNullAttributeDefinition]);
 
             // PROTOTYPE: Confirm that post-condition attributes aren't respected for the purpose of default nullability of a Union instance.
             //            We respect them for constructor invocations and conversions  
@@ -8395,12 +8576,13 @@ class Program
             var src = @"
 #nullable enable
 
-" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S1
 {
     public S1(int x) => throw null!;
     public S1(string? x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -8441,7 +8623,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (301,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         _ = s switch { int => 1, string => 2, bool => 3 };
@@ -8459,12 +8641,13 @@ class Program
             var src = @"
 #nullable enable
 
-" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S1
 {
     public S1(int x) => throw null!;
     public S1([System.Diagnostics.CodeAnalysis.NotNull] string? x) => throw null!;
     public S1([System.Diagnostics.CodeAnalysis.NotNull] bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -8507,7 +8690,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource, NotNullAttributeDefinition]);
+            var comp = CreateCompilation([src, UnionAttributeSource, NotNullAttributeDefinition]);
             comp.VerifyDiagnostics();
         }
 
@@ -8518,12 +8701,13 @@ class Program
             var src = @"
 #nullable enable
 
-" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S1
 {
     public S1(int x) => throw null!;
     public S1(string? x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -8564,7 +8748,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (301,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         _ = s switch { int => 1, string => 2, bool => 3 };
@@ -8582,12 +8766,13 @@ class Program
             var src = @"
 #nullable enable
 
-" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S1
 {
     public S1(int x) => throw null!;
     public S1([System.Diagnostics.CodeAnalysis.NotNull] string? x) => throw null!;
     public S1([System.Diagnostics.CodeAnalysis.NotNull] bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -8630,7 +8815,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource, NotNullAttributeDefinition]);
+            var comp = CreateCompilation([src, UnionAttributeSource, NotNullAttributeDefinition]);
             comp.VerifyDiagnostics();
         }
 
@@ -8641,12 +8826,13 @@ class Program
             var src = @"
 #nullable enable
 
-" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S1
 {
     public S1(int x) => throw null!;
     public S1(string? x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -8687,7 +8873,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (301,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
@@ -8705,12 +8891,13 @@ class Program
             var src = @"
 #nullable enable
 
-" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S1
 {
     public S1(int x) => throw null!;
     public S1([System.Diagnostics.CodeAnalysis.NotNull] string? x) => throw null!;
     public S1([System.Diagnostics.CodeAnalysis.NotNull] bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -8753,7 +8940,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource, NotNullAttributeDefinition]);
+            var comp = CreateCompilation([src, UnionAttributeSource, NotNullAttributeDefinition]);
             comp.VerifyDiagnostics();
         }
 
@@ -8764,12 +8951,13 @@ class Program
             var src = @"
 #nullable enable
 
-" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S1
 {
     public S1(int x) => throw null!;
     public S1(string? x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -8810,7 +8998,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (301,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
@@ -8828,12 +9016,13 @@ class Program
             var src = @"
 #nullable enable
 
-" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S1
 {
     public S1(int x) => throw null!;
     public S1([System.Diagnostics.CodeAnalysis.NotNull] string? x) => throw null!;
     public S1([System.Diagnostics.CodeAnalysis.NotNull] bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -8876,7 +9065,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource, NotNullAttributeDefinition]);
+            var comp = CreateCompilation([src, UnionAttributeSource, NotNullAttributeDefinition]);
             comp.VerifyDiagnostics();
         }
 
@@ -8887,12 +9076,13 @@ class Program
             var src = @"
 #nullable enable
 
-" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S1
 {
     public S1(int x) => throw null!;
     public S1(string? x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -8933,7 +9123,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (301,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         _ = s switch { int => 1, string => 2, bool => 3 };
@@ -8951,12 +9141,13 @@ class Program
             var src = @"
 #nullable enable
 
-" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S1
 {
     public S1(int x) => throw null!;
     public S1([System.Diagnostics.CodeAnalysis.NotNull] string? x) => throw null!;
     public S1([System.Diagnostics.CodeAnalysis.NotNull] bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -8999,7 +9190,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource, NotNullAttributeDefinition]);
+            var comp = CreateCompilation([src, UnionAttributeSource, NotNullAttributeDefinition]);
             comp.VerifyDiagnostics();
         }
 
@@ -9010,12 +9201,13 @@ class Program
             var src = @"
 #nullable enable
 
-" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S1
 {
     public S1(int x) => throw null!;
     public S1(string? x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -9056,7 +9248,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (301,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
@@ -9074,12 +9266,13 @@ class Program
             var src = @"
 #nullable enable
 
-" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S1
 {
     public S1(int x) => throw null!;
     public S1([System.Diagnostics.CodeAnalysis.NotNull] string? x) => throw null!;
     public S1([System.Diagnostics.CodeAnalysis.NotNull] bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -9122,7 +9315,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource, NotNullAttributeDefinition]);
+            var comp = CreateCompilation([src, UnionAttributeSource, NotNullAttributeDefinition]);
             comp.VerifyDiagnostics();
         }
 
@@ -9133,12 +9326,13 @@ class Program
             var src = @"
 #nullable enable
 
-" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S1
 {
     public S1(int x) => throw null!;
     public S1(string? x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -9179,7 +9373,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (301,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         _ = s.Item1 switch { int => 1, string => 2, bool => 3 };
@@ -9197,12 +9391,13 @@ class Program
             var src = @"
 #nullable enable
 
-" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S1
 {
     public S1(int x) => throw null!;
     public S1([System.Diagnostics.CodeAnalysis.NotNull] string? x) => throw null!;
     public S1([System.Diagnostics.CodeAnalysis.NotNull] bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -9245,7 +9440,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource, NotNullAttributeDefinition]);
+            var comp = CreateCompilation([src, UnionAttributeSource, NotNullAttributeDefinition]);
             comp.VerifyDiagnostics();
         }
 
@@ -9255,18 +9450,20 @@ class Program
             var src = @"
 #nullable enable
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
-struct S2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -9300,7 +9497,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (100,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //             _ = s switch { int => 1, bool => 3 };
@@ -9317,18 +9514,20 @@ class Program
             var src1 = @"
 #nullable enable
 
-class S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+class S1
 {
     public S1(int x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
-class S2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+class S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -9362,7 +9561,7 @@ class Program
     } 
 }
 ";
-            var comp1 = CreateCompilation([src1, IUnionSource]);
+            var comp1 = CreateCompilation([src1, UnionAttributeSource]);
 
             // PROTOTYPE: The fact that exhausiveness warning are reported for all branches might look surprising,
             //            but it matches the behavior for scenario when property pattern is used explicitly. See below.
@@ -9453,18 +9652,20 @@ class Program
             var src = @"
 #nullable enable
 
-" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S1
 {
     public S1(int x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
-" + typeKind + @" S2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -9498,7 +9699,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (200,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //             _ = s switch { int => 1, bool => 3 };
@@ -9516,18 +9717,20 @@ class Program
             var src = @"
 #nullable enable
 
-" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S1
 {
     public S1(int x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
-" + typeKind + @" S2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -9561,7 +9764,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (200,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //             _ = s switch { int => 1, bool => 3 };
@@ -9575,18 +9778,20 @@ class Program
             var src = @"
 #nullable enable
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
-struct S2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -9620,7 +9825,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (100,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //             _ = s switch { int => 1, bool => 3 };
@@ -9634,18 +9839,20 @@ class Program
             var src = @"
 #nullable enable
 
-class S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+class S1
 {
     public S1(int x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
-class S2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+class S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -9679,7 +9886,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
 
             // PROTOTYPE: This is another case of behavior consistent with explicit property patterns. See below
             comp.VerifyDiagnostics(
@@ -9735,18 +9942,20 @@ class Program
             var src = @"
 #nullable enable
 
-" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S1
 {
     public S1(int x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
-" + typeKind + @" S2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -9780,7 +9989,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (200,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //             _ = s switch { int => 1, bool => 3 };
@@ -9794,18 +10003,20 @@ class Program
             var src = @"
 #nullable enable
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
-struct S2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -9839,7 +10050,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (100,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //             _ = s switch { int => 1, bool => 3 };
@@ -9853,18 +10064,20 @@ class Program
             var src = @"
 #nullable enable
 
-class S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+class S1
 {
     public S1(int x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
-class S2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+class S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -9898,7 +10111,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
 
             // PROTOTYPE: This is another case of behavior consistent with explicit property patterns. See below
             comp.VerifyDiagnostics(
@@ -9948,17 +10161,18 @@ class Program
         }
 
         [Fact]
-        public void NullableAnalysis_28_ValuePropertyOfTheInterfaceIsTargetedToImplementPatternMatching()
+        public void NullableAnalysis_28()
         {
             var src = @"
 #nullable enable
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null!;
     public S1(bool? x) => throw null!;
     [System.Diagnostics.CodeAnalysis.MemberNotNull(nameof(OtherProp))]
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
     public string? OtherProp => throw null!;
 }
 
@@ -9991,13 +10205,9 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource, MemberNotNullAttributeDefinition]);
+            var comp = CreateCompilation([src, UnionAttributeSource, MemberNotNullAttributeDefinition]);
 
-            // From spec: The Value property of the interface is targeted by the compiler to implement pattern matching
             comp.VerifyDiagnostics(
-                // (200,33): warning CS8602: Dereference of a possibly null reference.
-                //          _ = s switch { bool => s.OtherProp.ToString(), _ => "" };
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.OtherProp").WithLocation(200, 33),
                 // (300,25): hidden CS9335: The pattern is redundant.
                 //          _ = s switch { I1 and { Value: bool } => s.OtherProp.ToString(), _ => "" };
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "I1").WithLocation(300, 25),
@@ -10008,38 +10218,29 @@ class Program
         }
 
         [Fact]
-        public void NullableAnalysis_29_ValuePropertyOfTheInterfaceIsTargetedToImplementPatternMatching()
+        public void NullableAnalysis_29()
         {
             var src = @"
 #nullable enable
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null!;
     public S1(bool? x) => throw null!;
     [System.Diagnostics.CodeAnalysis.MemberNotNull(nameof(OtherProp))]
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
-    string? System.Runtime.CompilerServices.IUnion.OtherProp => throw null!;
+    public object? Value => throw null!;
     public string? OtherProp => throw null!;
 }
 
-struct S2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S2
 {
     public S2(int x) => throw null!;
     public S2(bool? x) => throw null!;
     [System.Diagnostics.CodeAnalysis.MemberNotNull(nameof(OtherProp))]
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
     public string? OtherProp => throw null!;
-}
-
-namespace System.Runtime.CompilerServices
-{
-    public interface IUnion
-    {
-        [System.Diagnostics.CodeAnalysis.MemberNotNull(nameof(OtherProp))]
-        object? Value { get; }
-        string? OtherProp { get; }
-    }
 }
 
 class Program
@@ -10057,42 +10258,25 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, MemberNotNullAttributeDefinition]);
+            var comp = CreateCompilation([src, MemberNotNullAttributeDefinition, UnionAttributeSource]);
 
-            // From spec: The Value property of the interface is targeted by the compiler to implement pattern matching
-            comp.VerifyDiagnostics(
-                // (200,33): warning CS8602: Dereference of a possibly null reference.
-                //          _ = s switch { bool => s.OtherProp.ToString(), _ => "" };
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.OtherProp").WithLocation(200, 33),
-                // (300,33): warning CS8602: Dereference of a possibly null reference.
-                //          _ = s switch { bool => s.OtherProp.ToString(), _ => "" };
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.OtherProp").WithLocation(300, 33)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
-        public void NullableAnalysis_30_ValuePropertyOfTheInterfaceIsTargetedToImplementPatternMatching()
+        public void NullableAnalysis_30()
         {
             var src = @"
 #nullable enable
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null!;
     public S1(bool? x) => throw null!;
     [System.Diagnostics.CodeAnalysis.MemberNotNull(nameof(OtherProp))]
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
     public string? OtherProp => throw null!;
-}
-
-namespace System.Runtime.CompilerServices
-{
-    public interface IUnion
-    {
-#line 100
-        [System.Diagnostics.CodeAnalysis.MemberNotNull(nameof(S1.OtherProp))]
-        object? Value { get; }
-    }
 }
 
 class Program
@@ -10104,17 +10288,9 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, MemberNotNullAttributeDefinition]);
+            var comp = CreateCompilation([src, MemberNotNullAttributeDefinition, UnionAttributeSource]);
 
-            // From spec: The Value property of the interface is targeted by the compiler to implement pattern matching
-            comp.VerifyDiagnostics(
-                // (100,10): warning CS8776: Member 'OtherProp' cannot be used in this attribute.
-                //         [System.Diagnostics.CodeAnalysis.MemberNotNull(nameof(S1.OtherProp))]
-                Diagnostic(ErrorCode.WRN_MemberNotNullBadMember, "System.Diagnostics.CodeAnalysis.MemberNotNull(nameof(S1.OtherProp))").WithArguments("OtherProp").WithLocation(100, 10),
-                // (200,33): warning CS8602: Dereference of a possibly null reference.
-                //          _ = s switch { bool => s.OtherProp.ToString(), _ => "" };
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.OtherProp").WithLocation(200, 33)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Theory]
@@ -10124,11 +10300,12 @@ class Program
             var src = @"
 #nullable enable
 
-" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S1
 {
     public S1(string x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -10148,7 +10325,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (100,16): warning CS8604: Possible null reference argument for parameter 'x' in 'S1.S1(string x)'.
                 //         S1 s = x;
@@ -10166,11 +10343,12 @@ class Program
             var src = @"
 #nullable enable
 
-" + typeKind + @" S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S1
 {
     public S1([System.Diagnostics.CodeAnalysis.DisallowNull] string? x) => throw null!;
     public S1([System.Diagnostics.CodeAnalysis.DisallowNull] bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -10204,7 +10382,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource, DisallowNullAttributeDefinition]);
+            var comp = CreateCompilation([src, UnionAttributeSource, DisallowNullAttributeDefinition]);
             comp.VerifyDiagnostics(
                 // (100,16): warning CS8604: Possible null reference argument for parameter 'x' in 'S1.S1(string? x)'.
                 //         S1 s = x;
@@ -10227,18 +10405,20 @@ class Program
             var src = @"
 #nullable enable
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
-struct S2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -10258,7 +10438,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (101,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         _ = s.Value switch { int => 1, bool => 3 };
@@ -10272,18 +10452,20 @@ class Program
             var src = @"
 #nullable enable
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
-struct S2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -10303,7 +10485,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (200,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         _ = s.Value switch { int => 1, bool => 3 };
@@ -10317,12 +10499,13 @@ class Program
             var src = @"
 #nullable enable
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null!;
     public S1(string? x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -10363,7 +10546,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (301,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         _ = s.Value switch { int => 1, string => 2, bool => 3 };
@@ -10380,12 +10563,13 @@ class Program
             var src = @"
 #nullable enable
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null!;
     public S1(string? x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -10426,7 +10610,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (301,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         _ = s.Value switch { int => 1, string => 2, bool => 3 };
@@ -10443,12 +10627,13 @@ class Program
             var src = @"
 #nullable enable
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null!;
     public S1(string? x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -10489,7 +10674,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (301,27): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         _ = s.Item1.Value switch { int => 1, string => 2, bool => 3 };
@@ -10506,12 +10691,13 @@ class Program
             var src = @"
 #nullable enable
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null!;
     public S1(string? x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -10552,7 +10738,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (301,27): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         _ = s.Item1.Value switch { int => 1, string => 2, bool => 3 };
@@ -10569,12 +10755,13 @@ class Program
             var src = @"
 #nullable enable
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null!;
     public S1(string? x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -10615,7 +10802,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (301,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         _ = s.Value switch { int => 1, string => 2, bool => 3 };
@@ -10632,12 +10819,13 @@ class Program
             var src = @"
 #nullable enable
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null!;
     public S1(string? x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -10678,7 +10866,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (301,27): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         _ = s.Item1.Value switch { int => 1, string => 2, bool => 3 };
@@ -10695,12 +10883,13 @@ class Program
             var src = @"
 #nullable enable
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null!;
     public S1(string? x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -10741,7 +10930,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (301,27): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         _ = s.Item1.Value switch { int => 1, string => 2, bool => 3 };
@@ -10758,18 +10947,20 @@ class Program
             var src = @"
 #nullable enable
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
-struct S2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -10811,7 +11002,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (100,25): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //             _ = s.Value switch { int => 1, bool => 3 };
@@ -10828,18 +11019,20 @@ class Program
             var src = @"
 #nullable enable
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
-struct S2 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -10881,7 +11074,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (200,25): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //             _ = s.Value switch { int => 1, bool => 3 };
@@ -10898,11 +11091,12 @@ class Program
             var src = @"
 #nullable enable
 
-struct S1<T> : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1<T>
 {
     public S1(T x) => throw null!;
     public S1(bool x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -10929,7 +11123,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (101,9): warning CS8602: Dereference of a possibly null reference.
                 //         x.ToString();
@@ -10946,7 +11140,8 @@ class Program
             var src = @"
 #nullable enable
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null!;
     public S1(bool? x) => throw null!;
@@ -10984,22 +11179,15 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
 
-            // PROTOTYPE: Reconcile with the spec.
             comp.VerifyDiagnostics(
-                // (100,13): warning CS8602: Dereference of a possibly null reference.
-                //             s.Value.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(100, 13),
                 // (200,13): warning CS8602: Dereference of a possibly null reference.
                 //             s.Value.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(200, 13),
                 // (300,13): warning CS8602: Dereference of a possibly null reference.
                 //             s.Value.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(300, 13),
-                // (400,13): warning CS8602: Dereference of a possibly null reference.
-                //             s.Value.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(400, 13)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(300, 13)
                 );
         }
 
@@ -11007,12 +11195,13 @@ class Program
         public void NonBoxingUnionMatching_01_HasValue_Struct()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
     public bool HasValue => _value != null;
 
     static void Main()
@@ -11034,7 +11223,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueTrueFalse").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
@@ -11065,12 +11254,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_02_HasValue_Struct([CombinatorialValues("internal", "private")] string accessibility)
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
     " + accessibility + @" bool HasValue => throw null;
 
     static void Main()
@@ -11092,32 +11282,30 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueTrueFalse").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       17 (0x11)
+  // Code size       11 (0xb)
   .maxstack  2
   IL_0000:  ldarga.s   V_0
-  IL_0002:  constrained. ""S1""
-  IL_0008:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_000d:  ldnull
-  IL_000e:  ceq
-  IL_0010:  ret
+  IL_0002:  call       ""object S1.Value.get""
+  IL_0007:  ldnull
+  IL_0008:  ceq
+  IL_000a:  ret
 }
 ");
 
             verifier.VerifyIL("S1.Test2", @"
 {
-  // Code size       17 (0x11)
+  // Code size       11 (0xb)
   .maxstack  2
   IL_0000:  ldarga.s   V_0
-  IL_0002:  constrained. ""S1""
-  IL_0008:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_000d:  ldnull
-  IL_000e:  cgt.un
-  IL_0010:  ret
+  IL_0002:  call       ""object S1.Value.get""
+  IL_0007:  ldnull
+  IL_0008:  cgt.un
+  IL_000a:  ret
 }
 ");
         }
@@ -11126,12 +11314,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_03_HasValue_Class()
         {
             var src = @"
-class S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+class S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
     public bool HasValue => _value != null;
 
     static void Main()
@@ -11155,7 +11344,7 @@ class S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalseTrueFalseFalse").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
@@ -11194,12 +11383,13 @@ class S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_04_HasValue_Class([CombinatorialValues("internal", "private", "protected", "private protected", "protected internal")] string accessibility)
         {
             var src = @"
-class S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+class S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
     " + accessibility + @" bool HasValue => throw null;
 
     static void Main()
@@ -11223,7 +11413,7 @@ class S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalseTrueFalseFalse").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
@@ -11233,7 +11423,7 @@ class S1 : System.Runtime.CompilerServices.IUnion
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_000d
   IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_0004:  callvirt   ""object S1.Value.get""
   IL_0009:  ldnull
   IL_000a:  ceq
   IL_000c:  ret
@@ -11249,7 +11439,7 @@ class S1 : System.Runtime.CompilerServices.IUnion
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_000d
   IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
+  IL_0004:  callvirt   ""object S1.Value.get""
   IL_0009:  ldnull
   IL_000a:  cgt.un
   IL_000c:  ret
@@ -11263,12 +11453,13 @@ class S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_05_HasValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
     public bool HasValue => _value != null;
 
     static void Main()
@@ -11284,7 +11475,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalse").VerifyDiagnostics();
 
             // PROTOTYPE: The IL would be shorter without HasValue, but, I guess, we expect
@@ -11293,26 +11484,25 @@ struct S1 : System.Runtime.CompilerServices.IUnion
             //            pattern in the code.
             verifier.VerifyIL("S1.Test2", @"
 {
-  // Code size       43 (0x2b)
+  // Code size       37 (0x25)
   .maxstack  2
   .locals init (object V_0)
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""bool S1.HasValue.get""
-  IL_0007:  brfalse.s  IL_0029
+  IL_0007:  brfalse.s  IL_0023
   IL_0009:  ldarga.s   V_0
-  IL_000b:  constrained. ""S1""
-  IL_0011:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_0016:  stloc.0
-  IL_0017:  ldloc.0
-  IL_0018:  isinst     ""int""
-  IL_001d:  brfalse.s  IL_0029
-  IL_001f:  ldloc.0
-  IL_0020:  unbox.any  ""int""
-  IL_0025:  ldc.i4.1
-  IL_0026:  ceq
-  IL_0028:  ret
-  IL_0029:  ldc.i4.0
-  IL_002a:  ret
+  IL_000b:  call       ""object S1.Value.get""
+  IL_0010:  stloc.0
+  IL_0011:  ldloc.0
+  IL_0012:  isinst     ""int""
+  IL_0017:  brfalse.s  IL_0023
+  IL_0019:  ldloc.0
+  IL_001a:  unbox.any  ""int""
+  IL_001f:  ldc.i4.1
+  IL_0020:  ceq
+  IL_0022:  ret
+  IL_0023:  ldc.i4.0
+  IL_0024:  ret
 }
 ");
         }
@@ -11321,12 +11511,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_06_HasValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
     public bool HasValue
     {
         get
@@ -11345,11 +11536,12 @@ struct S1 : System.Runtime.CompilerServices.IUnion
 
     static int Test2(S1 u)
     {
+#line 26
         return u switch { null => 0, not null => 1};
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "HasValue 1HasValue 0HasValue 1").VerifyDiagnostics(
                 // (26,42): hidden CS9335: The pattern is redundant.
                 //         return u switch { null => 0, not null => 1};
@@ -11379,19 +11571,22 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_07_HasValue_Class_Inheritance()
         {
             var src = @"
-class C1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+class C1
 {
     private readonly object _value;
     public C1(int x) { _value = x; }
     public C1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
     public bool HasValue => throw null; // PROTOTYPE: Inheritance isn't handled yet
 }
 
+[System.Runtime.CompilerServices.Union]
 class C2 : C1
 {
     public C2(int x) : base(x) { }
     public C2(string x) : base(x) { }
+    public new object Value => base.Value;
 }
 
 class Program
@@ -11409,7 +11604,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "FalseTrueFalse").VerifyDiagnostics();
         }
 
@@ -11422,12 +11617,13 @@ class C0
     public bool HasValue => throw null; // PROTOTYPE: Inheritance isn't handled yet
 }
 
-class C1 : C0, System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+class C1 : C0
 {
     private readonly object _value;
     public C1(int x) { _value = x; }
     public C1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
 class Program
@@ -11445,7 +11641,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "FalseTrueFalse").VerifyDiagnostics();
         }
 
@@ -11453,19 +11649,22 @@ class Program
         public void NonBoxingUnionMatching_09_HasValue_Class_Inheritance()
         {
             var src = @"
-class C1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+class C1
 {
     protected readonly object _value;
     public C1(int x) { _value = x; }
     public C1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
 }
 
+[System.Runtime.CompilerServices.Union]
 class C2 : C1
 {
     public C2(int x) : base(x) { }
     public C2(string x) : base(x) { }
     public bool HasValue => _value != null;
+    public new object Value => _value;
 }
 
 class Program
@@ -11483,7 +11682,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalse").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test1", @"
@@ -11507,27 +11706,32 @@ class Program
         public void NonBoxingUnionMatching_10_HasValue_Class_Inheritance()
         {
             var src = @"
-abstract class C1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+abstract class C1
 {
     protected readonly object _value;
     public C1(int x) { _value = x; }
     public C1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
     public abstract bool HasValue { get; }
 }
 
+[System.Runtime.CompilerServices.Union]
 class C2 : C1
 {
     public C2(int x) : base(x) { }
     public C2(string x) : base(x) { }
     public override bool HasValue => _value != null;
+    public new object Value => _value;
 }
 
+[System.Runtime.CompilerServices.Union]
 abstract class C3 : C1
 {
     public C3(int x) : base(x) { }
     public C3(string x) : base(x) { }
     public abstract override bool HasValue { get; }
+    public new object Value => _value;
 }
 
 class C4 : C3
@@ -11570,7 +11774,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalseTrueFalseFalseTrueFalse").VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Test1", @"
@@ -11628,11 +11832,12 @@ class Program
             var src = @"
 #nullable enable
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
     public bool HasValue => throw null!;
 }
 
@@ -11667,7 +11872,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (200,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //             _ = s switch { int => 1, bool => 3 };
@@ -11684,11 +11889,12 @@ class Program
             var src = @"
 #nullable enable
 
-struct S1<T> : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1<T>
 {
     public S1(T x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
     public bool HasValue => throw null!;
 }
 
@@ -11723,7 +11929,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (200,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //             _ = s switch { int => 1, bool => 3 };
@@ -11740,11 +11946,12 @@ class Program
             var src = @"
 #nullable enable
 
-struct S1<T> : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1<T>
 {
     public S1(int x) => throw null!;
     public S1(bool? x) => throw null!;
-    object? System.Runtime.CompilerServices.IUnion.Value => throw null!;
+    public object? Value => throw null!;
     public T HasValue => throw null!;
 }
 
@@ -11779,7 +11986,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
                 // (100,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //             _ = s switch { int => 1, bool => 3 };
@@ -11802,7 +12009,8 @@ class Program
             var src = @"
 #nullable enable
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     public S1(int x) => throw null!;
     public S1(bool? x) => throw null!;
@@ -11841,22 +12049,15 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource]);
 
-            // PROTOTYPE: Reconcile with the spec.
             comp.VerifyDiagnostics(
-                // (100,13): warning CS8602: Dereference of a possibly null reference.
-                //             s.Value.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(100, 13),
                 // (200,13): warning CS8602: Dereference of a possibly null reference.
                 //             s.Value.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(200, 13),
                 // (300,13): warning CS8602: Dereference of a possibly null reference.
                 //             s.Value.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(300, 13),
-                // (400,13): warning CS8602: Dereference of a possibly null reference.
-                //             s.Value.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(400, 13)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(300, 13)
                 );
         }
 
@@ -11864,12 +12065,13 @@ class Program
         public void NonBoxingUnionMatching_15_TryGetValue_Struct()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
     public bool TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
 
     static void Main()
@@ -11893,7 +12095,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseTrueTrue").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
@@ -11927,12 +12129,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_16_TryGetValue_Class()
         {
             var src = @"
-class S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+class S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
     public bool TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
 
     static void Main()
@@ -11958,7 +12161,7 @@ class S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalseTrueTrueFalse").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
@@ -12000,12 +12203,13 @@ class S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_17_TryGetValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(object x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
     public bool TryGetValue(out object x) { x = _value; return x != null; }
 
     static void Main()
@@ -12029,7 +12233,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueFalseTrueFalse").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
@@ -12063,12 +12267,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_18_TryGetValue_Plus_HasValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(object x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
     public bool TryGetValue(out object x) { x = _value; return x != null; }
     public bool HasValue => _value != null;
 
@@ -12093,7 +12298,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueFalseTrueFalse").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
@@ -12123,12 +12328,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_19_HasValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(object x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
     public bool HasValue => _value != null;
 
     static void Main()
@@ -12152,7 +12358,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueFalseTrueFalse").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
@@ -12182,12 +12388,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_20_HasValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(object x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
     public bool HasValue => _value != null;
 
     static void Main()
@@ -12203,33 +12410,32 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "102").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       43 (0x2b)
+  // Code size       37 (0x25)
   .maxstack  1
   .locals init (int V_0)
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""bool S1.HasValue.get""
-  IL_0007:  brfalse.s  IL_001f
+  IL_0007:  brfalse.s  IL_0019
   IL_0009:  ldarga.s   V_0
-  IL_000b:  constrained. ""S1""
-  IL_0011:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_0016:  isinst     ""int""
-  IL_001b:  brtrue.s   IL_0023
-  IL_001d:  br.s       IL_0027
-  IL_001f:  ldc.i4.0
-  IL_0020:  stloc.0
-  IL_0021:  br.s       IL_0029
-  IL_0023:  ldc.i4.1
-  IL_0024:  stloc.0
-  IL_0025:  br.s       IL_0029
-  IL_0027:  ldc.i4.2
-  IL_0028:  stloc.0
-  IL_0029:  ldloc.0
-  IL_002a:  ret
+  IL_000b:  call       ""object S1.Value.get""
+  IL_0010:  isinst     ""int""
+  IL_0015:  brtrue.s   IL_001d
+  IL_0017:  br.s       IL_0021
+  IL_0019:  ldc.i4.0
+  IL_001a:  stloc.0
+  IL_001b:  br.s       IL_0023
+  IL_001d:  ldc.i4.1
+  IL_001e:  stloc.0
+  IL_001f:  br.s       IL_0023
+  IL_0021:  ldc.i4.2
+  IL_0022:  stloc.0
+  IL_0023:  ldloc.0
+  IL_0024:  ret
 }
 ");
         }
@@ -12238,12 +12444,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_21_TryGetValue_Struct()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
     public bool TryGetValue(out string x) { x = _value as string; return x != null; }
 
     static void Main()
@@ -12267,7 +12474,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseTrueTrueTrueFalse").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
@@ -12317,12 +12524,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_22_TryGetValue_Class()
         {
             var src = @"
-class S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+class S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
     public bool TryGetValue(out string x) { x = _value as string; return x != null; }
 
     static void Main()
@@ -12348,7 +12556,7 @@ class S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseTrueFalseTrueTrueFalseFalse").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
@@ -12402,12 +12610,13 @@ class S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_23_TryGetValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value => _value;
+    public object Value => _value;
     public bool TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
 
     static void Main()
@@ -12423,7 +12632,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalse").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
@@ -12464,12 +12673,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_24_TryGetValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -12508,43 +12718,42 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "get_Value TryGetValue True; get_Value True; get_Value False; get_Value TryGetValue False").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       61 (0x3d)
+  // Code size       55 (0x37)
   .maxstack  2
   .locals init (S1 V_0,
-            int V_1,
-            bool V_2)
+                int V_1,
+                bool V_2)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
-  IL_0009:  constrained. ""S1""
-  IL_000f:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_0014:  brtrue.s   IL_0021
-  IL_0016:  ldarg.0
-  IL_0017:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
-  IL_001c:  ldc.i4.2
-  IL_001d:  beq.s      IL_0035
-  IL_001f:  br.s       IL_0039
-  IL_0021:  ldloca.s   V_0
-  IL_0023:  ldloca.s   V_1
-  IL_0025:  call       ""bool S1.TryGetValue(out int)""
-  IL_002a:  brfalse.s  IL_0039
-  IL_002c:  ldarg.0
-  IL_002d:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
-  IL_0032:  ldc.i4.1
-  IL_0033:  bne.un.s   IL_0039
-  IL_0035:  ldc.i4.1
-  IL_0036:  stloc.2
-  IL_0037:  br.s       IL_003b
-  IL_0039:  ldc.i4.0
-  IL_003a:  stloc.2
-  IL_003b:  ldloc.2
-  IL_003c:  ret
+  IL_0009:  call       ""object S1.Value.get""
+  IL_000e:  brtrue.s   IL_001b
+  IL_0010:  ldarg.0
+  IL_0011:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0016:  ldc.i4.2
+  IL_0017:  beq.s      IL_002f
+  IL_0019:  br.s       IL_0033
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  ldloca.s   V_1
+  IL_001f:  call       ""bool S1.TryGetValue(out int)""
+  IL_0024:  brfalse.s  IL_0033
+  IL_0026:  ldarg.0
+  IL_0027:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_002c:  ldc.i4.1
+  IL_002d:  bne.un.s   IL_0033
+  IL_002f:  ldc.i4.1
+  IL_0030:  stloc.2
+  IL_0031:  br.s       IL_0035
+  IL_0033:  ldc.i4.0
+  IL_0034:  stloc.2
+  IL_0035:  ldloc.2
+  IL_0036:  ret
 }
 ");
         }
@@ -12553,12 +12762,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_25_TryGetValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -12597,16 +12807,16 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "TryGetValue True; TryGetValue get_Value True; TryGetValue get_Value False; TryGetValue get_Value False").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       61 (0x3d)
+  // Code size       55 (0x37)
   .maxstack  2
   .locals init (S1 V_0,
-            int V_1,
-            bool V_2)
+                int V_1,
+                bool V_2)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
   IL_0006:  stloc.0
@@ -12617,23 +12827,22 @@ struct S1 : System.Runtime.CompilerServices.IUnion
   IL_0012:  ldarg.0
   IL_0013:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
   IL_0018:  ldc.i4.1
-  IL_0019:  beq.s      IL_0035
-  IL_001b:  br.s       IL_0039
+  IL_0019:  beq.s      IL_002f
+  IL_001b:  br.s       IL_0033
   IL_001d:  ldloca.s   V_0
-  IL_001f:  constrained. ""S1""
-  IL_0025:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_002a:  brtrue.s   IL_0039
-  IL_002c:  ldarg.0
-  IL_002d:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
-  IL_0032:  ldc.i4.2
-  IL_0033:  bne.un.s   IL_0039
-  IL_0035:  ldc.i4.1
-  IL_0036:  stloc.2
-  IL_0037:  br.s       IL_003b
-  IL_0039:  ldc.i4.0
-  IL_003a:  stloc.2
-  IL_003b:  ldloc.2
-  IL_003c:  ret
+  IL_001f:  call       ""object S1.Value.get""
+  IL_0024:  brtrue.s   IL_0033
+  IL_0026:  ldarg.0
+  IL_0027:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_002c:  ldc.i4.2
+  IL_002d:  bne.un.s   IL_0033
+  IL_002f:  ldc.i4.1
+  IL_0030:  stloc.2
+  IL_0031:  br.s       IL_0035
+  IL_0033:  ldc.i4.0
+  IL_0034:  stloc.2
+  IL_0035:  ldloc.2
+  IL_0036:  ret
 }
 ");
         }
@@ -12642,12 +12851,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_26_TryGetValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -12690,12 +12900,12 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "get_Value TryGetValue True; get_Value TryGetValue False; get_Value False; get_Value False; get_Value TryGetValue False; get_Value True").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       56 (0x38)
+  // Code size       50 (0x32)
   .maxstack  2
   .locals init (S1 V_0,
                 int V_1,
@@ -12705,29 +12915,28 @@ struct S1 : System.Runtime.CompilerServices.IUnion
   IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
-  IL_0009:  constrained. ""S1""
-  IL_000f:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_0014:  brfalse.s  IL_0034
-  IL_0016:  ldarg.0
-  IL_0017:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
-  IL_001c:  stloc.1
-  IL_001d:  ldloc.1
-  IL_001e:  ldc.i4.2
-  IL_001f:  beq.s      IL_0030
-  IL_0021:  ldloca.s   V_0
-  IL_0023:  ldloca.s   V_2
-  IL_0025:  call       ""bool S1.TryGetValue(out int)""
-  IL_002a:  brfalse.s  IL_0034
-  IL_002c:  ldloc.1
-  IL_002d:  ldc.i4.1
-  IL_002e:  bne.un.s   IL_0034
-  IL_0030:  ldc.i4.1
-  IL_0031:  stloc.3
-  IL_0032:  br.s       IL_0036
-  IL_0034:  ldc.i4.0
-  IL_0035:  stloc.3
-  IL_0036:  ldloc.3
-  IL_0037:  ret
+  IL_0009:  call       ""object S1.Value.get""
+  IL_000e:  brfalse.s  IL_002e
+  IL_0010:  ldarg.0
+  IL_0011:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0016:  stloc.1
+  IL_0017:  ldloc.1
+  IL_0018:  ldc.i4.2
+  IL_0019:  beq.s      IL_002a
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  ldloca.s   V_2
+  IL_001f:  call       ""bool S1.TryGetValue(out int)""
+  IL_0024:  brfalse.s  IL_002e
+  IL_0026:  ldloc.1
+  IL_0027:  ldc.i4.1
+  IL_0028:  bne.un.s   IL_002e
+  IL_002a:  ldc.i4.1
+  IL_002b:  stloc.3
+  IL_002c:  br.s       IL_0030
+  IL_002e:  ldc.i4.0
+  IL_002f:  stloc.3
+  IL_0030:  ldloc.3
+  IL_0031:  ret
 }
 ");
         }
@@ -12736,12 +12945,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_27_TryGetValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -12784,12 +12994,12 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "TryGetValue True; TryGetValue False; TryGetValue get_Value False; TryGetValue get_Value False; TryGetValue get_Value False; TryGetValue get_Value True").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       65 (0x41)
+  // Code size       59 (0x3b)
   .maxstack  2
   .locals init (S1 V_0,
                 int V_1,
@@ -12807,25 +13017,24 @@ struct S1 : System.Runtime.CompilerServices.IUnion
   IL_0018:  stloc.2
   IL_0019:  ldloc.2
   IL_001a:  ldc.i4.1
-  IL_001b:  beq.s      IL_0039
-  IL_001d:  br.s       IL_0035
+  IL_001b:  beq.s      IL_0033
+  IL_001d:  br.s       IL_002f
   IL_001f:  ldloca.s   V_0
-  IL_0021:  constrained. ""S1""
-  IL_0027:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_002c:  brfalse.s  IL_003d
-  IL_002e:  ldarg.0
-  IL_002f:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
-  IL_0034:  stloc.2
-  IL_0035:  ldloc.2
-  IL_0036:  ldc.i4.2
-  IL_0037:  bne.un.s   IL_003d
-  IL_0039:  ldc.i4.1
-  IL_003a:  stloc.3
-  IL_003b:  br.s       IL_003f
-  IL_003d:  ldc.i4.0
-  IL_003e:  stloc.3
-  IL_003f:  ldloc.3
-  IL_0040:  ret
+  IL_0021:  call       ""object S1.Value.get""
+  IL_0026:  brfalse.s  IL_0037
+  IL_0028:  ldarg.0
+  IL_0029:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_002e:  stloc.2
+  IL_002f:  ldloc.2
+  IL_0030:  ldc.i4.2
+  IL_0031:  bne.un.s   IL_0037
+  IL_0033:  ldc.i4.1
+  IL_0034:  stloc.3
+  IL_0035:  br.s       IL_0039
+  IL_0037:  ldc.i4.0
+  IL_0038:  stloc.3
+  IL_0039:  ldloc.3
+  IL_003a:  ret
 }
 ");
         }
@@ -12834,12 +13043,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_28_TryGetValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -12882,12 +13092,12 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "get_Value TryGetValue False; get_Value True; get_Value False; get_Value True; get_Value TryGetValue True; get_Value TryGetValue False").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       65 (0x41)
+  // Code size       59 (0x3b)
   .maxstack  2
   .locals init (S1 V_0,
                 int V_1,
@@ -12897,33 +13107,32 @@ struct S1 : System.Runtime.CompilerServices.IUnion
   IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
-  IL_0009:  constrained. ""S1""
-  IL_000f:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_0014:  brtrue.s   IL_0023
-  IL_0016:  ldarg.0
-  IL_0017:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
-  IL_001c:  stloc.1
-  IL_001d:  ldloc.1
-  IL_001e:  ldc.i4.2
-  IL_001f:  beq.s      IL_0039
-  IL_0021:  br.s       IL_0035
-  IL_0023:  ldloca.s   V_0
-  IL_0025:  ldloca.s   V_2
-  IL_0027:  call       ""bool S1.TryGetValue(out int)""
-  IL_002c:  brtrue.s   IL_003d
-  IL_002e:  ldarg.0
-  IL_002f:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
-  IL_0034:  stloc.1
-  IL_0035:  ldloc.1
-  IL_0036:  ldc.i4.1
-  IL_0037:  bne.un.s   IL_003d
-  IL_0039:  ldc.i4.1
-  IL_003a:  stloc.3
-  IL_003b:  br.s       IL_003f
-  IL_003d:  ldc.i4.0
-  IL_003e:  stloc.3
-  IL_003f:  ldloc.3
-  IL_0040:  ret
+  IL_0009:  call       ""object S1.Value.get""
+  IL_000e:  brtrue.s   IL_001d
+  IL_0010:  ldarg.0
+  IL_0011:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0016:  stloc.1
+  IL_0017:  ldloc.1
+  IL_0018:  ldc.i4.2
+  IL_0019:  beq.s      IL_0033
+  IL_001b:  br.s       IL_002f
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  ldloca.s   V_2
+  IL_0021:  call       ""bool S1.TryGetValue(out int)""
+  IL_0026:  brtrue.s   IL_0037
+  IL_0028:  ldarg.0
+  IL_0029:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_002e:  stloc.1
+  IL_002f:  ldloc.1
+  IL_0030:  ldc.i4.1
+  IL_0031:  bne.un.s   IL_0037
+  IL_0033:  ldc.i4.1
+  IL_0034:  stloc.3
+  IL_0035:  br.s       IL_0039
+  IL_0037:  ldc.i4.0
+  IL_0038:  stloc.3
+  IL_0039:  ldloc.3
+  IL_003a:  ret
 }
 ");
         }
@@ -12932,12 +13141,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_29_TryGetValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -12980,44 +13190,43 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "TryGetValue False; TryGetValue get_Value True; TryGetValue get_Value False; TryGetValue True; TryGetValue True; TryGetValue get_Value False").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       56 (0x38)
+  // Code size       50 (0x32)
   .maxstack  2
   .locals init (S1 V_0,
-            int V_1,
-            int V_2,
-            bool V_3)
+                int V_1,
+                int V_2,
+                bool V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
   IL_0009:  ldloca.s   V_1
   IL_000b:  call       ""bool S1.TryGetValue(out int)""
-  IL_0010:  brtrue.s   IL_0034
+  IL_0010:  brtrue.s   IL_002e
   IL_0012:  ldarg.0
   IL_0013:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
   IL_0018:  stloc.2
   IL_0019:  ldloc.2
   IL_001a:  ldc.i4.1
-  IL_001b:  beq.s      IL_0030
+  IL_001b:  beq.s      IL_002a
   IL_001d:  ldloca.s   V_0
-  IL_001f:  constrained. ""S1""
-  IL_0025:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_002a:  brtrue.s   IL_0034
-  IL_002c:  ldloc.2
-  IL_002d:  ldc.i4.2
-  IL_002e:  bne.un.s   IL_0034
-  IL_0030:  ldc.i4.1
-  IL_0031:  stloc.3
-  IL_0032:  br.s       IL_0036
-  IL_0034:  ldc.i4.0
-  IL_0035:  stloc.3
-  IL_0036:  ldloc.3
-  IL_0037:  ret
+  IL_001f:  call       ""object S1.Value.get""
+  IL_0024:  brtrue.s   IL_002e
+  IL_0026:  ldloc.2
+  IL_0027:  ldc.i4.2
+  IL_0028:  bne.un.s   IL_002e
+  IL_002a:  ldc.i4.1
+  IL_002b:  stloc.3
+  IL_002c:  br.s       IL_0030
+  IL_002e:  ldc.i4.0
+  IL_002f:  stloc.3
+  IL_0030:  ldloc.3
+  IL_0031:  ret
 }
 ");
         }
@@ -13026,12 +13235,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_30_TryGetValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -13079,7 +13289,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "HasValue TryGetValue True; HasValue True; HasValue False; HasValue TryGetValue False").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
@@ -13123,12 +13333,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_31_TryGetValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -13176,7 +13387,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "TryGetValue True; TryGetValue HasValue True; TryGetValue HasValue False; TryGetValue HasValue False").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
@@ -13220,12 +13431,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_32_TryGetValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -13277,7 +13489,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "HasValue TryGetValue True; HasValue TryGetValue False; HasValue False; HasValue False; HasValue TryGetValue False; HasValue True").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
@@ -13322,12 +13534,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_33_TryGetValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -13379,7 +13592,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "TryGetValue True; TryGetValue False; TryGetValue HasValue False; TryGetValue HasValue False; TryGetValue HasValue False; TryGetValue HasValue True").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
@@ -13428,12 +13641,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_34_TryGetValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -13485,7 +13699,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "HasValue TryGetValue False; HasValue True; HasValue False; HasValue True; HasValue TryGetValue True; HasValue TryGetValue False").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
@@ -13534,12 +13748,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_35_TryGetValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -13591,7 +13806,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "TryGetValue False; TryGetValue HasValue True; TryGetValue HasValue False; TryGetValue True; TryGetValue True; TryGetValue HasValue False").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
@@ -13636,12 +13851,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_36_HasValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -13676,15 +13892,15 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "HasValue get_Value True; HasValue True; HasValue False; HasValue get_Value False").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       64 (0x40)
+  // Code size       58 (0x3a)
   .maxstack  2
   .locals init (S1 V_0,
-            bool V_1)
+                bool V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
   IL_0006:  stloc.0
@@ -13694,24 +13910,23 @@ struct S1 : System.Runtime.CompilerServices.IUnion
   IL_0010:  ldarg.0
   IL_0011:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
   IL_0016:  ldc.i4.2
-  IL_0017:  beq.s      IL_0038
-  IL_0019:  br.s       IL_003c
+  IL_0017:  beq.s      IL_0032
+  IL_0019:  br.s       IL_0036
   IL_001b:  ldloca.s   V_0
-  IL_001d:  constrained. ""S1""
-  IL_0023:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_0028:  isinst     ""int""
-  IL_002d:  brfalse.s  IL_003c
-  IL_002f:  ldarg.0
-  IL_0030:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
-  IL_0035:  ldc.i4.1
-  IL_0036:  bne.un.s   IL_003c
-  IL_0038:  ldc.i4.1
-  IL_0039:  stloc.1
-  IL_003a:  br.s       IL_003e
-  IL_003c:  ldc.i4.0
-  IL_003d:  stloc.1
-  IL_003e:  ldloc.1
-  IL_003f:  ret
+  IL_001d:  call       ""object S1.Value.get""
+  IL_0022:  isinst     ""int""
+  IL_0027:  brfalse.s  IL_0036
+  IL_0029:  ldarg.0
+  IL_002a:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_002f:  ldc.i4.1
+  IL_0030:  bne.un.s   IL_0036
+  IL_0032:  ldc.i4.1
+  IL_0033:  stloc.1
+  IL_0034:  br.s       IL_0038
+  IL_0036:  ldc.i4.0
+  IL_0037:  stloc.1
+  IL_0038:  ldloc.1
+  IL_0039:  ret
 }
 ");
         }
@@ -13720,12 +13935,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_37_HasValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -13760,12 +13976,12 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "get_Value True; get_Value HasValue True; get_Value HasValue False; get_Value HasValue False").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       64 (0x40)
+  // Code size       58 (0x3a)
   .maxstack  2
   .locals init (S1 V_0,
                 bool V_1)
@@ -13773,29 +13989,28 @@ struct S1 : System.Runtime.CompilerServices.IUnion
   IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
-  IL_0009:  constrained. ""S1""
-  IL_000f:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_0014:  isinst     ""int""
-  IL_0019:  brfalse.s  IL_0026
-  IL_001b:  ldarg.0
-  IL_001c:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
-  IL_0021:  ldc.i4.1
-  IL_0022:  beq.s      IL_0038
-  IL_0024:  br.s       IL_003c
-  IL_0026:  ldloca.s   V_0
-  IL_0028:  call       ""bool S1.HasValue.get""
-  IL_002d:  brtrue.s   IL_003c
-  IL_002f:  ldarg.0
-  IL_0030:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
-  IL_0035:  ldc.i4.2
-  IL_0036:  bne.un.s   IL_003c
-  IL_0038:  ldc.i4.1
-  IL_0039:  stloc.1
-  IL_003a:  br.s       IL_003e
-  IL_003c:  ldc.i4.0
-  IL_003d:  stloc.1
-  IL_003e:  ldloc.1
-  IL_003f:  ret
+  IL_0009:  call       ""object S1.Value.get""
+  IL_000e:  isinst     ""int""
+  IL_0013:  brfalse.s  IL_0020
+  IL_0015:  ldarg.0
+  IL_0016:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_001b:  ldc.i4.1
+  IL_001c:  beq.s      IL_0032
+  IL_001e:  br.s       IL_0036
+  IL_0020:  ldloca.s   V_0
+  IL_0022:  call       ""bool S1.HasValue.get""
+  IL_0027:  brtrue.s   IL_0036
+  IL_0029:  ldarg.0
+  IL_002a:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_002f:  ldc.i4.2
+  IL_0030:  bne.un.s   IL_0036
+  IL_0032:  ldc.i4.1
+  IL_0033:  stloc.1
+  IL_0034:  br.s       IL_0038
+  IL_0036:  ldc.i4.0
+  IL_0037:  stloc.1
+  IL_0038:  ldloc.1
+  IL_0039:  ret
 }
 ");
         }
@@ -13804,12 +14019,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_38_HasValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -13848,43 +14064,42 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "HasValue get_Value True; HasValue get_Value False; HasValue False; HasValue False; HasValue get_Value False; HasValue True").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       59 (0x3b)
+  // Code size       53 (0x35)
   .maxstack  2
   .locals init (S1 V_0,
-            int V_1,
-            bool V_2)
+                int V_1,
+                bool V_2)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
   IL_0009:  call       ""bool S1.HasValue.get""
-  IL_000e:  brfalse.s  IL_0037
+  IL_000e:  brfalse.s  IL_0031
   IL_0010:  ldarg.0
   IL_0011:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
   IL_0016:  stloc.1
   IL_0017:  ldloc.1
   IL_0018:  ldc.i4.2
-  IL_0019:  beq.s      IL_0033
+  IL_0019:  beq.s      IL_002d
   IL_001b:  ldloca.s   V_0
-  IL_001d:  constrained. ""S1""
-  IL_0023:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_0028:  isinst     ""int""
-  IL_002d:  brfalse.s  IL_0037
-  IL_002f:  ldloc.1
-  IL_0030:  ldc.i4.1
-  IL_0031:  bne.un.s   IL_0037
-  IL_0033:  ldc.i4.1
-  IL_0034:  stloc.2
-  IL_0035:  br.s       IL_0039
-  IL_0037:  ldc.i4.0
-  IL_0038:  stloc.2
-  IL_0039:  ldloc.2
-  IL_003a:  ret
+  IL_001d:  call       ""object S1.Value.get""
+  IL_0022:  isinst     ""int""
+  IL_0027:  brfalse.s  IL_0031
+  IL_0029:  ldloc.1
+  IL_002a:  ldc.i4.1
+  IL_002b:  bne.un.s   IL_0031
+  IL_002d:  ldc.i4.1
+  IL_002e:  stloc.2
+  IL_002f:  br.s       IL_0033
+  IL_0031:  ldc.i4.0
+  IL_0032:  stloc.2
+  IL_0033:  ldloc.2
+  IL_0034:  ret
 }
 ");
         }
@@ -13893,12 +14108,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_39_HasValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -13937,47 +14153,46 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "get_Value True; get_Value False; get_Value HasValue False; get_Value HasValue False; get_Value HasValue False; get_Value HasValue True").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       68 (0x44)
+  // Code size       62 (0x3e)
   .maxstack  2
   .locals init (S1 V_0,
-                int V_1,
-                bool V_2)
+            int V_1,
+            bool V_2)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
-  IL_0009:  constrained. ""S1""
-  IL_000f:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_0014:  isinst     ""int""
-  IL_0019:  brfalse.s  IL_0028
-  IL_001b:  ldarg.0
-  IL_001c:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
-  IL_0021:  stloc.1
-  IL_0022:  ldloc.1
-  IL_0023:  ldc.i4.1
-  IL_0024:  beq.s      IL_003c
-  IL_0026:  br.s       IL_0038
-  IL_0028:  ldloca.s   V_0
-  IL_002a:  call       ""bool S1.HasValue.get""
-  IL_002f:  brfalse.s  IL_0040
-  IL_0031:  ldarg.0
-  IL_0032:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
-  IL_0037:  stloc.1
-  IL_0038:  ldloc.1
-  IL_0039:  ldc.i4.2
-  IL_003a:  bne.un.s   IL_0040
-  IL_003c:  ldc.i4.1
-  IL_003d:  stloc.2
-  IL_003e:  br.s       IL_0042
-  IL_0040:  ldc.i4.0
-  IL_0041:  stloc.2
-  IL_0042:  ldloc.2
-  IL_0043:  ret
+  IL_0009:  call       ""object S1.Value.get""
+  IL_000e:  isinst     ""int""
+  IL_0013:  brfalse.s  IL_0022
+  IL_0015:  ldarg.0
+  IL_0016:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_001b:  stloc.1
+  IL_001c:  ldloc.1
+  IL_001d:  ldc.i4.1
+  IL_001e:  beq.s      IL_0036
+  IL_0020:  br.s       IL_0032
+  IL_0022:  ldloca.s   V_0
+  IL_0024:  call       ""bool S1.HasValue.get""
+  IL_0029:  brfalse.s  IL_003a
+  IL_002b:  ldarg.0
+  IL_002c:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0031:  stloc.1
+  IL_0032:  ldloc.1
+  IL_0033:  ldc.i4.2
+  IL_0034:  bne.un.s   IL_003a
+  IL_0036:  ldc.i4.1
+  IL_0037:  stloc.2
+  IL_0038:  br.s       IL_003c
+  IL_003a:  ldc.i4.0
+  IL_003b:  stloc.2
+  IL_003c:  ldloc.2
+  IL_003d:  ret
 }
 ");
         }
@@ -13986,12 +14201,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_40_HasValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -14030,16 +14246,16 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "HasValue get_Value False; HasValue True; HasValue False; HasValue True; HasValue get_Value True; HasValue get_Value False").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       68 (0x44)
+  // Code size       62 (0x3e)
   .maxstack  2
   .locals init (S1 V_0,
-            int V_1,
-            bool V_2)
+                int V_1,
+                bool V_2)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
   IL_0006:  stloc.0
@@ -14051,26 +14267,25 @@ struct S1 : System.Runtime.CompilerServices.IUnion
   IL_0016:  stloc.1
   IL_0017:  ldloc.1
   IL_0018:  ldc.i4.2
-  IL_0019:  beq.s      IL_003c
-  IL_001b:  br.s       IL_0038
+  IL_0019:  beq.s      IL_0036
+  IL_001b:  br.s       IL_0032
   IL_001d:  ldloca.s   V_0
-  IL_001f:  constrained. ""S1""
-  IL_0025:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_002a:  isinst     ""int""
-  IL_002f:  brtrue.s   IL_0040
-  IL_0031:  ldarg.0
-  IL_0032:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
-  IL_0037:  stloc.1
-  IL_0038:  ldloc.1
-  IL_0039:  ldc.i4.1
-  IL_003a:  bne.un.s   IL_0040
-  IL_003c:  ldc.i4.1
-  IL_003d:  stloc.2
-  IL_003e:  br.s       IL_0042
-  IL_0040:  ldc.i4.0
-  IL_0041:  stloc.2
-  IL_0042:  ldloc.2
-  IL_0043:  ret
+  IL_001f:  call       ""object S1.Value.get""
+  IL_0024:  isinst     ""int""
+  IL_0029:  brtrue.s   IL_003a
+  IL_002b:  ldarg.0
+  IL_002c:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0031:  stloc.1
+  IL_0032:  ldloc.1
+  IL_0033:  ldc.i4.1
+  IL_0034:  bne.un.s   IL_003a
+  IL_0036:  ldc.i4.1
+  IL_0037:  stloc.2
+  IL_0038:  br.s       IL_003c
+  IL_003a:  ldc.i4.0
+  IL_003b:  stloc.2
+  IL_003c:  ldloc.2
+  IL_003d:  ret
 }
 ");
         }
@@ -14079,12 +14294,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_41_HasValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -14123,12 +14339,12 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "get_Value False; get_Value HasValue True; get_Value HasValue False; get_Value True; get_Value True; get_Value HasValue False").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       59 (0x3b)
+  // Code size       53 (0x35)
   .maxstack  2
   .locals init (S1 V_0,
                 int V_1,
@@ -14137,29 +14353,28 @@ struct S1 : System.Runtime.CompilerServices.IUnion
   IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
-  IL_0009:  constrained. ""S1""
-  IL_000f:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_0014:  isinst     ""int""
-  IL_0019:  brtrue.s   IL_0037
-  IL_001b:  ldarg.0
-  IL_001c:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
-  IL_0021:  stloc.1
-  IL_0022:  ldloc.1
-  IL_0023:  ldc.i4.1
-  IL_0024:  beq.s      IL_0033
-  IL_0026:  ldloca.s   V_0
-  IL_0028:  call       ""bool S1.HasValue.get""
-  IL_002d:  brtrue.s   IL_0037
-  IL_002f:  ldloc.1
-  IL_0030:  ldc.i4.2
-  IL_0031:  bne.un.s   IL_0037
-  IL_0033:  ldc.i4.1
-  IL_0034:  stloc.2
-  IL_0035:  br.s       IL_0039
-  IL_0037:  ldc.i4.0
-  IL_0038:  stloc.2
-  IL_0039:  ldloc.2
-  IL_003a:  ret
+  IL_0009:  call       ""object S1.Value.get""
+  IL_000e:  isinst     ""int""
+  IL_0013:  brtrue.s   IL_0031
+  IL_0015:  ldarg.0
+  IL_0016:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_001b:  stloc.1
+  IL_001c:  ldloc.1
+  IL_001d:  ldc.i4.1
+  IL_001e:  beq.s      IL_002d
+  IL_0020:  ldloca.s   V_0
+  IL_0022:  call       ""bool S1.HasValue.get""
+  IL_0027:  brtrue.s   IL_0031
+  IL_0029:  ldloc.1
+  IL_002a:  ldc.i4.2
+  IL_002b:  bne.un.s   IL_0031
+  IL_002d:  ldc.i4.1
+  IL_002e:  stloc.2
+  IL_002f:  br.s       IL_0033
+  IL_0031:  ldc.i4.0
+  IL_0032:  stloc.2
+  IL_0033:  ldloc.2
+  IL_0034:  ret
 }
 ");
         }
@@ -14168,12 +14383,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_42_TryGetValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -14238,7 +14454,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "TryGetValue(string) TryGetValue(int) True; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) False; TryGetValue(string) True; TryGetValue(string) False").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
@@ -14284,12 +14500,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_43_TryGetValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -14341,16 +14558,16 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "TryGetValue(string) get_Value True; TryGetValue(string) get_Value False; TryGetValue(string) get_Value False; TryGetValue(string) get_Value False; TryGetValue(string) get_Value False; TryGetValue(string) get_Value False; TryGetValue(string) False; TryGetValue(string) True; TryGetValue(string) False").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       66 (0x42)
+  // Code size       60 (0x3c)
   .maxstack  2
   .locals init (S1 V_0,
-            string V_1,
-            bool V_2)
+                string V_1,
+                bool V_2)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
   IL_0006:  stloc.0
@@ -14361,24 +14578,23 @@ struct S1 : System.Runtime.CompilerServices.IUnion
   IL_0012:  ldarg.0
   IL_0013:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
   IL_0018:  ldc.i4.2
-  IL_0019:  beq.s      IL_003a
-  IL_001b:  br.s       IL_003e
+  IL_0019:  beq.s      IL_0034
+  IL_001b:  br.s       IL_0038
   IL_001d:  ldloca.s   V_0
-  IL_001f:  constrained. ""S1""
-  IL_0025:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_002a:  isinst     ""int""
-  IL_002f:  brfalse.s  IL_003e
-  IL_0031:  ldarg.0
-  IL_0032:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
-  IL_0037:  ldc.i4.1
-  IL_0038:  bne.un.s   IL_003e
-  IL_003a:  ldc.i4.1
-  IL_003b:  stloc.2
-  IL_003c:  br.s       IL_0040
-  IL_003e:  ldc.i4.0
-  IL_003f:  stloc.2
-  IL_0040:  ldloc.2
-  IL_0041:  ret
+  IL_001f:  call       ""object S1.Value.get""
+  IL_0024:  isinst     ""int""
+  IL_0029:  brfalse.s  IL_0038
+  IL_002b:  ldarg.0
+  IL_002c:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0031:  ldc.i4.1
+  IL_0032:  bne.un.s   IL_0038
+  IL_0034:  ldc.i4.1
+  IL_0035:  stloc.2
+  IL_0036:  br.s       IL_003a
+  IL_0038:  ldc.i4.0
+  IL_0039:  stloc.2
+  IL_003a:  ldloc.2
+  IL_003b:  ret
 }
 ");
         }
@@ -14387,12 +14603,13 @@ struct S1 : System.Runtime.CompilerServices.IUnion
         public void NonBoxingUnionMatching_44_TryGetValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -14450,12 +14667,12 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "get_Value TryGetValue(int) True; get_Value TryGetValue(int) False; get_Value TryGetValue(int) False; get_Value TryGetValue(int) False; get_Value TryGetValue(int) False; get_Value TryGetValue(int) False; get_Value False; get_Value True; get_Value False").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       66 (0x42)
+  // Code size       60 (0x3c)
   .maxstack  2
   .locals init (S1 V_0,
                 int V_1,
@@ -14464,30 +14681,29 @@ struct S1 : System.Runtime.CompilerServices.IUnion
   IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
-  IL_0009:  constrained. ""S1""
-  IL_000f:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_0014:  isinst     ""string""
-  IL_0019:  brfalse.s  IL_0026
-  IL_001b:  ldarg.0
-  IL_001c:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
-  IL_0021:  ldc.i4.2
-  IL_0022:  beq.s      IL_003a
-  IL_0024:  br.s       IL_003e
-  IL_0026:  ldloca.s   V_0
-  IL_0028:  ldloca.s   V_1
-  IL_002a:  call       ""bool S1.TryGetValue(out int)""
-  IL_002f:  brfalse.s  IL_003e
-  IL_0031:  ldarg.0
-  IL_0032:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
-  IL_0037:  ldc.i4.1
-  IL_0038:  bne.un.s   IL_003e
-  IL_003a:  ldc.i4.1
-  IL_003b:  stloc.2
-  IL_003c:  br.s       IL_0040
-  IL_003e:  ldc.i4.0
-  IL_003f:  stloc.2
-  IL_0040:  ldloc.2
-  IL_0041:  ret
+  IL_0009:  call       ""object S1.Value.get""
+  IL_000e:  isinst     ""string""
+  IL_0013:  brfalse.s  IL_0020
+  IL_0015:  ldarg.0
+  IL_0016:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_001b:  ldc.i4.2
+  IL_001c:  beq.s      IL_0034
+  IL_001e:  br.s       IL_0038
+  IL_0020:  ldloca.s   V_0
+  IL_0022:  ldloca.s   V_1
+  IL_0024:  call       ""bool S1.TryGetValue(out int)""
+  IL_0029:  brfalse.s  IL_0038
+  IL_002b:  ldarg.0
+  IL_002c:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0031:  ldc.i4.1
+  IL_0032:  bne.un.s   IL_0038
+  IL_0034:  ldc.i4.1
+  IL_0035:  stloc.2
+  IL_0036:  br.s       IL_003a
+  IL_0038:  ldc.i4.0
+  IL_0039:  stloc.2
+  IL_003a:  ldloc.2
+  IL_003b:  ret
 }
 ");
         }
@@ -14504,14 +14720,15 @@ class C13 : C12, I1;
 class C14 : I1;
 class C15 : I1;
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(I1 x) { _value = x; }
     public S1(C11 x) { _value = x; }
     public S1(C12 x) { _value = x; }
     public S1(C14 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -14564,7 +14781,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
             VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
 @"[0]: t1 = t0.Item1; [1]
@@ -14683,14 +14900,15 @@ class C13 : C12, I1;
 class C14 : I1;
 class C15 : I1;
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(I1 x) { _value = x; }
     public S1(C11 x) { _value = x; }
     public S1(C12 x) { _value = x; }
     public S1(C14 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -14743,7 +14961,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
             VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
 @"[0]: t1 = t0.Item1; [1]
@@ -14852,14 +15070,15 @@ class C13 : C12, I1;
 class C14 : I1;
 class C15 : I1;
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(I1 x) { _value = x; }
     public S1(C11 x) { _value = x; }
     public S1(C12 x) { _value = x; }
     public S1(C14 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -14905,7 +15124,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
             VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
 @"[0]: t1 = t0.Item1; [1]
@@ -14967,50 +15186,49 @@ False
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       83 (0x53)
+  // Code size       77 (0x4d)
   .maxstack  2
   .locals init (S1 V_0,
-            C12 V_1,
-            int V_2,
-            I1 V_3,
-            bool V_4)
+                C12 V_1,
+                int V_2,
+                I1 V_3,
+                bool V_4)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
-  IL_0009:  constrained. ""S1""
-  IL_000f:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_0014:  isinst     ""C12""
-  IL_0019:  stloc.1
-  IL_001a:  ldloc.1
-  IL_001b:  brfalse.s  IL_0032
-  IL_001d:  ldloc.1
-  IL_001e:  isinst     ""I1""
-  IL_0023:  brfalse.s  IL_004d
-  IL_0025:  ldarg.0
-  IL_0026:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
-  IL_002b:  stloc.2
-  IL_002c:  ldloc.2
-  IL_002d:  ldc.i4.2
-  IL_002e:  beq.s      IL_0048
-  IL_0030:  br.s       IL_0044
-  IL_0032:  ldloca.s   V_0
-  IL_0034:  ldloca.s   V_3
-  IL_0036:  call       ""bool S1.TryGetValue(out I1)""
-  IL_003b:  brfalse.s  IL_004d
-  IL_003d:  ldarg.0
-  IL_003e:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
-  IL_0043:  stloc.2
-  IL_0044:  ldloc.2
-  IL_0045:  ldc.i4.1
-  IL_0046:  bne.un.s   IL_004d
-  IL_0048:  ldc.i4.1
-  IL_0049:  stloc.s    V_4
-  IL_004b:  br.s       IL_0050
-  IL_004d:  ldc.i4.0
-  IL_004e:  stloc.s    V_4
-  IL_0050:  ldloc.s    V_4
-  IL_0052:  ret
+  IL_0009:  call       ""object S1.Value.get""
+  IL_000e:  isinst     ""C12""
+  IL_0013:  stloc.1
+  IL_0014:  ldloc.1
+  IL_0015:  brfalse.s  IL_002c
+  IL_0017:  ldloc.1
+  IL_0018:  isinst     ""I1""
+  IL_001d:  brfalse.s  IL_0047
+  IL_001f:  ldarg.0
+  IL_0020:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_0025:  stloc.2
+  IL_0026:  ldloc.2
+  IL_0027:  ldc.i4.2
+  IL_0028:  beq.s      IL_0042
+  IL_002a:  br.s       IL_003e
+  IL_002c:  ldloca.s   V_0
+  IL_002e:  ldloca.s   V_3
+  IL_0030:  call       ""bool S1.TryGetValue(out I1)""
+  IL_0035:  brfalse.s  IL_0047
+  IL_0037:  ldarg.0
+  IL_0038:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_003d:  stloc.2
+  IL_003e:  ldloc.2
+  IL_003f:  ldc.i4.1
+  IL_0040:  bne.un.s   IL_0047
+  IL_0042:  ldc.i4.1
+  IL_0043:  stloc.s    V_4
+  IL_0045:  br.s       IL_004a
+  IL_0047:  ldc.i4.0
+  IL_0048:  stloc.s    V_4
+  IL_004a:  ldloc.s    V_4
+  IL_004c:  ret
 }
 ");
         }
@@ -15027,14 +15245,15 @@ class C13 : C12, I1;
 class C14 : I1;
 class C15 : I1;
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(I1 x) { _value = x; }
     public S1(C11 x) { _value = x; }
     public S1(C12 x) { _value = x; }
     public S1(C14 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -15080,7 +15299,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(
                 comp,
                 expectedOutput: @"
@@ -15124,7 +15343,7 @@ False
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       61 (0x3d)
+  // Code size       55 (0x37)
   .maxstack  2
   .locals init (S1 V_0,
                 I1 V_1,
@@ -15136,28 +15355,27 @@ False
   IL_0007:  ldloca.s   V_0
   IL_0009:  ldloca.s   V_1
   IL_000b:  call       ""bool S1.TryGetValue(out I1)""
-  IL_0010:  brfalse.s  IL_0039
+  IL_0010:  brfalse.s  IL_0033
   IL_0012:  ldarg.0
   IL_0013:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
   IL_0018:  stloc.2
   IL_0019:  ldloc.2
   IL_001a:  ldc.i4.1
-  IL_001b:  beq.s      IL_0035
+  IL_001b:  beq.s      IL_002f
   IL_001d:  ldloca.s   V_0
-  IL_001f:  constrained. ""S1""
-  IL_0025:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_002a:  isinst     ""C12""
-  IL_002f:  brfalse.s  IL_0039
-  IL_0031:  ldloc.2
-  IL_0032:  ldc.i4.2
-  IL_0033:  bne.un.s   IL_0039
-  IL_0035:  ldc.i4.1
-  IL_0036:  stloc.3
-  IL_0037:  br.s       IL_003b
-  IL_0039:  ldc.i4.0
-  IL_003a:  stloc.3
-  IL_003b:  ldloc.3
-  IL_003c:  ret
+  IL_001f:  call       ""object S1.Value.get""
+  IL_0024:  isinst     ""C12""
+  IL_0029:  brfalse.s  IL_0033
+  IL_002b:  ldloc.2
+  IL_002c:  ldc.i4.2
+  IL_002d:  bne.un.s   IL_0033
+  IL_002f:  ldc.i4.1
+  IL_0030:  stloc.3
+  IL_0031:  br.s       IL_0035
+  IL_0033:  ldc.i4.0
+  IL_0034:  stloc.3
+  IL_0035:  ldloc.3
+  IL_0036:  ret
 }
 ");
         }
@@ -15174,14 +15392,15 @@ class C13 : C12, I1;
 class C14 : I1;
 class C15 : I1;
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(I1 x) { _value = x; }
     public S1(C11 x) { _value = x; }
     public S1(C12 x) { _value = x; }
     public S1(C14 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -15227,7 +15446,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
             VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
 @"[0]: t1 = t0.Item1; [1]
@@ -15289,7 +15508,7 @@ False
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       78 (0x4e)
+  // Code size       72 (0x48)
   .maxstack  2
   .locals init (S1 V_0,
                 C12 V_1,
@@ -15304,32 +15523,31 @@ False
   IL_0010:  brfalse.s  IL_0027
   IL_0012:  ldloc.1
   IL_0013:  isinst     ""I1""
-  IL_0018:  brfalse.s  IL_004a
+  IL_0018:  brfalse.s  IL_0044
   IL_001a:  ldarg.0
   IL_001b:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
   IL_0020:  stloc.2
   IL_0021:  ldloc.2
   IL_0022:  ldc.i4.2
-  IL_0023:  beq.s      IL_0046
-  IL_0025:  br.s       IL_0042
+  IL_0023:  beq.s      IL_0040
+  IL_0025:  br.s       IL_003c
   IL_0027:  ldloca.s   V_0
-  IL_0029:  constrained. ""S1""
-  IL_002f:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_0034:  isinst     ""I1""
-  IL_0039:  brfalse.s  IL_004a
-  IL_003b:  ldarg.0
-  IL_003c:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
-  IL_0041:  stloc.2
-  IL_0042:  ldloc.2
-  IL_0043:  ldc.i4.1
-  IL_0044:  bne.un.s   IL_004a
-  IL_0046:  ldc.i4.1
-  IL_0047:  stloc.3
-  IL_0048:  br.s       IL_004c
-  IL_004a:  ldc.i4.0
-  IL_004b:  stloc.3
-  IL_004c:  ldloc.3
-  IL_004d:  ret
+  IL_0029:  call       ""object S1.Value.get""
+  IL_002e:  isinst     ""I1""
+  IL_0033:  brfalse.s  IL_0044
+  IL_0035:  ldarg.0
+  IL_0036:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_003b:  stloc.2
+  IL_003c:  ldloc.2
+  IL_003d:  ldc.i4.1
+  IL_003e:  bne.un.s   IL_0044
+  IL_0040:  ldc.i4.1
+  IL_0041:  stloc.3
+  IL_0042:  br.s       IL_0046
+  IL_0044:  ldc.i4.0
+  IL_0045:  stloc.3
+  IL_0046:  ldloc.3
+  IL_0047:  ret
 }
 ");
         }
@@ -15346,14 +15564,15 @@ class C13 : C12, I1;
 class C14 : I1;
 class C15 : I1;
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(I1 x) { _value = x; }
     public S1(C11 x) { _value = x; }
     public S1(C12 x) { _value = x; }
     public S1(C14 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -15399,7 +15618,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
             VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
 @"[0]: t1 = t0.Item1; [1]
@@ -15458,7 +15677,7 @@ False
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       61 (0x3d)
+  // Code size       55 (0x37)
   .maxstack  2
   .locals init (S1 V_0,
             int V_1,
@@ -15468,30 +15687,29 @@ False
   IL_0001:  ldfld      ""S1 System.ValueTuple<S1, int>.Item1""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
-  IL_0009:  constrained. ""S1""
-  IL_000f:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_0014:  isinst     ""I1""
-  IL_0019:  brfalse.s  IL_0039
-  IL_001b:  ldarg.0
-  IL_001c:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
-  IL_0021:  stloc.1
-  IL_0022:  ldloc.1
-  IL_0023:  ldc.i4.1
-  IL_0024:  beq.s      IL_0035
-  IL_0026:  ldloca.s   V_0
-  IL_0028:  ldloca.s   V_2
-  IL_002a:  call       ""bool S1.TryGetValue(out C12)""
-  IL_002f:  brfalse.s  IL_0039
-  IL_0031:  ldloc.1
-  IL_0032:  ldc.i4.2
-  IL_0033:  bne.un.s   IL_0039
-  IL_0035:  ldc.i4.1
-  IL_0036:  stloc.3
-  IL_0037:  br.s       IL_003b
-  IL_0039:  ldc.i4.0
-  IL_003a:  stloc.3
-  IL_003b:  ldloc.3
-  IL_003c:  ret
+  IL_0009:  call       ""object S1.Value.get""
+  IL_000e:  isinst     ""I1""
+  IL_0013:  brfalse.s  IL_0033
+  IL_0015:  ldarg.0
+  IL_0016:  ldfld      ""int System.ValueTuple<S1, int>.Item2""
+  IL_001b:  stloc.1
+  IL_001c:  ldloc.1
+  IL_001d:  ldc.i4.1
+  IL_001e:  beq.s      IL_002f
+  IL_0020:  ldloca.s   V_0
+  IL_0022:  ldloca.s   V_2
+  IL_0024:  call       ""bool S1.TryGetValue(out C12)""
+  IL_0029:  brfalse.s  IL_0033
+  IL_002b:  ldloc.1
+  IL_002c:  ldc.i4.2
+  IL_002d:  bne.un.s   IL_0033
+  IL_002f:  ldc.i4.1
+  IL_0030:  stloc.3
+  IL_0031:  br.s       IL_0035
+  IL_0033:  ldc.i4.0
+  IL_0034:  stloc.3
+  IL_0035:  ldloc.3
+  IL_0036:  ret
 }
 ");
         }
@@ -15520,14 +15738,15 @@ class C15(int f) : I1
     public int F => f;
 }
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(I1 x) { _value = x; }
     public S1(C11 x) { _value = x; }
     public S1(C12 x) { _value = x; }
     public S1(C14 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -15580,7 +15799,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
             VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
 @"[0]: t1 = t0.Item1; [1]
@@ -15737,14 +15956,15 @@ class C12 : IComparable
     public int CompareTo(object obj) => throw null;
 }
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(C11 x) { _value = x; }
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
     public S1(IComparable x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -15803,7 +16023,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
             VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
 @"[0]: t1 = t0.Item1; [1]
@@ -15948,7 +16168,8 @@ class C11;
 
 class C12;
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(C11 x) { _value = x; }
@@ -15956,7 +16177,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     public S1(string x) { _value = x; }
     public S1(IComparable x) { _value = x; }
     public S1(C12 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -16037,7 +16258,7 @@ static class IComparableExtensions
     }
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
             VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
 @"[0]: t1 = t0.Item1; [1]
@@ -16235,7 +16456,8 @@ class C12 : IConvertible
     public ulong ToUInt64(IFormatProvider provider) => throw null;
 }
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(C11 x) { _value = x; }
@@ -16243,7 +16465,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     public S1(string x) { _value = x; }
     public S1(IComparable x) { _value = x; }
     public S1(IConvertible x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -16331,7 +16553,7 @@ static class IComparableExtensions
     }
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
             VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
 @"[0]: t1 = t0.Item1; [1]
@@ -16538,7 +16760,8 @@ class C12 : IConvertible
     public ulong ToUInt64(IFormatProvider provider) => throw null;
 }
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(C11 x) { _value = x; }
@@ -16546,7 +16769,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     public S1(string x) { _value = x; }
     public S1(IComparable x) { _value = x; }
     public S1(IConvertible x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -16641,7 +16864,7 @@ static class IComparableExtensions
     }
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
             VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
 @"[0]: t1 = t0.Item1; [1]
@@ -16870,7 +17093,8 @@ class C12 : IConvertible
     public ulong ToUInt64(IFormatProvider provider) => throw null;
 }
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(C11 x) { _value = x; }
@@ -16878,7 +17102,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     public S1(string x) { _value = x; }
     public S1(IComparable x) { _value = x; }
     public S1(IConvertible x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -16973,7 +17197,7 @@ static class IComparableExtensions
     }
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
             VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
 @"[0]: t1 = t0.Item1; [1]
@@ -17186,12 +17410,13 @@ True
         public void NonBoxingUnionMatching_57_TryGetValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -17230,7 +17455,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "TryGetValue True; TryGetValue False; TryGetValue True; TryGetValue False").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
@@ -17289,13 +17514,14 @@ class C3(int f1, int f2) : C1(f1, f2)
 {
 }
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(C1 x) { _value = x; }
     public S1(C2 x) { _value = x; }
     public S1(C3 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -17324,7 +17550,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
             VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
 @"[0]: t1 = t0.Value; [1]
@@ -17374,45 +17600,44 @@ True
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       69 (0x45)
+  // Code size       63 (0x3f)
   .maxstack  2
   .locals init (object V_0,
                 C1 V_1,
                 C2 V_2,
                 bool V_3)
   IL_0000:  ldarga.s   V_0
-  IL_0002:  constrained. ""S1""
-  IL_0008:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_000d:  stloc.0
-  IL_000e:  ldloc.0
-  IL_000f:  isinst     ""C1""
-  IL_0014:  stloc.1
-  IL_0015:  ldloc.1
-  IL_0016:  brfalse.s  IL_003d
-  IL_0018:  ldloc.1
-  IL_0019:  ldfld      ""int C1.F11""
-  IL_001e:  ldc.i4.1
-  IL_001f:  beq.s      IL_0034
-  IL_0021:  ldloc.0
-  IL_0022:  isinst     ""C2""
-  IL_0027:  stloc.2
-  IL_0028:  ldloc.2
-  IL_0029:  brfalse.s  IL_003d
-  IL_002b:  ldloc.2
-  IL_002c:  ldfld      ""int C2.F2""
-  IL_0031:  ldc.i4.2
-  IL_0032:  bne.un.s   IL_003d
-  IL_0034:  ldloc.1
-  IL_0035:  ldfld      ""int C1.F12""
-  IL_003a:  ldc.i4.3
-  IL_003b:  beq.s      IL_0041
-  IL_003d:  ldc.i4.1
-  IL_003e:  stloc.3
-  IL_003f:  br.s       IL_0043
-  IL_0041:  ldc.i4.0
-  IL_0042:  stloc.3
-  IL_0043:  ldloc.3
-  IL_0044:  ret
+  IL_0002:  call       ""object S1.Value.get""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  isinst     ""C1""
+  IL_000e:  stloc.1
+  IL_000f:  ldloc.1
+  IL_0010:  brfalse.s  IL_0037
+  IL_0012:  ldloc.1
+  IL_0013:  ldfld      ""int C1.F11""
+  IL_0018:  ldc.i4.1
+  IL_0019:  beq.s      IL_002e
+  IL_001b:  ldloc.0
+  IL_001c:  isinst     ""C2""
+  IL_0021:  stloc.2
+  IL_0022:  ldloc.2
+  IL_0023:  brfalse.s  IL_0037
+  IL_0025:  ldloc.2
+  IL_0026:  ldfld      ""int C2.F2""
+  IL_002b:  ldc.i4.2
+  IL_002c:  bne.un.s   IL_0037
+  IL_002e:  ldloc.1
+  IL_002f:  ldfld      ""int C1.F12""
+  IL_0034:  ldc.i4.3
+  IL_0035:  beq.s      IL_003b
+  IL_0037:  ldc.i4.1
+  IL_0038:  stloc.3
+  IL_0039:  br.s       IL_003d
+  IL_003b:  ldc.i4.0
+  IL_003c:  stloc.3
+  IL_003d:  ldloc.3
+  IL_003e:  ret
 }
 ");
         }
@@ -17436,13 +17661,14 @@ class C3(int f1, int f2) : C1(f1, f2)
 {
 }
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(C1 x) { _value = x; }
     public S1(C2 x) { _value = x; }
     public S1(C3 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -17492,7 +17718,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
             VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
 @"[0]: TryGetValue(C1): (Item1, ReturnItem) t1 = t0; [1]
@@ -17601,13 +17827,14 @@ class C3(int f1, int f2) : C1(f1, f2)
 {
 }
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(C1 x) { _value = x; }
     public S1(C2 x) { _value = x; }
     public S1(C3 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -17657,7 +17884,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
             VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
 @"[0]: TryGetValue(C2): (Item1, ReturnItem) t1 = t0; [1]
@@ -17782,13 +18009,14 @@ class C3(int f1, int f2) : C1(f1, f2)
 {
 }
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(C1 x) { _value = x; }
     public S1(C2 x) { _value = x; }
     public S1(C3 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -17831,7 +18059,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
             VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
 @"[0]: t1 = t0.Value; [1]
@@ -17882,41 +18110,40 @@ True
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       68 (0x44)
+  // Code size       62 (0x3e)
   .maxstack  2
   .locals init (C1 V_0,
                 C2 V_1,
                 bool V_2)
   IL_0000:  ldarga.s   V_0
-  IL_0002:  constrained. ""S1""
-  IL_0008:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_000d:  isinst     ""C1""
-  IL_0012:  stloc.0
-  IL_0013:  ldloc.0
-  IL_0014:  brfalse.s  IL_003c
-  IL_0016:  ldloc.0
-  IL_0017:  ldfld      ""int C1.F11""
-  IL_001c:  ldc.i4.1
-  IL_001d:  beq.s      IL_0033
-  IL_001f:  ldarga.s   V_0
-  IL_0021:  ldloca.s   V_1
-  IL_0023:  call       ""bool S1.TryGetValue(out C2)""
-  IL_0028:  brfalse.s  IL_003c
-  IL_002a:  ldloc.1
-  IL_002b:  ldfld      ""int C2.F2""
-  IL_0030:  ldc.i4.2
-  IL_0031:  bne.un.s   IL_003c
-  IL_0033:  ldloc.0
-  IL_0034:  ldfld      ""int C1.F12""
-  IL_0039:  ldc.i4.3
-  IL_003a:  beq.s      IL_0040
-  IL_003c:  ldc.i4.1
-  IL_003d:  stloc.2
-  IL_003e:  br.s       IL_0042
-  IL_0040:  ldc.i4.0
-  IL_0041:  stloc.2
-  IL_0042:  ldloc.2
-  IL_0043:  ret
+  IL_0002:  call       ""object S1.Value.get""
+  IL_0007:  isinst     ""C1""
+  IL_000c:  stloc.0
+  IL_000d:  ldloc.0
+  IL_000e:  brfalse.s  IL_0036
+  IL_0010:  ldloc.0
+  IL_0011:  ldfld      ""int C1.F11""
+  IL_0016:  ldc.i4.1
+  IL_0017:  beq.s      IL_002d
+  IL_0019:  ldarga.s   V_0
+  IL_001b:  ldloca.s   V_1
+  IL_001d:  call       ""bool S1.TryGetValue(out C2)""
+  IL_0022:  brfalse.s  IL_0036
+  IL_0024:  ldloc.1
+  IL_0025:  ldfld      ""int C2.F2""
+  IL_002a:  ldc.i4.2
+  IL_002b:  bne.un.s   IL_0036
+  IL_002d:  ldloc.0
+  IL_002e:  ldfld      ""int C1.F12""
+  IL_0033:  ldc.i4.3
+  IL_0034:  beq.s      IL_003a
+  IL_0036:  ldc.i4.1
+  IL_0037:  stloc.2
+  IL_0038:  br.s       IL_003c
+  IL_003a:  ldc.i4.0
+  IL_003b:  stloc.2
+  IL_003c:  ldloc.2
+  IL_003d:  ret
 }
 ");
         }
@@ -17940,13 +18167,14 @@ class C3(int f1, int f2) : C1(f1, f2)
 {
 }
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(C1 x) { _value = x; }
     public S1(C2 x) { _value = x; }
     public S1(C3 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -17989,7 +18217,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
             VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
 @"[0]: TryGetValue(C2): (Item1, ReturnItem) t1 = t0; [1]
@@ -18046,7 +18274,7 @@ True
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       85 (0x55)
+  // Code size       79 (0x4f)
   .maxstack  2
   .locals init (C2 V_0,
                 C1 V_1,
@@ -18061,36 +18289,35 @@ True
   IL_0012:  bne.un.s   IL_0018
   IL_0014:  ldloc.0
   IL_0015:  stloc.1
-  IL_0016:  br.s       IL_0044
+  IL_0016:  br.s       IL_003e
   IL_0018:  ldloc.0
   IL_0019:  stloc.1
   IL_001a:  ldloc.1
   IL_001b:  ldfld      ""int C1.F11""
   IL_0020:  ldc.i4.1
-  IL_0021:  bne.un.s   IL_004d
-  IL_0023:  br.s       IL_0044
+  IL_0021:  bne.un.s   IL_0047
+  IL_0023:  br.s       IL_003e
   IL_0025:  ldarga.s   V_0
-  IL_0027:  constrained. ""S1""
-  IL_002d:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_0032:  isinst     ""C1""
-  IL_0037:  stloc.1
-  IL_0038:  ldloc.1
-  IL_0039:  brfalse.s  IL_004d
-  IL_003b:  ldloc.1
-  IL_003c:  ldfld      ""int C1.F11""
-  IL_0041:  ldc.i4.1
-  IL_0042:  bne.un.s   IL_004d
-  IL_0044:  ldloc.1
-  IL_0045:  ldfld      ""int C1.F12""
-  IL_004a:  ldc.i4.3
-  IL_004b:  beq.s      IL_0051
-  IL_004d:  ldc.i4.1
-  IL_004e:  stloc.2
-  IL_004f:  br.s       IL_0053
-  IL_0051:  ldc.i4.0
-  IL_0052:  stloc.2
-  IL_0053:  ldloc.2
-  IL_0054:  ret
+  IL_0027:  call       ""object S1.Value.get""
+  IL_002c:  isinst     ""C1""
+  IL_0031:  stloc.1
+  IL_0032:  ldloc.1
+  IL_0033:  brfalse.s  IL_0047
+  IL_0035:  ldloc.1
+  IL_0036:  ldfld      ""int C1.F11""
+  IL_003b:  ldc.i4.1
+  IL_003c:  bne.un.s   IL_0047
+  IL_003e:  ldloc.1
+  IL_003f:  ldfld      ""int C1.F12""
+  IL_0044:  ldc.i4.3
+  IL_0045:  beq.s      IL_004b
+  IL_0047:  ldc.i4.1
+  IL_0048:  stloc.2
+  IL_0049:  br.s       IL_004d
+  IL_004b:  ldc.i4.0
+  IL_004c:  stloc.2
+  IL_004d:  ldloc.2
+  IL_004e:  ret
 }
 ");
         }
@@ -18114,13 +18341,14 @@ class C3(int f1, int f2) : C1(f1, f2)
 {
 }
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(C1 x) { _value = x; }
     public S1(C2 x) { _value = x; }
     public S1(C3 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -18163,7 +18391,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
             VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
 @"[0]: TryGetValue(C1): (Item1, ReturnItem) t1 = t0; [1]
@@ -18214,44 +18442,43 @@ True
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       70 (0x46)
+  // Code size       64 (0x40)
   .maxstack  2
   .locals init (C1 V_0,
-            C1 V_1,
-            C2 V_2,
-            bool V_3)
+                C1 V_1,
+                C2 V_2,
+                bool V_3)
   IL_0000:  ldarga.s   V_0
   IL_0002:  ldloca.s   V_0
   IL_0004:  call       ""bool S1.TryGetValue(out C1)""
-  IL_0009:  brfalse.s  IL_003e
+  IL_0009:  brfalse.s  IL_0038
   IL_000b:  ldloc.0
   IL_000c:  stloc.1
   IL_000d:  ldloc.1
   IL_000e:  ldfld      ""int C1.F11""
   IL_0013:  ldc.i4.1
-  IL_0014:  beq.s      IL_0035
+  IL_0014:  beq.s      IL_002f
   IL_0016:  ldarga.s   V_0
-  IL_0018:  constrained. ""S1""
-  IL_001e:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_0023:  isinst     ""C2""
-  IL_0028:  stloc.2
-  IL_0029:  ldloc.2
-  IL_002a:  brfalse.s  IL_003e
-  IL_002c:  ldloc.2
-  IL_002d:  ldfld      ""int C2.F2""
-  IL_0032:  ldc.i4.2
-  IL_0033:  bne.un.s   IL_003e
-  IL_0035:  ldloc.1
-  IL_0036:  ldfld      ""int C1.F12""
-  IL_003b:  ldc.i4.3
-  IL_003c:  beq.s      IL_0042
-  IL_003e:  ldc.i4.1
-  IL_003f:  stloc.3
-  IL_0040:  br.s       IL_0044
-  IL_0042:  ldc.i4.0
-  IL_0043:  stloc.3
-  IL_0044:  ldloc.3
-  IL_0045:  ret
+  IL_0018:  call       ""object S1.Value.get""
+  IL_001d:  isinst     ""C2""
+  IL_0022:  stloc.2
+  IL_0023:  ldloc.2
+  IL_0024:  brfalse.s  IL_0038
+  IL_0026:  ldloc.2
+  IL_0027:  ldfld      ""int C2.F2""
+  IL_002c:  ldc.i4.2
+  IL_002d:  bne.un.s   IL_0038
+  IL_002f:  ldloc.1
+  IL_0030:  ldfld      ""int C1.F12""
+  IL_0035:  ldc.i4.3
+  IL_0036:  beq.s      IL_003c
+  IL_0038:  ldc.i4.1
+  IL_0039:  stloc.3
+  IL_003a:  br.s       IL_003e
+  IL_003c:  ldc.i4.0
+  IL_003d:  stloc.3
+  IL_003e:  ldloc.3
+  IL_003f:  ret
 }
 ");
         }
@@ -18275,13 +18502,14 @@ class C3(int f1, int f2) : C1(f1, f2)
 {
 }
 
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(C1 x) { _value = x; }
     public S1(C2 x) { _value = x; }
     public S1(C3 x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -18324,7 +18552,7 @@ struct S1 : System.Runtime.CompilerServices.IUnion
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
             VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
 @"[0]: t1 = t0.Value; [1]
@@ -18378,55 +18606,54 @@ True
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       93 (0x5d)
+  // Code size       87 (0x57)
   .maxstack  2
   .locals init (object V_0,
-                C2 V_1,
-                C1 V_2,
-                C1 V_3,
-                bool V_4)
+            C2 V_1,
+            C1 V_2,
+            C1 V_3,
+            bool V_4)
   IL_0000:  ldarga.s   V_0
-  IL_0002:  constrained. ""S1""
-  IL_0008:  callvirt   ""object System.Runtime.CompilerServices.IUnion.Value.get""
-  IL_000d:  stloc.0
-  IL_000e:  ldloc.0
-  IL_000f:  isinst     ""C2""
-  IL_0014:  stloc.1
-  IL_0015:  ldloc.1
-  IL_0016:  brfalse.s  IL_0033
-  IL_0018:  ldloc.1
-  IL_0019:  ldfld      ""int C2.F2""
-  IL_001e:  ldc.i4.2
-  IL_001f:  bne.un.s   IL_002a
-  IL_0021:  ldloc.0
-  IL_0022:  castclass  ""C1""
-  IL_0027:  stloc.2
-  IL_0028:  br.s       IL_0049
-  IL_002a:  ldloc.0
-  IL_002b:  castclass  ""C1""
-  IL_0030:  stloc.2
-  IL_0031:  br.s       IL_0040
-  IL_0033:  ldarga.s   V_0
-  IL_0035:  ldloca.s   V_3
-  IL_0037:  call       ""bool S1.TryGetValue(out C1)""
-  IL_003c:  brfalse.s  IL_0052
-  IL_003e:  ldloc.3
-  IL_003f:  stloc.2
-  IL_0040:  ldloc.2
-  IL_0041:  ldfld      ""int C1.F11""
-  IL_0046:  ldc.i4.1
-  IL_0047:  bne.un.s   IL_0052
-  IL_0049:  ldloc.2
-  IL_004a:  ldfld      ""int C1.F12""
-  IL_004f:  ldc.i4.3
-  IL_0050:  beq.s      IL_0057
-  IL_0052:  ldc.i4.1
-  IL_0053:  stloc.s    V_4
-  IL_0055:  br.s       IL_005a
-  IL_0057:  ldc.i4.0
-  IL_0058:  stloc.s    V_4
-  IL_005a:  ldloc.s    V_4
-  IL_005c:  ret
+  IL_0002:  call       ""object S1.Value.get""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  isinst     ""C2""
+  IL_000e:  stloc.1
+  IL_000f:  ldloc.1
+  IL_0010:  brfalse.s  IL_002d
+  IL_0012:  ldloc.1
+  IL_0013:  ldfld      ""int C2.F2""
+  IL_0018:  ldc.i4.2
+  IL_0019:  bne.un.s   IL_0024
+  IL_001b:  ldloc.0
+  IL_001c:  castclass  ""C1""
+  IL_0021:  stloc.2
+  IL_0022:  br.s       IL_0043
+  IL_0024:  ldloc.0
+  IL_0025:  castclass  ""C1""
+  IL_002a:  stloc.2
+  IL_002b:  br.s       IL_003a
+  IL_002d:  ldarga.s   V_0
+  IL_002f:  ldloca.s   V_3
+  IL_0031:  call       ""bool S1.TryGetValue(out C1)""
+  IL_0036:  brfalse.s  IL_004c
+  IL_0038:  ldloc.3
+  IL_0039:  stloc.2
+  IL_003a:  ldloc.2
+  IL_003b:  ldfld      ""int C1.F11""
+  IL_0040:  ldc.i4.1
+  IL_0041:  bne.un.s   IL_004c
+  IL_0043:  ldloc.2
+  IL_0044:  ldfld      ""int C1.F12""
+  IL_0049:  ldc.i4.3
+  IL_004a:  beq.s      IL_0051
+  IL_004c:  ldc.i4.1
+  IL_004d:  stloc.s    V_4
+  IL_004f:  br.s       IL_0054
+  IL_0051:  ldc.i4.0
+  IL_0052:  stloc.s    V_4
+  IL_0054:  ldloc.s    V_4
+  IL_0056:  ret
 }
 ");
         }
@@ -18435,12 +18662,13 @@ True
         public void NonBoxingUnionMatching_65_TryGetValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(System.Runtime.CompilerServices.ITuple x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -18481,7 +18709,7 @@ public class C : System.Runtime.CompilerServices.ITuple
 }
 
 ";
-            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TryGetValue(ITuple) False TryGetValue(ITuple) False TryGetValue(ITuple) True" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
         }
 
@@ -18489,13 +18717,14 @@ public class C : System.Runtime.CompilerServices.ITuple
         public void NonBoxingUnionMatching_66_TryGetValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(S2<int> x) { _value = x; }
     public S1(S2<string> x) { _value = x; }
     public S1(S2<object> x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -18605,7 +18834,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(
                 comp,
                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TryGetValue(S2<int>) True TryGetValue(S2<int>) False TryGetValue(S2<int>) False TryGetValue(S2<int>) False  TryGetValue(S2<int>) True TryGetValue(S2<int>) False TryGetValue(S2<int>) False TryGetValue(S2<int>) False TryGetValue(S2<int>) True  TryGetValue(S2<string>) False TryGetValue(S2<string>) False TryGetValue(S2<string>) True" : null,
@@ -18616,12 +18845,13 @@ class Program
         public void NonBoxingUnionMatching_67_TryGetValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -18679,7 +18909,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
             CompileAndVerify(
                 comp,
                 expectedOutput: "TryGetValue(int) True TryGetValue(int) False TryGetValue(int) False TryGetValue(int) True  TryGetValue(int) True TryGetValue(int) False TryGetValue(int) False TryGetValue(int) False TryGetValue(int) True"
@@ -18690,12 +18920,13 @@ class Program
         public void NonBoxingUnionMatching_68_TryGetValue()
         {
             var src = @"
-struct S1 : System.Runtime.CompilerServices.IUnion
+[System.Runtime.CompilerServices.Union]
+struct S1
 {
     private readonly object _value;
     public S1(int x) { _value = x; }
     public S1(string x) { _value = x; }
-    object System.Runtime.CompilerServices.IUnion.Value
+    public object Value
     {
         get
         {
@@ -18753,7 +18984,7 @@ class Program
     }   
 }
 ";
-            var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(
                 comp,
                 expectedOutput: "TryGetValue(int) True TryGetValue(int) False TryGetValue(int) False TryGetValue(int) False  TryGetValue(int) False TryGetValue(int) False TryGetValue(int) False TryGetValue(int) True TryGetValue(int) True"

@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Property: { Name: WellKnownMemberNames.ValuePropertyName, Type.SpecialType: SpecialType.System_Object } property,
                     Input: { } propertyInput
                 } &&
-                propertyInput.Type is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true } match &&
+                propertyInput.Type is NamedTypeSymbol { IsUnionType: true } match &&
                 Binder.IsUnionTypeValueProperty(match, property))
             {
                 unionInstance = propertyInput;
@@ -675,7 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     },
                     Input: { } tryGetValueInput
                 } &&
-                tryGetValueInput.Type is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true } match)
+                tryGetValueInput.Type is NamedTypeSymbol { IsUnionType: true } match)
             {
                 targetType = parameterType;
                 unionInstance = tryGetValueInput;
@@ -734,7 +734,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Input: { } propertyInput
                     }
                 } &&
-                propertyInput.Type is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true } match &&
+                propertyInput.Type is NamedTypeSymbol { IsUnionType: true } match &&
                 Binder.IsUnionTypeHasValueProperty(match, property))
             {
                 unionInstance = propertyInput;
@@ -994,7 +994,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundDagTemp currentInput = input;
 
                     if (subpattern.Member is { Symbol: PropertySymbol { Name: WellKnownMemberNames.ValuePropertyName } property } &&
-                        input.Type is NamedTypeSymbol { IsUnionTypeNoUseSiteDiagnostics: true } unionType &&
+                        input.Type is NamedTypeSymbol { IsUnionType: true } unionType &&
                         Binder.IsUnionTypeValueProperty(unionType, property))
                     {
                         // This sub-pattern is a union matching 

@@ -8,7 +8,6 @@ Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation.ConstructArgume
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitCollectionExpressionElementsPlaceholder(Microsoft.CodeAnalysis.Operations.ICollectionExpressionElementsPlaceholderOperation! operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitCollectionExpressionElementsPlaceholder(Microsoft.CodeAnalysis.Operations.ICollectionExpressionElementsPlaceholderOperation! operation, TArgument argument) -> TResult?
 
-const Microsoft.CodeAnalysis.WellKnownMemberNames.IUnionInterfaceName = "IUnion" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.HasValuePropertyName = "HasValue" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.TryGetValueMethodName = "TryGetValue" -> string!
 Microsoft.CodeAnalysis.Operations.CommonConversion.IsUnion.get -> bool

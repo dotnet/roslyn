@@ -4463,12 +4463,6 @@ record C(int X) : B(X)
                 // (2,19): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_15, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 // record C(int X) : B(X)
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "B").WithArguments("A", "Clone_15, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 19),
-                // (2,20): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_15, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                // record C(int X) : B(X)
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "(X)").WithArguments("A", "Clone_15, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 20),
-                // (6,22): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_15, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //         var c1 = new C(1);
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("A", "Clone_15, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 22),
                 // (6,22): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_15, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         var c1 = new C(1);
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("A", "Clone_15, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 22),
@@ -4535,12 +4529,6 @@ record D(int X) : C(X)
                 // (2,19): error CS0012: The type 'B' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 // record D(int X) : C(X)
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("B", "Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 19),
-                // (2,20): error CS0012: The type 'B' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                // record D(int X) : C(X)
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "(X)").WithArguments("B", "Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 20),
-                // (6,22): error CS0012: The type 'B' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //         var c1 = new D(1);
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "D").WithArguments("B", "Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 22),
                 // (6,22): error CS0012: The type 'B' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         var c1 = new D(1);
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "D").WithArguments("B", "Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 22)
@@ -4566,12 +4554,6 @@ record D(int X) : C(X)
                 // (2,19): error CS0012: The type 'B' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 // record D(int X) : C(X)
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("B", "Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 19),
-                // (2,20): error CS0012: The type 'B' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                // record D(int X) : C(X)
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "(X)").WithArguments("B", "Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 20),
-                // (6,22): error CS0012: The type 'B' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //         var c1 = new D(1);
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "D").WithArguments("B", "Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 22),
                 // (6,22): error CS0012: The type 'B' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         var c1 = new D(1);
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "D").WithArguments("B", "Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 22)
