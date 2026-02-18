@@ -3182,7 +3182,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If the return type is not void then the expression must be implicitly convertible.
 
             Conversion conversion;
-            bool badAsyncReturnAlreadyReported = false, hasImplicitConversionError = false;
+            bool badAsyncReturnAlreadyReported = false;
+            bool hasImplicitConversionError = false;
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             if (IsInAsyncMethod())
             {
