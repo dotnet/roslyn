@@ -1003,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // but when a pointer is converted to a user-defined ref local, it becomes a use of a "safe" feature where we should guarantee the ref is tracked by GC.
                 else if (localSymbol.RefKind != RefKind.None &&
                     localSymbol.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
-                    PointerIndirectionMayFlowToRefResultVisitor.Check(right))
+                    PointerIndirectionMayFlowToRefResultVisitor.Check(right, _recursionDepth))
                 {
                     ShouldNotSchedule(localSymbol);
                 }
@@ -2038,28 +2038,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             private bool _pointerIndirectionMayFlowToRefResult;
 
-            private PointerIndirectionMayFlowToRefResultVisitor() { }
+            private PointerIndirectionMayFlowToRefResultVisitor(int recursionDepth) : base(recursionDepth) { }
 
-            public static bool Check(BoundExpression expression)
+            public static bool Check(BoundExpression expression, int recursionDepth)
             {
-                var visitor = new PointerIndirectionMayFlowToRefResultVisitor();
+                var visitor = new PointerIndirectionMayFlowToRefResultVisitor(recursionDepth);
                 visitor.Visit(expression);
                 return visitor._pointerIndirectionMayFlowToRefResult;
             }
 
-            public override BoundNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
+            public override BoundNode Visit(BoundNode node)
             {
-                _pointerIndirectionMayFlowToRefResult = true;
-                return base.VisitPointerIndirectionOperator(node);
+                if (node is BoundPointerIndirectionOperator)
+                {
+                    _pointerIndirectionMayFlowToRefResult = true;
+                    return node;
+                }
+
+                return base.Visit(node);
             }
 
             public override BoundNode VisitCall(BoundCall node)
             {
-                var previousPointerIndirectionMayFlowToRefResult = _pointerIndirectionMayFlowToRefResult;
-                _pointerIndirectionMayFlowToRefResult = false;
-                var result = base.VisitCall(node);
-                _pointerIndirectionMayFlowToRefResult = previousPointerIndirectionMayFlowToRefResult;
-                return result;
+                return node;
             }
         }
     }
