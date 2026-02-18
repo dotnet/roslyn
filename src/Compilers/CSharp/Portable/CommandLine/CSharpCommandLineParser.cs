@@ -82,6 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string? outputRefFilePath = null;
             bool refOnly = false;
             string? generatedFilesOutputDirectory = null;
+            string? projectBaseDirectory = null;
             string? documentationPath = null;
             ErrorLogOptions? errorLogOptions = null;
             bool parseDocumentationComments = false; //Don't just null check documentationFileName because we want to do this even if the file name is invalid.
@@ -699,6 +700,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else
                             {
                                 generatedFilesOutputDirectory = ParseGenericPathToFile(value, diagnostics, baseDirectory);
+                            }
+                            continue;
+
+                        case "projectbasedirectory":
+                            value = RemoveQuotesAndSlashes(valueMemory);
+                            if (string.IsNullOrWhiteSpace(value))
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), arg);
+                            }
+                            else
+                            {
+                                projectBaseDirectory = ParseGenericPathToFile(value, diagnostics, baseDirectory);
                             }
                             continue;
 
@@ -1537,7 +1550,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 warningLevel: warningLevel,
                 specificDiagnosticOptions: diagnosticOptions,
                 reportSuppressedDiagnostics: reportSuppressedDiagnostics,
-                publicSign: publicSign
+                publicSign: publicSign,
+                projectBaseDirectory: projectBaseDirectory ?? baseDirectory ?? string.Empty
             );
 
             if (debugPlus)

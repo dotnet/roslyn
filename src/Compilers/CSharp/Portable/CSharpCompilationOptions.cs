@@ -72,7 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             StrongNameProvider? strongNameProvider = null,
             bool publicSign = false,
             MetadataImportOptions metadataImportOptions = MetadataImportOptions.Public,
-            NullableContextOptions nullableContextOptions = NullableContextOptions.Disable)
+            NullableContextOptions nullableContextOptions = NullableContextOptions.Disable,
+            string projectBaseDirectory = "")
             : this(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
                    usings, optimizationLevel, checkOverflow, allowUnsafe,
                    cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, platform,
@@ -90,7 +91,59 @@ namespace Microsoft.CodeAnalysis.CSharp
                    referencesSupersedeLowerVersions: false,
                    publicSign: publicSign,
                    topLevelBinderFlags: BinderFlags.None,
-                   nullableContextOptions: nullableContextOptions)
+                   nullableContextOptions: nullableContextOptions,
+                   projectBaseDirectory: projectBaseDirectory)
+        {
+        }
+
+        // 18.3 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        public CSharpCompilationOptions(
+            OutputKind outputKind,
+            bool reportSuppressedDiagnostics,
+            string? moduleName,
+            string? mainTypeName,
+            string? scriptClassName,
+            IEnumerable<string>? usings,
+            OptimizationLevel optimizationLevel,
+            bool checkOverflow,
+            bool allowUnsafe,
+            string? cryptoKeyContainer,
+            string? cryptoKeyFile,
+            ImmutableArray<byte> cryptoPublicKey,
+            bool? delaySign,
+            Platform platform,
+            ReportDiagnostic generalDiagnosticOption,
+            int warningLevel,
+            IEnumerable<KeyValuePair<string, ReportDiagnostic>>? specificDiagnosticOptions,
+            bool concurrentBuild,
+            bool deterministic,
+            XmlReferenceResolver? xmlReferenceResolver,
+            SourceReferenceResolver? sourceReferenceResolver,
+            MetadataReferenceResolver? metadataReferenceResolver,
+            AssemblyIdentityComparer? assemblyIdentityComparer,
+            StrongNameProvider? strongNameProvider,
+            bool publicSign,
+            MetadataImportOptions metadataImportOptions,
+            NullableContextOptions nullableContextOptions)
+            : this(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
+                   usings, optimizationLevel, checkOverflow, allowUnsafe,
+                   cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, platform,
+                   generalDiagnosticOption, warningLevel,
+                   specificDiagnosticOptions, concurrentBuild, deterministic,
+                   currentLocalTime: default,
+                   debugPlusMode: false,
+                   xmlReferenceResolver: xmlReferenceResolver,
+                   sourceReferenceResolver: sourceReferenceResolver,
+                   syntaxTreeOptionsProvider: null,
+                   metadataReferenceResolver: metadataReferenceResolver,
+                   assemblyIdentityComparer: assemblyIdentityComparer,
+                   strongNameProvider: strongNameProvider,
+                   metadataImportOptions: metadataImportOptions,
+                   referencesSupersedeLowerVersions: false,
+                   publicSign: publicSign,
+                   topLevelBinderFlags: BinderFlags.None,
+                   nullableContextOptions: nullableContextOptions,
+                   projectBaseDirectory: "")
         {
         }
 
@@ -214,13 +267,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool referencesSupersedeLowerVersions,
             bool publicSign,
             BinderFlags topLevelBinderFlags,
-            NullableContextOptions nullableContextOptions)
+            NullableContextOptions nullableContextOptions,
+            string projectBaseDirectory)
             : base(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
                    cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, publicSign, optimizationLevel, checkOverflow,
                    platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(),
                    concurrentBuild, deterministic, currentLocalTime, debugPlusMode, xmlReferenceResolver,
                    sourceReferenceResolver, syntaxTreeOptionsProvider, metadataReferenceResolver,
-                   assemblyIdentityComparer, strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions)
+                   assemblyIdentityComparer, strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions,
+                   projectBaseDirectory)
         {
             this.Usings = usings.AsImmutableOrEmpty();
             this.AllowUnsafe = allowUnsafe;
@@ -260,7 +315,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             reportSuppressedDiagnostics: other.ReportSuppressedDiagnostics,
             publicSign: other.PublicSign,
             topLevelBinderFlags: other.TopLevelBinderFlags,
-            nullableContextOptions: other.NullableContextOptions)
+            nullableContextOptions: other.NullableContextOptions,
+            projectBaseDirectory: other.ProjectBaseDirectory)
         {
         }
 
@@ -438,6 +494,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new CSharpCompilationOptions(this) { PublicSign = publicSign };
+        }
+
+        public CSharpCompilationOptions WithProjectBaseDirectory(string projectBaseDirectory)
+        {
+            if (string.Equals(this.ProjectBaseDirectory, projectBaseDirectory, StringComparison.Ordinal))
+            {
+                return this;
+            }
+
+            return new CSharpCompilationOptions(this) { ProjectBaseDirectory = projectBaseDirectory };
         }
 
         protected override CompilationOptions CommonWithGeneralDiagnosticOption(ReportDiagnostic value) => WithGeneralDiagnosticOption(value);
@@ -936,7 +1002,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                    referencesSupersedeLowerVersions: false,
                    publicSign: false,
                    topLevelBinderFlags: BinderFlags.None,
-                   nullableContextOptions: NullableContextOptions.Disable)
+                   nullableContextOptions: NullableContextOptions.Disable,
+                   projectBaseDirectory: string.Empty)
         {
         }
     }

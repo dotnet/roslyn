@@ -436,6 +436,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string?)_store[nameof(PathMap)]; }
         }
 
+        public string? ProjectBaseDirectory
+        {
+            set { _store[nameof(ProjectBaseDirectory)] = value; }
+            get { return (string?)_store[nameof(ProjectBaseDirectory)]; }
+        }
+
         /// <summary>
         /// If this property is true then the task will take every C# or VB
         /// compilation which is queued by MSBuild and send it to the
@@ -894,6 +900,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendWhenTrue("/nowin32manifest", _store, nameof(NoWin32Manifest));
             commandLine.AppendPlusOrMinusSwitch("/optimize", _store, nameof(Optimize));
             commandLine.AppendSwitchIfNotNull("/pathmap:", PathMap);
+            commandLine.AppendSwitchIfNotNull("/projectbasedirectory:", ProjectBaseDirectory);
             commandLine.AppendSwitchIfNotNull("/out:", OutputAssembly);
             commandLine.AppendSwitchIfNotNull("/refout:", OutputRefAssembly);
             commandLine.AppendWhenTrue("/refonly", _store, nameof(RefOnly));

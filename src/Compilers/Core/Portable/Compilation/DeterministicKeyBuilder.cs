@@ -515,6 +515,7 @@ namespace Microsoft.CodeAnalysis
             writer.Write("referencesSupersedeLowerVersions", options.ReferencesSupersedeLowerVersions);
             writer.Write("reportSuppressedDiagnostics", options.ReportSuppressedDiagnostics);
             writer.Write("nullableContextOptions", options.NullableContextOptions);
+            writer.Write("projectBaseDirectory", options.ProjectBaseDirectory);
 
             writer.WriteKey("specificDiagnosticOptions");
             writer.WriteArrayStart();

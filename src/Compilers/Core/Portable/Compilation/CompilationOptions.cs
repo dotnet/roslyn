@@ -178,6 +178,11 @@ namespace Microsoft.CodeAnalysis
         public MetadataImportOptions MetadataImportOptions { get; protected set; }
 
         /// <summary>
+        /// The directory containing the project file, or empty if not specified.
+        /// </summary>
+        public string ProjectBaseDirectory { get; protected set; }
+
+        /// <summary>
         /// Apply additional disambiguation rules during resolution of referenced assemblies.
         /// </summary>
         internal bool ReferencesSupersedeLowerVersions { get; private protected set; }
@@ -292,7 +297,8 @@ namespace Microsoft.CodeAnalysis
             AssemblyIdentityComparer? assemblyIdentityComparer,
             StrongNameProvider? strongNameProvider,
             MetadataImportOptions metadataImportOptions,
-            bool referencesSupersedeLowerVersions)
+            bool referencesSupersedeLowerVersions,
+            string projectBaseDirectory)
         {
             this.OutputKind = outputKind;
             this.ModuleName = moduleName;
@@ -322,6 +328,7 @@ namespace Microsoft.CodeAnalysis
             this.MetadataImportOptions = metadataImportOptions;
             this.ReferencesSupersedeLowerVersions = referencesSupersedeLowerVersions;
             this.PublicSign = publicSign;
+            this.ProjectBaseDirectory = projectBaseDirectory;
 
             _lazyErrors = new Lazy<ImmutableArray<Diagnostic>>(() =>
             {
@@ -648,6 +655,7 @@ namespace Microsoft.CodeAnalysis
                    object.Equals(this.StrongNameProvider, other.StrongNameProvider) &&
                    object.Equals(this.AssemblyIdentityComparer, other.AssemblyIdentityComparer) &&
                    this.PublicSign == other.PublicSign &&
+                   string.Equals(this.ProjectBaseDirectory, other.ProjectBaseDirectory, StringComparison.Ordinal) &&
                    this.NullableContextOptions == other.NullableContextOptions;
 
             return equal;
@@ -695,7 +703,8 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(this.StrongNameProvider,
                    Hash.Combine(this.AssemblyIdentityComparer,
                    Hash.Combine(this.PublicSign,
-                   Hash.Combine((int)this.NullableContextOptions, 0))))))))))))))))))))))))))));
+                   Hash.Combine(StringComparer.Ordinal.GetHashCode(this.ProjectBaseDirectory),
+                   Hash.Combine((int)this.NullableContextOptions, 0)))))))))))))))))))))))))))));
         }
 
         public static bool operator ==(CompilationOptions? left, CompilationOptions? right)

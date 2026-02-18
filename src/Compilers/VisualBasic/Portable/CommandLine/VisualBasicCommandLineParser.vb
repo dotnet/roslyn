@@ -170,6 +170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim sourceLink As String = Nothing
             Dim ruleSetPath As String = Nothing
             Dim generatedFilesOutputDirectory As String = Nothing
+            Dim projectBaseDirectory As String = Nothing
             Dim reportIvts As Boolean = False
 
             ' Process ruleset files first so that diagnostic severity settings specified on the command line via
@@ -630,6 +631,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<dir>")
                             Else
                                 generatedFilesOutputDirectory = ParseGenericPathToFile(value, diagnostics, baseDirectory)
+                            End If
+
+                            Continue For
+
+                        Case "projectbasedirectory"
+                            value = RemoveQuotesAndSlashes(value)
+                            If String.IsNullOrEmpty(value) Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<dir>")
+                            Else
+                                projectBaseDirectory = ParseGenericPathToFile(value, diagnostics, baseDirectory)
                             End If
 
                             Continue For
@@ -1440,6 +1451,7 @@ lVbRuntimePlus:
             ' We want to report diagnostics with source suppression in the error log file.
             ' However, these diagnostics won't be reported on the command line.
             Dim reportSuppressedDiagnostics = errorLogOptions IsNot Nothing
+            projectBaseDirectory = If(If(projectBaseDirectory, baseDirectory), String.Empty)
 
             Dim options = New VisualBasicCompilationOptions(
                 outputKind:=outputKind,
@@ -1465,7 +1477,8 @@ lVbRuntimePlus:
                 specificDiagnosticOptions:=specificDiagnosticOptions,
                 optimizationLevel:=If(optimize, OptimizationLevel.Release, OptimizationLevel.Debug),
                 parseOptions:=parseOptions,
-                reportSuppressedDiagnostics:=reportSuppressedDiagnostics)
+                reportSuppressedDiagnostics:=reportSuppressedDiagnostics,
+                projectBaseDirectory:=projectBaseDirectory)
 
             Dim emitOptions = New EmitOptions(
                 metadataOnly:=refOnly,
@@ -2384,4 +2397,3 @@ lVbRuntimePlus:
         End Sub
     End Class
 End Namespace
-

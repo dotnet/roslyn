@@ -65,6 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="publicSign">An optional parameter to specify whether the assembly will be public signed.</param>
         ''' <param name="reportSuppressedDiagnostics">An optional parameter to specify whether or not suppressed diagnostics should be reported.</param>
         ''' <param name="metadataImportOptions">An optional parameter to specify metadata import options.</param>
+        ''' <param name="projectBaseDirectory">An optional parameter to specify the project base directory.</param>
         Public Sub New(
             outputKind As OutputKind,
             Optional moduleName As String = Nothing,
@@ -96,7 +97,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional strongNameProvider As StrongNameProvider = Nothing,
             Optional publicSign As Boolean = False,
             Optional reportSuppressedDiagnostics As Boolean = False,
-            Optional metadataImportOptions As MetadataImportOptions = MetadataImportOptions.Public)
+            Optional metadataImportOptions As MetadataImportOptions = MetadataImportOptions.Public,
+            Optional projectBaseDirectory As String = "")
 
             MyClass.New(
                 outputKind,
@@ -135,7 +137,84 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 strongNameProvider:=strongNameProvider,
                 metadataImportOptions:=metadataImportOptions,
                 referencesSupersedeLowerVersions:=False,
-                ignoreCorLibraryDuplicatedTypes:=False)
+                ignoreCorLibraryDuplicatedTypes:=False,
+                projectBaseDirectory:=projectBaseDirectory)
+
+        End Sub
+
+        '' 18.3 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        Public Sub New(
+            outputKind As OutputKind,
+            moduleName As String,
+            mainTypeName As String,
+            scriptClassName As String,
+            globalImports As IEnumerable(Of GlobalImport),
+            rootNamespace As String,
+            optionStrict As OptionStrict,
+            optionInfer As Boolean,
+            optionExplicit As Boolean,
+            optionCompareText As Boolean,
+            parseOptions As VisualBasicParseOptions,
+            embedVbCoreRuntime As Boolean,
+            optimizationLevel As OptimizationLevel,
+            checkOverflow As Boolean,
+            cryptoKeyContainer As String,
+            cryptoKeyFile As String,
+            cryptoPublicKey As ImmutableArray(Of Byte),
+            delaySign As Boolean?,
+            platform As Platform,
+            generalDiagnosticOption As ReportDiagnostic,
+            specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)),
+            concurrentBuild As Boolean,
+            deterministic As Boolean,
+            xmlReferenceResolver As XmlReferenceResolver,
+            sourceReferenceResolver As SourceReferenceResolver,
+            metadataReferenceResolver As MetadataReferenceResolver,
+            assemblyIdentityComparer As AssemblyIdentityComparer,
+            strongNameProvider As StrongNameProvider,
+            publicSign As Boolean,
+            reportSuppressedDiagnostics As Boolean,
+            metadataImportOptions As MetadataImportOptions)
+
+            MyClass.New(
+                outputKind:=outputKind,
+                reportSuppressedDiagnostics:=reportSuppressedDiagnostics,
+                moduleName:=moduleName,
+                mainTypeName:=mainTypeName,
+                scriptClassName:=scriptClassName,
+                globalImports:=globalImports,
+                rootNamespace:=rootNamespace,
+                optionStrict:=optionStrict,
+                optionInfer:=optionInfer,
+                optionExplicit:=optionExplicit,
+                optionCompareText:=optionCompareText,
+                parseOptions:=parseOptions,
+                embedVbCoreRuntime:=embedVbCoreRuntime,
+                optimizationLevel:=optimizationLevel,
+                checkOverflow:=checkOverflow,
+                cryptoKeyContainer:=cryptoKeyContainer,
+                cryptoKeyFile:=cryptoKeyFile,
+                cryptoPublicKey:=cryptoPublicKey,
+                delaySign:=delaySign,
+                publicSign:=publicSign,
+                platform:=platform,
+                generalDiagnosticOption:=generalDiagnosticOption,
+                specificDiagnosticOptions:=specificDiagnosticOptions,
+                concurrentBuild:=concurrentBuild,
+                deterministic:=deterministic,
+                currentLocalTime:=Nothing,
+                suppressEmbeddedDeclarations:=False,
+                debugPlusMode:=False,
+                xmlReferenceResolver:=xmlReferenceResolver,
+                sourceReferenceResolver:=sourceReferenceResolver,
+                syntaxTreeOptionsProvider:=Nothing,
+                metadataReferenceResolver:=metadataReferenceResolver,
+                assemblyIdentityComparer:=assemblyIdentityComparer,
+                strongNameProvider:=strongNameProvider,
+                metadataImportOptions:=metadataImportOptions,
+                referencesSupersedeLowerVersions:=False,
+                ignoreCorLibraryDuplicatedTypes:=False,
+                projectBaseDirectory:=String.Empty)
 
         End Sub
 #Enable Warning RS0026 ' Do not add multiple overloads with optional parameters
@@ -246,7 +325,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             strongNameProvider As StrongNameProvider,
             metadataImportOptions As MetadataImportOptions,
             referencesSupersedeLowerVersions As Boolean,
-            ignoreCorLibraryDuplicatedTypes As Boolean)
+            ignoreCorLibraryDuplicatedTypes As Boolean,
+            projectBaseDirectory As String)
 
             MyBase.New(
                 outputKind:=outputKind,
@@ -276,7 +356,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 assemblyIdentityComparer:=assemblyIdentityComparer,
                 strongNameProvider:=strongNameProvider,
                 metadataImportOptions:=metadataImportOptions,
-                referencesSupersedeLowerVersions:=referencesSupersedeLowerVersions)
+                referencesSupersedeLowerVersions:=referencesSupersedeLowerVersions,
+                projectBaseDirectory:=projectBaseDirectory)
 
             _globalImports = globalImports.AsImmutableOrEmpty()
             _rootNamespace = If(rootNamespace, String.Empty)
@@ -331,7 +412,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataImportOptions:=other.MetadataImportOptions,
                 referencesSupersedeLowerVersions:=other.ReferencesSupersedeLowerVersions,
                 publicSign:=other.PublicSign,
-                ignoreCorLibraryDuplicatedTypes:=other.IgnoreCorLibraryDuplicatedTypes)
+                ignoreCorLibraryDuplicatedTypes:=other.IgnoreCorLibraryDuplicatedTypes,
+                projectBaseDirectory:=other.ProjectBaseDirectory)
         End Sub
 
         Public Overrides ReadOnly Property Language As String
@@ -798,6 +880,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return New VisualBasicCompilationOptions(Me) With {.PublicSign = value}
+        End Function
+
+        Public Shadows Function WithProjectBaseDirectory(value As String) As VisualBasicCompilationOptions
+            If String.Equals(value, Me.ProjectBaseDirectory, StringComparison.Ordinal) Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilationOptions(Me) With {.ProjectBaseDirectory = value}
         End Function
 
         Protected Overrides Function CommonWithConcurrentBuild(concurrent As Boolean) As CompilationOptions
@@ -1339,7 +1429,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 strongNameProvider:=strongNameProvider,
                 metadataImportOptions:=MetadataImportOptions.Public,
                 referencesSupersedeLowerVersions:=False,
-                ignoreCorLibraryDuplicatedTypes:=False)
+                ignoreCorLibraryDuplicatedTypes:=False,
+                projectBaseDirectory:=String.Empty)
 
         End Sub
 #Enable Warning RS0027 ' Public API with optional parameter(s) should have the most parameters amongst its public overloads
