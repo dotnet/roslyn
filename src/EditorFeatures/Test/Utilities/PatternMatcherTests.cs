@@ -13,7 +13,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PatternMatching;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -479,7 +478,7 @@ public sealed class PatternMatcherTests
         MarkupTestFile.GetSpans(candidate, out candidate, out var expectedSpans);
 
         using var matches = TemporaryArray<PatternMatch>.Empty;
-        PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: true).AddMatches(candidate, ref matches.AsRef());
+        PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: true, allowFuzzyMatching: false).AddMatches(candidate, ref matches.AsRef());
 
         if (matches.Count == 0)
         {
