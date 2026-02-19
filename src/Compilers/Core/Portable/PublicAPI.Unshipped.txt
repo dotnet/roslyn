@@ -1,3 +1,4 @@
+Microsoft.CodeAnalysis.AnalyzerConfigSet.GetOptionsForGeneratedPath(string! projectBaseDirectory, string! generatedFilesBaseDirectory, string! generatedFileOutputPath) -> Microsoft.CodeAnalysis.AnalyzerConfigOptionsResult
 Microsoft.CodeAnalysis.CompilationOptions.ProjectBaseDirectory.get -> string!
 Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.MethodImplEntriesSupported.get -> bool
 Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.MethodImplEntriesSupported.init -> void

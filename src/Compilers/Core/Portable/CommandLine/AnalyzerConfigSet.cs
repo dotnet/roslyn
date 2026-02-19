@@ -168,10 +168,55 @@ namespace Microsoft.CodeAnalysis
         public AnalyzerConfigOptionsResult GlobalConfigOptions
             => _lazyConfigOptions.Initialize(static @this => @this.ParseGlobalConfigOptions(), this);
 
+        private const string GeneratedPathSectionMarker = "$generated$/";
+
         /// <inheritdoc cref="GetOptionsForSourcePath(string, string?, string?)"/>
         public AnalyzerConfigOptionsResult GetOptionsForSourcePath(string sourcePath)
         {
-            return GetOptionsForSourcePath(sourcePath, additionalSourcePath: null, requiredEditorConfigSectionPrefix: null);
+            return GetOptionsForSourcePath(sourcePath, additionalSourcePath: null, requiredDiagnosticSectionPrefix: null);
+        }
+
+        /// <summary>
+        /// Returns a <see cref="AnalyzerConfigOptionsResult"/> for a generated source file.
+        /// </summary>
+        /// <param name="projectBaseDirectory">The project base directory.</param>
+        /// <param name="generatedFilesBaseDirectory">The base output directory used for generated source file paths.</param>
+        /// <param name="generatedFileOutputPath">Path to the generated source file.</param>
+        /// <remarks>
+        /// <see cref="AnalyzerConfigOptionsResult.AnalyzerOptions"/> are matched for both
+        /// <paramref name="generatedFileOutputPath"/> and its corresponding <c>$generated$/</c>-prefixed path.
+        /// <see cref="AnalyzerConfigOptionsResult.TreeOptions"/> are matched only for the <c>$generated$/</c>-prefixed path.
+        /// </remarks>
+        public AnalyzerConfigOptionsResult GetOptionsForGeneratedPath(
+            string projectBaseDirectory,
+            string generatedFilesBaseDirectory,
+            string generatedFileOutputPath)
+        {
+            if (projectBaseDirectory == null)
+            {
+                throw new ArgumentNullException(nameof(projectBaseDirectory));
+            }
+
+            if (generatedFilesBaseDirectory == null)
+            {
+                throw new ArgumentNullException(nameof(generatedFilesBaseDirectory));
+            }
+
+            if (generatedFileOutputPath == null)
+            {
+                throw new ArgumentNullException(nameof(generatedFileOutputPath));
+            }
+
+            // Transform `{generatedFileOutputPath}` (which is nested in `projectOutputPath`)
+            // into `{projectBaseDirectory}/$generated$/{generatedFileRelativePath}`. This is the additional path where we
+            // will respect `dotnet_diagnostic` options.
+            var generatedFileRelativePath = PathUtilities.GetRelativePath(generatedFilesBaseDirectory, generatedFileOutputPath);
+            var projectDirectoryBasedPath = Path.Combine(projectBaseDirectory, "$generated$", generatedFileRelativePath);
+
+            return GetOptionsForSourcePath(
+                generatedFileOutputPath,
+                projectDirectoryBasedPath,
+                requiredDiagnosticSectionPrefix: GeneratedPathSectionMarker);
         }
 
         /// <summary>
@@ -180,9 +225,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="sourcePath">The path to a file such as a source file or additional file. Must be non-null.</param>
         /// <param name="additionalSourcePath">An alternative path to the file that is matched in addition to <paramref name="sourcePath"/> (all sections matching any of them are combined).</param>
-        /// <param name="requiredEditorConfigSectionPrefix">Filter for EditorConfig sections.</param>
+        /// <param name="requiredDiagnosticSectionPrefix">Optional section-name marker required for <c>dotnet_diagnostic.*.severity</c> options to apply.</param>
         /// <remarks>This method is safe to call from multiple threads.</remarks>
-        internal AnalyzerConfigOptionsResult GetOptionsForSourcePath(string sourcePath, string? additionalSourcePath, string? requiredEditorConfigSectionPrefix)
+        private AnalyzerConfigOptionsResult GetOptionsForSourcePath(string sourcePath, string? additionalSourcePath, string? requiredDiagnosticSectionPrefix)
         {
             if (sourcePath == null)
             {
@@ -240,12 +285,7 @@ namespace Microsoft.CodeAnalysis
                             (matcher.IsMatch(relativePath) ||
                             (additionalRelativePath != null && matcher.IsMatch(additionalRelativePath))))
                         {
-                            var section = config.NamedSections[sectionIndex];
-                            if (string.IsNullOrEmpty(requiredEditorConfigSectionPrefix) ||
-                                section.Name.StartsWith(requiredEditorConfigSectionPrefix, StringComparison.Ordinal))
-                            {
-                                sectionKey.Add(section);
-                            }
+                            sectionKey.Add(config.NamedSections[sectionIndex]);
                         }
                     }
                 }
@@ -272,6 +312,7 @@ namespace Microsoft.CodeAnalysis
                             analyzerOptionsBuilder,
                             diagnosticBuilder,
                             GlobalAnalyzerConfigBuilder.GlobalConfigPath,
+                            requiredDiagnosticSectionPrefix,
                             _diagnosticIdCache);
                         sectionKeyIndex++;
                         if (sectionKeyIndex == sectionKey.Count)
@@ -297,6 +338,7 @@ namespace Microsoft.CodeAnalysis
                                 analyzerOptionsBuilder,
                                 diagnosticBuilder,
                                 config.PathToFile,
+                                requiredDiagnosticSectionPrefix,
                                 _diagnosticIdCache);
                             sectionKeyIndex++;
                             if (sectionKeyIndex == sectionKey.Count)
@@ -400,6 +442,7 @@ namespace Microsoft.CodeAnalysis
                         analyzerOptionsBuilder,
                         diagnosticBuilder,
                         GlobalAnalyzerConfigBuilder.GlobalConfigPath,
+                        requiredDiagnosticSectionPrefix: null,
                         _diagnosticIdCache);
 
             var options = new AnalyzerConfigOptionsResult(
@@ -415,10 +458,19 @@ namespace Microsoft.CodeAnalysis
             return options;
         }
 
-        private static void ParseSectionOptions(Section section, TreeOptions.Builder treeBuilder, AnalyzerOptions.Builder analyzerBuilder, ArrayBuilder<Diagnostic> diagnosticBuilder, string analyzerConfigPath, ConcurrentDictionary<ReadOnlyMemory<char>, string> diagIdCache)
+        private static void ParseSectionOptions(
+            Section section,
+            TreeOptions.Builder treeBuilder,
+            AnalyzerOptions.Builder analyzerBuilder,
+            ArrayBuilder<Diagnostic> diagnosticBuilder,
+            string analyzerConfigPath,
+            string? requiredDiagnosticSectionPrefix,
+            ConcurrentDictionary<ReadOnlyMemory<char>, string> diagIdCache)
         {
             const string diagnosticOptionPrefix = "dotnet_diagnostic.";
             const string diagnosticOptionSuffix = ".severity";
+            var includeDiagnosticOptions = requiredDiagnosticSectionPrefix == null ||
+                section.Name.Contains(requiredDiagnosticSectionPrefix, StringComparison.Ordinal);
 
             foreach (var (key, value) in section.Properties)
             {
@@ -432,6 +484,11 @@ namespace Microsoft.CodeAnalysis
 
                 if (diagIdLength >= 0)
                 {
+                    if (!includeDiagnosticOptions)
+                    {
+                        continue;
+                    }
+
                     ReadOnlyMemory<char> idSlice = key.AsMemory().Slice(diagnosticOptionPrefix.Length, diagIdLength);
                     // PERF: this is similar to a double-checked locking pattern, and trying to fetch the ID first
                     // lets us avoid an allocation if the id has already been added

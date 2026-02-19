@@ -15304,7 +15304,7 @@ dotnet_diagnostic.Warning01.severity = error;
                 });
             });
 
-            // The globalconfig + editorconfig combo above suppresses the diagnostic in generated files (but also in files from NuGet source packages).
+            // The globalconfig + editorconfig combo above suppresses the diagnostic in package files.
             VerifyOutput(
                 srcDir,
                 cs,
@@ -15312,7 +15312,7 @@ dotnet_diagnostic.Warning01.severity = error;
                 analyzers: [new WarningDiagnosticAnalyzer()],
                 generators: [generator.AsSourceGenerator()],
                 includeCurrentAssemblyAsAnalyzerReference: false,
-                expectedWarningCount: 1);
+                expectedWarningCount: 2);
 
             // Without the globalconfig, the diagnostic is in all the files.
             VerifyOutput(
@@ -15323,6 +15323,205 @@ dotnet_diagnostic.Warning01.severity = error;
                 generators: [generator.AsSourceGenerator()],
                 includeCurrentAssemblyAsAnalyzerReference: false,
                 expectedWarningCount: 3);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82285")]
+        public void AnalyzerConfig_SuppressDiagnosticInGeneratedFiles_ProjectBaseDirectory()
+        {
+            var rootDir = Temp.CreateDirectory();
+
+            var srcDir = rootDir.CreateDirectory("src");
+            var cs = srcDir.CreateFile("test.cs").WriteAllText("class C;");
+            var objDir = rootDir.CreateDirectory("obj");
+            var editorConfig = rootDir.CreateFile(".editorconfig").WriteAllText("""
+                [$generated$/**/*.cs]
+                dotnet_diagnostic.Warning01.severity = none
+                [*.cs]
+                dotnet_diagnostic.Warning01.severity = warning
+                """);
+
+            var generator = new PipelineCallbackGenerator((ctx) =>
+            {
+                ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, po) =>
+                {
+                    spc.AddSource("output.cs", "class G;");
+                });
+            });
+
+            var output = VerifyOutput(
+                rootDir,
+                cs,
+                additionalFlags:
+                [
+                    "/out:" + Path.Combine(objDir.Path, "embed.dll"),
+                    "/projectbasedirectory:" + rootDir.Path,
+                    "/analyzerconfig:" + editorConfig.Path
+                ],
+                analyzers: [new WarningDiagnosticAnalyzer()],
+                generators: [generator.AsSourceGenerator()],
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                expectedWarningCount: 1);
+
+            Assert.Contains("test.cs(1,7): warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal);
+            Assert.DoesNotContain("output.cs", output, StringComparison.Ordinal);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82285")]
+        public void AnalyzerConfig_SuppressDiagnosticInGeneratedFiles_NoProjectBaseDirectory()
+        {
+            var rootDir = Temp.CreateDirectory();
+
+            var srcDir = rootDir.CreateDirectory("src");
+            var cs = srcDir.CreateFile("test.cs").WriteAllText("class C;");
+            var objDir = rootDir.CreateDirectory("obj");
+            var editorConfig = rootDir.CreateFile(".editorconfig").WriteAllText("""
+                [$generated$/**/*.cs]
+                dotnet_diagnostic.Warning01.severity = none
+                """);
+
+            var generator = new PipelineCallbackGenerator((ctx) =>
+            {
+                ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, po) =>
+                {
+                    spc.AddSource("output.cs", "class G;");
+                });
+            });
+
+            var output = VerifyOutput(
+                rootDir,
+                cs,
+                additionalFlags:
+                [
+                    "/out:" + Path.Combine(objDir.Path, "embed.dll"),
+                    "/analyzerconfig:" + editorConfig.Path
+                    // No project base directory passed. It will fall back to the base directory of the compiler invocation.
+                ],
+                analyzers: [new WarningDiagnosticAnalyzer()],
+                generators: [generator.AsSourceGenerator()],
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                expectedWarningCount: 1);
+
+            Assert.Contains("test.cs(1,7): warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal);
+            Assert.DoesNotContain("output.cs", output, StringComparison.Ordinal);
+
+            var generatedFilePath = Path.Combine(
+                objDir.Path,
+                "Microsoft.CodeAnalysis.Test.Utilities",
+                "Roslyn.Test.Utilities.TestGenerators.PipelineCallbackGenerator",
+                "output.cs");
+            var configSet = AnalyzerConfigSet.Create(ImmutableArray.Create(AnalyzerConfig.Parse(editorConfig.ReadAllText(), editorConfig.Path)));
+
+            var sourcePathOptions = configSet.GetOptionsForSourcePath(generatedFilePath);
+            Assert.Empty(sourcePathOptions.TreeOptions);
+
+            var generatedPathOptions = configSet.GetOptionsForGeneratedPath(rootDir.Path, objDir.Path, generatedFilePath);
+            Assert.Equal(ReportDiagnostic.Suppress, generatedPathOptions.TreeOptions["warning01"]);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82285")]
+        public void AnalyzerConfig_SuppressDiagnosticInGeneratedFiles_ProjectBaseDirectory_DoesNotApplyOriginalOutputPathSection()
+        {
+            var rootDir = Temp.CreateDirectory();
+
+            var srcDir = rootDir.CreateDirectory("src");
+            var cs = srcDir.CreateFile("test.cs").WriteAllText("class C;");
+            var objDir = rootDir.CreateDirectory("obj");
+            var editorConfig = rootDir.CreateFile(".editorconfig").WriteAllText("""
+                [$generated$/Microsoft.CodeAnalysis.Test.Utilities/Roslyn.Test.Utilities.TestGenerators.PipelineCallbackGenerator/*.cs]
+                dotnet_diagnostic.Warning01.severity = none
+                [obj/**/*.cs]
+                dotnet_diagnostic.Warning01.severity = warning
+                """);
+
+            var generator = new PipelineCallbackGenerator((ctx) =>
+            {
+                ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, po) =>
+                {
+                    spc.AddSource("output.cs", "class G;");
+                });
+            });
+
+            var output = VerifyOutput(
+                rootDir,
+                cs,
+                additionalFlags:
+                [
+                    "/out:" + Path.Combine(objDir.Path, "embed.dll"),
+                    "/projectbasedirectory:" + rootDir.Path,
+                    "/analyzerconfig:" + editorConfig.Path
+                ],
+                analyzers: [new WarningDiagnosticAnalyzer()],
+                generators: [generator.AsSourceGenerator()],
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                expectedWarningCount: 1);
+
+            Assert.Contains("test.cs(1,7): warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal);
+            Assert.DoesNotContain("output.cs", output, StringComparison.Ordinal);
+
+            var generatedFilePath = Path.Combine(
+                objDir.Path,
+                "Microsoft.CodeAnalysis.Test.Utilities",
+                "Roslyn.Test.Utilities.TestGenerators.PipelineCallbackGenerator",
+                "output.cs");
+            var configSet = AnalyzerConfigSet.Create(ImmutableArray.Create(AnalyzerConfig.Parse(editorConfig.ReadAllText(), editorConfig.Path)));
+
+            var sourcePathOptions = configSet.GetOptionsForSourcePath(generatedFilePath);
+            Assert.Equal(ReportDiagnostic.Warn, sourcePathOptions.TreeOptions["warning01"]);
+
+            var generatedPathOptions = configSet.GetOptionsForGeneratedPath(rootDir.Path, objDir.Path, generatedFilePath);
+            Assert.Equal(ReportDiagnostic.Suppress, generatedPathOptions.TreeOptions["warning01"]);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/82285")]
+        [InlineData("$generated$/**/*.cs", false)]
+        [InlineData("**/$generated$/**/*.cs", true)]
+        public void AnalyzerConfig_SuppressDiagnosticInGeneratedFiles_EditorConfigAboveProjectBaseDirectory(
+            string sectionName, bool suppressGenerated)
+        {
+            var rootDir = Temp.CreateDirectory();
+            var projectDir = rootDir.CreateDirectory("project");
+
+            var srcDir = projectDir.CreateDirectory("src");
+            var cs = srcDir.CreateFile("test.cs").WriteAllText("class C;");
+            var objDir = projectDir.CreateDirectory("obj");
+            var editorConfig = rootDir.CreateFile(".editorconfig").WriteAllText($"""
+                [{sectionName}]
+                dotnet_diagnostic.Warning01.severity = none
+                [*.cs]
+                dotnet_diagnostic.Warning01.severity = warning
+                """);
+
+            var generator = new PipelineCallbackGenerator((ctx) =>
+            {
+                ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, po) =>
+                {
+                    spc.AddSource("output.cs", "class G;");
+                });
+            });
+
+            var output = VerifyOutput(
+                projectDir,
+                cs,
+                additionalFlags:
+                [
+                    "/out:" + Path.Combine(objDir.Path, "embed.dll"),
+                    "/projectbasedirectory:" + projectDir.Path,
+                    "/analyzerconfig:" + editorConfig.Path
+                ],
+                analyzers: [new WarningDiagnosticAnalyzer()],
+                generators: [generator.AsSourceGenerator()],
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                expectedWarningCount: suppressGenerated ? 1 : 2);
+
+            Assert.Contains("test.cs(1,7): warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal);
+            if (suppressGenerated)
+            {
+                Assert.DoesNotContain("output.cs", output, StringComparison.Ordinal);
+            }
+            else
+            {
+                Assert.Contains("output.cs(1,7): warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal);
+            }
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/41171")]
