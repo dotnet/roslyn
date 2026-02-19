@@ -119,17 +119,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
                     projectElement.SetAttributeValue("hasSuccessfullyLoaded", hasSuccessfullyLoaded);
 
                     // Dump MSBuild <Reference> nodes
-                    if (project.FilePath != null)
+                    var msbuildReferencesElement = CreateMsBuildReferencesElement(project);
+                    if (msbuildReferencesElement != null)
                     {
-                        var msbuildProject = XDocument.Load(project.FilePath);
-                        var msbuildNamespace = XNamespace.Get("http://schemas.microsoft.com/developer/msbuild/2003");
-
-                        var msbuildReferencesElement = new XElement("msbuildReferences");
                         projectElement.Add(msbuildReferencesElement);
-
-                        msbuildReferencesElement.Add(msbuildProject.Descendants(msbuildNamespace + "ProjectReference"));
-                        msbuildReferencesElement.Add(msbuildProject.Descendants(msbuildNamespace + "Reference"));
-                        msbuildReferencesElement.Add(msbuildProject.Descendants(msbuildNamespace + "ReferencePath"));
                     }
 
                     // Dump DTE references
@@ -222,6 +215,25 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging
             {
                 // They cancelled
             }
+        }
+
+        private static XElement? CreateMsBuildReferencesElement(Project project)
+        {
+            if (project.FilePath == null)
+            {
+                return null;
+            }
+
+            var msbuildProject = XDocument.Load(project.FilePath);
+            var msbuildNamespace = XNamespace.Get("http://schemas.microsoft.com/developer/msbuild/2003");
+
+            var msbuildReferencesElement = new XElement("msbuildReferences");
+
+            msbuildReferencesElement.Add(msbuildProject.Descendants(msbuildNamespace + "ProjectReference"));
+            msbuildReferencesElement.Add(msbuildProject.Descendants(msbuildNamespace + "Reference"));
+            msbuildReferencesElement.Add(msbuildProject.Descendants(msbuildNamespace + "ReferencePath"));
+
+            return msbuildReferencesElement;
         }
 
         private static async Task<XElement?> CreateDteReferencesElementAsync(IServiceProvider serviceProvider, IThreadingContext threadingContext, Project project)
