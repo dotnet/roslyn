@@ -33,6 +33,10 @@ jobs:
   steps:
     - checkout: none
 
+    - script: sudo locale-gen ${{ parameters.locale }}
+      displayName: Generate Locale
+      condition: ne('${{ parameters.locale }}', '')
+
     - task: DownloadPipelineArtifact@2
       displayName: Download Test Payload
       inputs:
@@ -43,11 +47,6 @@ jobs:
       displayName: Rehydrate Unit Tests Environment
       inputs:
         scriptPath: ./rehydrate-all.sh
-
-    - script: |
-        sudo locale-gen ${{ parameters.locale }}
-      displayName: Generate Locale
-      condition: ne('${{ parameters.locale }}', '')
 
     - task: ShellScript@2
       inputs:
