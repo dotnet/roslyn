@@ -508,8 +508,8 @@ public sealed class NavigateToSearchIndexTests
     [Theory]
     // Thresholds mirror WordSimilarityChecker.GetThreshold:
     //   pattern.Length < 3  → false (fuzzy disabled, per WordSimilarityChecker.MinFuzzyLength)
-    //   pattern.Length 3–4  → threshold ±1
-    //   pattern.Length >= 5 → threshold ±2
+    //   pattern.Length 3–5  → threshold ±1
+    //   pattern.Length >= 6 → threshold ±2
     //
     // ═══ "GooBar" has length 6 ═══
     //
@@ -517,7 +517,7 @@ public sealed class NavigateToSearchIndexTests
     [InlineData("GooBar", "abc", false)]
     // Pattern length 4 (threshold ±1): symbol length 6, delta = -2 → false (exceeds ±1).
     [InlineData("GooBar", "abcd", false)]
-    // Pattern length 5 (threshold ±2): symbol length 6, delta = -1 → true.
+    // Pattern length 5 (threshold ±1): symbol length 6, delta = -1 → true (within ±1).
     [InlineData("GooBar", "abcde", true)]
     // Pattern length 6 (threshold ±2): delta = 0 → true.
     [InlineData("GooBar", "abcdef", true)]
@@ -542,14 +542,14 @@ public sealed class NavigateToSearchIndexTests
     [InlineData("Xy", "ab", false)]       // length 2 < MinFuzzyLength
     [InlineData("Xy", "abc", true)]       // length 3, threshold ±1, delta = -1
     [InlineData("Xy", "abcd", false)]     // length 4, threshold ±1, delta = -2 → exceeds ±1
-    [InlineData("Xy", "abcde", false)]    // length 5, threshold ±2, delta = -3 → exceeds ±2
+    [InlineData("Xy", "abcde", false)]    // length 5, threshold ±1, delta = -3 → exceeds ±1
     //
     // ═══ Short symbol: "Abc" has length 3 ═══
     //
     [InlineData("Abc", "abc", true)]      // length 3, threshold ±1, delta = 0
     [InlineData("Abc", "abcd", true)]     // length 4, threshold ±1, delta = +1
     [InlineData("Abc", "ab", false)]      // length 2 < MinFuzzyLength
-    [InlineData("Abc", "abcde", true)]    // length 5, threshold ±2, checks 3..7. Symbol 3 in range.
+    [InlineData("Abc", "abcde", false)]   // length 5, threshold ±1, checks 4..6. Symbol 3 not in range.
     [InlineData("Abc", "abcdef", false)]  // length 6, threshold ±2, checks 4..8. Symbol 3 not in range.
     //
     // ═══ Long symbol: "CodeFixProviderService" has length 22 ═══
@@ -586,8 +586,11 @@ public sealed class NavigateToSearchIndexTests
     [InlineData("GooBar", "xyzw", false)]    // bigrams "xy","yz","zw" — 0 match < 1 → false
     [InlineData("GooBar", "goxx", true)]     // bigrams "go","ox","xx" — 1 match ("go") ≥ 1 → true
     //
-    // ═══ Length 5 (k=2, min_shared = 5-1-4 = 0): no filtering possible, always true ═══
-    [InlineData("GooBar", "xyzwv", true)]    // 0 of 4 match, but min_shared=0 → true
+    // ═══ Length 5 (k=1, min_shared = 5-1-2 = 2): need ≥ 2 of 4 bigrams ═══
+    [InlineData("GooBar", "gooba", true)]    // bigrams "go","oo","ob","ba" — all 4 match ≥ 2 → true
+    [InlineData("GooBar", "xyzwv", false)]   // bigrams "xy","yz","zw","wv" — 0 match < 2 → false
+    [InlineData("GooBar", "goxyz", false)]   // bigrams "go","ox","xy","yz" — 1 match ("go") < 2 → false
+    [InlineData("GooBar", "gooxy", true)]    // bigrams "go","oo","ox","xy" — 2 match ("go","oo") ≥ 2 → true
     //
     // ═══ Length 6 (k=2, min_shared = 6-1-4 = 1): need ≥ 1 of 5 bigrams ═══
     [InlineData("GooBar", "goobar", true)]   // all 5 match → true

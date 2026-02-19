@@ -606,8 +606,8 @@ internal sealed partial class NavigateToSearchIndex
         /// <summary>
         /// Checks if any symbol name length in the document is close enough to the pattern length
         /// for a fuzzy match to be possible. The allowed delta is determined by
-        /// <see cref="WordSimilarityChecker.GetThreshold(int)"/>: ±1 for patterns of length 3–4,
-        /// ±2 for length 5+. Patterns shorter than <see cref="WordSimilarityChecker.MinFuzzyLength"/>
+        /// <see cref="WordSimilarityChecker.GetThreshold(int)"/>: ±1 for patterns of length 3–5,
+        /// ±2 for length 6+. Patterns shorter than <see cref="WordSimilarityChecker.MinFuzzyLength"/>
         /// are rejected outright because <see cref="WordSimilarityChecker.AreSimilar(string, out double)"/>
         /// disables fuzzy matching for them.
         /// </summary>
@@ -658,7 +658,7 @@ internal sealed partial class NavigateToSearchIndex
         /// <list type="bullet">
         /// <item>Length 3: k=1, min_shared = 3−1−2 = 0 → cannot filter (always returns true)</item>
         /// <item>Length 4: k=1, min_shared = 4−1−2 = 1 → need ≥ 1 of 3 bigrams</item>
-        /// <item>Length 5: k=2, min_shared = 5−1−4 = 0 → cannot filter (always returns true)</item>
+        /// <item>Length 5: k=1, min_shared = 5−1−2 = 2 → need ≥ 2 of 4 bigrams</item>
         /// <item>Length 6: k=2, min_shared = 6−1−4 = 1 → need ≥ 1 of 5 bigrams</item>
         /// <item>Length 7: k=2, min_shared = 7−1−4 = 2 → need ≥ 2 of 6 bigrams</item>
         /// <item>Length 8+: increasingly strong filtering</item>
