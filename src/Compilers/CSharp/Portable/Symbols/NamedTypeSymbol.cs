@@ -1803,11 +1803,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return TypeKind is TypeKind.Class or TypeKind.Struct &&
-                       HasUnionAttribute;
+                       IsUnionTypeCore;
             }
         }
 
-        internal abstract bool HasUnionAttribute { get; }
+        internal abstract bool IsUnionTypeCore { get; }
 
         internal ImmutableArray<TypeSymbol> UnionCaseTypes
         {

@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal override bool HasCompilerLoweringPreserveAttribute => false;
 
-        internal override bool HasUnionAttribute => false;
+        internal override bool IsUnionTypeCore => false;
 
         internal sealed override ManagedKind GetManagedKind(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo) => ManagedKind.Managed;
 
