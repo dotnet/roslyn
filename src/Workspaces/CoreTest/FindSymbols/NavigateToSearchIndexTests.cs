@@ -1216,5 +1216,81 @@ public sealed class NavigateToSearchIndexTests
         Assert.Equal(PatternMatchKind.Fuzzy, match.Value.Kind);
     }
 
+    /// <summary>
+    /// Mirrors the VB NavigateTo test "TestFindVerbatimClass": searching for "class" (all-lowercase,
+    /// length 5) against a symbol named "Class" (length 5) must produce an Exact match, not Fuzzy.
+    /// The non-fuzzy pass in the PatternMatcher should find this as a case-insensitive exact match
+    /// before the fuzzy pass is even attempted.
+    /// </summary>
+    [Fact]
+    public void EndToEnd_CaseInsensitiveExact_Length5_ProducesExactNotFuzzy()
+    {
+        var index = CreateIndex(("Class", ""));
+
+        var matchKinds = index.CouldContainNavigateToMatch("class", null);
+        Assert.True(matchKinds.HasFlag(PatternMatcherKind.Standard));
+
+        using var matcher = PatternMatcher.CreatePatternMatcher("class", includeMatchedSpans: false, matchKinds);
+        var match = matcher.GetFirstMatch("Class");
+        Assert.NotNull(match);
+        Assert.Equal(PatternMatchKind.Exact, match.Value.Kind);
+    }
+
+    /// <summary>
+    /// Mirrors the VB NavigateTo test "TestFindVerbatimClass" for the "[class]" search.
+    /// In VB, brackets are used to escape keywords as identifiers. The pattern "[class]" should
+    /// strip brackets as punctuation, leaving "class" which matches "Class" as Exact.
+    /// </summary>
+    [Fact]
+    public void EndToEnd_BracketedPattern_ProducesExactNotFuzzy()
+    {
+        var index = CreateIndex(("Class", ""));
+
+        var matchKinds = index.CouldContainNavigateToMatch("[class]", null);
+
+        Assert.True(matchKinds.HasFlag(PatternMatcherKind.Standard), $"Expected Standard flag but got: {matchKinds}");
+
+        using var matcher = PatternMatcher.CreatePatternMatcher("[class]", includeMatchedSpans: false, matchKinds);
+        var match = matcher.GetFirstMatch("Class");
+        Assert.NotNull(match);
+        Assert.Equal(PatternMatchKind.Exact, match.Value.Kind);
+    }
+
+    /// <summary>
+    /// Underscores are valid word characters and must NOT be stripped by the pre-filter.
+    /// A pattern like "_myField" should match symbols with that name via standard (non-fuzzy) matching.
+    /// </summary>
+    [Fact]
+    public void EndToEnd_UnderscorePattern_PreservesUnderscore()
+    {
+        var index = CreateIndex(("_myField", ""));
+
+        var matchKinds = index.CouldContainNavigateToMatch("_myField", null);
+        Assert.True(matchKinds.HasFlag(PatternMatcherKind.Standard), $"Expected Standard flag but got: {matchKinds}");
+
+        using var matcher = PatternMatcher.CreatePatternMatcher("_myField", includeMatchedSpans: false, matchKinds);
+        var match = matcher.GetFirstMatch("_myField");
+        Assert.NotNull(match);
+        Assert.Equal(PatternMatchKind.Exact, match.Value.Kind);
+    }
+
+    /// <summary>
+    /// Underscores surrounded by brackets (e.g., "[_class]" in VB) should strip the brackets
+    /// but preserve the underscore, matching "_class" as Exact.
+    /// </summary>
+    [Fact]
+    public void EndToEnd_BracketedUnderscorePattern_PreservesUnderscore()
+    {
+        var index = CreateIndex(("_class", ""));
+
+        var matchKinds = index.CouldContainNavigateToMatch("[_class]", null);
+        Assert.True(matchKinds.HasFlag(PatternMatcherKind.Standard), $"Expected Standard flag but got: {matchKinds}");
+
+        using var matcher = PatternMatcher.CreatePatternMatcher("[_class]", includeMatchedSpans: false, matchKinds);
+        var match = matcher.GetFirstMatch("_class");
+        Assert.NotNull(match);
+        Assert.Equal(PatternMatchKind.Exact, match.Value.Kind);
+    }
+
     #endregion
 }

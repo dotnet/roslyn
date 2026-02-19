@@ -386,7 +386,7 @@ internal abstract partial class PatternMatcher : IDisposable
         }
     }
 
-    private static bool IsWordChar(char ch)
+    internal static bool IsWordChar(char ch)
         => char.IsLetterOrDigit(ch) || ch == '_';
 
     /// <summary>

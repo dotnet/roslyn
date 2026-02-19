@@ -335,11 +335,6 @@ internal sealed partial class NavigateToSearchIndex
         /// </summary>
         private bool NonFuzzyCheckPasses(ReadOnlySpan<char> pattern)
         {
-            // Strip leading non-letter/digit characters upfront (e.g., "@static" → "static")
-            // to avoid a wasted hump/trigram pass on the raw pattern when it has a junk prefix.
-            while (pattern.Length > 0 && !char.IsLetterOrDigit(pattern[0]))
-                pattern = pattern[1..];
-
             if (pattern.Length == 0)
                 return false;
 
@@ -368,6 +363,19 @@ internal sealed partial class NavigateToSearchIndex
 
         private bool HumpOrTrigramCheckPasses(ReadOnlySpan<char> pattern)
         {
+            // Strip leading and trailing non-word characters from each sub-word (e.g., "@static" →
+            // "static", "[class]" → "class") to match how PatternMatcher.PatternSegment extracts
+            // sub-words. Done here so that each segment after space/asterisk splitting is cleaned
+            // independently (e.g., "[class] [structure]" → "class", "structure").
+            while (pattern.Length > 0 && !PatternMatcher.IsWordChar(pattern[0]))
+                pattern = pattern[1..];
+
+            while (pattern.Length > 0 && !PatternMatcher.IsWordChar(pattern[^1]))
+                pattern = pattern[..^1];
+
+            if (pattern.Length == 0)
+                return false;
+
             var isAllLowercase = IsAllLowercase(pattern);
 
             // Note: this order is relevant.  The trigram check can often return faster than the hump check
