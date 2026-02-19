@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -60,24 +60,28 @@ internal abstract partial class PatternMatcher : IDisposable
 
     public static PatternMatcher CreatePatternMatcher(
         string pattern,
-        bool includeMatchedSpans)
+        bool includeMatchedSpans,
+        PatternMatcherKind kind = PatternMatcherKind.Standard)
     {
-        return CreatePatternMatcher(pattern, culture: null, includeMatchedSpans);
+        return CreatePatternMatcher(pattern, culture: null, includeMatchedSpans, kind);
     }
 
     public static PatternMatcher CreatePatternMatcher(
         string pattern,
         CultureInfo? culture,
-        bool includeMatchedSpans)
+        bool includeMatchedSpans,
+        PatternMatcherKind kind = PatternMatcherKind.Standard)
     {
-        return new SimplePatternMatcher(pattern, culture, includeMatchedSpans);
-    }
+        var standard = kind.HasFlag(PatternMatcherKind.Standard) ? new SimplePatternMatcher(pattern, culture, includeMatchedSpans) : null;
+        var fuzzy = kind.HasFlag(PatternMatcherKind.Fuzzy) ? new FuzzyPatternMatcher(pattern, includeMatchedSpans) : null;
 
-    public static PatternMatcher CreateFuzzyPatternMatcher(
-        string pattern,
-        bool includeMatchedSpans)
-    {
-        return new FuzzyPatternMatcher(pattern, includeMatchedSpans);
+        return (standard, fuzzy) switch
+        {
+            (not null, not null) => new CompoundPatternMatcher([standard, fuzzy]),
+            (not null, null) => standard,
+            (null, not null) => fuzzy,
+            _ => throw new ArgumentException($"{nameof(kind)} must specify at least one matching strategy.", nameof(kind)),
+        };
     }
 
     [return: NotNullIfNotNull(nameof(pattern))]

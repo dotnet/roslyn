@@ -297,29 +297,32 @@ internal sealed partial class NavigateToSearchIndex
         }
 
         /// <summary>
-        /// Returns <see langword="true"/> if this document probably contains at least one symbol whose
-        /// name matches <paramref name="patternName"/> and (if specified) whose container matches
-        /// <paramref name="patternContainer"/>. Returns <see langword="false"/> if the document
-        /// definitely does not contain such a symbol (modulo intentionally unsupported match kinds like
+        /// Returns a <see cref="PatternMatcherKind"/> flags value indicating which matching strategies
+        /// are worth attempting on this document's symbols. Returns <see cref="PatternMatcherKind.None"/>
+        /// if the document definitely does not contain a symbol matching <paramref name="patternName"/>
+        /// (modulo intentionally unsupported match kinds like
         /// <see cref="PatternMatching.PatternMatchKind.NonLowercaseSubstring"/>).
-        /// <para/>
-        /// When returning <see langword="true"/>, <paramref name="couldNonFuzzyMatch"/> and
-        /// <paramref name="couldFuzzyMatch"/> indicate independently which matching strategies
-        /// are worth attempting on this document's symbols.
         /// </summary>
-        public bool ProbablyContainsMatch(string patternName, string? patternContainer, out bool couldNonFuzzyMatch, out bool couldFuzzyMatch)
+        public PatternMatcherKind ProbablyContainsMatch(string patternName, string? patternContainer)
         {
-            couldNonFuzzyMatch = NonFuzzyCheckPasses(patternName);
+            var result = PatternMatcherKind.None;
+
+            if (NonFuzzyCheckPasses(patternName))
+                result |= PatternMatcherKind.Standard;
 
             // Fuzzy matching requires BOTH: (1) a symbol of compatible length exists in the document,
             // AND (2) enough of the pattern's bigrams are present. The length check is cheap and fast;
             // the bigram check uses the q-gram count lemma to filter more precisely for longer patterns.
-            couldFuzzyMatch = LengthCheckPasses(patternName) && BigramCountCheckPasses(patternName);
+            if (LengthCheckPasses(patternName) && BigramCountCheckPasses(patternName))
+                result |= PatternMatcherKind.Fuzzy;
 
-            if (!couldNonFuzzyMatch && !couldFuzzyMatch)
-                return false;
+            if (result == PatternMatcherKind.None)
+                return PatternMatcherKind.None;
 
-            return patternContainer == null || ContainerProbablyMatches(patternContainer);
+            if (patternContainer != null && !ContainerProbablyMatches(patternContainer))
+                return PatternMatcherKind.None;
+
+            return result;
         }
 
         /// <summary>

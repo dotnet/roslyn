@@ -421,7 +421,7 @@ public sealed class PatternMatcherTests
     [Fact]
     public void TestCachingOfPriorResult()
     {
-        using var matcher = PatternMatcher.CreateFuzzyPatternMatcher("Goo", includeMatchedSpans: true);
+        using var matcher = PatternMatcher.CreatePatternMatcher("Goo", includeMatchedSpans: true, PatternMatcherKind.Fuzzy);
         matcher.Matches("Go");
 
         // Ensure that the above call ended up caching the result.

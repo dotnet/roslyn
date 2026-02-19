@@ -29,14 +29,12 @@ internal sealed partial class NavigateToSearchIndex : AbstractSyntaxIndex<Naviga
     }
 
     /// <summary>
-    /// Returns <see langword="true"/> if this document probably contains at least one symbol whose
-    /// name matches <paramref name="patternName"/> and (if specified) whose container matches
-    /// <paramref name="patternContainer"/>. Used by NavigateTo to skip documents early.
-    /// <paramref name="couldNonFuzzyMatch"/> and <paramref name="couldFuzzyMatch"/> indicate which
-    /// matching modes are worth attempting.
+    /// Returns the <see cref="PatternMatcherKind"/> flags indicating which matching strategies are
+    /// worth attempting for this document. Returns <see cref="PatternMatcherKind.None"/> if the
+    /// document can be skipped entirely. Used by NavigateTo to skip documents early.
     /// </summary>
-    internal bool CouldContainNavigateToMatch(string patternName, string? patternContainer, out bool couldNonFuzzyMatch, out bool couldFuzzyMatch)
-        => _navigateToSearchInfo.ProbablyContainsMatch(patternName, patternContainer, out couldNonFuzzyMatch, out couldFuzzyMatch);
+    internal PatternMatcherKind CouldContainNavigateToMatch(string patternName, string? patternContainer)
+        => _navigateToSearchInfo.ProbablyContainsMatch(patternName, patternContainer);
 
     public static ValueTask<NavigateToSearchIndex> GetRequiredIndexAsync(Document document, CancellationToken cancellationToken)
         => GetRequiredIndexAsync(SolutionKey.ToSolutionKey(document.Project.Solution), document.Project.State, (DocumentState)document.State, cancellationToken);

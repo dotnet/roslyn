@@ -140,25 +140,23 @@ internal sealed partial class DocumentOutlineViewModel
         cancellationToken.ThrowIfCancellationRequested();
 
         using var _ = ArrayBuilder<DocumentSymbolData>.GetInstance(out var filteredDocumentSymbols);
-        using var patternMatcher = PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: false);
-        using var fuzzyPatternMatcher = PatternMatcher.CreateFuzzyPatternMatcher(pattern, includeMatchedSpans: false);
+        using var patternMatcher = PatternMatcher.CreatePatternMatcher(
+            pattern, includeMatchedSpans: false, PatternMatcherKind.Standard | PatternMatcherKind.Fuzzy);
 
         foreach (var documentSymbol in documentSymbolData)
         {
             var filteredChildren = SearchDocumentSymbolData(documentSymbol.Children, pattern, cancellationToken);
-            if (SearchNodeTree(documentSymbol, patternMatcher, fuzzyPatternMatcher, cancellationToken))
+            if (SearchNodeTree(documentSymbol, patternMatcher, cancellationToken))
                 filteredDocumentSymbols.Add(documentSymbol with { Children = filteredChildren });
         }
 
         return filteredDocumentSymbols.ToImmutableAndClear();
 
-        // Returns true if the name of one of the tree nodes results in a pattern match.
-        static bool SearchNodeTree(DocumentSymbolData tree, PatternMatcher patternMatcher, PatternMatcher fuzzyPatternMatcher, CancellationToken cancellationToken)
+        static bool SearchNodeTree(DocumentSymbolData tree, PatternMatcher patternMatcher, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             return patternMatcher.Matches(tree.Name)
-                || fuzzyPatternMatcher.Matches(tree.Name)
-                || tree.Children.Any(c => SearchNodeTree(c, patternMatcher, fuzzyPatternMatcher, cancellationToken));
+                || tree.Children.Any(c => SearchNodeTree(c, patternMatcher, cancellationToken));
         }
     }
 }

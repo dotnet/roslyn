@@ -48,14 +48,13 @@ public class NavigateToPreFilterBenchmarks
     [Benchmark(Baseline = true, Description = "FullScan (10k symbols, no pre-filter)")]
     public int FullScan()
     {
-        using var matcher = PatternMatcher.CreatePatternMatcher("FoNa", includeMatchedSpans: false);
-        using var fuzzyMatcher = PatternMatcher.CreateFuzzyPatternMatcher("FoNa", includeMatchedSpans: false);
+        using var matcher = PatternMatcher.CreatePatternMatcher(
+            "FoNa", includeMatchedSpans: false, PatternMatcherKind.Standard | PatternMatcherKind.Fuzzy);
         var count = 0;
         foreach (var name in _realisticSymbolNames)
         {
             using var matches = TemporaryArray<PatternMatch>.Empty;
-            if (matcher.AddMatches(name, ref matches.AsRef()) ||
-                fuzzyMatcher.AddMatches(name, ref matches.AsRef()))
+            if (matcher.AddMatches(name, ref matches.AsRef()))
                 count++;
         }
 
@@ -112,76 +111,76 @@ public class NavigateToPreFilterBenchmarks
     // "FoNa" → humps F,N → bigram "FN" not in hump set (no name starts with F+N humps) → miss.
     [Benchmark(Description = "Realistic: CamelCase miss")]
     public bool Realistic_CamelCase_Miss()
-        => _realistic.CouldContainNavigateToMatch("FoNa", null, out _, out _);
+        => _realistic.CouldContainNavigateToMatch("FoNa", null) != PatternMatcherKind.None;
 
     // "GetApp" → humps G,A → bigram "GA" is stored from "GetApplicationContext" → hit.
     [Benchmark(Description = "Realistic: CamelCase hit")]
     public bool Realistic_CamelCase_Hit()
-        => _realistic.CouldContainNavigateToMatch("GetApp", null, out _, out _);
+        => _realistic.CouldContainNavigateToMatch("GetApp", null) != PatternMatcherKind.None;
 
     // "getapp" → all-lowercase → DP splits "get"+"app", both are hump prefixes of
     // "Get" and "Application" → hit.
     [Benchmark(Description = "Realistic: lowercase hit (hump-prefix DP)")]
     public bool Realistic_Lowercase_Hit()
-        => _realistic.CouldContainNavigateToMatch("getapp", null, out _, out _);
+        => _realistic.CouldContainNavigateToMatch("getapp", null) != PatternMatcherKind.None;
 
     // "foozy" → all-lowercase → DP can't split into any stored hump prefixes (no name starts
     // with "foo...") → hump miss. Trigrams "foo","ooz","ozy" not stored either → miss.
     [Benchmark(Description = "Realistic: lowercase miss (hump-prefix DP)")]
     public bool Realistic_Lowercase_Miss()
-        => _realistic.CouldContainNavigateToMatch("foozy", null, out _, out _);
+        => _realistic.CouldContainNavigateToMatch("foozy", null) != PatternMatcherKind.None;
 
     // "context" → all-lowercase, len 7 → trigrams "con","ont","nte","tex","ext" all stored
     // from "GetApplicationContext" → hit.
     [Benchmark(Description = "Realistic: lowercase trigram hit")]
     public bool Realistic_Lowercase_Trigram_Hit()
-        => _realistic.CouldContainNavigateToMatch("context", null, out _, out _);
+        => _realistic.CouldContainNavigateToMatch("context", null) != PatternMatcherKind.None;
 
     // "Context" → mixed-case → MixedCaseHumpCheckPasses → single hump 'C' in hump set → hit.
     [Benchmark(Description = "Realistic: CamelCase trigram hit")]
     public bool Realistic_CamelCase_Trigram_Hit()
-        => _realistic.CouldContainNavigateToMatch("Context", null, out _, out _);
+        => _realistic.CouldContainNavigateToMatch("Context", null) != PatternMatcherKind.None;
 
     // "zqjxw" → all-lowercase, len 5 → trigrams "zqj","qjx","jxw" none stored → miss.
     [Benchmark(Description = "Realistic: lowercase trigram miss")]
     public bool Realistic_Lowercase_Trigram_Miss()
-        => _realistic.CouldContainNavigateToMatch("zqjxw", null, out _, out _);
+        => _realistic.CouldContainNavigateToMatch("zqjxw", null) != PatternMatcherKind.None;
 
     // "Zqjxw" → mixed-case → MixedCaseHumpCheckPasses → single hump 'Z' not in hump set → miss.
     [Benchmark(Description = "Realistic: CamelCase trigram miss")]
     public bool Realistic_CamelCase_Trigram_Miss()
-        => _realistic.CouldContainNavigateToMatch("Zqjxw", null, out _, out _);
+        => _realistic.CouldContainNavigateToMatch("Zqjxw", null) != PatternMatcherKind.None;
 
     // "GetApp" hits name check. "System.Collections" → humps S,C match container chars
     // from "System.Collections.Generic" → hit.
     [Benchmark(Description = "Realistic: container hit")]
     public bool Realistic_Container_Hit()
-        => _realistic.CouldContainNavigateToMatch("GetApp", "System.Collections", out _, out _);
+        => _realistic.CouldContainNavigateToMatch("GetApp", "System.Collections") != PatternMatcherKind.None;
 
     // "GetApp" hits name check. "Zebra.Unknown" → hump Z not in any container → miss.
     [Benchmark(Description = "Realistic: container miss")]
     public bool Realistic_Container_Miss()
-        => _realistic.CouldContainNavigateToMatch("GetApp", "Zebra.Unknown", out _, out _);
+        => _realistic.CouldContainNavigateToMatch("GetApp", "Zebra.Unknown") != PatternMatcherKind.None;
 
     // "@getapp" → strip leading '@' → "getapp" → all-lowercase → hump-prefix DP hit.
     [Benchmark(Description = "Realistic: lowercase verbatim hit")]
     public bool Realistic_Lowercase_Verbatim_Hit()
-        => _realistic.CouldContainNavigateToMatch("@getapp", null, out _, out _);
+        => _realistic.CouldContainNavigateToMatch("@getapp", null) != PatternMatcherKind.None;
 
     // "@GetApp" → strip leading '@' → "GetApp" → CamelCase → bigram "GA" hit.
     [Benchmark(Description = "Realistic: CamelCase verbatim hit")]
     public bool Realistic_CamelCase_Verbatim_Hit()
-        => _realistic.CouldContainNavigateToMatch("@GetApp", null, out _, out _);
+        => _realistic.CouldContainNavigateToMatch("@GetApp", null) != PatternMatcherKind.None;
 
     // "get context" → split at space → both all-lowercase words checked via hump-prefix DP.
     [Benchmark(Description = "Realistic: lowercase multi-word hit")]
     public bool Realistic_Lowercase_MultiWord_Hit()
-        => _realistic.CouldContainNavigateToMatch("get context", null, out _, out _);
+        => _realistic.CouldContainNavigateToMatch("get context", null) != PatternMatcherKind.None;
 
     // "Get Context" → split at space → both CamelCase words checked via hump set.
     [Benchmark(Description = "Realistic: CamelCase multi-word hit")]
     public bool Realistic_CamelCase_MultiWord_Hit()
-        => _realistic.CouldContainNavigateToMatch("Get Context", null, out _, out _);
+        => _realistic.CouldContainNavigateToMatch("Get Context", null) != PatternMatcherKind.None;
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  Stress-all index: every structure saturated simultaneously
@@ -235,14 +234,14 @@ public class NavigateToPreFilterBenchmarks
     // "AaBb" → humps A,B → bigram "AB" is stored (all 676 bigrams present) → hit.
     [Benchmark(Description = "StressAll: hit")]
     public bool StressAll_Hit()
-        => _stressAll.CouldContainNavigateToMatch("AaBb", null, out _, out _);
+        => _stressAll.CouldContainNavigateToMatch("AaBb", null) != PatternMatcherKind.None;
 
     // "FoNa" → humps F,N → bigram "FN" is stored (all bigrams present), so hump check hits.
     // However the name "FoNa" doesn't actually exist — this tests the cost of a false positive
     // from the hump set (it passes but the actual PatternMatcher would reject later).
     [Benchmark(Description = "StressAll: miss")]
     public bool StressAll_Miss()
-        => _stressAll.CouldContainNavigateToMatch("FoNa", null, out _, out _);
+        => _stressAll.CouldContainNavigateToMatch("FoNa", null) != PatternMatcherKind.None;
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  Stress _humpSet: large frozen set of bigrams/chars
@@ -277,13 +276,13 @@ public class NavigateToPreFilterBenchmarks
     // "AaCd" → humps A,C → bigram "AC" is stored (name "AabCcdXef" exists) → hit.
     [Benchmark(Description = "StressHumpSet: CamelCase hit")]
     public bool StressHumpSet_Hit()
-        => _stressHump.CouldContainNavigateToMatch("AaCd", null, out _, out _);
+        => _stressHump.CouldContainNavigateToMatch("AaCd", null) != PatternMatcherKind.None;
 
     // "FoNa" → humps F,N → bigram "FN" not stored (h2 varies with h1, not all pairs covered).
     // No names have both F and N as adjacent hump initials → miss.
     [Benchmark(Description = "StressHumpSet: CamelCase miss")]
     public bool StressHumpSet_Miss()
-        => _stressHump.CouldContainNavigateToMatch("FoNa", null, out _, out _);
+        => _stressHump.CouldContainNavigateToMatch("FoNa", null) != PatternMatcherKind.None;
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  Stress _humpPrefixFilter: dense bloom of lowercased hump prefixes
@@ -315,13 +314,13 @@ public class NavigateToPreFilterBenchmarks
     // have varied prefixes; "a","aa","aah",... likely stored in the dense bloom → hit.
     [Benchmark(Description = "StressHumpPrefix: lowercase hit")]
     public bool StressHumpPrefix_Hit()
-        => _stressPrefix.CouldContainNavigateToMatch("aahub", null, out _, out _);
+        => _stressPrefix.CouldContainNavigateToMatch("aahub", null) != PatternMatcherKind.None;
 
     // "zzzzqqqq" → all-lowercase → DP tries prefixes "z","zz","zzz","zzzz",...
     // No name has these as hump prefixes (no repeated-z sequences stored) → miss.
     [Benchmark(Description = "StressHumpPrefix: lowercase miss")]
     public bool StressHumpPrefix_Miss()
-        => _stressPrefix.CouldContainNavigateToMatch("zzzzqqqq", null, out _, out _);
+        => _stressPrefix.CouldContainNavigateToMatch("zzzzqqqq", null) != PatternMatcherKind.None;
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  Stress _trigramFilter: dense bloom of 3-char sliding windows
@@ -353,13 +352,13 @@ public class NavigateToPreFilterBenchmarks
     // With 46k trigrams stored, common 3-char sequences are likely present → hit.
     [Benchmark(Description = "StressTrigram: lowercase hit")]
     public bool StressTrigram_Hit()
-        => _stressTrigram.CouldContainNavigateToMatch("aahub", null, out _, out _);
+        => _stressTrigram.CouldContainNavigateToMatch("aahub", null) != PatternMatcherKind.None;
 
     // "zqxjw" → all-lowercase, len 5 → trigrams "zqx","qxj","xjw" are rare 3-char sequences
     // unlikely to appear even in a dense bloom → miss.
     [Benchmark(Description = "StressTrigram: lowercase miss")]
     public bool StressTrigram_Miss()
-        => _stressTrigram.CouldContainNavigateToMatch("zqxjw", null, out _, out _);
+        => _stressTrigram.CouldContainNavigateToMatch("zqxjw", null) != PatternMatcherKind.None;
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  Stress _containerCharSet: all 26 A-Z initials in frozen char set
@@ -389,13 +388,13 @@ public class NavigateToPreFilterBenchmarks
     // both present in full A-Z container char set → hit.
     [Benchmark(Description = "StressContainer: container hit")]
     public bool StressContainer_Hit()
-        => _stressContainer.CouldContainNavigateToMatch("Simple", "Foo.Bar", out _, out _);
+        => _stressContainer.CouldContainNavigateToMatch("Simple", "Foo.Bar") != PatternMatcherKind.None;
 
     // "Simple" hits name check. "0Invalid.1Bad" → hump initials '0','1' are digits,
     // not in the A-Z container char set → miss.
     [Benchmark(Description = "StressContainer: container miss")]
     public bool StressContainer_Miss()
-        => _stressContainer.CouldContainNavigateToMatch("Simple", "0Invalid.1Bad", out _, out _);
+        => _stressContainer.CouldContainNavigateToMatch("Simple", "0Invalid.1Bad") != PatternMatcherKind.None;
 
     // ═══════════════════════════════════════════════════════════════════════════
 

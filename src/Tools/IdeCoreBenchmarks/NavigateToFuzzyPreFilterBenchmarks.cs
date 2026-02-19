@@ -7,6 +7,7 @@ using System.Text;
 using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.PatternMatching;
 using Roslyn.Utilities;
 
 namespace IdeCoreBenchmarks;
@@ -133,7 +134,7 @@ public class NavigateToFuzzyPreFilterBenchmarks
     /// </summary>
     [Benchmark(Description = "SameLen: Combined reject (bigram saves)")]
     public bool SameLength_Combined_Reject()
-        => _sameLengthIndex.CouldContainNavigateToMatch("XyzWvq", null, out _, out _);
+        => _sameLengthIndex.CouldContainNavigateToMatch("XyzWvq", null) != PatternMatcherKind.None;
 
     /// <summary>
     /// Pattern "AabBxx": hump check passes (A,B stored), length check passes, bigram check
@@ -141,7 +142,7 @@ public class NavigateToFuzzyPreFilterBenchmarks
     /// </summary>
     [Benchmark(Description = "SameLen: Combined pass")]
     public bool SameLength_Combined_Pass()
-        => _sameLengthIndex.CouldContainNavigateToMatch("AabBxx", null, out _, out _);
+        => _sameLengthIndex.CouldContainNavigateToMatch("AabBxx", null) != PatternMatcherKind.None;
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  Longer patterns: bigram filtering gets stronger
