@@ -25,6 +25,7 @@ Microsoft.CodeAnalysis.AnalyzerConfigOptionsResult.get_TreeOptions
 Microsoft.CodeAnalysis.AnalyzerConfigSet
 Microsoft.CodeAnalysis.AnalyzerConfigSet.Create``1(``0)
 Microsoft.CodeAnalysis.AnalyzerConfigSet.Create``1(``0,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostic}@)
+Microsoft.CodeAnalysis.AnalyzerConfigSet.GetOptionsForGeneratedPath(System.String,System.String,System.String)
 Microsoft.CodeAnalysis.AnalyzerConfigSet.GetOptionsForSourcePath(System.String)
 Microsoft.CodeAnalysis.AnalyzerConfigSet.get_GlobalConfigOptions
 Microsoft.CodeAnalysis.AnnotationExtensions
@@ -349,6 +350,7 @@ Microsoft.CodeAnalysis.CompilationOptions.get_NullableContextOptions
 Microsoft.CodeAnalysis.CompilationOptions.get_OptimizationLevel
 Microsoft.CodeAnalysis.CompilationOptions.get_OutputKind
 Microsoft.CodeAnalysis.CompilationOptions.get_Platform
+Microsoft.CodeAnalysis.CompilationOptions.get_ProjectBaseDirectory
 Microsoft.CodeAnalysis.CompilationOptions.get_PublicSign
 Microsoft.CodeAnalysis.CompilationOptions.get_ReportSuppressedDiagnostics
 Microsoft.CodeAnalysis.CompilationOptions.get_ScriptClassName
@@ -378,6 +380,7 @@ Microsoft.CodeAnalysis.CompilationOptions.set_NullableContextOptions(Microsoft.C
 Microsoft.CodeAnalysis.CompilationOptions.set_OptimizationLevel(Microsoft.CodeAnalysis.OptimizationLevel)
 Microsoft.CodeAnalysis.CompilationOptions.set_OutputKind(Microsoft.CodeAnalysis.OutputKind)
 Microsoft.CodeAnalysis.CompilationOptions.set_Platform(Microsoft.CodeAnalysis.Platform)
+Microsoft.CodeAnalysis.CompilationOptions.set_ProjectBaseDirectory(System.String)
 Microsoft.CodeAnalysis.CompilationOptions.set_PublicSign(System.Boolean)
 Microsoft.CodeAnalysis.CompilationOptions.set_ReportSuppressedDiagnostics(System.Boolean)
 Microsoft.CodeAnalysis.CompilationOptions.set_ScriptClassName(System.String)

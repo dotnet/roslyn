@@ -133,6 +133,7 @@ Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithOptimizationLevel(Mic
 Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithOutputKind(Microsoft.CodeAnalysis.OutputKind)
 Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithOverflowChecks(System.Boolean)
 Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithPlatform(Microsoft.CodeAnalysis.Platform)
+Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithProjectBaseDirectory(System.String)
 Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithPublicSign(System.Boolean)
 Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithReportSuppressedDiagnostics(System.Boolean)
 Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithScriptClassName(System.String)

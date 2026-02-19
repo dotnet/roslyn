@@ -25,6 +25,9 @@ internal sealed partial class ProjectState
         {
             private readonly ConcurrentDictionary<string, AnalyzerConfigData> _sourcePathToResult = [];
             private readonly Func<string, AnalyzerConfigData> _computeFunction = path => new AnalyzerConfigData(configSet.GetOptionsForSourcePath(path), fallbackOptions);
+            private readonly ConcurrentDictionary<(string projectBaseDirectory, string generatedFilesBaseDirectory, string generatedFileOutputPath), AnalyzerConfigData> _generatedPathToResult = [];
+            private readonly Func<(string projectBaseDirectory, string generatedFilesBaseDirectory, string generatedFileOutputPath), AnalyzerConfigData> _computeGeneratedFunction = key
+                => new AnalyzerConfigData(configSet.GetOptionsForGeneratedPath(key.projectBaseDirectory, key.generatedFilesBaseDirectory, key.generatedFileOutputPath), fallbackOptions);
             private readonly Lazy<AnalyzerConfigData> _global = new(() => new AnalyzerConfigData(configSet.GlobalConfigOptions, StructuredAnalyzerConfigOptions.Empty));
 
             public AnalyzerConfigData GlobalConfigOptions
@@ -32,6 +35,9 @@ internal sealed partial class ProjectState
 
             public AnalyzerConfigData GetOptionsForSourcePath(string sourcePath)
                 => _sourcePathToResult.GetOrAdd(sourcePath, _computeFunction);
+
+            public AnalyzerConfigData GetOptionsForGeneratedPath(string projectBaseDirectory, string generatedFilesBaseDirectory, string generatedFileOutputPath)
+                => _generatedPathToResult.GetOrAdd((projectBaseDirectory, generatedFilesBaseDirectory, generatedFileOutputPath), _computeGeneratedFunction);
         }
 
         public readonly AsyncLazy<Value> Lazy = AsyncLazy.Create(

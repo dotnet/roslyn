@@ -4983,6 +4983,50 @@ public sealed class SolutionTests : TestBase
         Assert.True(finalCompilation.ContainsSyntaxTree(syntaxTreeAfterEditorConfigChange));
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82285")]
+    public async Task TestSourceGeneratedTreeDiagnosticSeverityUsesGeneratedPathOptions()
+    {
+        using var workspace = CreateWorkspace();
+        var projectBaseDir = Path.Combine(TempRoot.Root, "project");
+        var generatedFilesOutputDirectory = Path.Combine(projectBaseDir, "obj");
+        var assemblyPath = Path.Combine(projectBaseDir, "bin", "assembly.dll");
+        var projectId = ProjectId.CreateNewId();
+        var sourceDocumentId = DocumentId.CreateNewId(projectId);
+        var editorConfigDocumentId = DocumentId.CreateNewId(projectId);
+        var compilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+            .WithProjectBaseDirectory(projectBaseDir);
+
+        var solution = workspace.CurrentSolution
+            .AddProject(projectId, "Test", "Test.dll", LanguageNames.CSharp)
+            .WithProjectFilePath(projectId, Path.Combine(projectBaseDir, "Test.csproj"))
+            .WithProjectCompilationOptions(projectId, compilationOptions)
+            .WithProjectCompilationOutputInfo(projectId, new CompilationOutputInfo(assemblyPath, generatedFilesOutputDirectory))
+            .AddDocument(sourceDocumentId, "Test.cs", "class C { }", filePath: Path.Combine(projectBaseDir, "Test.cs"))
+            .AddAnalyzerReference(projectId, new TestGeneratorReference(new CallbackGenerator(static () => ("generated.cs", "class Generated { }"))))
+            .AddAnalyzerConfigDocument(
+                editorConfigDocumentId,
+                ".editorconfig",
+                SourceText.From(
+                    """
+                    [**/*.cs]
+                    dotnet_diagnostic.CA1234.severity = warning
+
+                    [$generated$/**/*.cs]
+                    dotnet_diagnostic.CA1234.severity = error
+                    """),
+                filePath: Path.Combine(projectBaseDir, ".editorconfig"));
+
+        var project = solution.GetRequiredProject(projectId);
+        var compilation = await project.GetCompilationAsync();
+        var generatedTree = Assert.Single(compilation.SyntaxTrees.Skip(project.DocumentIds.Count));
+        Assert.True(DocumentState.GetDocumentIdForTree(generatedTree)?.IsSourceGenerated == true);
+
+        var provider = project.CompilationOptions!.SyntaxTreeOptionsProvider;
+        var hasSeverity = provider.TryGetDiagnosticValue(generatedTree, "CA1234", CancellationToken.None, out var severity);
+        Assert.True(hasSeverity);
+        Assert.Equal(ReportDiagnostic.Error, severity);
+    }
+
     [Fact]
     public void TestAddingAndRemovingGlobalEditorConfigFileWithDiagnosticSeverity()
     {

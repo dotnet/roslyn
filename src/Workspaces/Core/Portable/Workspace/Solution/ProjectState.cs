@@ -97,7 +97,10 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
         {
             projectInfoFixed = projectInfoFixed.WithCompilationOptions(
                 projectInfoFixed.CompilationOptions.WithSyntaxTreeOptionsProvider(
-                    new ProjectSyntaxTreeOptionsProvider(_analyzerConfigOptionsCache)));
+                    new ProjectSyntaxTreeOptionsProvider(
+                        _analyzerConfigOptionsCache,
+                        projectInfoFixed.CompilationOptions.ProjectBaseDirectory,
+                        projectInfoFixed.CompilationOutputInfo.GetEffectiveGeneratedFilesOutputDirectory())));
         }
 
         var parseOptions = projectInfoFixed.ParseOptions;
@@ -554,9 +557,14 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
             => NamingStylePreferences.Empty;
     }
 
-    private sealed class ProjectSyntaxTreeOptionsProvider(AnalyzerConfigOptionsCache lazyAnalyzerConfigSet) : SyntaxTreeOptionsProvider
+    private sealed class ProjectSyntaxTreeOptionsProvider(
+        AnalyzerConfigOptionsCache lazyAnalyzerConfigSet,
+        string projectBaseDirectory,
+        string? generatedFilesBaseDirectory) : SyntaxTreeOptionsProvider
     {
         private readonly AnalyzerConfigOptionsCache _lazyAnalyzerConfigSet = lazyAnalyzerConfigSet;
+        private readonly string _projectBaseDirectory = projectBaseDirectory;
+        private readonly string? _generatedFilesBaseDirectory = generatedFilesBaseDirectory;
 
         public override GeneratedKind IsGenerated(SyntaxTree tree, CancellationToken cancellationToken)
         {
@@ -567,17 +575,26 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
 
         public override bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity)
         {
+            var cache = _lazyAnalyzerConfigSet.Lazy.GetValue(cancellationToken);
             var state = DocumentState.GetDocumentIdForTree(tree);
+            AnalyzerConfigData options;
             if (state?.IsSourceGenerated == true)
             {
-                // While source generated files have file paths, they do not exist on disk
-                // and .editorconfig files should not apply to them based on that path.
-                severity = ReportDiagnostic.Default;
-                return false;
-            }
+                if (_generatedFilesBaseDirectory == null)
+                {
+                    severity = ReportDiagnostic.Default;
+                    return false;
+                }
 
-            var options = _lazyAnalyzerConfigSet.Lazy
-                .GetValue(cancellationToken).GetOptionsForSourcePath(tree.FilePath);
+                options = cache.GetOptionsForGeneratedPath(
+                    _projectBaseDirectory,
+                    _generatedFilesBaseDirectory,
+                    tree.FilePath);
+            }
+            else
+            {
+                options = cache.GetOptionsForSourcePath(tree.FilePath);
+            }
             return options.TreeOptions.TryGetValue(diagnosticId, out severity);
         }
 
@@ -591,10 +608,13 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
         public override bool Equals(object? obj)
         {
             return obj is ProjectSyntaxTreeOptionsProvider other
-                && _lazyAnalyzerConfigSet.Lazy == other._lazyAnalyzerConfigSet.Lazy;
+                && _lazyAnalyzerConfigSet.Lazy == other._lazyAnalyzerConfigSet.Lazy
+                && _projectBaseDirectory == other._projectBaseDirectory
+                && _generatedFilesBaseDirectory == other._generatedFilesBaseDirectory;
         }
 
-        public override int GetHashCode() => _lazyAnalyzerConfigSet.GetHashCode();
+        public override int GetHashCode()
+            => Hash.Combine(_generatedFilesBaseDirectory, Hash.Combine(_projectBaseDirectory, _lazyAnalyzerConfigSet.GetHashCode()));
     }
 
     public Task<VersionStamp> GetLatestDocumentVersionAsync(CancellationToken cancellationToken)
@@ -735,7 +755,26 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
         => (outputRefFilePath == OutputRefFilePath) ? this : WithNewerAttributes(Attributes.With(outputRefPath: outputRefFilePath, version: Version.GetNewerVersion()));
 
     public ProjectState WithCompilationOutputInfo(in CompilationOutputInfo info)
-        => (info == CompilationOutputInfo) ? this : WithNewerAttributes(Attributes.With(compilationOutputInfo: info, version: Version.GetNewerVersion()));
+    {
+        if (info == CompilationOutputInfo)
+        {
+            return this;
+        }
+
+        var attributes = Attributes.With(compilationOutputInfo: info, version: Version.GetNewerVersion());
+
+        if (CompilationOptions == null)
+        {
+            return WithNewerAttributes(attributes);
+        }
+
+        var newProvider = new ProjectSyntaxTreeOptionsProvider(
+            _analyzerConfigOptionsCache,
+            CompilationOptions.ProjectBaseDirectory,
+            info.GetEffectiveGeneratedFilesOutputDirectory());
+        return With(projectInfo: ProjectInfo.With(attributes: attributes)
+            .WithCompilationOptions(CompilationOptions.WithSyntaxTreeOptionsProvider(newProvider)));
+    }
 
     public ProjectState WithDefaultNamespace(string? defaultNamespace)
         => (defaultNamespace == DefaultNamespace) ? this : WithNewerAttributes(Attributes.With(defaultNamespace: defaultNamespace, version: Version.GetNewerVersion()));
@@ -776,7 +815,10 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
             throw new NotSupportedException(WorkspacesResources.Removing_compilation_options_is_not_supported);
         }
 
-        var newProvider = new ProjectSyntaxTreeOptionsProvider(_analyzerConfigOptionsCache);
+        var newProvider = new ProjectSyntaxTreeOptionsProvider(
+            _analyzerConfigOptionsCache,
+            options.ProjectBaseDirectory,
+            CompilationOutputInfo.GetEffectiveGeneratedFilesOutputDirectory());
 
         return With(projectInfo: ProjectInfo.WithCompilationOptions(options.WithSyntaxTreeOptionsProvider(newProvider))
                    .WithVersion(Version.GetNewerVersion()));
@@ -907,7 +949,10 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
         // Changing analyzer configs changes compilation options
         if (CompilationOptions != null)
         {
-            var newProvider = new ProjectSyntaxTreeOptionsProvider(newOptionsCache);
+            var newProvider = new ProjectSyntaxTreeOptionsProvider(
+                newOptionsCache,
+                CompilationOptions.ProjectBaseDirectory,
+                projectInfo.CompilationOutputInfo.GetEffectiveGeneratedFilesOutputDirectory());
             projectInfo = projectInfo
                 .WithCompilationOptions(CompilationOptions.WithSyntaxTreeOptionsProvider(newProvider));
         }

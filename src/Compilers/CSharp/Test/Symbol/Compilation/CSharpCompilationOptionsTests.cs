@@ -413,6 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var topLevelBinderFlags = BinderFlags.None;
             var publicSign = false;
             NullableContextOptions nullableContextOptions = NullableContextOptions.Disable;
+            string projectBaseDirectory = "";
 
             return new CSharpCompilationOptions(OutputKind.ConsoleApplication,
                 reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName, usings,
@@ -422,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 debugPlusMode, xmlReferenceResolver, sourceReferenceResolver,
                 syntaxTreeOptionsProvider, metadataReferenceResolver, assemblyIdentityComparer,
                 strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions,
-                publicSign, topLevelBinderFlags, nullableContextOptions);
+                publicSign, topLevelBinderFlags, nullableContextOptions, projectBaseDirectory);
         }
 
         private sealed class MetadataReferenceResolverWithEquality : MetadataReferenceResolver
