@@ -123,6 +123,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
+                Visit(node.CollectionCreation);
+
                 bool hasElementType = node.CollectionTypeKind is not CollectionExpressionTypeKind.None;
                 foreach (var element in node.Elements)
                 {

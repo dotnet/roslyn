@@ -226,7 +226,7 @@ An `IncrementalValueProvider<T>` will always provide a single value, whereas an
 `IncrementalValuesProvider<T>` may provide zero or more values. For example the
 `CompilationProvider` will always produce a single compilation instance, whereas
 the `AdditionalTextsProvider` will produce a variable number of values,
-depending on how many additional texts where passed to the compiler.
+depending on how many additional texts were passed to the compiler.
 
 Conceptually it is simple to think about the transformation of a single item
 from an `IncrementalValueProvider<T>`: the single item has the selector function
@@ -468,7 +468,7 @@ var transform = collected.Select(static (texts, _) => /* ... */);
 
 The transformations described so far are all effectively single-path operations:
 while there may be multiple items in a given provider, each transformation
-operates on a single input value provider and produce a single derived output
+operates on a single input value provider and produces a single derived output
 provider.
 
 While sufficient for simple operations, it is often necessary to combine the
@@ -478,7 +478,7 @@ combine a single path of transformations into a multi-path pipeline.
 
 ### Split
 
-It is possible to split the output of a transformations into multiple
+It is possible to split the output of a transformation into multiple
 parallel inputs. Rather than having a dedicated transformation this can be
 achieved by simply using the same value provider as the input to multiple
 transforms.
@@ -755,7 +755,7 @@ not return any as it still doesn't contain any method symbols. The `transform`
 however will still be run again for the two methods from `Class1` and `Class2`.
 
 To see why it was necessary to re-run the `transform` consider the following
-edit to `file1.cs` where we change the classes name:
+edit to `file1.cs` where we change the class's name:
 
 ```csharp
 // file1.cs
@@ -987,7 +987,7 @@ deterministic, incremental generators actively _require_ this property to be
 true.
 
 When calculating the required transformations to be applied as part of a step,
-the generator driver is free to look at inputs it has seen before and used
+the generator driver is free to look at inputs it has seen before and use
 previous computed and cached values of the transformation for these inputs.
 
 Consider the following transformation:
@@ -1097,7 +1097,7 @@ tips and best practices to achieve that
 
 **Extract out information early**: It is best to get the information out of the
 inputs as early as possible in the pipeline. This ensures the host is not
-caching large, expensive object such as symbols.
+caching large, expensive objects such as symbols.
 
 **Use value types where possible**: Value types are more amenable to caching and
 usually have well defined and easy to understand comparison semantics.

@@ -77,6 +77,7 @@ internal sealed partial class SyntaxTreeIndex
             var containsDirective = root.ContainsDirectives;
             var containsPrimaryConstructorBaseType = false;
             var containsPartialClass = false;
+            var containsCollectionExpression = false;
 
             var predefinedTypes = (int)PredefinedType.None;
             var predefinedOperators = (int)PredefinedOperator.None;
@@ -112,6 +113,7 @@ internal sealed partial class SyntaxTreeIndex
                         containsPartialClass = containsPartialClass || IsPartialClass(node);
                         containsImplicitBaseConstructorInitializer = containsImplicitBaseConstructorInitializer ||
                             (syntaxFacts.IsConstructorDeclaration(node) && syntaxFacts.HasImplicitBaseConstructorInitializer(node));
+                        containsCollectionExpression = containsCollectionExpression || syntaxFacts.IsCollectionExpression(node);
 
                         TryAddAliasInfo(syntaxFacts, ref aliasInfo, node);
 
@@ -208,7 +210,8 @@ internal sealed partial class SyntaxTreeIndex
                     containsAttribute,
                     containsDirective,
                     containsPrimaryConstructorBaseType,
-                    containsPartialClass),
+                    containsPartialClass,
+                    containsCollectionExpression),
                 aliasInfo,
                 interceptsLocationInfo);
         }

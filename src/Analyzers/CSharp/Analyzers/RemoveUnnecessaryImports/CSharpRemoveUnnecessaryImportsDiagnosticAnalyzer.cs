@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -27,6 +28,8 @@ internal sealed class CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer :
         : base(new LocalizableResourceString(nameof(CSharpAnalyzersResources.Using_directive_is_unnecessary), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
     {
     }
+
+    protected override GeneratedCodeAnalysisFlags GeneratedCodeAnalysisFlags => GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics;
 
     protected override ISyntaxFacts SyntaxFacts
         => CSharpSyntaxFacts.Instance;
@@ -63,5 +66,17 @@ internal sealed class CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer :
                 yield return compilationUnit.Usings.GetContainedSpan();
             }
         }
+    }
+
+    protected override void AnalyzeSemanticModel(SemanticModelAnalysisContext context, SyntaxTree tree, CancellationToken cancellationToken)
+    {
+        // We've opted in to generated code analysis above, but we actually only want to analyze generated code for Razor
+        if (context.IsGeneratedCode &&
+            tree.FilePath.IndexOf("Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator") == -1)
+        {
+            return;
+        }
+
+        base.AnalyzeSemanticModel(context, tree, cancellationToken);
     }
 }

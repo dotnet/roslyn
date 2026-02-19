@@ -76,17 +76,11 @@ public abstract class AbstractSignatureHelpProviderTests<TWorkspaceFixture> : Te
 
         markupWithPositionAndOptSpan = markupWithPositionAndOptSpan.NormalizeLineEndings();
 
-        TextSpan? textSpan = null;
-        MarkupTestFile.GetPositionAndSpans(
-            markupWithPositionAndOptSpan,
-            out var code,
-            out var cursorPosition,
-            out var textSpans);
+        var workspace = workspaceFixture.Target.GetWorkspace(markupWithPositionAndOptSpan);
 
-        if (textSpans.Any())
-        {
-            textSpan = textSpans.First();
-        }
+        var code = workspaceFixture.Target.Code;
+        var cursorPosition = workspaceFixture.Target.Position;
+        var textSpan = workspaceFixture.Target.Spans.FirstOrNull();
 
         var parseOptions = CreateExperimentalParseOptions();
 

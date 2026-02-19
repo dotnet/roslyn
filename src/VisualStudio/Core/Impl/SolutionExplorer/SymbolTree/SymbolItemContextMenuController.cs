@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.ProjectSystem.VS;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
@@ -24,15 +25,14 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
             if (items.FirstOrDefault() is not SymbolTreeItem item)
                 return false;
 
-            var guidContextMenu = Guids.RoslynGroupId;
             if (Shell.Package.GetGlobalService(typeof(SVsUIShell)) is not IVsUIShell shell)
                 return false;
 
+            var guidContextMenu = VsMenus.guidSHLMainMenu;
             var result = shell.ShowContextMenu(
                 dwCompRole: 0,
                 ref guidContextMenu,
-                //0x400,
-                ID.RoslynCommands.SolutionExplorerSymbolItemContextMenu,
+                VsMenus.IDM_VS_CTXT_PROJWIN_FILECONTENTS,
                 [new() { x = (short)location.X, y = (short)location.Y }],
                 pCmdTrgtActive: new SymbolTreeItemOleCommandTarget(rootProvider, item));
             return ErrorHandler.Succeeded(result);

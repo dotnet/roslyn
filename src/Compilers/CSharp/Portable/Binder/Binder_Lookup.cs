@@ -217,29 +217,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void EnumerateAllExtensionMembersInSingleBinder(ArrayBuilder<SingleLookupResult> result,
             string? name, int arity, LookupOptions options, Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ref CompoundUseSiteInfo<AssemblySymbol> classicExtensionUseSiteInfo)
         {
-            // 1. Collect new extension members
-            PooledHashSet<MethodSymbol>? implementationsToShadow = EnumerateExtensionBlockMembersInSingleBinder(
-                result, name, arity, options, originalBinder, trackImplementationsToShadow: true, ref useSiteInfo);
+            var extensionCandidates = ArrayBuilder<Symbol>.GetInstance();
+            this.GetAllExtensionCandidatesInSingleBinder(extensionCandidates, name, alternativeName: null, arity, options, originalBinder);
 
-            // 2. Collect classic extension methods
-            var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
-            this.GetCandidateExtensionMethodsInSingleBinder(extensionMethods, name, arity, options, originalBinder: originalBinder);
-
-            foreach (var method in extensionMethods)
+            foreach (var candidate in extensionCandidates)
             {
-                // Prefer instance extension declarations vs. their implementations
-                if (implementationsToShadow is null || !implementationsToShadow.Remove(method.OriginalDefinition))
+                bool isExtensionMethod = candidate is MethodSymbol { IsExtensionMethod: true };
+                ref var useSiteInfoToUse = ref isExtensionMethod ? ref classicExtensionUseSiteInfo : ref useSiteInfo;
+                SingleLookupResult resultOfThisMember = originalBinder.CheckViability(candidate, arity, options, null, diagnose: true, useSiteInfo: ref useSiteInfoToUse);
+                if (resultOfThisMember.Kind == LookupResultKind.Empty)
                 {
-                    SingleLookupResult resultOfThisMember = originalBinder.CheckViability(method, arity, options, null, diagnose: true, useSiteInfo: ref classicExtensionUseSiteInfo);
-                    if (resultOfThisMember.Kind != LookupResultKind.Empty)
-                    {
-                        result.Add(resultOfThisMember);
-                    }
+                    continue;
                 }
+
+                Debug.Assert(resultOfThisMember.Symbol is not null);
+                result.Add(resultOfThisMember);
             }
 
-            extensionMethods.Free();
-            implementationsToShadow?.Free();
+            extensionCandidates.Free();
         }
 
         private PooledHashSet<MethodSymbol>? EnumerateExtensionBlockMembersInSingleBinder(
@@ -254,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             PooledHashSet<MethodSymbol>? implementationsToShadow = null;
 
             var extensionCandidates = ArrayBuilder<Symbol>.GetInstance();
-            this.GetCandidateExtensionMembersInSingleBinder(extensionCandidates, name, alternativeName: null, arity, options, originalBinder);
+            this.GetAllExtensionCandidatesInSingleBinder(extensionCandidates, name, alternativeName: null, arity, options, originalBinder);
 
             foreach (var candidate in extensionCandidates)
             {
@@ -847,15 +842,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
         /// <summary>
-        /// Return the extension members from this specific binding scope
+        /// Return the extension members and methods from this specific binding scope
         /// Since the lookup of extension members is iterative, proceeding one binding scope at a time,
-        /// <see cref="GetCandidateExtensionMembersInSingleBinder"/> should not defer to the next binding scope. Instead, the caller is
+        /// <see cref="GetAllExtensionCandidatesInSingleBinder"/> should not defer to the next binding scope. Instead, the caller is
         /// responsible for walking the nested binding scopes from innermost to outermost. This method is overridden
         /// to search the available members list in binding types that represent types, namespaces, and usings.
         /// An alternativeName should only be provided if a name is provided.
         /// </summary>
         /// <remarks>Does not perform a full viability check</remarks>
-        internal virtual void GetCandidateExtensionMembersInSingleBinder(
+        internal virtual void GetAllExtensionCandidatesInSingleBinder(
             ArrayBuilder<Symbol> members,
             string? name,
             string? alternativeName,

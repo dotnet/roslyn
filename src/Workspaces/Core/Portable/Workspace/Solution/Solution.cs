@@ -62,8 +62,7 @@ public partial class Solution
         ImmutableDictionary<string, StructuredAnalyzerConfigOptions> fallbackAnalyzerOptions)
         : this(new SolutionCompilationState(
             new SolutionState(workspace.Kind, workspace.Services.SolutionServices, solutionAttributes, options, analyzerReferences, fallbackAnalyzerOptions),
-            workspace.PartialSemanticsEnabled,
-            workspace.GeneratorDriverCreationCache))
+            workspace.PartialSemanticsEnabled))
     {
     }
 
@@ -1695,17 +1694,6 @@ public partial class Solution
     /// </summary>
     internal Solution WithoutFrozenSourceGeneratedDocuments()
         => WithCompilationState(CompilationState.WithoutFrozenSourceGeneratedDocuments());
-
-    /// <summary>
-    /// Returns a new Solution which represents the same state as before, but with the cached generator driver state from the given project updated to match.
-    /// </summary>
-    /// <remarks>
-    /// When generators are ran in a Solution snapshot, they may cache state to speed up future runs. For Razor, we only run their generator on forked
-    /// solutions that are thrown away; this API gives us a way to reuse that cached state in other forked solutions, since otherwise there's no way to reuse
-    /// the cached state.
-    /// </remarks>
-    internal Solution WithCachedSourceGeneratorState(ProjectId projectToUpdate, Project projectWithCachedGeneratorState)
-        => WithCompilationState(CompilationState.WithCachedSourceGeneratorState(projectToUpdate, projectWithCachedGeneratorState));
 
     /// <summary>
     /// Gets an objects that lists the added, changed and removed projects between

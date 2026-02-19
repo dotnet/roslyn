@@ -2,6 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <!--
+    Currently fails to build due to https://github.com/dotnet/fsharp/issues/14693
+    <CodePage>932</CodePage>
+    -->
+    <PdbChecksumAlgorithm>sha1</PdbChecksumAlgorithm>
   </PropertyGroup>
 
   <ItemGroup>

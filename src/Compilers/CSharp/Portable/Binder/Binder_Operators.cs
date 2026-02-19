@@ -604,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(ordinaryInstanceOperatorName is not null);
 
                         extensionCandidatesInSingleScope.Clear();
-                        scope.Binder.GetCandidateExtensionMembersInSingleBinder(extensionCandidatesInSingleScope,
+                        scope.Binder.GetAllExtensionCandidatesInSingleBinder(extensionCandidatesInSingleScope,
                             ordinaryInstanceOperatorName, checkedInstanceOperatorName, arity: 0,
                             LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeOperator | LookupOptions.MustBeInstance, this);
 
@@ -619,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     extensionCandidatesInSingleScope.Clear();
-                    scope.Binder.GetCandidateExtensionMembersInSingleBinder(extensionCandidatesInSingleScope,
+                    scope.Binder.GetAllExtensionCandidatesInSingleBinder(extensionCandidatesInSingleScope,
                         staticOperatorName1, staticOperatorName2Opt, arity: 0,
                         LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeOperator | LookupOptions.MustNotBeInstance, this);
 
@@ -1996,7 +1996,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 UnaryOperatorAnalysisResult? possiblyBest = null;
 
                 string name = OperatorFacts.UnaryOperatorNameFromOperatorKind(kind, isChecked: false);
-                extensionContainingType.GetExtensionMembers(extensionCandidates,
+                extensionContainingType.GetAllExtensionMembers(extensionCandidates,
                     name, alternativeName: null, arity: 0,
                     LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeOperator | LookupOptions.MustNotBeInstance,
                     FieldsBeingBound);
@@ -2121,7 +2121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var scope in new ExtensionScopes(this))
             {
                 extensionCandidatesInSingleScope.Clear();
-                scope.Binder.GetCandidateExtensionMembersInSingleBinder(extensionCandidatesInSingleScope,
+                scope.Binder.GetAllExtensionCandidatesInSingleBinder(extensionCandidatesInSingleScope,
                     name1, name2Opt, arity: 0,
                     LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeOperator | LookupOptions.MustNotBeInstance, this);
 
@@ -2433,7 +2433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var scope in new ExtensionScopes(this))
             {
                 extensionCandidatesInSingleScope.Clear();
-                scope.Binder.GetCandidateExtensionMembersInSingleBinder(extensionCandidatesInSingleScope,
+                scope.Binder.GetAllExtensionCandidatesInSingleBinder(extensionCandidatesInSingleScope,
                     name1, name2Opt, arity: 0,
                     LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeOperator | LookupOptions.MustNotBeInstance, this);
 
@@ -3695,7 +3695,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(ordinaryInstanceOperatorName is not null);
 
                         extensionCandidatesInSingleScope.Clear();
-                        scope.Binder.GetCandidateExtensionMembersInSingleBinder(extensionCandidatesInSingleScope,
+                        scope.Binder.GetAllExtensionCandidatesInSingleBinder(extensionCandidatesInSingleScope,
                             ordinaryInstanceOperatorName, checkedInstanceOperatorName, arity: 0,
                             LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeOperator | LookupOptions.MustBeInstance, this);
 
@@ -3710,7 +3710,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     extensionCandidatesInSingleScope.Clear();
-                    scope.Binder.GetCandidateExtensionMembersInSingleBinder(extensionCandidatesInSingleScope,
+                    scope.Binder.GetAllExtensionCandidatesInSingleBinder(extensionCandidatesInSingleScope,
                         staticOperatorName1, staticOperatorName2Opt, arity: 0,
                         LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeOperator | LookupOptions.MustNotBeInstance, this);
 

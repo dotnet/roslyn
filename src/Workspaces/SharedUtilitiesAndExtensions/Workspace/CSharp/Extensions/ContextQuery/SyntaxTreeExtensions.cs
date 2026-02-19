@@ -355,7 +355,7 @@ internal static partial class SyntaxTreeExtensions
         var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
         var token = leftToken.GetPreviousTokenIfTouchingWord(position);
 
-        // if we're after an attribute, restart the check at teh start of the attribute.
+        // if we're after an attribute, restart the check at the start of the attribute.
         if (token.Kind() == SyntaxKind.CloseBracketToken && token.Parent is AttributeListSyntax)
             return syntaxTree.IsLocalFunctionDeclarationContext(token.Parent.SpanStart, validModifiers, cancellationToken);
 

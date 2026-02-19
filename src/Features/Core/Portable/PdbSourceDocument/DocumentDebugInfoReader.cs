@@ -67,76 +67,24 @@ internal sealed class DocumentDebugInfoReader : IDisposable
         if (documentName is null)
             return null;
 
-        foreach (var cdiHandle in _pdbReader.GetCustomDebugInformation(EntityHandle.ModuleDefinition))
-        {
-            var cdi = _pdbReader.GetCustomDebugInformation(cdiHandle);
-            if (_pdbReader.GetGuid(cdi.Kind) == PortableCustomDebugInfoKinds.SourceLink && !cdi.Value.IsNil)
-            {
-                var blobReader = _pdbReader.GetBlobReader(cdi.Value);
-                var sourceLinkJson = blobReader.ReadUTF8(blobReader.Length);
+        if (!_pdbReader.TryGetCustomDebugInformation(EntityHandle.ModuleDefinition, PortableCustomDebugInfoKinds.SourceLink, out var cdi) || cdi.Value.IsNil)
+            return null;
 
-                var map = SourceLinkMap.Parse(sourceLinkJson);
+        var blobReader = _pdbReader.GetBlobReader(cdi.Value);
+        var sourceLinkJson = blobReader.ReadUTF8(blobReader.Length);
 
-                if (map.TryGetUri(documentName, out var uri))
-                {
-                    return uri;
-                }
-            }
-        }
+        var map = SourceLinkMap.Parse(sourceLinkJson);
 
-        return null;
+        return map.TryGetUri(documentName, out var uri) ? uri : null;
     }
 
     private byte[]? TryGetEmbeddedTextBytes(DocumentHandle handle)
-    {
-        var handles = _pdbReader.GetCustomDebugInformation(handle);
-        foreach (var cdiHandle in handles)
-        {
-            var cdi = _pdbReader.GetCustomDebugInformation(cdiHandle);
-            var guid = _pdbReader.GetGuid(cdi.Kind);
-            if (guid == PortableCustomDebugInfoKinds.EmbeddedSource)
-            {
-                return _pdbReader.GetBlobBytes(cdi.Value);
-            }
-        }
-
-        return null;
-    }
+        => _pdbReader.TryGetCustomDebugInformation(handle, PortableCustomDebugInfoKinds.EmbeddedSource, out var cdi)
+            ? _pdbReader.GetBlobBytes(cdi.Value)
+            : null;
 
     public ImmutableDictionary<string, string> GetCompilationOptions()
-    {
-        using var _ = PooledDictionary<string, string>.GetInstance(out var result);
-
-        foreach (var handle in _pdbReader.GetCustomDebugInformation(EntityHandle.ModuleDefinition))
-        {
-            var customDebugInformation = _pdbReader.GetCustomDebugInformation(handle);
-            if (_pdbReader.GetGuid(customDebugInformation.Kind) == PortableCustomDebugInfoKinds.CompilationOptions)
-            {
-                var blobReader = _pdbReader.GetBlobReader(customDebugInformation.Value);
-
-                // Compiler flag bytes are UTF-8 null-terminated key-value pairs
-                var nullIndex = blobReader.IndexOf(0);
-                while (nullIndex >= 0)
-                {
-                    var key = blobReader.ReadUTF8(nullIndex);
-
-                    // Skip the null terminator
-                    blobReader.ReadByte();
-
-                    nullIndex = blobReader.IndexOf(0);
-                    var value = blobReader.ReadUTF8(nullIndex);
-
-                    result.Add(key, value);
-
-                    // Skip the null terminator
-                    blobReader.ReadByte();
-                    nullIndex = blobReader.IndexOf(0);
-                }
-            }
-        }
-
-        return result.ToImmutableDictionary();
-    }
+        => _pdbReader.GetCompilationOptions();
 
     public void Dispose()
     {

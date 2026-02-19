@@ -398,8 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 continue;
                             }
 
-                            var newChecksumAlgorithm = TryParseHashAlgorithmName(value!);
-                            if (newChecksumAlgorithm == SourceHashAlgorithm.None)
+                            if (!SourceHashAlgorithms.TryParseAlgorithmName(value!, out var newChecksumAlgorithm))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.FTL_BadChecksumAlgorithm, value);
                                 continue;

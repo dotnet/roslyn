@@ -960,22 +960,12 @@ public sealed class UseCollectionExpressionForArrayTests
                 {
                     void M(int[] x, bool b)
                     {
-                        int[][] c = [new[] { 1, 2, 3 }];
+                        int[][] c = [[1, 2, 3]];
                     }
                 }
                 """,
-            FixedState =
-            {
-                ExpectedDiagnostics =
-                {
-                    // /0/Test0.cs(5,22): info IDE0300: Collection initialization can be simplified
-                    VerifyCS.Diagnostic().WithSpan(5, 22, 5, 25).WithSpan(5, 22, 5, 39).WithSeverity(DiagnosticSeverity.Info),
-                    // /0/Test0.cs(5,22): hidden IDE0300: Collection initialization can be simplified
-                    VerifyCS.Diagnostic().WithSpan(5, 22, 5, 27).WithSpan(5, 22, 5, 39).WithSpan(5, 22, 5, 27).WithSeverity(DiagnosticSeverity.Hidden),
-                }
-            },
             LanguageVersion = LanguageVersion.CSharp12,
-            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
+            NumberOfFixAllIterations = 2,
         }.RunAsync();
 
     [Fact]

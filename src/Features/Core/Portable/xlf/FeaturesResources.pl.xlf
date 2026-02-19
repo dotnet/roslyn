@@ -460,17 +460,22 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Zmiana ustawienia projektu „{0}” z „{1}” na „{2}” wymaga ponownego uruchomienia aplikacji.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application">
+      <trans-unit id="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_the_application">
         <source>Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</source>
         <target state="translated">Zmiana atrybutu pseudoniestandardowego elementu „{0}” z {1} wymaga ponownego uruchomienia aplikacji</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit">
-        <source>Changing source file '{0}' in a stale project has no effect until the project is rebuit.</source>
-        <target state="translated">Zmiana pliku źródłowego „{0}” w nieaktualnym projekcie nie ma żadnego efektu, dopóki projekt nie zostanie przebudowany.</target>
+      <trans-unit id="Changing_source_file_0_in_a_project_1_that_does_not_support_hot_reload_requires_restarting_the_application_2">
+        <source>Changing source file '{0}' in a project '{1}' that does not support Hot Reload requires restarting the application; {2}</source>
+        <target state="translated">Zmiana pliku źródłowego „{0}” w projekcie „{1}”, który nie obsługuje przeładowywania na gorąco, wymaga ponownego uruchomienia aplikacji; {2}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_th_application">
+      <trans-unit id="Changing_source_file_0_in_a_stale_project_1_has_no_effect_until_the_project_is_rebuilt_2">
+        <source>Changing source file '{0}' in a stale project '{1}' has no effect until the project is rebuit; {2}</source>
+        <target state="translated">Zmiana pliku źródłowego „{0}” w nieaktualnym projekcie „{1}” nie ma żadnego efektu, dopóki projekt nie zostanie przebudowany; {2}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_the_application">
         <source>Changing the containing namespace of '{0}' from '{1}' to '{2}' requires restarting the application</source>
         <target state="translated">Zmiana zawierającej przestrzeni nazw „{0}” z „{1}” na „{2}” wymaga ponownego uruchomienia aplikacji</target>
         <note />
@@ -3170,6 +3175,11 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
         <target state="translated">{0} - {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_does_not_support_Hot_Reload">
+        <source>{0} does not support Hot Reload.</source>
+        <target state="translated">{0} nie obsługuje przeładowywania na gorąco.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_expected">
         <source>'{0}' expected</source>
         <target state="translated">Oczekiwano: „{0}”</target>
@@ -4429,6 +4439,21 @@ Gdy jest używany ten standardowy specyfikator formatu, operacja formatowania lu
         <source>{0} '{1}' of {2} '{3}'</source>
         <target state="translated">{0} „{1}” z {2} „{3}”</target>
         <note>e.g. "parameter 'T param' of method 'M'"</note>
+      </trans-unit>
+      <trans-unit id="the_content_of_the_document_is_stale">
+        <source>the content of the document is stale.</source>
+        <target state="translated">zawartość dokumentu jest nieaktualna.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="the_project_contains_stale_document_0">
+        <source>the project contains stale document '{0}'.</source>
+        <target state="translated">projekt zawiera nieaktualny dokument „{0}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="the_project_has_not_been_built">
+        <source>the project has not been built.</source>
+        <target state="translated">projekt nie został skompilowany.</target>
+        <note />
       </trans-unit>
       <trans-unit id="time_separator">
         <source>time separator</source>

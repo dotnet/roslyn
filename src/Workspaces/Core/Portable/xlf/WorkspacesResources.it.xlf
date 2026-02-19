@@ -387,11 +387,6 @@
         <target state="translated">Non è possibile aprire il progetto '{0}' perché l'estensione di file '{1}' non è associata a un linguaggio.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_open_project_0_because_the_language_1_is_not_supported">
-        <source>Cannot open project '{0}' because the language '{1}' is not supported.</source>
-        <target state="translated">Non è possibile aprire il progetto '{0}' perché il linguaggio '{1}' non è supportato.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Invalid_project_file_path_colon_0">
         <source>Invalid project file path: '{0}'</source>
         <target state="translated">Percorso del file di progetto non valido: '{0}'</target>

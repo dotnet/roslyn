@@ -895,6 +895,7 @@ class CollectionExpressions
 {
   static int[] X = [0];
   static int[] Y = [..X];
+  static int[] X = [with()];
 }
 
 #line 6
